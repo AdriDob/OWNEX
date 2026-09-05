@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { ChevronDown, HelpCircle, Search, MessageCircle, ExternalLink, Bug, Shield, Cpu, LifeBuoy } from '@lucide/vue'
+import { Bug, ChevronDown, Cpu, ExternalLink, HelpCircle, LifeBuoy, MessageCircle, Search, Shield } from '@lucide/vue'
+import { computed, ref } from 'vue'
 import Button from '@/components/ui/Button.vue'
 
 interface FaqItem {
@@ -12,40 +12,109 @@ interface FaqItem {
 
 const faqs: FaqItem[] = [
   // ── General ──
-  { q: '¿Qué es OWNEX?', a: 'OWNEX es una plataforma de bug bounty automatizada. Escanea programas públicos y privados, ejecuta reconocimiento pasivo y activo, genera hipótesis de vulnerabilidades, valida hallazgos y gestiona el ciclo de vida de reportes.', category: 'General' },
-  { q: '¿Cómo activo mi licencia?', a: 'Desde la pantalla de login haz clic en "Activar licencia". Ingresa tu license key y el sistema la validará automáticamente. Si no tienes una, contacta a soporte.', category: 'General', link: { path: '/activation', label: 'Ir a Activación' } },
-  { q: '¿Qué modos de operación existen?', a: 'OWNEX soporta tres modos: Manual (tú controlas cada etapa), Automático (el pipeline corre en ciclo completo), y Asistido por IA (el copiloto sugiere acciones y tú apruebas). Se configuran desde Control de Misión.', category: 'General', link: { path: '/mission-control', label: 'Ir a Control de Misión' } },
-  { q: '¿Qué navegadores soporta?', a: 'OWNEX funciona en Chrome 90+, Firefox 90+, Edge 90+ y Safari 15+. Requiere Web Crypto API (disponible en todos los navegadores modernos).', category: 'General' },
+  {
+    q: '¿Qué es OWNEX?',
+    a: 'OWNEX es una plataforma de bug bounty automatizada. Escanea programas públicos y privados, ejecuta reconocimiento pasivo y activo, genera hipótesis de vulnerabilidades, valida hallazgos y gestiona el ciclo de vida de reportes.',
+    category: 'General',
+  },
+  {
+    q: '¿Cómo activo mi licencia?',
+    a: 'Desde la pantalla de login haz clic en "Activar licencia". Ingresa tu license key y el sistema la validará automáticamente. Si no tienes una, contacta a soporte.',
+    category: 'General',
+    link: { path: '/activation', label: 'Ir a Activación' },
+  },
+  {
+    q: '¿Qué modos de operación existen?',
+    a: 'OWNEX soporta tres modos: Manual (tú controlas cada etapa), Automático (el pipeline corre en ciclo completo), y Asistido por IA (el copiloto sugiere acciones y tú apruebas). Se configuran desde Control de Misión.',
+    category: 'General',
+    link: { path: '/mission-control', label: 'Ir a Control de Misión' },
+  },
+  {
+    q: '¿Qué navegadores soporta?',
+    a: 'OWNEX funciona en Chrome 90+, Firefox 90+, Edge 90+ y Safari 15+. Requiere Web Crypto API (disponible en todos los navegadores modernos).',
+    category: 'General',
+  },
 
   // ── Seguridad ──
-  { q: '¿Dónde se almacenan mis API keys?', a: 'Las API keys se cifran con AES-256-GCM usando la Web Crypto API del navegador. La clave de cifrado se guarda en localStorage y los datos cifrados en sessionStorage. Al cerrar el navegador, las keys en sessionStorage se borran automáticamente.', category: 'Seguridad' },
-  { q: '¿Cómo se protegen las comunicaciones?', a: 'Todas las llamadas a la API usan tokens JWT firmados con HMAC-SHA256. El middleware CSRF de doble cookie protege contra ataques de falsificación. Las rutas de la API requieren autenticación excepto login, health y activation.', category: 'Seguridad' },
-  { q: '¿OWNEX registra eventos de seguridad?', a: 'Sí. Todos los eventos de autenticación (login, logout, token almacenado) se registran en un audit log persistente cifrado en ~/.ownex/audit.jsonl con permisos 600.', category: 'Seguridad' },
-  { q: '¿Qué pasa si alguien roba mi token de sesión?', a: 'Los tokens tienen expiración de 24 horas. El secret usado para firmarlos persiste en disco con permisos 600. Si necesitas revocar sesiones, puedes reiniciar el servidor o cambiar la variable CATEYE_AUTH_SECRET.', category: 'Seguridad' },
+  {
+    q: '¿Dónde se almacenan mis API keys?',
+    a: 'Las API keys se cifran con AES-256-GCM usando la Web Crypto API del navegador. La clave de cifrado se guarda en localStorage y los datos cifrados en sessionStorage. Al cerrar el navegador, las keys en sessionStorage se borran automáticamente.',
+    category: 'Seguridad',
+  },
+  {
+    q: '¿Cómo se protegen las comunicaciones?',
+    a: 'Todas las llamadas a la API usan tokens JWT firmados con HMAC-SHA256. El middleware CSRF de doble cookie protege contra ataques de falsificación. Las rutas de la API requieren autenticación excepto login, health y activation.',
+    category: 'Seguridad',
+  },
+  {
+    q: '¿OWNEX registra eventos de seguridad?',
+    a: 'Sí. Todos los eventos de autenticación (login, logout, token almacenado) se registran en un audit log persistente cifrado en ~/.ownex/audit.jsonl con permisos 600.',
+    category: 'Seguridad',
+  },
+  {
+    q: '¿Qué pasa si alguien roba mi token de sesión?',
+    a: 'Los tokens tienen expiración de 24 horas. El secret usado para firmarlos persiste en disco con permisos 600. Si necesitas revocar sesiones, puedes reiniciar el servidor o cambiar la variable CATEYE_AUTH_SECRET.',
+    category: 'Seguridad',
+  },
 
   // ── Operación ──
-  { q: '¿Qué tipos de escaneo soporta?', a: 'Escaneo pasivo: subdominios (subfinder, amass), tecnologías (httpx, nuclei), endpoints (katana, gau). Escaneo activo controlado: validación de vulnerabilides solo en targets autorizados dentro del scope.', category: 'Operación' },
-  { q: '¿Puedo conectar múltiples plataformas de bug bounty?', a: 'Sí. OWNEX soporta HackerOne, Bugcrowd, Intigriti, Synack y YesWeHack. Conéctalas desde la sección Conexiones en la sidebar.', category: 'Operación', link: { path: '/connections', label: 'Ir a Conexiones' } },
-  { q: '¿Cómo funciona el pipeline de validación?', a: 'Discovery → Recon → Hipótesis → Scope Check → Validación → Reporte. Cada etapa corre en su propio intervalo configurable. Puedes monitorear el progreso en Pipeline Monitor.', category: 'Operación', link: { path: '/pipelines', label: 'Ver Pipeline Monitor' } },
-  { q: '¿Qué es el cooldown por target?', a: 'Para evitar re-escaneos innecesarios, cada target tiene un cooldown de 1 hora después de ser escaneado. Puedes ver el estado en el detalle del target.', category: 'Operación' },
-  { q: '¿Cómo se priorizan los targets?', a: 'El scheduler usa Reward Learning para ajustar prioridades: targets con tipos de vulnerabilidad de alto reward se escanean primero. También se boostean targets con actividad reciente.', category: 'Operación' },
+  {
+    q: '¿Qué tipos de escaneo soporta?',
+    a: 'Escaneo pasivo: subdominios (subfinder, amass), tecnologías (httpx, nuclei), endpoints (katana, gau). Escaneo activo controlado: validación de vulnerabilides solo en targets autorizados dentro del scope.',
+    category: 'Operación',
+  },
+  {
+    q: '¿Puedo conectar múltiples plataformas de bug bounty?',
+    a: 'Sí. OWNEX soporta HackerOne, Bugcrowd, Intigriti, Synack y YesWeHack. Conéctalas desde la sección Conexiones en la sidebar.',
+    category: 'Operación',
+    link: { path: '/connections', label: 'Ir a Conexiones' },
+  },
+  {
+    q: '¿Cómo funciona el pipeline de validación?',
+    a: 'Discovery → Recon → Hipótesis → Scope Check → Validación → Reporte. Cada etapa corre en su propio intervalo configurable. Puedes monitorear el progreso en Pipeline Monitor.',
+    category: 'Operación',
+    link: { path: '/pipelines', label: 'Ver Pipeline Monitor' },
+  },
+  {
+    q: '¿Qué es el cooldown por target?',
+    a: 'Para evitar re-escaneos innecesarios, cada target tiene un cooldown de 1 hora después de ser escaneado. Puedes ver el estado en el detalle del target.',
+    category: 'Operación',
+  },
+  {
+    q: '¿Cómo se priorizan los targets?',
+    a: 'El scheduler usa Reward Learning para ajustar prioridades: targets con tipos de vulnerabilidad de alto reward se escanean primero. También se boostean targets con actividad reciente.',
+    category: 'Operación',
+  },
 
   // ── Copiloto / AI ──
-  { q: '¿Cómo funciona el copiloto AI?', a: 'El copiloto analiza el contexto del pipeline, sugiere próximas acciones, genera hipótesis de vulnerabilidades y responde preguntas sobre hallazgos. Se activa con ⌘B o desde el botón en la sidebar.', category: 'Copiloto' },
-  { q: '¿Qué modelos AI soporta?', a: 'Ollama (local), OpenAI, Gemini, y OpenRouter. Puedes configurar el proveedor desde Settings → IA. El modelo local recomendado es qwen3:8b.', category: 'Copiloto', link: { path: '/settings', label: 'Configurar IA' } },
-  { q: '¿El copiloto accede a mis datos?', a: 'El copiloto solo accede al contexto del pipeline actual: targets, hallazgos, y conversación activa. No envía datos a servidores externos si usas Ollama local.', category: 'Copiloto' },
+  {
+    q: '¿Cómo funciona el copiloto AI?',
+    a: 'El copiloto analiza el contexto del pipeline, sugiere próximas acciones, genera hipótesis de vulnerabilidades y responde preguntas sobre hallazgos. Se activa con ⌘B o desde el botón en la sidebar.',
+    category: 'Copiloto',
+  },
+  {
+    q: '¿Qué modelos AI soporta?',
+    a: 'Ollama (local), OpenAI, Gemini, y OpenRouter. Puedes configurar el proveedor desde Settings → IA. El modelo local recomendado es qwen3:8b.',
+    category: 'Copiloto',
+    link: { path: '/settings', label: 'Configurar IA' },
+  },
+  {
+    q: '¿El copiloto accede a mis datos?',
+    a: 'El copiloto solo accede al contexto del pipeline actual: targets, hallazgos, y conversación activa. No envía datos a servidores externos si usas Ollama local.',
+    category: 'Copiloto',
+  },
 ]
 
 const searchQuery = ref('')
 const openIndex = ref<number | null>(null)
 
-const categories = [...new Set(faqs.map(f => f.category))]
+const categories = [...new Set(faqs.map((f) => f.category))]
 
 const filtered = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return faqs
-  return faqs.filter(f =>
-    f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q) || f.category.toLowerCase().includes(q),
+  return faqs.filter(
+    (f) => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q) || f.category.toLowerCase().includes(q),
   )
 })
 
@@ -71,7 +140,7 @@ const categoryIcons: Record<string, any> = {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-4 p-4 sm:space-y-8 sm:p-6">
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold tracking-tight">Preguntas Frecuentes</h1>

@@ -59,6 +59,9 @@ class CycleService:
         self._ensure_init()
         db = _ensure_db()
         try:
+            data = dict(data)
+            if isinstance(data.get("config"), dict):
+                data["config"] = json.dumps(data["config"])
             cycle = Cycle(**data)
             db.add(cycle)
             db.commit()

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { api } from '@/lib/api'
 
 export interface BountyProgram {
@@ -35,9 +35,17 @@ export const useDiscoveryStore = defineStore('discovery', () => {
 
   const totalDiscovered = computed(() => stats.value?.total_discovered ?? 0)
   const importedCount = computed(() => stats.value?.imported ?? 0)
-  const platforms = computed(() => Object.entries(stats.value?.by_platform ?? {}).map(([k, v]) => ({ name: k, count: v })))
+  const platforms = computed(() =>
+    Object.entries(stats.value?.by_platform ?? {}).map(([k, v]) => ({ name: k, count: v })),
+  )
 
-  async function fetchPrograms(params?: { platform?: string; source?: string; imported?: boolean; limit?: number; offset?: number }) {
+  async function fetchPrograms(params?: {
+    platform?: string
+    source?: string
+    imported?: boolean
+    limit?: number
+    offset?: number
+  }) {
     loading.value = true
     error.value = null
     try {
@@ -112,8 +120,19 @@ export const useDiscoveryStore = defineStore('discovery', () => {
   }
 
   return {
-    programs, stats, loading, scanning, error, monitorStatus,
-    totalDiscovered, importedCount, platforms,
-    fetchPrograms, fetchStats, runScan, importProgram, importAll,
+    programs,
+    stats,
+    loading,
+    scanning,
+    error,
+    monitorStatus,
+    totalDiscovered,
+    importedCount,
+    platforms,
+    fetchPrograms,
+    fetchStats,
+    runScan,
+    importProgram,
+    importAll,
   }
 })

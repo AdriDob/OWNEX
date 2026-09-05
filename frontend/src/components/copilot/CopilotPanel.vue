@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onUnmounted } from 'vue'
+import { Activity, Bot, Eye, FileText, Loader2, Send, Sparkles, User, X } from '@lucide/vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { assistantStreamChat } from '@/lib/api'
-import { X, Send, Bot, User, Loader2, Sparkles, FileText, Activity, Eye } from '@lucide/vue'
-import ScrollArea from '@/components/ui/ScrollArea.vue'
 import Button from '@/components/ui/Button.vue'
+import ScrollArea from '@/components/ui/ScrollArea.vue'
+import { assistantStreamChat } from '@/lib/api'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
@@ -20,14 +20,18 @@ const isFindingsRoute = computed(() => route.path.startsWith('/findings'))
 const isMissionControl = computed(() => route.path.startsWith('/mission-control') || route.path.startsWith('/legacy'))
 
 const systemContext = computed(() => {
-  if (isFindingsRoute.value) return 'Eres un asistente de redacción de reportes de seguridad. Ayuda al operador a redactar reportes claros y profesionales para plataformas de bug bounty.'
-  if (isMissionControl.value) return 'Eres un analista de operaciones de seguridad. Ayuda al operador a entender el estado del sistema, priorizar objetivos y optimizar el pipeline.'
+  if (isFindingsRoute.value)
+    return 'Eres un asistente de redacción de reportes de seguridad. Ayuda al operador a redactar reportes claros y profesionales para plataformas de bug bounty.'
+  if (isMissionControl.value)
+    return 'Eres un analista de operaciones de seguridad. Ayuda al operador a entender el estado del sistema, priorizar objetivos y optimizar el pipeline.'
   return 'Eres CATEYE Copilot, un asistente de operaciones de bug bounty. Responde preguntas sobre el sistema, hallazgos y recomendaciones.'
 })
 
 const suggestions = computed(() => {
-  if (isFindingsRoute.value) return ['Redactá un reporte para este hallazgo', '¿Qué severidad debería asignar?', '¿Cómo describir el impacto?']
-  if (isMissionControl.value) return ['Resumí el estado actual', '¿Cuál es la mejor oportunidad?', '¿Qué debo hacer ahora?']
+  if (isFindingsRoute.value)
+    return ['Redactá un reporte para este hallazgo', '¿Qué severidad debería asignar?', '¿Cómo describir el impacto?']
+  if (isMissionControl.value)
+    return ['Resumí el estado actual', '¿Cuál es la mejor oportunidad?', '¿Qué debo hacer ahora?']
   return ['¿Cómo va el pipeline?', 'Mostrame las métricas', '¿Qué hay de nuevo?']
 })
 
@@ -37,11 +41,16 @@ const modeLabel = computed(() => {
   return 'General'
 })
 
-watch(() => props.open, (o) => {
-  if (o && messages.value.length === 0) {
-    messages.value = [{ role: 'assistant', content: `Soy OWNEX Copilot (${modeLabel.value}). ¿En qué puedo ayudarte?` }]
-  }
-})
+watch(
+  () => props.open,
+  (o) => {
+    if (o && messages.value.length === 0) {
+      messages.value = [
+        { role: 'assistant', content: `Soy OWNEX Copilot (${modeLabel.value}). ¿En qué puedo ayudarte?` },
+      ]
+    }
+  },
+)
 
 function appendToken(token: string) {
   const last = messages.value[messages.value.length - 1]
@@ -89,14 +98,23 @@ function sendSuggestion(text: string) {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
-  if (e.key === 'Escape') { if (loading.value) stopStreaming(); else emit('close') }
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    send()
+  }
+  if (e.key === 'Escape') {
+    if (loading.value) stopStreaming()
+    else emit('close')
+  }
 }
 
-watch(() => messages.value.length, async () => {
-  await nextTick()
-  chatEnd.value?.scrollIntoView({ behavior: 'smooth' })
-})
+watch(
+  () => messages.value.length,
+  async () => {
+    await nextTick()
+    chatEnd.value?.scrollIntoView({ behavior: 'smooth' })
+  },
+)
 </script>
 
 <template>

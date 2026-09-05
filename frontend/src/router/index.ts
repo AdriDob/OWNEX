@@ -49,6 +49,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinJarvis.vue'),
     meta: { title: 'MERLIN' },
   },
+  {
+    path: '/chat',
+    name: 'ownex-chat',
+    component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/ownex-chat/OwnexChat.vue'),
+    meta: { title: 'MERLIN Chat' },
+  },
 
   // ── AUTH ──
   {
@@ -64,86 +70,45 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Verificar Correo', public: true },
   },
 
-  // ── 1. MISSION CONTROL ──
+  // ── 1. COMMAND CENTER ──
   {
-    // 2026-08-25 (Fase 3): '/' = CEO Home / Income Command Center.
-    // WelcomePage se conserva accesible en /welcome (reversible).
+    // 2026-08-30: '/' = OWNEX Command Center (IncomeHome).
+    // Único entry point. Otros dashboards legacy redirigen aquí.
     path: '/',
-    name: 'income-home',
-    component: () => import(/* webpackChunkName: "income-home" */ '@/pages/IncomeHome.vue'),
-    meta: { title: 'Command Center' },
+    name: 'command-center',
+    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/IncomeHome.vue'),
+    meta: { title: 'OWNEX Command Center' },
   },
-  {
-    path: '/welcome',
-    name: 'welcome',
-    component: () => import(/* webpackChunkName: "welcome" */ '@/pages/WelcomePage.vue'),
-    meta: { title: 'Bienvenido' },
-  },
-  {
-    path: '/dashboard',
-    name: 'mission-control',
-    component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/GamingConsole.vue'),
-    meta: { title: 'Control de Misión' },
-  },
-  {
-    path: '/classic',
-    name: 'classic-mission-control',
-    component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/MissionControl.vue'),
-    meta: { title: 'Classic Mission Control' },
-  },
+  // Legacy redirects → Command Center
+  { path: '/welcome', redirect: '/' },
+  { path: '/dashboard', redirect: '/' },
+  { path: '/classic', redirect: '/' },
+  { path: '/home', redirect: '/' },
 
-  // ── 2. INTELLIGENCE ──
+  // ── 2. INTELLIGENCE (Consolidated) ──
   {
     path: '/intelligence',
     name: 'intelligence',
-    component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/IntelligenceDashboard.vue'),
+    component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/IntelligenceConsolidated.vue'),
     meta: { title: 'Inteligencia' },
-    children: [
-      { path: '', redirect: { name: 'intelligence-findings' } },
-      {
-        path: 'findings',
-        name: 'intelligence-findings',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/Findings.vue'),
-        meta: { title: 'Hallazgos' },
-      },
-      {
-        path: 'hypotheses',
-        name: 'intelligence-hypotheses',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/HypothesisQueue.vue'),
-        meta: { title: 'Hipótesis' },
-      },
-      {
-        path: 'evidence',
-        name: 'intelligence-evidence',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/EvidenceCenter.vue'),
-        meta: { title: 'Evidencia' },
-      },
-      {
-        path: 'investigations',
-        name: 'intelligence-investigations',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/InvestigationCenter.vue'),
-        meta: { title: 'Investigaciones' },
-      },
-      {
-        path: 'investigations/:id',
-        name: 'investigation-detail',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/InvestigationDetail.vue'),
-        meta: { title: 'Detalle Investigación' },
-      },
-      {
-        path: 'confidence',
-        name: 'intelligence-confidence',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/ConfidenceDashboard.vue'),
-        meta: { title: 'Confianza' },
-      },
-      {
-        path: 'differential',
-        name: 'intelligence-differential',
-        component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/DifferentialEngine.vue'),
-        meta: { title: 'Análisis Diferencial' },
-      },
-    ],
   },
+  {
+    path: '/intelligence/evidence',
+    name: 'intelligence-evidence',
+    component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/EvidenceCenter.vue'),
+    meta: { title: 'Evidencia' },
+  },
+  {
+    path: '/intelligence/investigations',
+    name: 'intelligence-investigations',
+    component: () => import(/* webpackChunkName: "intelligence" */ '@/pages/InvestigationsConsolidated.vue'),
+    meta: { title: 'Investigaciones' },
+  },
+  // Legacy redirects
+  { path: '/intelligence/findings', redirect: '/intelligence' },
+  { path: '/intelligence/hypotheses', redirect: '/intelligence' },
+  { path: '/intelligence/confidence', redirect: '/intelligence' },
+  { path: '/intelligence/differential', redirect: '/intelligence' },
 
   // ── 3. TARGETS ──
   {
@@ -192,46 +157,29 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ── 4. REPORTS ──
+  // ── 4. REPORTS (Consolidated) ──
   {
     path: '/reports',
     name: 'reports',
-    component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportCenter.vue'),
+    component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportsConsolidated.vue'),
     meta: { title: 'Reportes' },
-    children: [
-      { path: '', redirect: { name: 'reports-queue' } },
-      {
-        path: 'queue',
-        name: 'reports-queue',
-        component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportQueue.vue'),
-        meta: { title: 'Cola Priorizada' },
-      },
-      {
-        path: 'center',
-        name: 'reports-center',
-        component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportCenter.vue'),
-        meta: { title: 'Centro de Reportes' },
-      },
-      {
-        path: 'history',
-        name: 'reports-history',
-        component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportHistory.vue'),
-        meta: { title: 'Historial' },
-      },
-      {
-        path: ':id',
-        name: 'report-detail',
-        component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportDetail.vue'),
-        meta: { title: 'Editor de Reporte' },
-      },
-      {
-        path: 'verification',
-        name: 'reports-verification',
-        component: () => import(/* webpackChunkName: "reports" */ '@/pages/VerificationGuide.vue'),
-        meta: { title: 'Guía de Validación' },
-      },
-    ],
   },
+  {
+    path: '/reports/:id',
+    name: 'report-detail',
+    component: () => import(/* webpackChunkName: "reports" */ '@/pages/ReportDetail.vue'),
+    meta: { title: 'Editor de Reporte' },
+  },
+  {
+    path: '/reports/verification',
+    name: 'reports-verification',
+    component: () => import(/* webpackChunkName: "reports" */ '@/pages/VerificationGuide.vue'),
+    meta: { title: 'Guía de Validación' },
+  },
+  // Legacy redirects
+  { path: '/reports/queue', redirect: '/reports' },
+  { path: '/reports/center', redirect: '/reports' },
+  { path: '/reports/history', redirect: '/reports' },
 
   // ── 5. CAPITAL ──
   {
@@ -249,111 +197,128 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ── 5.5 SECURITY ──
+  // ── 5.5 SECURITY (Consolidated) ──
   {
     path: '/security',
     name: 'security',
-    component: () => import('@/pages/SecurityCycle.vue'),
+    component: () => import('@/pages/SecurityConsolidated.vue'),
     meta: { title: 'Security Cycle' },
-    children: [
-      {
-        path: 'executive',
-        name: 'security-executive',
-        component: () => import(/* webpackChunkName: "security" */ '@/pages/ExecutiveDashboard.vue'),
-        meta: { title: 'CEO View' },
-      },
-    ],
   },
+  // Legacy redirects
+  { path: '/security/executive', redirect: '/security' },
 
-  // ── 6. OPERATIONS ──
+  // ── 6. OPERATIONS (Consolidated) ──
   {
     path: '/operations',
     name: 'operations',
-    component: () => import('@/pages/OperationsDashboard.vue'),
+    component: () => import('@/pages/OperationsConsolidated.vue'),
     meta: { title: 'Operaciones' },
-    children: [
-      { path: '', redirect: { name: 'operations-dashboard' } },
-      {
-        path: 'dashboard',
-        name: 'operations-dashboard',
-        component: () => import('@/pages/OperationsDashboard.vue'),
-        meta: { title: 'Panel de Operaciones' },
-      },
-      {
-        path: 'work-queue',
-        name: 'work-queue',
-        component: () => import(/* webpackChunkName: "work-queue" */ '@/pages/WorkQueue.vue'),
-        meta: { title: 'Cola de Trabajo' },
-      },
-      {
-        path: 'agenda',
-        name: 'agenda',
-        component: () => import(/* webpackChunkName: "agenda" */ '@/pages/AgendaView.vue'),
-        meta: { title: 'Agenda' },
-      },
-      {
-        path: 'pipelines',
-        name: 'operations-pipelines',
-        component: () => import('@/pages/PipelineMonitor.vue'),
-        meta: { title: 'Pipelines' },
-      },
-      {
-        path: 'pipelines/:id',
-        name: 'pipeline-detail',
-        component: () => import('@/pages/PipelineDetail.vue'),
-        meta: { title: 'Detalle Pipeline' },
-      },
-      {
-        path: 'scheduler',
-        name: 'operations-scheduler',
-        component: () => import('@/pages/ActionsView.vue'),
-        meta: { title: 'Scheduler / Acciones' },
-      },
-      {
-        path: 'tools',
-        name: 'operations-tools',
-        component: () => import('@/pages/OpportunityPlanner.vue'),
-        meta: { title: 'Herramientas' },
-      },
-      {
-        path: 'health',
-        name: 'operations-health',
-        component: () => import('@/pages/HealthCenter.vue'),
-        meta: { title: 'Health Center' },
-      },
-      {
-        path: 'settings',
-        name: 'operations-settings',
-        component: () => import('@/pages/Settings.vue'),
-        meta: { title: 'Configuración' },
-      },
-      {
-        path: 'applications',
-        name: 'operations-applications',
-        component: () => import('@/pages/ApplicationAssistant.vue'),
-        meta: { title: 'Application Assistant' },
-      },
-      {
-        path: 'workflows',
-        name: 'operations-workflows',
-        component: () => import('@/pages/Workflows.vue'),
-        meta: { title: 'Workflows' },
-      },
-      {
-        path: 'replay',
-        name: 'operations-replay',
-        component: () => import('@/pages/ReplayCenter.vue'),
-        meta: { title: 'Replay Center' },
-      },
-      {
-        path: 'version-backup',
-        name: 'operations-version-backup',
-        component: () => import('@/pages/VersionBackup.vue'),
-        meta: { title: 'Backup de Versión' },
-      },
-      { path: 'logs', redirect: '/operations/health' },
-    ],
   },
+  // Health & Settings separated for clarity
+  {
+    path: '/operations/health',
+    name: 'operations-health',
+    component: () => import('@/pages/OperationsConsolidated.vue'),
+    meta: { title: 'Health' },
+  },
+  {
+    path: '/operations/settings',
+    name: 'operations-settings',
+    component: () => import('@/pages/Settings.vue'),
+    meta: { title: 'Configuración' },
+  },
+  // Non-consolidated operations routes (standalone)
+  {
+    path: '/operations/work-queue',
+    name: 'work-queue',
+    component: () => import('@/pages/WorkQueue.vue'),
+    meta: { title: 'Cola de Trabajo' },
+  },
+  {
+    path: '/operations/work-room/:id',
+    name: 'work-room',
+    component: () => import('@/components/work/WorkRoom.vue'),
+    meta: { title: 'Work Room' },
+  },
+  {
+    path: '/operations/worker',
+    name: 'worker-control',
+    component: () => import('@/pages/WorkerControl.vue'),
+    meta: { title: 'WorkerCore Control' },
+  },
+  {
+    path: '/setup/checklist',
+    name: 'setup-checklist',
+    component: () => import('@/pages/SetupChecklist.vue'),
+    meta: { title: 'Setup Checklist' },
+  },
+  {
+    path: '/operations/agenda',
+    name: 'agenda',
+    component: () => import('@/pages/AgendaView.vue'),
+    meta: { title: 'Agenda' },
+  },
+  {
+    path: '/operations/pipelines',
+    name: 'operations-pipelines',
+    component: () => import('@/pages/PipelineMonitor.vue'),
+    meta: { title: 'Pipelines' },
+  },
+  {
+    path: '/operations/pipelines/:id',
+    name: 'pipeline-detail',
+    component: () => import('@/pages/PipelineDetail.vue'),
+    meta: { title: 'Detalle Pipeline' },
+  },
+  {
+    path: '/operations/scheduler',
+    name: 'operations-scheduler',
+    component: () => import('@/pages/ActionsView.vue'),
+    meta: { title: 'Scheduler / Acciones' },
+  },
+  {
+    path: '/operations/tools',
+    name: 'operations-tools',
+    component: () => import('@/pages/OpportunityPlanner.vue'),
+    meta: { title: 'Herramientas' },
+  },
+  {
+    path: '/operations/settings',
+    name: 'operations-settings',
+    component: () => import('@/pages/Settings.vue'),
+    meta: { title: 'Configuración' },
+  },
+  {
+    path: '/operations/applications',
+    name: 'operations-applications',
+    component: () => import('@/pages/ApplicationAssistant.vue'),
+    meta: { title: 'Application Assistant' },
+  },
+  {
+    path: '/operations/workflows',
+    name: 'operations-workflows',
+    component: () => import('@/pages/Workflows.vue'),
+    meta: { title: 'Workflows' },
+  },
+  {
+    path: '/operations/replay',
+    name: 'operations-replay',
+    component: () => import('@/pages/ReplayCenter.vue'),
+    meta: { title: 'Replay Center' },
+  },
+  {
+    path: '/operations/version-backup',
+    name: 'operations-version-backup',
+    component: () => import('@/pages/VersionBackup.vue'),
+    meta: { title: 'Backup de Versión' },
+  },
+  {
+    path: '/operations/self-healer',
+    name: 'operations-self-healer',
+    component: () => import('@/pages/SelfHealer.vue'),
+    meta: { title: 'Self-Healer' },
+  },
+  { path: '/operations/logs', redirect: '/operations' },
 
   // ── 7. INTEGRATIONS ──
   {
@@ -408,138 +373,36 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ── 8. COPILOT ──
+  // ── 8. COPILOT (Consolidated) ──
   {
     path: '/copilot',
     name: 'copilot',
-    component: () => import('@/pages/AgentCenter.vue'),
+    component: () => import('@/pages/CopilotConsolidated.vue'),
     meta: { title: 'Copilot' },
-    children: [
-      { path: '', redirect: { name: 'copilot-assistant' } },
-      {
-        path: 'assistant',
-        name: 'copilot-assistant',
-        component: () => import('@/pages/AgentCenter.vue'),
-        meta: { title: 'Asistente' },
-      },
-      {
-        path: 'memory',
-        name: 'copilot-memory',
-        component: () => import('@/pages/MemoryPatterns.vue'),
-        meta: { title: 'Memoria / Patrones' },
-      },
-      {
-        path: 'learning',
-        name: 'copilot-learning',
-        component: () => import('@/pages/PersonalIntelligence.vue'),
-        meta: { title: 'Aprendizaje' },
-      },
-      {
-        path: 'recommendations',
-        name: 'copilot-recommendations',
-        component: () => import('@/pages/InsightsView.vue'),
-        meta: { title: 'Recomendaciones' },
-      },
-      {
-        path: 'notifications',
-        name: 'copilot-notifications',
-        component: () => import('@/pages/NotificationsPage.vue'),
-        meta: { title: 'Notificaciones' },
-      },
-    ],
-  },
-
-  // ── LEGACY REDIRECTS (mantener compatibilidad) ──
-  // Home redirect
-  { path: '/home', redirect: '/dashboard' },
-
-  // ── FEATURE PARITY SURFACES (Command Center satellites) ──
-  {
-    path: '/revenue/center',
-    name: 'revenue-center',
-    component: () => import(/* webpackChunkName: "revenue-center" */ '@/pages/RevenueCenter.vue'),
-    meta: { title: 'Centro de Ingresos', requiresAuth: true },
   },
   {
-    path: '/ai',
-    name: 'ai-center',
-    component: () => import(/* webpackChunkName: "ai-center" */ '@/pages/AiCenter.vue'),
-    meta: { title: 'Centro de IA', requiresAuth: true },
+    path: '/copilot/computer-use',
+    name: 'copilot-computer-use',
+    component: () => import('@/pages/ComputerUse.vue'),
+    meta: { title: 'Computer Use' },
   },
   {
-    path: '/risk',
-    name: 'risk-center',
-    component: () => import(/* webpackChunkName: "risk-center" */ '@/pages/RiskCenter.vue'),
-    meta: { title: 'Centro de Riesgo', requiresAuth: true },
+    path: '/copilot/notifications',
+    name: 'copilot-notifications',
+    component: () => import('@/pages/NotificationsPage.vue'),
+    meta: { title: 'Notificaciones' },
   },
+  // Legacy redirects
+  { path: '/copilot/assistant', redirect: '/copilot' },
+  { path: '/copilot/memory', redirect: '/copilot' },
+  { path: '/copilot/learning', redirect: '/copilot' },
+  { path: '/copilot/recommendations', redirect: '/copilot' },
 
-  // Revenue pages → Capital
-  { path: '/revenue', redirect: '/capital' },
-  { path: '/revenue-multiplier', redirect: '/capital' },
-  { path: '/money-radar', redirect: '/capital?tab=targets' },
-  { path: '/financial-truth', redirect: '/capital' },
-  { path: '/finance-intel', redirect: '/capital' },
+  // ── LEGACY REDIRECTS REMOVED (UX Consolidation 2026-09-04) ──
+  // All legacy redirects removed to simplify navigation.
+  // Use canonical routes: /, /intelligence, /reports, /capital, /operations, /integrations, /copilot
 
-  // Findings/Reports legacy
-  { path: '/findings', redirect: '/intelligence/findings' },
-  { path: '/hypotheses', redirect: '/intelligence/hypotheses' },
-  { path: '/evidence', redirect: '/intelligence/evidence' },
-  { path: '/investigations', redirect: '/intelligence/investigations' },
-  { path: '/confidence', redirect: '/intelligence/confidence' },
-  { path: '/differential', redirect: '/intelligence/differential' },
-
-  // Targets legacy
-  { path: '/radar', redirect: '/targets/prioritization' },
-  { path: '/hot-paths', redirect: '/targets/prioritization' },
-  { path: '/attack-surface', redirect: '/targets/attack-surface' },
-  { path: '/discovery', redirect: '/targets/discovery' },
-  { path: '/opportunities', redirect: '/targets/prioritization' },
-  { path: '/bounties', redirect: '/integrations/platforms' },
-  { path: '/program-catalog', redirect: '/integrations/platforms' },
-
-  // Reports legacy
-  { path: '/report-queue', redirect: '/reports/queue' },
-
-  // Operations legacy
-  { path: '/pipelines', redirect: '/operations/pipelines' },
-  { path: '/actions', redirect: '/operations/scheduler' },
-  { path: '/daily', redirect: '/operations/dashboard' },
-  { path: '/next-action', redirect: '/operations/scheduler' },
-  { path: '/tasks', redirect: '/operations/scheduler' },
-  { path: '/project-dashboard', redirect: '/operations/dashboard' },
-  { path: '/account-health', redirect: '/operations/health' },
-  { path: '/health-center', redirect: '/operations/health' },
-  { path: '/workflows', redirect: '/operations/workflows' },
-  { path: '/replay', redirect: '/operations/replay' },
-
-  // Integrations legacy
-  { path: '/connections', redirect: '/integrations/connections' },
-  { path: '/wallets', redirect: '/integrations/wallets' },
-  { path: '/accounts-hub', redirect: '/integrations/accounts' },
-  { path: '/sync-center', redirect: '/integrations/sync' },
-  { path: '/identity', redirect: '/integrations/identity' },
-
-  // Copilot legacy
-  { path: '/agents', redirect: '/copilot/assistant' },
-  { path: '/insights', redirect: '/copilot/recommendations' },
-  { path: '/personal-intelligence', redirect: '/copilot/learning' },
-  { path: '/memory-patterns', redirect: '/copilot/memory' },
-  { path: '/notifications', redirect: '/copilot/notifications' },
-  { path: '/truth-inspector', redirect: '/intelligence/confidence' },
-
-  // Apps (mantener separadas - son micro-apps completas)
-    {
-      path: '/ownex/',
-      name: 'ownex-home',
-      component: () => import('@/shell/OrionHome.vue'),
-      meta: { title: 'OWNEX Alpha Platform' },
-    },
-  {
-    path: '/investments',
-    name: 'investment-hub',
-    component: () => import('@/pages/InvestmentHub.vue'),
-    meta: { title: 'Investment Hub' },
-  },
+  // ── APPS SATELITE (consolidated in sidebar, accessible but not main flow) ──
   {
     path: '/atlas/',
     name: 'atlas-dashboard',
@@ -577,22 +440,10 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Configuración AEGIS' },
   },
   {
-    path: '/polymarket',
-    name: 'polymarket-trading',
-    component: () => import('@/pages/PolymarketTrading.vue'),
-    meta: { title: 'Polymarket Trading' },
-  },
-  {
     path: '/trading',
     name: 'trading',
-    component: () => import('@/pages/Trading.vue'),
+    component: () => import('@/pages/TradingConsolidated.vue'),
     meta: { title: 'Trading' },
-  },
-  {
-    path: '/trading/intelligence',
-    name: 'trading-intelligence',
-    component: () => import('@/pages/TradingIntelligence.vue'),
-    meta: { title: 'Copy Trading' },
   },
 
   // ── Special pages ──
@@ -617,8 +468,8 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/profile-kit',
     name: 'profile-kit',
-    component: () => import('@/pages/ProfileKit.vue'),
-    meta: { title: 'Profile Kit' },
+    component: () => import('@/pages/ProfileConsolidated.vue'),
+    meta: { title: 'Profile' },
   },
   {
     path: '/knowledge',
@@ -626,18 +477,18 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "knowledge" */ '@/pages/Knowledge.vue'),
     meta: { title: 'Knowledge Vault' },
   },
-
-  // ── MOBILE COMPANION ──
-  // 2026-08-26 (decisión owner): desktop-first para 1.0. MobileApp.vue queda
-  // como trabajo congelado en el repo (backlog 1.1); rutas ocultas del acceso.
-  // Para reactivar: restaurar este bloque + entrada de nav.
-  // {
-  //   path: '/mobile',
-  //   name: 'mobile',
-  //   component: () => import(/* webpackChunkName: "mobile" */ '@/pages/MobileApp.vue'),
-  //   meta: { title: 'OWNEX Móvil', requiresAuth: true },
-  // },
-  // { path: '/mobile/jarvis', name: 'mobile-jarvis', redirect: { name: 'mobile' } },
+  {
+    path: '/knowledge/graph',
+    name: 'knowledge-graph',
+    component: () => import(/* webpackChunkName: "knowledge-graph" */ '@/components/knowledge-graph/KnowledgeGraphExplorer.vue'),
+    meta: { title: 'Knowledge Graph Explorer' },
+  },
+  {
+    path: '/quick-capture',
+    name: 'quick-capture',
+    component: () => import(/* webpackChunkName: "quick-capture" */ '@/pages/QuickCapture.vue'),
+    meta: { title: 'Quick Capture' },
+  },
 
   // ── Catch-all ──
   {

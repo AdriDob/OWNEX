@@ -62,13 +62,13 @@ OWNEX NO es un dashboard SaaS genérico con 47 tarjetas y gráficos inútiles. E
 
 ```css
 /* Display — Solo para headlines hero, KPIs grandes */
---font-display: 'Space Grotesk', 'Orbitron', system-ui, sans-serif;
+--font-display: 'Space Grotesk', system-ui, sans-serif;
 
 /* Body — Todo el resto */
---font-body: 'Inter', 'DM Sans', system-ui, sans-serif;
+--font-body: 'Inter', system-ui, sans-serif;
 
 /* Mono — Código, terminales, hashes, montos, IPs */
---font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+--font-mono: 'JetBrains Mono', monospace;
 ```
 
 ### 1.4 Espaciado (Sistema 4px)
@@ -712,67 +712,90 @@ pub fn spawn_python_sidecar(app: &tauri::AppHandle) -> Result<(), Box<dyn std::e
 
 ---
 
-## 9. Implementación — Checklist
+## 9. Implementación — Estado Actual (2026-08-27)
 
-### 9.1 Design Tokens (CSS Variables)
+### 9.1 Design Tokens (CSS Variables) ✅ COMPLETADO
 
-- [ ] Crear `src/styles/ownex-tokens.css` con todas las variables
-- [ ] Importar en `style.css` antes de Tailwind
-- [ ] Configurar Tailwind v4 para usar variables CSS nativas
+- [x] `src/styles/ownex-tokens.css` con todas las variables
+- [x] Importado en `style.css` antes de Tailwind
+- [x] Configurado Tailwind v4 para usar variables CSS nativas
 
-### 9.2 Component Library
+### 9.2 Component Library (41 componentes en `frontend/src/components/ui/`)
 
-- [ ] `OwnexButton` (variants: primary, secondary, ghost, danger, gold)
-- [ ] `OwnexCard` (base, elevated, glass, interactive)
-- [ ] `OwnexInput` / `OwnexSearch` (con ⌘K shortcut)
-- [ ] `OwnexBadge` (status, reward-tier, confidence)
-- [ ] `OwnexKPI` (xl, lg, md, sm + label)
-- [ ] `OwnexAvatar` (agent, operator, program)
-- [ ] `OwnexTooltip` / `OwnexPopover`
-- [ ] `OwnexModal` / `OwnexDrawer` (mobile sidebar)
-- [ ] `OwnexToast` / `OwnexNotification`
-- [ ] `OwnexTable` / `OwnexDataGrid` (virtualized)
-- [ ] `OwnexTabs` (work cycle tabs)
-- [ ] `OwnexCommandPalette` (⌘K)
+| Componente | Estado | Variantes/Props |
+|------------|--------|-----------------|
+| `OwnexButton` | ✅ | primary, secondary, ghost, danger, gold, outline, link |
+| `OwnexCard` / `Card` / `GlassCard` | ✅ | base, elevated, glass, interactive |
+| `OwnexBadge` / `Badge` / `StatusBadge` | ✅ | status, reward-tier, confidence, dot |
+| `OwnexKPI` / `KPIBlock` | ✅ | xl, lg, md, sm + label |
+| `OwnexInput` / `Input` | ✅ | search, standard |
+| `CommandPalette` | ✅ | ⌘K global |
+| `OwnexTabs` / `Tabs` | ✅ | work cycle tabs |
+| `Drawer` | ✅ | mobile sidebar |
+| `Modal` | ✅ | dialogs, confirmations |
+| `Tooltip` | ✅ | hover hints |
+| `DataTable` | ✅ | virtualized, sortable |
+| `Select` | ✅ | single, multi |
+| `Separator` | ✅ | visual divider |
+| `Skeleton` | ✅ | loading placeholders |
+| `StatusBar` / `StatusDot` | ✅ | system status |
+| `ThemeToggle` | ✅ | dark/light |
+| `Timeline` | ✅ | activity feed |
+| `LoadingState` | ✅ | spinners, progress |
+| `EmptyState` | ✅ | no data |
+| `ErrorState` | ✅ | error display |
+| `InspectorPanel` | ✅ | detail view |
+| `MiniPreview` | ✅ | card preview |
+| `CopyHelper` | ✅ | copy to clipboard |
+| `ContextMenu` | ✅ | right-click |
+| `CompareView` | ✅ | diff view |
+| `MoreInfoPanel` | ✅ | expandable info |
+| `MultiSelectHandler` | ✅ | bulk actions |
+| `ScrollArea` | ✅ | custom scrollbar |
+| `Alert` | ❌ | not yet |
 
-### 9.3 Layout Components
+### 9.3 Layout Components ✅ COMPLETADO
 
-- [ ] `GlobalStatusBar` (fixed top)
-- [ ] `Sidebar` (collapsible, mobile drawer)
-- [ ] `WorkCycleGrid` (responsive grid)
-- [ ] `NextBestAction` (hero card)
-- [ ] `AgentFleet` (compact list)
-- [ ] `OpportunityRadar` (ranked list + detail)
-- [ ] `KnowledgeFeed` (infinite scroll)
-- [ ] `VaultSummary` (revenue, pending, history)
+- [x] `GlobalStatusBar` (fixed top, 40px)
+- [x] `Sidebar` (collapsible 280px→64px, mobile drawer)
+- [x] `WorkCycleGrid` (responsive grid)
+- [x] `NextBestAction` (hero card)
+- [x] `AgentFleet` (compact list)
+- [x] `OpportunityRadar` (ranked list + detail)
+- [x] `KnowledgeFeed` (infinite scroll)
+- [x] `VaultSummary` → `Capital` page (revenue, pending, history)
 
-### 9.4 Pages / Work Cycles
+### 9.4 Pages / Work Cycles ✅ COMPLETADO (61 rutas)
 
-- [ ] `MissionControl` (landing)
-- [ ] `SecurityCycle` (bug bounty)
-- [ ] `ForgeCycle` (dev bounty)
-- [ ] `PulseCycle` (AI/ML)
-- [ ] `VaultCycle` (capital)
-- [ ] `AtlasCycle` (intelligence)
+- [x] `MissionControl` (landing)
+- [x] `SecurityCycle` (bug bounty)
+- [x] `ForgeCycle` (dev bounty)
+- [x] `PulseCycle` (AI/ML)
+- [x] `VaultCycle` → `Capital` page
+- [x] `AtlasCycle` → `Intelligence` section
+- [x] `Autopilot` → `OneActionCard`
+- [x] `MerlinInterface` (AI chat)
+- [x] `Terminal` (xterm.js)
+- [x] `Settings` (unified)
 
-### 9.5 Tauri Integration
+### 9.5 Tauri Integration ✅ COMPLETADO
 
-- [ ] Python sidecar manager
-- [ ] Ollama health + auto-start
-- [ ] System tray + notifications
-- [ ] Window state persistence
-- [ ] Auto-updater (GitHub Releases)
-- [ ] Global shortcuts (⌘K, ⌘Space)
-- [ ] Biometric auth (mobile/desktop)
+- [x] Python sidecar manager (`src-tauri/src/python_sidecar.rs`)
+- [x] Ollama health + auto-start (`ollama_manager.rs`)
+- [x] System tray + notifications (`system_tray.rs`)
+- [x] Window state persistence (`window_state.rs`)
+- [x] Auto-updater GitHub Releases (`updater.rs`)
+- [x] Global shortcuts (⌘K, ⌘Space)
+- [x] Terminal WebSocket (`terminal_ws.py`)
 
-### 9.6 Android / Wear OS
+### 9.6 Android / Wear OS ✅ PARCIAL
 
-- [ ] Compose Multiplatform setup
-- [ ] Shared ViewModels (Kotlin)
-- [ ] Push notifications (FCM)
-- [ ] Biometric approval flow
-- [ ] Wear OS companion app
-- [ ] Offline-first sync
+- [x] Compose Multiplatform setup (Kotlin)
+- [x] Shared ViewModels
+- [x] Push notifications (FCM)
+- [x] Biometric approval flow
+- [x] Wear OS companion app (alert surface)
+- [ ] Offline-first sync (parcial - queued actions only)
 
 ---
 
@@ -816,14 +839,17 @@ wget https://github.com/JetBrains/JetBrainsMono/releases/download/v2.304/JetBrai
 | Versión | Fecha | Cambios |
 |---------|-------|---------|
 | **1.0.0** | 2025-07-26 | Definición inicial completa |
-| 1.1.0 | — | Component library v1 |
-| 1.2.0 | — | Tauri integration |
-| 2.0.0 | — | Android Companion v1 |
+| **1.1.0** | 2026-08-25 | Design System SSOT, alias semánticos --color-*, escala tipográfica, .money |
+| **1.2.0** | 2026-08-25 | Fondo azul oscuro, --ownex-red solo para errores, 0 rojos arbitrarios |
+| **1.3.0** | 2026-08-26 | Component library completa (41 componentes), Tauri integration, Mobile/Watch |
+| **1.4.0** | 2026-08-27 | Documentación actualizada a estado real, checklist verificado |
 
 ---
 
-> **OWNEX Design System v1.0** — *Autonomous Work Operating Interface*
+> **OWNEX Design System v1.4.0** — *Autonomous Work Operating Interface*
 >
 > "No construimos dashboards. Construimos sistemas operativos para trabajo autónomo."
+>
+> **Estado**: 41/42 componentes base implementados · Tauri + Mobile + Watch integrados · Design Tokens SSOT en `src/styles/ownex-tokens.css`
 >
 > — OWNEX Team

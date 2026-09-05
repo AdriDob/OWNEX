@@ -222,9 +222,7 @@ class TestMultiStreamHourBudget:
         assistant.set_status("mercor", "accepted")  # $25/h
 
         availability = 40.0
-        monkeypatch.setattr(
-            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: availability
-        )
+        monkeypatch.setattr("cores.direct_work_engine.income_plan.get_available_hours", lambda _w: availability)
 
         plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
         cc = plan["income_command_center"]
@@ -239,16 +237,12 @@ class TestMultiStreamHourBudget:
         stream_week_low = cc["week"]["low"] - cc["today"]["low"]
         assert stream_week_low >= 13.0 * availability * 0.5 - 0.01
 
-    def test_single_stream_matches_documented_rate(
-        self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch
-    ) -> None:
+    def test_single_stream_matches_documented_rate(self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch) -> None:
         store = tmp_path / "applications.json"
         assistant = ApplicationAssistant(store_path=store)
         assistant.set_status("mercor", "accepted")
 
-        monkeypatch.setattr(
-            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: 40.0
-        )
+        monkeypatch.setattr("cores.direct_work_engine.income_plan.get_available_hours", lambda _w: 40.0)
 
         plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
         cc = plan["income_command_center"]

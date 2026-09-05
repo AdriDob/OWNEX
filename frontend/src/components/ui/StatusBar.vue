@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import StatusDot from './StatusDot.vue'

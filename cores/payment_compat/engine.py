@@ -196,6 +196,17 @@ class PaymentCompatibilityEngine:
         """Get the list of configured account IDs."""
         return list(self._configured_accounts)
 
+    def has_cvu_configured(self) -> bool:
+        """Check if any configured account supports CVU withdrawals (local ARS off-ramp)."""
+        cvu_account_ids = {
+            a.id
+            for a in self._network
+            if a.layer == PaymentLayer.BANKING
+            and a.function in (PaymentFunction.LOCAL, PaymentFunction.PAYOUT)
+            and any(m in {"cvu", "cbu", "local_transfer"} for m in a.methods)
+        }
+        return bool(set(self._configured_accounts) & cvu_account_ids)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -336,6 +347,11 @@ class PaymentCompatibilityEngine:
         if req.region == "global" and payment_function_boost(account.function) < 0:
             score += payment_function_boost(account.function)
 
+        # CVU boost per-match: si el usuario tiene CVU y la cuenta soporta salida a CVU,
+        # bonificar el score individual (especialmente útil para off_ramp).
+        if self.has_cvu_configured() and account.supports_cvu_out:
+            score += 8.0
+
         # Enriquecimiento con metadatos desde ArgentinaPayoutMethods
         meta = _get_payout_meta(account.id)
         if meta:
@@ -404,8 +420,18 @@ class PaymentCompatibilityEngine:
             if account and account.payout_ref:
                 documented_bonus = max(documented_bonus, min(5.0, account.payout_ref and 5 or 0))
                 break
+        # CVU boost: si el usuario tiene CVU configurado y la requirement implica
+        # conversión a ARS, bonificar cuentas que soporten salida a CVU.
+        cvu_bonus = 0.0
+        if self.has_cvu_configured():
+            for m in matches:
+                account = get_account(m.account_id)
+                if account and account.supports_cvu_out:
+                    # Boost moderado (0-10 puntos) por tener off-ramp CVU real
+                    cvu_bonus = max(cvu_bonus, 8.0)
+                    break
         coverage = len(matches) / max(1, len(self._network)) * 20
-        return min(100.0, best * 0.8 + coverage + documented_bonus)
+        return min(100.0, best * 0.8 + coverage + documented_bonus + cvu_bonus)
 
     def _normalize_requirement(self, req: PaymentRequirement) -> PaymentRequirement:
         region = (req.region or "global").lower()

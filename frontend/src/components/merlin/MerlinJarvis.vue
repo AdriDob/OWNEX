@@ -73,12 +73,14 @@
               </div>
               <div class="message-body">
                 <p class="greeting">{{ greeting }}</p>
-                <p class="description">INICIALIZANDO INTERFAZ JARVIS...</p>
+                <p class="description" v-if="systemHealth > 0">SISTEMA OPERATIVO — Salud: {{ systemHealth }}% · {{ activeTargets }} targets activos · {{ workBankReady }} listos para entregar</p>
+                <p class="description" v-else>INICIALIZANDO INTERFAZ JARVIS...</p>
                 <p class="description">READY TO ASSIST WITH:</p>
                 <ul class="capabilities-list">
                   <li v-for="capability in capabilities" :key="capability">{{ capability }}</li>
                 </ul>
-                <p class="prompt">AWAITING INPUT...</p>
+                <p class="prompt" v-if="topOpportunity">💡 Top oportunidad: {{ topOpportunity.title }} ({{ topOpportunity.platform }}) — ${{ topOpportunity.reward }} · {{ topOpportunity.ev_per_hour.toFixed(0) }}/h</p>
+                <p class="prompt" v-else>AWAITING INPUT...</p>
               </div>
             </div>
           </div>
@@ -217,9 +219,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
+import { fetchGoodMorning, fetchDirectWorkWorkBank, fetchOwnexDashboard, fetchDirectWorkDailyBrief } from '@/services/ownexData'
 
 const isOnline = ref(true)
 const isProcessing = ref(false)
@@ -234,7 +237,7 @@ const capabilities = ref([
   'REPORT GENERATION',
   'WORKFLOW OPTIMIZATION',
   'DATA ANALYSIS',
-  'STRATEGIC PLANNING'
+  'STRATEGIC PLANNING',
 ])
 
 const messages = ref([
@@ -243,20 +246,32 @@ const messages = ref([
     role: 'merlin',
     content: greeting.value,
     timestamp: new Date(),
-    isTyping: false
-  }
+    isTyping: false,
+  },
 ])
+
+// Real system state
+const systemHealth = ref(0)
+const systemStatus = ref('unknown')
+const activeTargets = ref(0)
+const totalFindings = ref(0)
+const monthlyReports = ref(0)
+const monthlyRevenue = ref(0)
+const workBankReady = ref(0)
+const workBankNeedsAccess = ref(0)
+const topOpportunity = ref<{ title: string; platform: string; reward: number; ev_per_hour: number } | null>(null)
+const availableHoursToday = ref(0)
 
 const recentLogs = ref([
   { id: 1, title: 'TARGET_ANALYSIS_001', time: '12:45:32' },
   { id: 2, title: 'VULN_DETECTION_XSS', time: '12:44:15' },
-  { id: 3, title: 'REPORT_GENERATION', time: '12:42:00' }
+  { id: 3, title: 'REPORT_GENERATION', time: '12:42:00' },
 ])
 
 const recentMemories = ref([
   { id: 1, title: 'XSS_PATTERN_001', type: 'PATTERN' },
   { id: 2, title: 'WORKFLOW_REPORTING', type: 'WORKFLOW' },
-  { id: 3, title: 'STRATEGY_TARGETS', type: 'STRATEGY' }
+  { id: 3, title: 'STRATEGY_TARGETS', type: 'STRATEGY' },
 ])
 
 const chatScrollArea = ref<HTMLElement | null>(null)
@@ -275,7 +290,7 @@ async function sendMessage() {
     role: 'user',
     content: userMessage,
     timestamp: new Date(),
-    isTyping: false
+    isTyping: false,
   })
 
   userInput.value = ''
@@ -287,7 +302,7 @@ async function sendMessage() {
     role: 'merlin',
     content: '',
     timestamp: new Date(),
-    isTyping: true
+    isTyping: true,
   })
 
   await nextTick()
@@ -300,29 +315,28 @@ async function sendMessage() {
         detail_level: isBeginnerMode.value ? 'beginner' : 'expert',
         response_tone: isBeginnerMode.value ? 'simple' : 'technical',
         enable_analytics: true,
-        enable_learning: true
-      }
+        enable_learning: true,
+      },
     })
 
-    messages.value = messages.value.filter(m => m.id !== typingId)
+    messages.value = messages.value.filter((m) => m.id !== typingId)
 
     messages.value.push({
       id: Date.now(),
       role: 'merlin',
       content: response.data.response,
       timestamp: new Date(),
-      isTyping: false
+      isTyping: false,
     })
-
   } catch (error) {
     console.error('Error sending message:', error)
-    messages.value = messages.value.filter(m => m.id !== typingId)
+    messages.value = messages.value.filter((m) => m.id !== typingId)
     messages.value.push({
       id: Date.now(),
       role: 'merlin',
       content: 'ERROR: COMMAND FAILED. RETRY.',
       timestamp: new Date(),
-      isTyping: false
+      isTyping: false,
     })
   } finally {
     isProcessing.value = false
@@ -351,7 +365,7 @@ function toggleMode() {
       ? 'BEGINNER MODE ACTIVATED. I will explain everything simply, like I would to a 10-year-old.'
       : 'EXPERT MODE ACTIVATED. I will provide detailed technical information and implementation details.',
     timestamp: new Date(),
-    isTyping: false
+    isTyping: false,
   })
 }
 
@@ -369,16 +383,69 @@ function executeCommand(command: string) {
   const commands = {
     analyze: 'ANALYZE TARGET: PRIMARY',
     report: 'GENERATE REPORT: LATEST FINDING',
-    optimize: 'OPTIMIZE WORKFLOW: CURRENT'
+    optimize: 'OPTIMIZE WORKFLOW: CURRENT',
   }
   userInput.value = commands[command]
   sendMessage()
 }
 
-onMounted(() => {
+async function loadSystemState() {
+  try {
+    const [dashboard, workbank, brief, goodmorning] = await Promise.allSettled([
+      fetchOwnexDashboard(),
+      fetchDirectWorkWorkBank(),
+      fetchDirectWorkDailyBrief(),
+      fetchGoodMorning(),
+    ])
+
+    if (dashboard.status === 'fulfilled') {
+      systemHealth.value = dashboard.value?.systemHealth ?? 0
+      systemStatus.value = dashboard.value?.systemStatus ?? 'unknown'
+    }
+
+    if (workbank.status === 'fulfilled') {
+      workBankReady.value = workbank.value?.ready_to_deliver ?? 0
+      workBankNeedsAccess.value = workbank.value?.needs_access ?? 0
+
+      // Get top opportunity from weekly_best
+      const weeklyBest = workbank.value?.weekly_best?.[0]
+      if (weeklyBest) {
+        topOpportunity.value = {
+          title: weeklyBest.title,
+          platform: weeklyBest.platform,
+          reward: weeklyBest.reward,
+          ev_per_hour: weeklyBest.barrier_score ? weeklyBest.reward / weeklyBest.barrier_score : 0,
+        }
+      }
+    }
+
+    if (brief.status === 'fulfilled') {
+      const top = brief.value?.top_opportunity
+      if (top?.opportunity) {
+        topOpportunity.value = {
+          title: top.opportunity.title,
+          platform: top.opportunity.platform,
+          reward: top.expected_value,
+          ev_per_hour: top.ev_per_human_hour_usd ?? 0,
+        }
+      }
+    }
+
+    if (goodmorning.status === 'fulfilled') {
+      availableHoursToday.value = goodmorning.value?.personal?.pending_tasks ?? 0
+    }
+  } catch (e) {
+    console.warn('Failed to load system state for MERLIN:', e)
+  }
+}
+
+onMounted(async () => {
   if (inputRef.value) {
     inputRef.value.focus()
   }
+  await loadSystemState()
+  // Refresh system state every 60 seconds
+  setInterval(loadSystemState, 60000)
 })
 </script>
 
@@ -388,8 +455,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #05060a;
-  color: #f5f5f4;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-bg-surface);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   position: relative;
   overflow: hidden;
@@ -402,7 +469,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 14px 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  background: #07080c;
+  background: var(--ownex-bg-base);
 }
 .header-left {
   display: flex;
@@ -430,7 +497,7 @@ onMounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #00e39a;
+  background: var(--ownex-green);
 }
 .core-pulse {
   position: absolute;
@@ -455,14 +522,14 @@ onMounted(() => {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
 }
 .merlin-subtitle {
   margin: 0;
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 .merlin-status {
   display: flex;
@@ -474,13 +541,13 @@ onMounted(() => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #5e6272;
+  background: var(--ownex-text-muted);
 }
-.status-indicator.status-online { background: #00e39a; }
+.status-indicator.status-online { background: var(--ownex-green); }
 .status-text {
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 .header-right {
   display: flex;
@@ -500,13 +567,13 @@ onMounted(() => {
   padding: 7px 12px;
   border: none;
   background: transparent;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   cursor: pointer;
 }
-.mode-btn.mode-beginner { background: rgba(0, 227, 154, 0.08); color: #00e39a; }
-.mode-btn.mode-expert { background: rgba(0, 213, 255, 0.08); color: #00d5ff; }
+.mode-btn.mode-beginner { background: rgba(0, 227, 154, 0.08); color: var(--ownex-green); }
+.mode-btn.mode-expert { background: rgba(0, 213, 255, 0.08); color: var(--ownex-accent); }
 .header-metrics {
   display: flex;
   gap: 16px;
@@ -519,12 +586,12 @@ onMounted(() => {
 .metric-label {
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 .metric-value {
   font-size: 13px;
   font-weight: 600;
-  color: #d6d8dd;
+  color: var(--ownex-text-secondary);
 }
 
 /* ── Chat area ── */
@@ -555,7 +622,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
@@ -576,15 +643,15 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
-.message-user .message-author { color: #00d5ff; }
-.message-time { font-size: 11px; color: #5e6272; }
+.message-user .message-author { color: var(--ownex-accent); }
+.message-time { font-size: 11px; color: var(--ownex-text-muted); }
 .message-body {
   font-size: 14px;
   line-height: 1.55;
-  color: #d9dbdf;
-  background: #0e1015;
+  color: var(--ownex-text-secondary);
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
   padding: 12px 15px;
@@ -593,19 +660,19 @@ onMounted(() => {
   background: rgba(0, 213, 255, 0.05);
   border-color: rgba(0, 213, 255, 0.15);
 }
-.greeting { margin: 0 0 6px; font-weight: 500; color: #f5f5f4; }
-.description { margin: 2px 0; font-size: 13px; color: #a6a9b1; }
+.greeting { margin: 0 0 6px; font-weight: 500; color: var(--ownex-bg-surface); }
+.description { margin: 2px 0; font-size: 13px; color: var(--ownex-text-secondary); }
 .capabilities-list {
   margin: 8px 0;
   padding-left: 18px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
 }
 .capabilities-list li { margin: 2px 0; }
 .prompt {
   margin: 10px 0 0;
   font-size: 12px;
   letter-spacing: 0.08em;
-  color: #00e39a;
+  color: var(--ownex-green);
 }
 .message-text { white-space: pre-wrap; word-break: break-word; }
 .typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
@@ -613,7 +680,7 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #8b8d98;
+  background: var(--ownex-text-secondary);
   animation: typing-bounce 1.2s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.15s; }
@@ -627,7 +694,7 @@ onMounted(() => {
 .jarvis-input-area {
   padding: 12px 22px 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: #07080c;
+  background: var(--ownex-bg-base);
 }
 .input-container {
   max-width: 780px;
@@ -638,7 +705,7 @@ onMounted(() => {
 }
 .input-frame {
   flex: 1;
-  background: #0e1015;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   transition: border-color 0.15s ease;
@@ -651,21 +718,21 @@ onMounted(() => {
   border: none;
   outline: none;
   resize: none;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 1.4;
   padding: 12px 14px;
 }
-.jarvis-textarea::placeholder { color: #5e6272; }
+.jarvis-textarea::placeholder { color: var(--ownex-text-muted); }
 .jarvis-send-btn {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
   border: none;
   border-radius: 10px;
-  background: #00d5ff;
-  color: #05060a;
+  background: var(--ownex-accent);
+  color: var(--ownex-bg-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -673,14 +740,14 @@ onMounted(() => {
   transition: opacity 0.15s ease;
 }
 .jarvis-send-btn:hover:not(:disabled) { opacity: 0.85; }
-.jarvis-send-btn:disabled { background: #1f2229; color: #5e6272; cursor: not-allowed; }
+.jarvis-send-btn:disabled { background: var(--ownex-bg-elevated); color: var(--ownex-text-muted); cursor: not-allowed; }
 .send-icon { font-size: 13px; }
 .input-hint {
   max-width: 780px;
   margin: 8px auto 0;
   text-align: center;
 }
-.hint-text { font-size: 11px; letter-spacing: 0.1em; color: #5e6272; }
+.hint-text { font-size: 11px; letter-spacing: 0.1em; color: var(--ownex-text-muted); }
 
 /* ── Sidebar ── */
 .jarvis-sidebar {
@@ -689,7 +756,7 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   width: 264px;
-  background: #08090c;
+  background: var(--ownex-bg-base);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   overflow-y: auto;
   transition: width 0.2s ease;
@@ -706,7 +773,7 @@ onMounted(() => {
 .sidebar-toggle {
   border: none;
   background: transparent;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   cursor: pointer;
   font-size: 13px;
   padding: 6px;
@@ -715,7 +782,7 @@ onMounted(() => {
   margin: 0;
   font-size: 11px;
   letter-spacing: 0.14em;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
 }
 .sidebar-content { padding: 12px 16px 24px; }
 .sidebar-section { margin-bottom: 22px; }
@@ -723,7 +790,7 @@ onMounted(() => {
   margin: 0 0 10px;
   font-size: 10px;
   letter-spacing: 0.12em;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
 }
 .logs-list, .memory-list { display: flex; flex-direction: column; gap: 4px; }
 .log-item, .memory-item {
@@ -740,12 +807,12 @@ onMounted(() => {
 .log-info, .memory-info { display: flex; flex-direction: column; min-width: 0; }
 .log-title, .memory-title {
   font-size: 12px;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.log-time, .memory-type { font-size: 10px; color: #5e6272; }
+.log-time, .memory-type { font-size: 10px; color: var(--ownex-text-muted); }
 .quick-commands { display: flex; flex-direction: column; gap: 6px; }
 .quick-command-btn {
   display: flex;
@@ -755,7 +822,7 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   background: transparent;
-  color: #d9dbdf;
+  color: var(--ownex-text-secondary);
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   cursor: pointer;

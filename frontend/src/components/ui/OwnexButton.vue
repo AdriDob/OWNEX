@@ -95,12 +95,12 @@ const classes = computed(() => [
 
 /* Variants */
 .ownex-btn--primary {
-  background: var(--ownex-blue);
+  background: var(--ownex-accent);
   color: var(--ownex-white);
 }
 .ownex-btn--primary:hover:not(:disabled) {
-  background: #2563EB;
-  box-shadow: var(--shadow-glow);
+  filter: brightness(0.95);
+  box-shadow: 0 4px 20px rgba(232, 33, 39, 0.18);
 }
 
 .ownex-btn--secondary {
@@ -128,12 +128,12 @@ const classes = computed(() => [
   color: var(--ownex-white);
 }
 .ownex-btn--danger:hover:not(:disabled) {
-  background: #3B82F6;
+  background: var(--ownex-danger);
   box-shadow: 0 0 20px rgba(0, 213, 255, 0.2);
 }
 
 .ownex-btn--gold {
-  background: linear-gradient(135deg, var(--ownex-gold), #D97706);
+  background: linear-gradient(135deg, var(--ownex-gold), var(--ownex-yellow));
   color: var(--ownex-bg-deep);
   font-weight: var(--font-weight-bold);
 }
@@ -175,6 +175,6 @@ const classes = computed(() => [
 /* Focus visible */
 .ownex-btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
+  box-shadow: var(--focus-ring), 0 0 0 4px rgba(232, 33, 39, 0.12);
 }
 </style>

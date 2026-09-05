@@ -62,8 +62,8 @@ const selectCycle = (cycleId: string) => {
     <!-- Logo / Brand -->
     <div class="ownex-sidebar__brand">
       <svg class="ownex-sidebar__logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <circle cx="16" cy="16" r="14" stroke="#2D7FF9" stroke-width="1.5" opacity="0.3"/>
-        <path d="M16 4l0 5M16 23l0 5M4 16l5 0M23 16l5 0M6.3 6.3l3.5 3.5M20.2 20.2l3.5 3.5M6.3 23.7l3.5-3.5M20.2 9.8l3.5-3.5" stroke="#2D7FF9" stroke-width="1.5"/>
+        <circle cx="16" cy="16" r="14" stroke="var(--ownex-accent)" stroke-width="1.5" opacity="0.3"/>
+        <path d="M16 4l0 5M16 23l0 5M4 16l5 0M23 16l5 0M6.3 6.3l3.5 3.5M20.2 20.2l3.5 3.5M6.3 23.7l3.5-3.5M20.2 9.8l3.5-3.5" stroke="var(--ownex-accent)" stroke-width="1.5"/>
       </svg>
       <span v-if="!isCollapsed" class="ownex-sidebar__title">OWNEX</span>
     </div>

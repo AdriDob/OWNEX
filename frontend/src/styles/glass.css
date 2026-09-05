@@ -121,22 +121,30 @@
 /* ─── Glass with Accent Borders ─── */
 .ownex-glass-blue {
   border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .ownex-glass-gold {
   border-color: rgba(217, 119, 6, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(217, 119, 6, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(217, 119, 6, 0.1);
 }
 
 .ownex-glass-green {
   border-color: rgba(22, 163, 74, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(22, 163, 74, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(22, 163, 74, 0.1);
 }
 
 .ownex-glass-purple {
   border-color: rgba(156, 163, 175, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(156, 163, 175, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(156, 163, 175, 0.1);
 }
 
 /* ─── Frosted Glass Text ─── */

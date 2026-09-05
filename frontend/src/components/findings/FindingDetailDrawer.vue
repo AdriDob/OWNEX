@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue'
-import type { Finding, WsEvent } from '@/types'
-import { useFindingsStore } from '@/stores/findings'
-import { useBountyStream } from '@/composables/useBountyStream'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, CheckCircle2, FileText, RotateCcw, Sparkles, Video, X, XCircle } from '@lucide/vue'
+import { onUnmounted, ref, watch } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { X, Video, FileText, Sparkles, CheckCircle2, XCircle, RotateCcw, AlertTriangle } from '@lucide/vue'
+import { useBountyStream } from '@/composables/useBountyStream'
+import { useFindingsStore } from '@/stores/findings'
+import type { Finding, WsEvent } from '@/types'
 
 const props = defineProps<{ finding: Finding | null }>()
 const emit = defineEmits<{ close: []; 'status-updated': [] }>()
@@ -21,13 +21,16 @@ const actionLoading = ref<'approve' | 'discard' | 'revalidate' | null>(null)
 const triageOpen = ref(false)
 const videoError = ref(false)
 
-watch(() => props.finding, (f) => {
-  if (f) {
-    narrative.value = ''
-    triageOpen.value = false
-    videoError.value = false
-  }
-})
+watch(
+  () => props.finding,
+  (f) => {
+    if (f) {
+      narrative.value = ''
+      triageOpen.value = false
+      videoError.value = false
+    }
+  },
+)
 
 const wsCleanup = onWsEvent('finding:', (e: WsEvent) => {
   if (e.payload?.id === props.finding?.id) {
@@ -63,13 +66,20 @@ async function handleAction(action: 'approve' | 'discard' | 'revalidate') {
     }
     emit('status-updated')
     emit('close')
-  } catch { /* toast handled by parent */ }
-  finally { actionLoading.value = null }
+  } catch {
+    /* toast handled by parent */
+  } finally {
+    actionLoading.value = null
+  }
 }
 
 function severityVariant(sev: string) {
   const map: Record<string, 'destructive' | 'warning' | 'info' | 'success' | 'default'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+    critical: 'destructive',
+    high: 'warning',
+    medium: 'info',
+    low: 'success',
+    info: 'default',
   }
   return map[sev.toLowerCase()] || 'default'
 }

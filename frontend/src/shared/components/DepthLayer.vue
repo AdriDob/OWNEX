@@ -6,20 +6,23 @@
  */
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  /** Depth level: 0 (transparent) | 1 | 2 | 3 (most elevated) */
-  level?: 0 | 1 | 2 | 3
-  /** Whether to add will-change GPU hint */
-  gpu?: boolean
-  /** Position mode */
-  position?: 'relative' | 'absolute' | 'fixed'
-  /** Custom z-index (overrides default level mapping) */
-  zIndex?: number
-}>(), {
-  level: 1,
-  gpu: false,
-  position: 'relative',
-})
+const props = withDefaults(
+  defineProps<{
+    /** Depth level: 0 (transparent) | 1 | 2 | 3 (most elevated) */
+    level?: 0 | 1 | 2 | 3
+    /** Whether to add will-change GPU hint */
+    gpu?: boolean
+    /** Position mode */
+    position?: 'relative' | 'absolute' | 'fixed'
+    /** Custom z-index (overrides default level mapping) */
+    zIndex?: number
+  }>(),
+  {
+    level: 1,
+    gpu: false,
+    position: 'relative',
+  },
+)
 
 const zValues: Record<number, string> = {
   0: 'z-0',
@@ -35,13 +38,17 @@ const shadowValues: Record<number, string> = {
   3: 'shadow-depth-3',
 }
 
-const classes = computed(() => [
-  `depth-layer depth-${props.level}`,
-  shadowValues[props.level],
-  props.zIndex != null ? `z-${props.zIndex}` : zValues[props.level],
-  props.position === 'fixed' ? 'fixed' : props.position === 'absolute' ? 'absolute' : 'relative',
-  props.gpu ? 'gpu-layer' : '',
-].filter(Boolean).join(' '))
+const classes = computed(() =>
+  [
+    `depth-layer depth-${props.level}`,
+    shadowValues[props.level],
+    props.zIndex != null ? `z-${props.zIndex}` : zValues[props.level],
+    props.position === 'fixed' ? 'fixed' : props.position === 'absolute' ? 'absolute' : 'relative',
+    props.gpu ? 'gpu-layer' : '',
+  ]
+    .filter(Boolean)
+    .join(' '),
+)
 </script>
 
 <template>

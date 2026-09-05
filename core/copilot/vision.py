@@ -3,7 +3,9 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
@@ -221,6 +223,114 @@ def save_clipboard_image(output_path: str | Path = "/tmp/pasted_image.png") -> P
             pass
 
     return None
+
+
+# ── Screen Capture ─────────────────────────────────────────────────
+
+
+def capture_screenshot(output_path: str | Path | None = None) -> Path | None:
+    """Capture the current screen as a PNG image.
+
+    Supports Linux (scrot, maim, import), Windows (PowerShell), macOS (screencapture).
+    Returns path to saved screenshot, or None on failure.
+    """
+    import shutil as _shutil
+    import tempfile as _tmp
+
+    if output_path is None:
+        output_path = Path(_tmp.gettempdir()) / f"ownex_screenshot_{int(time.time() * 1000)}.png"
+    else:
+        output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    tools: list[list[str]] = [
+        ["scrot", str(output_path)],
+        ["maim", str(output_path)],
+        ["import", "-window", "root", str(output_path)],
+        ["xfce4-screenshooter", "-f", "-s", str(output_path)],
+    ]
+    for cmd in tools:
+        if _shutil.which(cmd[0]):
+            try:
+                subprocess.run(cmd, check=True, timeout=10)
+                if output_path.exists() and output_path.stat().st_size > 0:
+                    return output_path
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                continue
+
+    # PIL fallback
+    try:
+        from PIL import ImageGrab  # type: ignore[import-untyped]
+
+        img = ImageGrab.grab()
+        img.save(str(output_path), "PNG")
+        if output_path.exists() and output_path.stat().st_size > 0:
+            return output_path
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # Windows PowerShell fallback
+    if os.name == "nt":
+        ps_cmd = (
+            "Add-Type -AssemblyName System.Windows.Forms;"
+            "Add-Type -AssemblyName System.Drawing;"
+            "$screen = [System.Windows.Forms.Screen]::PrimaryScreen;"
+            "$bmp = New-Object System.Drawing.Bitmap($screen.Bounds.Width, $screen.Bounds.Height);"
+            "$gfx = [System.Drawing.Graphics]::FromImage($bmp);"
+            "$gfx.CopyFromScreen($screen.Bounds.Location, [System.Drawing.Point]::Empty, $screen.Bounds.Size);"
+            f"$bmp.Save('{output_path}')"
+        )
+        try:
+            subprocess.run(["powershell", "-Command", ps_cmd], check=True, timeout=15, capture_output=True)
+            if output_path.exists() and output_path.stat().st_size > 0:
+                return output_path
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            pass
+
+    # macOS fallback
+    if _shutil.which("screencapture"):
+        try:
+            subprocess.run(["screencapture", "-x", str(output_path)], check=True, timeout=10)
+            if output_path.exists() and output_path.stat().st_size > 0:
+                return output_path
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            pass
+
+    return None
+
+
+def analyze_screenshot(output_path: str | Path | None = None) -> dict[str, Any]:
+    """Capture and analyze the current screen in one call.
+
+    Combines capture_screenshot + analyze_image + Ollama vision.
+    """
+    path = capture_screenshot(output_path)
+    if path is None:
+        return {"error": "Failed to capture screenshot", "available_tools": _available_screenshot_tools()}
+    analysis = analyze_image(path)
+    analysis["screenshot_path"] = str(path)
+    return analysis
+
+
+def _available_screenshot_tools() -> list[str]:
+    """List available screenshot tools on this system."""
+    import shutil as _shutil
+
+    tools = []
+    for name in ("scrot", "maim", "import", "xfce4-screenshooter", "screencapture"):
+        if _shutil.which(name):
+            tools.append(name)
+    if os.name == "nt":
+        tools.append("powershell")
+    try:
+        from PIL import ImageGrab  # noqa: F401
+
+        tools.append("pillow")
+    except ImportError:
+        pass
+    return tools
 
 
 def describe_for_prompt(image_path: str | Path) -> str:

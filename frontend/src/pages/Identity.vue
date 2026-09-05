@@ -193,7 +193,7 @@ onMounted(loadData)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <template v-if="loading">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />
@@ -350,7 +350,7 @@ onMounted(loadData)
           </section>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
           <Card class="p-4 animate-in">
             <h3 class="text-xs font-semibold text-foreground flex items-center gap-2 mb-3">
               <Settings class="h-3.5 w-3.5 text-primary" />
@@ -360,7 +360,7 @@ onMounted(loadData)
               v-if="accounts.length > 0"
               :labels="doughnutLabels"
               :data="doughnutData"
-              :colors="['#16A34A', '#6b7280']"
+              :colors="['var(--ownex-green)', 'var(--ownex-text-muted)']"
               :height="200"
               :show-legend="true"
               :cutout="'65%'"

@@ -1,0 +1,111 @@
+# OWNEX Autopilot Configuration
+# Copy to ~/.ownex/autopilot.yaml and customize
+# Run: python -m cores.autopilot.config.autopilot_config to generate
+
+profile:
+  name: "Adriel"
+  country: "AR"
+  timezone: "America/Argentina/Buenos_Aires"
+  languages: ["es", "en"]
+  skills:
+    - Python
+    - Rust
+    - TypeScript
+    - Security
+    - AI
+    - Web3
+    - Cloud
+  experience_level: "expert"
+  availability_hours: 40
+  preferred_currencies: ["USD", "USDC", "ARS"]
+  preferred_payment_methods: ["USDC", "Wire", "PayPal", "Payoneer"]
+  remote_only: true
+  accepts_ai_tools: true
+
+income_targets:
+  work_income_monthly_usd: 50000.0
+  savings_monthly_usd: 25000.0
+  capital_target_usd: 500000.0
+  target_monthly_usd: 100000.0
+
+automation:
+  mode: "best_income"  # max_income | best_income | fast_income
+  max_concurrent_deliveries: 20
+  max_concurrent_prs: 3
+  auto_submit_threshold: 0.85
+  wear_os_auto_approve_usd: 5000
+  coder_agent_auto_merge_confidence: 0.92
+  daily_check_enabled: true
+  achievement_notifications: true
+
+platforms:
+  # Zero-barrier AI evaluation (auto-configured)
+  outlier:
+    enabled: true
+    tier: "coding"
+  dataannotation:
+    enabled: true
+  mindrift:
+    enabled: true
+  mercor:
+    enabled: true
+    tier: "coding"
+  crowdgen:
+    enabled: true
+  
+  # Dev bounties (GitHub-based, Stripe payouts)
+  opire:
+    enabled: true
+  superteam:
+    enabled: true
+    categories: ["dev", "content", "design"]
+  algora:
+    enabled: true
+  
+  # Security bug bounties (require API keys in .env)
+  hackerone:
+    enabled: true
+    api_key_env: "H1_API_KEY"
+  bugcrowd:
+    enabled: true
+    api_key_env: "BC_API_KEY"
+  intigriti:
+    enabled: true
+    api_key_env: "INTIGRITI_API_KEY"
+  yeswehack:
+    enabled: true
+    api_key_env: "YWH_API_KEY"
+  immunefi:
+    enabled: true
+    api_key_env: "IMMUNEFI_API_KEY"
+  
+  # High-value asymmetric bounties
+  stargate:
+    enabled: true
+    max_payout: 10000000
+  avail:
+    enabled: true
+    max_payout: 250000
+  
+  # Quant/Trading
+  freqtrade:
+    enabled: true
+    extra:
+      paper_trading_days: 30
+  atlas:
+    enabled: true
+
+capital_allocation:
+  emergency_reserve_pct: 0.10
+  cash_reserve_pct: 0.15
+  low_risk_pct: 0.35
+  growth_pct: 0.25
+  quant_pct: 0.10
+  speculative_pct: 0.05
+  hard_loss_budget_pct: 0.02
+
+risk:
+  max_drawdown_pct: 0.15
+  stop_loss_pct: 0.10
+  max_leverage: 1.5
+  correlation_threshold: 0.7

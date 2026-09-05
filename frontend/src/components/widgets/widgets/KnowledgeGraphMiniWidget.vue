@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 
-const KnowledgeGraphMini = defineAsyncComponent(
-  () => import('@/components/charts/KnowledgeGraphMini.vue')
-)
+const KnowledgeGraphMini = defineAsyncComponent(() => import('@/components/charts/KnowledgeGraphMini.vue'))
 
 interface Props {
   data?: any

@@ -17,20 +17,20 @@
 
 /* ── High Contrast Mode ── */
 [data-a11y-mode="high-contrast"] {
-  --color-background: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #1a1a1a;
-  --color-border: #ffffff;
-  --color-border-light: #cccccc;
-  --color-muted: #888888;
-  --color-muted-foreground: #aaaaaa;
-  --color-foreground: #ffffff;
+  --color-background: var(--ownex-bg-deep);
+  --color-surface: var(--ownex-bg-surface);
+  --color-surface-hover: var(--ownex-bg-elevated);
+  --color-border: var(--ownex-text-primary);
+  --color-border-light: var(--ownex-text-secondary);
+  --color-muted: var(--ownex-text-secondary);
+  --color-muted-foreground: var(--ownex-text-secondary)aaa;
+  --color-foreground: var(--ownex-text-primary);
   --color-primary: #4d8fff;
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--ownex-text-primary);
   --color-accent: #80b3ff;
-  --color-accent-foreground: #000000;
-  --color-destructive: #3B82F6;
-  --color-warning: #ffaa00;
+  --color-accent-foreground: var(--ownex-bg-deep);
+  --color-destructive: var(--ownex-danger);
+  --color-warning: var(--ownex-yellow);
   --color-success: #44ff44;
 }
 
@@ -47,7 +47,7 @@
 }
 
 [data-a11y-mode="high-contrast"] .splash-layer {
-  background: #000;
+  background: var(--ownex-bg-deep);
 }
 
 /* ── Performance Mode ── */
@@ -113,4 +113,112 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Focus Trap for Modals ── */
+[data-focus-trap="true"] {
+  outline: none;
+}
+
+/* ── Focus Ring Improvements ── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary, #4d8fff);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Reduced Contrast (尊重 user preference) ── */
+@media (prefers-contrast: more) {
+  :root {
+    --color-border: var(--ownex-text-primary);
+    --color-muted-foreground: var(--ownex-text-secondary);
+  }
+}
+
+/* ── Forced Colors (Windows High Contrast) ── */
+@media (forced-colors: active) {
+  button:focus-visible {
+    outline: 2px solid ButtonText;
+  }
+  a:focus-visible {
+    outline: 2px solid LinkText;
+  }
+}
+
+/* ── Visible focus for dark mode ── */
+.dark *:focus-visible {
+  outline-color: #60a5fa;
+}
+
+/* ── Skip Navigation Link ── */
+.skip-nav {
+  position: fixed;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--color-primary, #4d8fff);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-nav:focus {
+  top: 16px;
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .skip-nav {
+    transition: none;
+  }
+}
+
+/* ── High Contrast Text ── */
+.text-high-contrast {
+  color: var(--color-foreground);
+  font-weight: 500;
+}
+
+/* ── Focus visible for interactive cards ── */
+.card-interactive:focus-visible {
+  outline: 2px solid var(--color-primary, #4d8fff);
+  outline-offset: 2px;
+}
+
+/* ── Keyboard navigation indicator ── */
+.keyboard-nav *:focus-visible {
+  outline: 2px solid var(--color-primary, #4d8fff);
+  outline-offset: 2px;
+}
+
+/* ── Live region for dynamic content ── */
+[aria-live] {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+[aria-live].visible {
+  clip: auto;
+  clip-path: none;
+  height: auto;
+  overflow: visible;
+  position: static;
+  white-space: normal;
+  width: auto;
 }

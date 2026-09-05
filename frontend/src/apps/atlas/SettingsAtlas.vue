@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import {
-  AlertTriangle, Cable, CheckCircle2, Globe, KeyRound, RefreshCw, Save, Shield, Sliders,
-} from '@lucide/vue'
+import { AlertTriangle, Cable, CheckCircle2, Globe, KeyRound, RefreshCw, Save, Shield, Sliders } from '@lucide/vue'
+import { onMounted, reactive, ref } from 'vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 import { api } from '@/lib/api'
 
 const { toast } = useToast()
@@ -84,7 +82,9 @@ async function saveSettings() {
     localStorage.setItem('orion_atlas_settings', JSON.stringify(updated))
     saveSuccess.value = 'Configuración guardada correctamente'
     toast.success('Guardado', 'La configuración de ATLAS se actualizó')
-    setTimeout(() => { saveSuccess.value = '' }, 3000)
+    setTimeout(() => {
+      saveSuccess.value = ''
+    }, 3000)
   } catch (e) {
     saveError.value = 'Error al guardar la configuración'
     toast.error('Error', 'No se pudo guardar la configuración')

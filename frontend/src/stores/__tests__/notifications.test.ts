@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useNotificationsStore } from '@/stores/notifications'
 
 vi.mock('@/lib/api', () => ({
@@ -70,7 +70,7 @@ describe('notifications store', () => {
     store.add({ type: 'info', title: 'A', message: '' })
     store.add({ type: 'info', title: 'B', message: '' })
     store.markAllRead()
-    expect(store.notifications.every(n => n.read)).toBe(true)
+    expect(store.notifications.every((n) => n.read)).toBe(true)
     expect(store.unreadCount).toBe(0)
   })
 

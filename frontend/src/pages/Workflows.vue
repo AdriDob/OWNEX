@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import { Activity, FileText, Play, Plus, RefreshCw, Workflow, CheckCircle2, XCircle, Clock, Loader2 } from '@lucide/vue'
-import Button from '@/components/ui/Button.vue'
+import { Activity, CheckCircle2, Clock, FileText, Loader2, Play, Plus, RefreshCw, Workflow, XCircle } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface WorkflowTemplate {
   file: string
@@ -34,16 +34,13 @@ const selectedTemplate = ref<string | null>(null)
 const showNewDialog = ref(false)
 const activeTab = ref<'templates' | 'runs'>('templates')
 
-const tabData = computed(() => activeTab.value === 'templates' ? templates.value : runs.value)
-const tabLabel = computed(() => activeTab.value === 'templates' ? 'Plantillas' : 'Ejecuciones')
+const tabData = computed(() => (activeTab.value === 'templates' ? templates.value : runs.value))
+const tabLabel = computed(() => (activeTab.value === 'templates' ? 'Plantillas' : 'Ejecuciones'))
 
 async function fetchAll() {
   loading.value = true
   try {
-    const [tRes, rRes] = await Promise.all([
-      fetch('/api/core/workflows/templates'),
-      fetch('/api/core/workflows/runs'),
-    ])
+    const [tRes, rRes] = await Promise.all([fetch('/api/core/workflows/templates'), fetch('/api/core/workflows/runs')])
     if (tRes.ok) {
       const d = await tRes.json()
       templates.value = d.templates || []
@@ -86,12 +83,24 @@ async function createRun(templateFile: string) {
 }
 
 function statusBadgeVariant(s: string): 'success' | 'warning' | 'info' | 'destructive' | 'outline' {
-  const m: Record<string, 'success' | 'warning' | 'info' | 'destructive' | 'outline'> = { completed: 'success', running: 'warning', pending: 'info', failed: 'destructive', cancelled: 'outline' }
+  const m: Record<string, 'success' | 'warning' | 'info' | 'destructive' | 'outline'> = {
+    completed: 'success',
+    running: 'warning',
+    pending: 'info',
+    failed: 'destructive',
+    cancelled: 'outline',
+  }
   return m[s] || 'outline'
 }
 
 function statusIcon(s: string) {
-  const m: Record<string, any> = { completed: CheckCircle2, running: Loader2, pending: Clock, failed: XCircle, cancelled: XCircle }
+  const m: Record<string, any> = {
+    completed: CheckCircle2,
+    running: Loader2,
+    pending: Clock,
+    failed: XCircle,
+    cancelled: XCircle,
+  }
   return m[s] || Clock
 }
 
@@ -99,7 +108,7 @@ onMounted(fetchAll)
 </script>
 
 <template>
-  <div class="p-6 space-y-6 animate-in">
+  <div class="p-4 space-y-4 sm:p-6 sm:space-y-6 animate-in">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">

@@ -18,10 +18,12 @@ from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
     activity,
+    agenda,
     agent_coordinator,
     agents_router,
     ai_security,
     alerts,
+    approvals,
     assistant,
     atlas_app,
     atlas_cycle,
@@ -33,11 +35,15 @@ from api.routers import (
     authhub,
     auto_apply,
     auto_submit,
+    autopilot,
+    availability,
     bank_payout,
     bounty_pipeline,
     canonical,
     capability_expansion,
+    capital,
     career,
+    command_center,
     commands,
     connections,
     contracts,
@@ -47,10 +53,11 @@ from api.routers import (
     crypto,
     cycles,
     daily,
+    daily_brief,
     daily_digest,
-    agenda,
     daily_mode,
     decision,
+    dev_bounty,
     device,
     devin,
     differential_intelligence,
@@ -69,6 +76,7 @@ from api.routers import (
     finance,
     financial_sync,
     financial_truth,
+    finding_market,
     findings,
     fiverr,
     forge_app,
@@ -85,6 +93,8 @@ from api.routers import (
     investigations,
     investment,
     knowledge_bridge,
+    knowledge_graph,
+    learning_loop,
     license,
     life,
     life_management,
@@ -96,8 +106,11 @@ from api.routers import (
     mobile,
     mobile_approvals,
     modes,
+    notification_center,
     notifications,
     oar,
+    obs,
+    observation,
     obsidian_sync,
     offensive,
     offensive_web3,
@@ -114,10 +127,14 @@ from api.routers import (
     osint,
     outlook,
     overview,
+    patrimony,
     payment_compat,
     personal_infrastructure,
+    pillars,
     pipeline,
+    platform_webhooks,
     platforms,
+    predictive,
     productivity,
     profile_kit,
     progressive_scaling,
@@ -125,6 +142,7 @@ from api.routers import (
     pulse_app,
     pulse_cycle,
     qa_cycle,
+    quick_capture,
     quick_wins,
     recon,
     remote_control,
@@ -142,6 +160,7 @@ from api.routers import (
     scans,
     screenshots,
     security_cycle,
+    self_healer,
     self_improvement,
     settings_ai,
     settings_runtime,
@@ -154,10 +173,13 @@ from api.routers import (
     system_state,
     target_identity,
     targets,
+    team,
     telegram_bot,
     terminal_ws,
     trading,
+    training_pipeline,
     ultra_fast_income,
+    unified_income,
     validation,
     vault_app,
     vault_cycle,
@@ -168,6 +190,7 @@ from api.routers import (
     voice_commands,
     wear_os,
     webhooks,
+    worker_core,
     ws,
     zap,
     zero_barrier,
@@ -386,6 +409,23 @@ app = FastAPI(
     swagger_ui_parameters={"deepLinking": True, "displayRequestDuration": True},
 )
 
+# ══════════════════════════════════════════════════════════════════════════════
+# WORKAROUND: FastAPI 0.141.1 include_router bug
+# The include_router method doesn't properly add routes when router has a prefix.
+# Monkey-patch include_router to use router.routes.extend() which works correctly.
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def _include_router_workaround(app: FastAPI, router, **kwargs):
+    """Workaround for FastAPI 0.141.1 include_router bug.
+    Manually extends app.router.routes with router.routes which works correctly.
+    """
+    app.router.routes.extend(router.routes)
+
+
+# Monkey-patch include_router
+app.include_router = lambda router, **kwargs: app.router.routes.extend(router.routes)
+
 # Production: restrict to local origins + Tauri bundle origins.
 # Dev mode (OWNEX_DESKTOP/CATEYE_DESKTOP not set) uses * but without
 # credentials per Fetch spec. The packaged sidecar always sets
@@ -513,13 +553,18 @@ app.include_router(opportunity_feedback.router)
 app.include_router(opportunity_intelligence.router)
 app.include_router(mercenary_filter.router)
 app.include_router(auto_submit.router)
+app.include_router(autopilot.router)
+app.include_router(availability.router)
 app.include_router(bounty_pipeline.router)
+app.include_router(dev_bounty.router)
+app.include_router(unified_income.router)
 app.include_router(agent_coordinator.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
 app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
+app.include_router(notification_center.router)
 app.include_router(outlook.router)
 app.include_router(mobile.router)
 app.include_router(mobile_approvals.router)
@@ -546,12 +591,16 @@ app.include_router(control.router)
 app.include_router(copilot.router)
 app.include_router(execution.router)
 app.include_router(execution_queue.router)
+app.include_router(worker_core.router)
+app.include_router(daily_brief.router)
 app.include_router(license.router)
 app.include_router(learning_router)
 app.include_router(project_dashboard.router)
 app.include_router(ws.router)
+app.include_router(wear_os.router)
 app.include_router(terminal_ws.router)
 app.include_router(trading.router)
+app.include_router(patrimony.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
 app.include_router(offensive_web3.router)
@@ -577,6 +626,13 @@ app.include_router(infinite_sources.router)
 app.include_router(auto_apply.router)
 app.include_router(alerts.router)
 app.include_router(modes.router)
+app.include_router(capital.router)
+app.include_router(approvals.router)
+app.include_router(pillars.router)
+app.include_router(learning_loop.router)
+app.include_router(command_center.router)
+app.include_router(obs.router)
+app.include_router(observation.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(credentials_rotation.router)
@@ -596,6 +652,13 @@ app.include_router(telegram_bot.router)
 app.include_router(version.router)
 app.include_router(intel.router)
 app.include_router(ai_security.router)
+
+
+# ── Trading Dashboard ──────────────────────────────────────────────
+from api.routers.trading_dashboard import router as trading_dashboard_router
+
+app.include_router(trading_dashboard_router)
+
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
 app.include_router(voice.router)
@@ -603,6 +666,13 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(platform_webhooks.router)
+app.include_router(knowledge_graph.router)
+app.include_router(training_pipeline.router)
+app.include_router(team.router)
+app.include_router(finding_market.router)
+app.include_router(predictive.router)
+app.include_router(quick_capture.router)
 app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)
 app.include_router(decision.router)
@@ -634,11 +704,11 @@ app.include_router(devin.router)
 app.include_router(onboarding.router)
 
 # Wear OS router
-app.include_router(wear_os.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
 app.include_router(self_improvement.router)
+app.include_router(self_healer.router)
 app.include_router(forge_cycle.router)
 app.include_router(pulse_cycle.router)
 app.include_router(vault_cycle.router)

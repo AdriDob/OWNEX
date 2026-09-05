@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Sparkles } from '@lucide/vue'
+import { computed } from 'vue'
 
 interface Props {
   data?: any

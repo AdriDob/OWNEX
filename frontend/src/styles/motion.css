@@ -89,8 +89,12 @@
 
 /* ─── Entrance Animations ─── */
 @keyframes ownex-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes ownex-slide-in-up {
@@ -149,9 +153,18 @@
 }
 
 @keyframes ownex-scale-in-spring {
-  0% { opacity: 0; transform: scale(0.9); }
-  60% { opacity: 1; transform: scale(1.02); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Entrance classes */
@@ -184,32 +197,66 @@
 }
 
 /* Stagger delays */
-.ownex-stagger-1 { animation-delay: calc(var(--transition-fast) * 1); }
-.ownex-stagger-2 { animation-delay: calc(var(--transition-fast) * 2); }
-.ownex-stagger-3 { animation-delay: calc(var(--transition-fast) * 3); }
-.ownex-stagger-4 { animation-delay: calc(var(--transition-fast) * 4); }
-.ownex-stagger-5 { animation-delay: calc(var(--transition-fast) * 5); }
-.ownex-stagger-6 { animation-delay: calc(var(--transition-fast) * 6); }
+.ownex-stagger-1 {
+  animation-delay: calc(var(--transition-fast) * 1);
+}
+.ownex-stagger-2 {
+  animation-delay: calc(var(--transition-fast) * 2);
+}
+.ownex-stagger-3 {
+  animation-delay: calc(var(--transition-fast) * 3);
+}
+.ownex-stagger-4 {
+  animation-delay: calc(var(--transition-fast) * 4);
+}
+.ownex-stagger-5 {
+  animation-delay: calc(var(--transition-fast) * 5);
+}
+.ownex-stagger-6 {
+  animation-delay: calc(var(--transition-fast) * 6);
+}
 
 /* ─── Exit Animations ─── */
 @keyframes ownex-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes ownex-slide-out-up {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-16px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
 }
 
 @keyframes ownex-slide-out-down {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(16px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
 }
 
 @keyframes ownex-scale-out {
-  from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.95); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }
 
 .ownex-animate-fade-out {
@@ -230,34 +277,64 @@
 
 /* ─── Hover & Interaction Animations ─── */
 @keyframes ownex-pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes ownex-pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+  }
 }
 
 @keyframes ownex-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes ownex-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes ownex-bounce-in {
-  0% { transform: scale(0.3); opacity: 0; }
-  50% { transform: scale(1.05); opacity: 1; }
-  70% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .ownex-hover-lift {
-  transition: transform var(--transition-fast) var(--ease-out), box-shadow var(--transition-fast) var(--ease-out);
+  transition:
+    transform var(--transition-fast) var(--ease-out),
+    box-shadow var(--transition-fast) var(--ease-out);
 }
 
 .ownex-hover-lift:hover {
@@ -278,7 +355,9 @@
 }
 
 .ownex-hover-glow:hover {
-  box-shadow: 0 0 0 1px var(--ownex-blue), 0 0 24px rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px var(--ownex-blue),
+    0 0 24px rgba(255, 255, 255, 0.08);
 }
 
 .ownex-active-scale:active {
@@ -306,22 +385,14 @@
 }
 
 .ownex-shimmer {
-  background: linear-gradient(90deg,
-    var(--ownex-bg-base) 25%,
-    var(--ownex-bg-surface) 50%,
-    var(--ownex-bg-base) 75%
-  );
+  background: linear-gradient(90deg, var(--ownex-bg-base) 25%, var(--ownex-bg-surface) 50%, var(--ownex-bg-base) 75%);
   background-size: 200% 100%;
   animation: ownex-shimmer 1.5s ease-in-out infinite;
 }
 
 /* Skeleton loading */
 .ownex-skeleton {
-  background: linear-gradient(90deg,
-    var(--ownex-bg-base) 25%,
-    var(--ownex-bg-surface) 50%,
-    var(--ownex-bg-base) 75%
-  );
+  background: linear-gradient(90deg, var(--ownex-bg-base) 25%, var(--ownex-bg-surface) 50%, var(--ownex-bg-base) 75%);
   background-size: 200% 100%;
   animation: ownex-shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-md);
@@ -329,12 +400,16 @@
 
 /* ─── Progress Bar Animations ─── */
 @keyframes ownex-progress-indeterminate {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(200%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
 }
 
 .ownex-progress-indeterminate::after {
-  content: '';
+  content: "";
   display: block;
   width: 50%;
   height: 100%;
@@ -344,13 +419,25 @@
 
 /* ─── Toast / Notification Animations ─── */
 @keyframes ownex-toast-enter {
-  from { opacity: 0; transform: translateX(100%) scale(0.95); }
-  to { opacity: 1; transform: translateX(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 @keyframes ownex-toast-exit {
-  from { opacity: 1; transform: translateX(0) scale(1); }
-  to { opacity: 0; transform: translateX(100%) scale(0.95); }
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
 }
 
 .ownex-toast-enter {
@@ -363,23 +450,43 @@
 
 /* ─── Modal / Dialog Animations ─── */
 @keyframes ownex-modal-backdrop-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes ownex-modal-backdrop-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes ownex-modal-content-in {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 @keyframes ownex-modal-content-out {
-  from { opacity: 1; transform: scale(1) translateY(0); }
-  to { opacity: 0; transform: scale(0.95) translateY(8px); }
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
 }
 
 .ownex-modal-backdrop-enter {
@@ -400,13 +507,25 @@
 
 /* ─── Dropdown / Popover Animations ─── */
 @keyframes ownex-dropdown-in {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes ownex-dropdown-out {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
 }
 
 .ownex-dropdown-enter {
@@ -419,8 +538,12 @@
 
 /* ─── Tab / Panel Animations ─── */
 @keyframes ownex-tab-indicator-slide {
-  from { transform: translateX(var(--from-x, 0)); }
-  to { transform: translateX(var(--to-x, 0)); }
+  from {
+    transform: translateX(var(--from-x, 0));
+  }
+  to {
+    transform: translateX(var(--to-x, 0));
+  }
 }
 
 .ownex-tab-indicator {
@@ -434,13 +557,25 @@
 
 /* ─── Page Transitions ─── */
 @keyframes ownex-page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes ownex-page-exit {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-8px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
 }
 
 .ownex-page-enter {
@@ -453,13 +588,25 @@
 
 /* ─── Accordion / Collapse Animations ─── */
 @keyframes ownex-accordion-down {
-  from { height: 0; opacity: 0; }
-  to { height: var(--height-auto); opacity: 1; }
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--height-auto);
+    opacity: 1;
+  }
 }
 
 @keyframes ownex-accordion-up {
-  from { height: var(--height-auto); opacity: 1; }
-  to { height: 0; opacity: 0; }
+  from {
+    height: var(--height-auto);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
 }
 
 .ownex-accordion-enter {

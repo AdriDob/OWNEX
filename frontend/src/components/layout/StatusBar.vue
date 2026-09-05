@@ -38,12 +38,15 @@ onUnmounted(() => {
   clearInterval(intervalId)
 })
 
-const statusConfig = computed(() => ({
-  healthy: { label: 'SISTEMA OPERATIVO', variant: 'success' as const, dot: true },
-  degraded: { label: 'DEGRADADO', variant: 'warning' as const, dot: true },
-  critical: { label: 'CRÍTICO', variant: 'error' as const, dot: true },
-  offline: { label: 'DESCONECTADO', variant: 'default' as const, dot: false },
-})[props.systemStatus])
+const statusConfig = computed(
+  () =>
+    ({
+      healthy: { label: 'SISTEMA OPERATIVO', variant: 'success' as const, dot: true },
+      degraded: { label: 'DEGRADADO', variant: 'warning' as const, dot: true },
+      critical: { label: 'CRÍTICO', variant: 'error' as const, dot: true },
+      offline: { label: 'DESCONECTADO', variant: 'default' as const, dot: false },
+    })[props.systemStatus],
+)
 
 const formattedTime = computed(() =>
   time.value.toLocaleTimeString('es-ES', {
@@ -51,7 +54,7 @@ const formattedTime = computed(() =>
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  })
+  }),
 )
 
 const formattedDate = computed(() =>
@@ -59,7 +62,7 @@ const formattedDate = computed(() =>
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-  })
+  }),
 )
 </script>
 
@@ -109,7 +112,7 @@ const formattedDate = computed(() =>
           <circle cx="12" cy="12" r="10" stroke-width="1.5" opacity="0.3"/>
           <path
             d="M12 2l0 4M12 18l0 4M2 12l4 0M18 12l4 0M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"
-            stroke="#2D7FF9"
+            stroke="var(--ownex-accent)"
             stroke-width="1.5"
           />
         </svg>

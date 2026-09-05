@@ -3,6 +3,7 @@ from __future__ import annotations
 from .amass import AmassTool
 from .base import BaseTool, ToolResult, UnifiedResult
 from .censys import CensysTool
+from .computer_use import ComputerUseTool
 from .extra import (
     TOOL_REGISTRY,
     BrowserUseTool,
@@ -47,5 +48,6 @@ __all__ = [
     "GitleaksTool",
     "GarakTool",
     "BrowserUseTool",
+    "ComputerUseTool",
     "TOOL_REGISTRY",
 ]

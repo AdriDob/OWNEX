@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Button from '@/components/ui/Button.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import {
+  AlertTriangle,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  Code2,
+  Database,
+  Filter,
+  Globe,
+  Layers,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  Star,
+  Target,
+  TrendingUp,
+  X,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import {
-  Search, ChevronLeft, ChevronRight, SlidersHorizontal, X,
-  AlertTriangle, RefreshCw, Globe, Database, Code2, Layers,
-  Star, Target, TrendingUp, Filter, BarChart3,
-} from '@lucide/vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface CatalogProgram {
   id: number
@@ -38,18 +51,18 @@ const pageSize = 20
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
 const platforms = computed(() => {
-  const set = new Set(programs.value.map(p => p.platform).filter(Boolean))
+  const set = new Set(programs.value.map((p) => p.platform).filter(Boolean))
   return Array.from(set)
 })
 
 const platformColors: Record<string, string> = {
-  hackerone: '#16a34a',
-  bugcrowd: '#b45309',
-  intigriti: '#9CA3AF',
-  yeswehack: '#9CA3AF',
-  synack: '#ffffff',
-  immunefi: '#9CA3AF',
-  code4rena: '#00d5ff',
+  hackerone: 'var(--ownex-green)',
+  bugcrowd: 'var(--ownex-gold)',
+  intigriti: 'var(--ownex-text-secondary)',
+  yeswehack: 'var(--ownex-text-secondary)',
+  synack: 'var(--ownex-text-primary)',
+  immunefi: 'var(--ownex-text-secondary)',
+  code4rena: 'var(--ownex-accent)',
 }
 
 const platformDistributionData = computed(() => {
@@ -106,18 +119,24 @@ async function loadPrograms() {
 }
 
 function prevPage() {
-  if (page.value > 1) { page.value--; loadPrograms() }
+  if (page.value > 1) {
+    page.value--
+    loadPrograms()
+  }
 }
 
 function nextPage() {
-  if (page.value < totalPages.value) { page.value++; loadPrograms() }
+  if (page.value < totalPages.value) {
+    page.value++
+    loadPrograms()
+  }
 }
 
 onMounted(loadPrograms)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <template v-if="loading && programs.length === 0">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />

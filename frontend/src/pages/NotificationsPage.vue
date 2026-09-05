@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useNotificationsStore } from '@/stores/notifications'
-import type { Notification } from '@/stores/notifications'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertCircle,
+  AlertTriangle,
+  BarChart3,
+  Bell,
+  BellOff,
+  CheckCheck,
+  CheckCircle2,
+  Filter,
+  Info,
+  Trash2,
+  X,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { BarChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { BarChart } from '@/components/charts'
-import {
-  AlertCircle, AlertTriangle, BarChart3, Bell, BellOff, CheckCheck,
-  CheckCircle2, Filter, Info, Trash2, X,
-} from '@lucide/vue'
+import type { Notification } from '@/stores/notifications'
+import { useNotificationsStore } from '@/stores/notifications'
 
 const store = useNotificationsStore()
 const filterType = ref<string | null>(null)
@@ -43,23 +52,30 @@ const typeCounts = computed(() => {
 
 const chartData = computed(() => ({
   labels: ['Info', 'Success', 'Warning', 'Error'],
-  datasets: [{
-    label: 'Notificaciones',
-    data: [typeCounts.value.info, typeCounts.value.success, typeCounts.value.warning, typeCounts.value.error],
-    backgroundColor: ['rgba(255, 255, 255,0.7)', 'rgba(22,163,74,0.7)', 'rgba(217, 119, 6,0.7)', 'rgba(0, 213, 255,0.7)'],
-  }],
+  datasets: [
+    {
+      label: 'Notificaciones',
+      data: [typeCounts.value.info, typeCounts.value.success, typeCounts.value.warning, typeCounts.value.error],
+      backgroundColor: [
+        'rgba(255, 255, 255,0.7)',
+        'rgba(22,163,74,0.7)',
+        'rgba(217, 119, 6,0.7)',
+        'rgba(0, 213, 255,0.7)',
+      ],
+    },
+  ],
 }))
 
 const filteredNotifications = computed(() => {
   if (!filterType.value) return store.notifications
-  return store.notifications.filter(n => n.type === filterType.value)
+  return store.notifications.filter((n) => n.type === filterType.value)
 })
 
 const filteredGrouped = computed(() => {
   if (!filterType.value) return store.groupedByDate
   const groups: { label: string; items: Notification[] }[] = []
   for (const group of store.groupedByDate) {
-    const items = group.items.filter(n => n.type === filterType.value)
+    const items = group.items.filter((n) => n.type === filterType.value)
     if (items.length > 0) {
       groups.push({ label: group.label, items })
     }
@@ -73,7 +89,7 @@ function formatTime(ts: number) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-in">
       <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">Notifications</p>

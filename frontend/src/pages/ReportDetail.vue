@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Download,
+  FileText,
+  RefreshCw,
+  Send,
+  Target,
+  TrendingUp,
+  Wallet,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api, getToken } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { DoughnutChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { DoughnutChart } from '@/components/charts'
-import {
-  ArrowLeft, AlertTriangle, FileText, DollarSign, CalendarDays,
-  RefreshCw, Download, CheckCircle2, Send, Clock, Target,
-  Wallet, TrendingUp,
-} from '@lucide/vue'
+import { api, getToken } from '@/lib/api'
 
 interface ReportDetail {
   id: number
@@ -59,8 +69,11 @@ async function updateStatus(status: string) {
   saving.value = true
   try {
     report.value = await api.put<ReportDetail>(`/reports/${reportId.value}`, { ...report.value, status })
-  } catch { /* ignore */ }
-  finally { saving.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    saving.value = false
+  }
 }
 
 async function handleExport(format: 'markdown' | 'json') {
@@ -78,20 +91,31 @@ async function handleExport(format: 'markdown' | 'json') {
     a.download = `report-${reportId.value}.${format === 'markdown' ? 'md' : 'json'}`
     a.click()
     URL.revokeObjectURL(url)
-  } catch { /* ignore */ }
-  finally { exporting.value = null }
+  } catch {
+    /* ignore */
+  } finally {
+    exporting.value = null
+  }
 }
 
 function severityVariant(sev: string) {
   const map: Record<string, 'destructive' | 'warning' | 'info' | 'success' | 'default'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+    critical: 'destructive',
+    high: 'warning',
+    medium: 'info',
+    low: 'success',
+    info: 'default',
   }
   return map[sev.toLowerCase()] || 'default'
 }
 
 function statusVariant(st: string) {
   const map: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'default'> = {
-    paid: 'success', submitted: 'info', ready: 'info', draft: 'default', rejected: 'destructive',
+    paid: 'success',
+    submitted: 'info',
+    ready: 'info',
+    draft: 'default',
+    rejected: 'destructive',
   }
   return map[st.toLowerCase()] || 'default'
 }
@@ -118,7 +142,7 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="flex items-center gap-3 animate-in">
       <Button variant="ghost" size="icon" @click="router.push('/reports')">
         <ArrowLeft class="h-4 w-4" />
@@ -224,7 +248,7 @@ onMounted(fetchData)
             :labels="payoutBreakdownData.labels"
             :data="payoutBreakdownData.data"
             :height="200"
-            :colors="['#16A34A', '#ffffff', '#A16207']"
+            :colors="['var(--ownex-green)', 'var(--ownex-text-primary)', 'var(--ownex-gold)']"
           />
         </Card>
       </div>

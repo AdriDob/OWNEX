@@ -135,10 +135,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-import type { WizardStep, WizardQuestion } from '@/types'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { WizardQuestion, WizardStep } from '@/types'
 
 const router = useRouter()
 
@@ -231,8 +231,8 @@ onMounted(() => {
 /* ═══ OWNEX — PREMIUM MINIMAL SETUP WIZARD THEME ═══ */
 .enhanced-wizard {
   min-height: 100vh;
-  background: #05060a;
-  color: #f5f5f4;
+  background: var(--ownex-bg-base);
+  color: var(--ownex-bg-surface);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   display: flex;
   align-items: center;
@@ -242,7 +242,7 @@ onMounted(() => {
 .wizard-container {
   width: 100%;
   max-width: 620px;
-  background: #0c0e13;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 18px;
   padding: 28px;
@@ -252,12 +252,12 @@ onMounted(() => {
 .progress-bar {
   height: 4px;
   border-radius: 999px;
-  background: #1a1d24;
+  background: var(--ownex-bg-elevated);
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #00d5ff, #1e40ff);
+  background: linear-gradient(90deg, var(--ownex-accent), var(--ownex-accent));
   border-radius: 999px;
   transition: width 0.3s ease;
 }
@@ -277,16 +277,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5e6272;
+  color: var(--ownex-text-muted);
   transition: border-color 0.15s ease;
 }
 .step-dot.step-active {
   border-color: rgba(0, 213, 255, 0.6);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 .step-dot.step-completed {
   border-color: rgba(0, 227, 154, 0.4);
-  color: #00e39a;
+  color: var(--ownex-green);
 }
 .step-number { font-size: 13px; font-weight: 600; }
 
@@ -311,8 +311,8 @@ onMounted(() => {
 .avatar-ring.inner-ring { width: 22px; height: 22px; border-color: rgba(255, 255, 255, 0.2); }
 .avatar-core { font-size: 16px; }
 .merlin-message { display: flex; flex-direction: column; gap: 2px; }
-.greeting { margin: 0; font-size: 13px; font-weight: 500; color: #d9dbdf; }
-.description { margin: 0; font-size: 12px; color: #8b8d98; }
+.greeting { margin: 0; font-size: 13px; font-weight: 500; color: var(--ownex-text-secondary); }
+.description { margin: 0; font-size: 12px; color: var(--ownex-text-secondary); }
 
 .step-title {
   margin: 0 0 18px;
@@ -329,26 +329,26 @@ onMounted(() => {
   gap: 16px;
 }
 .question-item { display: flex; flex-direction: column; gap: 6px; }
-.question-label { font-size: 13px; color: #a6a9b1; }
+.question-label { font-size: 13px; color: var(--ownex-text-secondary); }
 .jarvis-input {
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
   padding: 11px 13px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   outline: none;
   transition: border-color 0.15s ease;
 }
-.jarvis-input::placeholder { color: #5e6272; }
+.jarvis-input::placeholder { color: var(--ownex-text-muted); }
 .jarvis-input:focus { border-color: rgba(0, 213, 255, 0.4); }
 .jarvis-select {
-  background: #0a0c11;
+  background: var(--ownex-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
   padding: 11px 13px;
-  color: #f5f5f4;
+  color: var(--ownex-bg-surface);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   outline: none;
@@ -360,7 +360,7 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
   background: transparent;
-  color: #8b8d98;
+  color: var(--ownex-text-secondary);
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   cursor: pointer;
@@ -369,7 +369,7 @@ onMounted(() => {
 .toggle-btn.active {
   border-color: rgba(0, 213, 255, 0.4);
   background: rgba(0, 213, 255, 0.08);
-  color: #00d5ff;
+  color: var(--ownex-accent);
 }
 
 /* ── Navigation ── */
@@ -391,14 +391,14 @@ onMounted(() => {
 .btn-secondary {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
-  color: #a6a9b1;
+  color: var(--ownex-text-secondary);
 }
 .btn-secondary:hover { border-color: rgba(255, 255, 255, 0.25); }
 .btn-primary {
   border: none;
-  background: #00d5ff;
-  color: #05060a;
+  background: var(--ownex-accent);
+  color: var(--ownex-bg-base);
 }
 .btn-primary:hover:not(:disabled) { opacity: 0.85; }
-.btn-primary:disabled { background: #1a1d24; color: #5e6272; cursor: not-allowed; }
+.btn-primary:disabled { background: var(--ownex-bg-elevated); color: var(--ownex-text-muted); cursor: not-allowed; }
 </style>

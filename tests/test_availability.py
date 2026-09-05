@@ -190,13 +190,16 @@ class TestConvenienceFunctions:
 
 class TestSnapshotWithCalendar:
     def test_snapshot_uses_calendar_when_exists(self, engine, monkeypatch):
-        # Crear calendario con bloques disponibles que EMPIEZAN hoy
-        # (determinista: ahora-1h → ahora+1h nunca cruza a mañana entero)
+        # Crear calendario con bloques disponibles que incluyen la hora actual
+        # Usa un rango amplio para asegurar que siempre haya horas disponibles
         now = datetime.now(UTC)
+        # Empezar 2 horas antes de ahora, terminar 2 horas después
+        start = now - timedelta(hours=2)
+        end = now + timedelta(hours=2)
         events = [
             {
-                "start": (now - timedelta(hours=1)).isoformat(),
-                "end": (now + timedelta(hours=1)).isoformat(),
+                "start": start.isoformat(),
+                "end": end.isoformat(),
                 "type": "available",
                 "title": "Focus",
             }
@@ -206,7 +209,7 @@ class TestSnapshotWithCalendar:
         snap = engine.get_snapshot()
 
         assert snap.source == "calendar"
-        assert snap.hours_today > 0
+        assert snap.hours_today >= 2.0
 
 
 if __name__ == "__main__":

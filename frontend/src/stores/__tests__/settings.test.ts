@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useSettingsStore } from '@/stores/settings'
 
 const mockApi = vi.hoisted(() => ({
@@ -44,11 +44,21 @@ describe('settings store', () => {
   })
 
   it('loads from localStorage on init', async () => {
-    localStorage.setItem('ownex_settings', JSON.stringify({
-      general: { userName: 'Custom', language: 'en', theme: 'dark', colors: 'blue', accessibility: true, animations: false },
-    }))
+    localStorage.setItem(
+      'ownex_settings',
+      JSON.stringify({
+        general: {
+          userName: 'Custom',
+          language: 'en',
+          theme: 'dark',
+          colors: 'blue',
+          accessibility: true,
+          animations: false,
+        },
+      }),
+    )
     const store = useSettingsStore()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(store.data.general.userName).toBe('Custom')
     expect(store.data.general.language).toBe('en')
   })

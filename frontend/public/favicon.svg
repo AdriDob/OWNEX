@@ -2,11 +2,11 @@
   
   <defs>
     <linearGradient id="markGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="0%" stop-color="#E82127"/>
       <stop offset="100%" stop-color="#1E40FF"/>
     </linearGradient>
     <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#00D5FF"/>
+      <stop offset="0%" stop-color="#E82127"/>
       <stop offset="100%" stop-color="#1E40FF" stop-opacity="0.6"/>
     </linearGradient>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -22,7 +22,7 @@
   <g id="ownex-mark" filter="url(#glow)">
     <path d="M 441.8 70.2 L 409.6 102.4 L 259.4 252.6 L 243.3 236.5 L 236.5 243.3 L 252.6 259.4 L 102.4 409.6 L 70.2 441.8 Z" fill="url(#markGrad)"/>
     <path d="M 441.8 70.2 L 409.6 102.4 L 259.4 252.6 L 275.5 236.5 L 268.7 243.3 L 252.6 259.4 L 102.4 409.6 L 70.2 441.8 Z" fill="url(#markGrad)"/>
-    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#00D5FF" stroke-width="3.0" opacity="0.35"/>
+    <circle cx="256.0" cy="256.0" r="248" fill="none" stroke="#E82127" stroke-width="3.0" opacity="0.35"/>
     <rect x="252.0" y="252.0" width="8" height="8" rx="2" fill="url(#markGrad)"/>
   </g>
   </g>

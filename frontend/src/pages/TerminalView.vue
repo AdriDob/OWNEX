@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { wsUrl } from '@/lib/backend'
 
 const terminalEl = ref<HTMLDivElement | null>(null)
@@ -8,9 +8,7 @@ let terminal: any = null
 let fitAddon: any = null
 
 // Determinar backend: PowerShell en Windows nativo, bash en Linux/WSL
-const shell = navigator.userAgent.includes('Windows NT')
-  ? ['powershell.exe', '-NoLogo']
-  : ['/bin/bash', '--login']
+const shell = navigator.userAgent.includes('Windows NT') ? ['powershell.exe', '-NoLogo'] : ['/bin/bash', '--login']
 
 let ws: WebSocket | null = null
 let backendProcess: any = null
@@ -30,27 +28,27 @@ onMounted(async () => {
     fontSize: 13,
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
     theme: {
-      background: '#0a0a0f',
-      foreground: '#e0e0e0',
-      cursor: '#0070d1',
-      cursorAccent: '#ffffff',
+      background: 'var(--ownex-bg-deep)',
+      foreground: 'var(--ownex-text-secondary)',
+      cursor: 'var(--ownex-accent)',
+      cursorAccent: 'var(--ownex-text-primary)',
       selectionBackground: 'rgba(255, 255, 255, 0.4)',
-      black: '#1a1a2e',
-      red: '#ff5555',
-      green: '#50fa7b',
-      yellow: '#f1fa8c',
-      blue: '#0070d1',
-      magenta: '#ff79c6',
-      cyan: '#8be9fd',
-      white: '#f0f0f0',
-      brightBlack: '#44475a',
-      brightRed: '#ff6e6e',
-      brightGreen: '#69ff94',
-      brightYellow: '#ffffa5',
-      brightBlue: '#0070d1',
-      brightMagenta: '#ff92d0',
-      brightCyan: '#a4ffff',
-      brightWhite: '#ffffff',
+      black: 'var(--ownex-bg-elevated)',
+      red: 'var(--ownex-danger)',
+      green: 'var(--ownex-green)',
+      yellow: 'var(--ownex-yellow)',
+      blue: 'var(--ownex-accent)',
+      magenta: 'var(--ownex-accent)',
+      cyan: 'var(--ownex-accent)',
+      white: 'var(--ownex-text-primary)',
+      brightBlack: 'var(--ownex-bg-elevated)',
+      brightRed: 'var(--ownex-danger)',
+      brightGreen: 'var(--ownex-green)',
+      brightYellow: 'var(--ownex-text-primary)fa5',
+      brightBlue: 'var(--ownex-accent)',
+      brightMagenta: 'var(--ownex-accent)',
+      brightCyan: 'var(--ownex-accent)',
+      brightWhite: 'var(--ownex-text-primary)',
     },
     allowTransparency: true,
     convertEol: true,
@@ -110,7 +108,9 @@ function startLocalShell() {
 
 function handleResize() {
   if (fitAddon) {
-    try { fitAddon.fit() } catch {}
+    try {
+      fitAddon.fit()
+    } catch {}
   }
 }
 
@@ -127,7 +127,6 @@ function toggleTheme() {
 function clearTerminal() {
   if (terminal) terminal.clear()
 }
-
 </script>
 
 <template>
@@ -167,13 +166,13 @@ function clearTerminal() {
 }
 .terminal-page .xterm-viewport {
   scrollbar-width: thin;
-  scrollbar-color: #0070d1 transparent;
+  scrollbar-color: var(--ownex-accent) transparent;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar {
   width: 6px;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar-thumb {
-  background: #0070d1;
+  background: var(--ownex-accent);
   border-radius: 3px;
 }
 .terminal-page .xterm-viewport::-webkit-scrollbar-track {

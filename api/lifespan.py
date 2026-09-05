@@ -101,6 +101,9 @@ async def run_background_init(app: Any, bus: Any) -> None:
     _defer("unified_memory", _init_unified_memory)
     _defer("smart_notifications", _init_smart_notifications, bus)
 
+    # ── Phase 10: WorkerCore (autonomous work orchestrator) ──
+    await _async_defer("worker_core", _init_worker_core)
+
     logger.info("[BG-INIT] All background initialization complete")
 
 
@@ -534,6 +537,8 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
         register_db_bridge,
         register_desktop_channel,
         register_event_bridge,
+        register_mobile_channel,
+        register_watch_channel,
     )
 
     register_db_bridge()
@@ -541,6 +546,15 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
 
     with contextlib.suppress(Exception):
         register_event_bridge()
+
+    # Email is ONLY for monthly report — NOT for operational notifications.
+    # Monthly report uses its own send_monthly_report() call.
+
+    with contextlib.suppress(Exception):
+        register_mobile_channel()
+
+    with contextlib.suppress(Exception):
+        register_watch_channel()
 
 
 def _init_copilot_handlers(bus: Any, app: Any) -> None:
@@ -710,6 +724,31 @@ def _init_smart_notifications(bus: Any) -> None:
             bus.subscribe(evt, _smart_notify)
     except Exception:
         pass
+
+
+async def _init_worker_core() -> None:
+    """Initialize WorkerCore — the autonomous work orchestrator.
+
+    Wires the 8-phase loop (DISCOVER→EVALUATE→SELECT→PREPARE→EXECUTE→
+    VALIDATE→DELIVER→LEARN) to real engines from the DirectWorkEngine.
+    The worker starts in STOPPED state; API endpoints control start/stop.
+    """
+    try:
+        from cores.worker_core import get_worker_core
+
+        worker = get_worker_core()
+        worker.connect_real_engines()
+        logger.info(
+            "[BG-INIT] WorkerCore initialized (autonomy=%s, engines: disc=%s eval=%s exec=%s deliv=%s learn=%s)",
+            worker.config.autonomy_level.value,
+            worker._discovery_engine is not None,
+            worker._evaluation_engine is not None,
+            worker._execution_engine is not None,
+            worker._delivery_engine is not None,
+            worker._learning_engine is not None,
+        )
+    except Exception as exc:
+        logger.warning("[BG-INIT] WorkerCore init failed (non-fatal): %s", exc)
 
 
 # Shared set for background tasks

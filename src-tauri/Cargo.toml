@@ -1,6 +1,6 @@
 [package]
 name = "orion_desktop"
-version = "1.0.1"
+version = "7.0.0"
 description = "OWNEX — Security Intelligence Operations Center"
 authors = ["CATEYE"]
 edition = "2021"

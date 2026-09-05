@@ -1,0 +1,38 @@
+# MoneyPrinterTurbo Sidecar Docker Compose
+# This runs as a sidecar to the OWNEX Tauri desktop app
+
+version: '3.8'
+
+services:
+  moneyprinterturbo:
+    image: ghcr.io/harry0703/moneyprinterturbo:latest
+    container_name: ownex-mpt
+    restart: unless-stopped
+    ports:
+      - "8501:8501"  # Streamlit WebUI
+      - "8080:8080"  # FastAPI API
+    volumes:
+      - ./data/mpt/config.toml:/app/config.toml:ro
+      - ./data/mpt/assets:/app/assets:ro
+      - ./data/mpt/output:/app/output
+      - ./data/mpt/resource:/app/resource:ro
+    environment:
+      - MPT_WEBUI_HOST=0.0.0.0
+      - MPT_API_HOST=0.0.0.0
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+# For development/testing without Docker
+# Run directly: python main.py
+# Or with the one-click package

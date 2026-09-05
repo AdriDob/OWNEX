@@ -1,0 +1,80 @@
+{
+  "sensitivity_analysis": {
+    "description": "Top 10 variables by impact on monthly income",
+    "methodology": "One-at-a-time sensitivity with ±20% perturbation around base case (Normal 4h/day)",
+    "base_case": {"monthly_income": 450},
+    "top_10_variables": [
+      {
+        "rank": 1,
+        "variable": "hours_per_day",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Direct linear scaling of capacity"
+      },
+      {
+        "rank": 2,
+        "variable": "base_efficiency",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Context switching, fatigue, learning directly scale output"
+      },
+      {
+        "rank": 3,
+        "variable": "automation_multiplier",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Automation directly scales effective hours"
+      },
+      {
+        "rank": 4,
+        "variable": "success_mult",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Reputation, skill, platform access directly scale acceptance"
+      },
+      {
+        "rank": 5,
+        "variable": "p_s_base",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Base acceptance probability is fundamental gate"
+      },
+      {
+        "rank": 6,
+        "variable": "payout_base",
+        "elasticity": 1.00,
+        "impact_20pct": "+20.0% / -20.0%",
+        "interpretation": "Platform payout levels directly scale EV"
+      },
+      {
+        "rank": 7,
+        "variable": "hrs_base",
+        "elasticity": 1.04,
+        "impact_20pct": "+25.0% / -25.0%",
+        "interpretation": "Inverse relationship - fewer hours per task = more tasks per hour"
+      },
+      {
+        "rank": 8,
+        "variable": "freq_base",
+        "elasticity": 0.00,
+        "impact_20pct": "+0.0% / -0.0%",
+        "interpretation": "Frequency only matters if task supply is binding (rarely)"
+      },
+      {
+        "rank": 9,
+        "variable": "duplicate_rate",
+        "elasticity": -0.45,
+        "impact_20pct": "-9.0% / +9.0%",
+        "interpretation": "Duplicates waste human time without payout"
+      },
+      {
+        "rank": 10,
+        "variable": "payment_latency_days",
+        "elasticity": -0.12,
+        "impact_20pct": "-2.4% / +2.4%",
+        "interpretation": "Longer latency reduces capital velocity and reinvestment"
+      }
+    ],
+    "key_insight": "Duplicating the success rate (acceptance probability) is worth more than any financial optimization. The top 6 variables have identical elasticity - improving any of them by 20% yields exactly 20% more income. The #1 leverage point is avoiding duplicates (elasticity -0.45)."
+  }
+}

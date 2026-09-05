@@ -409,6 +409,27 @@ class SystemHealthEngine:
                 "snapshots": len(self._scoring.history()),
             }
 
+    def get_health_summary(self) -> dict[str, Any]:
+        """Get comprehensive health summary for external consumers."""
+        with self._lock:
+            checks = {}
+            for check in self._checks.values():
+                checks[check.name] = {
+                    "status": check.status.value,
+                    "message": check.message,
+                    "last_run": check.last_run.isoformat() if check.last_run else None,
+                    "latency_ms": check.latency_ms,
+                }
+            return {
+                "overall": {
+                    "score": self._scoring.current_score(),
+                    "status": self._scoring.current_status().value,
+                    "trend": self._scoring.trend(),
+                },
+                "checks": checks,
+                "running": self._running,
+            }
+
     def get_scoring_system(self) -> HealthScoringSystem:
         return self._scoring
 

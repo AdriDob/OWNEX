@@ -100,8 +100,7 @@ const activePlatform = ref<string>('')
 const completing = ref<string>('')
 
 const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
-const rangeLabel = (r: PayoffRange): string =>
-  r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`
+const rangeLabel = (r: PayoffRange): string => (r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`)
 
 function fieldsOf(step: PlanStep): Array<{ label: string; value: string }> {
   if (!step.fields) return []
@@ -145,8 +144,7 @@ async function load(): Promise<void> {
     income.value = incRes
     if (!activePlatform.value && plan.value.length > 0) {
       const headPlatform = ovRes.next_action?.platform
-      activePlatform.value =
-        plan.value.find((p) => p.key === headPlatform)?.key ?? plan.value[0]?.key ?? ''
+      activePlatform.value = plan.value.find((p) => p.key === headPlatform)?.key ?? plan.value[0]?.key ?? ''
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)

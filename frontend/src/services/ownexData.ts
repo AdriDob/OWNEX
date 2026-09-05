@@ -1613,3 +1613,415 @@ export interface UnifiedAgendaState {
 export async function fetchAgenda(): Promise<UnifiedAgendaState> {
   return api.get<UnifiedAgendaState>('/agenda')
 }
+
+// ── OneAction Autopilot ──
+
+export interface OneAction {
+  action_id: string
+  action_type: string
+  title: string
+  description: string
+  why: string
+  instruction: string
+  urgency: 'immediate' | 'today' | 'this_week' | 'this_month' | 'flexible'
+  confidence_band: 'high' | 'medium' | 'low' | 'unknown'
+  success_probability: number | null
+  acceptance_probability: number | null
+  payment_probability: number | null
+  expected_value_usd: number | null
+  ev_per_human_hour_usd: number | null
+  estimated_human_hours: number | null
+  cash_speed_days: number | null
+  platform_name: string | null
+  platform_readiness_pct: number
+  platform_url: string | null
+  prerequisites: string[]
+  url: string | null
+  expires_at: string | null
+}
+
+export async function fetchOneAction(params: { force_refresh?: boolean } = {}): Promise<OneAction | null> {
+  return api.post<OneAction | null>('/autopilot/one-action', params)
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// TRADING LAB API
+// ═══════════════════════════════════════════════════════════════════════
+
+export interface TradingLabDashboard {
+  generated_at: string
+  system: { status: string; score: number }
+  memory: { healthy: boolean; entries: number; namespaces: Record<string, number>; namespace_count: number }
+  important_tasks: Array<{ title: string; platform: string; reward?: number; requirement?: string }>
+  opportunities: {
+    scanned_sources: number
+    best_sources: Array<{ name: string; category: string; trust_score: number; earning_potential: string }>
+  }
+  unfinished_work: { ready_to_deliver: Array<{ title: string; platform: string; reward: number }>; needs_access: Array<{ title: string; platform: string; requirement: string }>; targets: Record<string, unknown> }
+  improvements_suggested: Array<{ type: string; name: string; benefit: string; priority: string }>
+  pending_approvals: Array<{ id: string; message: string; level?: string }>
+  setup_progress: {
+    complete_pct: number
+    complete: boolean
+    next_task: {
+      id: string
+      phase_label: string
+      title: string
+      why: string
+      est_minutes: number
+      how_to: string
+    } | null
+  }
+}
+
+export interface StrategyScore {
+  strategy_id: string
+  engine_id: string
+  name: string
+  rank: number
+  composite_score: number
+  return_score: number
+  risk_adjusted_score: number
+  consistency_score: number
+  liquidity_score: number
+  execution_quality_score: number
+  robustness_score: number
+  drawdown_penalty: number
+  overfit_penalty: number
+  correlation_penalty: number
+  fee_penalty: number
+  slippage_penalty: number
+  data_quality_penalty: number
+  regime_scores: Record<string, number>
+  expected_value: number
+  expected_value_usd: number
+  sharpe: number
+  max_drawdown: number
+  win_rate: number
+}
+
+export interface CapitalSnapshot {
+  generated_at: string
+  total_usd: number
+  bounty: { pagado_usd: number; pendiente_usd: number }
+  work_income: { entregado_usd: number; pendiente_usd: number; total_usd: number }
+  investment: { total_usd: number; estrategias: any[] }
+  atlas: { total_usd: number }
+  crypto: { total_usd: number }
+  expected_cash: { total: number; by_rail: Array<{ rail: string; amount_usd: number; date: string }> }
+  payment_compat: { compatible: number; total: number }
+  work_income: { by_strategy: Array<any> }
+}
+
+export interface RiskSummary {
+  metrics: {
+    total_exposure: number
+    daily_pnl: number
+    weekly_pnl: number
+    current_drawdown: number
+    max_drawdown: number
+    leverage: number
+    liquidity: number
+  }
+  limits: {
+    max_total_exposure: number
+    max_strategy_exposure: number
+    max_asset_exposure: number
+    max_exchange_exposure: number
+    max_daily_loss: number
+    max_weekly_loss: number
+    max_drawdown: number
+    max_leverage: number
+    min_liquidity: number
+  }
+  kill_switches: {
+    global: boolean
+    strategies: Record<string, boolean>
+    exchanges: Record<string, boolean>
+    assets: Record<string, boolean>
+  }
+}
+
+export interface EngineHealthStatus {
+  engine_id: string
+  health: string
+  last_check: string
+  latency_ms: number | null
+  error: string | null
+  active_strategies: number
+  cpu_percent: number | null
+  memory_mb: number | null
+  api_connected: boolean
+  exchange_connected: Record<string, boolean>
+  last_error: string | null
+}
+
+export interface ValidationStatus {
+  overall_passed: boolean
+  current_phase: string
+  started_at: string
+  completed_at: string | null
+  phases: Record<string, {
+    passed: boolean
+    started_at: string
+    completed_at: string | null
+    error: string | null
+    details: string
+  }>
+  overfit_report?: {
+    overall_score: number
+    risk_level: string
+    checks: Array<{
+      check_name: string
+      passed: boolean
+      severity: string
+      details: any
+      description: string
+    }>
+  }
+  phases: Record<string, {
+    passed: boolean
+    started_at: string
+    completed_at: string | null
+    error: string | null
+    details: string
+  }>
+}
+
+export async function fetchTradingLabDashboard(): Promise<TradingLabDashboard> {
+  return api.get<TradingLabDashboard>('/trading-lab/dashboard')
+}
+
+export async function fetchStrategyRankings(): Promise<StrategyScore[]> {
+  return api.get<StrategyScore[]>('/trading-lab/strategies/rankings')
+}
+
+
+export async function fetchRiskSummary(): Promise<RiskSummary> {
+  return api.get<RiskSummary>('/trading-lab/risk/summary')
+}
+
+export async function fetchEngineRegistry(): Promise<{ engines: EngineHealthStatus[] }> {
+  return api.get<{ engines: EngineHealthStatus[] }>('/trading-lab/engines')
+}
+
+export async function fetchValidationStatus(): Promise<ValidationStatus> {
+  return api.get<ValidationStatus>('/trading-lab/validation/status')
+}
+
+export async function fetchStrategyDetail(strategyId: string): Promise<any> {
+  return api.get<any>(`/trading-lab/strategies/${strategyId}`)
+}
+
+// Trading Lab specific capital snapshot (different endpoint)
+export async function fetchTradingLabCapitalSnapshot(): Promise<CapitalSnapshot> {
+  return api.get<CapitalSnapshot>('/trading-lab/capital/snapshot')
+}
+
+// Availability snapshot for Mission Control
+export async function fetchAvailabilitySnapshot(): Promise<any> {
+  return api.get<any>('/availability/snapshot')
+}
+
+// One Best Action for Command Center
+export interface OneBestAction {
+  action_type: string
+  title: string
+  description: string
+  why_now: string
+  platform: string
+  opportunity_id: string | null
+  work_item_id: string | null
+  estimated_human_hours: number
+  expected_value_usd: number
+  acceptance_probability: number
+  cash_speed_days: number | null
+  urgency: string
+  prerequisites: string[]
+  url: string | null
+  next_step_instruction: string
+  metadata: Record<string, unknown>
+}
+
+export async function fetchOneBestAction(): Promise<OneBestAction | null> {
+  return api.get<OneBestAction | null>('/direct-work/one-best-action')
+}
+
+// ── Work Streams (Category-aware UI) ──
+
+export type WorkStreamKey =
+  | 'bug_bounty'
+  | 'dev_bounty'
+  | 'ai_work'
+  | 'game_dev'
+  | 'open_source'
+  | 'tech_content'
+
+export interface WorkStreamConfig {
+  key: WorkStreamKey
+  label: string
+  icon: string
+  description: string
+  platforms: string[]
+  access_type: 'api_key' | 'mixed' | 'manual_setup'
+  deliverables: string[]
+  quick_actions: string[]
+  automation: string
+  user_decides: string[]
+}
+
+export interface WorkStreamsResponse {
+  streams: WorkStreamConfig[]
+  category_to_stream: Record<string, WorkStreamKey>
+  platform_to_stream: Record<string, WorkStreamKey>
+}
+
+export interface StreamOpportunitiesResponse {
+  stream: WorkStreamKey
+  stream_config: WorkStreamConfig
+  total_found: number
+  filtered: number
+  ranked: Array<{
+    rank: number
+    opportunity: {
+      id: string
+      title: string
+      platform: string
+      category: string
+      stream: string
+      payment: number
+      reward: number
+    }
+    overall_recommendation_score: number
+    expected_value: number
+    barrier_score: number
+    payment_compat_score: number
+    payout_method: string
+  }>
+}
+
+export interface StreamWorkBankResponse {
+  stream: WorkStreamKey
+  stream_config: WorkStreamConfig
+  total: number
+  ready_to_deliver: number
+  needs_access: number
+  delivered: number
+  items: {
+    ready: WorkBankItem[]
+    needs_access: WorkBankItem[]
+    delivered: WorkBankItem[]
+  }
+  targets: Record<string, WorkBankTarget>
+}
+
+export async function fetchWorkStreams(): Promise<WorkStreamsResponse> {
+  return api.get<WorkStreamsResponse>('/direct-work/streams')
+}
+
+export async function fetchStreamOpportunities(
+  streamKey: WorkStreamKey,
+  limit: number = 20,
+): Promise<StreamOpportunitiesResponse> {
+  return api.get<StreamOpportunitiesResponse>(`/direct-work/streams/${streamKey}/opportunities`, { params: { limit } })
+}
+
+export async function fetchStreamWorkBank(streamKey: WorkStreamKey): Promise<StreamWorkBankResponse> {
+  return api.get<StreamWorkBankResponse>(`/direct-work/streams/${streamKey}/workbank`)
+}
+
+export async function runStreamCycle(
+  streamKey: WorkStreamKey,
+  target: number | null = null,
+): Promise<WorkBankState> {
+  const summary = await api.post<{ scanned: number; new_items_added: number; ready_to_deliver: number; needs_access: number }>(
+    `/direct-work/streams/${streamKey}/cycle`,
+    { target },
+  )
+  const state = await fetchStreamWorkBank(streamKey)
+  return { ...state, ...summary } as any
+}
+
+// ── Knowledge Graph ──
+
+export interface KnowledgeGraphStats {
+  nodes: number
+  edges: number
+  node_types: Record<string, number>
+  relationships: Record<string, number>
+}
+
+export interface KnowledgeGraphNode {
+  id: string
+  type: string
+  name: string
+  properties: Record<string, any>
+  confidence: number
+  created_at: string
+  last_updated: string
+}
+
+export interface KnowledgeGraphEdge {
+  source: string
+  target: string
+  relationship: string
+  strength: number
+  properties: Record<string, any>
+  confidence: number
+}
+
+export interface KnowledgeGraphSubgraph {
+  center_id: string
+  nodes: KnowledgeGraphNode[]
+  edges: KnowledgeGraphEdge[]
+  depth: number
+}
+
+export async function fetchKnowledgeGraphStats(): Promise<KnowledgeGraphStats> {
+  return api.get<KnowledgeGraphStats>('/api/knowledge-graph/stats')
+}
+
+export async function fetchKnowledgeGraphNodes(
+  params: { type?: string; limit?: number } = {}
+): Promise<KnowledgeGraphNode[]> {
+  return api.get<KnowledgeGraphNode[]>('/api/knowledge-graph/nodes', { params })
+}
+
+export async function searchKnowledgeGraphNodes(
+  query: string,
+  params: { type?: string; limit?: number } = {}
+): Promise<KnowledgeGraphNode[]> {
+  return api.get<KnowledgeGraphNode[]>('/api/knowledge-graph/nodes/search', { params: { q: query, ...params } })
+}
+
+export async function fetchKnowledgeGraphSubgraph(
+  nodeId: string,
+  depth: number = 2,
+  limit: number = 100
+): Promise<KnowledgeGraphSubgraph> {
+  return api.get<KnowledgeGraphSubgraph>(`/api/knowledge-graph/subgraph/${nodeId}`, { params: { depth, limit } })
+}
+
+export async function fetchKnowledgeGraphEdges(
+  params: { node_id?: string; direction?: string; relationship?: string; limit?: number } = {}
+): Promise<{ edges: KnowledgeGraphEdge[]; count: number }> {
+  return api.get('/api/knowledge-graph/edges', { params })
+}
+
+export async function createKnowledgeGraphEdge(
+  sourceId: string,
+  targetId: string,
+  relationship: string,
+  strength: number = 1
+): Promise<{ source_id: string; target_id: string; relationship: string; strength: number }> {
+  return api.post('/api/knowledge-graph/edges', { source_id: sourceId, target_id: targetId, relationship, strength })
+}
+
+export async function upsertKnowledgeGraphNode(
+  type: string,
+  name: string,
+  properties: Record<string, any> | null = null,
+  nodeId: string | null = null
+): Promise<KnowledgeGraphNode> {
+  return api.post('/api/knowledge-graph/nodes', { type, name, properties, node_id: nodeId })
+}

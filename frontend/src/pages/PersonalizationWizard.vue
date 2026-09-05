@@ -232,9 +232,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Check, ArrowLeft, ArrowRight, Sparkles, Globe } from '@lucide/vue'
+import { ArrowLeft, ArrowRight, Check, Globe, Sparkles } from '@lucide/vue'
 import axios from 'axios'
+import { computed, ref } from 'vue'
 
 const currentStep = ref(1)
 const totalSteps = 6
@@ -246,15 +246,35 @@ const selectedPlatforms = ref<string[]>([])
 const customName = ref('')
 
 const useCases = [
-  { id: 'bug_bounty_researcher', title: 'Bug Bounty Researcher', description: 'Investigación individual de vulnerabilidades', icon: '🔍' },
-  { id: 'bug_bounty_company', title: 'Bug Bounty Company', description: 'Gestión empresarial de programas', icon: '🏢' },
-  { id: 'cybersecurity_consultant', title: 'Cybersecurity Consultant', description: 'Consultoría y auditoría de seguridad', icon: '🛡️' },
-  { id: 'penetration_tester', title: 'Penetration Tester', description: 'Testing de penetración profesional', icon: '💻' },
+  {
+    id: 'bug_bounty_researcher',
+    title: 'Bug Bounty Researcher',
+    description: 'Investigación individual de vulnerabilidades',
+    icon: '🔍',
+  },
+  {
+    id: 'bug_bounty_company',
+    title: 'Bug Bounty Company',
+    description: 'Gestión empresarial de programas',
+    icon: '🏢',
+  },
+  {
+    id: 'cybersecurity_consultant',
+    title: 'Cybersecurity Consultant',
+    description: 'Consultoría y auditoría de seguridad',
+    icon: '🛡️',
+  },
+  {
+    id: 'penetration_tester',
+    title: 'Penetration Tester',
+    description: 'Testing de penetración profesional',
+    icon: '💻',
+  },
   { id: 'security_analyst', title: 'Security Analyst', description: 'Análisis de seguridad y amenazas', icon: '📊' },
   { id: 'developer', title: 'Developer', description: 'Desarrollo seguro de aplicaciones', icon: '⌨️' },
   { id: 'researcher', title: 'Researcher', description: 'Investigación en ciberseguridad', icon: '🔬' },
   { id: 'hobbyist', title: 'Hobbyist', description: 'Aprendizaje y práctica personal', icon: '🎮' },
-  { id: 'other', title: 'Otro', description: 'Uso personalizado', icon: '⚙️' }
+  { id: 'other', title: 'Otro', description: 'Uso personalizado', icon: '⚙️' },
 ]
 
 const availableModules = [
@@ -267,7 +287,7 @@ const availableModules = [
   { id: 'analytics', title: 'Analytics', description: 'Análisis y métricas', icon: '📈' },
   { id: 'reports', title: 'Reports', description: 'Generación de reportes', icon: '📄' },
   { id: 'targets', title: 'Targets', description: 'Gestión de objetivos', icon: '🎯' },
-  { id: 'integrations', title: 'Integrations', description: 'Integraciones externas', icon: '🔗' }
+  { id: 'integrations', title: 'Integrations', description: 'Integraciones externas', icon: '🔗' },
 ]
 
 const expertiseLevels = [
@@ -276,29 +296,29 @@ const expertiseLevels = [
     title: 'Beginner',
     description: 'Principiante en bug bounty',
     icon: '🌱',
-    features: ['Manual', 'Guided', 'Step-by-step']
+    features: ['Manual', 'Guided', 'Step-by-step'],
   },
   {
     id: 'intermediate',
     title: 'Intermediate',
     description: 'Experiencia moderada',
     icon: '🌿',
-    features: ['Assisted', 'Templates', 'Semi-automated']
+    features: ['Assisted', 'Templates', 'Semi-automated'],
   },
   {
     id: 'advanced',
     title: 'Advanced',
     description: 'Experiencia avanzada',
     icon: '🌳',
-    features: ['Semi-automated', 'Custom workflows', 'Advanced analytics']
+    features: ['Semi-automated', 'Custom workflows', 'Advanced analytics'],
   },
   {
     id: 'expert',
     title: 'Expert',
     description: 'Experto en el campo',
     icon: '🏔️',
-    features: ['Fully automated', 'Custom everything', 'Enterprise features']
-  }
+    features: ['Fully automated', 'Custom everything', 'Enterprise features'],
+  },
 ]
 
 const platforms = [
@@ -306,7 +326,7 @@ const platforms = [
   { id: 'bugcrowd', title: 'Bugcrowd', description: 'Programas diversos', icon: '🐛' },
   { id: 'intigriti', title: 'Intigriti', description: 'Plataforma europea', icon: '🇪🇺' },
   { id: 'yeswehack', title: 'YesWeHack', description: 'Plataforma francesa', icon: '🇫🇷' },
-  { id: 'synack', title: 'Synack', description: 'Crowdsec elite', icon: '🛡️' }
+  { id: 'synack', title: 'Synack', description: 'Crowdsec elite', icon: '🛡️' },
 ]
 
 const progress = computed(() => {
@@ -356,30 +376,50 @@ function togglePlatform(platformId: string) {
 function useRecommendedModules() {
   const recommendedMap: Record<string, string[]> = {
     bug_bounty_researcher: ['forge', 'pulse', 'vault', 'security', 'copilot', 'analytics', 'reports', 'targets'],
-    bug_bounty_company: ['forge', 'pulse', 'vault', 'atlas', 'security', 'copilot', 'analytics', 'reports', 'integrations'],
-    cybersecurity_consultant: ['forge', 'pulse', 'vault', 'atlas', 'security', 'copilot', 'analytics', 'reports', 'targets'],
+    bug_bounty_company: [
+      'forge',
+      'pulse',
+      'vault',
+      'atlas',
+      'security',
+      'copilot',
+      'analytics',
+      'reports',
+      'integrations',
+    ],
+    cybersecurity_consultant: [
+      'forge',
+      'pulse',
+      'vault',
+      'atlas',
+      'security',
+      'copilot',
+      'analytics',
+      'reports',
+      'targets',
+    ],
     penetration_tester: ['forge', 'pulse', 'vault', 'security', 'copilot', 'analytics', 'reports', 'targets'],
     security_analyst: ['forge', 'pulse', 'atlas', 'security', 'copilot', 'analytics', 'reports'],
     developer: ['forge', 'security', 'copilot', 'analytics', 'targets'],
     researcher: ['forge', 'pulse', 'atlas', 'copilot', 'analytics', 'reports'],
     hobbyist: ['forge', 'pulse', 'copilot', 'analytics'],
-    other: ['forge', 'pulse', 'copilot', 'analytics']
+    other: ['forge', 'pulse', 'copilot', 'analytics'],
   }
 
   selectedModules.value = recommendedMap[selectedUseCase.value] || []
 }
 
 function selectAllPlatforms() {
-  selectedPlatforms.value = platforms.map(p => p.id)
+  selectedPlatforms.value = platforms.map((p) => p.id)
 }
 
 function getUseCaseTitle(useCaseId: string) {
-  const useCase = useCases.find(uc => uc.id === useCaseId)
+  const useCase = useCases.find((uc) => uc.id === useCaseId)
   return useCase?.title || useCaseId
 }
 
 function getExpertiseTitle(expertiseId: string) {
-  const expertise = expertiseLevels.find(el => el.id === expertiseId)
+  const expertise = expertiseLevels.find((el) => el.id === expertiseId)
   return expertise?.title || expertiseId
 }
 
@@ -388,7 +428,7 @@ function getAutomationLevel(expertiseId: string) {
     beginner: 'Manual',
     intermediate: 'Asistido',
     advanced: 'Semi-automatizado',
-    expert: 'Completamente automatizado'
+    expert: 'Completamente automatizado',
   }
   return levels[expertiseId] || 'Asistido'
 }
@@ -400,7 +440,7 @@ async function completeWizard() {
       modules: selectedModules.value,
       custom_name: customName.value,
       expertise_level: selectedExpertise.value,
-      primary_platforms: selectedPlatforms.value.length > 0 ? selectedPlatforms.value : ['all']
+      primary_platforms: selectedPlatforms.value.length > 0 ? selectedPlatforms.value : ['all'],
     })
 
     if (response.data.status === 'ok') {
@@ -420,7 +460,7 @@ async function completeWizard() {
 <style scoped>
 /* ═══ STEAM-STYLE WIZARD ═══ */
 .personalization-wizard {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, var(--ownex-bg-base) 0%, var(--ownex-bg-elevated) 100%);
   min-height: 100vh;
   padding: 2rem;
   font-family: 'Inter', system-ui, sans-serif;
@@ -470,7 +510,7 @@ async function completeWizard() {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #60A5FA;
+  background: var(--ownex-accent);
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -504,7 +544,7 @@ async function completeWizard() {
 }
 
 .wizard-subtitle {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 1rem;
   margin-top: 0.5rem;
 }
@@ -525,13 +565,13 @@ async function completeWizard() {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #60A5FA, #34D399);
+  background: linear-gradient(90deg, var(--ownex-accent), var(--ownex-green));
   border-radius: 9999px;
   transition: width 0.3s ease;
 }
 
 .progress-text {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -559,7 +599,7 @@ async function completeWizard() {
 }
 
 .step-description {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   margin-bottom: 2rem;
 }
 
@@ -587,7 +627,7 @@ async function completeWizard() {
 }
 
 .use-case-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -604,7 +644,7 @@ async function completeWizard() {
 }
 
 .use-case-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -633,7 +673,7 @@ async function completeWizard() {
 }
 
 .module-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -650,7 +690,7 @@ async function completeWizard() {
 }
 
 .module-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -661,7 +701,7 @@ async function completeWizard() {
 }
 
 .checkbox-checked {
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 /* ═══ EXPERTISE GRID ═══ */
@@ -688,7 +728,7 @@ async function completeWizard() {
 }
 
 .expertise-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -705,7 +745,7 @@ async function completeWizard() {
 }
 
 .expertise-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
@@ -722,7 +762,7 @@ async function completeWizard() {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 /* ═══ PLATFORMS GRID ═══ */
@@ -750,7 +790,7 @@ async function completeWizard() {
 }
 
 .platform-card.selected {
-  border-color: #60A5FA;
+  border-color: var(--ownex-accent);
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -767,7 +807,7 @@ async function completeWizard() {
 }
 
 .platform-desc {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 
@@ -791,7 +831,7 @@ async function completeWizard() {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -813,7 +853,7 @@ async function completeWizard() {
 }
 
 .form-hint {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -836,7 +876,7 @@ async function completeWizard() {
 .summary-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.5rem;
@@ -849,7 +889,7 @@ async function completeWizard() {
 }
 
 .summary-detail {
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -866,7 +906,7 @@ async function completeWizard() {
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 9999px;
   font-size: 0.75rem;
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 /* ═══ WIZARD FOOTER ═══ */
@@ -907,7 +947,7 @@ async function completeWizard() {
 .btn-primary {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  color: #60A5FA;
+  color: var(--ownex-accent);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -918,7 +958,7 @@ async function completeWizard() {
 .btn-secondary {
   background: rgba(100, 116, 139, 0.2);
   border-color: rgba(100, 116, 139, 0.4);
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -929,7 +969,7 @@ async function completeWizard() {
 .btn-success {
   background: rgba(52, 211, 153, 0.2);
   border-color: rgba(52, 211, 153, 0.4);
-  color: #34D399;
+  color: var(--ownex-green);
 }
 
 .btn-success:hover:not(:disabled) {

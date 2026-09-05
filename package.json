@@ -12,6 +12,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
     "test": "cd frontend && npm run test",
+    "test:e2e": "playwright test",
     "test:backend": "pytest tests/ -v",
     "lint": "ruff check . && cd frontend && npm run lint",
     "tauri:build": "cd frontend && npm run tauri:build"

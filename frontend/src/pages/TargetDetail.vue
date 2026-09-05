@@ -1,13 +1,28 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  DollarSign,
+  Globe,
+  Lightbulb,
+  List,
+  RefreshCw,
+  Shield,
+  Target,
+  Zap,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { BarChart, DoughnutChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { DoughnutChart, BarChart } from '@/components/charts'
-import { ArrowLeft, AlertTriangle, RefreshCw, Globe, Shield, Target, DollarSign, Activity, Lightbulb, List, ChevronLeft, ChevronRight, ArrowUpDown, Zap } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface TargetDetail {
   id: number
@@ -80,19 +95,34 @@ async function fetchEndpoints() {
     })
     endpoints.value = e.items || []
     epTotal.value = e.total || 0
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
-function prevEpPage() { if (epPage.value > 1) { epPage.value--; fetchEndpoints() } }
-function nextEpPage() { if (epPage.value * epLimit < epTotal.value) { epPage.value++; fetchEndpoints() } }
+function prevEpPage() {
+  if (epPage.value > 1) {
+    epPage.value--
+    fetchEndpoints()
+  }
+}
+function nextEpPage() {
+  if (epPage.value * epLimit < epTotal.value) {
+    epPage.value++
+    fetchEndpoints()
+  }
+}
 
 async function generateHypotheses() {
   if (!target.value) return
   generating.value = true
   try {
     await api.post(`/zap/hypotheses/${targetId}`, { target_url: target.value.domain })
-  } catch { /* ignore */ }
-  finally { generating.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    generating.value = false
+  }
 }
 
 const epTotalPages = computed(() => Math.max(1, Math.ceil(epTotal.value / epLimit)))
@@ -127,18 +157,20 @@ const methodChartData = computed(() => {
   }
   return {
     labels: Object.keys(counts),
-    datasets: [{
-      label: 'Endpoints',
-      data: Object.values(counts),
-      backgroundColor: ['#ffffff', '#16A34A', '#A16207', '#00d5ff', '#9CA3AF', '#9CA3AF'],
-    }],
+    datasets: [
+      {
+        label: 'Endpoints',
+        data: Object.values(counts),
+        backgroundColor: ['var(--ownex-text-primary)', 'var(--ownex-green)', 'var(--ownex-gold)', 'var(--ownex-accent)', 'var(--ownex-text-secondary)', 'var(--ownex-text-secondary)'],
+      },
+    ],
   }
 })
 </script>
 
 <template>
-  <div class="space-y-6">
-    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground animate-in" @click="router.push({ name: 'radar' })">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
+    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground animate-in" aria-label="Back to Target Radar" @click="router.push({ name: 'radar' })">
       <ArrowLeft class="h-3 w-3" />
       Volver al Radar
     </button>
@@ -170,7 +202,7 @@ const methodChartData = computed(() => {
         </div>
         <p class="text-sm font-semibold text-foreground">Target no encontrado</p>
         <p class="mt-1 text-xs text-muted-foreground">El target con ID {{ targetId }} no existe o fue eliminado</p>
-        <Button class="mt-4" size="sm" variant="outline" @click="router.push({ name: 'radar' })">
+        <Button class="mt-4" size="sm" variant="outline" aria-label="Back to Target Radar" @click="router.push({ name: 'radar' })">
           Volver al Radar
         </Button>
       </div>

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Dashboard from '@/pages/Dashboard.vue'
 
 const mockGetOrionContext = vi.hoisted(() => vi.fn())
@@ -46,7 +46,10 @@ const mockOrionContext = {
   system: { status: 'healthy', health_score: 88 },
   findings: { new_24h: 3, by_severity: { critical: 2, high: 5, medium: 10, low: 15, info: 13 } },
   next_action: { title: 'Test XSS', why_now: 'Easy win', effort: 'low', estimated_reward: '$500' },
-  opportunities: { total: 8, top: [{ id: 1, name: 'Target X', domain: 'x.com', endpoints: 25, opportunity_score: 7.5 }] },
+  opportunities: {
+    total: 8,
+    top: [{ id: 1, name: 'Target X', domain: 'x.com', endpoints: 25, opportunity_score: 7.5 }],
+  },
   activity_24h: { events: [{ type: 'finding', id: 1, severity: 'critical' }] },
   _meta: { version: '1.5.0' },
   scans: { active: 1 },
@@ -63,7 +66,7 @@ describe('Dashboard page', () => {
   it('shows error state on API failure', async () => {
     mockGetOrionContext.mockRejectedValue(new Error('Network error'))
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Error de conexión')
     expect(wrapper.text()).toContain('Reconectar')
@@ -76,7 +79,7 @@ describe('Dashboard page', () => {
     }
     mockGetOrionContext.mockResolvedValue(emptyCtx)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Ningún target en radar')
     expect(wrapper.text()).toContain('Agregar Target')
@@ -85,7 +88,7 @@ describe('Dashboard page', () => {
   it('renders KPIs with data', async () => {
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Centro de Inteligencia OWNEX')
     expect(wrapper.text()).toContain('DashOp')
@@ -95,7 +98,7 @@ describe('Dashboard page', () => {
   it('shows intel summary bar', async () => {
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('DETECTADOS')
     expect(wrapper.text()).toContain('45')
@@ -107,7 +110,7 @@ describe('Dashboard page', () => {
   it('shows charts when findings exist', async () => {
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.mock-barchart').exists()).toBe(true)
     expect(wrapper.find('.mock-doughnut').exists()).toBe(true)
@@ -116,7 +119,7 @@ describe('Dashboard page', () => {
   it('shows opportunity list', async () => {
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Oportunidades prioritarias')
     expect(wrapper.text()).toContain('Target X')
@@ -125,20 +128,20 @@ describe('Dashboard page', () => {
   it('kpi items render correct values', async () => {
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('10')  // targets
+    expect(wrapper.text()).toContain('10') // targets
     expect(wrapper.text()).toContain('250') // endpoints
   })
 
   it('error retry calls fetchData', async () => {
     mockGetOrionContext.mockRejectedValue(new Error('fail'))
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     mockGetOrionContext.mockResolvedValue(mockOrionContext)
     await wrapper.find('.mock-btn').trigger('click')
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('ACTIVO')
   })

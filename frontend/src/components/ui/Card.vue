@@ -1,26 +1,20 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
+/**
+ * Card.vue — Backward-compatible re-export of OwnexCard.
+ * Many pages import from '@/components/ui/Card.vue'.
+ */
+import OwnexCard from './OwnexCard.vue'
 
-interface Props {
-  class?: string
-  variant?: 'default' | 'tactical' | 'glass'
-  highlight?: boolean
-}
-const props = withDefaults(defineProps<Props>(), {
-  variant: 'default',
-  highlight: false,
-})
+const props = defineProps<{
+  variant?: 'base' | 'elevated' | 'highlight' | 'cycle'
+  cycle?: 'security' | 'forge' | 'pulse' | 'vault' | 'atlas' | 'odyssey'
+  hoverable?: boolean
+  padded?: boolean
+}>()
 </script>
 
 <template>
-  <div
-    :class="cn(
-      variant === 'tactical' ? 'tactical-panel' : variant === 'glass' ? 'glass-terminal' : 'card-base',
-      'rounded-xl ownex-hover-lift',
-      highlight && 'card-highlight',
-      props.class,
-    )"
-  >
+  <OwnexCard v-bind="props">
     <slot />
-  </div>
+  </OwnexCard>
 </template>

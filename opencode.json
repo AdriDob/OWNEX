@@ -60,7 +60,7 @@
     }
   },
   "compaction": {
-    "auto": true,
+    "auto": false,
     "prune": false,
     "reserved": 10000
   },

@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { ArrowRight, X } from '@lucide/vue'
 import { computed } from 'vue'
 import { useUIStore } from '@/stores/ui'
-import { X, ArrowRight } from '@lucide/vue'
-import ScrollArea from './ScrollArea.vue'
 import Badge from './Badge.vue'
+import ScrollArea from './ScrollArea.vue'
 
 const store = useUIStore()
 
@@ -16,7 +16,9 @@ function close() {
 
 function diffClass(leftVal: any, rightVal: any, key: string): string {
   if (key === 'id' || key === 'type') return ''
-  return JSON.stringify(leftVal) !== JSON.stringify(rightVal) ? 'bg-warning/10 border border-warning/20 rounded px-1' : ''
+  return JSON.stringify(leftVal) !== JSON.stringify(rightVal)
+    ? 'bg-warning/10 border border-warning/20 rounded px-1'
+    : ''
 }
 </script>
 

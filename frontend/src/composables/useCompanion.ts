@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 const status = ref<Record<string, any>>({})
@@ -12,7 +12,9 @@ export function useCompanion() {
         status.value = await res.json()
         lastPoll.value = new Date().toISOString()
       }
-    } catch { /* offline */ }
+    } catch {
+      /* offline */
+    }
   }
 
   function startPolling(intervalMs = 120_000) {

@@ -113,6 +113,7 @@
 | AUD-6 | **Executive Dashboard frontend** (CEO view): página + ruta + llamada a `/api/cycles/security/dashboard` | ✅ COMPLETADO 2026-07-31 — `frontend/src/pages/ExecutiveDashboard.vue` + ruta `/security/executive` + ítem sidebar "CEO View"; contrato verificado con token real (200, 9 keys) | M |
 | AUD-7 | **GamingConsole con datos reales**: conectar a API (hoy es mock, muestra $0) | ✅ COMPLETADO 2026-07-31 — el servicio ya conectaba a 8 endpoints; el bloqueo real era `/api/cycles` (500: `config: Text` JSON string vs schema `dict`). Fix: field_validator en `CycleRead` → 200 con 5 ciclos; GamingConsole mostraba fallbacks solo por ese 500. 8/8 endpoints verificados con token | S |
 | AUD-8 | Montar routers de ciclos faltantes: `/api/cycles/forge` (existe sin montar), crear pulse/vault/atlas | ✅ COMPLETADO 2026-08-01 — `VaultCycle` y `AtlasCycle` creados en `core/cycles/vault.py` y `core/cycles/atlas.py`; routers `vault_cycle.py` y `atlas_cycle.py` creados y montados en `api/main.py`. Forge y Pulse ya estaban montados. 6 ciclos operativos (security, forge, pulse, vault, atlas, direct_work). | S |
+| DEV-1 | **Dev Bounty Pipeline E2E**: discover → analyze → clone → generate → test → PR → submit | ✅ COMPLETADO 2026-08-28 — `core/autonomy/dev_bounty_pipeline.py` + `api/routers/dev_bounty.py` + tests; 5 plataformas (freelancer, opire, issuehunt, mindrift, outlier); 8 tests pasando | M |
 ### P2 — Estabilidad / limpieza
 
 | ID | Task | Estado real | Esfuerzo |

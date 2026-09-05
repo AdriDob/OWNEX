@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Modal from '@/components/ui/Modal.vue'
 
 describe('Modal', () => {
@@ -69,7 +69,7 @@ describe('Modal', () => {
   it('applies correct size classes', async () => {
     const sizes = ['sm', 'md', 'lg', 'xl', 'full']
     const sizeClasses = ['max-w-sm', 'max-w-md', 'max-w-lg', 'max-w-xl', 'max-w-[90vw]']
-    
+
     for (let i = 0; i < sizes.length; i++) {
       await wrapper.setProps({ size: sizes[i] })
       expect(wrapper.find('.relative.w-full').classes()).toContain(sizeClasses[i])
@@ -113,7 +113,7 @@ describe('Modal', () => {
       global: { stubs: { Teleport: true, Transition: true } },
       attachTo: document.body,
     })
-    
+
     expect(slotWrapper.find('.slot-content').exists()).toBe(true)
     expect(slotWrapper.text()).toContain('Slot Content')
     slotWrapper.unmount()

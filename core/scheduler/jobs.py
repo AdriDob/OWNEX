@@ -41,7 +41,8 @@ def _cron_job(
         handler=handler,
         trigger="cron",
         seconds=0,  # not used for cron
-        kwargs={"cron": cron, "args": args or []},
+        cron=cron,
+        args=args or [],
         metadata=metadata,
     )
 
@@ -566,14 +567,25 @@ def get_knowledge_jobs() -> list[JobDefinition]:
 
 
 def get_trading_jobs() -> list[JobDefinition]:
-    """TRADING jobs — copy trading + OWNEX reasoning loop.
+    """TRADING jobs — autonomous trading pipeline with copy trading + OWNEX reasoning loop.
 
-    Jobs:
-    - trading_risk_check: drawdown check + emergency stop (every 5 min)
-    - trading_dna_update: decision journal → strategy DNA + proposals (03:30)
-    - trading_discovery: discover + score candidate traders (06:30)
+    Full automation stack:
+    - Risk control + emergency stop (every 5 min)
+    - Strategy DNA update from decision journal (every 3:30)
+    - Trader discovery + scoring (every 6:30)
+    - Auto-backtest pipeline (phases 1-8, every 12h)
+    - Auto-validation pipeline (8 phases, every 24h)
+    - Regime detection + allocation adjustment (every 30 min)
+    - Portfolio rebalancing (daily at 04:00)
+    - Capital ladder advance (weekly Sunday 02:00)
+    - Kill switch monitoring (every 10 min)
+    - Paper trading auto-advance (every 8h if metrics OK)
+    - Copy trading ratio optimization (every 6h)
+    - Live strategy monitoring + alerts (every 15 min)
+    - Expected revenue tracking + probability update (every hour)
     """
     return [
+        # ── CORE RISK & SAFETY ──────────────────────────────────────────────
         _cron_job(
             job_id="trading_risk_check",
             app_id="trading",
@@ -586,6 +598,7 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "verificacion de drawdown y parada de emergencia del copy trading",
             },
         ),
+        # ── STRATEGY DNA FROM DECISION JOURNAL ──────────────────────────────
         _cron_job(
             job_id="trading_dna_update",
             app_id="trading",
@@ -598,6 +611,7 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "correlacion del decision journal a strategy DNA y propuestas",
             },
         ),
+        # ── TRADER DISCOVERY & SCORING ──────────────────────────────────────
         _cron_job(
             job_id="trading_discovery",
             app_id="trading",
@@ -608,6 +622,311 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "cycle": "trading",
                 "type": "discovery",
                 "desc": "descubrimiento y scoring de traders candidatos",
+            },
+        ),
+        # ── AUTO-BACKTEST PIPELINE (8 phases from contracts) ───────────────
+        # Phase 1: Basic backtest (walk-forward)
+        _cron_job(
+            job_id="trading_backtest_phase1",
+            app_id="trading",
+            handler="core.trading.lifecycle:start_backtest",
+            cron="*/12 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_1_backtest",
+                "desc": "backtest basico walk-forward (30 dias minimos)",
+            },
+        ),
+        # Phase 2: Out-of-sample validation
+        _cron_job(
+            job_id="trading_backtest_phase2",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_backtest",
+            cron="*/12 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_2_out_of_sample",
+                "desc": "validacion out-of-sample (90 dias minimos)",
+            },
+        ),
+        # Phase 3: Walk-forward analysis
+        _cron_job(
+            job_id="trading_backtest_phase3",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_backtest",
+            cron="*/24 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_3_walk_forward",
+                "desc": "walk-forward analysis (rolling windows)",
+            },
+        ),
+        # Phase 4: Monte Carlo simulation
+        _cron_job(
+            job_id="trading_backtest_phase4",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_backtest",
+            cron="0 4 * * 0",  # weekly Sunday
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_4_monte_carlo",
+                "desc": "monte carlo simulation (1000+ scenarios)",
+            },
+        ),
+        # Phase 5: Stress test (crash, liquidity drain)
+        _cron_job(
+            job_id="trading_backtest_phase5",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_backtest",
+            cron="0 5 * * 0",  # weekly Sunday
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_5_stress_test",
+                "desc": "stress test (black swan, liquidity crisis)",
+            },
+        ),
+        # Phase 6: Paper trading validation
+        _cron_job(
+            job_id="trading_backtest_phase6",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_backtest",
+            cron="0 6 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "backtest",
+                "phase": "phase_6_paper",
+                "desc": "validacion en paper trading (30 dias minimos)",
+            },
+        ),
+        # Phase 7: Canary deployment (requires human approval gate)
+        _cron_job(
+            job_id="trading_backtest_phase7",
+            app_id="trading",
+            handler="core.trading.lifecycle:start_canary",
+            cron="0 2 * * 1",  # Monday 02:00
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "canary",
+                "desc": "despliegue canary (aprobacion humana requerida)",
+            },
+        ),
+        # Phase 8: Live deployment (requires human approval gate)
+        _cron_job(
+            job_id="trading_backtest_phase8",
+            app_id="trading",
+            handler="core.trading.lifecycle:start_live",
+            cron="0 3 * * 1",  # Monday 03:00
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "live",
+                "desc": "despliegue live trading (aprobacion humana requerida)",
+            },
+        ),
+        # ── AUTO-VALIDATION PIPELINE (8 validation phases) ──────────────────
+        # Validation: out-of-sample robustness
+        _cron_job(
+            job_id="trading_validation_oos",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_validation",
+            cron="*/24 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "validation",
+                "phase": "phase_2_out_of_sample",
+                "desc": "validacion robustez out-of-sample (consistency >= 0.4, DD < 30%)",
+            },
+        ),
+        # Validation: martingale check
+        _cron_job(
+            job_id="trading_validation_martingale",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_validation",
+            cron="*/24 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "validation",
+                "phase": "no_martingale",
+                "desc": "check no_martingale (PF >= 1.2, win_rate <= 90%)",
+            },
+        ),
+        # Validation: realistic slippage
+        _cron_job(
+            job_id="trading_validation_slippage",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_validation",
+            cron="*/24 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "validation",
+                "phase": "realistic_slippage",
+                "desc": "check realistic slippage (volume/trade >= 100 USD)",
+            },
+        ),
+        # Validation: survivorship bias
+        _cron_job(
+            job_id="trading_validation_survivorship",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_validation",
+            cron="0 1 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "validation",
+                "phase": "survivorship_bias",
+                "desc": "check survivorship bias (age_days >= 180)",
+            },
+        ),
+        # Validation: minimum sample size
+        _cron_job(
+            job_id="trading_validation_sample",
+            app_id="trading",
+            handler="core.trading.lifecycle:complete_validation",
+            cron="*/12 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "validation",
+                "phase": "sample_size",
+                "desc": "check sample size (total_trades >= 100)",
+            },
+        ),
+        # ── REGIME DETECTION & ALLOCATION ADJUSTMENT ─────────────────────────
+        # Detect market regime (BULL/BEAR/SIDEWAYS/HIGH_VOL/LOW_VOL)
+        _cron_job(
+            job_id="trading_regime_detection",
+            app_id="trading",
+            handler="core.trading.ensemble:detect_regime",
+            cron="*/30 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "regime",
+                "desc": "detector de regime de mercado cada 30 minutos",
+            },
+        ),
+        # Auto-adjust portfolio allocation based on regime
+        _cron_job(
+            job_id="trading_auto_allocation",
+            app_id="trading",
+            handler="core.trading.optimizer:optimize_portfolio",
+            cron="0 4 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "allocation",
+                "desc": "auto-rebalance portfolio segun regime de mercado",
+            },
+        ),
+        # ── PORTFOLIO REBALANCING ───────────────────────────────────────────
+        _cron_job(
+            job_id="trading_rebalance_daily",
+            app_id="trading",
+            handler="core.trading.optimizer:check_rebalance_needed",
+            cron="0 4 * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "rebalance",
+                "desc": "rebalanceo diario del portfolio (threshold 5%)",
+            },
+        ),
+        # ── CAPITAL LADDER AUTOMATION ────────────────────────────────────────
+        # Check patrimonial level gates and auto-advance when ready
+        _cron_job(
+            job_id="trading_capital_ladder_check",
+            app_id="trading",
+            handler="core.trading.ladder:check_ladder_gates",
+            cron="0 2 * * 0",  # Sunday 02:00
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "ladder",
+                "desc": "verificar gates de ladder patrimonial y avanzar automatico",
+            },
+        ),
+        # ── KILL SWITCH MONITORING ──────────────────────────────────────────
+        _cron_job(
+            job_id="trading_kill_switch_monitor",
+            app_id="trading",
+            handler="core.trading.risk:check_kill_switches",
+            cron="*/10 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "kill_switch",
+                "desc": "monitor activacion de kill switches (GLOBAL/STRATEGY/EXCHANGE/ASSET)",
+            },
+        ),
+        # ── PAPER TRADING AUTO-ADVANCE ───────────────────────────────────────
+        # Auto-advance paper→canary when win_rate > 55% and PF > 1.5 for 30 days
+        _cron_job(
+            job_id="trading_paper_auto_advance",
+            app_id="trading",
+            handler="core.trading.lifecycle:start_paper_trading",
+            cron="*/8 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "paper_auto_advance",
+                "desc": "auto-advance paper trading a canary cuando metrics son favorables",
+            },
+        ),
+        # ── COPY TRADING OPTIMIZATION ───────────────────────────────────────
+        # Optimize copy ratios based on master performance DNA
+        _cron_job(
+            job_id="trading_copy_optimization",
+            app_id="trading",
+            handler="core.trading.reasoning:optimize_copy_ratios",
+            cron="*/6 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "copy_opt",
+                "desc": "optimizar copy ratios de masters segun DNA y performance recente",
+            },
+        ),
+        # ── LIVE STRATEGY MONITORING & ALERTS ────────────────────────────────
+        # Monitor all live strategies, alert on DD breach, win_rate drop, etc.
+        _cron_job(
+            job_id="trading_live_monitor",
+            app_id="trading",
+            handler="core.trading.trader_intelligence:check_live_alerts",
+            cron="*/15 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "monitor",
+                "desc": "monitoreo en vivo de estrategias activas y alertas de riesgo",
+            },
+        ),
+        # ── EXPECTED REVENUE TRACKING ────────────────────────────────────────
+        # Track expected revenue from all opportunities, update probabilities
+        _cron_job(
+            job_id="trading_revenue_tracking",
+            app_id="trading",
+            handler="core.trading.ev_calculator:update_expected_revenue",
+            cron="0 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "revenue",
+                "desc": "actualizar expected revenue y probabilidades de cobro",
             },
         ),
     ]
@@ -664,6 +983,21 @@ def get_execution_queue_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_worker_core_jobs() -> list[JobDefinition]:
+    """WorkerCore orchestration jobs."""
+    return [
+        JobDefinition(
+            job_id="worker_core_heartbeat",
+            app_id="worker_core",
+            handler="cores.worker_core.orchestrator:worker_core_heartbeat",
+            trigger="interval",
+            seconds=900,  # every 15 min
+            kwargs={"args": []},
+            metadata={"description": "Ensure WorkerCore is running, start if stopped"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -680,4 +1014,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "trading": get_trading_jobs(),
         "integrations": get_integration_jobs(),
         "execution": get_execution_queue_jobs(),
+        "worker_core": get_worker_core_jobs(),
     }

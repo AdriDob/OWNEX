@@ -78,6 +78,202 @@ class GameDevSpecialization(StrEnum):
     PERFORMANCE_OPTIMIZATION = "performance_optimization"
     GAME_BACKEND = "game_backend"
     SDK_INTEGRATION = "sdk_integration"
+
+
+class WorkStream(StrEnum):
+    """High-level work streams — what the user actually operates on.
+
+    Each stream bundles related OpportunityCategory, shares platform access
+    patterns, and has a distinct user workflow. OWNEX automates discovery,
+    scoring, and delivery prep; the user only: configures access, reviews
+    packages, and approves submissions.
+    """
+
+    # Security / Bug Bounty — public programs, API-key platforms, outcome-based
+    BUG_BOUNTY = "bug_bounty"
+
+    # Dev Bounty / Freelance — platforms where you submit code/PRs for rewards
+    DEV_BOUNTY = "dev_bounty"
+
+    # AI Work — evaluation, annotation, synthetic data (zero-barrier, assessment-based)
+    AI_WORK = "ai_work"
+
+    # Game Dev Programming — programming-only specializations
+    GAME_DEV = "game_dev"
+
+    # Open Source / Community — bounties, sponsors, grants
+    OPEN_SOURCE = "open_source"
+
+    # Technical Content — writing, docs, code review
+    TECH_CONTENT = "tech_content"
+
+
+# Canonical mapping: every OpportunityCategory → exactly one WorkStream.
+# This is the SSOT for UI filtering, platform grouping, and action routing.
+CATEGORY_TO_STREAM: dict[OpportunityCategory, WorkStream] = {
+    # Bug Bounty stream
+    OpportunityCategory.BUG_BOUNTY: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.SECURITY_RESEARCH: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.OSS_BOUNTIES: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.REVERSE_ENGINEERING: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.MALWARE_ANALYSIS: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.SMART_CONTRACTS: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.COMPETITIONS: WorkStream.BUG_BOUNTY,
+    # Dev Bounty stream
+    OpportunityCategory.DEV_BOUNTY: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.SOFTWARE_ENGINEERING: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BACKEND: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.FRONTEND: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.FULL_STACK: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.DEVOPS: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.CLOUD: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.INFRASTRUCTURE: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.API_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.SDK_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BROWSER_AUTOMATION: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.QA_AUTOMATION: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.WEB_SCRAPING: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.CODE_REVIEW: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.MOBILE_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.DESKTOP_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.EMBEDDED: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.IOT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BLOCKCHAIN_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    # AI Work stream
+    OpportunityCategory.AI_EVALUATION: WorkStream.AI_WORK,
+    OpportunityCategory.DATA_ANNOTATION: WorkStream.AI_WORK,
+    OpportunityCategory.SYNTHETIC_DATA: WorkStream.AI_WORK,
+    OpportunityCategory.AI_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.ML_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.LLM_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.PROMPT_ENGINEERING: WorkStream.AI_WORK,
+    # Game Dev stream
+    OpportunityCategory.GAME_DEVELOPMENT: WorkStream.GAME_DEV,
+    # Open Source stream
+    OpportunityCategory.OPEN_SOURCE: WorkStream.OPEN_SOURCE,
+    OpportunityCategory.OSS_BOUNTIES: WorkStream.OPEN_SOURCE,  # also in bug bounty
+    # Tech Content stream
+    OpportunityCategory.TECHNICAL_WRITING: WorkStream.TECH_CONTENT,
+    OpportunityCategory.DOCUMENTATION: WorkStream.TECH_CONTENT,
+    OpportunityCategory.CODE_REVIEW: WorkStream.TECH_CONTENT,  # also in dev bounty
+}
+
+
+# What the user needs to SEE per stream (minimal, actionable)
+STREAM_UI_CONFIG: dict[WorkStream, dict] = {
+    WorkStream.BUG_BOUNTY: {
+        "label": "Bug Bounty",
+        "icon": "🎯",
+        "description": "Programas públicos de vulnerabilidades. Descubrimiento → hipótesis → reporte.",
+        "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack", "immunefi"],
+        "access_type": "api_key",  # needs API key for earnings sync
+        "deliverables": ["PoC", "Report", "Steps to reproduce", "Impact assessment"],
+        "quick_actions": ["run_scan", "view_findings", "generate_report", "sync_earnings"],
+        "automation": "discover programs → score barriers → prep reports → queue delivery",
+        "user_decides": ["which programs to scan", "validate findings", "submit reports"],
+    },
+    WorkStream.DEV_BOUNTY: {
+        "label": "Dev Bounty",
+        "icon": "⚡",
+        "description": "Tareas de código con recompensa (Opire, IssueHunt, Algora, Freelancer).",
+        "platforms": ["opire", "issuehunt", "algora", "freelancer", "opencollective"],
+        "access_type": "mixed",  # public + manual setup
+        "deliverables": ["PR/Commit", "Tests passing", "Documentation", "README"],
+        "quick_actions": ["clone_repo", "analyze_issue", "generate_fix", "create_pr", "submit_work"],
+        "automation": "discover issues → analyze repo → generate fix → run tests → prep PR",
+        "user_decides": ["which issues to take", "review generated code", "approve PR"],
+    },
+    WorkStream.AI_WORK: {
+        "label": "AI Work",
+        "icon": "🤖",
+        "description": "Evaluación de modelos, anotación de datos, datos sintéticos (Outlier, Mindrift, etc.).",
+        "platforms": ["outlier", "mindrift", "alignerr", "mercor", "dataannotation"],
+        "access_type": "manual_setup",  # account + assessment
+        "deliverables": ["Completed tasks", "Quality metrics", "Time logs"],
+        "quick_actions": ["start_assessment", "view_queue", "submit_batch", "track_earnings"],
+        "automation": "discover tasks → filter by skill → prep workspace → queue submission",
+        "user_decides": ["which platforms to join", "complete assessments", "submit work"],
+    },
+    WorkStream.GAME_DEV: {
+        "label": "Game Dev",
+        "icon": "🎮",
+        "description": "Especializaciones de programación de videojuegos (Unity, Unreal, Godot, etc.).",
+        "platforms": ["freelancer", "opire", "algora", "upwork"],
+        "access_type": "manual_setup",
+        "deliverables": ["Code modules", "Systems", "Tools", "Performance fixes"],
+        "quick_actions": ["filter_specialization", "view_tech_stack", "submit_unity_cpp"],
+        "automation": "filter by specialization → match tech stack → prep delivery",
+        "user_decides": ["specialization focus", "engine/language match", "review code"],
+    },
+    WorkStream.OPEN_SOURCE: {
+        "label": "Open Source",
+        "icon": "🌐",
+        "description": "Bounties, sponsors, grants en proyectos open source.",
+        "platforms": ["opencollective", "github_sponsors", "polar", "opire"],
+        "access_type": "manual_setup",
+        "deliverables": ["PR merged", "Issue resolved", "Documentation", "Release notes"],
+        "quick_actions": ["find_good_first_issues", "track_sponsors", "submit_pr"],
+        "automation": "discover repos → filter by label → assess effort → prep PR",
+        "user_decides": ["which projects to contribute", "review maintainer feedback"],
+    },
+    WorkStream.TECH_CONTENT: {
+        "label": "Tech Content",
+        "icon": "📝",
+        "description": "Escritura técnica, documentación, code review remunerado.",
+        "platforms": ["freelancer", "technical_writing_platforms", "docs_bounties"],
+        "access_type": "manual_setup",
+        "deliverables": ["Articles", "Docs", "Review reports", "Tutorials"],
+        "quick_actions": ["find_writing_gigs", "submit_draft", "track_publications"],
+        "automation": "match topics → outline → draft → review → deliver",
+        "user_decides": ["topic selection", "review/edit content", "approve publication"],
+    },
+}
+
+
+# Platform → primary stream (for quick filtering)
+PLATFORM_PRIMARY_STREAM: dict[str, WorkStream] = {
+    "hackerone": WorkStream.BUG_BOUNTY,
+    "bugcrowd": WorkStream.BUG_BOUNTY,
+    "intigriti": WorkStream.BUG_BOUNTY,
+    "yeswehack": WorkStream.BUG_BOUNTY,
+    "immunefi": WorkStream.BUG_BOUNTY,
+    "opire": WorkStream.DEV_BOUNTY,
+    "issuehunt": WorkStream.DEV_BOUNTY,
+    "algora": WorkStream.DEV_BOUNTY,
+    "freelancer": WorkStream.DEV_BOUNTY,
+    "opencollective": WorkStream.OPEN_SOURCE,
+    "outlier": WorkStream.AI_WORK,
+    "mindrift": WorkStream.AI_WORK,
+    "alignerr": WorkStream.AI_WORK,
+    "mercor": WorkStream.AI_WORK,
+    "dataannotation": WorkStream.AI_WORK,
+    "upwork": WorkStream.DEV_BOUNTY,
+}
+
+
+def get_stream_for_category(category: OpportunityCategory) -> WorkStream:
+    """Get the primary work stream for a category."""
+    return CATEGORY_TO_STREAM.get(category, WorkStream.DEV_BOUNTY)
+
+
+def get_stream_for_platform(platform: str) -> WorkStream:
+    """Get the primary work stream for a platform."""
+    return PLATFORM_PRIMARY_STREAM.get(platform.lower(), WorkStream.DEV_BOUNTY)
+
+    GAMEPLAY_PROGRAMMING = "gameplay_programming"
+    UNREAL_CPP = "unreal_cpp"
+    UNITY_CSHARP = "unity_csharp"
+    GODOT = "godot"
+    MULTIPLAYER_NETWORKING = "multiplayer_networking"
+    AI_PROGRAMMING = "ai_programming"
+    ENGINE_PROGRAMMING = "engine_programming"
+    RENDERING = "rendering"
+    PHYSICS = "physics"
+    TOOLS_PROGRAMMING = "tools_programming"
+    ECS = "ecs"
+    PERFORMANCE_OPTIMIZATION = "performance_optimization"
+    GAME_BACKEND = "game_backend"
+    SDK_INTEGRATION = "sdk_integration"
     MOBILE_GAMES = "mobile_games"
     STEAM_INTEGRATION = "steam_integration"
     CONSOLE_DEVELOPMENT = "console_development"
@@ -109,6 +305,7 @@ class WorkPlatform(StrEnum):
     OPYRE_MICROTASK = "opyre_microtask"
     FREELANCER_MICROTASK = "freelancer_microtask"
     COMPANY_WEBSITE = "company_website"
+    CODE4RENA = "code4rena"
     OTHER = "other"
 
 
@@ -428,3 +625,5 @@ class RankedOpportunity:
     discovered_at: str = ""
     payment_compat_score: float = 100.0
     payment_compat_notes: list[str] = field(default_factory=list)
+    # HTROI — Human-Time Adjusted ROI (Fase C, Income Multiplier)
+    htroi: HumanTimeAdjustedROI | None = None

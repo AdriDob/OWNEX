@@ -390,9 +390,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6 animate-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div class="space-y-1">
         <div class="flex items-center gap-2">
           <Cog class="h-4 w-4 text-primary" />

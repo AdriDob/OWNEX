@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import { FileText, Download, Edit, ExternalLink, Clock, AlertTriangle, DollarSign, TrendingUp } from '@lucide/vue'
+import { AlertTriangle, Clock, DollarSign, Download, Edit, ExternalLink, FileText, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { api } from '@/lib/api'
 
 interface ReportCandidate {
@@ -319,11 +319,11 @@ const sevBadge = (sev: string) => {
   border: 1px solid rgba(39, 39, 42, 0.8);
 }
 .btn-primary {
-  background: #2563eb;
+  background: var(--ownex-accent);
   color: white;
 }
 .btn-primary:hover {
-  background: #ffffff;
+  background: var(--ownex-text-primary);
 }
 .btn-ghost {
   background: transparent;

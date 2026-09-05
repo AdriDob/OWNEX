@@ -1,15 +1,17 @@
 <script setup lang="ts">
+import { AlertOctagon, AlertTriangle, Bell, CheckCheck, CheckCircle2, Info, Trash2, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotificationsStore } from '@/stores/notifications'
-import { Bell, X, CheckCheck, Trash2, Info, CheckCircle2, AlertTriangle, AlertOctagon } from '@lucide/vue'
 
 const store = useNotificationsStore()
 const router = useRouter()
 const open = ref(false)
 const panelRef = ref<HTMLElement | null>(null)
 
-function toggle() { open.value = !open.value }
+function toggle() {
+  open.value = !open.value
+}
 
 function handleAction(action: { label: string; route: string } | undefined, id: string) {
   store.markRead(id)

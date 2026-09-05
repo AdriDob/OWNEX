@@ -1,4 +1,4 @@
-import { ref, computed, watch, onMounted, type Ref } from 'vue'
+import { computed, onMounted, type Ref, ref, watch } from 'vue'
 
 export interface ThemePalette {
   'bg-deep': string
@@ -85,14 +85,7 @@ let themesCache: Map<string, ThemeDefinition> | null = null
 async function loadThemeDefinitions(): Promise<Map<string, ThemeDefinition>> {
   if (themesCache) return themesCache
 
-  const themeIds = [
-    'tesla',
-    'event-horizon',
-    'neural-flow',
-    'precision-lab',
-    'quantum-glass',
-    'executive-intelligence'
-  ]
+  const themeIds = ['tesla', 'event-horizon', 'neural-flow', 'precision-lab', 'quantum-glass', 'executive-intelligence']
 
   const map = new Map<string, ThemeDefinition>()
 
@@ -165,7 +158,7 @@ function applyAudioConfig(audio: ThemeAudio) {
   if (typeof window === 'undefined') return
 
   const event = new CustomEvent('ownex:theme-audio-change', {
-    detail: { profile: audio.profile, volume: audio.volume, enabled: audio.enabled }
+    detail: { profile: audio.profile, volume: audio.volume, enabled: audio.enabled },
   })
   window.dispatchEvent(event)
 }
@@ -177,38 +170,38 @@ export type ThemeMode = 'auto' | 'light' | 'dark'
 const THEME_MODE_STORAGE_KEY = 'ownex_theme_mode'
 
 export const LIGHT_MODE_VARS: Record<string, string> = {
-  '--ownex-bg': '#f4f5f8',
-  '--ownex-bg-elevated': '#ffffff',
-  '--ownex-bg-card': '#ffffff',
-  '--ownex-bg-surface': '#ffffff',
-  '--ownex-bg-base': '#f4f5f8',
-  '--ownex-bg-deep': '#e9ebf0',
+  '--ownex-bg': 'var(--ownex-bg-surface)',
+  '--ownex-bg-elevated': 'var(--ownex-text-primary)',
+  '--ownex-bg-card': 'var(--ownex-text-primary)',
+  '--ownex-bg-surface': 'var(--ownex-text-primary)',
+  '--ownex-bg-base': 'var(--ownex-bg-surface)',
+  '--ownex-bg-deep': 'var(--ownex-text-secondary)',
   '--ownex-bg-glass': 'rgba(255,255,255,0.8)',
   '--ownex-bg-glass-border': 'rgba(20,22,28,0.1)',
-  '--ownex-border': '#d4d7de',
-  '--ownex-border-light': '#b9bec9',
-  '--ownex-text': '#14161c',
-  '--ownex-text-dim': '#4a4e5a',
-  '--ownex-text-muted': '#7a7f8c',
-  '--ownex-text-primary': '#14161c',
-  '--ownex-text-secondary': '#33363f',
-  '--ownex-text-disabled': '#a0a5b1',
-  '--ownex-surface': '#ffffff',
-  '--ownex-surface-hover': '#eef0f4',
-  '--ownex-stroke': '#d4d7de',
-  '--ownex-blue': '#14161c',
-  '--ownex-white': '#1f2328',
-  '--ownex-gold': '#9a6700',
-  '--ownex-accent': '#14161c',
+  '--ownex-border': 'var(--ownex-text-secondary)',
+  '--ownex-border-light': 'var(--ownex-text-secondary)',
+  '--ownex-text': 'var(--ownex-bg-base)',
+  '--ownex-text-dim': 'var(--ownex-text-muted)',
+  '--ownex-text-muted': 'var(--ownex-text-secondary)',
+  '--ownex-text-primary': 'var(--ownex-bg-base)',
+  '--ownex-text-secondary': 'var(--ownex-border)',
+  '--ownex-text-disabled': 'var(--ownex-text-secondary)',
+  '--ownex-surface': 'var(--ownex-text-primary)',
+  '--ownex-surface-hover': 'var(--ownex-text-primary)',
+  '--ownex-stroke': 'var(--ownex-text-secondary)',
+  '--ownex-blue': 'var(--ownex-bg-base)',
+  '--ownex-white': 'var(--ownex-bg-elevated)',
+  '--ownex-gold': 'var(--ownex-gold)',
+  '--ownex-accent': 'var(--ownex-bg-base)',
   '--ownex-accent-glow': 'rgba(20,22,28,0.25)',
   '--ownex-accent-dim': 'rgba(20,22,28,0.08)',
-  '--ownex-info': '#0969da',
+  '--ownex-info': 'var(--ownex-accent)',
   '--ownex-info-glow': 'rgba(9,105,218,0.25)',
   '--ownex-info-dim': 'rgba(9,105,218,0.1)',
-  '--ownex-success': '#1a7f37',
+  '--ownex-success': 'var(--ownex-green)',
   '--ownex-success-glow': 'rgba(26,127,55,0.25)',
   '--ownex-success-dim': 'rgba(26,127,55,0.1)',
-  '--ownex-warning': '#9a6700',
+  '--ownex-warning': 'var(--ownex-gold)',
   '--ownex-warning-glow': 'rgba(154,103,0,0.25)',
 }
 
@@ -230,9 +223,7 @@ export function useThemeEngine() {
   function applyThemeMode() {
     if (typeof document === 'undefined') return
     const root = document.documentElement
-    const effective = themeMode.value === 'auto'
-      ? (systemDark.value ? 'dark' : 'light')
-      : themeMode.value
+    const effective = themeMode.value === 'auto' ? (systemDark.value ? 'dark' : 'light') : themeMode.value
 
     root.setAttribute('data-theme-mode', effective)
     root.classList.toggle('dark', effective === 'dark')
@@ -247,14 +238,14 @@ export function useThemeEngine() {
       if (currentTheme.value) {
         applyThemeToDOM(currentTheme.value)
       } else {
-        Object.keys(LIGHT_MODE_VARS).forEach(key => root.style.removeProperty(key))
+        Object.keys(LIGHT_MODE_VARS).forEach((key) => root.style.removeProperty(key))
       }
     }
 
     // Meta theme-color para móvil
     const meta = document.querySelector('meta[name="theme-color"]')
     if (meta) {
-      meta.setAttribute('content', effective === 'dark' ? '#0a0a0f' : '#f4f5f8')
+      meta.setAttribute('content', effective === 'dark' ? 'var(--ownex-bg-deep)' : 'var(--ownex-bg-surface)')
     }
   }
 

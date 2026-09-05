@@ -47,7 +47,7 @@
   --ownex-cycle-pulse:    #16A34A;
   --ownex-cycle-vault:    #D97706;
   --ownex-cycle-atlas:    #D4D4D8;
-  --ownex-cycle-odyssey:  #00d5ff;
+   --ownex-cycle-odyssey:  #E82127;
 
   /* ═══════════════════════════════════════════════════════════════════
      TYPOGRAPHY
@@ -198,6 +198,7 @@
   --color-text:             var(--ownex-text-primary);
   --color-text-muted:       var(--ownex-text-secondary);
   --color-primary:          var(--ownex-blue);
+   --color-accent:           var(--ownex-accent);
   --color-success:          var(--ownex-green);
   --color-warning:          var(--ownex-yellow);
   --color-danger:           var(--ownex-danger);   /* error/destructive ONLY (directiva owner) */

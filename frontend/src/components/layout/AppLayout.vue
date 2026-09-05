@@ -1,38 +1,53 @@
 <script setup lang="ts">
-import AppSidebar from './AppSidebar.vue'
-import AppFooter from './AppFooter.vue'
-import TitleBar from './TitleBar.vue'
-import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
+import CommandPalette from '@/components/ui/CommandPalette.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
+import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
+import AutonomyBadge from '@/components/ui/AutonomyBadge.vue'
 import { useNotificationsStore } from '@/stores/notifications'
+import { Menu } from '@lucide/vue'
+import { ref } from 'vue'
+import AppFooter from './AppFooter.vue'
+import AppSidebar from './AppSidebar.vue'
+import TitleBar from './TitleBar.vue'
 
 const notifications = useNotificationsStore()
+const commandPalette = ref<InstanceType<typeof CommandPalette>>()
 
 defineProps<{
   copilotOpen: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggleCopilot': []
+  toggleCopilot: []
 }>()
 </script>
 
 <template>
+  <!-- Skip navigation link for keyboard users -->
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
+
   <div class="flex h-full flex-1 overflow-hidden">
     <AppSidebar @toggle-copilot="emit('toggleCopilot')" />
 
     <!-- Main content -->
     <main
+      id="main-content"
       :class="[
         'flex flex-1 flex-col overflow-y-auto transition-all duration-200',
         copilotOpen ? 'xl:mr-80' : 'mr-0',
       ]"
+      role="main"
     >
       <!-- Desktop titlebar -->
       <TitleBar />
 
       <!-- Toolbar: notifications always accessible -->
-      <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
+      <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
+        <!-- Mobile menu button -->
+        <button @click="sidebarMobileOpen = !sidebarMobileOpen" class="lg:hidden p-1.5 rounded-lg hover:bg-surface/30">
+          <Menu class="h-5 w-5" />
+        </button>
+        <AutonomyBadge />
         <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
         <NotificationPanel />
       </div>
@@ -49,6 +64,12 @@ const emit = defineEmits<{
       </div>
       <AppFooter @toggle-copilot="emit('toggleCopilot')" />
     </main>
+
+    <!-- Live region for screen reader announcements -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="sr-announcements"></div>
+
+    <!-- Command Palette (Cmd+K) -->
+    <CommandPalette ref="commandPalette" />
   </div>
 </template>
 
