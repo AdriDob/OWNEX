@@ -95,12 +95,12 @@ const classes = computed(() => [
 
 /* Variants */
 .ownex-btn--primary {
-  background: var(--ownex-blue);
+  background: var(--ownex-accent);
   color: var(--ownex-white);
 }
 .ownex-btn--primary:hover:not(:disabled) {
-  background: var(--ownex-accent);
-  box-shadow: var(--shadow-glow);
+  filter: brightness(0.95);
+  box-shadow: 0 4px 20px rgba(232, 33, 39, 0.18);
 }
 
 .ownex-btn--secondary {
@@ -175,6 +175,6 @@ const classes = computed(() => [
 /* Focus visible */
 .ownex-btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring);
+  box-shadow: var(--focus-ring), 0 0 0 4px rgba(232, 33, 39, 0.12);
 }
 </style>
