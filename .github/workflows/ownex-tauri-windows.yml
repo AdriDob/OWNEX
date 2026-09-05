@@ -20,16 +20,19 @@ jobs:
             target: x86_64-pc-windows-msvc
             artifact_name: ownex-backend-windows
             pyinstaller_cmd: .venv\Scripts\pyinstaller.exe
+            python_cmd: .venv\Scripts\python.exe
             sidecar_name: ownex-backend.exe
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: ownex-backend-linux
             pyinstaller_cmd: .venv/bin/pyinstaller
+            python_cmd: .venv/bin/python
             sidecar_name: ownex-backend
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: ownex-backend-macos
             pyinstaller_cmd: .venv/bin/pyinstaller
+            python_cmd: .venv/bin/python
             sidecar_name: ownex-backend
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -50,9 +53,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install -r requirements.txt
-          .venv/bin/python -m pip install pyinstaller
+          ${{ matrix.python_cmd }} -m pip install --upgrade pip
+          ${{ matrix.python_cmd }} -m pip install -r requirements.txt
+          ${{ matrix.python_cmd }} -m pip install pyinstaller
 
       # ── Build backend sidecar ──
       - name: Build backend sidecar (PyInstaller)
@@ -66,6 +69,7 @@ jobs:
           $size = (Get-Item $exe).Length
           Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
           if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB)" }
+        shell: pwsh
 
       # Smoke test sidecar (Windows only - other platforms run Tauri build which tests it)
       - name: Smoke test sidecar runtime
@@ -87,6 +91,7 @@ jobs:
             throw "Sidecar failed /api/health"
           }
           Write-Host "Sidecar smoke: PASS"
+        shell: pwsh
 
       # ── Copy sidecar to Tauri binaries directory ──
       - name: Prepare Tauri sidecar
@@ -99,19 +104,6 @@ jobs:
           Write-Host "Sidecar copied to: $dest"
           Get-ChildItem $destDir | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
         shell: pwsh
-        if: runner.os == 'Windows'
-
-      - name: Prepare Tauri sidecar (Linux/macOS)
-        run: |
-          destDir="src-tauri/binaries"
-          src="dist/${{ matrix.sidecar_name }}"
-          dest="$destDir/${{ matrix.sidecar_name }}"
-          mkdir -p "$destDir"
-          cp "$src" "$dest"
-          chmod +x "$dest"
-          echo "Sidecar copied to: $dest"
-          ls -la "$destDir"
-        if: runner.os != 'Windows'
 
       # Upload sidecar artifact
       - name: Upload sidecar artifact
