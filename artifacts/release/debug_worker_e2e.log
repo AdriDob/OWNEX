@@ -1,0 +1,51 @@
+DEBUG:asyncio:Using selector: EpollSelector
+INFO:worker_core.orchestrator:Self-repair engine connected to WorkerCore
+INFO:worker_core.orchestrator:WorkerCore initialized with autonomy_level=full
+INFO:worker_core.orchestrator:Worker goal set: Test goal (target: $10000/month)
+DEBUG:worker_core.audit:Audit: cycle_start/- success → - (workflow=wf-032c2)
+DEBUG:worker_core.orchestrator:Discovering work
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=discover
+INFO:ownex.recovery.circuit_breaker:[CB] worker_core.discovery circuit -> closed (success)
+DEBUG:worker_core.audit:Audit: discover/discover success → 67d79ea4 (workflow=wf-032c2)
+INFO:worker_core.orchestrator:Discovered work: Fix API endpoint bug (67d79ea4) - EV: $50.00/hr
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=evaluate
+INFO:ownex.recovery.circuit_breaker:[CB] worker_core.evaluation circuit -> closed (success)
+DEBUG:worker_core.audit:Audit: evaluate/evaluate success → 67d79ea4 (workflow=wf-032c2)
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=select
+DEBUG:worker_core.audit:Audit: select/select success → 67d79ea4 (workflow=wf-032c2)
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=prepare
+INFO:worker_core.orchestrator:Work 67d79ea4 prepared
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=execute
+INFO:ownex.recovery.circuit_breaker:[CB] worker_core.execution circuit -> closed (success)
+DEBUG:worker_core.audit:Audit: execute/execute success → 67d79ea4 (workflow=wf-032c2)
+INFO:worker_core.orchestrator:Work 67d79ea4 executed
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=validate
+INFO:worker_core.orchestrator:Work 67d79ea4 passed Quality Gate
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=deliver
+INFO:ownex.recovery.circuit_breaker:[CB] worker_core.delivery circuit -> closed (success)
+DEBUG:worker_core.audit:Audit: deliver/deliver success → 67d79ea4 (workflow=wf-032c2)
+INFO:worker_core.orchestrator:Work 67d79ea4 delivered
+INFO:worker_core.persistence:Checkpoint saved: work=67d79ea4 phase=learn
+INFO:worker_core.orchestrator:Learning recorded for work 67d79ea4
+DEBUG:worker_core.audit:Audit: cycle_complete/- success → 67d79ea4 (workflow=wf-032c2)
+Work items: ['67d79ea4']
+WORK ITEM 67d79ea4
+  phase: WorkPhase.LEARN
+  state: WorkState.RUNNING
+  checkpoints:
+   - {'phase': 'discover', 'timestamp': '2026-09-05T02:36:43.808252+00:00', 'data': {'timestamp': '2026-09-05T02:36:43.808247+00:00'}}
+   - {'phase': 'evaluate', 'timestamp': '2026-09-05T02:36:43.817954+00:00', 'data': {'started': True}}
+   - {'phase': 'evaluate', 'timestamp': '2026-09-05T02:36:43.817985+00:00', 'data': {'passed': True, 'score': 0.85, 'reasons': ['High EV', 'Low risk'], 'barrier_score': 15.0, 'expected_value_usd_per_hour': 50.0, 'acceptance_probability': 0.8, 'compatibility_score': 0.9, 'speed_score': 0.7, 'reputation_score': 0.6, 'risk_score': 0.2, 'strict_filter_rejected': False, 'strict_filter_reasons': [], 'quality_gate_result': {'passed': True, 'reason': 'Evidence present'}}}
+   - {'phase': 'select', 'timestamp': '2026-09-05T02:36:43.822447+00:00', 'data': {'selected': True}}
+   - {'phase': 'prepare', 'timestamp': '2026-09-05T02:36:43.823863+00:00', 'data': {'started': True}}
+   - {'phase': 'prepare', 'timestamp': '2026-09-05T02:36:43.823870+00:00', 'data': {'prepared': True}}
+   - {'phase': 'execute', 'timestamp': '2026-09-05T02:36:43.824411+00:00', 'data': {'started': True}}
+   - {'phase': 'execute', 'timestamp': '2026-09-05T02:36:43.824581+00:00', 'data': {'success': True, 'artifacts': ['fix.py', 'test_fix.py'], 'evidence': ['Screenshot of fix', 'Test output'], 'output': 'Bug fixed successfully', 'error': None, 'execution_time_s': 45.0}}
+   - {'phase': 'validate', 'timestamp': '2026-09-05T02:36:43.829646+00:00', 'data': {'started': True}}
+   - {'phase': 'validate', 'timestamp': '2026-09-05T02:36:43.846188+00:00', 'data': {'passed': True, 'quality_gate': {'passed': True, 'reason': 'Evidence present'}}}
+   - {'phase': 'deliver', 'timestamp': '2026-09-05T02:36:43.847063+00:00', 'data': {'started': True}}
+   - {'phase': 'deliver', 'timestamp': '2026-09-05T02:36:43.847243+00:00', 'data': {'success': True, 'submission_id': 'sub_001', 'submission_url': 'https://opire.com/sub/001', 'platform_response': {'status': 'submitted'}, 'error': None}}
+   - {'phase': 'learn', 'timestamp': '2026-09-05T02:36:43.852102+00:00', 'data': {'completed': True}}
+   - {'phase': 'learn', 'timestamp': '2026-09-05T02:36:43.852244+00:00', 'data': {'learned': True}}
+  artifacts: ['fix.py', 'test_fix.py']
+  evidence: ['Screenshot of fix', 'Test output']
