@@ -189,9 +189,10 @@ jobs:
           cd frontend && npm ci
           cd ..
 
-      # Verify Tauri CLI installation
+      # Verify Tauri CLI installation (with set +e to see output even on failure)
       - name: Verify Tauri CLI
         run: |
+          set +e
           echo "=== Tauri CLI Verification ==="
           echo "Node: $(node --version)"
           echo "NPM: $(npm --version)"
@@ -200,6 +201,9 @@ jobs:
           echo "Tauri CLI global: $(tauri --version 2>&1 || echo 'FAILED')"
           echo "Node modules tauri: $(ls -la node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
           echo "Frontend tauri: $(ls -la frontend/node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
+          echo "Root node_modules tauri*: $(ls -la node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
+          echo "Root package.json tauri: $(grep -A2 '@tauri-apps/cli' package.json || echo 'NOT IN PACKAGE.JSON')"
+          set -e
 
       # Rust
       - name: Setup Rust
