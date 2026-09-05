@@ -247,6 +247,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'WorkerCore Control' },
   },
   {
+    path: '/setup/checklist',
+    name: 'setup-checklist',
+    component: () => import('@/pages/SetupChecklist.vue'),
+    meta: { title: 'Setup Checklist' },
+  },
+  {
     path: '/operations/agenda',
     name: 'agenda',
     component: () => import('@/pages/AgendaView.vue'),
