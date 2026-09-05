@@ -140,7 +140,7 @@ const categoryIcons: Record<string, any> = {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-4 p-4 sm:space-y-8 sm:p-6">
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold tracking-tight">Preguntas Frecuentes</h1>

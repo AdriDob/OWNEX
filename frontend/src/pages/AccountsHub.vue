@@ -130,7 +130,7 @@ onMounted(fetchHub)
 </script>
 
 <template>
-  <div class="space-y-6 animate-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <div class="flex items-center justify-between">
       <div class="space-y-1">
         <div class="flex items-center gap-2">

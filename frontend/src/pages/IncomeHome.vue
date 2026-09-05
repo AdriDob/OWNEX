@@ -283,7 +283,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-6 p-6 animate-in">
+  <div class="mx-auto max-w-7xl space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <!-- CEO CONSOLE HEADER -->
     <header class="space-y-4">
       <!-- Row 1: System Status + Money + OWNEX Status -->

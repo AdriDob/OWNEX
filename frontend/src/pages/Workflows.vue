@@ -108,7 +108,7 @@ onMounted(fetchAll)
 </script>
 
 <template>
-  <div class="p-6 space-y-6 animate-in">
+  <div class="p-4 space-y-4 sm:p-6 sm:space-y-6 animate-in">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
