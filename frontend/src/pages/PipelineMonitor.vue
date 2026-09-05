@@ -124,7 +124,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between animate-in">
       <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-widest text-primary">Operations</p>

@@ -142,7 +142,7 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="flex items-center gap-3 animate-in">
       <Button variant="ghost" size="icon" @click="router.push('/reports')">
         <ArrowLeft class="h-4 w-4" />
