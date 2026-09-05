@@ -106,7 +106,7 @@ jobs:
           Get-ChildItem $destDir | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
         shell: pwsh
 
-      # Upload sidecar artifact
+      # Upload sidecar artifact (use working-directory to avoid dist/ prefix in artifact)
       - name: Upload sidecar artifact
         uses: actions/upload-artifact@v4
         with:
@@ -146,26 +146,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact
+      # Download sidecar artifact to current directory, then move to dist/
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os == 'windows-latest' && 'ownex-backend-windows' || matrix.os == 'ubuntu-latest' && 'ownex-backend-linux' || 'ownex-backend-macos' }}
-          path: dist
+          path: .
 
-      # Verify sidecar download
-      - name: Verify sidecar download
+      # Verify sidecar download and move to dist/
+      - name: Verify and move sidecar
         run: |
           echo "=== Sidecar Download Verification ==="
-          ls -la dist/
-          echo "=== Checking sidecar ==="
+          ls -la
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            test -f dist/ownex-backend.exe && echo "Windows sidecar: FOUND" || echo "Windows sidecar: MISSING"
+            if [ -f ownex-backend.exe ]; then
+              mkdir -p dist
+              mv ownex-backend.exe dist/
+              echo "Windows sidecar: MOVED TO dist/"
+            else
+              echo "ERROR: Windows sidecar not found at root"
+              ls -la
+              exit 1
+            fi
           else
-            test -f dist/ownex-backend && echo "Linux/macOS sidecar: FOUND" || echo "Linux/macOS sidecar: MISSING"
+            if [ -f ownex-backend ]; then
+              mkdir -p dist
+              mv ownex-backend dist/
+              echo "Linux/macOS sidecar: MOVED TO dist/"
+            else
+              echo "ERROR: Linux/macOS sidecar not found"
+              ls -la
+              exit 1
+            fi
           fi
+          ls -la dist/
 
-      # Copy sidecar to Tauri binaries
+      # ── Copy sidecar to Tauri binaries directory ──
       - name: Prepare Tauri sidecar (Windows)
         if: runner.os == 'Windows'
         run: |
