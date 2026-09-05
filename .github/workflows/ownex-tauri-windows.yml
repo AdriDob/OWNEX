@@ -13,6 +13,7 @@ jobs:
   # ── Build backend sidecar for each platform ──
   build-backend-sidecar:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
         include:
@@ -117,6 +118,7 @@ jobs:
   build-tauri:
     needs: build-backend-sidecar
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
         include:
