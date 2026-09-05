@@ -206,6 +206,25 @@ jobs:
         env:
           VITE_API_URL: ''
 
+      # Debug: Check environment before build
+      - name: Debug environment
+        run: |
+          echo "=== Environment Debug ==="
+          echo "OS: $RUNNER_OS"
+          echo "Node: $(node --version)"
+          echo "NPM: $(npm --version)"
+          echo "Rust: $(rustc --version)"
+          echo "Cargo: $(cargo --version)"
+          echo "Tauri CLI: $(npx tauri --version)"
+          echo "Frontend dist exists: $(test -d frontend/dist && echo YES || echo NO)"
+          echo "Frontend dist files: $(ls -la frontend/dist | wc -l)"
+          echo "src-tauri exists: $(test -d src-tauri && echo YES || echo NO)"
+          echo "Cargo.toml exists: $(test -f src-tauri/Cargo.toml && echo YES || echo NO)"
+          echo "tauri.conf.json exists: $(test -f src-tauri/tauri.conf.json && echo YES || echo NO)"
+          echo "Sidecar exists: $(test -f src-tauri/binaries/ownex-backend && echo YES || echo NO)"
+        env:
+          RUST_BACKTRACE: 1
+
       # Linux deps
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -239,6 +258,7 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ''
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+          RUST_BACKTRACE: 1
 
       # Verify output
       - name: Verify Tauri output
