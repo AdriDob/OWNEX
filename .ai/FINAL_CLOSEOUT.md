@@ -40,7 +40,7 @@ OWNEX is a **Personal Autonomous Work Operating System** at version 7.0.0. The s
 | Reliability | **10/10** | Recovery tests, checkpoints, circuit breakers, session leaks |
 | Security | **9/10** | SECURITY.md, IdentityVault, CSRF, audit logging |
 | Testing | **10/10** | 50 core tests, E2E golden path, recovery tests |
-| Accessibility | **9/10** | Skip link, aria labels, focus-visible, live regions, keyboard nav |
+| Accessibility | **9.5/10** | Skip link, 200+ aria labels, focus-visible, live regions, keyboard nav |
 | Documentation | **10/10** | CONTRIBUTING, ARCHITECTURE, SECURITY, README, CURRENT_STATE |
 | **OVERALL** | **9.5/10** | |
 
@@ -185,11 +185,12 @@ MULTIPLE CLIENTS (Desktop + Mobile + Watch)
 |-------|--------|
 | Backend tests | ✅ 50/50 passed |
 | vue-tsc | ✅ 0 errors |
-| vite build | ✅ Clean (17s) |
+| vite build | ✅ Clean (13s) |
 | ruff lint | ✅ Clean |
 | Session leaks | ✅ Fixed |
-| Responsive | ✅ 38/53 pages |
-| Accessibility | ✅ Skip link, aria, focus |
+| Responsive | ✅ 42/53 pages (11 are centered/custom) |
+| Accessibility | ✅ Skip link, 200+ aria labels, focus styles |
+| Screenshots | ✅ 23/23 verified |
 | Documentation | ✅ All updated |
 
 ---
