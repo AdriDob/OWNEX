@@ -1,19 +1,19 @@
 <template>
-  <div class="space-y-6 p-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Setup Checklist</h1>
-        <p class="mt-1 text-sm text-muted-foreground">
+        <h1 class="text-xl font-bold text-foreground sm:text-2xl">Setup Checklist</h1>
+        <p class="mt-1 text-xs text-muted-foreground sm:text-sm">
           Configura tu sistema paso a paso. Cada ítem te dice exactamente qué necesitás y cómo conseguirlo.
         </p>
       </div>
       <div class="flex items-center gap-3">
         <div class="text-right">
-          <div class="text-3xl font-bold text-foreground">{{ status.complete_pct }}%</div>
-          <div class="text-xs text-muted-foreground">{{ status.done_items }}/{{ status.total_items }} completados</div>
+          <div class="text-2xl font-bold text-foreground sm:text-3xl">{{ status.complete_pct }}%</div>
+          <div class="text-[10px] text-muted-foreground sm:text-xs">{{ status.done_items }}/{{ status.total_items }} completados</div>
         </div>
-        <div class="h-16 w-16 rounded-full border-4 border-muted flex items-center justify-center">
+        <div class="h-12 w-12 rounded-full border-4 border-muted flex items-center justify-center sm:h-16 sm:w-16">
           <svg class="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
             <path
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -103,9 +103,9 @@
                   v-if="!item.done"
                   class="mt-2 rounded-md bg-muted/50 p-3 text-sm"
                 >
-                  <div class="mb-1 font-medium text-foreground/80">Cómo hacerlo:</div>
-                  <div class="text-muted-foreground">{{ item.how_to }}</div>
-                  <div class="mt-1 text-xs text-muted-foreground/70">
+                  <div class="mb-1 text-xs font-medium text-foreground/80 sm:text-sm">Cómo hacerlo:</div>
+                  <div class="text-xs text-muted-foreground sm:text-sm">{{ item.how_to }}</div>
+                  <div class="mt-1 text-[10px] text-muted-foreground/70 sm:text-xs">
                     ⏱ ~{{ item.est_minutes }} minutos
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import App from './App.vue'
 import { isPublicRoute, routes } from './router'
 import './style.css'
 import './styles/tesla-jarvis-theme.css'
+import './styles/responsive.css'
 import 'xterm/css/xterm.css'
 
 if ('serviceWorker' in navigator) {

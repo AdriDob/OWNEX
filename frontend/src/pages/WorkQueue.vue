@@ -107,7 +107,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl space-y-6 p-6 animate-in">
+  <div class="mx-auto max-w-7xl space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-xl font-semibold tracking-tight">Cola de Trabajo</h1>
@@ -147,7 +147,7 @@ onMounted(load)
           <p class="font-mono text-[10px] text-muted-foreground/60">{{ item.payload?.platform || '—' }}</p>
           <div v-if="!['paid', 'rejected', 'blocked', 'dead_letter'].includes(item.state)" class="flex gap-2 pt-1">
             <button
-              class="flex-1 rounded-md border border-border/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wide hover:bg-surface/40 disabled:opacity-40"
+              class="flex-1 rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide hover:bg-surface/40 disabled:opacity-40 min-h-[36px]"
               :disabled="busyId === item.item_id"
               @click="advance(item)"
             >
@@ -155,7 +155,7 @@ onMounted(load)
             </button>
             <button
               v-if="item.state === 'waiting_human'"
-              class="rounded-md border border-border/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40 disabled:opacity-40"
+              class="rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40 disabled:opacity-40 min-h-[36px]"
               :disabled="busyId === item.item_id"
               @click="reject(item)"
             >
@@ -163,7 +163,7 @@ onMounted(load)
             </button>
           </div>
           <button
-            class="w-full rounded-md border border-border/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40"
+            class="w-full rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40 min-h-[36px]"
             @click="router.push(`/operations/work-room/${item.item_id}`)"
           >
             Ver detalles

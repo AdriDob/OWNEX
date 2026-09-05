@@ -354,7 +354,7 @@ function copyToClipboard(text: string) {
 </script>
 
 <template>
-  <div class="space-y-6 p-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <!-- ═══ HEADER ═══ -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-2">
       <div>
