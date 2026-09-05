@@ -3,7 +3,6 @@ package ai.rastro.watch.api
 import ai.rastro.watch.preferences.PreferencesManager
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -15,8 +14,7 @@ object ApiClient {
     private var api: WearOSApi? = null
 
     fun initialize(preferencesManager: PreferencesManager) {
-        // Get base URL from preferences (blocking call for initialization)
-        val baseUrl = preferencesManager.baseUrl.blockingGet()
+        val baseUrl = preferencesManager.baseUrl
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -24,7 +22,7 @@ object ApiClient {
 
         val authInterceptor = Interceptor { chain ->
             val original = chain.request()
-            val token = preferencesManager.authToken.blockingGet()
+            val token = preferencesManager.authToken
             val requestBuilder = original.newBuilder()
                 .header("Accept", "application/json")
                 .header("Content-Type", "application/json")
@@ -33,8 +31,7 @@ object ApiClient {
                 requestBuilder.header("Authorization", "Bearer $token")
             }
 
-            val request = requestBuilder.build()
-            chain.proceed(request)
+            chain.proceed(requestBuilder.build())
         }
 
         val client = OkHttpClient.Builder()
