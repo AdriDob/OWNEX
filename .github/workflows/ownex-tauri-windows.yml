@@ -183,8 +183,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install npm dependencies (root + frontend)
+        run: |
+          npm ci
+          cd frontend && npm ci
+          cd ..
 
       # Rust
       - name: Setup Rust
@@ -203,13 +206,12 @@ jobs:
           cd frontend
           npm run build
           cd ..
-        env:
-          VITE_API_URL: ''
 
       # Debug: Check environment before build
       - name: Debug environment
         run: |
           echo "=== Environment Debug ==="
+          echo "PWD: $(pwd)"
           echo "OS: $RUNNER_OS"
           echo "Node: $(node --version)"
           echo "NPM: $(npm --version)"
@@ -232,17 +234,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
-      # macOS deps (notarization prep)
+      # macOS deps
       - name: macOS setup
         if: runner.os == 'macOS'
         run: |
           echo "macOS build - checking Xcode and dependencies"
           xcode-select -p || xcode-select --install
-          # Install rust if not present
           rustup --version || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
-          # Check WebView2 / WebKit availability
-          echo "Checking system..."
           sw_vers
 
       # Tauri build with verbose output
