@@ -247,7 +247,41 @@ jobs:
           source $HOME/.cargo/env
           sw_vers
 
-      # Tauri build with verbose output and full capture
+      # Cargo check before Tauri build
+      - name: Cargo check
+        run: |
+          cd src-tauri
+          cargo check --verbose 2>&1 | tee cargo-check.log
+        env:
+          RUST_BACKTRACE: 1
+
+      # Upload cargo check log on failure
+      - name: Upload cargo check log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-check-log-${{ runner.os }}
+          path: src-tauri/cargo-check.log
+          if-no-files-found: warn
+
+      # Linux deps
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+
+      # macOS deps
+      - name: macOS setup
+        if: runner.os == 'macOS'
+        run: |
+          echo "macOS build - checking Xcode and dependencies"
+          xcode-select -p || xcode-select --install
+          rustup --version || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          sw_vers
+
+      # Tauri build with verbose output
       - name: Tauri build
         run: |
           echo "=== Tauri CLI version ==="
