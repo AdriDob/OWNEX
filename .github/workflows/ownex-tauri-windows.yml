@@ -189,6 +189,8 @@ jobs:
       # Rust
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustc, cargo, rustfmt, clippy
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -215,12 +217,25 @@ jobs:
       - name: macOS setup
         if: runner.os == 'macOS'
         run: |
-          echo "macOS build - ensure Apple Developer ID is configured for notarization"
-          # Notarization would go here with Apple Developer ID
+          echo "macOS build - checking Xcode and dependencies"
+          xcode-select -p || xcode-select --install
+          # Install rust if not present
+          rustup --version || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
+          # Check WebView2 / WebKit availability
+          echo "Checking system..."
+          sw_vers
 
-      # Tauri build
+      # Tauri build with verbose output
       - name: Tauri build
-        run: npx tauri build
+        run: |
+          echo "=== Tauri CLI version ==="
+          npx tauri --version
+          echo "=== Rust version ==="
+          rustc --version
+          cargo --version
+          echo "=== Starting Tauri build ==="
+          npx tauri build --verbose
         env:
           TAURI_SIGNING_PRIVATE_KEY: ''
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
