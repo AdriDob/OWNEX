@@ -153,6 +153,18 @@ jobs:
           name: ${{ matrix.os == 'windows-latest' && 'ownex-backend-windows' || matrix.os == 'ubuntu-latest' && 'ownex-backend-linux' || 'ownex-backend-macos' }}
           path: dist
 
+      # Verify sidecar download
+      - name: Verify sidecar download
+        run: |
+          echo "=== Sidecar Download Verification ==="
+          ls -la dist/
+          echo "=== Checking sidecar ==="
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            test -f dist/ownex-backend.exe && echo "Windows sidecar: FOUND" || echo "Windows sidecar: MISSING"
+          else
+            test -f dist/ownex-backend && echo "Linux/macOS sidecar: FOUND" || echo "Linux/macOS sidecar: MISSING"
+          fi
+
       # Copy sidecar to Tauri binaries
       - name: Prepare Tauri sidecar (Windows)
         if: runner.os == 'Windows'
@@ -160,8 +172,11 @@ jobs:
           $destDir = "src-tauri\binaries"
           $src = "dist\ownex-backend.exe"
           $dest = "$destDir\ownex-backend.exe"
+          if (!(Test-Path $src)) { throw "Source sidecar not found: $src" }
+          if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
           Copy-Item $src $dest -Force
-          Write-Host "Sidecar ready: $dest"
+          Write-Host "Sidecar copied to: $dest"
+          if (Test-Path $dest) { Write-Host "VERIFIED: Sidecar exists at destination" } else { throw "Sidecar copy failed" }
         shell: pwsh
 
       - name: Prepare Tauri sidecar (Linux/macOS)
@@ -171,9 +186,11 @@ jobs:
           src="dist/ownex-backend"
           dest="$destDir/ownex-backend"
           mkdir -p "$destDir"
-          cp "dist/ownex-backend" "$dest"
+          if [ ! -f "$src" ]; then echo "ERROR: Source sidecar not found: $src"; exit 1; fi
+          cp "$src" "$dest"
           chmod +x "$dest"
           echo "Sidecar ready: $dest"
+          if [ -f "$dest" ]; then echo "VERIFIED: Sidecar exists at destination"; else echo "ERROR: Sidecar copy failed"; exit 1; fi
           ls -la "$destDir"
 
       # ── Node.js ──
@@ -227,6 +244,7 @@ jobs:
       # Debug: Check environment before build
       - name: Debug environment
         run: |
+          set +e
           echo "=== Environment Debug ==="
           echo "PWD: $(pwd)"
           echo "OS: $RUNNER_OS"
@@ -236,7 +254,7 @@ jobs:
           echo "Cargo: $(cargo --version)"
           echo "Tauri CLI: $(npx tauri --version 2>&1 || echo 'FAILED')"
           echo "Frontend dist exists: $(test -d frontend/dist && echo YES || echo NO)"
-          echo "Frontend dist files: $(ls -la frontend/dist | wc -l)"
+          echo "Frontend dist files: $(ls -la frontend/dist 2>/dev/null | wc -l)"
           echo "src-tauri exists: $(test -d src-tauri && echo YES || echo NO)"
           echo "Cargo.toml exists: $(test -f src-tauri/Cargo.toml && echo YES || echo NO)"
           echo "tauri.conf.json exists: $(test -f src-tauri/tauri.conf.json && echo YES || echo NO)"
@@ -244,6 +262,7 @@ jobs:
           echo "Sidecar (exe) exists: $(test -f src-tauri/binaries/ownex-backend.exe && echo YES || echo NO)"
           echo "=== tauri.conf.json ==="
           cat src-tauri/tauri.conf.json
+          set -e
         env:
           RUST_BACKTRACE: 1
 
