@@ -189,6 +189,18 @@ jobs:
           cd frontend && npm ci
           cd ..
 
+      # Verify Tauri CLI installation
+      - name: Verify Tauri CLI
+        run: |
+          echo "=== Tauri CLI Verification ==="
+          echo "Node: $(node --version)"
+          echo "NPM: $(npm --version)"
+          echo "NPX: $(npx --version)"
+          echo "Tauri CLI local: $(npx tauri --version 2>&1 || echo 'FAILED')"
+          echo "Tauri CLI global: $(tauri --version 2>&1 || echo 'FAILED')"
+          echo "Node modules tauri: $(ls -la node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
+          echo "Frontend tauri: $(ls -la frontend/node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
+
       # Rust
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -217,7 +229,7 @@ jobs:
           echo "NPM: $(npm --version)"
           echo "Rust: $(rustc --version)"
           echo "Cargo: $(cargo --version)"
-          echo "Tauri CLI: $(npx tauri --version)"
+          echo "Tauri CLI: $(npx tauri --version 2>&1 || echo 'FAILED')"
           echo "Frontend dist exists: $(test -d frontend/dist && echo YES || echo NO)"
           echo "Frontend dist files: $(ls -la frontend/dist | wc -l)"
           echo "src-tauri exists: $(test -d src-tauri && echo YES || echo NO)"
