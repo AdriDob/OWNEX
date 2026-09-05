@@ -1,7 +1,6 @@
 package ai.rastro.watch.ui
 
 import ai.rastro.watch.api.ApiClient
-import ai.rastro.watch.api.WearOSApi
 import ai.rastro.watch.model.ApiModels.WearOSApproval
 import ai.rastro.watch.model.ApiModels.WearOSNotification
 import ai.rastro.watch.model.ApiModels.WearOSStatus
@@ -20,7 +19,6 @@ class WatchViewModel(
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
-    // State
     private val _status = MutableLiveData<WearOSStatus?>()
     val status: LiveData<WearOSStatus?> = _status
 
@@ -40,9 +38,12 @@ class WatchViewModel(
     val isConnected: LiveData<Boolean> = _isConnected
 
     private val syncJob = AtomicBoolean(false)
-    private const val SYNC_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
+    private companion object {
+        const val SYNC_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
+    }
 
     init {
+        ApiClient.initialize(preferencesManager)
         startSyncLoop()
     }
 
@@ -64,20 +65,24 @@ class WatchViewModel(
 
             try {
                 val api = ApiClient.api()
-                val statusResponse = api.getStatus().await()
+                val statusResponse = withContext(Dispatchers.IO) { api.getStatus().execute().body() }
                 _status.postValue(statusResponse)
                 _isConnected.postValue(true)
 
-                val notificationsResponse = api.getNotifications(unreadOnly = false, limit = 20).await()
-                _notifications.postValue(notificationsResponse)
+                val notificationsResponse = withContext(Dispatchers.IO) {
+                    api.getNotifications(unreadOnly = false, limit = 20).execute().body()
+                }
+                _notifications.postValue(notificationsResponse ?: emptyList())
 
-                val approvalsResponse = api.getPendingApprovals().await()
-                _pendingApprovals.postValue(approvalsResponse)
+                val approvalsResponse = withContext(Dispatchers.IO) {
+                    api.getPendingApprovals().execute().body()
+                }
+                _pendingApprovals.postValue(approvalsResponse ?: emptyList())
 
                 _error.postValue(null)
             } catch (e: Exception) {
                 _isConnected.postValue(false)
-                _error.postValue(e.message ?: "Error de conexión")
+                _error.postValue(e.message ?: "Connection error")
             } finally {
                 _isLoading.postValue(false)
                 syncJob.set(false)
@@ -88,14 +93,16 @@ class WatchViewModel(
     fun markNotificationRead(notificationId: String) {
         viewModelScope.launch {
             try {
-                ApiClient.api().markNotificationRead(notificationId).await()
+                withContext(Dispatchers.IO) {
+                    ApiClient.api().markNotificationRead(notificationId).execute()
+                }
                 val current = _notifications.value?.toMutableList() ?: emptyList()
                 val updated = current.map { n ->
                     if (n.notificationId == notificationId) n.copy(read = true) else n
                 }
                 _notifications.postValue(updated)
             } catch (e: Exception) {
-                _error.postValue("Error al marcar notificación: ${e.message}")
+                _error.postValue("Error marking notification: ${e.message}")
             }
         }
     }
@@ -104,14 +111,16 @@ class WatchViewModel(
         viewModelScope.launch {
             _isLoading.postValue(true)
             try {
-                val response = WearOSApi.ApprovalResponse(approved)
-                ApiClient.api().respondApproval(requestId, response).await()
+                val response = ai.rastro.watch.model.ApiModels.ApprovalResponse(approved)
+                withContext(Dispatchers.IO) {
+                    ApiClient.api().respondApproval(requestId, response).execute()
+                }
                 val current = _pendingApprovals.value?.toMutableList() ?: emptyList()
                 val updated = current.filter { it.requestId != requestId }
                 _pendingApprovals.postValue(updated)
                 _error.postValue(null)
             } catch (e: Exception) {
-                _error.postValue("Error al responder aprobación: ${e.message}")
+                _error.postValue("Error responding to approval: ${e.message}")
             } finally {
                 _isLoading.postValue(false)
             }
@@ -121,15 +130,17 @@ class WatchViewModel(
     fun sendNotification(title: String, message: String, level: String = "medium") {
         viewModelScope.launch {
             try {
-                val request = WearOSApi.SendNotificationRequest(
+                val request = ai.rastro.watch.model.ApiModels.SendNotificationRequest(
                     title = title,
                     message = message,
                     level = level
                 )
-                ApiClient.api().sendNotification(request).await()
+                withContext(Dispatchers.IO) {
+                    ApiClient.api().sendNotification(request).execute()
+                }
                 _error.postValue(null)
             } catch (e: Exception) {
-                _error.postValue("Error al enviar notificación: ${e.message}")
+                _error.postValue("Error sending notification: ${e.message}")
             }
         }
     }
@@ -138,10 +149,11 @@ class WatchViewModel(
         ApiClient.rebuild(preferencesManager)
     }
 
-    // Health check for connection status
     fun checkConnection(): Boolean {
         return try {
-            ApiClient.api().healthCheck().execute().isSuccessful
+            withContext(Dispatchers.IO) {
+                ApiClient.api().healthCheck().execute().isSuccessful
+            }
         } catch (e: Exception) {
             false
         }

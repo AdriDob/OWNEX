@@ -1,84 +1,87 @@
 package ai.rastro.watch.preferences
 
 import android.content.Context
+import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.rxjava3.RxDataStore
-import ai.rastro.watch.BuildConfig
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
-object PreferencesManager {
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "ownex_watch_prefs")
 
-    private const val BASE_URL_KEY = "base_url"
-    private const val DEVICE_ID_KEY = "device_id"
-    private const val AUTH_TOKEN_KEY = "auth_token"
-    private const val NOTIFICATIONS_ENABLED_KEY = "notifications_enabled"
-    private const val SYNC_INTERVAL_KEY = "sync_interval_minutes"
+class PreferencesManager {
 
-    private const val DEFAULT_BASE_URL = "http://10.0.2.2:8000"
-    private const val DEFAULT_SYNC_INTERVAL = 5
-
-    private var dataStore: RxDataStore<Preferences>? = null
+    private var context: Context? = null
 
     fun initialize(context: Context) {
-        if (dataStore == null) {
-            dataStore = RxDataStore(context, BuildConfig.APPLICATION_ID + ".preferences")
-        }
+        this.context = context
     }
 
-    val baseUrl: Single<String>
-        get() = getString(BASE_URL_KEY, DEFAULT_BASE_URL)
+    private val ds: DataStore<Preferences>
+        get() = context?.dataStore ?: throw IllegalStateException("PreferencesManager not initialized")
 
-    suspend fun setBaseUrl(url: String) = updateString(BASE_URL_KEY, url)
+    companion object {
+        private val BASE_URL_KEY = stringPreferencesKey("base_url")
+        private val DEVICE_ID_KEY = stringPreferencesKey("device_id")
+        private val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
+        private val NOTIFICATIONS_ENABLED_KEY = booleanPreferencesKey("notifications_enabled")
+        private val SYNC_INTERVAL_KEY = intPreferencesKey("sync_interval_minutes")
 
-    val deviceId: Single<String>
-        get() = getString(DEVICE_ID_KEY, "").map { if (it.isBlank()) generateDeviceId() else it }
+        private const val DEFAULT_BASE_URL = "http://10.0.2.2:8000"
+        private const val DEFAULT_SYNC_INTERVAL = 5
+    }
 
-    suspend fun setDeviceId(id: String) = updateString(DEVICE_ID_KEY, id)
+    val baseUrl: String
+        get() = runBlocking {
+            ds.data.map { it[BASE_URL_KEY] ?: DEFAULT_BASE_URL }.first()
+        }
 
-    val authToken: Single<String>
-        get() = getString(AUTH_TOKEN_KEY, "")
+    suspend fun setBaseUrl(url: String) {
+        ds.edit { it[BASE_URL_KEY] = url }
+    }
 
-    suspend fun setAuthToken(token: String) = updateString(AUTH_TOKEN_KEY, token)
+    val deviceId: String
+        get() = runBlocking {
+            ds.data.map { it[DEVICE_ID_KEY] ?: generateDeviceId() }.first()
+        }
 
-    val notificationsEnabled: Single<Boolean>
-        get() = dataStore!!.data.first()
-            .map { it[PreferencesManager.notificationsEnabledKey] ?: true }
+    suspend fun setDeviceId(id: String) {
+        ds.edit { it[DEVICE_ID_KEY] = id }
+    }
 
-    suspend fun setNotificationsEnabled(enabled: Boolean) = updateBoolean(NOTIFICATIONS_ENABLED_KEY, enabled)
+    val authToken: String
+        get() = runBlocking {
+            ds.data.map { it[AUTH_TOKEN_KEY] ?: "" }.first()
+        }
 
-    val syncInterval: Single<Int>
-        get() = dataStore!!.data.first()
-            .map { it[PreferencesManager.syncIntervalKey] ?: DEFAULT_SYNC_INTERVAL }
+    suspend fun setAuthToken(token: String) {
+        ds.edit { it[AUTH_TOKEN_KEY] = token }
+    }
 
-    suspend fun setSyncInterval(minutes: Int) = updateInt(SYNC_INTERVAL_KEY, minutes)
+    val notificationsEnabled: Boolean
+        get() = runBlocking {
+            ds.data.map { it[NOTIFICATIONS_ENABLED_KEY] ?: true }.first()
+        }
+
+    suspend fun setNotificationsEnabled(enabled: Boolean) {
+        ds.edit { it[NOTIFICATIONS_ENABLED_KEY] = enabled }
+    }
+
+    val syncInterval: Int
+        get() = runBlocking {
+            ds.data.map { it[SYNC_INTERVAL_KEY] ?: DEFAULT_SYNC_INTERVAL }.first()
+        }
+
+    suspend fun setSyncInterval(minutes: Int) {
+        ds.edit { it[SYNC_INTERVAL_KEY] = minutes }
+    }
 
     private fun generateDeviceId(): String {
         return "watch_${System.currentTimeMillis()}_${(Math.random() * 10000).toInt()}"
-    }
-
-    private fun getString(key: String, defaultValue: String): Single<String> =
-        dataStore!!.data.first().map { it[stringPreferencesKey(key)] ?: defaultValue }
-
-    private suspend fun updateString(key: String, value: String): Completable =
-        dataStore!!.updateDataAsync { it.putString(stringPreferencesKey(key), value) }.toCompletable()
-
-    private fun getInt(key: String, defaultValue: Int): Single<Int> =
-        dataStore!!.data.first().map { it[intPreferencesKey(key)] ?: defaultValue }
-
-    private suspend fun updateInt(key: String, value: Int): Completable =
-        dataStore!!.updateDataAsync { it.putInt(intPreferencesKey(key), value) }.toCompletable()
-
-    private fun getBoolean(key: String, defaultValue: Boolean): Single<Boolean> =
-        dataStore!!.data.first().map { it[booleanPreferencesKey(key)] ?: defaultValue }
-
-    private suspend fun updateBoolean(key: String, value: Boolean): Completable =
-        dataStore!!.updateDataAsync { it.putBoolean(booleanPreferencesKey(key), value) }.toCompletable()
-
-    companion object {
-        val notificationsEnabledKey = booleanPreferencesKey(NOTIFICATIONS_ENABLED_KEY)
-        val syncIntervalKey = intPreferencesKey(SYNC_INTERVAL_KEY)
     }
 }
