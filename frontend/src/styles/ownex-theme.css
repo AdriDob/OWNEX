@@ -18,8 +18,8 @@
 
   /* Accent - Tesla Red */
   --ownex-accent: var(--ownex-accent);
-  --ownex-accent-glow: rgba(0, 213, 255, 0.3);
-  --ownex-accent-dim: rgba(0, 213, 255, 0.1);
+  --ownex-accent-glow: rgba(232, 33, 39, 0.28);
+  --ownex-accent-dim: rgba(232, 33, 39, 0.08);
 
   /* Success - Emerald */
   --ownex-success: var(--ownex-green);
@@ -152,7 +152,7 @@ h6 {
 .ownex-logo__mark {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--ownex-accent) 0%, #0891b2 100%);
+  background: linear-gradient(135deg, var(--ownex-accent) 0%, rgba(232,33,39,0.85) 100%);
   border-radius: 10px;
   position: relative;
   display: flex;
