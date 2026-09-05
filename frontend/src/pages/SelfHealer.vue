@@ -8,10 +8,10 @@
       </div>
       <div class="header-actions">
         <StatusBadge :status="status.scheduler_running ? 'running' : 'stopped'" :label="status.scheduler_running ? 'Activo' : 'Detenido'" />
-        <button @click="toggleScheduler" class="btn-primary" :class="{ 'btn-warning': status.scheduler_running }">
+        <button aria-label="Togglescheduler" @click="toggleScheduler" class="btn-primary" :class="{ 'btn-warning': status.scheduler_running }">
           {{ status.scheduler_running ? 'Detener' : 'Iniciar' }} Scheduler
         </button>
-        <button @click="triggerScan" class="btn-secondary" :disabled="scanning">
+        <button aria-label="Triggerscan" @click="triggerScan" class="btn-secondary" :disabled="scanning">
           <span v-if="scanning" class="spinner"></span>
           Escanear Ahora
         </button>
@@ -34,7 +34,7 @@
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          @click="activeTab = tab.id"
+          aria-label="Activetab = Tab.Id" @click="activeTab = tab.id"
           class="tab-btn"
           :class="{ active: activeTab === tab.id }"
         >

@@ -142,11 +142,11 @@ function clearTerminal() {
         </span>
       </div>
       <div class="flex items-center gap-2">
-        <button @click="clearTerminal"
+        <button aria-label="Clearterminal" @click="clearTerminal"
           class="px-2 py-1 text-[10px] font-mono rounded bg-accent/30 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors">
           Clear
         </button>
-        <button @click="toggleTheme"
+        <button aria-label="Toggletheme" @click="toggleTheme"
           class="px-2 py-1 text-[10px] font-mono rounded bg-accent/30 hover:bg-accent/60 text-muted-foreground hover:text-foreground transition-colors">
           {{ theme === 'dark' ? '☀︎' : '☾' }}
         </button>

@@ -380,7 +380,7 @@ function copyToClipboard(text: string) {
       <button
         v-for="tab in ['overview', 'runway', 'risk', 'allocation', 'forecasting', 'diversification', 'progressive-scaling', 'targets', 'programs', 'pipeline', 'platforms', 'settings']"
         :key="tab"
-        @click="activeTab = tab as Tab"
+        aria-label="Activetab = Tab As Tab" @click="activeTab = tab as Tab"
         class="px-3 py-1.5 text-sm font-medium rounded-t-md transition-colors border-b-2 border-transparent
           hover:text-foreground/80 focus:outline-none focus:ring-2 focus:ring-ring"
         :class="activeTab === tab

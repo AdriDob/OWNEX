@@ -145,7 +145,7 @@ function difficultyColor(diff?: string) {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto py-6 px-4 space-y-6">
+  <div class="max-w-4xl mx-auto py-4 px-4 sm:py-6 sm:space-y-6">
     <!-- Header -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">

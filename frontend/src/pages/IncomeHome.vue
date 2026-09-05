@@ -400,10 +400,10 @@ onMounted(load)
         <button aria-label="Go to Findings" @click="router.push('/intelligence/findings')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <Shield class="h-4 w-4" /> Hallazgos
         </button>
-        <button @click="window.dispatchEvent(new CustomEvent('toggle-copilot'))" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Trigger New Customevent('Toggle Copilot'" @click="window.dispatchEvent(new CustomEvent('toggle-copilot'))" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <Bot class="h-4 w-4" /> MERLIN
         </button>
-        <button @click="router.push('/operations/scheduler')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go To /Operations/Scheduler" @click="router.push('/operations/scheduler')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <RotateCcw class="h-4 w-4" /> Scheduler
         </button>
       </div>

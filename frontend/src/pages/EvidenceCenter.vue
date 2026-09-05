@@ -122,7 +122,7 @@ function diffColor(ratio: number) {
         <AlertTriangle class="h-10 w-10 text-destructive mb-4" />
         <p class="text-lg font-semibold text-foreground">Error de conexión</p>
         <p class="mt-2 text-sm text-muted-foreground">{{ error }}</p>
-        <button @click="$router.go(0)" class="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white">Reintentar</button>
+        <button aria-label="$Router.Go(0" @click="$router.go(0)" class="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white">Reintentar</button>
       </div>
     </template>
 
@@ -190,7 +190,7 @@ function diffColor(ratio: number) {
       <div class="space-y-2">
         <div v-for="item in filtered" :key="item.id" class="animate-in">
           <button
-            @click="toggleExpand(item.id)"
+            aria-label="Toggleexpand(Item.Id" @click="toggleExpand(item.id)"
             class="w-full rounded-xl border border-border/40 bg-surface/40 px-4 py-3 text-left transition-all hover:border-primary/30"
           >
             <div class="flex items-center gap-3">

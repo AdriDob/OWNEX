@@ -76,7 +76,7 @@ fetchReports()
       </div>
       <button
         class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        @click="router.push('/reports/new')"
+        aria-label="Go To /Reports/New" @click="router.push('/reports/new')"
       >
         <Plus class="h-4 w-4" />
         Nuevo Reporte

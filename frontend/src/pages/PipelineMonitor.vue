@@ -147,7 +147,7 @@ onUnmounted(() => {
           <option value="closed">Closed</option>
           <option value="failed">Failed</option>
         </select>
-        <button @click="handleStart"
+        <button aria-label="Handlestart" @click="handleStart"
           class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
         >
           <Play class="h-3.5 w-3.5" /> New Pipeline
@@ -166,7 +166,7 @@ onUnmounted(() => {
         <AlertTriangle class="h-10 w-10 text-destructive mb-4" />
         <p class="text-lg font-semibold text-foreground">Error de conexión</p>
         <p class="mt-2 text-sm text-muted-foreground">{{ error }}</p>
-        <button @click="fetchPipelines" class="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white">Reintentar</button>
+        <button aria-label="Fetchpipelines" @click="fetchPipelines" class="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white">Reintentar</button>
       </div>
     </template>
 
@@ -177,7 +177,7 @@ onUnmounted(() => {
         </div>
         <p class="text-sm font-semibold text-foreground">No hay pipelines</p>
         <p class="mt-1 text-xs text-muted-foreground">Iniciá un nuevo pipeline para comenzar</p>
-        <button @click="handleStart"
+        <button aria-label="Handlestart" @click="handleStart"
           class="mt-4 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white"
         >
           Start Pipeline

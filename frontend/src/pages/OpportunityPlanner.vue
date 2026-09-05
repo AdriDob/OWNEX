@@ -69,7 +69,7 @@ function openIntel() {
 
 <template>
   <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
-    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" @click="openIntel()">
+    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" aria-label="Openintel" @click="openIntel()">
       <ArrowLeft class="h-3 w-3" /> Volver al programa
     </button>
 

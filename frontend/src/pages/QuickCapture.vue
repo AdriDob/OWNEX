@@ -60,7 +60,7 @@ onMounted(() => {
 <template>
   <div class="qc-shell">
     <div class="qc-header">
-      <button class="qc-back" @click="router.push('/')"><ArrowLeft :size="16" /> Atrás</button>
+      <button class="qc-back" aria-label="Go To /" @click="router.push('/')"><ArrowLeft :size="16" /> Atrás</button>
       <h1 class="qc-title"><Crosshair :size="18" /> QUICK CAPTURE</h1>
       <span class="qc-hint">Ctrl+Shift+O lo abre desde cualquier página · Ctrl+Shift+P muestra la próxima acción</span>
     </div>
@@ -113,7 +113,7 @@ onMounted(() => {
         <dt>Platforma</dt><dd>{{ saved.enrichment.platform || 'desconocida' }}</dd>
         <dt>Requiere foco</dt><dd>{{ saved.enrichment.requires_focus ? 'sí' : 'no' }}</dd>
       </dl>
-      <button class="qc-submit" @click="queue(saved.id)"><ListOrdered :size="16" /> Enviar al Work Bank</button>
+      <button class="qc-submit" aria-label="Queue(Saved.Id" @click="queue(saved.id)"><ListOrdered :size="16" /> Enviar al Work Bank</button>
     </div>
   </div>
 </template>

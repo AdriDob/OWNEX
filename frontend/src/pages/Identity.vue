@@ -275,7 +275,7 @@ onMounted(loadData)
                     <template v-if="getAccount(platform)?.connected">
                       <Badge variant="success" class="text-[9px]">ACTIVO</Badge>
                       <button
-                        @click="disconnectPlatform(platform.toLowerCase())"
+                        aria-label="Disconnectplatform(Platform.Tolowercase" @click="disconnectPlatform(platform.toLowerCase())"
                         class="text-muted-foreground hover:text-destructive transition-colors"
                         title="Disconnect"
                       >
@@ -328,7 +328,7 @@ onMounted(loadData)
                       <div class="flex items-center gap-1">
                         <p class="text-xs font-medium text-foreground">{{ getAccount(platform)?.last_sync?.slice(0, 10) || '—' }}</p>
                         <button
-                          @click="syncPlatform(platform.toLowerCase())"
+                          aria-label="Syncplatform(Platform.Tolowercase" @click="syncPlatform(platform.toLowerCase())"
                           :disabled="syncingPlatform === platform.toLowerCase()"
                           class="text-muted-foreground/40 hover:text-foreground transition-colors"
                           title="Sync now"

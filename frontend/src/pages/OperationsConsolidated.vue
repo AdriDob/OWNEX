@@ -88,25 +88,25 @@ onMounted(fetchStatus)
           <div class="flex flex-wrap gap-2">
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="activeTab = 'health'"
+              aria-label="Activetab = 'Health'" @click="activeTab = 'health'"
             >
               <HeartPulse class="h-3.5 w-3.5" /> Ver Health
             </button>
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="activeTab = 'settings'"
+              aria-label="Activetab = 'Settings'" @click="activeTab = 'settings'"
             >
               <Settings class="h-3.5 w-3.5" /> Configuración
             </button>
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="router.push('/operations/scheduler')"
+              aria-label="Go To /Operations/Scheduler" @click="router.push('/operations/scheduler')"
             >
               <Zap class="h-3.5 w-3.5" /> Scheduler
             </button>
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="router.push('/operations/pipelines')"
+              aria-label="Go To /Operations/Pipelines" @click="router.push('/operations/pipelines')"
             >
               <RefreshCw class="h-3.5 w-3.5" /> Pipelines
             </button>
@@ -141,7 +141,7 @@ onMounted(fetchStatus)
 
           <button
             class="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-            @click="fetchStatus"
+            aria-label="Fetchstatus" @click="fetchStatus"
           >
             <RefreshCw class="h-3 w-3" /> Refresh
           </button>
@@ -154,7 +154,7 @@ onMounted(fetchStatus)
           <h3 class="mb-3 text-sm font-semibold text-foreground">Configuración</h3>
           <p class="text-xs text-muted-foreground">
             Configuración completa disponible en{' '}
-            <button class="text-primary hover:underline" @click="router.push('/operations/settings')">
+            <button class="text-primary hover:underline" aria-label="Go To /Operations/Settings" @click="router.push('/operations/settings')">
               Settings avanzado
             </button>
           </p>

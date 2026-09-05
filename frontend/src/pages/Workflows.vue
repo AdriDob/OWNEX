@@ -133,7 +133,7 @@ onMounted(fetchAll)
     <!-- Tabs -->
     <div class="flex gap-1 border-b border-border/20">
       <button v-for="tab in [{id:'templates',label:'Plantillas'},{id:'runs',label:'Ejecuciones'}]" :key="tab.id"
-        @click="activeTab = tab.id as any"
+        aria-label="Activetab = Tab.Id As Any" @click="activeTab = tab.id as any"
         class="px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors border-b-2 -mb-[1px]"
         :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
       >

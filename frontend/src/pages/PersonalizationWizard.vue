@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <button @click="useRecommendedModules" class="btn btn-secondary">
+        <button aria-label="Userecommendedmodules" @click="useRecommendedModules" class="btn btn-secondary">
           <Sparkles class="w-4 h-4" /> Usar módulos recomendados
         </button>
       </div>
@@ -130,7 +130,7 @@
           </div>
         </div>
 
-        <button @click="selectAllPlatforms" class="btn btn-secondary">
+        <button aria-label="Selectallplatforms" @click="selectAllPlatforms" class="btn btn-secondary">
           <Globe class="w-4 h-4" /> Todas las plataformas
         </button>
       </div>
@@ -212,7 +212,7 @@
       <div class="footer-actions">
         <button
           v-if="currentStep < totalSteps"
-          @click="nextStep"
+          aria-label="Nextstep" @click="nextStep"
           class="btn btn-primary"
           :disabled="!canProceed"
         >
@@ -221,7 +221,7 @@
 
         <button
           v-if="currentStep === totalSteps"
-          @click="completeWizard"
+          aria-label="Completewizard" @click="completeWizard"
           class="btn btn-success"
         >
           <Check class="w-4 h-4" /> Completar configuración

@@ -261,7 +261,7 @@ async function confirmSnapshot() {
           placeholder="/home/usuario/Obsidian/Vault"
           @keyup.enter="runConnect"
         />
-        <button class="kv-btn kv-btn-primary" :disabled="busy || !vaultPath.trim()" @click="runConnect">
+        <button class="kv-btn kv-btn-primary" :disabled="busy || !vaultPath.trim()" aria-label="Runconnect" @click="runConnect">
           {{ busy ? 'Conectando...' : 'Conectar' }}
         </button>
       </div>
@@ -273,10 +273,10 @@ async function confirmSnapshot() {
         <div class="kv-card-head">
           <h3 class="kv-card-title"><Database :size="15" /> Vault</h3>
           <div class="kv-row">
-            <button class="kv-btn" :disabled="busy" @click="runScan(false)">Scan incremental</button>
-            <button class="kv-btn" :disabled="busy" @click="runScan(true)">Reindexar</button>
-            <button class="kv-btn" :disabled="busy" @click="runSync">Sync diario</button>
-            <button class="kv-btn kv-btn-danger" :disabled="busy" @click="runDisconnect">Desconectar</button>
+            <button class="kv-btn" :disabled="busy" aria-label="Runscan(False" @click="runScan(false)">Scan incremental</button>
+            <button class="kv-btn" :disabled="busy" aria-label="Runscan(True" @click="runScan(true)">Reindexar</button>
+            <button class="kv-btn" :disabled="busy" aria-label="Runsync" @click="runSync">Sync diario</button>
+            <button class="kv-btn kv-btn-danger" :disabled="busy" aria-label="Rundisconnect" @click="runDisconnect">Desconectar</button>
           </div>
         </div>
         <div class="kv-grid kv-grid-4">
@@ -315,7 +315,7 @@ async function confirmSnapshot() {
             placeholder="Buscar en el vault (títulos, tags, links, texto, semántica)..."
             @keyup.enter="runSearch"
           />
-          <button class="kv-btn kv-btn-primary" :disabled="searching || !searchQuery.trim()" @click="runSearch">
+          <button class="kv-btn kv-btn-primary" :disabled="searching || !searchQuery.trim()" aria-label="Runsearch" @click="runSearch">
             {{ searching ? 'Buscando...' : 'Buscar' }}
           </button>
         </div>
@@ -341,7 +341,7 @@ async function confirmSnapshot() {
         <div class="kv-modal-card">
           <div class="kv-modal-head">
             <span class="kv-result-title">{{ selectedNote.path }}</span>
-            <button class="kv-btn kv-btn-ghost" @click="selectedNote = null"><X :size="14" /></button>
+            <button class="kv-btn kv-btn-ghost" aria-label="Selectednote = Null" @click="selectedNote = null"><X :size="14" /></button>
           </div>
           <pre class="kv-note">{{ selectedNote.content }}</pre>
         </div>
@@ -391,7 +391,7 @@ async function confirmSnapshot() {
             <p v-if="gitInfo?.last_commit" class="kv-muted">{{ gitInfo.last_commit }}</p>
             <div v-if="gitInfo?.is_repo" class="kv-box-actions">
               <input v-model="commitMessage" class="kv-input" placeholder="Mensaje de commit" />
-              <button class="kv-btn kv-btn-primary" :disabled="busy || !commitMessage.trim()" @click="previewCommit">
+              <button class="kv-btn kv-btn-primary" :disabled="busy || !commitMessage.trim()" aria-label="Previewcommit" @click="previewCommit">
                 Commit
               </button>
             </div>
@@ -400,14 +400,14 @@ async function confirmSnapshot() {
               <ul class="kv-mini-list">
                 <li v-for="(f, i) in pendingDiff" :key="i">{{ f }}</li>
               </ul>
-              <button class="kv-btn kv-btn-danger" :disabled="busy" @click="confirmCommit">Confirmar commit</button>
+              <button class="kv-btn kv-btn-danger" :disabled="busy" aria-label="Confirmcommit" @click="confirmCommit">Confirmar commit</button>
             </div>
           </div>
 
           <div class="kv-box">
             <div class="kv-box-head">
               <span class="kv-stat-label">Secretos</span>
-              <button class="kv-btn kv-btn-ghost" :disabled="busy" @click="runSecurityScan">Escanear</button>
+              <button class="kv-btn kv-btn-ghost" :disabled="busy" aria-label="Runsecurityscan" @click="runSecurityScan">Escanear</button>
             </div>
             <p class="kv-stat-value" :class="security?.clean ? 'kv-ok' : 'kv-warn'">
               {{ security?.clean ? 'Limpio' : `${security?.findings?.length ?? 0} hallazgos` }}
@@ -422,7 +422,7 @@ async function confirmSnapshot() {
           <div class="kv-box">
             <div class="kv-box-head">
               <span class="kv-stat-label">Backups (keep 10)</span>
-              <button class="kv-btn kv-btn-ghost" :disabled="busy" @click="confirmSnapshot">Crear snapshot</button>
+              <button class="kv-btn kv-btn-ghost" :disabled="busy" aria-label="Confirmsnapshot" @click="confirmSnapshot">Crear snapshot</button>
             </div>
             <p class="kv-stat-value">{{ backupInfo?.count ?? 0 }} snapshots</p>
             <p v-if="backupInfo?.last" class="kv-muted">{{ backupInfo.last.name }}</p>

@@ -95,14 +95,14 @@
             <!-- Boolean -->
             <div v-if="question.type === 'boolean'" class="boolean-toggle">
               <button
-                @click="answers[question.id] = true"
+                aria-label="Answers[Question.Id] = True" @click="answers[question.id] = true"
                 class="toggle-btn"
                 :class="{ active: answers[question.id] === true }"
               >
                 Sí
               </button>
               <button
-                @click="answers[question.id] = false"
+                aria-label="Answers[Question.Id] = False" @click="answers[question.id] = false"
                 class="toggle-btn"
                 :class="{ active: answers[question.id] === false }"
               >
@@ -122,7 +122,7 @@
             ← Anterior
           </button>
           <button
-            @click="nextStep"
+            aria-label="Nextstep" @click="nextStep"
             class="nav-btn btn-primary"
             :disabled="!isStepValid"
           >

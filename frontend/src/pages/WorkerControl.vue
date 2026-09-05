@@ -258,7 +258,7 @@ onUnmounted(() => {
           <div class="flex flex-wrap gap-2">
             <button
               v-if="!status?.running"
-              @click="workerAction('start')"
+              aria-label="Workeraction('Start'" @click="workerAction('start')"
               :disabled="actionLoading === 'start'"
               class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/15 px-3 py-1.5 font-mono text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/25 disabled:opacity-50"
             >
@@ -266,7 +266,7 @@ onUnmounted(() => {
             </button>
             <button
               v-if="status?.running"
-              @click="workerAction('pause')"
+              aria-label="Workeraction('Pause'" @click="workerAction('pause')"
               :disabled="actionLoading === 'pause'"
               class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/15 px-3 py-1.5 font-mono text-xs font-medium text-amber-400 transition-colors hover:bg-amber-500/25 disabled:opacity-50"
             >
@@ -274,7 +274,7 @@ onUnmounted(() => {
             </button>
             <button
               v-if="status?.state === 'paused'"
-              @click="workerAction('resume')"
+              aria-label="Workeraction('Resume'" @click="workerAction('resume')"
               :disabled="actionLoading === 'resume'"
               class="inline-flex items-center gap-1.5 rounded-lg bg-blue-500/15 px-3 py-1.5 font-mono text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/25 disabled:opacity-50"
             >
@@ -282,7 +282,7 @@ onUnmounted(() => {
             </button>
             <button
               v-if="status?.running || status?.state === 'paused'"
-              @click="workerAction('stop')"
+              aria-label="Workeraction('Stop'" @click="workerAction('stop')"
               :disabled="actionLoading === 'stop'"
               class="inline-flex items-center gap-1.5 rounded-lg bg-red-500/15 px-3 py-1.5 font-mono text-xs font-medium text-red-400 transition-colors hover:bg-red-500/25 disabled:opacity-50"
             >
@@ -327,7 +327,7 @@ onUnmounted(() => {
             <span class="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-bold text-primary">{{ workItems.length }}</span>
           </div>
           <button
-            @click="showAudit = !showAudit"
+            aria-label="Showaudit = !Showaudit" @click="showAudit = !showAudit"
             class="flex items-center gap-1 rounded-lg border border-border/50 bg-surface/50 px-2.5 py-1 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
           >
             <Eye class="h-3 w-3" />

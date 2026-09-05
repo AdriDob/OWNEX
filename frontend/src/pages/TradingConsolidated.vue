@@ -48,7 +48,7 @@ onMounted(fetchData)
       </div>
       <button
         class="flex items-center gap-1.5 rounded-lg border border-border/30 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        @click="fetchData"
+        aria-label="Fetchdata" @click="fetchData"
       >
         <RefreshCw class="h-3 w-3" /> Refresh
       </button>

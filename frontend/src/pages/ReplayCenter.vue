@@ -446,7 +446,7 @@ onMounted(loadTargets)
                   <div class="space-y-1 max-h-60 overflow-y-auto">
                     <button
                       v-for="target in targets" :key="target.id"
-                      @click="selectTarget(target.id)"
+                      aria-label="Selecttarget(Target.Id" @click="selectTarget(target.id)"
                       :class="[
                         'w-full text-left rounded-lg px-3 py-2 transition-colors',
                         selectedTargetId === target.id ? 'bg-primary/10' : 'hover:bg-surface/10'

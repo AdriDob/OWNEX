@@ -177,7 +177,7 @@ const categoryIcons: Record<string, any> = {
           class="overflow-hidden rounded-lg border border-border/30 transition-all"
         >
           <button
-            @click="toggle(i)"
+            aria-label="Toggle(I" @click="toggle(i)"
             class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium transition-colors hover:bg-surface/20"
           >
             <span>{{ faq.q }}</span>
@@ -218,7 +218,7 @@ const categoryIcons: Record<string, any> = {
       <Search class="h-8 w-8 text-muted-foreground/40" />
       <p class="text-sm text-muted-foreground">No se encontraron preguntas para "{{ searchQuery }}"</p>
       <button
-        @click="searchQuery = ''"
+        aria-label="Searchquery = ''" @click="searchQuery = ''"
         class="text-xs text-primary transition-colors hover:text-primary/80"
       >
         Limpiar búsqueda

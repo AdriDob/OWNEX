@@ -9,7 +9,7 @@
     <div class="ultra-fast-section">
       <h2>Ultra Fast Mode — Phase 0 (Survival)</h2>
       <div class="mode-manager-toggle">
-        <button @click="showModeManager = !showModeManager" class="toggle-btn">
+        <button aria-label="Showmodemanager = !Showmodemanager" @click="showModeManager = !showModeManager" class="toggle-btn">
           {{ showModeManager ? '📋 Hide Mode Manager' : '📋 Show Mode Manager' }}
         </button>
       </div>
@@ -30,19 +30,19 @@
       </div>
       <div class="ultra-fast-actions">
         <button
-          @click="setMode('ultra_fast')"
+          aria-label="Setmode('Ultra Fast'" @click="setMode('ultra_fast')"
           :class="['mode-btn', { active: currentMode === 'ultra_fast' }]"
         >
           ⚡ Activate Ultra Fast
         </button>
         <button
-          @click="setMode('balanced')"
+          aria-label="Setmode('Balanced'" @click="setMode('balanced')"
           :class="['mode-btn', { active: currentMode === 'balanced' }]"
         >
           ⚖️ Switch to Balanced
         </button>
         <button
-          @click="setMode('scaling')"
+          aria-label="Setmode('Scaling'" @click="setMode('scaling')"
           :class="['mode-btn', { active: currentMode === 'scaling' }]"
         >
           📈 Switch to Scaling
@@ -196,7 +196,7 @@
           <div class="trigger-name">{{ formatTriggerType(trigger.type) }}</div>
         </div>
       </div>
-      <button @click="checkTriggers" class="check-triggers-btn">Check Triggers</button>
+      <button aria-label="Checktriggers" @click="checkTriggers" class="check-triggers-btn">Check Triggers</button>
     </div>
 
     <!-- Adaptive Learning Section -->
@@ -291,21 +291,21 @@
       <h2>Actions</h2>
       <div class="actions-grid">
         <button
-          @click="evaluateProgression"
+          aria-label="Evaluateprogression" @click="evaluateProgression"
           :disabled="!canEvaluate"
           class="action-btn evaluate"
         >
           Evaluate Progression
         </button>
         <button
-          @click="progressPhase"
+          aria-label="Progressphase" @click="progressPhase"
           :disabled="!canProgress"
           class="action-btn progress"
         >
           Progress to Next Phase
         </button>
         <button
-          @click="showMetricsModal = true"
+          aria-label="Showmetricsmodal = True" @click="showMetricsModal = true"
           class="action-btn metrics"
         >
           Update Monthly Metrics
@@ -340,7 +340,7 @@
           </div>
           <div class="form-actions">
             <button type="submit" class="submit-btn">Update</button>
-            <button type="button" @click="showMetricsModal = false" class="cancel-btn">Cancel</button>
+            <button type="button" aria-label="Showmetricsmodal = False" @click="showMetricsModal = false" class="cancel-btn">Cancel</button>
           </div>
         </form>
       </div>

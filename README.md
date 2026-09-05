@@ -119,7 +119,7 @@ The human sits at the **decision gate**. The system does everything before and a
 > **Mirror system**: `mirror_workbank_prepared()` transitions WorkBank `ready_to_deliver` items → QUALIFIED→READY in the queue. `mirror_payment_result()` confirms payments → VERIFICATION→PAID. Without payment confirmation, item stays at SUBMITTED (honest economic rule).
 
 <p align="center">
-  <img src="docs/assets/github/desktop/execution-queue.png?v=5" alt="Execution Queue" width="100%"/>
+  <img src="docs/assets/github/desktop/work-bank.png?v=5" alt="Work Bank & Execution Queue" width="100%"/>
 </p>
 
 ### MERLIN 🤖

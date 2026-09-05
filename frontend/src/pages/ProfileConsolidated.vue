@@ -53,7 +53,7 @@ onMounted(fetchData)
       <div class="flex items-center gap-2">
         <button
           class="flex items-center gap-1.5 rounded-lg border border-border/30 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          @click="copyProfile"
+          aria-label="Copyprofile" @click="copyProfile"
         >
           <Copy v-if="!copied" class="h-3 w-3" />
           <Check v-else class="h-3 w-3 text-emerald-400" />
@@ -61,7 +61,7 @@ onMounted(fetchData)
         </button>
         <button
           class="flex items-center gap-1.5 rounded-lg border border-border/30 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          @click="fetchData"
+          aria-label="Fetchdata" @click="fetchData"
         >
           <RefreshCw class="h-3 w-3" />
         </button>

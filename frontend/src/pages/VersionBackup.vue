@@ -47,13 +47,13 @@
             System version history and rollback management · {{ backups.length }} backups available
           </p>
           <div class="flex flex-wrap gap-3 mt-6">
-            <button class="action-pill action-primary" @click="showCreateBackupModal = true">
+            <button class="action-pill action-primary" aria-label="Showcreatebackupmodal = True" @click="showCreateBackupModal = true">
               <Shield class="w-4 h-4" /> Create Backup
             </button>
-            <button class="action-pill action-green" @click="restoreLatest" :disabled="!hasBackups || loading">
+            <button class="action-pill action-green" aria-label="Restorelatest" @click="restoreLatest" :disabled="!hasBackups || loading">
               <RefreshCw class="w-4 h-4" /> Restore Latest
             </button>
-            <button class="action-pill action-gold" @click="refreshBackups" :disabled="loading">
+            <button class="action-pill action-gold" aria-label="Refreshbackups" @click="refreshBackups" :disabled="loading">
               <Activity class="w-4 h-4" /> Refresh
             </button>
           </div>
@@ -129,7 +129,7 @@
           <Archive class="w-8 h-8 text-muted" />
         </div>
         <p class="text-muted">No backups available</p>
-        <button class="action-pill action-primary mt-4" @click="showCreateBackupModal = true">
+        <button class="action-pill action-primary mt-4" aria-label="Showcreatebackupmodal = True" @click="showCreateBackupModal = true">
           <Shield class="w-4 h-4" /> Create First Backup
         </button>
       </div>
@@ -160,13 +160,13 @@
           </div>
 
           <div class="backup-actions">
-            <button @click="verifyBackup(backup)" class="mini-button mini-info" :disabled="loading">
+            <button aria-label="Verifybackup(Backup" @click="verifyBackup(backup)" class="mini-button mini-info" :disabled="loading">
               <Shield class="w-3 h-3" /> Verify
             </button>
-            <button @click="openRollbackModal(backup)" class="mini-button mini-warning" :disabled="loading || backup.state === 'active'">
+            <button aria-label="Openrollbackmodal(Backup" @click="openRollbackModal(backup)" class="mini-button mini-warning" :disabled="loading || backup.state === 'active'">
               <RefreshCw class="w-3 h-3" /> Rollback
             </button>
-            <button @click="deleteBackup(backup)" class="mini-button mini-danger" :disabled="loading || backup.state === 'active'">
+            <button aria-label="Deletebackup(Backup" @click="deleteBackup(backup)" class="mini-button mini-danger" :disabled="loading || backup.state === 'active'">
               <Trash2 class="w-3 h-3" />
             </button>
           </div>
@@ -179,7 +179,7 @@
       <div class="modal">
         <div class="modal-header">
           <h3 class="text-lg font-bold text-white font-display">CREATE BACKUP</h3>
-          <button @click="showCreateBackupModal = false" class="close-button">
+          <button aria-label="Showcreatebackupmodal = False" @click="showCreateBackupModal = false" class="close-button">
             <X class="w-5 h-5 text-muted" />
           </button>
         </div>
@@ -190,8 +190,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showCreateBackupModal = false" class="action-pill action-secondary">Cancel</button>
-          <button @click="createBackup" class="action-pill action-primary" :disabled="loading">
+          <button aria-label="Showcreatebackupmodal = False" @click="showCreateBackupModal = false" class="action-pill action-secondary">Cancel</button>
+          <button aria-label="Createbackup" @click="createBackup" class="action-pill action-primary" :disabled="loading">
             <Shield v-if="!loading" class="w-4 h-4" />
             <div v-else class="w-4 h-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
             Create Backup
@@ -205,7 +205,7 @@
       <div class="modal">
         <div class="modal-header">
           <h3 class="text-lg font-bold text-white font-display">ROLLBACK TO VERSION</h3>
-          <button @click="showRollbackModal = false" class="close-button">
+          <button aria-label="Showrollbackmodal = False" @click="showRollbackModal = false" class="close-button">
             <X class="w-5 h-5 text-muted" />
           </button>
         </div>
@@ -239,8 +239,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showRollbackModal = false" class="action-pill action-secondary">Cancel</button>
-          <button @click="rollbackToVersion" class="action-pill action-warning" :disabled="loading">
+          <button aria-label="Showrollbackmodal = False" @click="showRollbackModal = false" class="action-pill action-secondary">Cancel</button>
+          <button aria-label="Rollbacktoversion" @click="rollbackToVersion" class="action-pill action-warning" :disabled="loading">
             <RefreshCw v-if="!loading" class="w-4 h-4" />
             <div v-else class="w-4 h-4 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
             Rollback
@@ -254,7 +254,7 @@
       <div class="modal">
         <div class="modal-header">
           <h3 class="text-lg font-bold text-white font-display">BACKUP INTEGRITY</h3>
-          <button @click="showVerificationModal = false" class="close-button">
+          <button aria-label="Showverificationmodal = False" @click="showVerificationModal = false" class="close-button">
             <X class="w-5 h-5 text-muted" />
           </button>
         </div>
@@ -285,7 +285,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showVerificationModal = false" class="action-pill action-primary">Close</button>
+          <button aria-label="Showverificationmodal = False" @click="showVerificationModal = false" class="action-pill action-primary">Close</button>
         </div>
       </div>
     </div>

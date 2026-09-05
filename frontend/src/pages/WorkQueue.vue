@@ -164,7 +164,7 @@ onMounted(load)
           </div>
           <button
             class="w-full rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40 min-h-[36px]"
-            @click="router.push(`/operations/work-room/${item.item_id}`)"
+            aria-label="Router.Push(`/Operations/Work Room/${Item.Item Id}`" @click="router.push(`/operations/work-room/${item.item_id}`)"
           >
             Ver detalles
           </button>

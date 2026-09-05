@@ -80,19 +80,19 @@ fetchData()
           <div class="flex flex-wrap gap-2">
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="activeTab = 'findings'"
+              aria-label="Activetab = 'Findings'" @click="activeTab = 'findings'"
             >
               <Bug class="h-3.5 w-3.5" /> Ver hallazgos
             </button>
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="activeTab = 'hypotheses'"
+              aria-label="Activetab = 'Hypotheses'" @click="activeTab = 'hypotheses'"
             >
               <Lightbulb class="h-3.5 w-3.5" /> Ver hipótesis
             </button>
             <button
               class="flex items-center gap-2 rounded-lg border border-border/30 px-3 py-2 text-xs text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-              @click="router.push('/intelligence/evidence')"
+              aria-label="Go To /Intelligence/Evidence" @click="router.push('/intelligence/evidence')"
             >
               <Shield class="h-3.5 w-3.5" /> Evidencia
             </button>

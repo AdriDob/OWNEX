@@ -415,7 +415,7 @@ onMounted(async () => {
     <div class="flex gap-1 border-b border-border/30 pb-1 overflow-x-auto">
       <button
         v-for="tab in tabs" :key="tab.id"
-        @click="activeTab = tab.id as typeof activeTab"
+        aria-label="Activetab = Tab.Id As Typeof Activetab" @click="activeTab = tab.id as typeof activeTab"
         :class="[
           'flex items-center gap-1.5 px-3 py-2 font-mono text-xs rounded-t-lg transition-all whitespace-nowrap shrink-0',
           activeTab === tab.id
@@ -506,7 +506,7 @@ onMounted(async () => {
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <button
             v-for="p in providerCatalog" :key="p.id"
-            @click="settings.updateAI({ provider: p.id as never })"
+            aria-label="Settings.Updateai({ Provider: P.Id As Never }" @click="settings.updateAI({ provider: p.id as never })"
             class="rounded-xl border p-4 text-left transition-all"
             :class="settings.data.ai.provider === p.id ? 'border-primary/40 bg-primary/5' : 'border-border/20 bg-surface/20 hover:bg-surface/30'"
           >
@@ -707,7 +707,7 @@ onMounted(async () => {
               >{{ tool.info.installed ? 'OK' : '—' }}</Badge>
               <button
                 v-if="tool.info.installed"
-                @click="runToolTest(tool.id)"
+                aria-label="Runtooltest(Tool.Id" @click="runToolTest(tool.id)"
                 class="font-mono text-[9px] text-muted-foreground hover:text-foreground transition-colors"
               >Test</button>
             </div>
@@ -1015,7 +1015,7 @@ onMounted(async () => {
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="t in themeNames" :key="t.id"
-                @click="setTheme(t.id)"
+                aria-label="Settheme(T.Id" @click="setTheme(t.id)"
                 class="rounded-lg border px-4 py-2 font-mono text-xs capitalize transition-all"
                 :class="currentTheme?.id === t.id ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
               >{{ t.name }}</button>
@@ -1146,7 +1146,7 @@ onMounted(async () => {
           <div class="flex gap-2">
             <button
               v-for="s in fontScaleOptions" :key="s"
-              @click="a11y.patch({ fontScale: s })"
+              aria-label="A11Y.Patch({ Fontscale: S }" @click="a11y.patch({ fontScale: s })"
               class="rounded-lg border px-3 py-1.5 font-mono text-xs transition-all"
               :class="a11y.state.fontScale === s ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/20 text-muted-foreground hover:text-foreground'"
             >{{ s }}%</button>

@@ -128,7 +128,7 @@ function formatTime(ts: number) {
       <span class="text-xs text-muted-foreground font-semibold">Filtrar:</span>
       <button
         v-for="t in ['info', 'success', 'warning', 'error']" :key="t"
-        @click="filterType = filterType === t ? null : t"
+        aria-label="Filtertype = Filtertype === T ? Null : T" @click="filterType = filterType === t ? null : t"
         :class="[
           'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
           filterType === t
@@ -138,7 +138,7 @@ function formatTime(ts: number) {
       >
         {{ t.charAt(0).toUpperCase() + t.slice(1) }}
       </button>
-      <button v-if="filterType" @click="filterType = null" class="text-xs text-muted-foreground hover:text-foreground ml-1">
+      <button v-if="filterType" aria-label="Filtertype = Null" @click="filterType = null" class="text-xs text-muted-foreground hover:text-foreground ml-1">
         <X class="h-3.5 w-3.5 inline" /> Limpiar
       </button>
     </div>

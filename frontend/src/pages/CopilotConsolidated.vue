@@ -51,7 +51,7 @@ onMounted(fetchData)
           <p class="mt-1 text-sm text-muted-foreground">Tu copiloto personal de IA</p>
           <button
             class="mt-4 flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors mx-auto"
-            @click="$router.push('/merlin')"
+            aria-label="$Go To /Merlin" @click="$router.push('/merlin')"
           >
             <MessageCircle class="h-4 w-4" />
             Abrir MERLIN
