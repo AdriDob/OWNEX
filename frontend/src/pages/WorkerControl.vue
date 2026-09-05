@@ -201,7 +201,7 @@ onUnmounted(() => {
       </div>
       <div class="flex items-center gap-2">
         <button
-          @click="fetchAll"
+          aria-label="Refresh worker status" @click="fetchAll"
           class="rounded-lg border border-border/50 bg-surface/50 px-3 py-1.5 font-mono text-xs text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
         >
           <RotateCcw class="mr-1 inline h-3 w-3" />Refresh

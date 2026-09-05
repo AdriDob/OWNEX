@@ -23,15 +23,20 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- Skip navigation link for keyboard users -->
+  <a href="#main-content" class="skip-nav">Skip to main content</a>
+
   <div class="flex h-full flex-1 overflow-hidden">
     <AppSidebar @toggle-copilot="emit('toggleCopilot')" />
 
     <!-- Main content -->
     <main
+      id="main-content"
       :class="[
         'flex flex-1 flex-col overflow-y-auto transition-all duration-200',
         copilotOpen ? 'xl:mr-80' : 'mr-0',
       ]"
+      role="main"
     >
       <!-- Desktop titlebar -->
       <TitleBar />
@@ -59,6 +64,9 @@ const emit = defineEmits<{
       </div>
       <AppFooter @toggle-copilot="emit('toggleCopilot')" />
     </main>
+
+    <!-- Live region for screen reader announcements -->
+    <div aria-live="polite" aria-atomic="true" class="sr-only" id="sr-announcements"></div>
 
     <!-- Command Palette (Cmd+K) -->
     <CommandPalette ref="commandPalette" />

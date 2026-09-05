@@ -170,7 +170,7 @@ const methodChartData = computed(() => {
 
 <template>
   <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
-    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground animate-in" @click="router.push({ name: 'radar' })">
+    <button class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground animate-in" aria-label="Back to Target Radar" @click="router.push({ name: 'radar' })">
       <ArrowLeft class="h-3 w-3" />
       Volver al Radar
     </button>
@@ -202,7 +202,7 @@ const methodChartData = computed(() => {
         </div>
         <p class="text-sm font-semibold text-foreground">Target no encontrado</p>
         <p class="mt-1 text-xs text-muted-foreground">El target con ID {{ targetId }} no existe o fue eliminado</p>
-        <Button class="mt-4" size="sm" variant="outline" @click="router.push({ name: 'radar' })">
+        <Button class="mt-4" size="sm" variant="outline" aria-label="Back to Target Radar" @click="router.push({ name: 'radar' })">
           Volver al Radar
         </Button>
       </div>

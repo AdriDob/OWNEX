@@ -343,7 +343,7 @@ function formatCompact(n: number) {
     </Transition>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
+    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin" aria-label="Main navigation">
       <div v-for="(group, gi) in navSections" :key="gi" class="mb-1">
         <button
           v-if="!collapsed"
