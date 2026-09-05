@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Cpu,
+  CheckSquare,
   Database,
   DollarSign,
   ExternalLink,
@@ -130,6 +131,7 @@ const navSections = [
     items: [
       { name: 'Operations', path: '/operations', icon: Activity },
       { name: 'Worker Control', path: '/operations/worker', icon: Cpu },
+      { name: 'Setup Checklist', path: '/setup/checklist', icon: CheckSquare },
       { name: 'Integrations', path: '/integrations/connections', icon: Cable },
       { name: 'Settings', path: '/operations/settings', icon: Settings },
     ],
