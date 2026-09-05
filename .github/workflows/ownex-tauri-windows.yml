@@ -94,19 +94,7 @@ jobs:
           Write-Host "Sidecar smoke: PASS"
         shell: pwsh
 
-      # ── Copy sidecar to Tauri binaries directory ──
-      - name: Prepare Tauri sidecar
-        run: |
-          $destDir = "src-tauri\binaries"
-          $src = "dist\${{ matrix.sidecar_name }}"
-          $dest = "$destDir\${{ matrix.sidecar_name }}"
-          if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
-          Copy-Item $src $dest -Force
-          Write-Host "Sidecar copied to: $dest"
-          Get-ChildItem $destDir | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
-        shell: pwsh
-
-      # Upload sidecar artifact (use working-directory to avoid dist/ prefix in artifact)
+      # ── Upload sidecar artifact (without dist/ prefix) ──
       - name: Upload sidecar artifact
         uses: actions/upload-artifact@v4
         with:
@@ -146,43 +134,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact to current directory, then move to dist/
+      # Download sidecar artifact to current directory
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os == 'windows-latest' && 'ownex-backend-windows' || matrix.os == 'ubuntu-latest' && 'ownex-backend-linux' || 'ownex-backend-macos' }}
-          path: .
+          path: sidecar
 
       # Verify sidecar download and move to dist/
       - name: Verify and move sidecar
-        shell: bash
         run: |
           echo "=== Sidecar Download Verification ==="
-          ls -la
+          ls -la sidecar/
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            if [ -f ownex-backend.exe ]; then
+            if [ -f sidecar/ownex-backend.exe ]; then
               mkdir -p dist
-              mv ownex-backend.exe dist/
+              mv sidecar/ownex-backend.exe dist/
               echo "Windows sidecar: MOVED TO dist/"
             else
-              echo "ERROR: Windows sidecar not found at root"
-              ls -la
+              echo "ERROR: Windows sidecar not found in sidecar/"
+              ls -la sidecar/
               exit 1
             fi
           else
-            if [ -f ownex-backend ]; then
+            if [ -f sidecar/ownex-backend ]; then
               mkdir -p dist
-              mv ownex-backend dist/
+              mv sidecar/ownex-backend dist/
               echo "Linux/macOS sidecar: MOVED TO dist/"
             else
               echo "ERROR: Linux/macOS sidecar not found"
-              ls -la
+              ls -la sidecar/
               exit 1
             fi
           fi
           ls -la dist/
 
-      # ── Copy sidecar to Tauri binaries directory ──
+      # Copy sidecar to Tauri binaries
       - name: Prepare Tauri sidecar (Windows)
         if: runner.os == 'Windows'
         run: |
