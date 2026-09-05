@@ -365,18 +365,18 @@ onMounted(load)
             </div>
           </div>
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
-            <button @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
+            <button aria-label="Go to Work Queue" @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
               <Zap class="h-3 w-3" /> {{ income?.phases?.this_week?.length || 0 }} acciones
             </button>
-            <button @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
+            <button aria-label="Go to Work Queue" @click="router.push('/operations/work-queue')" class="hover:text-foreground transition-colors flex items-center gap-1">
               <Users class="h-3 w-3" /> {{ workBankReady || 0 }} listos
             </button>
           </div>
           <div class="flex items-center gap-2 pt-2 border-t border-border/30">
-            <button @click="router.push('/')" class="btn-primary px-3 py-1.5 text-sm flex-1">
+            <button aria-label="Go to Command Center" @click="router.push('/')" class="btn-primary px-3 py-1.5 text-sm flex-1">
               <Target class="h-3.5 w-3.5 mr-1" /> ¿Qué hago ahora?
             </button>
-            <button @click="router.push('/operations/work-queue')" class="btn-secondary px-3 py-1.5 text-sm">
+            <button aria-label="Go to Work Queue" @click="router.push('/operations/work-queue')" class="btn-secondary px-3 py-1.5 text-sm">
               <ExternalLink class="h-3.5 w-3.5 mr-1" /> Cola trabajo
             </button>
           </div>
@@ -385,19 +385,19 @@ onMounted(load)
 
       <!-- Row 2: Quick Actions -->
       <div class="flex flex-wrap gap-2">
-        <button @click="router.push('/')" class="btn-primary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go to Command Center" @click="router.push('/')" class="btn-primary px-4 py-2 flex items-center gap-2">
           <Target class="h-4 w-4" /> Acción principal
         </button>
-        <button @click="router.push('/operations/work-queue')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go to Work Queue" @click="router.push('/operations/work-queue')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <ExternalLink class="h-4 w-4" /> Cola de trabajo
         </button>
-        <button @click="router.push('/targets/prioritization')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go to Target Prioritization" @click="router.push('/targets/prioritization')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <Zap class="h-4 w-4" /> Oportunidades
         </button>
-        <button @click="router.push('/capital')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go to Capital" @click="router.push('/capital')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <DollarSign class="h-4 w-4" /> Ingresos
         </button>
-        <button @click="router.push('/intelligence/findings')" class="btn-secondary px-4 py-2 flex items-center gap-2">
+        <button aria-label="Go to Findings" @click="router.push('/intelligence/findings')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <Shield class="h-4 w-4" /> Hallazgos
         </button>
         <button @click="window.dispatchEvent(new CustomEvent('toggle-copilot'))" class="btn-secondary px-4 py-2 flex items-center gap-2">

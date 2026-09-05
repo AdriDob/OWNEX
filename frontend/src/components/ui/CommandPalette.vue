@@ -604,12 +604,18 @@ defineExpose({ open, close })
         v-if="isOpen"
         class="fixed inset-0 z-[var(--z-command-palette)] flex items-start justify-center pt-[15vh]"
         @click.self="close"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
       >
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="close" />
 
         <div
           class="relative w-full max-w-2xl mx-4 overflow-hidden border border-border rounded-xl bg-surface shadow-lg"
           @keydown="handleKeydown"
+          role="combobox"
+          aria-expanded="true"
+          aria-haspopup="listbox"
         >
           <!-- Search Input -->
           <div class="flex items-center gap-3 px-4 py-3 border-b border-border">
@@ -621,6 +627,8 @@ defineExpose({ open, close })
               placeholder="Comando operativo... (ej: 'iniciar', 'qué hago', 'ingresos', 'hallazgos')"
               class="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
               autocomplete="off"
+              aria-label="Search commands"
+              role="searchbox"
             />
             <kbd class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted/30 rounded border border-border">
               ESC

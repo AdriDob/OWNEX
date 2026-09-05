@@ -114,6 +114,7 @@
                 <button
                   v-if="!item.done && item.manual"
                   class="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                  :aria-label="`Marcar como completado: ${item.title}`"
                   @click="markDone(item.id)"
                 >
                   Marcar listo
@@ -121,6 +122,7 @@
                 <button
                   v-else-if="item.done && item.manual"
                   class="rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted"
+                  :aria-label="`Deshacer: ${item.title}`"
                   @click="markUndone(item.id)"
                 >
                   Deshacer

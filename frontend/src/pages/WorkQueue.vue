@@ -120,7 +120,7 @@ onMounted(load)
     <LoadingState v-else-if="loading && !items.length" />
     <EmptyState v-else-if="!loading && !items.length" title="Sin trabajos en cola" description="WorkerCore descubre y prepara oportunidades automáticamente. Cuando haya trabajo disponible, aparecerá aquí.">
       <template #action>
-        <button @click="load" class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--ownex-bg-elevated)] text-[var(--ownex-text-primary)] border border-[var(--ownex-border)] hover:bg-[var(--ownex-border)] transition-colors">
+        <button aria-label="Refresh work queue" @click="load" class="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--ownex-bg-elevated)] text-[var(--ownex-text-primary)] border border-[var(--ownex-border)] hover:bg-[var(--ownex-border)] transition-colors">
           Actualizar
         </button>
       </template>
@@ -149,7 +149,7 @@ onMounted(load)
             <button
               class="flex-1 rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide hover:bg-surface/40 disabled:opacity-40 min-h-[36px]"
               :disabled="busyId === item.item_id"
-              @click="advance(item)"
+              :aria-label="`Advance: ${itemTitle(item)}`" @click="advance(item)"
             >
               {{ busyId === item.item_id ? '…' : 'Avanzar' }}
             </button>
@@ -157,7 +157,7 @@ onMounted(load)
               v-if="item.state === 'waiting_human'"
               class="rounded-md border border-border/30 px-2 py-1.5 font-mono text-[10px] uppercase tracking-wide text-muted-foreground hover:bg-surface/40 disabled:opacity-40 min-h-[36px]"
               :disabled="busyId === item.item_id"
-              @click="reject(item)"
+              :aria-label="`Reject: ${itemTitle(item)}`" @click="reject(item)"
             >
               Rechazar
             </button>
