@@ -1,3 +1,10 @@
+## Sesión 2026-09-05 (v2) — Setup Checklist + Watch Module Complete
+
+> **QUÉ SE HIZO:** Setup Checklist page + Watch module completion.
+> - **1. Setup Checklist Page**: `frontend/src/pages/SetupChecklist.vue` — shows all missing credentials/APIs with how_to instructions, time estimates, auto/manual badges, progress ring, phase grouping. Route `/setup/checklist` + sidebar link.
+> - **2. Watch Module Complete**: Fixed PreferencesManager (RxDataStore → standard DataStore), ApiClient (blockingGet → direct property), WatchViewModel (Rx → coroutines), WearOSApp (duplicate imports), added QuickActionsScreen, added Compose/Retrofit/RxJava deps to build.gradle.
+> - **Commits**: `c72da74e`, `0b5402e1`
+
 ## Sesión 2026-09-05 — FINAL POLISH: Session leak fixes + Android Compose build + Ruff clean
 
 > **QUÉ SE HIZO:** Final reliability + Android build + lint cleanup.
