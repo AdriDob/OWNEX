@@ -30,6 +30,7 @@ import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
 import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
+import AvailabilityIntelligenceCard from '@/components/daily/AvailabilityIntelligenceCard.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
@@ -418,6 +419,9 @@ onMounted(load)
 
       <!-- N0.1: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
       <DailyDigest />
+
+      <!-- N0.2: AVAILABILITY INTELLIGENCE — tu capacidad real para trabajo hoy -->
+      <AvailabilityIntelligenceCard />
 
       <!-- N1: THE ONE ACTION — la única acción que importa ahora -->
       <OneActionCard :auto-refresh="true" :refresh-interval="300000" />

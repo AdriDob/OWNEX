@@ -3,12 +3,12 @@
 #
 # OWNEX Backend — PyInstaller build spec for standalone FastAPI sidecar.
 # Entrypoint: src-tauri/binaries/start_backend.py
-# Output: dist/ownex-backend.exe  (ONEFILE — self-contained)
+# Output: dist/ownex-backend  (ONEFILE — self-contained)
 #
 # ONEFILE is required by the Tauri externalBin contract: Tauri bundles and
 # spawns exactly one file per target triple. A ONEDIR exe copied without its
 # _internal/ directory cannot import api.main (the failure that shipped in
-# the 2026-08-24 MSI). First launch extracts to %TEMP% (~10-30 s), which fits
+# the 2026-08-24 MSI). First launch extracts to %TEMP%/~ (~10-30 s), which fits
 # inside lib.rs's health-poll budget.
 #
 # Build with:
@@ -17,16 +17,18 @@
 # CLI args (passed by Tauri sidecar):
 #   --port <port>       (default: 8000)
 #   --host <host>       (default: 127.0.0.1)
-#   --data-dir <path>   (default: %LOCALAPPDATA%\OWNEX on Windows)
+#   --data-dir <path>   (default: %LOCALAPPDATA%\OWNEX on Windows, ~/.local/share/OWNEX on Linux/macOS)
 #   --log-level <level> (default: INFO)
 
 import os
+import fnmatch
 import shutil
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 IS_WINDOWS = sys.platform.startswith("win")
+IS_MACOS = sys.platform == "darwin"
 ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "cateye.ico") if IS_WINDOWS else None
 
 # ── Auto-discover router modules ─────────────────────────────────────
@@ -113,7 +115,6 @@ if version_file.exists():
     datas.append((str(version_file), "."))
 
 # ── Exclude runtime DB files ──────────────────────────────────────────
-import fnmatch
 _filtered = []
 for src, dest in datas:
     if any(fnmatch.fnmatch(src, p) for p in (
@@ -148,13 +149,16 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
+# Output name without .exe extension (PyInstaller adds it on Windows)
+EXE_NAME = "ownex-backend"
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
     [],
-    name="ownex-backend",
+    name=EXE_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -168,3 +172,16 @@ exe = EXE(
     argv_emulation=False,
     icon=ICON_PATH,
 )
+
+# ── macOS .app bundle (only on macOS) ─────────────────────────────────
+if IS_MACOS:
+    app = BUNDLE(
+        exe,
+        name="OWNEX Backend",
+        icon=ICON_PATH,
+        bundle_identifier="ai.orion.ownex.backend",
+        info_plist={
+            "LSUIElement": True,  # No dock icon
+            "LSBackgroundOnly": True,
+        },
+    )

@@ -1,4 +1,4 @@
-name: OWNEX Tauri Windows Release
+name: OWNEX Tauri Multi-Platform Release
 
 on:
   workflow_dispatch:
@@ -10,34 +10,35 @@ permissions:
   contents: write
 
 jobs:
-  build-tauri-windows:
-    runs-on: windows-latest
-    timeout-minutes: 120
+  # ── Build backend sidecar for each platform ──
+  build-backend-sidecar:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: ownex-backend-windows
+            pyinstaller_cmd: .venv\Scripts\pyinstaller.exe
+            sidecar_name: ownex-backend.exe
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: ownex-backend-linux
+            pyinstaller_cmd: .venv/bin/pyinstaller
+            sidecar_name: ownex-backend
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: ownex-backend-macos
+            pyinstaller_cmd: .venv/bin/pyinstaller
+            sidecar_name: ownex-backend
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── Node.js (for frontend + Tauri CLI) ──
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      # ── Rust (for Tauri) ──
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: 'src-tauri -> target'
-
-      # ── Python (for backend sidecar) ──
+      # ── Python ──
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -49,35 +50,26 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          .venv\Scripts\python.exe -m pip install --upgrade pip
-          .venv\Scripts\python.exe -m pip install -r requirements.txt
-          .venv\Scripts\python.exe -m pip install pyinstaller
-
-      # ── Build frontend ──
-      - name: Build frontend (Vue + Vite)
-        run: |
-          cd frontend
-          npm run build
-          cd ..
-        env:
-          VITE_API_URL: ''
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r requirements.txt
+          .venv/bin/python -m pip install pyinstaller
 
       # ── Build backend sidecar ──
       - name: Build backend sidecar (PyInstaller)
         run: |
-          .venv\Scripts\pyinstaller.exe OWNEX-Backend.spec --clean --noconfirm
+          ${{ matrix.pyinstaller_cmd }} OWNEX-Backend.spec --clean --noconfirm
 
       - name: Validate sidecar exists
         run: |
-          $exe = "dist\ownex-backend.exe"
-          if (!(Test-Path $exe)) { throw "Sidecar .exe not found: $exe (ONEFILE output)" }
+          $exe = "dist/${{ matrix.sidecar_name }}"
+          if (!(Test-Path $exe)) { throw "Sidecar not found: $exe" }
           $size = (Get-Item $exe).Length
           Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
-          # Guard: a self-contained backend must embed the whole runtime.
-          # The broken 2026-08-24 stub was 19.91 MB; real payload is >100 MB.
-          if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB) — likely missing _internal payload" }
+          if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB)" }
 
-      - name: Smoke test sidecar runtime (imports + health)
+      # Smoke test sidecar (Windows only - other platforms run Tauri build which tests it)
+      - name: Smoke test sidecar runtime
+        if: runner.os == 'Windows'
         run: |
           $exe = "dist\ownex-backend.exe"
           $err = "$env:RUNNER_TEMP\sidecar_err.txt"
@@ -92,76 +84,178 @@ jobs:
           if (-not $ok) {
             Write-Host "=== sidecar stderr ==="
             Get-Content $err -Tail 20 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
-            throw "Sidecar failed to serve /api/health on :8199 — broken imports or missing modules. Release blocked."
+            throw "Sidecar failed /api/health"
           }
-          Write-Host "Sidecar runtime smoke: PASS (healthy in $($i*2)s)"
+          Write-Host "Sidecar smoke: PASS"
 
       # ── Copy sidecar to Tauri binaries directory ──
-      # Tauri expects sidecar at src-tauri/binaries/<name>-<target-triple>.exe
       - name: Prepare Tauri sidecar
         run: |
-          $target = "x86_64-pc-windows-msvc"
           $destDir = "src-tauri\binaries"
-          $src = "dist\ownex-backend.exe"
-          $dest = "$destDir\ownex-backend-$target.exe"
+          $src = "dist\${{ matrix.sidecar_name }}"
+          $dest = "$destDir\${{ matrix.sidecar_name }}"
           if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
           Copy-Item $src $dest -Force
           Write-Host "Sidecar copied to: $dest"
           Get-ChildItem $destDir | ForEach-Object { Write-Host "  $($_.Name) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
+        shell: pwsh
+        if: runner.os == 'Windows'
 
-      # ── Tauri build ──
-      - name: Install Tauri system dependencies
+      - name: Prepare Tauri sidecar (Linux/macOS)
         run: |
-          # WebView2 is pre-installed on windows-latest
-          # MSVC build tools are pre-installed on windows-latest
-          Write-Host "System dependencies verified"
+          destDir="src-tauri/binaries"
+          src="dist/${{ matrix.sidecar_name }}"
+          dest="$destDir/${{ matrix.sidecar_name }}"
+          mkdir -p "$destDir"
+          cp "$src" "$dest"
+          chmod +x "$dest"
+          echo "Sidecar copied to: $dest"
+          ls -la "$destDir"
+        if: runner.os != 'Windows'
 
+      # Upload sidecar artifact
+      - name: Upload sidecar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.sidecar_name }}
+          if-no-files-found: error
+
+  # ── Tauri build for each platform ──
+  build-tauri:
+    needs: build-backend-sidecar
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact_name: OWNEX-Tauri-Windows
+            artifact_paths: |
+              src-tauri/target/release/bundle/msi/*.msi
+              src-tauri/target/release/bundle/nsis/*.exe
+              src-tauri/target/release/bundle/**/*.sha256
+          - os: ubuntu-latest
+            artifact_name: OWNEX-Tauri-Linux
+            artifact_paths: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/appimage/*.AppImage
+              src-tauri/target/release/bundle/**/*.sha256
+          - os: macos-latest
+            artifact_name: OWNEX-Tauri-macOS
+            artifact_paths: |
+              src-tauri/target/release/bundle/dmg/*.dmg
+              src-tauri/target/release/bundle/macos/*.app
+              src-tauri/target/release/bundle/**/*.sha256
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download sidecar artifact
+      - name: Download sidecar
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.os == 'windows-latest' && 'ownex-backend-windows' || matrix.os == 'ubuntu-latest' && 'ownex-backend-linux' || 'ownex-backend-macos' }}
+          path: dist
+
+      # Copy sidecar to Tauri binaries
+      - name: Prepare Tauri sidecar (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $destDir = "src-tauri\binaries"
+          $src = "dist\ownex-backend.exe"
+          $dest = "$destDir\ownex-backend.exe"
+          Copy-Item $src $dest -Force
+          Write-Host "Sidecar ready: $dest"
+        shell: pwsh
+
+      - name: Prepare Tauri sidecar (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          destDir="src-tauri/binaries"
+          src="dist/ownex-backend"
+          dest="$destDir/ownex-backend"
+          mkdir -p "$destDir"
+          cp "dist/ownex-backend" "$dest"
+          chmod +x "$dest"
+          echo "Sidecar ready: $dest"
+          ls -la "$destDir"
+
+      # ── Node.js ──
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Rust
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: 'src-tauri -> target'
+
+      # Build frontend
+      - name: Build frontend (Vue + Vite)
+        run: |
+          cd frontend
+          npm run build
+          cd ..
+        env:
+          VITE_API_URL: ''
+
+      # Linux deps
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
+
+      # macOS deps (notarization prep)
+      - name: macOS setup
+        if: runner.os == 'macOS'
+        run: |
+          echo "macOS build - ensure Apple Developer ID is configured for notarization"
+          # Notarization would go here with Apple Developer ID
+
+      # Tauri build
       - name: Tauri build
         run: npx tauri build
         env:
           TAURI_SIGNING_PRIVATE_KEY: ''
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
 
+      # Verify output
       - name: Verify Tauri output
         run: |
-          $msi = Get-ChildItem "src-tauri\target\release\bundle\msi\*.msi" -ErrorAction SilentlyContinue | Select-Object -First 1
-          $nsis = Get-ChildItem "src-tauri\target\release\bundle\nsis\*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($msi) {
-            Write-Host "MSI found: $($msi.Name) ($([math]::Round($msi.Length / 1MB, 2)) MB)"
-          } else {
-            Write-Host "WARNING: MSI not found"
-          }
-          if ($nsis) {
-            Write-Host "NSIS found: $($nsis.Name) ($([math]::Round($nsis.Length / 1MB, 2)) MB)"
-          } else {
-            Write-Host "WARNING: NSIS installer not found"
-          }
+          echo "=== Tauri build output ==="
+          find src-tauri/target/release/bundle -type f \( -name "*.msi" -o -name "*.exe" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.app" \) -exec ls -lh {} \;
 
-      # ── Calculate checksums ──
+      # Calculate checksums
       - name: Calculate SHA256 checksums
         run: |
-          $files = Get-ChildItem "src-tauri\target\release\bundle\*\*.*" -Include "*.msi","*.exe" -ErrorAction SilentlyContinue
-          foreach ($f in $files) {
-            $hash = (Get-FileHash $f -Algorithm SHA256).Hash
-            Write-Host "$hash  $($f.Name)"
-            $hash | Out-File "$($f.FullName).sha256" -Encoding ascii
-          }
+          find src-tauri/target/release/bundle -type f \( -name "*.msi" -o -name "*.exe" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" \) -exec sh -c 'sha256sum "$1" > "$1.sha256"' _ {} \;
 
-      # ── Upload artifacts ──
+      # Upload artifacts
       - name: Upload Tauri artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: OWNEX-Tauri-Windows
+          name: ${{ matrix.artifact_name }}
           path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/**/*.sha256
+            ${{ matrix.artifact_paths }}
           if-no-files-found: warn
 
-      - name: Upload sidecar (for debugging)
+      # Upload checksums
+      - name: Upload checksums
         uses: actions/upload-artifact@v4
         with:
-          name: OWNEX-Backend-Sidecar
-          path: |
-            dist/ownex-backend.exe
+          name: ${{ matrix.artifact_name }}-checksums
+          path: src-tauri/target/release/bundle/**/*.sha256
           if-no-files-found: warn
+

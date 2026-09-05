@@ -9,6 +9,7 @@
  *   - Real-time service check grid
  *   - Auto-detection on mount
  *   - WebSocket live updates
+ *   - Good Morning panel (daily summary + setup progress)
  */
 import { onMounted, onUnmounted } from 'vue'
 import GlassPanel from '@/shared/components/GlassPanel.vue'
@@ -18,6 +19,7 @@ import { useSpringAnimation } from '@/shared/composables/useSpringAnimation'
 import PrepareButton from './components/PrepareButton.vue'
 import ReadinessMeter from './components/ReadinessMeter.vue'
 import ServiceGrid from './components/ServiceGrid.vue'
+import GoodMorning from './components/GoodMorning.vue'
 import { useReadinessStore } from './stores/readinessStore'
 
 const readiness = useReadinessStore()
@@ -90,6 +92,12 @@ onUnmounted(() => {
     <div>
       <h2 class="text-lg font-semibold text-foreground mb-3">Servicios detectados</h2>
       <ServiceGrid :checks="readiness.checks" />
+    </div>
+
+    <!-- Good Morning Panel -->
+    <div>
+      <h2 class="text-lg font-semibold text-foreground mb-3">Buenos días — Panel diario</h2>
+      <GoodMorning />
     </div>
 
     <!-- Manual instructions -->
