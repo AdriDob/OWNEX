@@ -11,6 +11,7 @@ The audit log is append-only and never modified after creation.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from datetime import UTC, datetime
@@ -64,8 +65,9 @@ def create_audit_entry(
     Returns:
         Created audit log entry
     """
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         entry = WorkerAuditLog(
             workflow_id=workflow_id,
             execution_id=execution_id,
@@ -106,6 +108,10 @@ def create_audit_entry(
             status="error",
             error=f"Audit persistence failed: {exc}",
         )
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()
 
 
 def update_audit_entry(
@@ -123,8 +129,9 @@ def update_audit_entry(
     Only status, details, error, cost, and approval fields are mutable.
     Action, workflow_id, execution_id are immutable.
     """
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         entry = session.query(WorkerAuditLog).filter(WorkerAuditLog.id == entry_id).first()
         if not entry:
             return None
@@ -148,12 +155,17 @@ def update_audit_entry(
     except Exception as exc:
         logger.exception("Failed to update audit entry %d: %s", entry_id, exc)
         return None
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()
 
 
 def get_workflow_audit(workflow_id: str, limit: int = 100) -> list[WorkerAuditLog]:
     """Get all audit entries for a workflow, chronological order."""
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         return (
             session.query(WorkerAuditLog)
             .filter(WorkerAuditLog.workflow_id == workflow_id)
@@ -164,12 +176,17 @@ def get_workflow_audit(workflow_id: str, limit: int = 100) -> list[WorkerAuditLo
     except Exception as exc:
         logger.exception("Failed to get audit for workflow %s: %s", workflow_id, exc)
         return []
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()
 
 
 def get_execution_audit(execution_id: str) -> list[WorkerAuditLog]:
     """Get all audit entries for a single execution attempt."""
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         return (
             session.query(WorkerAuditLog)
             .filter(WorkerAuditLog.execution_id == execution_id)
@@ -179,12 +196,17 @@ def get_execution_audit(execution_id: str) -> list[WorkerAuditLog]:
     except Exception as exc:
         logger.exception("Failed to get audit for execution %s: %s", execution_id, exc)
         return []
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()
 
 
 def get_recent_audit(limit: int = 50, action: str | None = None) -> list[WorkerAuditLog]:
     """Get recent audit entries, optionally filtered by action type."""
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         query = session.query(WorkerAuditLog).order_by(WorkerAuditLog.id.desc())
         if action:
             query = query.filter(WorkerAuditLog.action == action)
@@ -192,12 +214,17 @@ def get_recent_audit(limit: int = 50, action: str | None = None) -> list[WorkerA
     except Exception as exc:
         logger.exception("Failed to get recent audit: %s", exc)
         return []
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()
 
 
 def get_audit_stats() -> dict[str, Any]:
     """Get aggregate audit statistics."""
+    session = SessionLocal()
+    created = True
     try:
-        session = SessionLocal()
         total = session.query(WorkerAuditLog).count()
         blocked = session.query(WorkerAuditLog).filter(WorkerAuditLog.status == "blocked").count()
         failed = session.query(WorkerAuditLog).filter(WorkerAuditLog.status == "failed").count()
@@ -229,3 +256,7 @@ def get_audit_stats() -> dict[str, Any]:
             "pending_approval": 0,
             "total_cost_usd": 0.0,
         }
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                session.close()

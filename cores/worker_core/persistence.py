@@ -10,6 +10,7 @@ holds the workflow state machine, this module owns durable state.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from datetime import UTC, datetime
@@ -62,8 +63,9 @@ def save_checkpoint(
     True, the worker may resume AFTER this phase (e.g. a resume from
     ``execute`` means we do not re-execute).
     """
+    sess = session or SessionLocal()
+    created = session is None
     try:
-        sess = session or SessionLocal()
         row = WorkerCheckpoint(
             work_item_id=work_item_id,
             work_item_title=work_item_title,
@@ -80,6 +82,10 @@ def save_checkpoint(
         logger.info("Checkpoint saved: work=%s phase=%s", work_item_id, phase)
     except Exception as exc:  # persistence must never crash the worker
         logger.exception("Failed to persist checkpoint work=%s phase=%s: %s", work_item_id, phase, exc)
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                sess.close()
 
 
 def get_latest_checkpoint(work_item_id: str, session: Any = None) -> WorkerCheckpoint | None:
@@ -89,8 +95,9 @@ def get_latest_checkpoint(work_item_id: str, session: Any = None) -> WorkerCheck
     order; ``updated_at`` is not reliable because ``server_default=func.now()``
     produces identical timestamps for rows inserted within the same second.
     """
+    sess = session or SessionLocal()
+    created = session is None
     try:
-        sess = session or SessionLocal()
         row = (
             sess.query(WorkerCheckpoint)
             .filter(WorkerCheckpoint.work_item_id == work_item_id)
@@ -101,12 +108,17 @@ def get_latest_checkpoint(work_item_id: str, session: Any = None) -> WorkerCheck
     except Exception as exc:
         logger.exception("Failed to load latest checkpoint work=%s: %s", work_item_id, exc)
         return None
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                sess.close()
 
 
 def get_all_checkpoints(work_item_id: str, session: Any = None) -> list[WorkerCheckpoint]:
     """Return all checkpoints for a work item in chronological order."""
+    sess = session or SessionLocal()
+    created = session is None
     try:
-        sess = session or SessionLocal()
         return (
             sess.query(WorkerCheckpoint)
             .filter(WorkerCheckpoint.work_item_id == work_item_id)
@@ -116,17 +128,26 @@ def get_all_checkpoints(work_item_id: str, session: Any = None) -> list[WorkerCh
     except Exception as exc:
         logger.exception("Failed to load checkpoints work=%s: %s", work_item_id, exc)
         return []
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                sess.close()
 
 
 def get_active_work_items(session: Any = None) -> list[str]:
     """Return distinct work_item_ids that have persisted checkpoints."""
+    sess = session or SessionLocal()
+    created = session is None
     try:
-        sess = session or SessionLocal()
         rows = sess.execute(text("SELECT DISTINCT work_item_id FROM worker_checkpoints")).fetchall()
         return [r[0] for r in rows]
     except Exception as exc:
         logger.exception("Failed to list active work items: %s", exc)
         return []
+    finally:
+        if created:
+            with contextlib.suppress(Exception):
+                sess.close()
 
 
 def resume_from(checkpoint: WorkerCheckpoint) -> str | None:
