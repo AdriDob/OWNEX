@@ -155,6 +155,7 @@ jobs:
 
       # Verify sidecar download and move to dist/
       - name: Verify and move sidecar
+        shell: bash
         run: |
           echo "=== Sidecar Download Verification ==="
           ls -la
