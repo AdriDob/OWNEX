@@ -189,21 +189,22 @@ jobs:
           cd frontend && npm ci
           cd ..
 
-      # Verify Tauri CLI installation (with set +e to see output even on failure)
+      # Verify Tauri CLI installation
       - name: Verify Tauri CLI
         run: |
-          set +e
           echo "=== Tauri CLI Verification ==="
           echo "Node: $(node --version)"
           echo "NPM: $(npm --version)"
           echo "NPX: $(npx --version)"
-          echo "Tauri CLI local: $(npx tauri --version 2>&1 || echo 'FAILED')"
-          echo "Tauri CLI global: $(tauri --version 2>&1 || echo 'FAILED')"
-          echo "Node modules tauri: $(ls -la node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
+          echo "Checking root node_modules..."
+          ls -la node_modules/.bin/tauri* 2>/dev/null || echo "Root tauri NOT FOUND"
           echo "Frontend tauri: $(ls -la frontend/node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
-          echo "Root node_modules tauri*: $(ls -la node_modules/.bin/tauri* 2>/dev/null || echo 'NOT FOUND')"
           echo "Root package.json tauri: $(grep -A2 '@tauri-apps/cli' package.json || echo 'NOT IN PACKAGE.JSON')"
-          set -e
+          echo "Trying npx tauri --version..."
+          npx tauri --version 2>&1 || echo "npx tauri FAILED"
+          echo "Trying tauri directly..."
+          tauri --version 2>&1 || echo "tauri direct FAILED"
+        continue-on-error: true
 
       # Rust
       - name: Setup Rust
