@@ -236,7 +236,7 @@
   }
   .status-dot-red {
     background: var(--ownex-accent);
-    box-shadow: 0 0 6px rgba(0, 213, 255, 0.4);
+    box-shadow: 0 0 6px rgba(232, 33, 39, 0.36);
   }
   .status-dot-off {
     background: var(--ownex-bg-elevated);
