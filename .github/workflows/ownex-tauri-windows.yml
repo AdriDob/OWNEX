@@ -224,6 +224,9 @@ jobs:
           echo "Cargo.toml exists: $(test -f src-tauri/Cargo.toml && echo YES || echo NO)"
           echo "tauri.conf.json exists: $(test -f src-tauri/tauri.conf.json && echo YES || echo NO)"
           echo "Sidecar exists: $(test -f src-tauri/binaries/ownex-backend && echo YES || echo NO)"
+          echo "Sidecar (exe) exists: $(test -f src-tauri/binaries/ownex-backend.exe && echo YES || echo NO)"
+          echo "=== tauri.conf.json ==="
+          cat src-tauri/tauri.conf.json
         env:
           RUST_BACKTRACE: 1
 
