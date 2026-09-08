@@ -63,6 +63,29 @@ jobs:
         run: |
           ${{ matrix.pyinstaller_cmd }} OWNEX-Backend.spec --clean --noconfirm
 
+      # Rename Windows binary to remove .exe extension (Tauri expects base name)
+      - name: Normalize sidecar name (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path "dist\ownex-backend.exe") {
+            Move-Item "dist\ownex-backend.exe" "dist\ownex-backend" -Force
+            Write-Host "Renamed ownex-backend.exe to ownex-backend"
+          }
+        shell: pwsh
+
+      - name: Validate sidecar exists
+        run: |
+          $exe = "dist/${{ matrix.sidecar_name }}"
+          # On Windows, the spec now outputs ownex-backend (without .exe)
+          $actual_name = "${{ matrix.sidecar_name }}"
+          if ($actual_name -eq "ownex-backend.exe") { $actual_name = "ownex-backend" }
+          $exe = "dist/$actual_name"
+          if (!(Test-Path $exe)) { throw "Sidecar not found: $exe" }
+          $size = (Get-Item $exe).Length
+          Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
+          if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB)" }
+        shell: pwsh
+
       # Smoke test sidecar (Windows only - other platforms run Tauri build which tests it)
       - name: Smoke test sidecar runtime
         if: runner.os == 'Windows'
@@ -72,15 +95,15 @@ jobs:
           $err = "$env:RUNNER_TEMP\sidecar_err.txt"
           $p = Start-Process $exe -ArgumentList "--port","8199" -PassThru -RedirectStandardError $err
           $ok = $false
-          for ($i = 0; $i -lt 45; $i++) {
+          for ($i = 0; $i -lt 60; $i++) {
             Start-Sleep -Seconds 2
             if ($p.HasExited) { break }
-            try { Invoke-RestMethod "http://127.0.0.1:8199/api/health" -TimeoutSec 3 | Out-Null; $ok = $true; break } catch {}
+            try { Invoke-RestMethod "http://127.0.0.1:8199/api/health" -TimeoutSec 5 | Out-Null; $ok = $true; break } catch {}
           }
           if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force }
           if (-not $ok) {
             Write-Host "=== sidecar stderr ==="
-            Get-Content $err -Tail 20 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
+            Get-Content $err -Tail 30 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
             throw "Sidecar failed /api/health"
           }
           Write-Host "Sidecar smoke: PASS"
@@ -126,7 +149,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact
+      # Download sidecar artifact to sidecar/ directory
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
@@ -320,6 +343,14 @@ jobs:
           rustup --version || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source $HOME/.cargo/env
           sw_vers
+
+      # Install WebView2 on Windows
+      - name: Install WebView2 (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "Installing WebView2..."
+          winget install Microsoft.EdgeWebView2Runtime -e --accept-source-agreements --accept-package-agreements 2>&1 || echo "WebView2 install failed or already installed"
+        shell: pwsh
 
       # Tauri build with verbose output
       - name: Tauri build
