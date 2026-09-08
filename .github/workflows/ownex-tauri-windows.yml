@@ -63,9 +63,23 @@ jobs:
         run: |
           ${{ matrix.pyinstaller_cmd }} OWNEX-Backend.spec --clean --noconfirm
 
+      # Rename Windows binary to remove .exe extension (Tauri expects base name)
+      - name: Normalize sidecar name (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          if (Test-Path "dist\ownex-backend.exe") {
+            Move-Item "dist\ownex-backend.exe" "dist\ownex-backend" -Force
+            Write-Host "Renamed ownex-backend.exe to ownex-backend"
+          }
+        shell: pwsh
+
       - name: Validate sidecar exists
         run: |
           $exe = "dist/${{ matrix.sidecar_name }}"
+          # On Windows, the spec now outputs ownex-backend (without .exe)
+          $actual_name = "${{ matrix.sidecar_name }}"
+          if ($actual_name -eq "ownex-backend.exe") { $actual_name = "ownex-backend" }
+          $exe = "dist/$actual_name"
           if (!(Test-Path $exe)) { throw "Sidecar not found: $exe" }
           $size = (Get-Item $exe).Length
           Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
@@ -295,8 +309,8 @@ jobs:
           source $HOME/.cargo/env
           sw_vers
 
-      # Cargo check before Tauri build (non-failing)
-      - name: Cargo check
+      # Cargo check before Tauri build (non-failing, explicit name)
+      - name: Cargo check (non-failing)
         run: |
           cd src-tauri
           cargo check --verbose 2>&1 | tee cargo-check.log
