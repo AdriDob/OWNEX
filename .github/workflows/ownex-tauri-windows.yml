@@ -172,7 +172,7 @@ jobs:
         run: |
           $destDir = "src-tauri\binaries"
           $src = "dist\ownex-backend.exe"
-          $dest = "$destDir\ownex-backend"
+          $dest = "$destDir\ownex-backend.exe"
           if (!(Test-Path $src)) { throw "Source sidecar not found: $src" }
           if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
           Copy-Item $src $dest -Force
