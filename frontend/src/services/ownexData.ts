@@ -2025,3 +2025,69 @@ export async function upsertKnowledgeGraphNode(
 ): Promise<KnowledgeGraphNode> {
   return api.post('/api/knowledge-graph/nodes', { type, name, properties, node_id: nodeId })
 }
+
+// ── Targets CRUD ──
+
+export async function createTarget(data: { name: string; domain?: string; mode?: string }): Promise<{ id: number; name: string; domain: string | null }> {
+  return api.post('/api/targets', data)
+}
+
+export async function updateTarget(targetId: number, data: { name?: string; domain?: string; active?: boolean; priority?: string; orion_score?: number }): Promise<{ id: number; name: string; domain: string | null; active: boolean }> {
+  return api.put(`/api/targets/${targetId}`, data)
+}
+
+export async function deleteTarget(targetId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/targets/${targetId}`)
+}
+
+export async function activateTarget(targetId: number): Promise<{ id: number; active: boolean }> {
+  return api.patch(`/api/targets/${targetId}/activate`)
+}
+
+export async function deactivateTarget(targetId: number): Promise<{ id: number; active: boolean }> {
+  return api.patch(`/api/targets/${targetId}/deactivate`)
+}
+
+// ── Findings CRUD ──
+
+export async function createFinding(data: { target_id: number; endpoint_id?: number; title: string; severity?: string; description?: string }): Promise<{ id: number; title: string }> {
+  return api.post('/api/findings', data)
+}
+
+export async function updateFinding(findingId: number, data: { notes?: string; status?: string }): Promise<{ id: number }> {
+  return api.put(`/api/findings/${findingId}`, data)
+}
+
+export async function updateFindingStatus(findingId: number, status: string): Promise<{ id: number; status: string }> {
+  return api.put(`/api/findings/${findingId}/status`, { status })
+}
+
+export async function deleteFinding(findingId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/findings/${findingId}`)
+}
+
+export async function confirmFinding(findingId: number): Promise<{ id: number; status: string }> {
+  return updateFindingStatus(findingId, 'confirmed')
+}
+
+export async function rejectFinding(findingId: number): Promise<{ id: number; status: string }> {
+  return updateFindingStatus(findingId, 'rejected')
+}
+
+// ── Reports CRUD ──
+
+export async function createReport(data: { title: string; target_id: number; findings: number[] }): Promise<{ id: number; title: string }> {
+  return api.post('/api/reports', data)
+}
+
+export async function updateReport(reportId: number, data: { title?: string; status?: string; content?: string }): Promise<{ id: number }> {
+  return api.put(`/api/reports/${reportId}`, data)
+}
+
+export async function deleteReport(reportId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/reports/${reportId}`)
+}
+
+export async function submitReport(reportId: number, data?: { submission_url?: string }): Promise<{ id: number; status: string }> {
+  return api.post(`/api/reports/${reportId}/submit`, data || {})
+}

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/targets", tags=["targets"])
 @router.get("/ev-ranking")
 def ev_ranking(limit: int = Query(20, ge=1, le=100)):
     """Return targets ranked by Expected Value (USD/hour)."""
-    from core.target_intelligence.prioritizer import TargetPrioritizer
+    from cores.target_intelligence.prioritizer import TargetPrioritizer
     from database import db, models
 
     session = db.SessionLocal()
@@ -61,6 +61,14 @@ class TargetCreate(BaseModel):
     name: str
     domain: str | None = None
     mode: str | None = "FAST"
+
+
+class TargetUpdate(BaseModel):
+    name: str | None = None
+    domain: str | None = None
+    active: bool | None = None
+    priority: str | None = None
+    orion_score: int | None = None
 
 
 @router.post("")
@@ -168,3 +176,132 @@ def get_target_summary(target_id: int):
         }
     )
     return {"target": t, "endpoints": entries, "score": sc}
+
+
+@router.put("/{target_id}")
+def update_target(target_id: int, body: TargetUpdate):
+    """Update target fields."""
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        target = session.query(models.Target).filter(models.Target.id == target_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Target not found")
+
+        if body.name is not None:
+            target.name = body.name
+        if body.domain is not None:
+            target.domain = body.domain
+        if body.active is not None:
+            target.active = body.active
+        if body.priority is not None:
+            target.priority = body.priority
+        if body.orion_score is not None:
+            target.orion_score = body.orion_score
+
+        session.commit()
+        session.refresh(target)
+
+        # Publish event
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("target:updated", {"id": target_id, "name": target.name})
+        except Exception:
+            pass
+
+        return {"id": target.id, "name": target.name, "domain": target.domain, "active": target.active}
+    finally:
+        session.close()
+
+
+@router.delete("/{target_id}")
+def delete_target(target_id: int):
+    """Delete a target."""
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        target = session.query(models.Target).filter(models.Target.id == target_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Target not found")
+
+        # Store name for event
+        target_name = target.name
+
+        # Delete related endpoints and findings
+        session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).delete()
+        session.query(models.Finding).filter(models.Finding.target_id == target_id).delete()
+        session.delete(target)
+        session.commit()
+
+        # Publish event
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("target:deleted", {"id": target_id, "name": target_name})
+        except Exception:
+            pass
+
+        return {"id": target_id, "deleted": True}
+    finally:
+        session.close()
+
+
+@router.patch("/{target_id}/activate")
+def activate_target(target_id: int):
+    """Activate a target."""
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        target = session.query(models.Target).filter(models.Target.id == target_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Target not found")
+
+        target.active = True
+        session.commit()
+        session.refresh(target)
+
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("target:activated", {"id": target_id, "name": target.name})
+        except Exception:
+            pass
+
+        return {"id": target_id, "active": True}
+    finally:
+        session.close()
+
+
+@router.patch("/{target_id}/deactivate")
+def deactivate_target(target_id: int):
+    """Deactivate a target."""
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        target = session.query(models.Target).filter(models.Target.id == target_id).first()
+        if not target:
+            raise HTTPException(status_code=404, detail="Target not found")
+
+        target.active = False
+        session.commit()
+        session.refresh(target)
+
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("target:deactivated", {"id": target_id, "name": target.name})
+        except Exception:
+            pass
+
+        return {"id": target_id, "active": False}
+    finally:
+        session.close()

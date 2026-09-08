@@ -5,8 +5,9 @@
  */
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { FileText, Clock, History, Plus, Send, Eye } from '@lucide/vue'
+import { FileText, Clock, History, Plus, Send, Eye, Trash2, Check } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
+import { deleteReport, submitReport } from '@/services/ownexData'
 
 const router = useRouter()
 const activeTab = ref('queue')
@@ -24,6 +25,7 @@ interface Report {
 const reports = ref<Report[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+const busyId = ref<string | null>(null)
 
 async function fetchReports() {
   loading.value = true
@@ -63,6 +65,31 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
 }
 
+async function submitReportItem(reportId: string) {
+  busyId.value = reportId
+  try {
+    await submitReport(reportId)
+    await fetchReports()
+  } catch (e) {
+    console.error('Failed to submit report', e)
+  } finally {
+    busyId.value = null
+  }
+}
+
+async function deleteReportItem(reportId: string) {
+  if (!confirm('¿Estás seguro de que quieres eliminar este reporte?')) return
+  busyId.value = reportId
+  try {
+    await deleteReport(reportId)
+    await fetchReports()
+  } catch (e) {
+    console.error('Failed to delete report', e)
+  } finally {
+    busyId.value = null
+  }
+}
+
 fetchReports()
 </script>
 
@@ -99,10 +126,9 @@ fetchReports()
           <div
             v-for="report in queueReports"
             :key="report.id"
-            class="flex items-center justify-between rounded-lg border border-border/30 bg-surface/50 p-4 transition-colors hover:border-primary/30 cursor-pointer"
-            @click="router.push(`/reports/${report.id}`)"
+            class="flex items-center justify-between rounded-lg border border-border/30 bg-surface/50 p-4 transition-colors hover:border-primary/30"
           >
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 cursor-pointer" @click="router.push(`/reports/${report.id}`)">
               <p class="truncate text-sm font-medium text-foreground">{{ report.title }}</p>
               <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{{ report.platform }}</span>
@@ -110,9 +136,30 @@ fetchReports()
                 <span>{{ formatDate(report.updated_at) }}</span>
               </div>
             </div>
-            <span :class="['rounded-full px-2 py-0.5 text-[10px] font-mono', statusColor(report.status)]">
-              {{ report.status }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span :class="['rounded-full px-2 py-0.5 text-[10px] font-mono', statusColor(report.status)]">
+                {{ report.status }}
+              </span>
+              <div class="flex items-center gap-1">
+                <button
+                  v-if="report.status === 'draft' || report.status === 'review'"
+                  @click="submitReportItem(report.id)"
+                  :disabled="busyId === report.id"
+                  class="rounded-md p-1.5 text-primary hover:bg-primary/10 disabled:opacity-50"
+                  aria-label="Submit report"
+                >
+                  <Send class="h-3.5 w-3.5" />
+                </button>
+                <button
+                  @click="deleteReportItem(report.id)"
+                  :disabled="busyId === report.id"
+                  class="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                  aria-label="Delete report"
+                >
+                  <Trash2 class="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </template>

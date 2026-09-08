@@ -5,8 +5,9 @@
  */
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Bug, Brain, Lightbulb, BarChart3, Search, Shield } from '@lucide/vue'
+import { Bug, Brain, Lightbulb, BarChart3, Search, Shield, Check, X, Trash2 } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
+import { confirmFinding, rejectFinding, deleteFinding } from '@/services/ownexData'
 
 const router = useRouter()
 const activeTab = ref('overview')
@@ -15,6 +16,7 @@ const activeTab = ref('overview')
 const findings = ref<any[]>([])
 const hypotheses = ref<any[]>([])
 const loading = ref(true)
+const busyId = ref<number | null>(null)
 
 async function fetchData() {
   loading.value = true
@@ -42,6 +44,43 @@ const tabs = computed(() => [
   { id: 'hypotheses', label: 'Hipótesis', icon: Lightbulb, badge: stats.value.totalHypotheses || undefined },
   { id: 'differential', label: 'Diferencial', icon: Brain },
 ])
+
+async function confirm(findingId: number) {
+  busyId.value = findingId
+  try {
+    await confirmFinding(findingId)
+    await fetchData()
+  } catch (e) {
+    console.error('Failed to confirm finding', e)
+  } finally {
+    busyId.value = null
+  }
+}
+
+async function reject(findingId: number) {
+  busyId.value = findingId
+  try {
+    await rejectFinding(findingId)
+    await fetchData()
+  } catch (e) {
+    console.error('Failed to reject finding', e)
+  } finally {
+    busyId.value = null
+  }
+}
+
+async function deleteFindingItem(findingId: number) {
+  if (!confirm('¿Estás seguro de que quieres eliminar este finding?')) return
+  busyId.value = findingId
+  try {
+    await deleteFinding(findingId)
+    await fetchData()
+  } catch (e) {
+    console.error('Failed to delete finding', e)
+  } finally {
+    busyId.value = null
+  }
+}
 
 fetchData()
 </script>
@@ -117,12 +156,42 @@ fetchData()
               <p class="truncate text-sm font-medium text-foreground">{{ f.title || f.name }}</p>
               <p class="mt-1 text-xs text-muted-foreground">{{ f.severity || 'unknown' }} · {{ f.platform || '' }}</p>
             </div>
-            <span
-              class="rounded-full px-2 py-0.5 text-[10px] font-mono"
-              :class="f.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'"
-            >
-              {{ f.status }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span
+                class="rounded-full px-2 py-0.5 text-[10px] font-mono"
+                :class="f.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-yellow-500/10 text-yellow-400'"
+              >
+                {{ f.status }}
+              </span>
+              <div class="flex items-center gap-1">
+                <button
+                  v-if="f.status !== 'confirmed'"
+                  @click="confirm(f.id)"
+                  :disabled="busyId === f.id"
+                  class="rounded-md p-1.5 text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-50"
+                  aria-label="Confirm finding"
+                >
+                  <Check class="h-3.5 w-3.5" />
+                </button>
+                <button
+                  v-if="f.status !== 'rejected'"
+                  @click="reject(f.id)"
+                  :disabled="busyId === f.id"
+                  class="rounded-md p-1.5 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                  aria-label="Reject finding"
+                >
+                  <X class="h-3.5 w-3.5" />
+                </button>
+                <button
+                  @click="deleteFindingItem(f.id)"
+                  :disabled="busyId === f.id"
+                  class="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                  aria-label="Delete finding"
+                >
+                  <Trash2 class="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </template>

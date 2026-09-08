@@ -14,6 +14,8 @@ import {
   Plus,
   Edit2,
   Trash2,
+  Check,
+  X,
 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -25,6 +27,7 @@ import Input from '@/components/ui/Input.vue'
 import Select from '@/components/ui/Select.vue'
 import Modal from '@/components/ui/Modal.vue'
 import { api } from '@/lib/api'
+import { createTarget, updateTarget, deleteTarget, activateTarget, deactivateTarget } from '@/services/ownexData'
 
 interface MoneyRadarItem {
   id: number
@@ -194,9 +197,19 @@ async function saveItem() {
   saving.value = true
   try {
     if (editingItem.value) {
-      await api.put(`/economic/money-radar/${editingItem.value.id}`, createForm.value)
+      await updateTarget(editingItem.value.id, {
+        name: createForm.value.name,
+        domain: createForm.value.domain,
+        active: createForm.value.status === 'active',
+        priority: createForm.value.priority,
+        orion_score: createForm.value.orion_score,
+      })
     } else {
-      await api.post('/economic/money-radar', createForm.value)
+      await createTarget({
+        name: createForm.value.name,
+        domain: createForm.value.domain,
+        mode: 'FAST',
+      })
     }
     showCreateModal.value = false
     editingItem.value = null
@@ -212,13 +225,22 @@ async function deleteItem(id: number) {
   if (!confirm('¿Estás seguro de que quieres eliminar este target?')) return
   deleting.value = id
   try {
-    await api.delete(`/economic/money-radar/${id}`)
+    await deleteTarget(id)
     await fetchData()
   } catch (e: any) {
     console.error(e)
   } finally {
     deleting.value = null
   }
+}
+
+async function toggleActivation(item: MoneyRadarItem) {
+  if (item.status === 'active') {
+    await deactivateTarget(item.id)
+  } else {
+    await activateTarget(item.id)
+  }
+  await fetchData()
 }
 </script>
 
