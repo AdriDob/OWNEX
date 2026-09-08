@@ -63,29 +63,6 @@ jobs:
         run: |
           ${{ matrix.pyinstaller_cmd }} OWNEX-Backend.spec --clean --noconfirm
 
-      # Rename Windows binary to remove .exe extension (Tauri expects base name)
-      - name: Normalize sidecar name (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          if (Test-Path "dist\ownex-backend.exe") {
-            Move-Item "dist\ownex-backend.exe" "dist\ownex-backend" -Force
-            Write-Host "Renamed ownex-backend.exe to ownex-backend"
-          }
-        shell: pwsh
-
-      - name: Validate sidecar exists
-        run: |
-          $exe = "dist/${{ matrix.sidecar_name }}"
-          # On Windows, the spec now outputs ownex-backend (without .exe)
-          $actual_name = "${{ matrix.sidecar_name }}"
-          if ($actual_name -eq "ownex-backend.exe") { $actual_name = "ownex-backend" }
-          $exe = "dist/$actual_name"
-          if (!(Test-Path $exe)) { throw "Sidecar not found: $exe" }
-          $size = (Get-Item $exe).Length
-          Write-Host "Sidecar size: $([math]::Round($size / 1MB, 2)) MB"
-          if ($size -lt 50MB) { throw "Sidecar suspiciously small ($([math]::Round($size / 1MB, 2)) MB)" }
-        shell: pwsh
-
       # Smoke test sidecar (Windows only - other platforms run Tauri build which tests it)
       - name: Smoke test sidecar runtime
         if: runner.os == 'Windows'
@@ -114,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: dist/ownex-backend
+          path: dist/${{ matrix.sidecar_name }}
           if-no-files-found: error
 
   # ── Tauri build for each platform ──
@@ -144,12 +121,12 @@ jobs:
               src-tauri/target/release/bundle/macos/*.app
               src-tauri/target/release/bundle/**/*.sha256
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 90
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact to sidecar/ directory
+      # Download sidecar artifact
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
@@ -194,7 +171,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $destDir = "src-tauri\binaries"
-          $src = "dist\ownex-backend"
+          $src = "dist\ownex-backend.exe"
           $dest = "$destDir\ownex-backend.exe"
           if (!(Test-Path $src)) { throw "Source sidecar not found: $src" }
           if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
