@@ -166,7 +166,7 @@ jobs:
             if [ -f sidecar/ownex-backend.exe ]; then
               mkdir -p dist
               mv sidecar/ownex-backend.exe dist/
-              echo "Windows sidecar: MOVED TO dist/"
+              echo "Windows sidecar (.exe): MOVED TO dist/"
             elif [ -f sidecar/ownex-backend ]; then
               mkdir -p dist
               mv sidecar/ownex-backend dist/
@@ -189,13 +189,13 @@ jobs:
           fi
           ls -la dist/
 
-      # Copy sidecar to Tauri binaries
+      # Copy sidecar to Tauri binaries with correct extension for each platform
       - name: Prepare Tauri sidecar (Windows)
         if: runner.os == 'Windows'
         run: |
           $destDir = "src-tauri\binaries"
           $src = "dist\ownex-backend"
-          $dest = "$destDir\ownex-backend"
+          $dest = "$destDir\ownex-backend.exe"
           if (!(Test-Path $src)) { throw "Source sidecar not found: $src" }
           if (!(Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force }
           Copy-Item $src $dest -Force
@@ -309,7 +309,7 @@ jobs:
           source $HOME/.cargo/env
           sw_vers
 
-      # Cargo check before Tauri build (non-failing, explicit name)
+      # Cargo check before Tauri build (non-failing)
       - name: Cargo check (non-failing)
         run: |
           cd src-tauri
