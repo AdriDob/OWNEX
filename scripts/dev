@@ -69,14 +69,14 @@ def cmd_fmt(extra: list[str]) -> int:
 def cmd_typecheck(extra: list[str]) -> int:
     return _run(
         "mypy (full)",
-        [PY, "-m", "mypy", "cores/", "core/", "api/", "database/", "desktop/"] + extra,
+        [PY, "-m", "mypy", "cores/", "api/", "database/", "desktop/"] + extra,
     )
 
 
 def cmd_typecheck_fast(_extra: list[str]) -> int:
     return _run(
         "mypy (scoped)",
-        [PY, "-m", "mypy", "core/opportunity/scoring.py", "core/scheduler/scheduler.py", "core/scheduler/jobs.py"],
+        [PY, "-m", "mypy", "cores/opportunity/scoring.py", "cores/scheduler/scheduler.py", "cores/scheduler/jobs.py"],
     )
 
 

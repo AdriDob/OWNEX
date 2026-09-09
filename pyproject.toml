@@ -26,6 +26,7 @@ ignore = ["E501", "E731", "B008"]
 "desktop/service.py" = ["N802"]
 "alembic/*" = ["E402", "UP035", "UP007", "W291", "I001"]
 "database/db.py" = ["E402"]
+"api/main.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"

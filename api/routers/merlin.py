@@ -33,6 +33,7 @@ class ChatResponse(BaseModel):
     tool_calls: list[ToolCall] | None = None
     timestamp: datetime
     is_success: bool = True
+    semantics: dict[str, list[str]] | None = None
 
 
 class ToolExecuteRequest(BaseModel):
@@ -172,11 +173,19 @@ async def chat(request: ChatRequest):
                     except Exception:
                         pass
 
+        cleaned = response.replace("TOOL_CALL:", "").strip()
+        try:
+            from cores.copilot.semantics import label_free_text
+
+            semantics: dict[str, list[str]] | None = label_free_text(cleaned).to_dict()
+        except Exception:
+            semantics = None
         return ChatResponse(
-            response=response.replace("TOOL_CALL:", "").strip(),
+            response=cleaned,
             tool_calls=tool_calls,
             timestamp=datetime.now(),
             is_success=True,
+            semantics=semantics,
         )
 
     except Exception as e:

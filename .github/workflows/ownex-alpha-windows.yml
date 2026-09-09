@@ -34,6 +34,7 @@ jobs:
 
       - name: Build PyInstaller (Windows native)
         run: |
+          if (!(Test-Path "OWNEX-Desktop-Alpha.spec")) { throw "OWNEX-Desktop-Alpha.spec not in repo root (archived at docs/archived/installers/). Canonical pipeline: ownex-tauri-windows.yml" }
           .venv\Scripts\pyinstaller.exe OWNEX-Desktop-Alpha.spec --clean --noconfirm
 
       - name: Validate Windows bundle exists

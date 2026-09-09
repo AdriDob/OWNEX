@@ -70,7 +70,15 @@ def chat(body: ChatRequest):
     if not body.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     assistant = get_assistant()
-    return assistant.chat(body.message)
+    result = assistant.chat(body.message)
+    if isinstance(result, dict):
+        try:
+            from cores.copilot.semantics import label_free_text
+
+            result = {**result, "semantics": label_free_text(str(result.get("answer", ""))).to_dict()}
+        except Exception:
+            pass
+    return result
 
 
 @router.post("/orion-chat")
@@ -81,7 +89,15 @@ async def orion_chat(body: OrionChatRequest):
 
     agent = OrionAgent()
     history = [{"role": m.role, "content": m.content} for m in body.history]
-    return await agent.chat(body.message, history)
+    result = await agent.chat(body.message, history)
+    if isinstance(result, dict):
+        try:
+            from cores.copilot.semantics import label_free_text
+
+            result = {**result, "semantics": label_free_text(str(result.get("response", ""))).to_dict()}
+        except Exception:
+            pass
+    return result
 
 
 @router.post("/chat/stream")

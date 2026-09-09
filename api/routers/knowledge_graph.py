@@ -1,6 +1,6 @@
 """Knowledge Graph API Router — Visual exploration of the knowledge graph.
 
-Backed by the canonical ``core.knowledge.graph`` singleton (SQLAlchemy).
+Backed by the canonical ``cores.knowledge.graph`` singleton (SQLAlchemy).
 """
 
 from __future__ import annotations

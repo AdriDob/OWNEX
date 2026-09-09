@@ -318,25 +318,39 @@ class TestWorkerCoreFullCycleE2E:
         assert work_item.state is not None
 
     @pytest.mark.asyncio
-    async def test_resume_capability(self, worker, goal):
-        """Test that worker can resume from checkpoint."""
+    async def test_resume_capability(
+        self, config, goal, mock_discovery, mock_evaluation, mock_execution, mock_delivery, mock_learning
+    ):
+        """Test that worker can resume from checkpoint after a mid-cycle crash.
+
+        Simulates a crash while a work item waits at the human gate: DELIVER
+        is persisted with phase_completed=False, so a fresh worker must detect
+        the open item and report the deliver phase as resumable. A fully
+        completed cycle (learn done) correctly yields nothing to resume.
+        """
+        config.human_approval_required = True
+        worker = WorkerCore(config)
+        worker.set_discovery_engine(mock_discovery)
+        worker.set_evaluation_engine(mock_evaluation)
+        worker.set_execution_engine(mock_execution)
+        worker.set_delivery_engine(mock_delivery)
+        worker.set_learning_engine(mock_learning)
         worker.set_goal(goal)
 
-        # Run one cycle
         await worker._run_cycle()
 
-        # Get the work item
         work_item = list(worker.work_items.values())[0]
         work_id = work_item.id
+        assert work_item.human_action_required is True
 
         # Simulate crash: create new worker
         new_worker = WorkerCore(worker.config)
         new_worker.set_goal(goal)
 
-        # Verify resume detects the work item
+        # Verify resume detects the open work item at the deliver phase
         resumed = new_worker.resume_open_work_items()
         assert len(resumed) >= 1
-        assert any(wid == work_id for wid, _ in resumed)
+        assert any(wid == work_id and phase == "deliver" for wid, phase in resumed)
 
 
 class TestWorkerCoreContracts:

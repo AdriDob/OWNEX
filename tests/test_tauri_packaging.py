@@ -51,7 +51,11 @@ class TestTauriConf:
 class TestSidecarSpec:
     def test_spec_is_onefile_named_ownex_backend(self) -> None:
         spec = (REPO_ROOT / "OWNEX-Backend.spec").read_text(encoding="utf-8")
-        assert 'name="ownex-backend"' in spec, "sidecar exe name must match externalBin"
+        # Name may be literal (name="ownex-backend") or via EXE_NAME variable;
+        # either way the built exe must be "ownex-backend" to match externalBin.
+        assert 'EXE_NAME = "ownex-backend"' in spec or 'name="ownex-backend"' in spec, (
+            "sidecar exe name must match externalBin"
+        )
         # Onefile contract: a top-level EXE with all blobs, no COLLECT().
         assert "COLLECT(" not in spec, (
             "ONEFILE required: Tauri copies a single file per target-triple "

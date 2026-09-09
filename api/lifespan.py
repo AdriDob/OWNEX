@@ -529,7 +529,7 @@ def _init_event_store(bus: Any) -> None:
                 continue
             _creg.register(
                 "hunt_vulnerability",
-                f"core.integrations.ext.hunter_bridge.{name}",
+                f"cores.integrations.ext.hunter_bridge.{name}",
                 {"installed": info.get("installed", False)},
             )
     except Exception:

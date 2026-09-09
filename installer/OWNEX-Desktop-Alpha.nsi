@@ -11,7 +11,7 @@
 !define COMPANYNAME "OWNEX"
 !define DESCRIPTION "Native bug bounty intelligence platform"
 !define VERSIONMAJOR 7
-!define VERSIONMINOR 0
+!define VERSIONMINOR 1
 !define VERSIONBUILD 0
 !define HELPURL "https://github.com/AdriDob/OWNEX"
 !define UPDATEURL "https://github.com/AdriDob/OWNEX"

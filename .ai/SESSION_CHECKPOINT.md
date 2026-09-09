@@ -2,6 +2,41 @@
 
 > v7.1.0 — working tree P0→P5 pendiente de commit (2026-09-09). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09.
 
+## Última Sesión: 2026-09-09 — WIN11-STABLE (rama release + P0 frozen + smoke) ✅
+
+### Qué se hizo (build mode, rama `release/win11-stable` creada desde `feat/phase0-foundation`)
+- Decisiones usuario: Tauri canónico · validar en este entorno · rama estabilizada nueva (NO-MERGE sigue: PR #37 aparte) · sin firma.
+- P0: `api/main.py` env-first + `catseye.db` + `OWNEX_DATA_DIR` + URL explícita wins (E402→per-file-ignore); `cores/platform/system.py` docstrings; `sync_version.py` 11 superficies; READMEs Tauri; workflows legacy fail-fast; guard `EXE_NAME` (test-only).
+- Bug frozen `/api/version` 500→200 in_sync=true (spec datas + fallback `OWNEX_VERSION`).
+- Evidencia: 25/25 · 100/1 · 120 · ruff · cargo 4s · vite 12.5s · ONEFILE 258MB ×3 · smoke 8199/8201/8202 OK.
+- No tocado: territorio concurrente + `run.py`. Sin commits. Límite: MSI/NSIS vía CI.
+- Detalle: `DECISIONS.md` → "2026-09-09: WIN11-STABLE"; `CURRENT_STATE.md` → sesión WIN11-STABLE.
+
+## Última Sesión: 2026-09-09 — DEFINITIVE P0: consolidación core/→cores/ + fixes críticos ✅
+
+### Qué se hizo (build mode, plan DEFINITIVE P0)
+- **P0.1 consolidación completada**: imports `core.`→`cores.` migrados y verificados en 0 archivos fuera del árbol (solo quedaba `test_imports.py` scratch → archivado a `docs/archived/`; `ultimate_validation.py` scratch → archivado). NOTA 2026-09-09 (post-revert d968f4bf): el árbol físico `core/` fue restaurado y SIGUE presente; `cores/` es el único árbol importado por código vivo (0 refs `core.`), pero el borrado físico queda pendiente de decisión explícita — no reintentar sin coordinar.
+- **Referencias dinámicas migradas**: manifests forge/pulse/vault (`core.opportunity…`→`cores…`, 19/19 verificados resolubles), `OWNEX-Backend.spec` (collect solo `cores`), `api/lifespan.py` capability ID, docstrings, `cores/engine/guardrails.py`, `cores/documentation/introspect.py`, Makefile/scripts-dev/.coveragerc (paths `cores/`).
+- **Target.status + scope**: `Target.status` era columna ficticia (solo existe `active`) → property derivada + 3 queries reescritas a esquema real (`orion_context`, `system_context` con join a `Endpoint.last_scanned` + `TargetIntel.opportunity_score`, `startup_checks` contra `target_scopes`). `check_stalled_pipelines` reescrito contra `ScanRun` real (era `models.Pipeline` inexistente). Eliminados `check_investment_funding` (modelo `InvestmentAccount` inexistente) y `register_check_job` muerto (símbolos inexistentes, sin callers).
+- **Product fix real**: `_run_cycle` ejecutaba LEARN tras pausa en human-gate (outcome "failed" bogus + cerraba resume trail) → ahora retorna tras DELIVER pausado; test `test_resume_capability` reescrito a crash mid-cycle real (human-gate) y pasa.
+- **Autonomía**: `test_none_autonomy_blocks_sensitive_actions` corregido a semántica NONE=todon requiere aprobación (consistente con `AutonomyLevel` + test hermano).
+- **Vault Pydantic V2**: `type(creds).model_fields` en `cores/credentials/vault.py` (canónico).
+- **Hunt contract**: verificado ya resuelto en HEAD (`api/routers/hunt.py` `/api/hunt/*` ↔ `frontend/src/stores/hunt.ts`). `_resolve` 422, `datetime.now(UTC)`, dead-code dirs: ya resueltos en HEAD (no duplicados).
+- **Verificación**: `import api.main` OK; test-fast **100/1** exacto a baseline; suites afectadas **195 passed**; ruff limpio en tocados. Test pollution propia limpiada de `database/catseye.db` (24 filas worker_checkpoints de repros manuales).
+- **Windows CI**: workflow `ownex-tauri-windows.yml` verificado coherente (pyinstaller spec → `ownex-backend` == externalBin == sidecar entry; artefactos MSI+NSIS + SHA256). Runtime nativo Windows sigue pendiente de hardware real.
+- **P1 Command Center (nuevo, `api/routers/command_center.py` + `tests/test_command_center.py` 5/5)**: eliminado EV fabricado ($500/100 hardcodeados → null + UNKNOWN honesto); contrato extendido WHY/RISK/SUCCESS_CONDITION/NEXT + bloque `semantics` FACT/INFERENCE/RECOMMENDATION/UNKNOWN; bloque `ai` en `/status` (providers OAR + budget, degrade a "unavailable" sin romper). Aditivo: frontend tolera nulls, sin regresiones.
+- **Verificación actualizada**: suites combinadas **216 passed / 1 skipped** (incl. 5 nuevos); test-fast 100/1; ruff limpio en tocados (SIM105 restantes preexistentes).
+
+### Estado concurrente (IMPORTANTE)
+- Otro proceso escribe en esta rama (commit 6eb35fbc aterrizó mid-sesión; stashes activos incl. `filter-branch`; ediciones sin commitear en `cores/events/event_bus.py`, `cores/opportunity/engine.py`, `cores/validation/confidence.py`, submódulo `cognee`). **No tocados** deliberadamente (territorio P2 del otro flujo).
+- La regla YIELD 2026-09-08 (no tocar core/cores) se considera superada: la migración ajena ya está commiteada en HEAD y el usuario ordenó explícitamente el plan DEFINITIVE + "Continuar" en build mode. Ver `DECISIONS.md` 2026-09-09 (DEFINITIVE P0).
+- Protocolo seguido: cero operaciones de índice que colisionen, fixes solo en territorio propio, sin commits (no solicitados).
+
+### Pendiente
+- Validación Windows runtime en hardware real (MSI/NSIS install→launch→persist→upgrade→uninstall).
+- Borrado físico de `core/`: BLOQUEADO por política (d968f4bf + DECISIONS.md 2026-09-09) hasta Windows validation. No reintentar.
+- Decisión de fase siguiente: P2 (motores) colisiona con el flujo concurrente hoy (edita opportunity/validation/events). P1-backlog restante: chat con estado canónico ya existe (`/copilot/chat` + `ownexAi.ts`); queda por verificar E2E.
+
 ## Última Sesión: 2026-09-09 — FINAL DOC/REPO + commits finales ✅
 
 ### Qué se hizo

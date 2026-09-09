@@ -287,20 +287,20 @@ class TestAutonomyEnforcement:
     """Test that autonomy levels are properly enforced."""
 
     def test_none_autonomy_blocks_sensitive_actions(self, worker_config):
-        """NONE autonomy requires approval for prepare, execute, deliver."""
+        """NONE autonomy requires approval for everything, including discover."""
         from cores.worker_core.orchestrator import WorkerCore
 
         wc = WorkerCore(worker_config)
         wc.config.autonomy_level = AutonomyLevel.NONE
 
+        # NONE (0) < DISCOVER (1) → blocked
+        assert wc.requires_human_approval("discover") is True
         # NONE (0) < PREPARE (2) → blocked
         assert wc.requires_human_approval("prepare") is True
         # NONE (0) < EXECUTE (3) → blocked
         assert wc.requires_human_approval("execute") is True
         # NONE (0) < FULL (4) → blocked
         assert wc.requires_human_approval("deliver") is True
-        # NONE (0) == NONE (0) → allowed (discover/learn need no approval)
-        assert wc.requires_human_approval("discover") is False
 
     def test_full_autonomy_allows_delivery(self, worker_config):
         """FULL autonomy allows delivery without approval."""

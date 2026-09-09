@@ -410,8 +410,8 @@ Choose your platform:
    - GitHub Releases (when published)
 2. Run the installer (accept SmartScreen warning — debug build)
 3. Launch OWNEX Desktop from Start menu
-4. Backend starts automatically at `http://127.0.0.1:8000`
-5. Data persists in `%APPDATA%\OWNEX` (survives reinstalls)
+4. Backend starts automatically at `http://127.0.0.1:8000` (first free port from 8000)
+5. Data persists in `%LOCALAPPDATA%\OWNEX` (survives reinstalls)
 
 **Detailed guide:** [README-INSTALACION.md](README-INSTALACION.md)
 

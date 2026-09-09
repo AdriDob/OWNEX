@@ -1,3 +1,12 @@
+## Sesión 2026-09-09 — WIN11-STABLE: rama release + P0 frozen + smoke sidecar + bug /api/version
+
+> **QUÉ SE HIZO:** Cierre Windows 11 en rama nueva `release/win11-stable` (decisiones usuario: Tauri canónico, validar en este entorno, rama estabilizada, sin firma).
+> - **P0 frozen**: `api/main.py` env-first (engine ataba URL vieja) + `catseye.db` unificado + honor `OWNEX_DATA_DIR` + URL explícita jamás sobrescrita; per-file-ignore E402 (convención `database/db.py`); `cores/platform/system.py` docstrings SSOT; `sync_version.py` 9→11 superficies (manifests ×8 + NSI → 7.1.0); READMEs a realidad Tauri (`%LOCALAPPDATA%`, puerto dinámico, artefacto 7.1.0); workflows legacy con fail-fast explícito; guard `test_tauri_packaging` acepta `EXE_NAME` variable (solo-test).
+> - **Bug frozen real**: `GET /api/version` 200 dev / 500 bundle (`VERSION.txt` no empaquetado) → spec empaqueta `VERSION*` + `pyproject.toml` + `frontend/package.json` (sin secretos) + fallback a `OWNEX_VERSION` compilado.
+> - **Verificación**: guards **25/25** · fast **100/1** · afectadas 120 passed · ruff limpio · `cargo check` 4s · `vite build` 12.5s · PyInstaller ONEFILE 258MB ×3 · smoke sidecar (`--port 8199/8201/8202 --data-dir /tmp/win11smoke*`): health 200 v7.1.0, `/api/version` in_sync=true, `catseye.db` en data-dir, `/api/system/health` 200, auth 401 correcto.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, providers forge/pulse/vault, `run.py` (~/.orion vivo). Sin commits (no solicitados).
+> - **Límite**: MSI/NSIS solo construible en CI (tag `v7.1.x` → `ownex-tauri-windows.yml`).
+
 ## Sesión 2026-09-09 — CIERRE P2+P3+Front+P4: safety gates, ledger UI, reconcile en boot
 
 > **QUÉ SE HIZO:** Cierre del sistema y el front (P2 resto + P3 + front económico + P4 verify + P5 parcial).
@@ -10,6 +19,9 @@
 > - **P4 verify**: `cargo check` OK 6.8s; voice backend+UI presentes (V1); mobile tests 4/4; cambios 100% aditivos (mobile/watch no rotos).
 > - **Verificación**: suite amplia **461 passed / 1 skipped** (15 bridge+reconcile, 12 safety estables ×3 corridas, oar/copilot extends, todo P0-P2); `import api.main` OK (1665 rutas); `vite build` OK 11.9s (chunk Ledger); biome + ruff limpios en tocados; endpoint `/revenue-ledger` verificado runtime (earned $150, realized $0 — honesto).
 > - **P5 fault-injection IA** (`tests/test_llm_fault_injection.py`, 8 tests): outage OAR→fallback router, contenido vacío/malformado→fallback, outage total→None (heurísticos), error de router→None (sin invención), import OAR roto→fallback, secretos jamás llegan al provider, router intacto en éxito OAR. Suite total **544 passed / 1 skipped**; ruff limpio.
+> - **Chat libre con semántica** (`cores/copilot/semantics.py::label_free_text` + `POST /copilot/chat` aditivo `semantics`): texto del modelo → INFERENCE por defecto (nunca FACT), marcadores de incertidumbre EN/ES → UNKNOWN + UNKNOWN permanente ("output sin verificar"). `tests/test_chat_semantics.py` (6 tests: unidad + endpoint con auth real + provider mockeado; error-path intacto). Suite total **550 passed / 1 skipped**; ruff limpio. Streaming + merlin/assistant chats quedan como follow-up documentado.
+> - **Chat semántica completa** (cierre): mismo bloque aditivo en `POST /merlin/chat` (modelo), `POST /assistant/chat` y `POST /assistant/orion-chat` (wrappers dict, streaming excluido por diseño). `test_chat_semantics.py` → 9 tests. Suite **553 passed / 1 skipped**.
+> - **Contratos que bloqueaban el hook** (cierre): `HealthCenter/HealthCheck/HealthSnapshot` portados a `cores/health/engine.py` (los endpoints `/health` en vivo esperaban esa API, no `SystemHealthEngine`); `cores/revenue/{models,converter,tracker}.py` portados del twin (shims circulares); compat `.id/.name/.source` + `name` en dicts en el wrapper KG + dedupe de aristas en subgraph; time-bomb de fechas fijas en `test_revenue_engine.py` → fecha dinámica. Colección del hook: **0 errores en 4517 tests**. Suite **624 passed / 1 skipped**; ruff limpio.
 > - **No commiteado** (solo working tree).
 
 ## Sesión 2026-09-09 — P2 ENGINES E2E: submission→revenue bridge + calibration + repeatable

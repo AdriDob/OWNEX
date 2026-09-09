@@ -89,6 +89,33 @@ sync(
     f'OWNEX_VERSION = "{VERSION}"',
 )
 
+# 10. apps/*/manifest.py — version="7.x" de cada app (IAppPlugin)
+for _app in ("aegis", "atlas", "cateye", "forge", "hermes", "odyssey", "pulse", "vault"):
+    sync(
+        f"apps/{_app}/manifest.py",
+        r'version=["\']\d+\.\d+\.\d+["\']',
+        f'version="{VERSION}"',
+    )
+
+# 11. installer/OWNEX-Desktop-Alpha.nsi — instalador legacy Gen2
+# El NSI usa tres defines (MAJOR/MINOR/BUILD); se sincronizan por partes.
+_nsi_major, _nsi_minor, _nsi_build = VERSION.split(".")
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONMAJOR \d+",
+    f"!define VERSIONMAJOR {_nsi_major}",
+)
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONMINOR \d+",
+    f"!define VERSIONMINOR {_nsi_minor}",
+)
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONBUILD \d+",
+    f"!define VERSIONBUILD {_nsi_build}",
+)
+
 if changed:
     print(f"✅ Version {VERSION} sincronizada en los archivos del proyecto.")
 else:

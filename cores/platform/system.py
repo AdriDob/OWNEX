@@ -117,8 +117,11 @@ def get_data_dir() -> Path:
     """Return the persistent data directory for this platform.
 
     Precedence:
+    0. Backend SSOT: api/main.py and the Tauri sidecar launcher set
+       CATEYE_DATA_DIR=OWNEX_DATA_DIR to %LOCALAPPDATA%/OWNEX (Windows),
+       so backend flows always land on the unified dir below.
     1. CATEYE_DATA_DIR env var (portable override)
-    2. Windows: %APPDATA%/CATEYE
+    2. Windows: %APPDATA%/CATEYE (legacy license path)
     3. macOS:   ~/Library/Application Support/CATEYE
     4. Frozen:  next to the executable (Linux)
     5. Default: ~/.orion
@@ -170,6 +173,10 @@ def _append_diag(path: str, msg: str) -> None:
 
 def get_config_dir() -> Path:
     """Return the config directory for this platform.
+
+    NOTE: backend flows override via CATEYE_DATA_DIR (see get_data_dir),
+    unifying on %LOCALAPPDATA%/OWNEX on Windows. The paths below are the
+    legacy fallbacks used outside the backend (license CLI, portable).
 
     - Windows: %APPDATA%/CATEYE
     - macOS:   ~/Library/Application Support/CATEYE

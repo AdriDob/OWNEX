@@ -1,6 +1,6 @@
 """Trading API — copy trading, trader intelligence and OWNEX reasoning.
 
-Thin adapter over core.trading engines (SSOT). One router, dashboard summary
+Thin adapter over cores.trading engines (SSOT). One router, dashboard summary
 in a single call for the simple UX mandate.
 """
 

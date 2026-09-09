@@ -5,7 +5,7 @@ import contextvars
 import inspect
 import logging
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -309,17 +309,13 @@ class WorkerCore:
 
         if self._main_task:
             self._main_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await self._main_task
-            except asyncio.CancelledError:
-                pass
 
         if self._checkpoint_task:
             self._checkpoint_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await self._checkpoint_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info("WorkerCore stopped")
 
@@ -338,7 +334,7 @@ class WorkerCore:
         """Main autonomous work loop."""
         while self._running:
             try:
-                async with trace_context() as trace_id:
+                async with trace_context():
                     if self.state != WorkState.RUNNING:
                         await asyncio.sleep(10)
                         continue
@@ -428,6 +424,19 @@ class WorkerCore:
         if not await self._deliver_work(work_item):
             return
 
+        # Delivery paused at the human gate: stop here. The persisted DELIVER
+        # checkpoint (phase_completed=False) is the resume point, and LEARN
+        # must wait for the real outcome — recording "failed" now would feed
+        # bogus outcomes to the learning engine and close the resume trail.
+        if work_item.human_action_required and work_item.state == WorkState.PAUSED:
+            self._audit(
+                "cycle_end",
+                status="paused",
+                work_item_id=work_item.id,
+                details={"reason": "human_gate", "resume_phase": WorkPhase.DELIVER.value},
+            )
+            return
+
         # Phase 8: LEARN
         await self._learn_from_work(work_item)
 
@@ -467,10 +476,8 @@ class WorkerCore:
 
                 categories = []
                 for cat_str in self.current_goal.preferred_categories:
-                    try:
+                    with suppress(ValueError):
                         categories.append(OpportunityCategory(cat_str))
-                    except ValueError:
-                        pass
 
             # Call discovery engine (async method)
             opportunities = await self._discovery_engine.discover_all(
@@ -620,11 +627,7 @@ class WorkerCore:
         """Basic evaluation when no engine available."""
         goal = self.current_goal
         assert goal is not None, "Goal should be set before evaluation"
-        if work_item.estimated_reward_usd < goal.min_reward_usd:
-            return False
-        if work_item.risk_score > goal.max_risk_score:
-            return False
-        return True
+        return not (work_item.estimated_reward_usd < goal.min_reward_usd or work_item.risk_score > goal.max_risk_score)
 
     async def _prepare_work(self, work_item: WorkItem) -> bool:
         """Prepare work item for execution (skill analysis, setup env, etc)."""
@@ -708,7 +711,6 @@ class WorkerCore:
             # Route to best provider
             from cores.ai.runtime.interfaces import RoutingContext, TaskType
 
-            task_type_upper = task_type.upper()
             task_type_enum = TaskType.CHAT
             if hasattr(TaskType, task_type.upper()):
                 task_type_enum = TaskType[task_type.upper()]
@@ -1090,10 +1092,8 @@ class WorkerCore:
             "opportunity_id",
         ]:
             if key in data and data[key] is not None:
-                try:
+                with suppress(TypeError, ValueError):
                     setattr(item, key, data[key])
-                except (TypeError, ValueError):
-                    pass
         item.phase = WorkPhase(resume_phase) if hasattr(WorkPhase, resume_phase.upper()) else WorkPhase.PREPARE
         # Register for continuation by the next cycle.
         self.work_items[work_id] = item

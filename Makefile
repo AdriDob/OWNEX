@@ -58,10 +58,10 @@ lint: ## Run ruff linter (check + format check)
 	$(RUFF) format --check .
 
 typecheck: ## Run mypy over backend modules (may surface pre-existing errors in untouched modules)
-	$(MYPY) cores/ core/ api/ database/ desktop/
+	$(MYPY) cores/ api/ database/ desktop/
 
 typecheck-fast: ## Run mypy over the OWNEX v7.0.0 AUD scope (scoring + scheduler runtime)
-	$(MYPY) core/opportunity/scoring.py core/scheduler/scheduler.py core/scheduler/jobs.py
+	$(MYPY) cores/opportunity/scoring.py cores/scheduler/scheduler.py cores/scheduler/jobs.py
 
 check: typecheck-fast test-fast ## Pre-flight: scoped typecheck + fast tests
 
@@ -82,7 +82,7 @@ test: ## Run the pytest suite (excludes security + network-flaky suites)
 	$(PYTEST) $(TEST_ARGS) tests/
 
 coverage: ## Run tests with coverage report for backend modules
-	$(PYTEST) --cov=cores --cov=core --cov-report=term-missing:skip-covered $(TEST_ARGS) tests/
+	$(PYTEST) --cov=cores --cov-report=term-missing:skip-covered $(TEST_ARGS) tests/
 
 # test_full_scoring_workflow was excluded from the fast smoke while its mock
 # side_effect was undersized (KNOWN_DEBT #10). The side_effect now provisions
@@ -107,7 +107,7 @@ check: typecheck-fast test-fast ## Pre-flight: scoped typecheck + fast tests
 
 release-check: ## FINAL RELEASE GATE — backend+frontend+lint+build (Parte 4 megaprompt)
 	@echo "════ OWNEX release-check ════"
-	$(PY) -m ruff check core/execution_queue/ cores/device_identity/ cores/sync/ cores/license/validator.py cores/direct_work_engine/workbank.py api/routers/device.py api/routers/direct_work.py
+	$(PY) -m ruff check cores/execution_queue/ cores/device_identity/ cores/sync/ cores/license/validator.py cores/direct_work_engine/workbank.py api/routers/device.py api/routers/direct_work.py
 	@echo "[1/5] lint touched: OK"
 	$(PYTEST) --timeout=60 -q tests/test_income_chain_e2e.py tests/test_execution_mirror.py tests/test_workbank.py tests/test_daily_mode.py tests/test_revenue_engine.py tests/test_revenue_pipeline.py tests/test_direct_work_api.py tests/test_execution_queue.py tests/test_execution_queue_store.py tests/test_state_convergence.py tests/test_availability_engine.py tests/test_scheduler_jobs.py
 	@echo "[2/5] backend core: OK"

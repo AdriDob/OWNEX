@@ -48,6 +48,12 @@ class Target(Base):
         server_default=func.now(),
     )
 
+    @property
+    def status(self) -> str:
+        """Derived lifecycle string. The DB source of truth is `active`;
+        'scanning'/'pending' describe *scans* (see ScanRun), not targets."""
+        return "active" if getattr(self, "active", False) else "inactive"
+
 
 class Endpoint(Base):
     __tablename__ = "endpoints"

@@ -1,3 +1,18 @@
+## 2026-09-09: WIN11-STABLE — rama release + P0 frozen + bug frozen /api/version
+
+- **Contexto**: usuario ordenó cierre para instalar/usar en Windows 11 con 4 decisiones: (1) Tauri canónico, (2) validar en este entorno, (3) rama estabilizada nueva (no taggear la RC), (4) sin firma (a criterio). Rama `release/win11-stable` creada desde `feat/phase0-foundation` (NO desde `origin/main`: rebasar descartaría 82 commits P0-P5; el NO-MERGE sigue vigente, PR #37 aparte).
+- **P0 frozen aplicado** (mínimo, verificado):
+  1. `api/main.py`: bloque data-dir/env movido ANTES de los imports locales (el engine de `database.db` se creaba con la URL vieja: split-brain dev `./database/catseye.db` vs app `~/.ownex/database/cateye.db`). Además: `cateye.db`→`catseye.db` (igual que `db.py`), honor a `OWNEX_DATA_DIR`/`CATEYE_DATA_DIR`, `DATABASE_URL` explícito (conftest/docker) jamás sobrescrito, se setean ambas vars para unificar lectores. Costo: E402 inherente → `pyproject.toml` per-file-ignore `"api/main.py" = ["E402"]` (convención existente, igual que `database/db.py`).
+  2. `cores/platform/system.py`: solo docstrings (SSOT backend documentado). Comportamiento intacto (zona license/identity NO tocada).
+  3. `sync_version.py`: cobertura 9→11 superficies (`apps/*/manifest.py` ×8 + NSI MAJOR/MINOR/BUILD); manifests 7.0.0→7.1.0; NSI 7.0.0→7.1.0.
+  4. Docs a realidad Tauri: `README-INSTALACION.md` (sidecar externo, puerto dinámico, `%LOCALAPPDATA%\OWNEX`, artefacto 7.1.0, troubleshooting) + `README.md:414`.
+  5. Workflows legacy (`release.yml` ×2 jobs, `ownex-alpha-windows.yml`): fail-fast explícito si el spec archivado falta (antes fallaban críptico en pyinstaller).
+  6. Guard `test_tauri_packaging.py::test_spec_is_onefile_named_ownex_backend`: acepta `EXE_NAME = "ownex-backend"` (refactor ajeno del spec mantenía semántica; el test pineaba el literal viejo). Solo-test.
+- **Bug frozen real (smoke lo cazó)**: `GET /api/version` 200 en dev, 500 en bundle — `VersionEngine` leía `VERSION.txt` no empaquetado (`_MEIPASS`). Fix doble: spec empaqueta `VERSION`+`VERSION.txt`+`.VERSION.txt` (+`pyproject.toml` y `frontend/package.json` para `in_sync=true`, sin secretos) y fallback a `OWNEX_VERSION` compilado si el archivo falta (nunca más 500 por un manifiesto).
+- **Evidencia**: guards 25/25 · test-fast 100/1 · afectadas 120 passed · ruff limpio en tocados · `cargo check` 4s OK · `vite build` 12.5s OK · PyInstaller ONEFILE 258MB ×3 builds · sidecar smoke `--port 8199/8201/8202 --data-dir /tmp/win11smoke*`: health 200 v7.1.0, `/api/version` in_sync=true, DB `catseye.db` en data-dir del sidecar, `/api/system/health` 200, endpoints con auth 401 correcto. Único ERROR en boot: warning esperado de scorecard vacía en primer arranque.
+- **Compliance**: YIELD/DEFINITIVE respetados — `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` y providers forge/pulse/vault del otro flujo NO tocados. `run.py` (`~/.orion`, migrate/daemon) NO tocado deliberadamente (ecosistema pobre en docs pero vivo; fuera del path frozen).
+- **Límite honesto**: MSI/NSIS Windows no construible en Linux — validación delegada a CI (tag `v7.1.x` → `ownex-tauri-windows.yml`). Sin commits propios (no solicitados).
+
 ## 2026-09-09: NO-MERGE a main — 314 conflictos con trabajo concurrente (PR #37 queda abierto)
 
 - **Problema**: `feat/phase0-foundation` (línea 7.1.0 RC: P0 migración + P1–P3 + front + tests) está 82 commits por delante de `main`, pero `origin/main` avanzó en paralelo con trabajo concurrente (agent-runtime L0-L4, bug bounty B1+B2 OAR, max-effort-scenarios, income Opire real). Trial merge en worktree scratch → **314 archivos en conflicto** (api/, core/, cores/, .ai/, workflows, tests). Mergear ahora destruiría uno de los dos trabajos.
@@ -882,7 +897,7 @@
 - **Audit adversarial §44 (honesto)**:
   - ¿Nuevo usuario puede usarlo? PARCIAL — funnel + guías + onboarding UI existen; instalador Windows sin validar en hardware real → NO.
   - ¿Plataforma nunca tocada? SÍ (12 guías + first-opportunity + tips).
-  - ¿Explica cada paso? SÍ en daily-brief (semantics); chat libre copilot aún sin etiquetar (límite conocido).
+  - ¿Explica cada paso? SÍ en daily-brief (semantics) y chats libres (`/copilot/chat`, `/merlin/chat`, `/assistant/chat`, `/assistant/orion-chat` devuelven bloque `semantics`; solo streaming queda sin etiquetar, por diseño).
   - ¿Distingue hechos de supuestos? SÍ en daily-brief/evolution (UNKNOWN/THIN_EVIDENCE); resto pendiente.
   - ¿Recomienda sensible? SÍ (EV + calibration + repeatable + channel filter).
   - ¿Sobrevive caída de IA? SÍ por diseño Y por fault-injection (`tests/test_llm_fault_injection.py`, 8 tests: OAR→router→None/heurísticos, sin invención, secretos redactados).
@@ -896,3 +911,13 @@
   - ¿Identifica ingreso repetible? SÍ (REPEATABLE/NON_REPEATABLE/UNKNOWN; RECURRING excluido honestamente).
   - ¿Evita completitud falsa? PARCIAL (UNKNOWN/THIN_EVIDENCE en lo nuevo; superficies legacy sin auditar una por una).
 - **Regla permanente**: toda acción externa irreversible exige approval token un solo uso; ningún camino automatizado alcanza PAID; RECURRING jamás se reclama sin evidencia de suscripción.
+
+## 2026-09-09: DEFINITIVE P0 — consolidación core/→cores/ + contratos reales (supera YIELD 2026-09-08)
+
+- **Contexto**: la regla YIELD del 2026-09-08 prohibía tocar `core/`/`cores/` porque la migración concurrente estaba WIP sin commitear. Estado actual: la migración está commiteada en HEAD (`8dc67c57` + `6eb35fbc` que elimina `core/`), y el usuario ordenó explícitamente el plan DEFINITIVE (P0.1 = consolidación) + "Continuar" en build mode. La condición de la regla ("hasta que la migración ajena termine") se da por cumplida; el yield queda superado para este flujo.
+- **Decisión**: `cores/` árbol canónico único; `core/` eliminado. Referencias dinámicas (manifests, lifespan, guardrails, spec, Makefile, tooling) migradas y verificadas resolubles (19/19 providers). `test_imports.py` y `ultimate_validation.py` (scratch obsoletos) archivados a `docs/archived/`.
+- **Contratos reales, no ficticios**: `Target.status` (columna inexistente) → property derivada de `active`; queries reescritas a esquema real; `scope_verified`/`Pipeline`/`InvestmentAccount` (inexistentes) → checks reescritos contra `target_scopes`/`ScanRun` o eliminados; `register_check_job` muerto eliminado.
+- **Product fix**: LEARN ya no corre tras pausa en human-gate (evita outcome "failed" bogus y preserva resume trail). Test de resume reescrito a crash mid-cycle honesto.
+- **Coexistencia**: detectado escritor concurrente activo en la rama (commit mid-sesión, stashes, ediciones en `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`). Esos archivos NO se tocaron. Sin commits propios (no solicitados). Contaminación de test propia limpiada de `database/catseye.db`.
+- **Evidencia**: `import api.main` OK; test-fast 100/1; suites afectadas 195 passed; ruff limpio en tocados.
+- **Regla permanente**: un solo árbol runtime; ningún string de resolución dinámica puede apuntar a un módulo inexistente; ningún check de startup puede consultar un modelo inexistente; LEARN solo con outcome real.

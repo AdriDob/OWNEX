@@ -13,6 +13,7 @@ Rendering is deterministic markdown; no LLM needed to label OWNEX's own state.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 
@@ -77,3 +78,49 @@ def build_daily_brief_semantics(
     recommendations.append("Review the top pick, then approve explicitly before any external action.")
 
     return SemanticResponse(facts=facts, inferences=inferences, recommendations=recommendations, unknowns=unknowns)
+
+
+# Phrases by which a model explicitly marks its own uncertainty (EN + ES).
+# Matched case-insensitively as substrings; deliberately narrow to avoid
+# mislabeling confident statements as unknown.
+_UNCERTAINTY_MARKERS: tuple[str, ...] = (
+    "i don't know",
+    "i'm not sure",
+    "i am not sure",
+    "i cannot verify",
+    "i can't verify",
+    "unable to verify",
+    "unknown",
+    "no estoy seguro",
+    "no estoy segura",
+    "no lo sé",
+    "no se puede verificar",
+    "no puedo verificarlo",
+    "desconozco",
+)
+
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+_UNVERIFIED_MODEL_OUTPUT = (
+    "Unverified model output: confirm against /daily-brief, the revenue ledger, or a platform guide before acting."
+)
+
+
+def label_free_text(text: str) -> SemanticResponse:
+    """Label free model text with minimal honest semantics.
+
+    Rule: model-generated sentences are INFERENCE by default (never FACT),
+    sentences carrying explicit uncertainty markers move to UNKNOWN, and every
+    response carries the standing UNKNOWN that model output is unverified.
+    Deterministic, no LLM involved.
+    """
+    sentences = [s.strip() for s in _SENTENCE_SPLIT.split(text or "") if s.strip()]
+    inferences: list[str] = []
+    unknowns: list[str] = [_UNVERIFIED_MODEL_OUTPUT]
+    for sentence in sentences:
+        lowered = sentence.lower()
+        if any(marker in lowered for marker in _UNCERTAINTY_MARKERS):
+            unknowns.append(sentence)
+        else:
+            inferences.append(sentence)
+    return SemanticResponse(inferences=inferences, unknowns=unknowns)

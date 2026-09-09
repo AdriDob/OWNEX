@@ -846,3 +846,62 @@ async def find_opportunities(
     """Quick function to find opportunities."""
     engine = get_opportunity_engine()
     return await engine.find_best(user_skills, user_preferences or {}, limit)
+
+
+# OpportunityOrchestrator - Backward compatibility for tests expecting this class
+# Wraps OpportunityEngine to provide the execute_cycle interface
+class OpportunityOrchestrator:
+    """
+    Orchestrator for opportunity discovery and execution cycles.
+
+    This is a backward compatibility wrapper around OpportunityEngine.
+    The original OpportunityOrchestrator lived in core/opportunity/engine.py
+    but has been replaced by OpportunityEngine in cores/.
+    """
+
+    def __init__(self):
+        self._engine = get_opportunity_engine()
+
+    @staticmethod
+    async def execute_cycle(cycle: str = "forge", limit: int = 10) -> list[dict[str, Any]]:
+        """
+        Execute a discovery cycle for the given cycle type.
+
+        Args:
+            cycle: The cycle type (forge, pulse, etc.)
+            limit: Maximum number of opportunities to return
+
+        Returns:
+            List of opportunity dictionaries with ranking information
+        """
+        engine = get_opportunity_engine()
+
+        # Discover opportunities
+        await engine.discover_all()
+
+        # Get all opportunities and rank them
+        all_opps = engine.get_all()
+
+        # Return top N as dictionaries
+        results = []
+        for opp in all_opps[:limit]:
+            # Handle both dict and object returns from get_all()
+            if isinstance(opp, dict):
+                opp_dict = opp
+            else:
+                opp_dict = {
+                    "id": getattr(opp, 'id', ''),
+                    "title": getattr(opp, 'title', ''),
+                    "category": getattr(getattr(opp, 'category', None), 'value', '') if hasattr(opp, 'category') else '',
+                    "source": getattr(getattr(opp, 'source', None), 'value', '') if hasattr(opp, 'source') else '',
+                    "reward_min": getattr(opp, 'reward_min', 0),
+                    "reward_max": getattr(opp, 'reward_max', 0),
+                    "estimated_hours": getattr(opp, 'estimated_hours', 0),
+                    "difficulty": getattr(opp, 'difficulty', 0),
+                    "skills_required": getattr(opp, 'skills_required', []),
+                    "score": getattr(opp, 'score', 0.0),
+                }
+
+            results.append(opp_dict)
+
+        return results

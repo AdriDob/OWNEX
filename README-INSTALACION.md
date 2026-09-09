@@ -22,8 +22,8 @@ No necesitas instalar Python, Node ni nada más: **todo viene dentro del instala
 ## 2. Instalación
 
 1. Obtené el instalador:
-   - **Canónico (Tauri)**: artefacto `OWNEX-Tauri-Windows` del workflow
-     `.github/workflows/ownex-tauri-windows.yml` → `OWNEX Alpha_7.0.0_x64-setup.exe` o `.msi`.
+    - **Canónico (Tauri)**: artefacto `OWNEX-Tauri-Windows` del workflow
+      `.github/workflows/ownex-tauri-windows.yml` → `OWNEX Alpha_7.1.0_x64-setup.exe` o `.msi`.
    - **Legacy desplegado (PySide6 NSIS)**: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
      en esta máquina, o artefacto `OWNEX-Alpha-Windows-Installer` (dispatch manual).
      sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`.
@@ -39,12 +39,15 @@ MISSION, INTELLIGENCE, SURFACE, FINDINGS, REPORTS, OPERATIONS, TERMINAL, SYSTEM)
 
 ## 3. Primer arranque — qué está pasando (importantísimo)
 
-La app es **autocontenida**: al abrirla, el backend (API + pipeline + scheduler)
-arranca **dentro del mismo proceso** en segundo plano, en `http://127.0.0.1:8000`.
+La app es **autocontenida**: al abrirla, la ventana Tauri lanza el backend
+(API + pipeline + scheduler) como proceso sidecar `ownex-backend` en segundo
+plano, en `http://127.0.0.1:PUERTO` (el primer puerto libre desde el 8000;
+normalmente 8000).
 
 1. La ventana aparece **al instante** (~3 s).
-2. Durante los primeros **30-60 s** el backend inicia: crea la base de datos
-   en los datos del usuario (`%APPDATA%\OWNEX\database\catseye.db`), corre el
+2. Durante los primeros **30-90 s** el backend inicia: crea la base de datos
+   en los datos del usuario
+   (`%LOCALAPPDATA%\OWNEX\database\catseye.db`), corre el
    boot y arranca los servicios. Los datos sobreviven reinstalaciones del exe.
    - La vista MISSION Control puede mostrar `Source: local` o valores `--` en
      ese lapso. Es normal: **la vista se refresca sola cada 10 segundos** y
@@ -83,7 +86,8 @@ python run.py --migrate-export ~/OWNEX_MIGRATE.zip
 
 **En la PC destino (Windows con el bundle desktop)**: el bundle nativo no expone
 el CLI de migración. La vía directa es copiar la carpeta de datos de la PC
-origen (`%APPDATA%\OWNEX` o `~/.config/OWNEX`) a la misma ruta en la PC
+origen (`%LOCALAPPDATA%\OWNEX` en Windows, `~/.ownex` o
+`~/.local/share/OWNEX` en Linux) a la misma ruta en la PC
 destino, **con la app cerrada**. Incluye `database/catseye.db`, `data/` y la
 identidad del dispositivo (`desktop_device.json`). La licencia queda ligada al
 hardware: reactivala si el HWID cambió.
@@ -114,9 +118,9 @@ Si algún check no pasa, mirá la sección de troubleshooting abajo.
 |---|---|---|
 | SmartScreen warning | Build sin firma | "More info" → "Run anyway" |
 | La app se cierra sola al arrancar | Antivirus/Defender bloqueando | Excluir la carpeta de instalación |
-| MISSION siempre `Source: local` | El backend tarda en bootear | Esperá 2 min (auto-refresh cada 10 s). Si persiste, cerrá y reabrí la app |
+| MISSION siempre `Source: local` | El backend tarda en bootear | Esperá 2 min (auto-refresh cada 10 s, budget total 90 s). Si persiste, cerrá y reabrí la app |
 | `database is locked` al migrar | La app ya abrió la DB | Cerrá la app antes de importar |
-| Puerto 8000 ocupado | Otro backend dev corriendo | Cerrá el otro proceso; la app usa el que esté vivo |
+| Puerto 8000 ocupado | Otro backend dev corriendo | Sin acción: el sidecar elige el primer puerto libre (8001, 8002…) automáticamente |
 | Terminal no conecta | Backend aún iniciando | Esperá a que SYSTEM diga `online` |
 
 ---
@@ -124,7 +128,7 @@ Si algún check no pasa, mirá la sección de troubleshooting abajo.
 ## 8. Notas de seguridad
 
 - **100% local**: la app escucha solo en `127.0.0.1` (loopback). Nada se expone a la red.
-- Los datos del usuario viven en `%APPDATA%\OWNEX` (Windows) o `~/.config/OWNEX` (Linux), fuera de la carpeta de instalación — sobreviven reinstalaciones del exe.
+- Los datos del usuario viven en `%LOCALAPPDATA%\OWNEX` (Windows) o `~/.ownex` (Linux), fuera de la carpeta de instalación — sobreviven reinstalaciones del exe. (Instalaciones antiguas usaban `%APPDATA%\OWNEX`: se migran solas al nuevo lugar en el primer arranque.)
 - Sin telemetría ni cloud: el descubrimiento de targets usa APIs públicas de
   plataformas de bug bounty (HackerOne, Bugcrowd, etc.).
 

@@ -126,6 +126,12 @@ async def copilot_chat(body: ChatRequest):
         messages = history + [{"role": "user", "content": body.message}]
 
         result = await router_prov.route(task_type=body.task_type, messages=messages)
+        try:
+            from cores.copilot.semantics import label_free_text
+
+            semantics = label_free_text(result.content or "").to_dict()
+        except Exception:
+            semantics = {"FACT": [], "INFERENCE": [], "RECOMMENDATION": [], "UNKNOWN": []}
         return {
             "status": "ok" if not result.error else "error",
             "response": result.content,
@@ -133,6 +139,7 @@ async def copilot_chat(body: ChatRequest):
             "model": result.model,
             "duration_ms": result.duration_ms,
             "error": result.error,
+            "semantics": semantics,
         }
     except Exception as exc:
         logger.warning("[COPILOT] Chat error: %s", exc)

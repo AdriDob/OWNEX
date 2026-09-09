@@ -77,20 +77,29 @@ def check_missing_credentials() -> int:
 
 
 def check_unverified_scope() -> int:
-    """Check for targets with unverified scope."""
+    """Flag active targets with no scope rows recorded.
+
+    Scope lives in `target_scopes` (linked via `targets_intel`); there is no
+    per-target verified flag, so 'unverified' honestly means 'no scope rows
+    recorded yet' — the user should review the program scope manually.
+    """
     notified = 0
     try:
+        from cores.targets.models import Scope, TargetIntel
         from database import db, models
 
         session = db.SessionLocal()
         try:
+            scoped_tids = (
+                session.query(TargetIntel.target_id)
+                .join(Scope, Scope.target_id == TargetIntel.id)
+                .filter(TargetIntel.target_id.isnot(None))
+                .distinct()
+            )
             unverified = (
                 session.query(models.Target)
-                .filter(
-                    (models.Target.scope_verified == False)  # noqa: E712
-                    | (models.Target.scope_verified.is_(None))
-                )
-                .filter(models.Target.status == "active")
+                .filter(models.Target.active.is_(True))
+                .filter(~models.Target.id.in_(scoped_tids))
                 .limit(10)
                 .all()
             )
@@ -115,7 +124,11 @@ def check_unverified_scope() -> int:
 
 
 def check_stalled_pipelines() -> int:
-    """Check for pipelines stalled in non-terminal states."""
+    """Check for scans stuck in 'running' for over 24h.
+
+    Scan state lives in `scan_runs` (there is no Pipeline model): a scan
+    that never finished blocks its target from being rescanned.
+    """
     notified = 0
     try:
         from database import db, models
@@ -124,22 +137,23 @@ def check_stalled_pipelines() -> int:
         try:
             cutoff = datetime.now(UTC) - timedelta(hours=24)
             stalled = (
-                session.query(models.Pipeline)
-                .filter(models.Pipeline.status.notin_(["completed", "closed", "failed", "cancelled"]))
-                .filter(models.Pipeline.updated_at < cutoff)
+                session.query(models.ScanRun, models.Target.name)
+                .join(models.Target, models.Target.id == models.ScanRun.target_id)
+                .filter(models.ScanRun.status == "running")
+                .filter(models.ScanRun.started_at < cutoff)
                 .limit(5)
                 .all()
             )
 
-            for pipeline in stalled:
+            for scan, target_name in stalled:
                 notify_system_stalled(
-                    component=f"Pipeline #{pipeline.id}",
-                    reason=f"Pipeline stuck in '{pipeline.status}' state for >24h",
+                    component=f"Scan #{scan.id} ({target_name or 'unknown target'})",
+                    reason=f"Scan stuck in 'running' state for >24h (mode={scan.mode})",
                     impact="Target processing delayed — no findings generated",
                     resolution_steps=[
-                        f"Go to Operations > Pipelines > #{pipeline.id}",
+                        f"Go to Operations > Scans > #{scan.id}",
                         "Review pipeline state and error logs",
-                        "Click 'Retry' or 'Cancel' to unblock",
+                        "Re-run the scan or mark it failed to unblock the target",
                         "If stuck, check logs for root cause",
                     ],
                 )
@@ -195,39 +209,6 @@ def check_reports_for_review() -> int:
     return notified
 
 
-def check_investment_funding() -> int:
-    """Check for investment adapters with low balance."""
-    notified = 0
-    try:
-        from database import db, models
-
-        session = db.SessionLocal()
-        try:
-            low_balance = (
-                session.query(models.InvestmentAccount)
-                .filter(models.InvestmentAccount.balance < models.InvestmentAccount.min_balance)
-                .filter(models.InvestmentAccount.status == "active")
-                .limit(3)
-                .all()
-            )
-
-            for account in low_balance:
-                from cores.notifications.action_required import notify_funding_needed
-
-                notify_funding_needed(
-                    adapter_name=account.name or f"Adapter #{account.id}",
-                    current_balance=float(account.balance or 0),
-                    minimum_needed=float(account.min_balance or 100),
-                )
-                notified += 1
-        finally:
-            session.close()
-    except Exception as e:
-        logger.debug("Investment funding check skipped: %s", e)
-
-    return notified
-
-
 def check_investment_risk() -> int:
     """Run risk guardian checks."""
     notified = 0
@@ -253,7 +234,6 @@ def run_all_checks() -> dict[str, int]:
         "unverified_scope": check_unverified_scope(),
         "stalled_pipelines": check_stalled_pipelines(),
         "reports_for_review": check_reports_for_review(),
-        "investment_funding": check_investment_funding(),
         "investment_risk": check_investment_risk(),
     }
 
@@ -268,36 +248,3 @@ def run_all_checks() -> dict[str, int]:
         logger.info("[STARTUP_CHECKS] All clear — no manual intervention needed")
 
     return results
-
-
-def register_check_job() -> None:
-    """Register the periodic check job with LifeScheduler."""
-    try:
-        from cores.scheduler.jobs import JobDefinition, JobResult, JobType, get_life_scheduler
-
-        async def _run_checks() -> JobResult:
-            try:
-                results = run_all_checks()
-                total = sum(results.values())
-                return JobResult(
-                    True,
-                    f"Startup checks: {total} issues found" if total else "All clear",
-                )
-            except Exception as e:
-                return JobResult(False, f"Startup check error: {e}")
-
-        scheduler = get_life_scheduler()
-        scheduler.register(
-            JobDefinition(
-                job_type=JobType.COPILOT_RECOMMENDATIONS,  # Reuse existing type
-                name="Startup: Action Required Checks",
-                description="Detect issues requiring manual intervention",
-                interval_seconds=3600,  # Every hour
-                priority=50,
-                tags=["system", "health", "action_required"],
-                executor=_run_checks,
-            )
-        )
-        logger.info("[STARTUP_CHECKS] Periodic check job registered (every 1h)")
-    except Exception as e:
-        logger.debug("[STARTUP_CHECKS] Could not register periodic job: %s", e)

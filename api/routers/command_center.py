@@ -111,8 +111,28 @@ async def get_metrics():
     }
 
 
+# Success conditions per action type (deterministic, documented).
+# Displayed so the user knows exactly what "done" means before acting.
+_SUCCESS_CONDITIONS = {
+    "investigate": "Recon report complete with attack surface mapped",
+    "submit": "Submission accepted by platform (or feedback received)",
+    "approve": "Human decision recorded (approve/reject with reason)",
+    "review": "Review completed with a recorded verdict",
+}
+
+
+def _success_condition(action_type: str) -> str:
+    return _SUCCESS_CONDITIONS.get(action_type, "Marked complete with evidence attached")
+
+
 async def _get_next_action() -> dict[str, Any]:
-    """Get the single next best action."""
+    """Get the single next best action.
+
+    Contract (§11/§25): every recommendation carries WHY (measured reason),
+    RISK, SUCCESS_CONDITION and NEXT. Estimated money fields are null — never
+    fabricated — unless computed from real scored data, in which case the
+    `semantics` block labels them INFERENCE. See cores/copilot/semantics.py.
+    """
     from cores.learning.revenue_loop import get_revenue_loop
 
     loop = get_revenue_loop()
@@ -129,6 +149,24 @@ async def _get_next_action() -> dict[str, Any]:
             "human_minutes": best.human_minutes,
             "action_type": best.action_type,
             "opportunity_id": best.opportunity_id,
+            "why": (
+                f"Highest expected value per hour (${best.ev_per_hour:,.0f}/h) among {len(pending)} pending action(s)"
+            ),
+            "risk": "unknown",
+            "success_condition": _success_condition(best.action_type),
+            "next": f"Open {best.opportunity_id}" if best.opportunity_id else "Review the action detail",
+            "semantics": {
+                "FACT": [
+                    f"{len(pending)} pending action(s) in the revenue loop",
+                    f"Top pick: {best.title}",
+                ],
+                "INFERENCE": [
+                    f"Expected value ${best.expected_value:,.0f} "
+                    f"(${best.ev_per_hour:,.0f}/h over ~{best.human_minutes:.0f} min)",
+                ],
+                "RECOMMENDATION": [f"Do this next: {best.title}"],
+                "UNKNOWN": ["Success probability", "Downside risk"],
+            },
         }
 
     # Check for opportunities in the pipeline
@@ -138,7 +176,7 @@ async def _get_next_action() -> dict[str, Any]:
 
     try:
         with SessionLocal() as db:
-            # Find highest-value opportunity
+            # Most recent active target, with real context counts
             result = db.execute(
                 text("""
                     SELECT id, name, domain, created_at
@@ -150,14 +188,47 @@ async def _get_next_action() -> dict[str, Any]:
             ).fetchone()
 
             if result:
+                tid = result[0]
+                endpoint_count = (
+                    db.execute(
+                        text("SELECT COUNT(*) FROM endpoints WHERE target_id = :tid"),
+                        {"tid": tid},
+                    ).scalar()
+                    or 0
+                )
+                finding_count = (
+                    db.execute(
+                        text("SELECT COUNT(*) FROM findings WHERE target_id = :tid"),
+                        {"tid": tid},
+                    ).scalar()
+                    or 0
+                )
                 return {
                     "title": f"Investigate {result[1]}",
                     "description": f"Run recon and analysis on {result[2] or result[1]}",
-                    "expected_value": 500,  # Default estimate
-                    "ev_per_hour": 100,
+                    "expected_value": None,
+                    "ev_per_hour": None,
                     "human_minutes": 30,
                     "action_type": "investigate",
-                    "opportunity_id": f"target_{result[0]}",
+                    "opportunity_id": f"target_{tid}",
+                    "why": (
+                        f"Most recently added active target "
+                        f"({endpoint_count} endpoint(s), {finding_count} finding(s) recorded); "
+                        "not yet scored"
+                    ),
+                    "risk": "unknown",
+                    "success_condition": _success_condition("investigate"),
+                    "next": f"Open target_{tid} and run recon",
+                    "semantics": {
+                        "FACT": [
+                            f"Target: {result[1]}",
+                            f"{endpoint_count} endpoint(s), {finding_count} finding(s) recorded",
+                            "No scored opportunities and no pending actions right now",
+                        ],
+                        "INFERENCE": [],
+                        "RECOMMENDATION": [f"Triage {result[1]}: run recon to score it"],
+                        "UNKNOWN": ["Expected value", "Time to first result", "Success probability"],
+                    },
                 }
     except Exception:
         pass
@@ -170,6 +241,16 @@ async def _get_next_action() -> dict[str, Any]:
         "human_minutes": 0,
         "action_type": "none",
         "opportunity_id": None,
+        "why": "No pending actions and no active targets found",
+        "risk": "none",
+        "success_condition": "N/A — nothing to do",
+        "next": "Wait for discovery, or add a target",
+        "semantics": {
+            "FACT": ["Action queue empty", "No active targets"],
+            "INFERENCE": [],
+            "RECOMMENDATION": [],
+            "UNKNOWN": [],
+        },
     }
 
 
@@ -195,7 +276,61 @@ async def _get_system_status() -> dict[str, Any]:
         "notification_channels": channels,
         "database": "connected",
         "status": "operational",
+        "ai": _get_ai_status(),
     }
+
+
+def _get_ai_status() -> dict[str, Any]:
+    """AI subsystem status for the Command Center (§11/§15).
+
+    Reports provider health + spend vs budget from OAR state. Best-effort:
+    if OAR is unreachable the system is still functional, so this degrades
+    to "unavailable" instead of failing the whole status endpoint.
+    """
+    try:
+        from cores.ai.runtime.cost import get_cost_tracker
+        from cores.ai.runtime.health import get_health_monitor
+
+        monitor = get_health_monitor()
+        healthy = monitor.get_healthy_providers()
+        degraded = monitor.get_degraded_providers()
+        unhealthy = monitor.get_unhealthy_providers()
+
+        try:
+            budget = get_cost_tracker().get_budget_status()
+            spend = {
+                "daily_spent_usd": budget.get("daily_spent_usd", 0.0),
+                "daily_budget_usd": budget.get("daily_budget_usd"),
+                "budget_exceeded": bool(budget.get("budget_exceeded", False)),
+            }
+        except Exception:
+            spend = {"daily_spent_usd": 0.0, "daily_budget_usd": None, "budget_exceeded": False}
+
+        if unhealthy and not healthy:
+            status = "unavailable"
+        elif degraded or unhealthy:
+            status = "degraded"
+        else:
+            status = "operational"
+
+        return {
+            "status": status,
+            "healthy_providers": healthy,
+            "degraded_providers": degraded,
+            "unhealthy_providers": unhealthy,
+            **spend,
+        }
+    except Exception as exc:
+        logger.debug("AI status unavailable: %s", exc)
+        return {
+            "status": "unavailable",
+            "healthy_providers": [],
+            "degraded_providers": [],
+            "unhealthy_providers": [],
+            "daily_spent_usd": 0.0,
+            "daily_budget_usd": None,
+            "budget_exceeded": False,
+        }
 
 
 def _get_greeting() -> str:

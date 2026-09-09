@@ -28,62 +28,9 @@ import uuid
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger("ownex.knowledge.graph")
-
-
-# ── Enums ──────────────────────────────────────────────────────
-
-
-class NodeTypes(StrEnum):
-    TARGET = "target"
-    COMPANY = "company"
-    DOMAIN = "domain"
-    SUBDOMAIN = "subdomain"
-    ENDPOINT = "endpoint"
-    FINDING = "finding"
-    REPORT = "report"
-    REWARD = "reward"
-    INVOICE = "invoice"
-    EVENT = "event"
-    DECISION = "decision"
-    CVE = "cve"
-    TECHNOLOGY = "technology"
-    WALLET = "wallet"
-    EXCHANGE = "exchange"
-    BROKER = "broker"
-    MARKET = "market"
-    USER = "user"
-    WORKFLOW = "workflow"
-    PLAYBOOK = "playbook"
-    TOOL = "tool"
-    SERVICE = "service"
-
-
-class EdgeTypes(StrEnum):
-    HAS_FINDING = "has_finding"
-    HAS_REPORT = "has_report"
-    HAS_REWARD = "has_reward"
-    HAS_INVOICE = "has_invoice"
-    HAS_DECISION = "has_decision"
-    HAS_CVE = "has_cve"
-    HAS_TECHNOLOGY = "has_technology"
-    HAS_SUBDOMAIN = "has_subdomain"
-    HAS_ENDPOINT = "has_endpoint"
-    HAS_EVENT = "has_event"
-    HAS_WALLET = "has_wallet"
-    BELONGS_TO = "belongs_to"
-    DETECTED_ON = "detected_on"
-    GENERATED = "generated"
-    PAYS = "pays"
-    USES = "uses"
-    RELATED_TO = "related_to"
-    TRIGGERED = "triggered"
-    PRODUCES = "produces"
-    LEADS_TO = "leads_to"
-    FEEDS_INTO = "feeds_into"
 
 
 # ── Data classes ───────────────────────────────────────────────
@@ -98,6 +45,28 @@ class KnowledgeGraphNode:
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
+    # Compatibility with the KGNode record API (tests + live callers use
+    # .id/.name/.source). Canonical fields stay node_id/label/metadata.
+    @property
+    def id(self) -> str:
+        return self.node_id
+
+    @property
+    def name(self) -> str:
+        return self.label
+
+    @property
+    def source(self) -> str:
+        return str(self.metadata.get("source", "") or "")
+
+    @property
+    def display_label(self) -> str:
+        return str(self.metadata.get("display_label", "") or self.label)
+
+    @property
+    def properties(self) -> dict[str, Any]:
+        return {k: v for k, v in self.metadata.items() if k not in ("source", "display_label")}
+
 
 @dataclass(slots=True)
 class KnowledgeGraphEdge:
@@ -108,6 +77,19 @@ class KnowledgeGraphEdge:
     metadata: dict[str, Any] = field(default_factory=dict)
     confidence: float = 1.0
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+    # Compatibility with the KGEdge record API.
+    @property
+    def id(self) -> str:
+        return self.edge_id
+
+    @property
+    def edge_type(self) -> str:
+        return self.relation_type
+
+    @property
+    def weight(self) -> float:
+        return self.confidence
 
 
 # ── In-memory implementation ───────────────────────────────────
@@ -189,8 +171,8 @@ class KnowledgeGraphManager:
             # Get edges for current node
             edges = []
             for edge in self.edges.values():
-                if edge.relation_type == "edge_type" if edge_type else True:
-                    pass
+                if edge_type and edge.relation_type != edge_type:
+                    continue
                 if direction == "outgoing" and edge.source_id != current_id:
                     continue
                 if direction == "incoming" and edge.target_id != current_id:
@@ -209,6 +191,7 @@ class KnowledgeGraphManager:
                             "node": {
                                 "id": neighbor.node_id,
                                 "node_type": neighbor.node_type,
+                                "name": neighbor.label,
                                 "label": neighbor.label,
                                 "metadata": neighbor.metadata,
                             },
@@ -294,6 +277,7 @@ class KnowledgeGraph:
         return {
             "id": node.node_id,
             "node_type": node.node_type,
+            "name": node.label,
             "label": node.label,
             "metadata": node.metadata,
             "created_at": node.created_at,
@@ -306,7 +290,7 @@ class KnowledgeGraph:
             "source_id": edge.source_id,
             "target_id": edge.target_id,
             "type": edge.relation_type,
-            "weight": 1.0,
+            "weight": edge.confidence,
             "metadata": edge.metadata,
         }
 
@@ -323,7 +307,11 @@ class KnowledgeGraph:
     ) -> KnowledgeGraphNode:
         """Add a node. If node_id is provided, upserts."""
         node_id = node_id or f"{node_type}:{name}:{uuid.uuid4().hex[:8]}"
-        props = properties or {}
+        props = dict(properties or {})
+        if source:
+            props["source"] = source
+        if display_label:
+            props["display_label"] = display_label
         now = datetime.now(UTC).isoformat()
 
         if node_id in self._manager.nodes:
@@ -453,7 +441,6 @@ class KnowledgeGraph:
         Returns list of paths, each path is a list of {node, edge} steps.
         """
         if start_id == end_id:
-            node = self._manager.get_node(start_id)
             return (
                 [[{"node": self._node_to_dict(self._manager.get_node(start_id))}]]
                 if self._manager.get_node(start_id)
@@ -528,9 +515,11 @@ class KnowledgeGraph:
                 node_ids.add(node.node_id)
                 nodes_dict[node.node_id] = self._node_to_dict(node)
 
-        # Collect edges
+        # Collect edges (dedupe by id: neighbor expansion already added some)
+        seen_edge_ids = {e.get("id") for e in edges_list if isinstance(e, dict) and e.get("id")}
         for edge in self._manager.edges.values():
-            if edge.source_id in node_ids and edge.target_id in node_ids:
+            if edge.source_id in node_ids and edge.target_id in node_ids and edge.edge_id not in seen_edge_ids:
+                seen_edge_ids.add(edge.edge_id)
                 edges_list.append(self._edge_to_dict(edge))
 
         return {
@@ -602,19 +591,6 @@ class KnowledgeGraph:
             if len(results) >= limit:
                 break
         return results
-
-    @staticmethod
-    def _node_to_dict(node: KnowledgeGraphNode | None) -> dict[str, Any]:
-        if node is None:
-            return {}
-        return {
-            "id": node.node_id,
-            "node_type": node.node_type,
-            "label": node.label,
-            "metadata": node.metadata,
-            "created_at": node.created_at,
-            "updated_at": node.updated_at,
-        }
 
     @staticmethod
     def _edge_to_dict(edge: KnowledgeGraphEdge) -> dict[str, Any]:

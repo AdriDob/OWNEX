@@ -46,39 +46,67 @@ class SystemContextBuilder:
         return state
 
     def _get_targets_summary(self) -> list[dict[str, Any]]:
-        """Return pending targets from the database."""
+        """Return active targets from the database.
+
+        Assembled from the real schema: Target (active flag) + latest
+        Endpoint.last_scanned per target + TargetIntel.opportunity_score.
+        """
         if not self._db_factory:
             return []
         try:
-            from database.models import Target
+            from sqlalchemy import func
+
+            from cores.targets.models import TargetIntel
+            from database.models import Endpoint, Target
 
             session = self._db_factory()
+            last_scan = (
+                session.query(
+                    Endpoint.target_id.label("tid"),
+                    func.max(Endpoint.last_scanned).label("last_scanned"),
+                )
+                .group_by(Endpoint.target_id)
+                .subquery()
+            )
             rows = (
                 session.query(
                     Target.id,
                     Target.name,
                     Target.domain,
-                    Target.status,
-                    Target.last_scanned,
-                    Target.orion_score,
+                    Target.active,
+                    last_scan.c.last_scanned,
                 )
-                .filter(Target.status.in_(["active", "pending"]))
-                .order_by(Target.orion_score.desc().nullslast())
+                .outerjoin(last_scan, last_scan.c.tid == Target.id)
+                .filter(Target.active.is_(True))
+                .order_by(Target.id.desc())
                 .limit(20)
                 .all()
             )
-            session.close()
-            return [
+            try:
+                intel_rows = (
+                    session.query(TargetIntel.target_id, TargetIntel.opportunity_score)
+                    .filter(TargetIntel.target_id.in_([r.id for r in rows]))
+                    .all()
+                )
+            except Exception:
+                intel_rows = []
+            scores: dict[int, float] = {}
+            for tid, score in intel_rows:
+                if tid is not None and (tid not in scores or (score or 0.0) > scores[tid]):
+                    scores[tid] = float(score or 0.0)
+            result = [
                 {
                     "id": r.id,
                     "name": r.name,
                     "domain": r.domain,
-                    "status": r.status,
+                    "status": "active" if r.active else "inactive",
                     "last_scanned": str(r.last_scanned) if r.last_scanned else None,
-                    "score": float(r.orion_score or 0.0),
+                    "score": scores.get(r.id, 0.0),
                 }
                 for r in rows
             ]
+            session.close()
+            return result
         except Exception as exc:
             logger.debug("Could not query targets: %s", exc)
             return []

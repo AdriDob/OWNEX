@@ -136,7 +136,7 @@ def auto_register_core_modules() -> int:
 
     Returns the number of modules registered.
     """
-    count_before = len(__import__("core.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
+    count_before = len(__import__("cores.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
 
     # 1. Event Bus
     register_module(
@@ -248,14 +248,14 @@ def auto_register_core_modules() -> int:
                 EventDoc(event_type="system:*", direction="consumed", description="Trigger system audit decisions"),
             ],
             dependencies=[
-                "core.events.types",
-                "core.events.correlation",
-                "core.events.store",
-                "core.capabilities.registry",
-                "core.knowledge.graph",
-                "core.evidence_graph.graph",
-                "core.memory.store",
-                "core.copilot.*",
+                "cores.events.types",
+                "cores.events.correlation",
+                "cores.events.store",
+                "cores.capabilities.registry",
+                "cores.knowledge.graph",
+                "cores.evidence_graph.graph",
+                "cores.memory.store",
+                "cores.copilot.*",
             ],
         )
     )
@@ -530,16 +530,16 @@ def auto_register_core_modules() -> int:
                 ),
             ],
             dependencies=[
-                "core.events.types",
-                "core.events.event_bus",
-                "core.events.store",
-                "core.events.correlation",
-                "core.capabilities.registry",
-                "core.knowledge.graph",
-                "core.execution.*",
+                "cores.events.types",
+                "cores.events.event_bus",
+                "cores.events.store",
+                "cores.events.correlation",
+                "cores.capabilities.registry",
+                "cores.knowledge.graph",
+                "cores.execution.*",
             ],
         )
     )
 
-    after = len(__import__("core.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
+    after = len(__import__("cores.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
     return after - count_before

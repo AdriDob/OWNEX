@@ -24,15 +24,15 @@ sort = show_missing
 # Fail under these thresholds (adjust per module as needed)
 fail_under = 80
 
-[report:core/revenue]
+[report:cores/revenue]
 # Revenue code is mission-critical for FASE -1 - require higher coverage
 fail_under = 90
 
-[report:core/revenue/economic_memory.py]
+[report:cores/revenue/economic_memory.py]
 # EconomicMemory is core to FASE -1 - require near-perfect coverage
 fail_under = 95
 
-[report:core/revenue/metrics.py]
+[report:cores/revenue/metrics.py]
 # RevenueMetrics is core to FASE -1 - require near-perfect coverage
 fail_under = 95
 

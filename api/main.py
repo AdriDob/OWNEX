@@ -6,6 +6,61 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+
+# ── Data directory + env BEFORE any local import ─────────────────────────
+# database.db creates its engine at import time from DATABASE_URL, and every
+# router imported below pulls it in transitively. This block must run HERE —
+# not 200 lines later — or the engine binds the wrong file (frozen-bundle
+# split-brain: engine on ./database/catseye.db while the app believes in
+# ~/.ownex/database/cateye.db). SSOT: %LOCALAPPDATA%/OWNEX (win) file
+# catseye.db, matching database/db.py::_default_db_url().
+def parse_args():
+    parser = argparse.ArgumentParser(description="OWNEX Backend - FastAPI Server")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default=None,
+        help="Data directory for database and logs (default: %%LOCALAPPDATA%%\\OWNEX on Windows, ~/.ownex on Linux)",
+    )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Log level (default: INFO)",
+    )
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+    return parser.parse_known_args()
+
+
+# Parse args immediately on module load.
+# parse_known_args(): this module is imported by tooling whose argv is NOT
+# ours (pytest, IDE runners) — unknown flags must be ignored, never fatal.
+_ARGS, _UNKNOWN_ARGS = parse_args()
+
+if _ARGS.data_dir:
+    data_dir = Path(_ARGS.data_dir)
+elif os.getenv("OWNEX_DATA_DIR"):
+    data_dir = Path(os.environ["OWNEX_DATA_DIR"])
+elif os.getenv("CATEYE_DATA_DIR"):
+    data_dir = Path(os.environ["CATEYE_DATA_DIR"])
+elif sys.platform == "win32":
+    data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
+else:
+    data_dir = Path.home() / ".ownex"
+
+# Unify downstream readers (database/db.py reads OWNEX_DATA_DIR,
+# cores/platform legacy reads CATEYE_DATA_DIR).
+os.environ["OWNEX_DATA_DIR"] = str(data_dir)
+os.environ["CATEYE_DATA_DIR"] = str(data_dir)
+_DB_PATH = data_dir / "database" / "catseye.db"
+if "DATABASE_URL" not in os.environ:
+    # An explicitly provided DATABASE_URL (pytest conftest isolation, docker,
+    # systemd) always wins and is never overwritten here.
+    _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -200,49 +255,6 @@ from cores.env.config import get_config
 from cores.learning.router import router as learning_router
 from cores.log_config import setup_logging
 from database import db
-
-
-# ── CLI Argument Parsing ─────────────────────────────────────────────────
-def parse_args():
-    parser = argparse.ArgumentParser(description="OWNEX Backend - FastAPI Server")
-    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
-    parser.add_argument(
-        "--data-dir",
-        type=str,
-        default=None,
-        help="Data directory for database and logs (default: %%LOCALAPPDATA%%\\OWNEX on Windows, ~/.ownex on Linux)",
-    )
-    parser.add_argument(
-        "--log-level",
-        type=str,
-        default="INFO",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Log level (default: INFO)",
-    )
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
-    return parser.parse_known_args()
-
-
-# Parse args immediately on module load.
-# parse_known_args(): this module is imported by tooling whose argv is NOT
-# ours (pytest, IDE runners) — unknown flags must be ignored, never fatal.
-_ARGS, _UNKNOWN_ARGS = parse_args()
-
-# Configure data directory BEFORE any imports that might use it
-if _ARGS.data_dir:
-    data_dir = Path(_ARGS.data_dir)
-else:
-    # Platform-specific default
-    if sys.platform == "win32":
-        data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
-    else:
-        data_dir = Path.home() / ".ownex"
-
-# Set environment variables for downstream code
-os.environ["CATEYE_DATA_DIR"] = str(data_dir)
-_DB_PATH = data_dir / "database" / "cateye.db"
-_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
 
 # Configure logging
 logging.basicConfig(

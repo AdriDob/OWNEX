@@ -85,7 +85,7 @@ from PyInstaller.utils.hooks import collect_all
 datas = []
 binaries = []
 
-for pkg in ("api", "database", "core", "cores"):
+for pkg in ("api", "database", "cores"):
     pkg_dir = PROJECT_ROOT / pkg
     if pkg_dir.is_dir():
         tmp = collect_all(pkg)
@@ -108,10 +108,18 @@ for pkg in (
     except Exception:
         pass
 
-# Include VERSION file
-version_file = PROJECT_ROOT / "VERSION"
-if version_file.exists():
-    datas.append((str(version_file), "."))
+# Include VERSION files (api/main.py reads VERSION, VersionEngine reads VERSION.txt)
+for _vf in ("VERSION", "VERSION.txt", ".VERSION.txt"):
+    version_file = PROJECT_ROOT / _vf
+    if version_file.exists():
+        datas.append((str(version_file), "."))
+# Version manifests so /api/version reports in_sync=true in frozen bundles
+# (no secrets in either file — build metadata only).
+if (PROJECT_ROOT / "pyproject.toml").exists():
+    datas.append((str(PROJECT_ROOT / "pyproject.toml"), "."))
+_front_pkg = PROJECT_ROOT / "frontend" / "package.json"
+if _front_pkg.exists():
+    datas.append((str(_front_pkg), "frontend"))
 
 # ── Exclude runtime DB files ──────────────────────────────────────────
 _filtered = []

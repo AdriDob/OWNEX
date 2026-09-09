@@ -9,13 +9,13 @@ from cores.scheduler.jobs import get_pulse_jobs
 
 # Adapter provider strings for the adapter registry
 PULSE_ADAPTERS = [
-    "core.opportunity.adapters.pulse:OutlierAdapter",
-    "core.opportunity.adapters.pulse:MindriftAdapter",
-    "core.opportunity.adapters.pulse:DataAnnotationAdapter",
-    "core.opportunity.adapters.pulse:RemotasksAdapter",
-    "core.opportunity.adapters.pulse:FreelancerMicrotaskAdapter",
-    "core.opportunity.adapters.pulse:LinkedInEasyApplyAdapter",
-    "core.opportunity.adapters.pulse:OpyreMicrotaskAdapter",
+    "cores.opportunity.adapters.pulse:OutlierAdapter",
+    "cores.opportunity.adapters.pulse:MindriftAdapter",
+    "cores.opportunity.adapters.pulse:DataAnnotationAdapter",
+    "cores.opportunity.adapters.pulse:RemotasksAdapter",
+    "cores.opportunity.adapters.pulse:FreelancerMicrotaskAdapter",
+    "cores.opportunity.adapters.pulse:LinkedInEasyApplyAdapter",
+    "cores.opportunity.adapters.pulse:OpyreMicrotaskAdapter",
 ]
 
 
@@ -26,7 +26,7 @@ pulse_router = APIRouter(prefix="/pulse", tags=["pulse"])
 manifest = IAppPlugin(
     id="pulse",
     name="PULSE",
-    version="7.0.0",
+    version="7.1.0",
     description="AI Work & Microtask Platforms — Outlier, Mindrift, DataAnnotation, Remotasks, Freelancer Microtasks, LinkedIn Easy Apply, Opyre Microtasks",
     icon="Zap",
     order=11,
