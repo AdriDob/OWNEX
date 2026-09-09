@@ -1,6 +1,14 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN ABIERTA: P1-backlog E2E chat canónico consolidado + hook de commits → suite fast. Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+> v7.1.0 — SESIÓN CERRADA 2026-09-09: E2E chat canónico (`2d74a793`) + hook pre-commit → fast suite (`25dd4a1a`). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+
+## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (post-cierre)
+
+- **Consolidado en esta sesión**: (1) E2E chat canónico — semantics autoritativas backend→UI, `2d74a793`; (2) hook pre-commit → fast suite, `25dd4a1a` (primer commit con hook verde end-to-end desde el cierre anterior).
+- **Flujo concurrente sobre esta rama**: commiteó `6ee734d7` + `8d49f305` encima de mi `2d74a793`; `8d49f305` viajó en mi push (estaba local, sin push). Historial lineal sin conflictos.
+- **WIP ajeno SIN commitear (intacto, no tocado)**: `.ai/DECISIONS.md`, `cores/opportunity/engine.py`, submódulo `cognee` (contenido sucio).
+- **Verificación previa al sellado**: hook fast 100/1 (1s) · YAML hook válido · ruff limpio en tocados · `vite build` OK · `test_chat_semantics.py` 12 passed.
+- **Pendiente para retomar**: validación Windows runtime real (MSI/NSIS); borrado físico `core/` bloqueado (d968f4bf); PR #37 (NO-MERGE, 314 conflictos) abierto; re-apertura del hook a suite completa cuando el flujo ajeno aterrice (KNOWN_DEBT #14).
 
 ## Sesión 2026-09-09 (post-cierre) — HOOK PRE-COMMIT → FAST SUITE (gate de commits desbloqueado)
 
