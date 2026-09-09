@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cores.execution.runtime.integration import ExecutionEventBusBridge
 from cores.events.types import Events
+from cores.execution.runtime.integration import ExecutionEventBusBridge
 
 logger = logging.getLogger("ownex.execution.kg_bridge")
 

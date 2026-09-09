@@ -5,8 +5,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from cores.reports.critic import ReportCritic
 from cores.events.types import Events
+from cores.reports.critic import ReportCritic
 
 logger = logging.getLogger("orion.core.reports.optimizer")
 

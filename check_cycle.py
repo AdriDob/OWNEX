@@ -1,5 +1,5 @@
-from core.cycles.models import Cycle
-from core.database.manager import get_db_manager
+from cores.cycles.models import Cycle
+from cores.database.manager import get_db_manager
 
 mgr = get_db_manager()
 mgr.register("cycles", "cycles.db")

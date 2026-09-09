@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from core.extension.capabilities import Capability
-from core.extension.manifest import ExtensionManifest
+from cores.extension.capabilities import Capability
+from cores.extension.manifest import ExtensionManifest
 
 manifest = ExtensionManifest(
     id="lightrag",

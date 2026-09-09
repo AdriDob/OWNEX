@@ -27,10 +27,10 @@ from typing import Any
 from fastapi import APIRouter
 
 from api.routers.stability import stability_status
-from cores.memory.store import get_memory_store
 from cores.direct_work_engine.models import UserProfile
 from cores.direct_work_engine.source_intel import SourceIntelEngine
 from cores.direct_work_engine.workbank import get_workbank
+from cores.memory.store import get_memory_store
 from cores.wear_os.integration import get_wear_os_integration
 
 logger = logging.getLogger("orion.daily_mode")

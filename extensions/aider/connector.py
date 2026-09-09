@@ -10,7 +10,7 @@ try:
 except ImportError:
     _AIDER_AVAILABLE = False
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 
 class AiderConnector(IConnector):

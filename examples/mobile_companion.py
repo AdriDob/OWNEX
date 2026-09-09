@@ -13,8 +13,8 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.mobile.notifications import NotificationManager
-from core.mobile.sync import MobileSync
+from cores.mobile.notifications import NotificationManager
+from cores.mobile.sync import MobileSync
 
 
 async def main():

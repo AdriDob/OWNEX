@@ -4,9 +4,7 @@ Migration script: core/ -> cores/
 Replaces all imports from 'core.' to 'cores.' in Python files.
 """
 
-import os
 import re
-import sys
 from pathlib import Path
 
 # Directories to skip
@@ -87,7 +85,7 @@ def main():
             changed_files.append((str(rel_path), num))
             print(f"  Changed: {rel_path} ({num} replacements)")
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Files changed: {total_changed}")
     print(f"Total replacements: {total_replacements}")
 

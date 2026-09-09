@@ -12,8 +12,8 @@ from typing import Any
 from fastapi import APIRouter
 
 from cores.opportunity import PersonalHistoryTracker, Top5Engine
-from cores.opportunity.adapter import adapt_opportunities
 from cores.opportunity import get_engine as get_cateye_engine
+from cores.opportunity.adapter import adapt_opportunities
 
 logger = logging.getLogger("ownex.opportunity.api")
 

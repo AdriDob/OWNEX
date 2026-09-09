@@ -13,7 +13,7 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.opportunity import OpportunityCategory, get_opportunity_engine
+from cores.opportunity import OpportunityCategory, get_opportunity_engine
 
 
 async def main():

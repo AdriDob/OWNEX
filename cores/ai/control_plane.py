@@ -15,11 +15,11 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from cores.health.engine import HealthCenter
-from cores.scheduler.scheduler_v2 import get_scheduler
 from cores.ai.runtime import get_oar
 from cores.direct_work_engine.economic_engine_v2 import get_economic_engine_v2
 from cores.direct_work_engine.workbank import get_workbank
+from cores.health.engine import HealthCenter
+from cores.scheduler.scheduler_v2 import get_scheduler
 
 logger = logging.getLogger("ownex.ai.control_plane")
 

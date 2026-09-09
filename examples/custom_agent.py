@@ -15,10 +15,10 @@ from typing import Any
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.agents.base import BaseAgent
-from core.cycles.base import CycleResult
+from cores.agents.base import BaseAgent
+from cores.cycles.base import CycleResult
 
-from core.events import Event, EventBus
+from cores.events import Event, EventBus
 
 
 @dataclass

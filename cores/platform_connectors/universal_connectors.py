@@ -18,15 +18,15 @@ from cores.events.event_bus import get_core_event_bus
 from cores.opportunity.adapters import (
     get_adapter_registry,
 )
-from cores.sensors.adapters.generic_adapter import GenericAdapterSensor
-from cores.sensors.base import Sensor
-from cores.sensors.observation import Observation
-from cores.sensors.observation_engine import ObservationEngine, get_observation_engine
 from cores.prometheus_metrics import (
     OPPORTUNITY_PROVIDER_HEALTH,
     OPPORTUNITY_PROVIDERS_ACTIVE,
     record_opportunity_discovered,
 )
+from cores.sensors.adapters.generic_adapter import GenericAdapterSensor
+from cores.sensors.base import Sensor
+from cores.sensors.observation import Observation
+from cores.sensors.observation_engine import ObservationEngine, get_observation_engine
 
 logger = logging.getLogger("ownex.platform_connectors")
 

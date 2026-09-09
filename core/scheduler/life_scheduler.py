@@ -18,10 +18,10 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from cores.health.engine import get_health_center
-from cores.memory.store import get_unified_memory
 from cores.events.event_bus import get_event_bus
 from cores.events.types import EventType
+from cores.health.engine import get_health_center
+from cores.memory.store import get_unified_memory
 
 logger = logging.getLogger("orion.life_scheduler")
 

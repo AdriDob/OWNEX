@@ -217,7 +217,6 @@ def _skill_gap_for_top(top_opp: dict[str, Any] | None) -> dict[str, Any] | None:
         entry_mechanism="ASSESSMENT",
     )
 
-
     amplifier = SkillAmplifier()
     report = amplifier.analyze(opp, profile)
 

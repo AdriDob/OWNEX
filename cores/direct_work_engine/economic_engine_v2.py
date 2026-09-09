@@ -357,9 +357,7 @@ class EconomicEngineV2:
         self._sequence += 1
         f"rev_{datetime.now(UTC).strftime('%Y%m%d')}_{self._sequence:04d}"
 
-        (
-            Decimal(str(expected_ev)) if expected_ev else Decimal(str(theoretical_max * expected_return_pct / 100))
-        )
+        (Decimal(str(expected_ev)) if expected_ev else Decimal(str(theoretical_max * expected_return_pct / 100)))
 
         line = RevenueLine(
             id=f"rev_{datetime.now(UTC).strftime('%Y%m%d')}_{self._sequence:04d}",

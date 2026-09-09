@@ -94,8 +94,8 @@ def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
     import asyncio
 
     try:
-        from cores.opportunity.executors.assisted_mode import AssistedExecutor
         from cores.direct_work_engine.workbank import get_workbank
+        from cores.opportunity.executors.assisted_mode import AssistedExecutor
 
         max_delivery_items: int = 10
         wb = get_workbank()

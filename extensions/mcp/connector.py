@@ -12,7 +12,7 @@ try:
 except ImportError:
     _MCP_AVAILABLE = False
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger(__name__)
 

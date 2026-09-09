@@ -18,15 +18,15 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from cores.events.event_bus import get_core_event_bus
-from cores.sensors.observation_engine import ObservationEngine
 from cores.discovery_engine import DiscoveryEngine, RankedOpportunity
+from cores.events.event_bus import get_core_event_bus
 from cores.prometheus_metrics import (
     LEARNING_CONFIDENCE,
     LEARNING_PATTERNS_EXTRACTED,
     THINKING_CYCLE_DURATION,
     THINKING_CYCLES_COMPLETED,
 )
+from cores.sensors.observation_engine import ObservationEngine
 
 logger = logging.getLogger("ownex.thinking_system")
 

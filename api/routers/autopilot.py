@@ -124,7 +124,8 @@ async def get_pending_gates():
                 "created_at": g.created_at.isoformat() if g.created_at else None,
                 "waiting_since": g.waiting_since.isoformat() if g.waiting_since else None,
                 "waiting_minutes": int(
-                    (__import__("datetime").datetime.now(__import__("datetime").UTC) - g.waiting_since).total_seconds() / 60
+                    (__import__("datetime").datetime.now(__import__("datetime").UTC) - g.waiting_since).total_seconds()
+                    / 60
                 )
                 if g.waiting_since
                 else 0,

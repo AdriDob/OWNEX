@@ -18,9 +18,9 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from cores.events.types import Events
 from cores.reports.quality.classifier import QualityClassifier
 from cores.reports.quality.scorer import QualityScorer
-from cores.events.types import Events
 from cores.settings.service import get_setting
 from database import db, models
 

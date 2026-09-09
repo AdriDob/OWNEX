@@ -1,6 +1,7 @@
 from cores.commander.agent_registry import AgentRegistry
-from cores.commander.audit import AuditLogger, get_audit_logger, log_action
 from cores.commander.capability_registry import CapabilityRegistry
+
+from cores.commander.audit import AuditLogger, get_audit_logger, log_action
 from cores.commander.context_engine import (
     build_context,
     build_context_async,

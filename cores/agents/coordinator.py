@@ -518,8 +518,8 @@ class CoordinatorAgent(BaseAgent):
                     finding = session.query(Finding).filter(Finding.id == report.finding_id).first()
                     if finding:
                         # Check elite gate
-                        from cores.reports.quality.scorer import QualityScorer
                         from cores.auto_submit.pipeline import _check_elite_gate
+                        from cores.reports.quality.scorer import QualityScorer
 
                         scorer = QualityScorer()
                         quality_score = scorer.score(finding.id)

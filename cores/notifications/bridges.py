@@ -244,8 +244,8 @@ def register_discord_channel() -> None:
 
 def register_telegram_channel() -> None:
     """Register the Telegram notification handler on the hub."""
-    from cores.notifications.telegram.bot import get_telegram_bot
     from cores.notifications.hub import get_hub
+    from cores.notifications.telegram.bot import get_telegram_bot
 
     bot = get_telegram_bot()
     if not bot.config.token or not bot.config.chat_id:

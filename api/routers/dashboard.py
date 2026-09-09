@@ -118,7 +118,10 @@ async def check_provider_health(provider_id: str, provider: any) -> HealthStatus
         )
     except Exception as e:
         return HealthStatus(
-            provider=provider_id, status="down", error=str(e), last_check=datetime.now(UTC).isoformat().replace("+00:00", "Z")
+            provider=provider_id,
+            status="down",
+            error=str(e),
+            last_check=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         )
 
 

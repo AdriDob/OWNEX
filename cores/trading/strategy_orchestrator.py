@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from cores.events.event_bus import get_event_bus
 from cores.trading.ensemble import EnsembleIntelligence
 from cores.trading.lifecycle import (
     complete_backtest,
@@ -26,7 +27,6 @@ from cores.trading.lifecycle import (
     start_backtest,
 )
 from cores.trading.optimizer import PortfolioOptimizer
-from cores.events.event_bus import get_event_bus
 
 logger = logging.getLogger("orion.trading.orchestrator")
 

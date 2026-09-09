@@ -3,7 +3,6 @@
 Fix patch strings in test files: core. -> cores.
 """
 
-import os
 import re
 from pathlib import Path
 
@@ -81,7 +80,7 @@ def main():
             changed_files.append((str(rel_path), num))
             print(f"  Changed: {rel_path} ({num} replacements)")
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Files changed: {total_changed}")
     print(f"Total replacements: {total_replacements}")
 

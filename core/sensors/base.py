@@ -11,7 +11,6 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import Any
 
-from cores.sensors.observation import Observation
 from cores.prometheus_metrics import (
     SENSOR_FETCH_DURATION_SECONDS,
     SENSOR_FETCH_TOTAL,
@@ -19,6 +18,7 @@ from cores.prometheus_metrics import (
     SENSOR_OBSERVATIONS_COLLECTED,
     record_sensor_fetch,
 )
+from cores.sensors.observation import Observation
 
 logger = logging.getLogger("ownex.sensors")
 

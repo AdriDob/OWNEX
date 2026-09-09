@@ -8,11 +8,12 @@ from typing import Any
 from fastapi import APIRouter
 from sqlalchemy import func as sa_func
 
-# Import HHD tracker
-from cores.system.hhd_tracker import get_hhd_summary, init_hhd_tracker
 from cores.engine.unified_scoring import score as unified_score
 from cores.engine.unified_scoring import score_target as unified_score_target
 from cores.gateway.schemas import safe_response
+
+# Import HHD tracker
+from cores.system.hhd_tracker import get_hhd_summary, init_hhd_tracker
 from cores.targets.models import TargetIntel
 from database import db, models
 

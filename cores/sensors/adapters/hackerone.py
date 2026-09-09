@@ -9,9 +9,9 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
+from cores.bounty_scraper.scraper import BountyScraper
 from cores.sensors.base import Sensor
 from cores.sensors.observation import Observation
-from cores.bounty_scraper.scraper import BountyScraper
 
 logger = logging.getLogger("ownex.sensors.hackerone")
 

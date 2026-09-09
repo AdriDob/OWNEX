@@ -16,8 +16,8 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from cores.opportunity.executors.assisted_mode import AssistedExecutor, PreparedWork
 from cores.identity_vault import IdentityVault
+from cores.opportunity.executors.assisted_mode import AssistedExecutor, PreparedWork
 
 logger = logging.getLogger("ownex.opportunity.auto_submit")
 

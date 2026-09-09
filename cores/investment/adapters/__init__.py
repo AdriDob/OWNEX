@@ -6,19 +6,19 @@ from typing import Any
 
 from cores.investment.adapters.agent_factory_adapter import (
     AgentFactory,
-    AgentSpec,
     AgentInstance,
-    AgentType,
+    AgentSpec,
     AgentStatus,
+    AgentType,
     build_agent_factory,
 )
 from cores.investment.adapters.ccxt_adapter import CCXTAdapter
-from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
-from cores.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter
-from cores.investment.adapters.futures_adapter import FuturesAdapter
-from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 from cores.investment.adapters.defi_adapter import AaveAdapter
+from cores.investment.adapters.futures_adapter import FuturesAdapter
+from cores.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter
 from cores.investment.adapters.memecoin_adapter import MemecoinAdapter
+from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
+from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
 
 # Stub registry for backward compatibility

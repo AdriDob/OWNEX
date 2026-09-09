@@ -30,7 +30,7 @@ def main():
         print("  New EventBus: OK")
 
     def check_legacy_eventbus():
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         bus = get_core_event_bus()
         print(f"  Legacy EventBus: OK ({type(bus).__name__})")

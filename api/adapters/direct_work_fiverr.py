@@ -10,13 +10,13 @@ from typing import Any
 
 from api.adapters.legacy import LegacyOpportunityDweAdapter
 from cores.direct_work_engine.models import (
+    DifficultyLevel,
     EmploymentType,
     ExperienceLevel,
     Opportunity,
     OpportunityCategory,
     PaymentMethod,
     WorkPlatform,
-    DifficultyLevel,
 )
 
 logger = logging.getLogger("ownex.api.direct_work.adapters.fiverr")

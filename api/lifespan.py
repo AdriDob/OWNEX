@@ -337,8 +337,8 @@ async def _init_operations(app: Any) -> Any:
 async def _init_orion_platform(app: Any, bus: Any) -> Any:
     from cores.app_registry import get_app_registry
     from cores.database.manager import get_db_manager
-    from cores.scheduler.scheduler import JobDefinition, get_core_scheduler
     from cores.events.event_bus import get_event_bus
+    from cores.scheduler.scheduler import JobDefinition, get_core_scheduler
 
     registry = get_app_registry()
     registry.discover()

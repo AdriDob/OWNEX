@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from cores.opportunity.models import PersonalHistory, ScoredOpportunity
+from cores.opportunity.models import Opportunity, PersonalHistory, ScoredOpportunity
 from cores.opportunity.scorer import score_opportunity
-from cores.opportunity.models import Opportunity
 
 
 def _map_category_to_cycle(category: str) -> str:

@@ -19,12 +19,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from cores.scheduler.scheduler_v2 import get_scheduler
 from cores.ai.control_plane import initialize_control_plane
 from cores.ai.dev_engine import RiskLevel, initialize_dev_engine
 from cores.ai.runtime import initialize_oar
 from cores.direct_work_engine.economic_engine_v2 import get_economic_engine_v2
 from cores.direct_work_engine.engine import get_direct_work_engine
+from cores.scheduler.scheduler_v2 import get_scheduler
 from cores.validation.gate import get_report_gate
 from cores.worker_core.models import AutonomyLevel
 from cores.worker_core.orchestrator import WorkerConfig, WorkerCore, WorkState

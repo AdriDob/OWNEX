@@ -7,8 +7,8 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from cores.scheduler.scheduler import get_core_scheduler
 from cores.events.event_bus import get_event_bus
+from cores.scheduler.scheduler import get_core_scheduler
 from cores.self_healer import (
     get_patch_generator,
     get_problem_detector,

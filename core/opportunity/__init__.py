@@ -37,6 +37,7 @@ from cores.opportunity.models import (
     Top5Recommendation,
     UnifiedScore,  # This is the test model from models.py
 )
+from cores.opportunity.personal import PersonalHistoryTracker
 from cores.opportunity.scorer import score_opportunity
 
 # Legacy Finding-based scoring engine (backward compatibility)
@@ -56,7 +57,6 @@ from cores.opportunity.scoring import (
 from cores.opportunity.scoring import (
     UnifiedScore as LegacyUnifiedScore,
 )
-from cores.opportunity.personal import PersonalHistoryTracker
 
 # Top5Engine and PersonalHistoryTracker for tests (from cores/opportunity)
 from cores.opportunity.top5 import Top5Engine

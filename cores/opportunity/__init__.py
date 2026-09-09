@@ -6,17 +6,6 @@ Supports advanced layered scoring, EVH, and identity vault integration.
 """
 
 # Legacy compatibility layer for tests (from cores.opportunity.models)
-from cores.opportunity.models import (
-    OWNEX_WORK_CYCLE_ORDER,
-    OWNEX_WORK_CYCLES,
-    PersonalHistory,
-    PersonalHistoryTracker,
-    ScoredOpportunity,
-    Top5Engine,
-    Top5Recommendation,
-    UnifiedScore,
-    score_opportunity,
-)
 from cores.opportunity.engine import (
     Opportunity,
     OpportunityCategory,
@@ -30,6 +19,8 @@ from cores.opportunity.engine import (
 )
 from cores.opportunity.history import HistoryManager, get_history_manager
 from cores.opportunity.models import (
+    OWNEX_WORK_CYCLE_ORDER,
+    OWNEX_WORK_CYCLES,
     EVHCalculation,
     EVHRating,
     IdentityVaultEntry,
@@ -37,7 +28,14 @@ from cores.opportunity.models import (
     OpportunityRecommendations,
     OpportunityScore,
     OpportunitySnapshot,
+    PersonalHistory,
+    PersonalHistoryTracker,
     ScoreBreakdown,
+    ScoredOpportunity,
+    Top5Engine,
+    Top5Recommendation,
+    UnifiedScore,
+    score_opportunity,
 )
 from cores.opportunity.models import (
     Opportunity as LegacyOpportunity,
