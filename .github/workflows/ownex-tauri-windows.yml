@@ -357,14 +357,19 @@ jobs:
           winget install Microsoft.EdgeWebView2Runtime -e --accept-source-agreements --accept-package-agreements 2>&1 || echo "WebView2 install failed or already installed"
         shell: pwsh
 
+      # Wipe stale bundle outputs (own step with bash: the rust-cache
+      # restores src-tauri/target/, which can carry installer files from
+      # previous configs — e.g. an orphan nsis/*.sha256 after MSI-only.
+      # bash exists on all 3 runners; the build step below runs in pwsh
+      # on Windows, where rm -rf is NOT valid syntax.)
+      - name: Clean bundle dir
+        shell: bash
+        run: rm -rf src-tauri/target/release/bundle
+
       # Tauri build with verbose output
-      # NOTE: wipe the bundle dir first — the rust-cache restores target/,
-      # which can leave stale installer files from previous configs
-      # (e.g. an orphan nsis/*.sha256 after the MSI-only switch).
-      # (PowerShell syntax: this step runs in pwsh on Windows runners.)
       - name: Tauri build
+        shell: bash
         run: |
-          if (Test-Path src-tauri/target/release/bundle) { Remove-Item -Recurse -Force src-tauri/target/release/bundle }
           echo "=== Tauri CLI version ==="
           npx tauri --version
           echo "=== Rust version ==="
