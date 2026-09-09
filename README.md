@@ -405,7 +405,7 @@ Choose your platform:
 **Auto-contained bundle — no Python/Node required**
 
 1. Build or download the installer:
-   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.1.0_x64-setup.exe` / `.msi`)
+   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.1.0_x64_es-ES.msi`)
    - **Legacy (PySide6 NSIS)**: dispatch `ownex-alpha-windows.yml` (manual) → artifact `OWNEX-Alpha-Windows-Installer`; last deployed build: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
    - GitHub Releases (when published)
 2. Run the installer (accept SmartScreen warning — debug build)

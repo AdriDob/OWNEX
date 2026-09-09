@@ -50,8 +50,7 @@
     "windows": {
       "wix": {
         "language": "es-ES"
-      },
-      "nsis": {}
+      }
     },
     "linux": {
       "deb": {

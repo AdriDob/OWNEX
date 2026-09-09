@@ -22,8 +22,9 @@ No necesitas instalar Python, Node ni nada más: **todo viene dentro del instala
 ## 2. Instalación
 
 1. Obtené el instalador:
-    - **Canónico (Tauri)**: artefacto `OWNEX-Tauri-Windows` del workflow
-      `.github/workflows/ownex-tauri-windows.yml` → `OWNEX Alpha_7.1.0_x64-setup.exe` o `.msi`.
+    - **Canónico (Tauri MSI)**: artefacto `OWNEX-Tauri-Windows` del workflow
+      `.github/workflows/ownex-tauri-windows.yml` → `OWNEX Alpha_7.1.0_x64_es-ES.msi`.
+      (El workflow ya no genera el setup.exe NSIS: MSI único por decisión 2026-09-09.)
    - **Legacy desplegado (PySide6 NSIS)**: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
      en esta máquina, o artefacto `OWNEX-Alpha-Windows-Installer` (dispatch manual).
      sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`.

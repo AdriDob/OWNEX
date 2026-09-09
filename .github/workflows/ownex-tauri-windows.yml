@@ -131,7 +131,6 @@ jobs:
             artifact_name: OWNEX-Tauri-Windows
             artifact_paths: |
               src-tauri/target/release/bundle/msi/*.msi
-              src-tauri/target/release/bundle/nsis/*.exe
               src-tauri/target/release/bundle/**/*.sha256
           - os: ubuntu-latest
             artifact_name: OWNEX-Tauri-Linux

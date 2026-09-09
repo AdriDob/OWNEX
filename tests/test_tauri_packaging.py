@@ -87,6 +87,12 @@ class TestSidecarSpec:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ownex-tauri-windows.yml").read_text(encoding="utf-8")
         assert "ownex-backend-x86_64-pc-windows-msvc.exe" in workflow
 
+    def test_windows_bundle_is_msi_only(self, tauri_conf: dict) -> None:
+        """MSI único por decisión 2026-09-09 (NSIS retirado del bundle)."""
+        windows = tauri_conf["bundle"]["windows"]
+        assert "wix" in windows
+        assert "nsis" not in windows
+
 
 class TestVersionSync:
     def test_versions_agree_across_manifests(self, tauri_conf: dict) -> None:
