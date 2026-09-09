@@ -1,3 +1,10 @@
+## 2026-09-09: NO-MERGE a main — 314 conflictos con trabajo concurrente (PR #37 queda abierto)
+
+- **Problema**: `feat/phase0-foundation` (línea 7.1.0 RC: P0 migración + P1–P3 + front + tests) está 82 commits por delante de `main`, pero `origin/main` avanzó en paralelo con trabajo concurrente (agent-runtime L0-L4, bug bounty B1+B2 OAR, max-effort-scenarios, income Opire real). Trial merge en worktree scratch → **314 archivos en conflicto** (api/, core/, cores/, .ai/, workflows, tests). Mergear ahora destruiría uno de los dos trabajos.
+- **Decisión**: NO mergear a `main` en esta sesión. PR #37 (`feat/phase0-foundation` → `main`, release report preliminar) queda **abierto y bloqueado** hasta sesión dedicada de resolución con el dueño del proceso concurrente. Veredicto de línea: **RC (no STABLE)** — suite 544/1, API 1665 rutas, vite+cargo OK, pero Tauri Windows rojo en CI y sin validación en hardware real. `core/` NO se borra (bloqueado por la misma validación).
+- **Evidencia**: trial merge `0857e7f2` + `origin/main` → `merge --abort` tras conteo (worktree scratch eliminado, árbol intacto).
+- **Regla permanente**: ningún merge a `main` con >10 archivos en conflicto sin coordinación explícita; los trial merges se hacen siempre en worktree scratch, jamás sobre el árbol de trabajo.
+
 ## 2026-08-30: FEATURE SET FASE_40 — 11 features de productividad/automatización (ciclo diario completo)
 
 - **Problema**: El sistema preparaba paquetes pero no entregaba por API, no sincronizaba pagos en vivo, no visualizaba el conocimiento acumulado, y el hunter carecía de caminos de entrenamiento, cumplimiento, equipo y captura rápida.

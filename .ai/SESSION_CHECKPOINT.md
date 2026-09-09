@@ -12,6 +12,7 @@
 ### Pendiente (requiere hardware real)
 - Validación Windows runtime (instalador MSI/NSIS) + upgrade test con datos `%APPDATA%/OWNEX` intactos.
 - `core/` aún NO borrado — pendiente verificación Windows + suite amplia antes de eliminar.
+- **NO-MERGE 2026-09-09**: trial merge a `origin/main` → 314 conflictos (trabajo concurrente agent-runtime/bug-bounty/income en main). PR #37 queda abierto y bloqueado. Veredicto línea: **RC, no STABLE**. Ver `DECISIONS.md` 2026-09-09.
 
 ---
 
