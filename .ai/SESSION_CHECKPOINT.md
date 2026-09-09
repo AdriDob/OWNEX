@@ -1,6 +1,14 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — working tree P0→P5 pendiente de commit (2026-09-09). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09.
+> v7.1.0 — SESIÓN CERRADA 2026-09-09: working tree P0→P5 commiteado y pusheado (`9b4d4242` en `origin/release/win11-stable`). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09.
+
+## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (commit + push)
+
+- **Commit `9b4d4242`** (`feat(win11-stable): cierre sesión`): 57 archivos, +1692/−384 — todo el working tree P0→P5 (Command Center, revenue bridge, chat semantics, version engine, manifests, db, tests). Pusheado con `-u` creando `origin/release/win11-stable`.
+- **Verificación pre-commit**: fast suite **100 passed / 1 skipped** (baseline exacta); scan de secretos del diff limpio (solo falsos positivos de fixtures/docs).
+- **Hook de pre-commit**: falló la suite completa por fallos AJENOS a la sesión (`ModuleNotFoundError: No module named 'api.routers.financial_hub'` en test_financial_hub + test_self_improvement = WIP del flujo concurrente, módulos no tocados aquí). Se commiteó con `--no-verify` siguiendo la convención documentada en DECISIONS para este caso exacto.
+- **Submódulo `cognee`**: solo contenido sucio en su working tree (pointer sin cambio) → NO incluido en el commit.
+- **Pendiente para retomar desde otra PC**: validación Windows runtime real (MSI/NSIS); borrado físico de `core/` bloqueado hasta esa validación (d968f4bf); PR #37 (NO-MERGE, 314 conflictos) sigue abierto.
 
 ## Última Sesión: 2026-09-09 — WIN11-STABLE (rama release + P0 frozen + smoke) ✅
 
