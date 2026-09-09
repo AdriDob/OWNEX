@@ -358,8 +358,12 @@ jobs:
         shell: pwsh
 
       # Tauri build with verbose output
+      # NOTE: wipe the bundle dir first — the rust-cache restores target/,
+      # which can leave stale installer files from previous configs
+      # (e.g. an orphan nsis/*.sha256 after the MSI-only switch).
       - name: Tauri build
         run: |
+          rm -rf src-tauri/target/release/bundle
           echo "=== Tauri CLI version ==="
           npx tauri --version
           echo "=== Rust version ==="
