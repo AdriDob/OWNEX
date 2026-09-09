@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from core.update.engine import UpdateManager, _parse_semver
+from cores.update.engine import UpdateManager, _parse_semver
 
 
 class TestParseSemver:
@@ -23,14 +23,14 @@ class TestParseSemver:
 
 class TestUpdateManager:
     def test_init_has_current_version(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
         mgr = UpdateManager()
         status = mgr.status()
         assert "current_version" in status
         assert status["current_version"] != ""
 
     def test_remote_check_falls_back_gracefully(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
         mgr = UpdateManager()
         result = mgr.check_remote()
         # Without network, falls back to current version
@@ -38,7 +38,7 @@ class TestUpdateManager:
         assert "update_available" in result
 
     def test_status_shape(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
         mgr = UpdateManager()
         status = mgr.status()
         assert "current_version" in status
@@ -47,14 +47,14 @@ class TestUpdateManager:
         assert "last_checked" in status
 
     def test_history_starts_empty(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
         mgr = UpdateManager()
         assert mgr.get_history() == []
 
     def test_prepare_update_creates_backup(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
-        monkeypatch.setattr("core.backup.engine.OWNEX_DIR", tmp_path)
-        monkeypatch.setattr("core.backup.engine.BACKUP_DIR", tmp_path / "backups")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.backup.engine.OWNEX_DIR", tmp_path)
+        monkeypatch.setattr("cores.backup.engine.BACKUP_DIR", tmp_path / "backups")
         (tmp_path / "database").mkdir(parents=True)
         (tmp_path / "database" / "orion.db").write_text("fake db")
         mgr = UpdateManager()
@@ -67,14 +67,14 @@ class TestUpdateManager:
             assert "backup_path" in result
 
     def test_rollback_returns_error_without_backup(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
         mgr = UpdateManager()
         result = mgr.rollback()
         assert result["status"] == "error"
         assert "reason" in result
 
     def test_persistence_survives_reinit(self, tmp_path, monkeypatch) -> None:
-        monkeypatch.setattr("core.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
+        monkeypatch.setattr("cores.update.engine.UPDATE_LOG", tmp_path / "history.jsonl")
 
         mgr1 = UpdateManager()
         mgr1._persist({"action": "test", "timestamp": datetime.now(UTC).isoformat()})

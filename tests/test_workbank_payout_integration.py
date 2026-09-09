@@ -34,12 +34,12 @@ def sample_opportunities():
         Opportunity(
             id="freelance-1",
             title="Web scraping bot",
-            platform=WorkPlatform.FREELANCER,
+            platform=WorkPlatform.WORKANA,
             category=OpportunityCategory.WEB_SCRAPING,
             payment=200.0,
             employment_type=EmploymentType.FREELANCE,
             description="Scrape e-commerce site",
-            url="https://freelancer.com/p/1",
+            url="https://www.workana.com/p/1",
         ),
         Opportunity(
             id="bounty-1",

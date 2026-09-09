@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.offensive.web3.engine import Web3OffensiveEngine
-from core.offensive.web3.models import SmartContractInfo
+from cores.offensive.web3.engine import Web3OffensiveEngine
+from cores.offensive.web3.models import SmartContractInfo
 
 # ── Reentrancy Reasoner ──
 

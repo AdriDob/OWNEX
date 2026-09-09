@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from core.setup.first_run import is_setup_complete, setup_status
-from core.setup.requirements_check import check_all
-from core.setup.steps import get_all_steps
-from core.setup.wizard import go_back, reset_wizard, run_step, skip_step, wizard_status
+from cores.setup.first_run import is_setup_complete, setup_status
+from cores.setup.requirements_check import check_all
+from cores.setup.steps import get_all_steps
+from cores.setup.wizard import go_back, reset_wizard, run_step, skip_step, wizard_status
 
 
 def test_requirements_check_returns_valid_structure():

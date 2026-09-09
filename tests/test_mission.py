@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from core.mission.controller import (
+from cores.mission.controller import (
     MissionController,
 )
-from core.mission.store import (
+from cores.mission.store import (
     get_mission_store,
 )
 
@@ -310,7 +310,7 @@ class TestMissionLifecycle:
         assert result.mission.actual_value_usd == 750.0
 
         # Verify checkpoints were saved
-        from core.mission.store import get_mission_store
+        from cores.mission.store import get_mission_store
 
         store = get_mission_store()
         checkpoints = store.get_checkpoints(mid)

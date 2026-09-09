@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.opportunity.executors.auto_submit import (
+from cores.opportunity.executors.auto_submit import (
     AutoSubmitEngine,
     SubmissionStatus,
     get_auto_submit_engine,
@@ -102,7 +102,7 @@ async def test_submit_success(engine, monkeypatch):
     async def _prepare(self, opportunity):
         return _P()
 
-    import core.opportunity.executors.assisted_mode as assisted_mod
+    import cores.opportunity.executors.assisted_mode as assisted_mod
 
     monkeypatch.setattr(assisted_mod.AssistedExecutor, "prepare_work", _prepare)
 
@@ -131,7 +131,7 @@ async def test_submit_success(engine, monkeypatch):
 @pytest.mark.anyio
 async def test_duplicate_not_resubmitted(engine, monkeypatch):
     # Seed an existing confirmed submission.
-    from core.opportunity.executors.auto_submit import SubmissionRecord
+    from cores.opportunity.executors.auto_submit import SubmissionRecord
 
     rec = SubmissionRecord(
         id="dup1",
@@ -161,7 +161,7 @@ async def test_no_api_key_moves_to_dlq(monkeypatch, tmp_path):
     monkeypatch.setattr(e, "_get_platform", lambda key: _FakePlatform(success=True))
     monkeypatch.setattr(e, "_get_adapter", lambda key: None)
 
-    import core.opportunity.executors.assisted_mode as assisted_mod
+    import cores.opportunity.executors.assisted_mode as assisted_mod
 
     async def _prepare(self, opportunity):
         class _P:

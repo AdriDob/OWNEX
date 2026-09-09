@@ -13,6 +13,16 @@
 > qué existe: `core/cycles/`, `cores/cycles/stages/`, `core/opportunity/`, `core/execution/`,
 > `core/autonomy/`, `apps/*`. El pipeline CATEYE real corre en `api/scheduler.py`.
 
+> **⚠️ AUDITORÍA 2026-09-08 (FINAL BUILD — LEER ANTES DE PROGRAMAR):** Audit del master
+> prompt FINAL BUILD con evidencia runtime (detalle en CURRENT_STATE.md 2026-09-08).
+> Checklist rankeado resultante:
+> - **P0 ✅ RESUELTO**: enum safety fail-closed (`_resolve` → 422, direct_work.py) — 49 tests, fast 100/1.
+> - **P1 ⏳ PENDIENTE**: versión canónica única (`.VERSION.txt`/`VERSION.txt`/`VERSION` + pyproject + package.json).
+> - **P1 ⏳ PENDIENTE**: consolidación core/→cores/ por evidencia runtime (la tree viva es `core/`; §31 del prompt decía lo inverso → corregido el plan). CONGELADA hasta aprobación.
+> - **P1 ✅ RESUELTO (2026-09-08)**: barrido `datetime.utcnow()` COMPLETO — 0 usos restantes en código de producción (cognee vendored excluido). Wave 1: 37 sitios con tests + migración naive (`hhd_tracker::_from_iso_utc`). Wave 2: ~110 sitios adicionales (llamadas + `default_factory` + gemelos core/cores). DB Column defaults preservados NAIVE deliberadamente (`_naive_utcnow` en content_factory/models.py, comentarios en hunter/operations) para mantener compatibilidad con `func.now()` y filas existentes. Excepción documentada: `core|cores/self_improvement/models.py` usa helper `utcnow_iso()` (aware) — nombrelegacy, valor correcto.
+> - **P2 ✅ RESUELTO**: hunt.py reúsa el scheduler vivo (`scheduler_instance` + método público `run_cycle()`) — 3 tests nuevos.
+> - **P2 ✅ RESUELTO**: B904 ×5 en direct_work.py (raise con `from None`).
+
 ## OWNEX Architecture
 
 ```

@@ -866,3 +866,26 @@
 - **Verificación**: ruff limpio; 22 passed offscreen; repro de cadena `WINDOW CREATED OK`; suite fast 100 passed / 1 skipped; `import api.main` OK. Commits: `e7d64dfd4` (sidecar), `71eb42320` (guía). CI rebuild run `32021761419` en curso.
 - **Impacto**: El bundle Windows queda autocontenido (motor + UI en un proceso) → el exe del escritorio muestra datos reales desde el primer día. Guía guiada `README-INSTALACION.md` (raíz repo, git) + copiada al Desktop de Windows como `GUIA-INSTALACION-OWNEX.md`; sección nueva en `ownexinstalador/docs/WINDOWS_INSTALL.md` (gitignored).
 - **Condiciones para reabrir**: Si el boot del backend in-process (35 s) se considera lento → pantalla de progreso en la UI; si el bundle crece demasiado → podar `collect_all` con `hiddenimports` específicos; si se quiere firma → certificado de code signing (elimina SmartScreen).
+
+## 2026-09-09: CIERRE P2+P3 — safety gates + revenue durability + audit adversarial §44
+
+- **Problema**: (1) BrowserAgent podía enviar applications/claims y CoderAgent pushear PRs/ejecutar shell sin ningún gate humano — el megaprompt lo prohíbe explícitamente. (2) RevenueTracker solo-memoria: todo lo registrado se perdía al reiniciar (get_revenue_state_breakdown además crasheaba con enums). (3) Respuestas IA sin distinción hecho/inferencia. (4) Sin UI del ledger ni de calibración.
+- **Decisión**: gates HMAC un solo uso (single-process, documentado — no es auth cross-machine); denylist de comandos destructivos; redact de secretos en prompts; containment de repos; approval requerido por defecto en PR; OAR-first con fallback (no se migró el router entero: mínimo viable); semántica como contrato + bloque aditivo en daily-brief; reconcile idempotente en boot; Ledger UI + sección Aprendizaje.
+- **Evidencia**: 15 bridge+reconcile tests, 12 safety (estables ×3 — un flake real de colisión same-second cazado y fixeado con nonce), extends oar/copilot; suite 461/1; cargo check OK; vite 11.9s.
+- **Audit adversarial §44 (honesto)**:
+  - ¿Nuevo usuario puede usarlo? PARCIAL — funnel + guías + onboarding UI existen; instalador Windows sin validar en hardware real → NO.
+  - ¿Plataforma nunca tocada? SÍ (12 guías + first-opportunity + tips).
+  - ¿Explica cada paso? SÍ en daily-brief (semantics); chat libre copilot aún sin etiquetar (límite conocido).
+  - ¿Distingue hechos de supuestos? SÍ en daily-brief/evolution (UNKNOWN/THIN_EVIDENCE); resto pendiente.
+  - ¿Recomienda sensible? SÍ (EV + calibration + repeatable + channel filter).
+  - ¿Sobrevive caída de IA? SÍ por diseño Y por fault-injection (`tests/test_llm_fault_injection.py`, 8 tests: OAR→router→None/heurísticos, sin invención, secretos redactados).
+  - ¿Sobrevive caída de backend? PARCIAL (ErrorState+retry, strips que se ocultan, desktop dual-mode; sin test de caos dedicado).
+  - ¿Se recupera? SÍ (DLQ+retry, reconcile en boot, stale-scan recovery).
+  - ¿Preserva verdad de revenue? SÍ (Rule §39 testeada; PAID solo vía verification/webhook/manual).
+  - ¿Previene acciones externas no autorizadas? SÍ (nuevo: 4 gates browser + PR + denylist shell).
+  - ¿Corre en Windows? COMPILA (cargo check OK); runtime real NO validado aquí → NO.
+  - ¿Sobrevive restart sin perder estado? AHORA SÍ (reconcile; workbank/first-money/submissions ya persistían).
+  - ¿Guía al primer earning? SÍ (funnel UI + guías + next-action).
+  - ¿Identifica ingreso repetible? SÍ (REPEATABLE/NON_REPEATABLE/UNKNOWN; RECURRING excluido honestamente).
+  - ¿Evita completitud falsa? PARCIAL (UNKNOWN/THIN_EVIDENCE en lo nuevo; superficies legacy sin auditar una por una).
+- **Regla permanente**: toda acción externa irreversible exige approval token un solo uso; ningún camino automatizado alcanza PAID; RECURRING jamás se reclama sin evidencia de suscripción.

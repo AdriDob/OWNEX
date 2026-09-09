@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from core.opportunity.executors.outlier_executor import OutlierExecutor
+from cores.opportunity.executors.outlier_executor import OutlierExecutor
 
 
 @pytest.fixture

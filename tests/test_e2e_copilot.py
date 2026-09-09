@@ -23,7 +23,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_1_providers_health(self):
         """Real: get_provider_monitor returns healthy providers."""
-        from core.orion.health.provider_monitor import get_provider_monitor
+        from cores.orion.health.provider_monitor import get_provider_monitor
 
         monitor = get_provider_monitor()
         assert monitor is not None
@@ -35,7 +35,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_2_providers_check_all(self):
         """Real: provider monitor checks all providers."""
-        from core.orion.health.provider_monitor import get_provider_monitor
+        from cores.orion.health.provider_monitor import get_provider_monitor
 
         monitor = get_provider_monitor()
         report = await monitor.check_all()
@@ -47,7 +47,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_3_context_engine_builds(self):
         """Real: context engine builds all blocks."""
-        from core.commander.context_engine import build_context_async
+        from cores.commander.context_engine import build_context_async
 
         ctx = await build_context_async()
         blocks = list(ctx.blocks.keys())
@@ -61,7 +61,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_4_providers_block_has_data(self):
         """Real: provider block contains provider health data."""
-        from core.commander.context_engine import build_context_async
+        from cores.commander.context_engine import build_context_async
 
         ctx = await build_context_async()
         prov = ctx.get_block("providers")
@@ -73,7 +73,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_5_system_context_has_counts(self):
         """Real: system context includes real DB counts."""
-        from core.commander.context_engine import build_context_async
+        from cores.commander.context_engine import build_context_async
 
         ctx = await build_context_async()
         sys = ctx.get_block("system_context")
@@ -86,7 +86,7 @@ class TestCopilotCommanderE2E:
     @pytest.mark.asyncio
     async def test_6_normalizes_prompt(self):
         """Real: prompt context builds for mission control."""
-        from core.commander.context_engine import get_prompt_context_async
+        from cores.commander.context_engine import get_prompt_context_async
 
         prompt = await get_prompt_context_async("¿Cuáles son las mejores oportunidades hoy?")
         assert isinstance(prompt, str)
@@ -96,7 +96,7 @@ class TestCopilotCommanderE2E:
         """Real: copilot router returns system context dict."""
 
         # Test that context generation works
-        from core.commander.audit import get_audit_logger
+        from cores.commander.audit import get_audit_logger
 
         logger = get_audit_logger()
         summary = logger.get_session_summary()
@@ -133,7 +133,7 @@ class TestSecurityCycleE2E:
             assert ex.name == stage
 
     def test_3_executive_dashboard_has_keys(self):
-        from core.cycles.security import get_security_cycle
+        from cores.cycles.security import get_security_cycle
 
         sc = get_security_cycle()
         dash = sc.get_dashboard()
@@ -199,7 +199,7 @@ class TestOpportunityEngineE2E:
     """Real E2E: opportunity scoring -> recommendation"""
 
     def test_1_scoring_model(self):
-        from core.opportunity.models import UnifiedScore
+        from cores.opportunity.models import UnifiedScore
 
         score = UnifiedScore(
             expected_value=8500.0,
@@ -214,7 +214,7 @@ class TestOpportunityEngineE2E:
         assert len(score.reasoning()) > 0
 
     def test_2_all_executors_registered(self):
-        from core.opportunity.executors import get_executors
+        from cores.opportunity.executors import get_executors
 
         ex = get_executors()
         assert "algora" in ex
@@ -226,7 +226,7 @@ class TestOpportunityEngineE2E:
             assert hasattr(executor, "is_enabled")
 
     def test_3_opportunity_orchestrator(self):
-        from core.opportunity.engine import OpportunityOrchestrator
+        from cores.opportunity.engine import OpportunityOrchestrator
 
         engine = OpportunityOrchestrator()
         assert engine is not None
@@ -235,7 +235,7 @@ class TestOpportunityEngineE2E:
         assert len(engine.forge_adapters) >= 1
 
     def test_4_opportunity_scored_dataclass(self):
-        from core.opportunity.models import ScoredOpportunity, UnifiedScore
+        from cores.opportunity.models import ScoredOpportunity, UnifiedScore
 
         opp = ScoredOpportunity(
             id="E2E-TEST",
@@ -255,8 +255,8 @@ class TestOpportunityEngineE2E:
         assert "python" in opp.technology_tags
 
     def test_5_top5_recommendations(self):
-        from core.opportunity.models import Top5Recommendation
-        from core.opportunity.top5 import Top5Engine
+        from cores.opportunity.models import Top5Recommendation
+        from cores.opportunity.top5 import Top5Engine
 
         engine = Top5Engine()
         recommendations = engine.compute([])
@@ -264,7 +264,7 @@ class TestOpportunityEngineE2E:
         assert len(recommendations.ranked) == 0
 
     def test_6_opportunity_executor_base(self):
-        from core.opportunity.executors import BaseExecutor, ExecutionResult
+        from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
         class TestEx(BaseExecutor):
             async def execute(self, action, **kwargs):
@@ -284,7 +284,7 @@ class TestExecutionLayerE2E:
 
     def test_1_coder_agent_imports(self):
         """Real: CoderAgent can be imported and used."""
-        from core.autonomy.coder_agent import CoderAgentConfig
+        from cores.autonomy.coder_agent import CoderAgentConfig
 
         config = CoderAgentConfig()
         assert config is not None
@@ -292,7 +292,7 @@ class TestExecutionLayerE2E:
 
     def test_2_evolution_cycle_works(self):
         """Real: evolution engine cycle detects issues."""
-        from core.evolution.engine import get_evolution_engine
+        from cores.evolution.engine import get_evolution_engine
 
         engine = get_evolution_engine()
         report = engine.run_cycle()
@@ -301,7 +301,7 @@ class TestExecutionLayerE2E:
 
     def test_3_self_healer_diagnoses(self):
         """Real: self-healer diagnoses without error."""
-        from core.evolution.self_healer import SelfHealer
+        from cores.evolution.self_healer import SelfHealer
 
         healer = SelfHealer()
         issues = healer.diagnose()
@@ -309,7 +309,7 @@ class TestExecutionLayerE2E:
 
     def test_4_security_cycle_works(self):
         """Real: security cycle dashboard works."""
-        from core.cycles.security import get_security_cycle
+        from cores.cycles.security import get_security_cycle
 
         sc = get_security_cycle()
         dash = sc.get_dashboard()
@@ -318,7 +318,7 @@ class TestExecutionLayerE2E:
 
     def test_5_copilot_provider_chain(self):
         """Real: copilot provider router has correct priority."""
-        from core.copilot.providers.router import get_provider_router
+        from cores.copilot.providers.router import get_provider_router
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
@@ -332,7 +332,7 @@ class TestBrowserWorkersE2E:
     """E2E: browser worker creation and action routing"""
 
     def test_1_all_workers_importable(self):
-        from core.automation.workers import (
+        from cores.automation.workers import (
             DataAnnotationWorker,
             MindriftBrowserWorker,
             OutlierWorker,
@@ -346,7 +346,7 @@ class TestBrowserWorkersE2E:
 
     @pytest.mark.asyncio
     async def test_2_unknown_action_returns_error(self):
-        from core.automation.workers import DataAnnotationWorker
+        from cores.automation.workers import DataAnnotationWorker
 
         w = DataAnnotationWorker()
         result = await w.execute("nonexistent_action")
@@ -354,7 +354,7 @@ class TestBrowserWorkersE2E:
         assert "Unknown action" in result.get("error", "")
 
     def test_3_get_browser_workers_returns_4(self):
-        from core.automation.workers import get_browser_workers
+        from cores.automation.workers import get_browser_workers
 
         workers = get_browser_workers()
         assert len(workers) == 4
@@ -371,7 +371,7 @@ class TestCopilotModelRoutingE2E:
     """E2E: model router assigns correct models per task type"""
 
     def test_1_all_task_types_route(self):
-        from core.ai.model_router import TaskType, get_model_router
+        from cores.ai.model_router import TaskType, get_model_router
 
         router = get_model_router()
         for tt in TaskType:
@@ -381,14 +381,14 @@ class TestCopilotModelRoutingE2E:
             assert d.tier is not None
 
     def test_2_analysis_gets_primary_tier(self):
-        from core.ai.model_router import TaskType, get_model_router
+        from cores.ai.model_router import TaskType, get_model_router
 
         router = get_model_router()
         d = router.route(TaskType.ANALYSIS)
         assert d.tier.name in ("PRIMARY", "FALLBACK", "LOCAL", "FREE")
 
     def test_3_copilot_provider_chain(self):
-        from core.copilot.providers.router import get_provider_router
+        from cores.copilot.providers.router import get_provider_router
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
@@ -397,7 +397,7 @@ class TestCopilotModelRoutingE2E:
 
     @pytest.mark.asyncio
     async def test_4_provider_router_checks_all(self):
-        from core.copilot.providers.router import get_provider_router
+        from cores.copilot.providers.router import get_provider_router
 
         pr = get_provider_router()
         for p in pr.providers:
@@ -413,7 +413,7 @@ class TestWorkflowEngineE2E:
 
     @pytest.mark.asyncio
     async def test_1_create_workflow(self):
-        from core.autonomy.workflow_engine import create_autonomous_workflow
+        from cores.autonomy.workflow_engine import create_autonomous_workflow
 
         wf = await create_autonomous_workflow()
         assert len(wf.executors) >= 2
@@ -421,7 +421,7 @@ class TestWorkflowEngineE2E:
 
     @pytest.mark.asyncio
     async def test_2_workflow_cycle_runs(self):
-        from core.autonomy.workflow_engine import create_autonomous_workflow
+        from cores.autonomy.workflow_engine import create_autonomous_workflow
 
         wf = await create_autonomous_workflow()
         results = await wf.run_cycle()
@@ -429,7 +429,7 @@ class TestWorkflowEngineE2E:
 
     @pytest.mark.asyncio
     async def test_3_audit_logger_works(self):
-        from core.commander.audit import get_audit_logger
+        from cores.commander.audit import get_audit_logger
 
         audit = get_audit_logger()
         audit.log(

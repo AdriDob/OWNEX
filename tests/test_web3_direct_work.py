@@ -8,7 +8,7 @@ import pytest
 
 from api.adapters.direct_work_code4rena import Code4renaDweAdapter
 from api.adapters.direct_work_immunefi import ImmunefiDweAdapter
-from core.opportunity.executors import get_executors
+from cores.opportunity.executors import get_executors
 from cores.direct_work_engine.models import WorkPlatform
 
 

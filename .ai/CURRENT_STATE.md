@@ -1,3 +1,87 @@
+## Sesión 2026-09-09 — CIERRE P2+P3+Front+P4: safety gates, ledger UI, reconcile en boot
+
+> **QUÉ SE HIZO:** Cierre del sistema y el front (P2 resto + P3 + front económico + P4 verify + P5 parcial).
+> - **P3 safety** (`cores/automation/safety.py`, NUEVO): `ActionClass` READ/WRITE/CONSEQUENTIAL, approval tokens HMAC un solo uso con expiry + nonce (single-process, documentado), `BLOCKED_COMMAND_PATTERNS` (rm -rf /, mkfs, dd, fork-bomb, shutdown, curl|sh...), `redact_secrets()` (api keys, tokens, passwords, private keys), `is_path_allowed()` (containment). Gates en 4 métodos BrowserAgent (`easy_apply_linkedin`, `claim_algora_issue`, `dataannotation_claim_task`, `outlier_claim_task` — niegan sin token); `CoderAgentConfig` gana `allowed_repo_roots/extra_blocked_commands/require_approval_for_pr/redact_secrets_in_prompts`; `solve_issue(approval_token=)` + containment del clone dir + token a `create_pr_from_plan()`; `PRBuilder.create_pr` y `create_pr_from_plan` exigen token por defecto; `test_runner._run_single_test` bloquea comandos destructivos; `code_generator._llm_complete` OAR-first (`TaskType.CODE`) con fallback al provider router + redact en ambos prompts.
+> - **OAR**: `status()` ahora expone `recent_routing` (provider/model/task/confidence/cost/latency/fallbacks, sin prompts ni secretos); chat/ask ya devolvían usage/cost/latency.
+> - **Semántica IA** (`cores/copilot/semantics.py`, NUEVO): contrato `SemanticResponse` FACT/INFERENCE/RECOMMENDATION/UNKNOWN + `build_daily_brief_semantics()`; `/daily-brief` expone bloque `semantics` aditivo.
+> - **Revenue durability (bug real)**: `RevenueTracker` era solo-memoria (se perdía al reiniciar) → `reconcile_from_persisted_state()` en el bridge (replay idempotente de submission queue + workbank delivered, misma semántica que approve) + hook en `lifespan._init_trackers` (background, non-fatal). `get_revenue_state_breakdown` tolera platform str/enum (mismo crash-class que P0).
+> - **Ledger UI** (`Ledger.vue` + `GET /direct-work/revenue-ledger`): buckets EXPECTED→…→PAID/NET + proyección (pipeline/earned_not_paid/realized) + tabla por oportunidad con filtro; ruta `/operations/ledger` + sidebar MONEY.
+> - **FirstMoney calibración**: sección Aprendizaje (MAE monto/horas + verdict + patrones REPEATABLE/NON_REPEATABLE/UNKNOWN) vía `fetchEvolutionLearning()`.
+> - **P4 verify**: `cargo check` OK 6.8s; voice backend+UI presentes (V1); mobile tests 4/4; cambios 100% aditivos (mobile/watch no rotos).
+> - **Verificación**: suite amplia **461 passed / 1 skipped** (15 bridge+reconcile, 12 safety estables ×3 corridas, oar/copilot extends, todo P0-P2); `import api.main` OK (1665 rutas); `vite build` OK 11.9s (chunk Ledger); biome + ruff limpios en tocados; endpoint `/revenue-ledger` verificado runtime (earned $150, realized $0 — honesto).
+> - **P5 fault-injection IA** (`tests/test_llm_fault_injection.py`, 8 tests): outage OAR→fallback router, contenido vacío/malformado→fallback, outage total→None (heurísticos), error de router→None (sin invención), import OAR roto→fallback, secretos jamás llegan al provider, router intacto en éxito OAR. Suite total **544 passed / 1 skipped**; ruff limpio.
+> - **No commiteado** (solo working tree).
+
+## Sesión 2026-09-09 — P2 ENGINES E2E: submission→revenue bridge + calibration + repeatable
+
+> **QUÉ SE HIZO:** P2 del megaprompt (motores ejecutan → verifican → registran → aprenden). Audit-first: DevBountyPipeline, AutoSubmitEngine, PerformanceAnalyzer, economics-HITROI y cashflow-recurring ya existían — solo se cerraron 3 gaps genuinos.
+> - **Bridge execution→revenue** (`cores/revenue_tracker/execution_bridge.py`, NUEVO): `record_submission_outcome()` (SUBMITTED→REVIEWING, CONFIRMED→ACCEPTED vía REVIEWING, FAILED/DLQ→FAILED) + `record_pipeline_outcome()` (submitted→REVIEWING, rejected/failed/error→FAILED); `WORK_PLATFORM_TO_PAYMENT` como SSOT (incluye `workana→dev_bounty`); **PAID inalcanzable por este camino** (Rule §39, testeado). Hooks guarded (try/except, jamás rompen delivery) en `AutoSubmitEngine.submit_workbank_item` (2 exit points) + wrapper `DevBountyPipeline.execute_dev_bounty` → `_execute_dev_bounty_inner` (cubre los 9 early-returns). `direct_work.py` approve usa `resolve_payment_platform()` (mapa inline eliminado, sin duplicación).
+> - **Calibration** (`feedback.py` + `evolution.py`): `LearningRecord` gana 4 campos opcionales (`predicted_amount/hours/probability`, `actual_hours`); `prediction_error_report()` (MAE monto/horas, error medio probabilidad; UNKNOWN sin predicciones, THIN_EVIDENCE <3 outcomes); `_record_from_dict` los acepta; endpoint `/evolution` expone `calibration` + `repeatable` (aditivo, sin romper contrato).
+> - **Repeatable** (`evolution.py`): `identify_repeatable()` — REPEATABLE (≥2 accepted + conversión ≥0.5), NON_REPEATABLE (evidencia suficiente bajo el bar), UNKNOWN (evidencia insuficiente); RECURRING nunca reclamado sin evidencia de suscripción explícita.
+> - **Verificación**: 12 tests nuevos (`test_execution_revenue_bridge.py`); suite amplia 288 passed / 1 skipped (workbank, DWE, fiverr, market, direct_work_api, scheduler, security, opportunity, scoring, payout, barrier, income-chain, comprehensive, auto_submit, dev_bounty, evolution); `import api.main` OK (1665 rutas); endpoint `/evolution` verificado runtime (keys + calibration + repeatable); ruff limpio en tocados (I001 auto_submit preexistente no tocado).
+> - **No commiteado** (solo working tree).
+
+## Sesión 2026-09-09 — P1 ZERO-TO-EARNING UI: First Money + Platform Onboarding frontend
+
+> **QUÉ SE HIZO:** P1 del megaprompt (Zero-to-Earning visible en producto).
+> - **First Money UI** (`frontend/src/pages/FirstMoney.vue`): tracker 14 etapas con progreso global, próxima acción, start/complete por etapa, formulario de registro de ingreso REAL (solo PAID), toggles de canales freelance opcionales (ACTIVE/PAUSED), timeline completo de etapas. Ruta `/operations/first-money` + sidebar WORK.
+> - **Platform Onboarding** (`frontend/src/pages/PlatformOnboarding.vue`): selector de 12 plataformas, tabs cuenta/trabajo, pasos con acción/elemento/valor, first-opportunity recomendada, tips + errores comunes, botón "Usar en First Money" (inicia etapa `platform_selected`). Ruta `/operations/platforms/:platform?` + sidebar WORK.
+> - **Mission Control visible**: `FirstMoneyStrip.vue` (progreso compacto, se oculta si el backend no responde) montado en `IncomeHome.vue` (centro `/`) tras `DailyBriefCard`.
+> - **Servicio**: extends `ownexData.ts` (tipos + 12 funciones: first-money, channels, guides). Hygine backend del feature: B904×3 + F811 (reset endpoint usa `reset_first_money_tracker()`) + F401 en `first_money`/`tracker`.
+> - **Verificación**: 242 passed / 1 skipped (mismo set que P0); fast 92/1; `vite build` OK 11s (chunks FirstMoney + PlatformOnboarding); biome limpio en 7 archivos; `import api.main` OK (1665 rutas); endpoints verificados runtime (14 stages, 12 guías, 9 steps Workana).
+> - **Nota**: `vue-tsc` global roto por WIP concurrente (`MissionControl.vue` untracked + `animations.ts`/`mobile-companion` preexistentes) — 0 errores en archivos de este feature.
+> - **No commiteado** (solo working tree).
+
+## Sesión 2026-09-09 — ZERO-TO-EARNING: freelance opcional + Workana + P0 core→cores
+
+> **QUÉ SE HIZO:** Arquitectura económica definitiva (freelance = OPTIONAL COMMERCIAL ENGINE) + avance P0 migración.
+> - **Freelance opcional**: nuevo `cores/freelance/channel_status.py` — `ChannelStatus` ACTIVE/PAUSED/DISABLED/EXCLUDED, registry persistido en `OWNEX_DATA_DIR/freelance_channels.json`; filtro `filter_by_channel_status()` integrado en `/direct-work/recommend`, `/discover`, `/daily-brief`, `/workbank/cycle`; endpoints `GET /direct-work/channels` + `POST /direct-work/channels/{channel}`. Solo ACTIVE recomienda; scoring decide si el freelance merece el tiempo.
+> - **Plataformas**: quitados `remotasks`, `data_annotation_platform`, `freelancer`, `upwork`, `freelancer_microtask` del enum `WorkPlatform`, adapters (`legacy.py`), guías, `PLATFORM_ACCESS`, listas forge/pulse/control y `platform_map` de RevenueTracker; agregado `WORKANA` (enum + `WorkanaDweAdapter` honesto sin API pública + guía completa ES + first-opportunity + payout wiring a `DEV_BOUNTY`).
+> - **Revenue robustness**: `_update_metrics`/`_update_revenue_state_metrics` toleran `platform` str o enum (`getattr(value)`) — corrige crash real expuesto por `test_income_chain_e2e`.
+> - **P0 core→cores**: script `scripts/migrate_core_to_cores.py` (436 archivos, 1679 reemplazos) + `scripts/fix_test_patches.py` (19 archivos, 101 patch-strings); `OpportunityEngineLegacy` + `PersonalHistoryTracker` hit-rate consolidados en `cores/opportunity/scoring.py` (los twins habían divergido: el test estaba escrito contra la versión `core`); `KnowledgeGraph` wrapper in-memory compatible en `cores/knowledge/graph.py`; stubs `InvestmentAdapterRegistry`/builders, `SyncEvent/Type`, alias `get_health_center`.
+> - **Verificación**: 242 passed / 1 skipped en suites afectadas (workbank, DWE, fiverr, market, direct_work_api, scheduler, security, opportunity, scoring, payout, barrier, income-chain, comprehensive); suite fast 92/1 (baseline); `import api.main` OK (1665 rutas); ruff limpio en todos los archivos tocados (ruido LSP preexistente no tocado).
+> - **No commiteado** (solo working tree): 774 archivos por la migración + features. `core/` aún NO borrado — pendiente verificación Windows + suite amplia antes de eliminar.
+
+## Sesión 2026-09-08 — FINAL BUILD AUDIT (First Money Before Stable) + P0.1 Enum Safety
+
+> **QUÉ SE HIZO:** Audit del master prompt FINAL BUILD contra evidencia runtime + fix P0.1.
+> - **Audit con evidencia de los blockers del prompt**:
+>   - **VERDADERO**: `_resolve()` enum silencioso en `api/routers/direct_work.py:114` — `ScoreRequest.opportunities` es `list[dict[str, Any]]` sin validación Pydantic; valores de enum inválidos devenían strings crudos dentro del dataclass `Opportunity` (código downstream asume `.value`/membership).
+>   - **VERDADERO**: 3 archivos de versión en conflicto (`.VERSION.txt`=7.0.0, `VERSION.txt`=7.1.0, `VERSION`=7.0.0) — pendiente de resolución canónica.
+>   - **VERDADERO**: ~191 usos de `datetime.utcnow()` (excl. cognee vendored) — refactor pendiente, superficie grande.
+>   - **STALE (plan se corrige, no el código)**: `/hunt/start` EXISTE y está montado (`api/main.py:648`, `api/routers/hunt.py`) — los calls del frontend son consistentes con el contrato real. Target model usa `active: Boolean` (`database/models.py:40`) sin drift `status` en DB.
+>   - **STALE + CRÍTICO**: §31 del prompt decía "cores/ canónica" — INVERTIDO: la tree runtime VIVA es `core/` (api/lifespan.py, apps/*/manifest.py, desktop/, scripts/, tests importan `core.scheduler.*`); `cores/` es la copia self-referential (solo `core/scheduler/scheduler_v2.py` importa cruzado `cores.scheduler.runs`). Consolidación CONGELADA hasta checklist aprobado.
+> - **P0.1 (enum safety, fail-closed)**: `_resolve()` ahora devuelve HTTP 422 con valores válidos en vez de degradar a string; consistente con la convención existente `_resolve_categories` (career.py). Fix del test E2E que dependía del fallback silencioso (`specialization: "backend"` → `"game_backend"`, miembro real de `GameDevSpecialization`).
+> - **Verificación**: +2 tests en `tests/test_direct_work_api.py` (invalid enum → 422, invalid profile enum → 422) → 49 passed; income-chain E2E 3/3; suite fast **100 passed / 1 skipped** (baseline exacta); ruff limpio en los 3 archivos (5 B904 preexistentes en direct_work.py NO tocados).
+
+## Sesión 2026-09-08 (cont.) — VERSIÓN CANÓNICA ÚNICA 7.1.0 (P1 resuelto)
+
+> **QUÉ SE HIZO:** Resolución del drift de versión multi-archivo.
+> - **Evidencia**: commit `26346f49` bump parcial 7.0.0→7.1.0 en 3 archivos sin pasar por el SSOT → drift en 6+ fuentes.
+> - **Canonical = 7.1.0** (intención commiteada + `__version__` runtime ya en 7.1.0). `.VERSION.txt` actualizado y `scripts/sync_version.py` propagó a todo el surface.
+> - **Bugs de herramienta corregidos**: Cargo.toml nunca se sincronizaba (regex `^version` sin `re.MULTILINE`); `cores/version.py::OWNEX_VERSION` no estaba en el script (agregado).
+> - **11 fuentes = 7.1.0**: .VERSION.txt, VERSION.txt, VERSION, pyproject.toml, package.json, frontend/package.json, core/__init__.py, cores/version.py, apps/hermes/__init__.py, tauri.conf.json, Cargo.toml.
+> - **Verificación**: script idempotente; suite fast 100/1; ruff limpio. `test_stability.py` ahora asevera contra `OWNEX_VERSION` (drift-proof). 3 fallas de test_stability son PREEXISTENTES (WIP no commiteado de stability.py por proceso paralelo).
+
+## Sesión 2026-09-08 (cont.) — P2 HUNT FIX + B904 + UTCNOW WAVE 1
+
+> **QUÉ SE HIZO:** Avance del checklist FINAL BUILD.
+> - **P2 B904 ×5**: `api/routers/direct_work.py` — `raise HTTPException` en except sin `from None` (5 sitios) → ruff limpio completo del archivo (sin preexistentes).
+> - **P2 hunt.py**: `start_hunt` creaba un `ScanScheduler(30)` nuevo (estado vacío, sin cooldowns) y llamaba el privado `_run_pipeline()`. Fix: método público `ScanScheduler.run_cycle()` (recovery + pipeline, `_loop` delega) y hunt reúsa `api.scheduler.scheduler_instance` (con fallback que registra la instancia). Nuevo `tests/test_hunt_router.py` 3/3 (reuso de instancia viva, fallback, already_running).
+> - **P1 utcnow wave 1 (37 sitios)**: `datetime.utcnow()` → `datetime.now(UTC)` en hhd_tracker (core+cores, 10 c/u), trading/models (6), revenue_multiplier/models (5), opportunity/engine (1), dashboard.py (4 — preservando formato `...Z` con `.replace("+00:00", "Z")`), run.py (1). `hhd_tracker` gana `_from_iso_utc()`: normaliza naive→aware al cargar `hhd_state.json` viejo (sin la normalización, comparar aware con naive persistido → TypeError). Nuevo `tests/test_hhd_tracker.py` 3/3 (roundtrip aware, carga legacy naive, math).
+> - **Verificación**: 32 passed (hhd + opportunity engine), suite fast **100/1**, ruff limpio en los 8 archivos, import api.main OK.
+> - **Pendiente (utcnow wave 2, ~28 archivos)**: RESUELTO — ver sesión 2026-09-08 (cont. 2).
+
+## Sesión 2026-09-08 (cont. 2) — UTCNOW WAVE 2 COMPLETA: 0 utcnow en producción
+
+> **QUÉ SE HIZO:** Barrido completo `datetime.utcnow()` → `datetime.now(UTC)`.
+> - **~110 sitios adicionales** en 3 patrones: (1) llamadas `utcnow()` en 27 archivos (swarm, economy, workflow, autopilot, observability/knowledge/operations/memory core, ai, learning, knowledge/, content_factory, trading, assistant); (2) `default_factory=datetime.utcnow` SIN paréntesis (invisible en el inventario inicial) en 18 archivos dataclass — convertidos a `lambda: datetime.now(UTC)`; (3) gemelos core/cores sincronizados por copia (trading models/metrics/virtual_wallet, revenue_multiplier).
+> - **Decisiones de semántica**: DB Column defaults (content_factory/models.py) preservados NAIVE via `_naive_utcnow` alias documentado — filas SQLite comparan igual-formato con `func.now()`; routers con corte temporal sobre DB (hunter/operations) usan `datetime.now(UTC).replace(tzinfo=None)` (naive-preserving) — comparación DB no cambia en absoluto.
+> - **Bug mío corregido**: conversion en `content_factory/scheduler.py` líneas health-check referenciaba `UTC` sin import module-level (F821) — import agregado; bloque `_naive_utcnow` movido después de imports (E402 propios eliminados).
+> - **Verificación**: 58 módulos importan OK; 86 passed (hhd + hunt + direct_work + income-chain + workflow + finding-market); suite fast **100/1**; `import api.main` OK; grep final = **0 utcnow** en core/cores/api/run.py/desktop/scripts/apps/database (excluye cognee vendored, docstrings hhd y helper `utcnow_iso` de self_improvement que ya es aware).
+> - **Ruff**: 26 errores en el scope amplio TODOS preexistentes (verificados stash: F841/SIM105/E402/B904 de WIP ajeno + UP042 conocidos) — 0 deuda nueva.
+> - **Nota**: `core/sync/engine.py` (15 hits ruff) y `core/execution_queue/driver.py` (20) son WIP ajeno no commiteado — sin tocar.
+
 ## Sesión 2026-09-05 (FINAL) — Responsive + Accessibility + Project Closeout
 
 > **QUÉ SE HIZO:** Complete responsive + accessibility improvements + project closeout.
@@ -3347,3 +3431,37 @@ Características del Sistema Completo:
 > - **Commits**: cc436a47 (AI resilience), 7983ddda (AiCenter), fb30df08 (release).
 > - **Pendiente no-bloqueante**: validación Windows/WSL/installer en máquina real;
 >   consolidación legacy AI 4→1 gated a esa validación (deuda dirigida en DECISIONS).
+
+## Sesión 2026-09-08 (noche) — Consolidación core/cores: INTENTADA y REVERSADA por evidencia
+
+> **QUÉ PASÓ:** Aprobación del usuario → ejecución de la consolidación. Hallazgo decisivo a mitad
+> de camino: **un proceso concurrente está ejecutando la misma migración en paralelo** (mismo
+> rewrite `core.`→`cores.`, mtimes 21:17-23:02, archivos tracked modificados + stubs nuevos sin
+> definir los símbolos que el init tracked ya importa — ej: `AgentFactory`/`build_ccxt_adapter`
+> en `cores.investment.adapters`, `get_health_center` en `cores.health.engine`).
+>
+> **RESUELTO EN LA SESIÓN:**
+> 1. Snapshot de seguridad pre-cambios: `/tmp/rastro_pre_consolidation_20260908_205343.tar.gz`
+> 2. `cores/__init__.py` ahora exporta `OWNEX_DIR`/`__version__` 7.1.0 (antes ~80 archivos
+>    fallaban `from cores import OWNEX_DIR`)
+> 3. Un símbolo faltante de la migración ajena portado aditivamente para desbloquear el
+>    runtime: `build_ccxt_adapter()` en `cores/investment/adapters/ccxt_adapter.py`
+>    (resultado: `import api.main` → OK)
+> 4. Mi capa de 516 shims + inits REVERSADA al snapshot (daño ciego de sed confirmado:
+>    reescribía imports legítimos core→cores donde core era el canónico real)
+>
+> **ESTADO:** core/ y cores/ quedan en estado pre-consolidación + los cambios (1)-(4).
+> 135 fallas de import restantes pertenecen a la migración en curso del proceso ajeno
+> (DecisionMode/CoreEventBus/ars_to_usd/... aún sin portar). test_stability 3 fallos
+> preexistentes (refactor stability.py sin commitear). Fallas del fast suite en
+> test_opportunity_engine_comprehensive + income_chain_e2e = WIP ajeno (sus diffs,
+> sus tests modificados, no tocados).
+>
+> **REGLA:** NO reintentar consolidación core/cores hasta que (a) el proceso concurrente
+> termine y (b) se coordine con el usuario. Dos agentes migrando el mismo árbol = colisión
+> garantizada. Snapshot conservado para referencia.
+>
+> **DECISIÓN DEL USUARIO (2026-09-08 23:10): YIELD COMPLETO.** Este agente NO vuelve a tocar
+> core/ ni cores/ (ni código, ni imports, ni shims) hasta que el usuario confirme que la
+> migración del proceso concurrente terminó. Recién entonces: audit de resultado + reparación
+> de lo que quede roto, con snapshot fresco previo.

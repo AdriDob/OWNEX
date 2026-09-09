@@ -52,7 +52,7 @@ class TestWorkBank:
 
     def test_needs_access_is_flagged_for_manual_platforms(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")
-        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.FREELANCER)], target=10)
+        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.WORKANA)], target=10)
         item = bank.get_item("op-f")
         assert item is not None
         assert item.status == "needs_access"
@@ -172,7 +172,7 @@ class TestWorkBank:
 
 class TestSchedulerJob:
     def test_direct_work_job_registered(self) -> None:
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         jobs = get_all_jobs()
         assert "direct_work" in jobs

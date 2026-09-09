@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.reports.templates import (
+from cores.reports.templates import (
     platform_list,
     render_report,
     render_report_from_finding,

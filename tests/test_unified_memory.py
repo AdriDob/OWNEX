@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from core.memory.store import UnifiedMemoryStore, get_memory_store
+from cores.memory.store import UnifiedMemoryStore, get_memory_store
 
 
 @pytest.fixture(autouse=True)

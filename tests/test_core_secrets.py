@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from core.secrets.manager import SecretsManager
+from cores.secrets.manager import SecretsManager
 
 
 class TestSecretsManager:

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from core.intel.cve_intel import prioritize_cves
-from core.intel.llm_scanner import scan_llm_endpoint
+from cores.intel.cve_intel import prioritize_cves
+from cores.intel.llm_scanner import scan_llm_endpoint
 
 
 @pytest.mark.anyio

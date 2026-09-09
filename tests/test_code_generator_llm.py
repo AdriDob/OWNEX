@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
-from core.autonomy.code_generator import CodeGenerator, GenerationPlan
-from core.autonomy.issue_analyzer import IssueAnalysis
-from core.autonomy.repo_analyzer import RepoInfo
+from cores.autonomy.code_generator import CodeGenerator, GenerationPlan
+from cores.autonomy.issue_analyzer import IssueAnalysis
+from cores.autonomy.repo_analyzer import RepoInfo
 
 
 def _run(coro: Any) -> Any:
@@ -89,7 +89,7 @@ class TestLLMFixGeneration:
         async def dead_route(**kwargs: Any) -> Any:
             raise ConnectionError("no providers")
 
-        import core.copilot.providers.router as router_mod
+        import cores.copilot.providers.router as router_mod
 
         monkeypatch.setattr(
             router_mod, "get_provider_router", lambda: type("R", (), {"route": staticmethod(dead_route)})()
@@ -118,7 +118,7 @@ class TestLLMFixGeneration:
         original = (tmp_path / "calc.py").read_text()
 
         async def same_complete(system_prompt: str, user_prompt: str) -> str:
-            from core.autonomy.code_generator import CodeGenerator as G
+            from cores.autonomy.code_generator import CodeGenerator as G
 
             return f"{G._LLM_FILE_START}\n{original}{G._LLM_FILE_END}"
 

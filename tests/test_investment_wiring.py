@@ -212,7 +212,7 @@ class TestDefi:
 
 class TestPolymarket:
     def test_strategies_list(self, client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-        import core.polymarket.manager as pm
+        import cores.polymarket.manager as pm
 
         monkeypatch.setattr(pm, "list_strategies", lambda: {"whale": "Follow whales"})
         body = client.get("/api/investment/polymarket/strategies").json()

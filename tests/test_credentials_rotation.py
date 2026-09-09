@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.credentials.vault import (
+from cores.credentials.vault import (
     _AUTO_REFRESH_PLATFORMS,
     _DEFAULT_FAILED_AUTH_THRESHOLD,
     _DEFAULT_MAX_AGE_DAYS,
@@ -32,7 +32,7 @@ from core.credentials.vault import (
 def clean_rotation_config(tmp_path: Path):
     """Provide a clean rotation config file for each test."""
     config_path = tmp_path / "credential_rotation.json"
-    with patch("core.credentials.vault._ROTATION_CONFIG_PATH", config_path):
+    with patch("cores.credentials.vault._ROTATION_CONFIG_PATH", config_path):
         yield config_path
 
 
@@ -268,9 +268,9 @@ class TestGetExpiringCredentials:
 
 class TestRotateCredentialWithBackup:
     @pytest.mark.asyncio
-    @patch("core.credentials.vault.backup_vault")
-    @patch("core.credentials.vault._auto_refresh_credential")
-    @patch("core.credentials.vault._publish_rotation_event")
+    @patch("cores.credentials.vault.backup_vault")
+    @patch("cores.credentials.vault._auto_refresh_credential")
+    @patch("cores.credentials.vault._publish_rotation_event")
     async def test_auto_refresh_success(self, mock_publish, mock_refresh, mock_backup, clean_rotation_config):
         """Should successfully auto-refresh for supported platforms."""
         mock_backup.return_value = {"success": True, "path": "/backup/path"}
@@ -282,8 +282,8 @@ class TestRotateCredentialWithBackup:
         assert result["backup_path"] == "/backup/path"
 
     @pytest.mark.asyncio
-    @patch("core.credentials.vault.backup_vault")
-    @patch("core.credentials.vault._publish_rotation_event")
+    @patch("cores.credentials.vault.backup_vault")
+    @patch("cores.credentials.vault._publish_rotation_event")
     async def test_manual_platform_generates_alert(self, mock_publish, mock_backup, clean_rotation_config):
         """Should generate alert for manual rotation platforms."""
         mock_backup.return_value = {"success": True, "path": "/backup/path"}
@@ -294,7 +294,7 @@ class TestRotateCredentialWithBackup:
         assert "Manual rotation required" in result["message"]
 
     @pytest.mark.asyncio
-    @patch("core.credentials.vault.backup_vault")
+    @patch("cores.credentials.vault.backup_vault")
     async def test_fails_on_backup_error(self, mock_backup, clean_rotation_config):
         """Should fail when backup fails."""
         mock_backup.return_value = {"success": False, "error": "Backup failed"}
@@ -306,8 +306,8 @@ class TestRotateCredentialWithBackup:
 
 class TestAutoRotateAll:
     @pytest.mark.asyncio
-    @patch("core.credentials.vault.rotate_credential_with_backup")
-    @patch("core.credentials.vault.check_rotation_needs")
+    @patch("cores.credentials.vault.rotate_credential_with_backup")
+    @patch("cores.credentials.vault.check_rotation_needs")
     async def test_rotates_platforms_needing_rotation(self, mock_check, mock_rotate, clean_rotation_config):
         """Should rotate only platforms that need it."""
         mock_check.side_effect = lambda p: {"needs_rotation": p == "github"}
@@ -319,7 +319,7 @@ class TestAutoRotateAll:
         mock_rotate.assert_called_once_with("github")
 
     @pytest.mark.asyncio
-    @patch("core.credentials.vault.check_rotation_needs")
+    @patch("cores.credentials.vault.check_rotation_needs")
     async def test_skips_platforms_not_needing_rotation(self, mock_check, clean_rotation_config):
         """Should skip platforms that don't need rotation."""
         mock_check.return_value = {"needs_rotation": False}

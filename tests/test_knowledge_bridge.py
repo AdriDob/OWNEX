@@ -282,7 +282,7 @@ def test_run_knowledge_sync_with_vault(cfg: dict, tmp_path: Path, monkeypatch: p
 
 
 def test_knowledge_jobs_registered() -> None:
-    from core.scheduler.jobs import get_all_jobs
+    from cores.scheduler.jobs import get_all_jobs
 
     jobs = get_all_jobs()
     assert "knowledge" in jobs

@@ -13,7 +13,7 @@ from typing import Any
 
 from apps.atlas.connectors import create_connector, get_connector_ids
 from apps.atlas.engines.portfolio import PortfolioEngine, get_configured_engine
-from core.normalizer.base import NormalizedPortfolio
+from cores.normalizer.base import NormalizedPortfolio
 
 
 class _FakeConnector:

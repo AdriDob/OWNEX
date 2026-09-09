@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.learning.outcome_loop import (
+from cores.learning.outcome_loop import (
     get_outcome_learning_loop,
 )
 
@@ -143,7 +143,7 @@ class TestOutcomeLearningIntegration:
             )
 
         # Test recalibration
-        from core.learning.outcome_loop import run_learning_recalibration
+        from cores.learning.outcome_loop import run_learning_recalibration
 
         result = run_learning_recalibration()
         assert "scorer" in result

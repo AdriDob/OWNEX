@@ -1,8 +1,21 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
+> v7.1.0 — working tree P0→P5 pendiente de commit (2026-09-09). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09.
 
-## Última Sesión: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
+## Última Sesión: 2026-09-09 — FINAL DOC/REPO + commits finales ✅
+
+### Qué se hizo
+- **Docs**: README 7.0.0→7.1.0 (título, badge, artefacto installer); CHANGELOG entry 7.1.0 (P0–P5).
+- **Repo**: verificación ruff + test-fast; commits agrupados del working tree P0–P5 + push.
+- **Estado verificado**: suite amplia 544 passed / 1 skipped; `import api.main` OK (1665 rutas); `vite build` OK; `cargo check` OK.
+
+### Pendiente (requiere hardware real)
+- Validación Windows runtime (instalador MSI/NSIS) + upgrade test con datos `%APPDATA%/OWNEX` intactos.
+- `core/` aún NO borrado — pendiente verificación Windows + suite amplia antes de eliminar.
+
+---
+
+## Sesión previa: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
 
 ### Qué se hizo
 - **Auditoría funcional completa del frontend** contra el OpenAPI real (1.236 paths):
@@ -234,3 +247,11 @@
 - `api/routers/credentials_rotation.py` (API)
 - `tests/test_bounty_pipeline.py` (Tests)
 - `scripts/test_coordinator.py` (Test script)
+
+## ⚠️ REGLA ACTIVA (2026-09-08): core/ y cores/ son NO-TOCAR
+
+Proceso concurrente ejecutó/está ejecutando la migración core→cores (wip, sin commitear,
+parcialmente roto). Usuario decidió YIELD COMPLETO: ningún agente de este flujo modifica
+core/ o cores/ hasta que el usuario confirme explícitamente que la migración ajena terminó.
+Snapshot de referencia: /tmp/rastro_pre_consolidation_20260908_205343.tar.gz
+Contexto completo: .ai/CURRENT_STATE.md → "Sesión 2026-09-08 (noche)".

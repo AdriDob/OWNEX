@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.defi import DefiPosition, DefiYieldTracker, YieldSnapshot
-from core.defi.strategy import CompoundStrategy
+from cores.defi import DefiPosition, DefiYieldTracker, YieldSnapshot
+from cores.defi.strategy import CompoundStrategy
 
 
 def test_empty_tracker():

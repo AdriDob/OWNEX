@@ -1,6 +1,6 @@
 import pytest
 
-from core.opportunity.scoring import OpportunityEngineLegacy, UnifiedScore
+from cores.opportunity.scoring import OpportunityEngineLegacy, UnifiedScore
 
 
 @pytest.fixture

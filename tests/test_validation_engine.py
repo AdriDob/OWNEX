@@ -15,11 +15,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.validation.adapters import HTTPAdapter, ProbeResponse
-from core.validation.confidence import ConfidenceEngine
-from core.validation.economic_scorer import EconomicScorer
-from core.validation.engine import ValidationEngine
-from core.validation.models import (
+from cores.validation.adapters import HTTPAdapter, ProbeResponse
+from cores.validation.confidence import ConfidenceEngine
+from cores.validation.economic_scorer import EconomicScorer
+from cores.validation.engine import ValidationEngine
+from cores.validation.models import (
     AttackCandidate,
     ConfidenceScore,
     EconomicScore,
@@ -29,8 +29,8 @@ from core.validation.models import (
     ValidationResult,
     VulnType,
 )
-from core.validation.planner import ValidationPlanner
-from core.validation.promoter import ValidationPromoter
+from cores.validation.planner import ValidationPlanner
+from cores.validation.promoter import ValidationPromoter
 
 # ═══════════════════════════════════════════════════════════════
 # Fixtures
@@ -673,7 +673,7 @@ class TestValidationEngine:
 # ═══════════════════════════════════════════════════════════════
 
 
-@patch("core.validation.adapters.HTTPAdapter.fire")
+@patch("cores.validation.adapters.HTTPAdapter.fire")
 def test_engine_end_to_end_with_mock_http(mock_fire):
     """Ciclo completo: engine ejecuta probes mock → confidence → promote."""
     # Mock responses: baseline 200, probe 200 con data leak
@@ -712,7 +712,7 @@ def test_engine_end_to_end_with_mock_http(mock_fire):
     assert result.candidate.economic_score.priority >= 1
 
 
-@patch("core.validation.adapters.HTTPAdapter.fire")
+@patch("cores.validation.adapters.HTTPAdapter.fire")
 def test_engine_rejects_when_no_data_leak(mock_fire):
     """Si no hay data leak, no debe promover."""
     # Mismas respuestas en baseline y probe (sin señal)

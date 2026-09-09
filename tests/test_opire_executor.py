@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.opportunity.executors.opire_executor import OpireExecutor
+from cores.opportunity.executors.opire_executor import OpireExecutor
 
 
 @pytest.fixture

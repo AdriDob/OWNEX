@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.autonomy.dev_bounty_pipeline import DevBountyPipeline, DevBountyPipelineConfig, get_dev_bounty_pipeline
+from cores.autonomy.dev_bounty_pipeline import DevBountyPipeline, DevBountyPipelineConfig, get_dev_bounty_pipeline
 
 
 def test_dev_bounty_pipeline_initialization():
@@ -83,7 +83,7 @@ def test_get_executor_unknown_platform():
 
 def test_dev_bounty_pipeline_result_structure():
     """Test result dataclass structure."""
-    from core.autonomy.dev_bounty_pipeline import DevBountyPipelineResult
+    from cores.autonomy.dev_bounty_pipeline import DevBountyPipelineResult
 
     result = DevBountyPipelineResult(
         success=True,

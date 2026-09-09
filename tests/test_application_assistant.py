@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.application_assistant import (
+from cores.application_assistant import (
     STATUS_ACCEPTED,
     ApplicationAssistant,
     get_application_assistant,

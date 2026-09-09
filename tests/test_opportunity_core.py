@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from core.opportunity import (
+from cores.opportunity import (
     OWNEX_WORK_CYCLE_ORDER,
     OWNEX_WORK_CYCLES,
     PersonalHistory,

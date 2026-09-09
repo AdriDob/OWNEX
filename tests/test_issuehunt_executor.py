@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
 
 
 class _MockClient:

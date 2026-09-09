@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from core.capabilities.registry import (
+from cores.capabilities.registry import (
     CapabilityRegistry,
     get_capability_registry,
     reset_capability_registry,

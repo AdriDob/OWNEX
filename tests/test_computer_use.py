@@ -364,17 +364,17 @@ class TestRegistry:
 
 class TestVisionIntegration:
     def test_capture_screenshot_exists_in_vision(self):
-        from core.copilot.vision import capture_screenshot
+        from cores.copilot.vision import capture_screenshot
 
         assert callable(capture_screenshot)
 
     def test_analyze_screenshot_exists_in_vision(self):
-        from core.copilot.vision import analyze_screenshot
+        from cores.copilot.vision import analyze_screenshot
 
         assert callable(analyze_screenshot)
 
     def test_available_screenshot_tools_exists(self):
-        from core.copilot.vision import _available_screenshot_tools
+        from cores.copilot.vision import _available_screenshot_tools
 
         tools = _available_screenshot_tools()
         assert isinstance(tools, list)

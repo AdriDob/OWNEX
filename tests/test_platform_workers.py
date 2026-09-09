@@ -102,7 +102,7 @@ class TestExecutorsRegistration:
     """Test that all platform workers are registered in get_executors."""
 
     def test_platform_workers_registered(self):
-        from core.opportunity.executors import get_executors
+        from cores.opportunity.executors import get_executors
 
         executors = get_executors()
         assert "dataannotation" in executors
@@ -111,7 +111,7 @@ class TestExecutorsRegistration:
         assert "remotasks" in executors
 
     def test_platform_workers_count(self):
-        from core.opportunity.executors import get_executors
+        from cores.opportunity.executors import get_executors
 
         executors = get_executors()
         # Should have: freelancer, algora, mindrift, opire, issuehunt, dataannotation, outlier, mindrift_browser, remotasks

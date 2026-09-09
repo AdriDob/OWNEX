@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-from core.opportunity.engine import OpportunityOrchestrator
+from cores.opportunity.engine import OpportunityOrchestrator
 
 
 class _FakeAdapter:
@@ -33,7 +33,7 @@ class _FakeAdapter:
 def _orchestrator_class(monkeypatch: pytest.MonkeyPatch, raw_items: list[dict[str, Any]]):
     """Patch __init__ so the PUBLIC classmethod path (scheduler handler) runs
     against deterministic adapters instead of live-network ones."""
-    from core.opportunity.engine import OpportunityOrchestrator
+    from cores.opportunity.engine import OpportunityOrchestrator
 
     async def _fake_prioritize(opps: list[dict[str, Any]], cycle: str) -> list[dict[str, Any]]:
         return sorted(
@@ -41,7 +41,7 @@ def _orchestrator_class(monkeypatch: pytest.MonkeyPatch, raw_items: list[dict[st
             key=lambda o: -float(o["priority_score"]),
         )
 
-    monkeypatch.setattr("core.opportunity.tasks.prioritize_targets", _fake_prioritize)
+    monkeypatch.setattr("cores.opportunity.tasks.prioritize_targets", _fake_prioritize)
 
     original_init = OpportunityOrchestrator.__init__
 

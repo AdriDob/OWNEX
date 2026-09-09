@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.execution.compiler import (
+from cores.execution.compiler import (
     BaseOptimizer,
     BytecodeInstruction,
     CompiledWorkflow,
@@ -9,8 +9,8 @@ from core.execution.compiler import (
     OptimizationLog,
     _node_to_bytecode,
 )
-from core.execution.models import Edge, Node, Workflow
-from core.execution.primitives import PrimitiveType
+from cores.execution.models import Edge, Node, Workflow
+from cores.execution.primitives import PrimitiveType
 
 # ── Bytecode generation tests ─────────────────────────────────────
 
@@ -415,7 +415,7 @@ class TestApprovalOptimizer:
 
 class TestPipeline:
     def test_validate_then_compile(self) -> None:
-        from core.execution.validation import ExecutionValidator
+        from cores.execution.validation import ExecutionValidator
 
         w = Workflow(name="pipeline")
         w.nodes.append(Node(id="start", type=PrimitiveType.START.value))

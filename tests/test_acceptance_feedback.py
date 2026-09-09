@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.acceptance.analyzer import AcceptanceAnalyzer
-from core.acceptance.feedback import on_finding_status_changed
+from cores.acceptance.analyzer import AcceptanceAnalyzer
+from cores.acceptance.feedback import on_finding_status_changed
 
 
 def test_feedback_confirmed_records_accepted():

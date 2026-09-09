@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from core.execution_queue import ExecState, ExecutionQueueStore
-from core.execution_queue.mirror import (
+from cores.execution_queue import ExecState, ExecutionQueueStore
+from cores.execution_queue.mirror import (
     mirror_payment_result,
     mirror_workbank_approved,
     mirror_workbank_packaged,
@@ -28,7 +28,7 @@ from core.execution_queue.mirror import (
 @pytest.fixture()
 def store(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ExecutionQueueStore:
     s = ExecutionQueueStore(tmp_path / "mirror_queue.json")
-    monkeypatch.setattr("core.execution_queue.mirror._get_store", lambda: s)
+    monkeypatch.setattr("cores.execution_queue.mirror._get_store", lambda: s)
     return s
 
 
@@ -96,7 +96,7 @@ class TestMirrorIdempotencyAndSafety:
             def add(self, *_):
                 raise RuntimeError("boom")
 
-        monkeypatch.setattr("core.execution_queue.mirror._get_store", lambda: _Broken())
+        monkeypatch.setattr("cores.execution_queue.mirror._get_store", lambda: _Broken())
         # Ninguna llamada debe propagar la excepción (best-effort contract).
         mirror_workbank_prepared("x", {})
         mirror_workbank_packaged("x")
@@ -115,7 +115,7 @@ class TestRouterWiring:
         bank = WorkBank(tmp_path / "wb.json")
         monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
         queue = ExecutionQueueStore(tmp_path / "q.json")
-        monkeypatch.setattr("core.execution_queue.mirror._get_store", lambda: queue)
+        monkeypatch.setattr("cores.execution_queue.mirror._get_store", lambda: queue)
 
         app = FastAPI()
         app.include_router(dw_router)

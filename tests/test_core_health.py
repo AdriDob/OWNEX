@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.health.engine import HealthCenter, HealthCheck, HealthSnapshot
+from cores.health.engine import HealthCenter, HealthCheck, HealthSnapshot
 
 
 class TestHealthCenter:
@@ -188,7 +188,7 @@ class TestPersistenceBridge:
 
 class TestDefaultChecks:
     def test_register_default_checks_10_registered(self):
-        from core.health.checks import register_default_checks
+        from cores.health.checks import register_default_checks
 
         center = HealthCenter()
         register_default_checks(center)
@@ -207,7 +207,7 @@ class TestDefaultChecks:
         assert "extension_registry" in names
 
     def test_default_checks_categories(self):
-        from core.health.checks import register_default_checks
+        from cores.health.checks import register_default_checks
 
         center = HealthCenter()
         register_default_checks(center)

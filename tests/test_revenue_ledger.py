@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.revenue.ledger import (
+from cores.revenue.ledger import (
     RevenueLedger,
     RevenueLedgerEntry,
     RevenueState,

@@ -1,5 +1,26 @@
 # Changelog — OWNEX Alpha Desktop
 
+## 7.1.0 (2026-09-09)
+
+Working-tree release: P0 core→cores canonical migration + Zero-to-Earning product close (P1–P3, front económico, P4 verify, P5 parcial).
+
+### Added
+- **P0 core→cores migration**: `scripts/migrate_core_to_cores.py` + `scripts/fix_test_patches.py`; scoring/knowledge/investment twins consolidados; script idempotente y verificado.
+- **P1 First Money + Platform Onboarding UI**: `FirstMoney.vue` (tracker 14 etapas, próxima acción, registro de ingreso real), `PlatformOnboarding.vue` (12 plataformas, tabs cuenta/trabajo), `FirstMoneyStrip.vue` en IncomeHome.
+- **P2 execution→revenue bridge**: `cores/revenue_tracker/execution_bridge.py` (SUBMITTED→REVIEWING, CONFIRMED→ACCEPTED, FAILED/DLQ→FAILED; PAID inalcanzable por este camino); calibration (`prediction_error_report`) + `identify_repeatable()` (REPEATABLE/NON_REPEATABLE/UNKNOWN) en `/evolution`.
+- **P3 safety gates**: `cores/automation/safety.py` (approval tokens HMAC un solo uso, denylist de comandos destructivos, redact de secretos, containment de paths); gates en BrowserAgent/CoderAgent/PR/test-runner; semántica IA (`cores/copilot/semantics.py`) en `/daily-brief`.
+- **Revenue durability**: `reconcile_from_persisted_state()` en boot (replay idempotente); `Ledger.vue` + `GET /direct-work/revenue-ledger` (buckets EXPECTED→PAID/NET + proyección).
+- **P5 fault-injection IA**: `tests/test_llm_fault_injection.py` (8 tests: outage OAR→fallback, contenido vacío, sin invención, secretos redactados).
+
+### Fixed
+- **Enum safety fail-closed**: `_resolve()` → HTTP 422 con valores válidos (direct_work.py).
+- **RevenueTracker str/enum tolerance** (`get_revenue_state_breakdown`, `_update_metrics`).
+- **Versión canónica única 7.1.0** (11 fuentes vía `scripts/sync_version.py`); `datetime.utcnow()` → `datetime.now(UTC)` (0 usos en producción).
+- **Freelance opcional**: `cores/freelance/channel_status.py` (ACTIVE/PAUSED/DISABLED/EXCLUDED) + filtro en recommend/discover/brief/cycle; Workana agregado como `WORKANA` (AR-directo honesto).
+
+### Verification
+- Suite amplia **544 passed / 1 skipped**; `import api.main` OK (1665 rutas); `vite build` OK; `cargo check` OK; ruff/biome limpios en tocados.
+
 ## 1.0.1-alpha-rc2 (2026-08-26)
 
 Megaprompt FINAL DEFINITIVE RELEASE — Partes 1-4. Freeze de alcance; solo cierre, integración y estabilidad.

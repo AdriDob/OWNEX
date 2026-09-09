@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from core.revenue.pipeline import (
+from cores.revenue.pipeline import (
     PipelineResult,
     RevenuePipeline,
     _cvss_to_severity,
@@ -366,7 +366,7 @@ class TestListSubmissions:
 
 class TestCapabilityRegistration:
     def test_register_capabilities(self):
-        from core.capabilities.registry import get_capability_registry, reset_capability_registry
+        from cores.capabilities.registry import get_capability_registry, reset_capability_registry
 
         reset_capability_registry()
         reg = get_capability_registry()

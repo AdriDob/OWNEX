@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from core.recon.fingerprint import Fingerprinter, FingerprintResult, TechnologyDetected
-from core.recon.router import ReconRouter, RoutedReconResult
-from core.recon.strategies import (
+from cores.recon.fingerprint import Fingerprinter, FingerprintResult, TechnologyDetected
+from cores.recon.router import ReconRouter, RoutedReconResult
+from cores.recon.strategies import (
     ReconStrategy,
     get_strategy,
     list_strategies,
@@ -288,40 +288,40 @@ class TestReconRouter:
                 assert result.endpoints_found == []
 
     def test_endpoint_score_200(self):
-        from core.recon.router import _endpoint_score
+        from cores.recon.router import _endpoint_score
 
         assert _endpoint_score(200) == 0.9
 
     def test_endpoint_score_404(self):
-        from core.recon.router import _endpoint_score
+        from cores.recon.router import _endpoint_score
 
         assert _endpoint_score(404) == 0.1
 
     def test_endpoint_score_unknown(self):
-        from core.recon.router import _endpoint_score
+        from cores.recon.router import _endpoint_score
 
         assert _endpoint_score(503) == 0.5
 
     def test_detect_auth_smells_login(self):
-        from core.recon.router import _detect_auth_smells
+        from cores.recon.router import _detect_auth_smells
 
         smells = _detect_auth_smells({"body_preview": "please login first", "status": 200, "content_type": "text/html"})
         assert "login_page" in smells
 
     def test_detect_auth_smells_401(self):
-        from core.recon.router import _detect_auth_smells
+        from cores.recon.router import _detect_auth_smells
 
         smells = _detect_auth_smells({"body_preview": "", "status": 401, "content_type": "text/html"})
         assert "requires_authentication" in smells
 
     def test_detect_auth_smells_403(self):
-        from core.recon.router import _detect_auth_smells
+        from cores.recon.router import _detect_auth_smells
 
         smells = _detect_auth_smells({"body_preview": "", "status": 403, "content_type": "text/html"})
         assert "forbidden" in smells
 
     def test_detect_auth_smells_graphql(self):
-        from core.recon.router import _detect_auth_smells
+        from cores.recon.router import _detect_auth_smells
 
         smells = _detect_auth_smells({"body_preview": "", "status": 200, "content_type": "application/graphql+json"})
         assert "graphql_endpoint" in smells

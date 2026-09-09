@@ -6,8 +6,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from core.api.routers import router as core_router
-from core.health.engine import get_health_center
+from cores.api.routers import router as core_router
+from cores.health.engine import get_health_center
 
 app = FastAPI()
 app.include_router(core_router)
@@ -162,12 +162,12 @@ class TestKnowledgeGraphEndpoints:
     """Tests for /api/core/knowledge/* endpoints."""
 
     def setup_method(self) -> None:
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
     def test_find_nodes_by_type(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -180,7 +180,7 @@ class TestKnowledgeGraphEndpoints:
         assert "nodes" in data
 
     def test_get_node(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -191,7 +191,7 @@ class TestKnowledgeGraphEndpoints:
         assert resp.status_code == 404  # fresh state, no nodes
 
     def test_add_node(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -208,7 +208,7 @@ class TestKnowledgeGraphEndpoints:
         assert data["name"] == "api.example.com"
 
     def test_delete_node_missing(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -219,7 +219,7 @@ class TestKnowledgeGraphEndpoints:
         assert resp.status_code == 404
 
     def test_get_neighbors_no_nodes(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -232,7 +232,7 @@ class TestKnowledgeGraphEndpoints:
         assert data["count"] == 0
 
     def test_get_path_no_path(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -245,7 +245,7 @@ class TestKnowledgeGraphEndpoints:
         assert data["count"] == 0
 
     def test_get_subgraph(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -260,7 +260,7 @@ class TestKnowledgeGraphEndpoints:
         assert "center" in data
 
     def test_add_edge_missing_nodes(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 
@@ -274,7 +274,7 @@ class TestKnowledgeGraphEndpoints:
         assert resp.status_code == 404
 
     def test_stats(self):
-        from core.knowledge.graph import reset_knowledge_graph
+        from cores.knowledge.graph import reset_knowledge_graph
 
         reset_knowledge_graph()
 

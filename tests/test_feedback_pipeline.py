@@ -243,7 +243,7 @@ def test_learning_stats_endpoint() -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from core.api.routers import router
+    from cores.api.routers import router
 
     app = FastAPI()
     app.include_router(router)
@@ -265,7 +265,7 @@ def test_learning_weights_endpoint() -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from core.api.routers import router
+    from cores.api.routers import router
 
     app = FastAPI()
     app.include_router(router)
@@ -282,7 +282,7 @@ def test_learning_trigger_endpoint() -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from core.api.routers import router
+    from cores.api.routers import router
 
     app = FastAPI()
     app.include_router(router)
@@ -298,7 +298,7 @@ def test_update_learning_weights_endpoint() -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from core.api.routers import router
+    from cores.api.routers import router
 
     app = FastAPI()
     app.include_router(router)
@@ -409,7 +409,7 @@ def test_llm_bias_in_learning_stats_endpoint() -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from core.api.routers import router
+    from cores.api.routers import router
 
     app = FastAPI()
     app.include_router(router)

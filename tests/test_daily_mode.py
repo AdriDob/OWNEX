@@ -20,7 +20,7 @@ def _make_client() -> TestClient:
 def _health_ok() -> dict:
     return {
         "generated_at": "2026-08-04T10:00:00+0000",
-        "version": {"current": "7.0.0", "codename": "own"},
+        "version": {"current": "7.1.0", "codename": "own"},
         "system": {"status": "ok", "score": 100, "uptime_seconds": 100, "memory_rss_mb": 100, "cpu_percent": 1},
     }
 

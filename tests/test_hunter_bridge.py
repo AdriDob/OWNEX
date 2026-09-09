@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from core.integrations.ext.hunter_bridge import (
+from cores.integrations.ext.hunter_bridge import (
     HUNTER_TO_RASTRO_VULN,
     WEB3_VULN_CLASSES,
     check_hunter,
@@ -48,13 +48,13 @@ class TestVulnMapping:
 
 class TestCheckHunter:
     def test_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
             mock_path.exists.return_value = False
             result = check_hunter()
             assert result["installed"] is False
 
     def test_installed_reports_version(self):
-        with patch("core.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
             mock_path.exists.return_value = True
             (mock_path / ".git" / "HEAD").exists.return_value = True
             with patch("subprocess.run") as mock_run:
@@ -70,13 +70,13 @@ class TestCheckHunter:
 
 class TestCheckWeb3Skills:
     def test_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.WEB3_SKILLS_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.WEB3_SKILLS_DIR") as mock_path:
             mock_path.exists.return_value = False
             result = check_web3_skills()
             assert result["installed"] is False
 
     def test_installed_reports_skills(self):
-        with patch("core.integrations.ext.hunter_bridge.WEB3_SKILLS_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.WEB3_SKILLS_DIR") as mock_path:
             mock_path.exists.return_value = True
             mock_path.glob.return_value = [MagicMock() for _ in range(5)]
             (mock_path / ".git" / "HEAD").exists.return_value = True
@@ -90,13 +90,13 @@ class TestCheckWeb3Skills:
 
 class TestCheckMCPHunter:
     def test_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.MCP_HUNTER_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.MCP_HUNTER_DIR") as mock_path:
             mock_path.exists.return_value = False
             result = check_mcp_hunter()
             assert result["installed"] is False
 
     def test_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.MCP_HUNTER_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.MCP_HUNTER_DIR") as mock_path:
             mock_path.exists.return_value = True
             (mock_path / ".git" / "HEAD").exists.return_value = True
             with patch("subprocess.run") as mock_run:
@@ -113,14 +113,14 @@ class TestCheckMCPHunter:
 
 class TestInstallHunter:
     def test_already_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
             mock_path.exists.return_value = True
             mock_path.parent.mkdir = MagicMock()
             result = install_hunter()
             assert result["status"] == "already_installed"
 
     def test_clone_success(self):
-        with patch("core.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
             mock_path.exists.return_value = False
             mock_path.parent.mkdir = MagicMock()
             with patch("subprocess.run") as mock_run:
@@ -129,7 +129,7 @@ class TestInstallHunter:
                 assert result["status"] == "installed"
 
     def test_clone_failure(self):
-        with patch("core.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
+        with patch("cores.integrations.ext.hunter_bridge.HUNTER_REPO_DIR") as mock_path:
             mock_path.exists.return_value = False
             mock_path.parent.mkdir = MagicMock()
             with patch("subprocess.run", side_effect=Exception("git error")):
@@ -142,13 +142,13 @@ class TestInstallHunter:
 
 class TestRunHunterScan:
     def test_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.check_hunter") as mock_check:
+        with patch("cores.integrations.ext.hunter_bridge.check_hunter") as mock_check:
             mock_check.return_value = {"installed": False}
             result = run_hunter_scan("test.com")
             assert result["status"] == "not_installed"
 
     def test_scan_timeout(self):
-        with patch("core.integrations.ext.hunter_bridge.check_hunter") as mock_check:
+        with patch("cores.integrations.ext.hunter_bridge.check_hunter") as mock_check:
             mock_check.return_value = {"installed": True}
             with patch("shutil.which") as mock_which:
                 mock_which.return_value = "/usr/bin/python3"
@@ -159,7 +159,7 @@ class TestRunHunterScan:
                     assert result["status"] == "timeout"
 
     def test_scan_success(self):
-        with patch("core.integrations.ext.hunter_bridge.check_hunter") as mock_check:
+        with patch("cores.integrations.ext.hunter_bridge.check_hunter") as mock_check:
             mock_check.return_value = {"installed": True}
             with patch("shutil.which") as mock_which:
                 mock_which.return_value = "/usr/local/bin/bughunter"
@@ -176,12 +176,12 @@ class TestRunHunterScan:
 
 class TestWeb3Helpers:
     def test_get_skill_path_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.check_web3_skills") as mock_check:
+        with patch("cores.integrations.ext.hunter_bridge.check_web3_skills") as mock_check:
             mock_check.return_value = {"installed": False}
             assert get_web3_skill_path("reentrancy") is None
 
     def test_get_poc_template_not_installed(self):
-        with patch("core.integrations.ext.hunter_bridge.check_web3_skills") as mock_check:
+        with patch("cores.integrations.ext.hunter_bridge.check_web3_skills") as mock_check:
             mock_check.return_value = {"installed": False}
             assert get_web3_poc_template("reentrancy") is None
 
@@ -191,11 +191,11 @@ class TestWeb3Helpers:
 
 class TestStatusSummary:
     def test_summary_includes_all_keys(self):
-        with patch("core.integrations.ext.hunter_bridge.check_hunter") as mock_h:
+        with patch("cores.integrations.ext.hunter_bridge.check_hunter") as mock_h:
             mock_h.return_value = {"installed": False}
-            with patch("core.integrations.ext.hunter_bridge.check_web3_skills") as mock_w:
+            with patch("cores.integrations.ext.hunter_bridge.check_web3_skills") as mock_w:
                 mock_w.return_value = {"installed": False}
-                with patch("core.integrations.ext.hunter_bridge.check_mcp_hunter") as mock_m:
+                with patch("cores.integrations.ext.hunter_bridge.check_mcp_hunter") as mock_m:
                     mock_m.return_value = {"installed": False}
                     summary = status_summary()
                     assert "claude_bug_bounty" in summary

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
+from cores.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
 
 # ── IssueAnalyzer Tests ─────────────────────────────────────────
 
@@ -299,7 +299,7 @@ class TestRepoAnalyzerLogic:
 
     @pytest.fixture
     def analyzer(self):
-        from core.autonomy.repo_analyzer import RepoAnalyzer
+        from cores.autonomy.repo_analyzer import RepoAnalyzer
 
         return RepoAnalyzer()
 
@@ -326,7 +326,7 @@ class TestCoderAgentResult:
     """Test CoderAgentResult dataclass."""
 
     def test_default_values(self):
-        from core.autonomy.coder_agent import CoderAgentResult
+        from cores.autonomy.coder_agent import CoderAgentResult
 
         result = CoderAgentResult(success=False, issue_id="123", platform="github")
         assert result.success is False
@@ -346,18 +346,18 @@ class TestPlatformEntryPoints:
 
     @pytest.mark.asyncio
     async def test_algora_solve_extracts_repo(self):
-        from core.autonomy.coder_agent import solve_algora_issue
+        from cores.autonomy.coder_agent import solve_algora_issue
 
         # We just verify it doesn't crash and routes correctly
         # The actual solve requires network, but we can verify the structure
         assert callable(solve_algora_issue)
 
     def test_freelancer_conversion(self):
-        from core.autonomy.coder_agent import solve_freelancer_project
+        from cores.autonomy.coder_agent import solve_freelancer_project
 
         assert callable(solve_freelancer_project)
 
     def test_solve_issue_function(self):
-        from core.autonomy.coder_agent import solve_issue
+        from cores.autonomy.coder_agent import solve_issue
 
         assert callable(solve_issue)

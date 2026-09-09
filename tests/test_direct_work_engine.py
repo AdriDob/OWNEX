@@ -98,7 +98,7 @@ class TestGameDevelopmentProgrammingOnly:
             Opportunity(
                 id="op-gd",
                 title="Game dev without specialization",
-                platform=WorkPlatform.FREELANCER,
+                platform=WorkPlatform.WORKANA,
                 category=OpportunityCategory.GAME_DEVELOPMENT,
             )
 
@@ -107,7 +107,7 @@ class TestGameDevelopmentProgrammingOnly:
             Opportunity(
                 id="op-art",
                 title="Concept artist (excluded)",
-                platform=WorkPlatform.FREELANCER,
+                platform=WorkPlatform.WORKANA,
                 category=OpportunityCategory.GAME_DEVELOPMENT,
                 specialization="concept_art",  # type: ignore[arg-type]
             )
@@ -121,7 +121,7 @@ class TestGameDevelopmentProgrammingOnly:
         op = Opportunity(
             id="op-web",
             title="Frontend task",
-            platform=WorkPlatform.UPWORK,
+            platform=WorkPlatform.WORKANA,
             category=OpportunityCategory.FRONTEND,
         )
         assert op.category == OpportunityCategory.FRONTEND

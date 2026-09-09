@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.opportunity.executors.mindrift_executor import MindriftExecutor, claim
+from cores.opportunity.executors.mindrift_executor import MindriftExecutor, claim
 
 
 class _MockClient:

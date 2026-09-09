@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from core.extension.capabilities import Capability, CapabilityRegistry
-from core.extension.hooks import HookRegistry, get_hook_registry, on_hook
-from core.extension.manifest import ExtensionManifest
-from core.extension.registry import ExtensionRegistry
-from core.extension.settings import ApiKeyField, NumberField, SelectField, SwitchField, TextField
+from cores.extension.capabilities import Capability, CapabilityRegistry
+from cores.extension.hooks import HookRegistry, get_hook_registry, on_hook
+from cores.extension.manifest import ExtensionManifest
+from cores.extension.registry import ExtensionRegistry
+from cores.extension.settings import ApiKeyField, NumberField, SelectField, SwitchField, TextField
 
 
 class TestSettingsField:

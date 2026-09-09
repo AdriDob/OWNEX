@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 
-from core.decision_journal import get_decisions, log_decision, record_outcome
+from cores.decision_journal import get_decisions, log_decision, record_outcome
 
 
 @pytest.fixture(autouse=True)
@@ -110,7 +110,7 @@ class TestRecordOutcome:
 class TestCopilotIntegration:
     def test_copilot_logs_to_journal(self) -> None:
         """CopilotAgent._log_decision() should persist to SQLite Decision Journal."""
-        from core.copilot import CopilotAgent
+        from cores.copilot import CopilotAgent
 
         agent = CopilotAgent(app_id="cateye")
         agent._log_decision("analyze_finding", {"finding_id": "F-001", "confidence": 0.9})
@@ -121,7 +121,7 @@ class TestCopilotIntegration:
 
     def test_copilot_persists_across_sessions(self) -> None:
         """Decisions from one Copilot session should be retrievable after the agent is recreated."""
-        from core.copilot import CopilotAgent
+        from cores.copilot import CopilotAgent
 
         agent1 = CopilotAgent(app_id="cateye")
         agent1._log_decision("audit_system", {"scope": "full"})

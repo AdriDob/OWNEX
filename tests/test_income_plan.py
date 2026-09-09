@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from core.application_assistant import ApplicationAssistant
+from cores.application_assistant import ApplicationAssistant
 from cores.direct_work_engine.income_plan import UnifiedIncomePlan
 from cores.direct_work_engine.workbank import WorkBank, WorkItem
 from cores.result_based import FirstDayGuide

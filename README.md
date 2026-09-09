@@ -6,11 +6,11 @@
 </p>
 
 <p align="center">
-  <strong>OWNEX v7.0.0 — Autonomous Work Operating System</strong> 📡
+  <strong>OWNEX v7.1.0 — Autonomous Work Operating System</strong> 📡
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0-success?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-7.1.0-success?style=flat-square"/>
   <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
@@ -405,7 +405,7 @@ Choose your platform:
 **Auto-contained bundle — no Python/Node required**
 
 1. Build or download the installer:
-   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.0.0_x64-setup.exe` / `.msi`)
+   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.1.0_x64-setup.exe` / `.msi`)
    - **Legacy (PySide6 NSIS)**: dispatch `ownex-alpha-windows.yml` (manual) → artifact `OWNEX-Alpha-Windows-Installer`; last deployed build: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
    - GitHub Releases (when published)
 2. Run the installer (accept SmartScreen warning — debug build)

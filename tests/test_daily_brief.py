@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.daily.brief import (
+from cores.daily.brief import (
     get_daily_brief_engine,
 )
 
@@ -96,7 +96,7 @@ class TestDailyBriefEngine:
         clean_brief.save_brief(brief)
 
         # Verify it was saved
-        from core.daily.brief_store import get_latest_brief
+        from cores.daily.brief_store import get_latest_brief
 
         saved = get_latest_brief()
         if saved is not None:

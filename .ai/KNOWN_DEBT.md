@@ -100,3 +100,19 @@
 - **Problema**: La suite completa supera los 60s de timeout del pre-commit y no es determinista por tests de red.
 - **Solución aplicada**: `make test`/`scripts/dev test` ignoran `test_security.py`, `test_vision_gateway.py` y `test_scheduler.py` por defecto; se pueden ejecutar explícitamente. `make test-fast` (86 tests) es el smoke determinista del dev loop.
 - **Impacto**: Bajo. Los tests de red siguen disponibles bajo demanda.
+
+## 12. ✅ Resolución insegura de enums en la API Direct Work — RESUELTO (2026-09-08)
+
+- **Evidencia**: `api/routers/direct_work.py::_resolve()` — `except ValueError: return value` convertía enums inválidos en strings crudos dentro del dataclass `Opportunity`; `ScoreRequest.opportunities` es `list[dict[str, Any]]` sin validación Pydantic (la única barrera era `_resolve`).
+- **Impacto**: Alto. Un valor inválido (ej. `specialization: "backend"` en vez de `game_backend`) corrompía silenciosamente el objeto de dominio; código downstream asume `.value`/membership sobre enums.
+- **Solución**: `_resolve()` ahora raisea `HTTPException(422)` listando valores válidos (fail-closed), consistente con `_resolve_categories` de `api/routers/career.py`. `tests/test_income_chain_e2e.py` corregido: el payload usaba un valor no-miembro de `GameDevSpecialization`.
+- **Verificación**: +2 tests en `tests/test_direct_work_api.py` (invalid enum → 422, invalid profile enum → 422); 49 passed; suite fast 100/1; ruff limpio.
+
+## 13. ✅ Versión duplicada en múltiples archivos — RESUELTO (2026-09-08)
+
+- **Evidencia**: drift introducido por el commit `26346f49` (bump parcial 7.0.0→7.1.0 en solo 3 archivos: VERSION.txt, pyproject.toml, frontend/package.json — sin pasar por el SSOT).
+- **Canonical decidida**: **7.1.0** — el bump estaba commiteado (intención clara) y el `__version__` runtime ya era 7.1.0.
+- **Bugs encontrados y corregidos en la herramienta**: (1) `scripts/sync_version.py` NUNCA sincronizaba `src-tauri/Cargo.toml` — regex `^version` sin flag `re.MULTILINE` y el archivo no empieza con `version` (bug silencioso); (2) `cores/version.py::OWNEX_VERSION` (alimenta `/api/stability/status`) NO estaba en el script — agregado como entrada 9.
+- **Superficie sincronizada (11 fuentes)**: .VERSION.txt, VERSION.txt, VERSION, pyproject.toml, package.json, frontend/package.json, core/__init__.py, cores/version.py, apps/hermes/__init__.py, src-tauri/tauri.conf.json, src-tauri/Cargo.toml — todas = 7.1.0.
+- **Tests a prueba de drift**: `test_stability.py` ahora asevera contra `OWNEX_VERSION` importado (no string hardcodeado). `test_daily_mode.py` fixture actualizado.
+- **Verificación**: sync_version.py idempotente; suite fast 100/1; ruff limpio. NO relacionados: 3 fallas preexistentes de `test_stability.py` (WIP no commiteado de `api/routers/stability.py` por proceso paralelo — mockea `get_health_center` que el refactor eliminó).

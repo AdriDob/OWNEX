@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-from core.maintenance.engine import MaintenanceEngine
+from cores.maintenance.engine import MaintenanceEngine
 
 
 def _create_test_db(path: Path) -> None:

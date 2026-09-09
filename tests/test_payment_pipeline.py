@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.execution_queue.models import ExecState
+from cores.execution_queue.models import ExecState
 from cores.direct_work_engine.payment_pipeline import (
     PaymentPipelineStore,
     PaymentState,

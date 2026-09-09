@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.evolution.engine import EvolutionEngine, get_evolution_engine, init_evolution_engine
+from cores.evolution.engine import EvolutionEngine, get_evolution_engine, init_evolution_engine
 from database import db
 from database.db import init_db
 from database.models import KnowledgeAsset, MetricEvent

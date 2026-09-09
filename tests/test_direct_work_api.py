@@ -100,6 +100,27 @@ class TestDirectWorkApi:
         assert "payment_compat_score" in ranked[0]
         assert "payment_compat_notes" in ranked[0]
 
+    def test_score_rejects_invalid_enum_value(self) -> None:
+        """Invalid enum strings must fail closed with 422, not silently become raw strings."""
+        payload = {"opportunities": [op_dict(category="not_a_real_category")]}
+        response = client.post("/direct-work/score", json=payload)
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert "OpportunityCategory" in detail
+        assert "not_a_real_category" in detail
+
+    def test_score_rejects_invalid_profile_enum_value(self) -> None:
+        """Invalid enum in a nested profile also fails closed (via recommend)."""
+        payload = {
+            "profile": profile_dict(experience_level="über-senior"),
+            "opportunities": [op_dict()],
+        }
+        response = client.post("/direct-work/recommend", json=payload)
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert "ExperienceLevel" in detail
+        assert "über-senior" in detail
+
     def test_learn_folds_outcomes_into_profile(self) -> None:
         payload = {
             "profile": profile_dict(),
@@ -192,9 +213,9 @@ class TestDirectWorkApi:
 
 class TestOpireDweAdapter:
     def test_converts_raw_opportunity_to_dwe(self) -> None:
-        from core.opportunity.adapters import RawOpportunity
         from cores.direct_work_engine.discovery import UniversalDiscovery
         from cores.direct_work_engine.models import EmploymentType, OpportunityCategory
+        from cores.opportunity.adapters import RawOpportunity
 
         raw = RawOpportunity(
             id="b1",
@@ -207,7 +228,7 @@ class TestOpireDweAdapter:
             tags=["auth", "python"],
         )
 
-        with patch("core.opportunity.adapters.opire.OpireAdapter") as mock_cls:
+        with patch("cores.opportunity.adapters.opire.OpireAdapter") as mock_cls:
             mock_cls.return_value.fetch_opportunities = AsyncMock(return_value=[raw])
 
             from api.adapters.direct_work_opire import OpireDweAdapter
@@ -235,7 +256,7 @@ class TestOpireDweAdapter:
     def test_validate_connection_is_cheap_and_true(self) -> None:
         from api.adapters.direct_work_opire import OpireDweAdapter
 
-        with patch("core.opportunity.adapters.opire.OpireAdapter"):
+        with patch("cores.opportunity.adapters.opire.OpireAdapter"):
             instance = OpireDweAdapter()
         assert asyncio.run(instance.validate_connection()) is True
 
@@ -243,18 +264,18 @@ class TestOpireDweAdapter:
 class TestLegacyDweAdapter:
     def test_classifies_freelance_model_as_selection_world(self) -> None:
         from api.adapters.legacy import LegacyOpportunityDweAdapter
-        from core.opportunity.adapters import RawOpportunity
         from cores.direct_work_engine.models import EmploymentType, OpportunityCategory, WorkPlatform
+        from cores.opportunity.adapters import RawOpportunity
 
         raw = RawOpportunity(
-            id="f1", name="Build a landing page", description="", platform="freelancer", reward=1500.0, effort_hours=20
+            id="f1", name="Build a landing page", description="", platform="workana", reward=1500.0, effort_hours=20
         )
-        with patch("core.opportunity.adapters.freelancer.FreelancerAdapter") as mock_cls:
+        with patch("cores.opportunity.adapters.freelancer.FreelancerAdapter") as mock_cls:
             mock_cls.return_value.fetch_opportunities = AsyncMock(return_value=[raw])
             adapter = LegacyOpportunityDweAdapter(
                 mock_cls.return_value,
-                name="freelancer",
-                platform=WorkPlatform.FREELANCER,
+                name="workana",
+                platform=WorkPlatform.WORKANA,
                 category=OpportunityCategory.SOFTWARE_ENGINEERING,
                 employment_type=EmploymentType.FREELANCE,
             )
@@ -269,7 +290,7 @@ class TestLegacyDweAdapter:
 
         adapters = build_default_adapters()
         names = {a.source.name for a in adapters}
-        assert {"opire", "issuehunt", "freelancer"} <= names
+        assert {"opire", "issuehunt", "workana"} <= names
 
 
 class TestNegotiationApi:
@@ -395,7 +416,7 @@ class TestSourceTiers:
         by_name = {a.source.name: a.source for a in adapters}
         assert by_name["opire"].tier == 1
         assert by_name["issuehunt"].tier == 1
-        assert by_name["freelancer"].tier == 3
+        assert by_name["workana"].tier == 3
         assert by_name["opencollective"].tier == 3
 
     def test_source_status_exposes_tier_and_cadence(self) -> None:
@@ -437,7 +458,7 @@ class TestAnalysisCardApi:
 
     def test_analysis_card_includes_access_requirement(self) -> None:
         payload = {
-            "opportunity": op_dict(id="card-2", platform="freelancer"),
+            "opportunity": op_dict(id="card-2", platform="workana"),
             "profile": profile_dict(),
         }
         resp = client.post("/direct-work/analysis-card", json=payload)
@@ -454,7 +475,7 @@ class TestAccessExplainApi:
         assert "tiers" in body
         assert body["platforms"]
         platforms = {p["platform"] for p in body["platforms"]}
-        assert {"opire", "freelancer", "opencollective"} <= platforms
+        assert {"opire", "workana", "opencollective"} <= platforms
         for p in body["platforms"]:
             assert p["access_status"] in {"public", "needs_api_key", "needs_manual_setup"}
             assert p["explanation"]
@@ -575,12 +596,12 @@ class TestMaxSuccessMode:
 
     def _success_max_profile(self, full_history: bool = True) -> dict:
         rates = {
-            "platform_success_rates": {"freelancer": 0.95, "opire": 0.95},
+            "platform_success_rates": {"workana": 0.95, "opire": 0.95},
             "category_success_rates": {"data_annotation": 0.95, "dev_bounty": 0.95},
         }
         if not full_history:
             rates = {
-                "platform_success_rates": {"freelancer": 0.95},
+                "platform_success_rates": {"workana": 0.95},
                 "category_success_rates": {"data_annotation": 0.95},
             }
         return profile_dict(skills=["data", "python"], experience_level="junior", **rates)
@@ -592,7 +613,7 @@ class TestMaxSuccessMode:
                 op_dict(
                     id="ms-high",
                     payment=500.0,
-                    platform="freelancer",
+                    platform="workana",
                     category="data_annotation",
                     specialization=None,
                     technology_tags=["data"],
@@ -641,7 +662,7 @@ class TestMaxSuccessMode:
                 op_dict(
                     id="high-accept",
                     payment=200.0,
-                    platform="freelancer",
+                    platform="workana",
                     category="data_annotation",
                     specialization=None,
                     technology_tags=["data"],

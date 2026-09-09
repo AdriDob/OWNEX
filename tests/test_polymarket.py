@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from core.polymarket.manager import PolymarketManager, list_strategies
-from core.polymarket.strategies import (
+from cores.polymarket.manager import PolymarketManager, list_strategies
+from cores.polymarket.strategies import (
     BTCArbitrageStrategy,
     CompleteSetArbitrage,
     PolymarketLPMarketMaker,

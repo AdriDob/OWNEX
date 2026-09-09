@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.approval.gate import (
+from cores.approval.gate import (
     POLICY_PRESETS,
     ActionType,
     ApprovalDecision,

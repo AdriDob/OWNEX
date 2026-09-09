@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.opportunity.mercenary_filter import (
+from cores.opportunity.mercenary_filter import (
     OpportunityCategory as MercenaryCategory,
 )
 from cores.direct_work_engine.models import OpportunityCategory

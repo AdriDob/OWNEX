@@ -13,7 +13,7 @@ import pytest
 
 class TestAIProviderStatus:
     def test_to_dict_roundtrip(self):
-        from core.ai_router.engine import AIProviderStatus
+        from cores.ai_router.engine import AIProviderStatus
 
         p = AIProviderStatus(name="test", tier="free", available=True, current_model="m", latency_ms=12.3)
         d = p.to_dict()
@@ -23,7 +23,7 @@ class TestAIProviderStatus:
         assert d["latency_ms"] == 12.3
 
     def test_to_dict_rounds_latency(self):
-        from core.ai_router.engine import AIProviderStatus
+        from cores.ai_router.engine import AIProviderStatus
 
         p = AIProviderStatus(name="x", tier="local", available=False, latency_ms=12.345)
         assert p.to_dict()["latency_ms"] == 12.3
@@ -31,7 +31,7 @@ class TestAIProviderStatus:
 
 class TestAIPolicy:
     def test_default_values(self):
-        from core.ai_router.engine import AIPolicy
+        from cores.ai_router.engine import AIPolicy
 
         p = AIPolicy()
         assert p.fallback_enabled is True
@@ -41,7 +41,7 @@ class TestAIPolicy:
         assert p.never_use_openrouter_directly is True
 
     def test_to_dict_contains_all_keys(self):
-        from core.ai_router.engine import AIPolicy
+        from cores.ai_router.engine import AIPolicy
 
         d = AIPolicy().to_dict()
         assert "fallback_enabled" in d
@@ -49,7 +49,7 @@ class TestAIPolicy:
         assert "never_use_openrouter_directly" in d
 
     def test_prefer_lists(self):
-        from core.ai_router.engine import AIPolicy
+        from cores.ai_router.engine import AIPolicy
 
         p = AIPolicy()
         assert "architecture" in p.prefer_quality_for
@@ -59,7 +59,7 @@ class TestAIPolicy:
 
 class TestAIHealth:
     def test_to_dict(self):
-        from core.ai_router.engine import AIHealth, AIProviderStatus
+        from cores.ai_router.engine import AIHealth, AIProviderStatus
 
         h = AIHealth(
             status="green",
@@ -72,7 +72,7 @@ class TestAIHealth:
         assert d["current_provider"] == "opencode_free"
 
     def test_red_when_no_providers(self):
-        from core.ai_router.engine import AIHealth
+        from cores.ai_router.engine import AIHealth
 
         h = AIHealth(status="red")
         assert h.to_dict()["status"] == "red"
@@ -80,7 +80,7 @@ class TestAIHealth:
 
 class TestFallbackRecommendation:
     def test_to_dict(self):
-        from core.ai_router.engine import FallbackRecommendation
+        from cores.ai_router.engine import FallbackRecommendation
 
         r = FallbackRecommendation(
             should_switch=True,
@@ -96,7 +96,7 @@ class TestFallbackRecommendation:
 
 class TestSwitchRecord:
     def test_to_dict(self):
-        from core.ai_router.engine import SwitchRecord
+        from cores.ai_router.engine import SwitchRecord
 
         r = SwitchRecord(
             timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test"
@@ -112,7 +112,7 @@ class TestSwitchRecord:
 
 class TestCreateDefaultPolicy:
     def test_returns_valid_policy(self):
-        from core.ai_router.engine import create_default_policy
+        from cores.ai_router.engine import create_default_policy
 
         p = create_default_policy()
         assert p.fallback_enabled is True
@@ -121,14 +121,14 @@ class TestCreateDefaultPolicy:
 
 class TestLoadPolicy:
     def test_no_file_returns_default(self):
-        from core.ai_router.engine import load_policy
+        from cores.ai_router.engine import load_policy
 
         with patch("pathlib.Path.exists", return_value=False):
             p = load_policy()
             assert p.fallback_enabled is True
 
     def test_load_from_file(self):
-        from core.ai_router.engine import load_policy
+        from cores.ai_router.engine import load_policy
 
         with patch("yaml.safe_load", return_value={"fallback_enabled": False, "switch_before_limit_percentage": 50}):
             with patch("pathlib.Path.exists", return_value=True):
@@ -138,7 +138,7 @@ class TestLoadPolicy:
                     assert p.switch_before_limit_percentage == 50
 
     def test_load_missing_keys_falls_back(self):
-        from core.ai_router.engine import load_policy
+        from cores.ai_router.engine import load_policy
 
         with patch("yaml.safe_load", return_value={}):
             with patch("pathlib.Path.exists", return_value=True):
@@ -149,21 +149,21 @@ class TestLoadPolicy:
 
 class TestSavePolicy:
     def test_saves_to_disk(self):
-        from core.ai_router.engine import AIPolicy, save_policy
+        from cores.ai_router.engine import AIPolicy, save_policy
 
         p = AIPolicy(fallback_enabled=False)
         with tempfile.TemporaryDirectory() as tmp:
-            with patch("core.ai_router.engine.POLICY_PATH", os.path.join(tmp, "policy.yaml")):
+            with patch("cores.ai_router.engine.POLICY_PATH", os.path.join(tmp, "policy.yaml")):
                 save_policy(p)
                 assert os.path.isfile(os.path.join(tmp, "policy.yaml"))
 
     def test_creates_parent_dir(self):
-        from core.ai_router.engine import AIPolicy, save_policy
+        from cores.ai_router.engine import AIPolicy, save_policy
 
         p = AIPolicy()
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "sub", "policy.yaml")
-            with patch("core.ai_router.engine.POLICY_PATH", path):
+            with patch("cores.ai_router.engine.POLICY_PATH", path):
                 save_policy(p)
                 assert os.path.isfile(path)
 
@@ -173,7 +173,7 @@ class TestSavePolicy:
 
 class TestValidChain:
     def test_never_contains_openrouter(self):
-        from core.ai_router.engine import _VALID_CHAIN, AIPolicy
+        from cores.ai_router.engine import _VALID_CHAIN, AIPolicy
 
         assert "openrouter" not in str(_VALID_CHAIN).lower()
         assert AIPolicy().never_use_openrouter_directly is True
@@ -184,7 +184,7 @@ class TestValidChain:
 
 @pytest.fixture
 def engine():
-    from core.ai_router.engine import AIRouterEngine
+    from cores.ai_router.engine import AIRouterEngine
 
     e = AIRouterEngine.__new__(AIRouterEngine)
     e._history = []
@@ -194,40 +194,40 @@ def engine():
 
 class TestAIRouterEngine:
     def test_init_loads_policy(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
-        with patch("core.ai_router.engine.load_policy") as mock_load:
+        with patch("cores.ai_router.engine.load_policy") as mock_load:
             mock_load.return_value = MagicMock()
             e = AIRouterEngine()
             assert e._policy is not None
 
     def test_policy_property(self):
-        from core.ai_router.engine import AIPolicy, AIRouterEngine
+        from cores.ai_router.engine import AIPolicy, AIRouterEngine
 
         p = AIPolicy(fallback_enabled=False)
         e = AIRouterEngine(policy=p)
         assert e.policy.fallback_enabled is False
 
     def test_reload_policy(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         e._policy = MagicMock(fallback_enabled=True)
-        with patch("core.ai_router.engine.load_policy") as mock_load:
+        with patch("cores.ai_router.engine.load_policy") as mock_load:
             mock_load.return_value = MagicMock(fallback_enabled=False)
             e.reload_policy()
             assert e._policy.fallback_enabled is False
 
     def test_save_policy_calls_module_function(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
-        with patch("core.ai_router.engine.save_policy") as mock_save:
+        with patch("cores.ai_router.engine.save_policy") as mock_save:
             e.save_policy()
             mock_save.assert_called_once_with(e._policy)
 
     def test_discover_providers_returns_three(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -246,7 +246,7 @@ class TestAIRouterEngine:
             assert "nvidia_nim" in names
 
     def test_discover_opencode_free_always_available(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -305,7 +305,7 @@ class TestAIRouterEngine:
         assert engine.is_proxy_locked() is False
 
     def test_check_health_green_all_available(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -317,7 +317,7 @@ class TestAIRouterEngine:
             assert h.current_provider == "fcc_proxy"
 
     def test_check_health_green_with_only_free(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -329,7 +329,7 @@ class TestAIRouterEngine:
             assert h.current_provider == "opencode_free"
 
     def test_check_health_yellow_when_near_limit(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -343,7 +343,7 @@ class TestAIRouterEngine:
             assert h.status == "yellow"
 
     def test_recommend_fallback_no_alternatives(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -357,7 +357,7 @@ class TestAIRouterEngine:
             assert "No alternative providers" in r.reason
 
     def test_recommend_fallback_policy_disabled(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine.__new__(AIRouterEngine)
         e._policy = MagicMock(fallback_enabled=False)
@@ -372,7 +372,7 @@ class TestAIRouterEngine:
             assert "disabled" in r.reason
 
     def test_recommend_fallback_switches_when_near_limit(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -385,7 +385,7 @@ class TestAIRouterEngine:
             assert r.to_provider in ("opencode_free", "fcc_proxy", "ollama")
 
     def test_get_status_returns_dict(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with (
@@ -399,7 +399,7 @@ class TestAIRouterEngine:
             assert "available_providers" in s
 
     def test_record_switch_appends_to_history(self, engine):
-        from core.ai_router.engine import SwitchRecord
+        from cores.ai_router.engine import SwitchRecord
 
         r = SwitchRecord(
             timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test"
@@ -409,7 +409,7 @@ class TestAIRouterEngine:
         assert engine._history[0].from_provider == "a"
 
     def test_get_history_returns_limited(self, engine):
-        from core.ai_router.engine import SwitchRecord
+        from cores.ai_router.engine import SwitchRecord
 
         for i in range(5):
             r = SwitchRecord(
@@ -420,7 +420,7 @@ class TestAIRouterEngine:
         assert len(engine.get_history(limit=10)) == 5
 
     def test_clear_history_empties(self, engine):
-        from core.ai_router.engine import SwitchRecord
+        from cores.ai_router.engine import SwitchRecord
 
         engine._history.append(
             SwitchRecord(timestamp="t", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x")
@@ -435,7 +435,7 @@ class TestAIRouterEngine:
         engine.publish_event("test:event", foo="bar")
 
     def test_register_capabilities(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         mock_registry = MagicMock()
         with patch("cores.capabilities.registry.get_capability_registry", return_value=mock_registry):
@@ -444,7 +444,7 @@ class TestAIRouterEngine:
             assert mock_registry.register.call_count == 1
 
     def test_estimate_near_limit(self):
-        from core.ai_router.engine import AIRouterEngine
+        from cores.ai_router.engine import AIRouterEngine
 
         e = AIRouterEngine()
         with patch("os.path.isfile", return_value=False):
@@ -470,7 +470,7 @@ class TestAIRouterEngine:
 
 class TestModuleRegistration:
     def test_import_does_not_crash(self):
-        with patch("core.ai_router.engine.AIRouterEngine.register_capabilities"):
-            from core.ai_router import engine  # noqa: F811
+        with patch("cores.ai_router.engine.AIRouterEngine.register_capabilities"):
+            from cores.ai_router import engine  # noqa: F811
 
             assert hasattr(engine, "AIRouterEngine")

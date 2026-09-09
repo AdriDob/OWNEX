@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.automation.browser_agent import BrowserAgent, BrowserResult
+from cores.automation.browser_agent import BrowserAgent, BrowserResult
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def agent():
 
 def test_import_error_without_playwright():
     agent = BrowserAgent()
-    with patch("core.automation.browser_agent.async_playwright", None):
+    with patch("cores.automation.browser_agent.async_playwright", None):
         with pytest.raises(ImportError, match="playwright not installed"):
             asyncio.run(agent.start())
 
@@ -35,7 +35,7 @@ class TestBrowserAgentStartStop:
             mock_browser.new_context = AsyncMock(return_value=mock_context)
             mock_context.new_page = AsyncMock(return_value=mock_page)
 
-            with patch("core.automation.browser_agent.async_playwright", lambda: mock_playwright):
+            with patch("cores.automation.browser_agent.async_playwright", lambda: mock_playwright):
                 await agent.start()
                 assert agent._browser is not None
                 assert agent._context is not None
@@ -44,7 +44,7 @@ class TestBrowserAgentStartStop:
         asyncio.run(run())
 
     def test_start_without_playwright_raises(self, agent):
-        with patch("core.automation.browser_agent.async_playwright", None):
+        with patch("cores.automation.browser_agent.async_playwright", None):
             with pytest.raises(ImportError):
                 asyncio.run(agent.start())
 

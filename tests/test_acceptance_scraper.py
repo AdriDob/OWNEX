@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from core.reports.acceptance.scraper import (
+from cores.reports.acceptance.scraper import (
     _extract_report_id,
     hacktivity_to_observations,
 )
@@ -133,7 +133,7 @@ def test_hacktivity_scored_bounty_higher_impact():
 
 
 def test_parse_disclosed_report_html_with_next_data():
-    from core.reports.acceptance.scraper import _parse_disclosed_report
+    from cores.reports.acceptance.scraper import _parse_disclosed_report
 
     report_id = 123456
     next_data = {
@@ -168,7 +168,7 @@ def test_parse_disclosed_report_html_with_next_data():
 
 
 def test_parse_disclosed_report_fallback_parsing():
-    from core.reports.acceptance.scraper import _parse_disclosed_report
+    from cores.reports.acceptance.scraper import _parse_disclosed_report
 
     html = """<html><head>
     <title>IDOR vulnerability disclosed</title>
@@ -183,9 +183,9 @@ def test_parse_disclosed_report_fallback_parsing():
 def test_feed_hacktivity_to_learner_empty():
     from unittest.mock import patch
 
-    from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+    from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
-    with patch("core.reports.acceptance.scraper.scrape_hacktivity_pages", return_value=[]):
+    with patch("cores.reports.acceptance.scraper.scrape_hacktivity_pages", return_value=[]):
         count = feed_hacktivity_to_learner(max_pages=1, delay=0.0)
         assert count == 0
 
@@ -193,7 +193,7 @@ def test_feed_hacktivity_to_learner_empty():
 def test_feed_hacktivity_to_learner_with_records():
     from unittest.mock import patch
 
-    from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+    from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
     mock_records = [
         {
@@ -221,8 +221,8 @@ def test_feed_hacktivity_to_learner_with_records():
 def test_feed_hacktivity_resets_learner_state():
     from unittest.mock import patch
 
-    from core.reports.acceptance.learner import AcceptanceLearner
-    from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+    from cores.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
     learner = AcceptanceLearner(load_persisted=False)
     assert len(learner.get_observations()) == 0

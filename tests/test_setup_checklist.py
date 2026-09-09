@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-import core.setup.checklist as cl
-from core.setup.checklist import SetupChecklist, get_setup_checklist
+import cores.setup.checklist as cl
+from cores.setup.checklist import SetupChecklist, get_setup_checklist
 
 
 @pytest.fixture()

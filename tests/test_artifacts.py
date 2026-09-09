@@ -6,7 +6,7 @@ import tempfile
 
 import pytest
 
-from core.artifacts.store import (
+from cores.artifacts.store import (
     ArtifactModel,
     ArtifactStore,
     ArtifactType,

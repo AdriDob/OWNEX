@@ -31,7 +31,7 @@ def isolate_state():
 
 @pytest.fixture
 def allocation_controller():
-    from core.investment.allocation import get_allocation_controller, reset_allocation_controller
+    from cores.investment.allocation import get_allocation_controller, reset_allocation_controller
 
     reset_allocation_controller()
     ctrl = get_allocation_controller()
@@ -40,9 +40,9 @@ def allocation_controller():
 
 
 def _reset_all():
-    from core.investment.allocation import reset_allocation_controller
-    from core.investment.manager import reset_investment_manager
-    from core.investment.metrics import reset_investment_metrics
+    from cores.investment.allocation import reset_allocation_controller
+    from cores.investment.manager import reset_investment_manager
+    from cores.investment.metrics import reset_investment_metrics
 
     reset_allocation_controller()
     reset_investment_manager()
@@ -52,7 +52,7 @@ def _reset_all():
 @pytest.fixture
 def investment_manager():
     _reset_all()
-    from core.investment.manager import get_investment_manager
+    from cores.investment.manager import get_investment_manager
 
     mgr = get_investment_manager()
     mgr.allocation.update_capital(10000.0)
@@ -61,7 +61,7 @@ def investment_manager():
 
 @pytest.fixture
 def investment_metrics():
-    from core.investment.metrics import get_investment_metrics
+    from cores.investment.metrics import get_investment_metrics
 
     _reset_all()
     return get_investment_metrics()
@@ -116,7 +116,7 @@ class TestAllocationController:
         ctrl = allocation_controller
         ctrl.update_capital(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         ctrl._strategies["memecoin"] = StrategyAllocation(
             strategy_id="memecoin", allocated_usd=200.0, deployed_usd=200.0
@@ -149,7 +149,7 @@ class TestAllocationController:
         ctrl.update_capital(10000.0)
         ctrl.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         ctrl._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
@@ -168,7 +168,7 @@ class TestAllocationController:
         ctrl.update_capital(10000.0)
         ctrl.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         sa = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=500.0)
         ctrl._strategies["ccxt_spot"] = sa
@@ -196,7 +196,7 @@ class TestAllocationController:
         ctrl.update_capital(5000.0)
         ctrl.allocate_payout(1000.0)
 
-        from core.investment.allocation import get_allocation_controller, reset_allocation_controller
+        from cores.investment.allocation import get_allocation_controller, reset_allocation_controller
 
         reset_allocation_controller()
         ctrl2 = get_allocation_controller()
@@ -236,7 +236,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
@@ -259,7 +259,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
@@ -279,7 +279,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
@@ -298,7 +298,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
@@ -324,7 +324,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
@@ -358,7 +358,7 @@ class TestInvestmentManager:
         mgr = investment_manager
         mgr.allocation.allocate_payout(1000.0)
 
-        from core.investment.models import StrategyAllocation
+        from cores.investment.models import StrategyAllocation
 
         mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
             strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
@@ -376,7 +376,7 @@ class TestInvestmentManager:
 
 class TestInvestmentMetrics:
     def _fresh_metrics(self):
-        from core.investment.metrics import InvestmentMetrics
+        from cores.investment.metrics import InvestmentMetrics
 
         return InvestmentMetrics()
 
@@ -465,7 +465,7 @@ class TestInvestmentMetrics:
 class TestCCXTAdapter:
     @pytest.mark.asyncio
     async def test_get_exchange_info(self):
-        from core.investment.adapters.ccxt_adapter import CCXTAdapter
+        from cores.investment.adapters.ccxt_adapter import CCXTAdapter
 
         adapter = CCXTAdapter(exchange_id="binance")
         info = await adapter.get_exchange_info()
@@ -473,7 +473,7 @@ class TestCCXTAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_fails_without_ccxt(self):
-        from core.investment.adapters.ccxt_adapter import CCXTAdapter
+        from cores.investment.adapters.ccxt_adapter import CCXTAdapter
 
         adapter = CCXTAdapter(exchange_id="nonexistent")
         connected = await adapter.connect()
@@ -481,7 +481,7 @@ class TestCCXTAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.ccxt_adapter import CCXTAdapter
+        from cores.investment.adapters.ccxt_adapter import CCXTAdapter
 
         adapter = CCXTAdapter(exchange_id="binance")
         assert adapter.is_connected is False
@@ -495,7 +495,7 @@ class TestCCXTAdapter:
 class TestPolymarketAdapter:
     @pytest.mark.asyncio
     async def test_connect_without_api_key(self):
-        from core.investment.adapters.polymarket_adapter import PolymarketAdapter
+        from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
 
         adapter = PolymarketAdapter()
         connected = await adapter.connect()
@@ -503,7 +503,7 @@ class TestPolymarketAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.polymarket_adapter import PolymarketAdapter
+        from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
 
         adapter = PolymarketAdapter()
         await adapter.disconnect()
@@ -511,7 +511,7 @@ class TestPolymarketAdapter:
 
     @pytest.mark.asyncio
     async def test_get_markets_not_connected(self):
-        from core.investment.adapters.polymarket_adapter import PolymarketAdapter
+        from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
 
         adapter = PolymarketAdapter()
         markets = await adapter.get_markets()
@@ -612,8 +612,8 @@ class TestInvestmentAPI:
         assert data["paused"] is False
 
     def test_deploy_strategy(self, client):
-        from core.investment.allocation import get_allocation_controller
-        from core.investment.models import StrategyAllocation
+        from cores.investment.allocation import get_allocation_controller
+        from cores.investment.models import StrategyAllocation
 
         ctrl = get_allocation_controller()
         ctrl.update_capital(10000.0)
@@ -631,9 +631,9 @@ class TestInvestmentAPI:
         assert response.status_code == 400
 
     def test_strategy_pause_resume_api(self, client):
-        from core.investment.allocation import get_allocation_controller
-        from core.investment.manager import get_investment_manager
-        from core.investment.models import StrategyAllocation
+        from cores.investment.allocation import get_allocation_controller
+        from cores.investment.manager import get_investment_manager
+        from cores.investment.models import StrategyAllocation
 
         ctrl = get_allocation_controller()
         ctrl.update_capital(10000.0)
@@ -680,13 +680,13 @@ class TestInvestmentAPI:
 
 class TestAlpacaAdapter:
     def test_name(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         assert adapter.name == "alpaca"
 
     def test_default_config(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         assert adapter.is_connected is False
@@ -694,7 +694,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_without_keys(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         connected = await adapter.connect()
@@ -703,7 +703,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_with_keys(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter(config={"api_key": "test_key", "secret_key": "test_secret"})
         connected = await adapter.connect()
@@ -711,7 +711,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         await adapter.connect()
@@ -720,7 +720,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_get_account_not_connected(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         account = await adapter.get_account()
@@ -728,7 +728,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_get_positions_not_connected(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         positions = await adapter.get_positions()
@@ -736,7 +736,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_place_order_not_connected(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         order = await adapter.place_order("AAPL", "buy", 10)
@@ -745,7 +745,7 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_get_market_data_not_connected(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         data = await adapter.get_market_data("AAPL")
@@ -753,14 +753,14 @@ class TestAlpacaAdapter:
 
     @pytest.mark.asyncio
     async def test_get_option_chain_not_connected(self):
-        from core.investment.adapters.stocks_adapter import AlpacaAdapter
+        from cores.investment.adapters.stocks_adapter import AlpacaAdapter
 
         adapter = AlpacaAdapter()
         chain = await adapter.get_option_chain("AAPL")
         assert chain == []
 
     def test_build_alpaca_adapter(self):
-        from core.investment.adapters.stocks_adapter import build_alpaca_adapter
+        from cores.investment.adapters.stocks_adapter import build_alpaca_adapter
 
         adapter = build_alpaca_adapter()
         assert adapter.name == "alpaca"
@@ -768,13 +768,13 @@ class TestAlpacaAdapter:
 
 class TestIBKRAdapter:
     def test_name(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         assert adapter.name == "ibkr"
 
     def test_default_config(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         assert adapter.is_connected is False
@@ -783,7 +783,7 @@ class TestIBKRAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_without_ib_insync(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         connected = await adapter.connect()
@@ -791,7 +791,7 @@ class TestIBKRAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         await adapter.disconnect()
@@ -799,7 +799,7 @@ class TestIBKRAdapter:
 
     @pytest.mark.asyncio
     async def test_get_account_not_connected(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         account = await adapter.get_account()
@@ -807,7 +807,7 @@ class TestIBKRAdapter:
 
     @pytest.mark.asyncio
     async def test_get_positions_not_connected(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         positions = await adapter.get_positions()
@@ -815,7 +815,7 @@ class TestIBKRAdapter:
 
     @pytest.mark.asyncio
     async def test_place_order_not_connected(self):
-        from core.investment.adapters.stocks_adapter import IBKRAdapter
+        from cores.investment.adapters.stocks_adapter import IBKRAdapter
 
         adapter = IBKRAdapter()
         order = await adapter.place_order("AAPL", "BUY", 10)
@@ -823,7 +823,7 @@ class TestIBKRAdapter:
         assert order["status"] in ("error", "not_connected", "rejected")
 
     def test_build_ibkr_adapter(self):
-        from core.investment.adapters.stocks_adapter import build_ibkr_adapter
+        from cores.investment.adapters.stocks_adapter import build_ibkr_adapter
 
         adapter = build_ibkr_adapter()
         assert adapter.name == "ibkr"
@@ -834,13 +834,13 @@ class TestIBKRAdapter:
 
 class TestAaveAdapter:
     def test_name(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter()
         assert adapter.name == "aave"
 
     def test_default_config(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter()
         assert adapter.is_connected is False
@@ -848,7 +848,7 @@ class TestAaveAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_fails_without_rpc(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter(config={"chain": "ethereum"})
         connected = await adapter.connect()
@@ -856,7 +856,7 @@ class TestAaveAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter()
         await adapter.disconnect()
@@ -864,7 +864,7 @@ class TestAaveAdapter:
 
     @pytest.mark.asyncio
     async def test_get_supply_apy_not_connected(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter()
         apy = await adapter.get_supply_apy("USDC")
@@ -873,14 +873,14 @@ class TestAaveAdapter:
 
     @pytest.mark.asyncio
     async def test_get_top_assets_not_connected(self):
-        from core.investment.adapters.defi_adapter import AaveAdapter
+        from cores.investment.adapters.defi_adapter import AaveAdapter
 
         adapter = AaveAdapter()
         assets = await adapter.get_top_assets()
         assert assets == []
 
     def test_build_aave_adapter(self):
-        from core.investment.adapters.defi_adapter import build_aave_adapter
+        from cores.investment.adapters.defi_adapter import build_aave_adapter
 
         adapter = build_aave_adapter()
         assert adapter.name == "aave"
@@ -888,13 +888,13 @@ class TestAaveAdapter:
 
 class TestMorphoAdapter:
     def test_name(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter()
         assert adapter.name == "morpho"
 
     def test_default_config(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter()
         assert adapter.is_connected is False
@@ -902,7 +902,7 @@ class TestMorphoAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_fails_without_rpc(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter(config={"chain": "ethereum"})
         connected = await adapter.connect()
@@ -910,7 +910,7 @@ class TestMorphoAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter()
         await adapter.disconnect()
@@ -918,7 +918,7 @@ class TestMorphoAdapter:
 
     @pytest.mark.asyncio
     async def test_get_market_apy_not_connected(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter()
         apy = await adapter.get_market_apy("test")
@@ -927,14 +927,14 @@ class TestMorphoAdapter:
 
     @pytest.mark.asyncio
     async def test_get_top_markets_not_connected(self):
-        from core.investment.adapters.defi_adapter import MorphoAdapter
+        from cores.investment.adapters.defi_adapter import MorphoAdapter
 
         adapter = MorphoAdapter()
         markets = await adapter.get_top_markets()
         assert markets == []
 
     def test_build_morpho_adapter(self):
-        from core.investment.adapters.defi_adapter import build_morpho_adapter
+        from cores.investment.adapters.defi_adapter import build_morpho_adapter
 
         adapter = build_morpho_adapter()
         assert adapter.name == "morpho"
@@ -942,13 +942,13 @@ class TestMorphoAdapter:
 
 class TestPendleAdapter:
     def test_name(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter()
         assert adapter.name == "pendle"
 
     def test_default_config(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter()
         assert adapter.is_connected is False
@@ -956,7 +956,7 @@ class TestPendleAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_fails_without_rpc(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter(config={"chain": "ethereum"})
         connected = await adapter.connect()
@@ -964,7 +964,7 @@ class TestPendleAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter()
         await adapter.disconnect()
@@ -972,7 +972,7 @@ class TestPendleAdapter:
 
     @pytest.mark.asyncio
     async def test_get_yield_opportunities_not_connected(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter()
         opps = await adapter.get_yield_opportunities()
@@ -980,7 +980,7 @@ class TestPendleAdapter:
 
     @pytest.mark.asyncio
     async def test_get_pt_yield_not_connected(self):
-        from core.investment.adapters.defi_adapter import PendleAdapter
+        from cores.investment.adapters.defi_adapter import PendleAdapter
 
         adapter = PendleAdapter()
         yield_data = await adapter.get_pt_yield("0x123")
@@ -988,7 +988,7 @@ class TestPendleAdapter:
         assert "implied_apy" in yield_data
 
     def test_build_pendle_adapter(self):
-        from core.investment.adapters.defi_adapter import build_pendle_adapter
+        from cores.investment.adapters.defi_adapter import build_pendle_adapter
 
         adapter = build_pendle_adapter()
         assert adapter.name == "pendle"
@@ -996,13 +996,13 @@ class TestPendleAdapter:
 
 class TestLidoAdapter:
     def test_name(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter()
         assert adapter.name == "lido"
 
     def test_default_config(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter()
         assert adapter.is_connected is False
@@ -1010,7 +1010,7 @@ class TestLidoAdapter:
 
     @pytest.mark.asyncio
     async def test_connect_fails_without_rpc(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter(config={"chain": "ethereum"})
         connected = await adapter.connect()
@@ -1018,7 +1018,7 @@ class TestLidoAdapter:
 
     @pytest.mark.asyncio
     async def test_disconnect_cleanly(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter()
         await adapter.disconnect()
@@ -1026,7 +1026,7 @@ class TestLidoAdapter:
 
     @pytest.mark.asyncio
     async def test_get_staking_apy_not_connected(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter()
         apy = await adapter.get_staking_apy()
@@ -1035,7 +1035,7 @@ class TestLidoAdapter:
 
     @pytest.mark.asyncio
     async def test_get_protocol_metrics_not_connected(self):
-        from core.investment.adapters.defi_adapter import LidoAdapter
+        from cores.investment.adapters.defi_adapter import LidoAdapter
 
         adapter = LidoAdapter()
         metrics = await adapter.get_protocol_metrics()
@@ -1043,7 +1043,7 @@ class TestLidoAdapter:
         assert "tvl" in metrics
 
     def test_build_lido_adapter(self):
-        from core.investment.adapters.defi_adapter import build_lido_adapter
+        from cores.investment.adapters.defi_adapter import build_lido_adapter
 
         adapter = build_lido_adapter()
         assert adapter.name == "lido"
@@ -1054,7 +1054,7 @@ class TestLidoAdapter:
 
 class TestInvestmentAdapterRegistry:
     def test_register_and_list(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
@@ -1068,7 +1068,7 @@ class TestInvestmentAdapterRegistry:
         assert adapters[0]["enabled"] is True
 
     def test_register_disabled(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
@@ -1082,7 +1082,7 @@ class TestInvestmentAdapterRegistry:
 
     @pytest.mark.asyncio
     async def test_initialize_all(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
@@ -1097,7 +1097,7 @@ class TestInvestmentAdapterRegistry:
 
     @pytest.mark.asyncio
     async def test_shutdown_all(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
@@ -1111,7 +1111,7 @@ class TestInvestmentAdapterRegistry:
 
     @pytest.mark.asyncio
     async def test_import_class_failure(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
@@ -1123,13 +1123,13 @@ class TestInvestmentAdapterRegistry:
         assert results["bad"] is False
 
     def test_get_adapter_not_found(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         assert registry.get_adapter("nonexistent") is None
 
     def test_get_all_adapters_empty(self):
-        from core.investment.adapters.registry import InvestmentAdapterRegistry
+        from cores.investment.adapters.registry import InvestmentAdapterRegistry
 
         registry = InvestmentAdapterRegistry()
         assert registry.get_all_adapters() == {}
@@ -1137,7 +1137,7 @@ class TestInvestmentAdapterRegistry:
 
 class TestBuildDefaultRegistry:
     def test_build_default_registry(self):
-        from core.investment.adapters import build_default_registry
+        from cores.investment.adapters import build_default_registry
 
         registry = build_default_registry()
         adapters = registry.list_adapters()

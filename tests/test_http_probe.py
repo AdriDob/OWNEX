@@ -6,10 +6,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.capabilities.registry import get_capability_registry, reset_capability_registry
-from core.http_probe.analyzer import Analyzer
-from core.http_probe.engine import HTTPClient, ProbeEngine, ProbeRequest
-from core.http_probe.probes import (
+from cores.capabilities.registry import get_capability_registry, reset_capability_registry
+from cores.http_probe.analyzer import Analyzer
+from cores.http_probe.engine import HTTPClient, ProbeEngine, ProbeRequest
+from cores.http_probe.probes import (
     AuthBypassProbe,
     HttpResponse,
     IDORProbe,
@@ -18,7 +18,7 @@ from core.http_probe.probes import (
     SSRFProbe,
     XSSProbe,
 )
-from core.http_probe.templates import ProbeTemplates
+from cores.http_probe.templates import ProbeTemplates
 
 # ── Helpers ───────────────────────────────────────────────────
 
