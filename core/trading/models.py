@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum, auto
 from typing import Any
@@ -50,8 +50,8 @@ class Order:
     avg_fill_price: Decimal | None = None
     fee: Decimal = Decimal("0")
     fee_asset: str = ""
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=datetime.now(UTC))
+    updated_at: datetime = field(default_factory=datetime.now(UTC))
     exchange: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -78,7 +78,7 @@ class Position:
     take_profit: Decimal | None = None
     unrealized_pnl: Decimal = Decimal("0")
     realized_pnl: Decimal = Decimal("0")
-    opened_at: datetime = field(default_factory=datetime.utcnow)
+    opened_at: datetime = field(default_factory=datetime.now(UTC))
     closed_at: datetime | None = None
     exchange: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -107,7 +107,7 @@ class Trade:
     fee: Decimal
     fee_asset: str
     total: Decimal
-    executed_at: datetime = field(default_factory=datetime.utcnow)
+    executed_at: datetime = field(default_factory=datetime.now(UTC))
     exchange: str = ""
 
     @property
@@ -129,7 +129,7 @@ class Balance:
 class WalletSnapshot:
     balances: dict[str, Balance] = field(default_factory=dict)
     total_usd: Decimal = Decimal("0")
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
 
 
 @dataclass
@@ -139,7 +139,7 @@ class ExecutionReport:
     simulated: bool = False
     mode: str = ""
     message: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
 
     @property
     def filled_notional(self) -> Decimal:

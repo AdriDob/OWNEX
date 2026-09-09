@@ -27,7 +27,7 @@ from typing import Any
 from fastapi import APIRouter
 
 from api.routers.stability import stability_status
-from core.memory.store import get_memory_store
+from cores.memory.store import get_memory_store
 from cores.direct_work_engine.models import UserProfile
 from cores.direct_work_engine.source_intel import SourceIntelEngine
 from cores.direct_work_engine.workbank import get_workbank
@@ -135,7 +135,7 @@ def _pending_approvals() -> list[dict[str, Any]]:
 def _setup_progress() -> dict[str, Any]:
     """Configuración progresiva: % completo + UNA tarea de config para hoy."""
     try:
-        from core.setup.checklist import get_setup_checklist
+        from cores.setup.checklist import get_setup_checklist
 
         status = get_setup_checklist().status()
         return {

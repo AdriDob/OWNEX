@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 
-from core.copilot.permissions import AuthorityLevel
+from cores.copilot.permissions import AuthorityLevel
 
 logger = logging.getLogger("orion.core.copilot.config")
 

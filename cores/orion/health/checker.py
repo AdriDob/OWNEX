@@ -94,7 +94,7 @@ async def collect_health_metrics() -> dict[str, Any]:
 
     # 6. Scheduler
     try:
-        from core.scheduler.scheduler import get_core_scheduler
+        from cores.scheduler.scheduler import get_core_scheduler
 
         scheduler = get_core_scheduler()
         components["scheduler"] = {

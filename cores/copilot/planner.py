@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from core.copilot.context import CopilotContext
+from cores.copilot.context import CopilotContext
 
 logger = logging.getLogger("orion.core.copilot.planner")
 

@@ -14,16 +14,16 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from core.app_registry import get_app_registry
-from core.database.manager import get_db_manager
-from core.decision_journal import get_decisions as dj_get
-from core.decision_journal import record_outcome as dj_outcome
-from core.extension.hooks import get_hook_registry
-from core.extension.registry import get_extension_registry
-from core.health.engine import get_health_center
-from core.integrations import init_integration_registry
-from core.scheduler.scheduler import get_core_scheduler
-from core.secrets.manager import get_secrets_manager
+from cores.app_registry import get_app_registry
+from cores.database.manager import get_db_manager
+from cores.decision_journal import get_decisions as dj_get
+from cores.decision_journal import record_outcome as dj_outcome
+from cores.extension.hooks import get_hook_registry
+from cores.extension.registry import get_extension_registry
+from cores.health.engine import get_health_center
+from cores.integrations import init_integration_registry
+from cores.scheduler.scheduler import get_core_scheduler
+from cores.secrets.manager import get_secrets_manager
 
 logger = logging.getLogger("ownex.core.api")
 router = APIRouter(prefix="/api/core", tags=["core"])
@@ -40,7 +40,7 @@ class WizardStepRequest(BaseModel):
 @router.get("/setup/status")
 async def setup_status():
     """Check if first-run setup has been completed."""
-    from core.setup.first_run import setup_status as ss
+    from cores.setup.first_run import setup_status as ss
 
     return {"setup": ss()}
 
@@ -48,7 +48,7 @@ async def setup_status():
 @router.get("/setup/check-requirements")
 async def setup_check_requirements():
     """Run all system requirements checks."""
-    from core.setup.requirements_check import check_all
+    from cores.setup.requirements_check import check_all
 
     return check_all()
 
@@ -56,7 +56,7 @@ async def setup_check_requirements():
 @router.get("/setup/check-security")
 async def setup_check_security():
     """Run security-specific checks (vault, secrets)."""
-    from core.setup.requirements_check import check_secrets, check_vault
+    from cores.setup.requirements_check import check_secrets, check_vault
 
     return {
         "vault": {"name": check_vault().name, "status": check_vault().status, "message": check_vault().message},
@@ -67,7 +67,7 @@ async def setup_check_security():
 @router.post("/setup/wizard-step")
 async def setup_wizard_step(body: WizardStepRequest):
     """Advance the setup wizard one step."""
-    from core.setup.wizard import run_step
+    from cores.setup.wizard import run_step
 
     return run_step(body.step_id, dict(body.step_data) if body.step_data else None)
 
@@ -75,7 +75,7 @@ async def setup_wizard_step(body: WizardStepRequest):
 @router.get("/setup/wizard")
 async def setup_wizard():
     """Get current wizard state."""
-    from core.setup.wizard import wizard_status
+    from cores.setup.wizard import wizard_status
 
     return wizard_status()
 
@@ -83,7 +83,7 @@ async def setup_wizard():
 @router.post("/setup/wizard/go-back")
 async def setup_wizard_go_back():
     """Go back one step in the wizard."""
-    from core.setup.wizard import go_back
+    from cores.setup.wizard import go_back
 
     return go_back()
 
@@ -91,7 +91,7 @@ async def setup_wizard_go_back():
 @router.post("/setup/wizard/skip")
 async def setup_wizard_skip(body: WizardStepRequest):
     """Skip a non-required step."""
-    from core.setup.wizard import skip_step
+    from cores.setup.wizard import skip_step
 
     if not body.step_id:
         return {"status": "error", "message": "step_id is required"}
@@ -101,7 +101,7 @@ async def setup_wizard_skip(body: WizardStepRequest):
 @router.post("/setup/wizard/reset")
 async def setup_wizard_reset():
     """Reset wizard state to beginning."""
-    from core.setup.wizard import reset_wizard
+    from cores.setup.wizard import reset_wizard
 
     return reset_wizard()
 
@@ -109,7 +109,7 @@ async def setup_wizard_reset():
 @router.get("/setup/wizard/steps")
 async def setup_wizard_steps():
     """List all registered wizard steps with metadata."""
-    from core.setup.steps import get_all_steps
+    from cores.setup.steps import get_all_steps
 
     return [s.to_dict() for s in get_all_steps()]
 
@@ -117,7 +117,7 @@ async def setup_wizard_steps():
 @router.post("/setup/complete")
 async def setup_complete():
     """Finalize setup — create dirs, vault, marker."""
-    from core.setup.first_run import complete_setup
+    from cores.setup.first_run import complete_setup
 
     return complete_setup()
 
@@ -213,7 +213,7 @@ async def list_hooks():
 @router.get("/capabilities")
 async def list_capabilities():
     """List all registered capabilities."""
-    from core.extension.capabilities import get_capability_registry
+    from cores.extension.capabilities import get_capability_registry
 
     registry = get_capability_registry()
     return {"capabilities": registry.list_capabilities()}
@@ -328,7 +328,7 @@ async def unified_health_summary():
 
 @router.get("/workflows/templates")
 async def list_workflow_templates():
-    from core.workflows.engine import get_workflow_engine
+    from cores.workflows.engine import get_workflow_engine
 
     engine = get_workflow_engine()
     return {"templates": engine.list_templates()}
@@ -336,7 +336,7 @@ async def list_workflow_templates():
 
 @router.get("/workflows/runs")
 async def list_workflow_runs():
-    from core.workflows.engine import get_workflow_engine
+    from cores.workflows.engine import get_workflow_engine
 
     engine = get_workflow_engine()
     return {"runs": engine.list_runs()}
@@ -344,7 +344,7 @@ async def list_workflow_runs():
 
 @router.get("/workflows/runs/{run_id}")
 async def get_workflow_run(run_id: str):
-    from core.workflows.engine import get_workflow_engine
+    from cores.workflows.engine import get_workflow_engine
 
     engine = get_workflow_engine()
     run = engine.get_run(run_id)
@@ -360,7 +360,7 @@ class CreateRunRequest(BaseModel):
 
 @router.post("/workflows/runs")
 async def create_workflow_run(body: CreateRunRequest):
-    from core.workflows.engine import get_workflow_engine
+    from cores.workflows.engine import get_workflow_engine
 
     engine = get_workflow_engine()
     run = engine.create_run(body.template_file, body.target)
@@ -371,7 +371,7 @@ async def create_workflow_run(body: CreateRunRequest):
 
 @router.post("/workflows/runs/{run_id}/execute/{step_id}")
 async def execute_workflow_step(run_id: str, step_id: str):
-    from core.workflows.engine import get_workflow_engine
+    from cores.workflows.engine import get_workflow_engine
 
     engine = get_workflow_engine()
     result = engine.execute_step(run_id, step_id)
@@ -467,7 +467,7 @@ async def learning_stats():
         status["confidence_history"] = tuner._tuning_history[-5:] if tuner._tuning_history else []
 
         # Per-vuln-type accuracy from Decision Journal
-        from core.decision_journal import get_decisions
+        from cores.decision_journal import get_decisions
 
         decisions = get_decisions(app_id="cateye", outcome="success", limit=200)
         success_count = len(decisions)
@@ -544,7 +544,7 @@ async def update_learning_weights(body: dict):
 @router.post("/backup/create")
 async def backup_create():
     """Create a full ORION system backup."""
-    from core.backup import create_backup as do_backup
+    from cores.backup import create_backup as do_backup
 
     return do_backup()
 
@@ -552,7 +552,7 @@ async def backup_create():
 @router.get("/backup/list")
 async def backup_list():
     """List all available ORION backups."""
-    from core.backup import list_backups
+    from cores.backup import list_backups
 
     return {"backups": list_backups()}
 
@@ -560,7 +560,7 @@ async def backup_list():
 @router.get("/backup/status")
 async def backup_st():
     """Backup system status."""
-    from core.backup import backup_status
+    from cores.backup import backup_status
 
     return backup_status()
 
@@ -568,7 +568,7 @@ async def backup_st():
 @router.post("/backup/verify")
 async def backup_verify(path: str):
     """Verify integrity of a backup archive."""
-    from core.backup import verify_backup
+    from cores.backup import verify_backup
 
     return verify_backup(path)
 
@@ -576,7 +576,7 @@ async def backup_verify(path: str):
 @router.post("/backup/prune")
 async def backup_prune(keep: int = 10):
     """Remove old backups, keeping only the N most recent."""
-    from core.backup import prune_backups
+    from cores.backup import prune_backups
 
     return prune_backups(keep=keep)
 
@@ -584,7 +584,7 @@ async def backup_prune(keep: int = 10):
 @router.post("/backup/restore")
 async def backup_restore(path: str, target: str | None = None):
     """Restore ORION from a backup archive."""
-    from core.backup import restore_backup
+    from cores.backup import restore_backup
 
     return restore_backup(path, target_dir=target)
 
@@ -601,7 +601,7 @@ class BackupTargetRequest(BaseModel):
 @router.get("/backup/targets")
 async def backup_targets_list():
     """List all registered backup targets."""
-    from core.backup.targets import list_targets
+    from cores.backup.targets import list_targets
 
     return {"targets": list_targets()}
 
@@ -609,7 +609,7 @@ async def backup_targets_list():
 @router.post("/backup/targets")
 async def backup_targets_add(body: BackupTargetRequest):
     """Register a new backup target."""
-    from core.backup.targets import register_target
+    from cores.backup.targets import register_target
 
     return register_target(body.name, body.type, body.config)
 
@@ -617,7 +617,7 @@ async def backup_targets_add(body: BackupTargetRequest):
 @router.delete("/backup/targets/{name}")
 async def backup_targets_remove(name: str):
     """Remove a backup target."""
-    from core.backup.targets import remove_target
+    from cores.backup.targets import remove_target
 
     return remove_target(name)
 
@@ -625,8 +625,8 @@ async def backup_targets_remove(name: str):
 @router.post("/backup/targets/{name}/sync")
 async def backup_targets_sync(name: str):
     """Sync the latest backup to a specific target."""
-    from core.backup import create_backup, list_backups
-    from core.backup.targets import sync_to_target
+    from cores.backup import create_backup, list_backups
+    from cores.backup.targets import sync_to_target
 
     backups = list_backups()
     if not backups:
@@ -643,8 +643,8 @@ async def backup_targets_sync(name: str):
 @router.post("/backup/sync-all")
 async def backup_sync_all():
     """Sync the latest backup to all registered targets."""
-    from core.backup import create_backup, list_backups
-    from core.backup.targets import sync_to_all
+    from cores.backup import create_backup, list_backups
+    from cores.backup.targets import sync_to_all
 
     backups = list_backups()
     if not backups:
@@ -672,7 +672,7 @@ class SyncEndpointRequest(BaseModel):
 @router.get("/sync/status")
 async def sync_status():
     """Multi-device sync status."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     return get_sync_engine().status()
 
@@ -680,7 +680,7 @@ async def sync_status():
 @router.post("/sync/key")
 async def sync_set_key(body: SyncKeyRequest):
     """Set the shared encryption key for multi-device sync."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     get_sync_engine().set_key(body.key)
     return {"status": "ok"}
@@ -689,7 +689,7 @@ async def sync_set_key(body: SyncKeyRequest):
 @router.post("/sync/push")
 async def sync_push(body: SyncEndpointRequest):
     """Push local state to sync targets (HTTP endpoint or file)."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     eng = get_sync_engine()
     return eng.push(endpoint=body.endpoint or None)
@@ -698,7 +698,7 @@ async def sync_push(body: SyncEndpointRequest):
 @router.post("/sync/pull")
 async def sync_pull(body: SyncEndpointRequest):
     """Pull remote state from sync targets."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     eng = get_sync_engine()
     return eng.pull(endpoint=body.endpoint or None)
@@ -707,7 +707,7 @@ async def sync_pull(body: SyncEndpointRequest):
 @router.get("/sync/package")
 async def sync_preview():
     """Preview what would be synced (metadata only, no data sent)."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     return get_sync_engine().prepare_sync_package()
 
@@ -728,7 +728,7 @@ def _maint_to_dict(r):
 @router.post("/maintenance/vacuum")
 async def maintenance_vacuum():
     """Run VACUUM on all known databases."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().vacuum()]}
 
@@ -736,7 +736,7 @@ async def maintenance_vacuum():
 @router.post("/maintenance/analyze")
 async def maintenance_analyze():
     """Run ANALYZE on all known databases."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().analyze()]}
 
@@ -744,7 +744,7 @@ async def maintenance_analyze():
 @router.post("/maintenance/integrity")
 async def maintenance_integrity():
     """Run integrity_check on all known databases."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().integrity_check()]}
 
@@ -752,7 +752,7 @@ async def maintenance_integrity():
 @router.post("/maintenance/reindex")
 async def maintenance_reindex():
     """Rebuild all indexes on all known databases."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().reindex()]}
 
@@ -760,7 +760,7 @@ async def maintenance_reindex():
 @router.post("/maintenance/wal")
 async def maintenace_wal():
     """WAL checkpoint (TRUNCATE) on all known databases."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return {"results": [_maint_to_dict(r) for r in MaintenanceEngine().wal_checkpoint()]}
 
@@ -768,7 +768,7 @@ async def maintenace_wal():
 @router.post("/maintenance/full")
 async def maintenance_full():
     """Run all maintenance operations on all databases."""
-    from core.maintenance.engine import run_maintenance
+    from cores.maintenance.engine import run_maintenance
 
     return run_maintenance()
 
@@ -776,7 +776,7 @@ async def maintenance_full():
 @router.get("/maintenance/summary")
 async def maintenance_summary():
     """DB file sizes and status summary."""
-    from core.maintenance.engine import MaintenanceEngine
+    from cores.maintenance.engine import MaintenanceEngine
 
     return MaintenanceEngine().summary()
 
@@ -787,7 +787,7 @@ async def maintenance_summary():
 @router.get("/update/status")
 async def update_status():
     """Current version and update availability."""
-    from core.update.engine import UpdateManager
+    from cores.update.engine import UpdateManager
 
     return UpdateManager().status()
 
@@ -795,7 +795,7 @@ async def update_status():
 @router.post("/update/check")
 async def update_check():
     """Check remote for updates."""
-    from core.update.engine import UpdateManager
+    from cores.update.engine import UpdateManager
 
     return UpdateManager().check_remote()
 
@@ -803,7 +803,7 @@ async def update_check():
 @router.post("/update/prepare")
 async def update_prepare():
     """Prepare for update: backup + download."""
-    from core.update.engine import UpdateManager
+    from cores.update.engine import UpdateManager
 
     return UpdateManager().prepare_update()
 
@@ -811,7 +811,7 @@ async def update_prepare():
 @router.post("/update/rollback")
 async def update_rollback(backup_path: str | None = None):
     """Rollback to the last backup."""
-    from core.update.engine import UpdateManager
+    from cores.update.engine import UpdateManager
 
     return UpdateManager().rollback(backup_path)
 
@@ -819,7 +819,7 @@ async def update_rollback(backup_path: str | None = None):
 @router.get("/update/history")
 async def update_history(limit: int = 10):
     """Update history log."""
-    from core.update.engine import UpdateManager
+    from cores.update.engine import UpdateManager
 
     return {"history": UpdateManager().get_history(limit=limit)}
 
@@ -830,7 +830,7 @@ async def update_history(limit: int = 10):
 @router.get("/version")
 async def version_info():
     """OWNEX Platform version and API contract versions."""
-    from core.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, OWNEX_VERSION, PLUGIN_API
+    from cores.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, OWNEX_VERSION, PLUGIN_API
 
     return {
         "ownex_version": OWNEX_VERSION,
@@ -870,7 +870,7 @@ async def knowledge_find_nodes(
     offset: int = 0,
 ):
     """Find nodes by type and/or name pattern."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     nodes = kg.find_nodes(node_type=node_type, name_pattern=name_pattern, limit=limit, offset=offset)
@@ -880,7 +880,7 @@ async def knowledge_find_nodes(
 @router.get("/knowledge/nodes/{node_id}")
 async def knowledge_get_node(node_id: str):
     """Get a single node by ID."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     node = kg.get_node(node_id)
@@ -892,7 +892,7 @@ async def knowledge_get_node(node_id: str):
 @router.post("/knowledge/nodes")
 async def knowledge_add_node(body: AddNodeRequest):
     """Add a new node."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     node = kg.add_node(
@@ -909,7 +909,7 @@ async def knowledge_add_node(body: AddNodeRequest):
 @router.delete("/knowledge/nodes/{node_id}")
 async def knowledge_delete_node(node_id: str):
     """Delete a node and its edges."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     deleted = kg.delete_node(node_id)
@@ -926,7 +926,7 @@ async def knowledge_get_neighbors(
     max_depth: int = 1,
 ):
     """Get neighboring nodes up to a depth."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     neighbors = kg.get_neighbors(node_id=node_id, edge_type=edge_type, direction=direction, max_depth=max_depth)
@@ -940,7 +940,7 @@ async def knowledge_get_path(
     max_depth: int = 6,
 ):
     """Find paths between two nodes."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     paths = kg.get_path(start_id=source, end_id=target, max_depth=max_depth)
@@ -954,7 +954,7 @@ async def knowledge_get_subgraph(
     depth: int = 2,
 ):
     """Get a subgraph centered on a node or filtered by types (comma-separated)."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     types_list = node_types.split(",") if node_types else None
@@ -965,7 +965,7 @@ async def knowledge_get_subgraph(
 @router.post("/knowledge/edges")
 async def knowledge_add_edge(body: AddEdgeRequest):
     """Add a directed edge between two nodes."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     edge = kg.add_edge(
@@ -989,7 +989,7 @@ async def knowledge_add_edge(body: AddEdgeRequest):
 @router.get("/knowledge/stats")
 async def knowledge_stats():
     """Knowledge Graph aggregate statistics."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     return kg.get_stats()

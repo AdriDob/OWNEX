@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 logger = logging.getLogger("orion.activity")
 router = APIRouter(prefix="/api/activity", tags=["activity"])

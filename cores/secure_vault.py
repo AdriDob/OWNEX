@@ -26,7 +26,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 logger = logging.getLogger("ownex.vault")
 

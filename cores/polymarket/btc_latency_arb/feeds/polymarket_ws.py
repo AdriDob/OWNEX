@@ -10,7 +10,7 @@ import time
 from typing import Any
 
 import websockets
-from core.polymarket.btc_latency_arb.feeds.base import (
+from cores.polymarket.btc_latency_arb.feeds.base import (
     OrderBookUpdate,
     PriceFeed,
 )
@@ -166,7 +166,7 @@ class PolymarketWSFeed(PriceFeed):
             side = data.get("side", "")  # "buy" or "sell"
 
             # Emit as a synthetic tick
-            from core.polymarket.btc_latency_arb.feeds.base import TickData
+            from cores.polymarket.btc_latency_arb.feeds.base import TickData
 
             tick = TickData(
                 symbol=market_id,

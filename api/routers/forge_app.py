@@ -13,7 +13,7 @@ from database.models_cycles import CycleOpportunity, CycleSyncLog
 
 router = APIRouter(prefix="/api/forge", tags=["forge"])
 
-FORGE_PLATFORMS = ["superteam", "opire", "algora", "issuehunt", "issuehand", "freelancer", "opencollective"]
+FORGE_PLATFORMS = ["superteam", "opire", "algora", "issuehunt", "issuehand", "opencollective"]
 
 
 def get_db():

@@ -7,7 +7,7 @@ import json
 import sqlite3
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -80,7 +80,7 @@ class PlatformExpertise:
     best_task_types: dict[str, float] = field(default_factory=dict)
     peak_hours: dict[int, float] = field(default_factory=dict)  # hour -> avg reward
     common_failures: dict[str, int] = field(default_factory=dict)
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def success_rate(self) -> float:
@@ -118,7 +118,7 @@ class AgentProfile:
     platform_affinity: dict[str, float] = field(default_factory=dict)
     task_type_affinity: dict[str, float] = field(default_factory=dict)
     failure_patterns: dict[str, int] = field(default_factory=dict)
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def success_rate(self) -> float:
@@ -360,7 +360,7 @@ class KnowledgeGraph:
         if outcome.failure_reason:
             plat.common_failures[outcome.failure_reason] = plat.common_failures.get(outcome.failure_reason, 0) + 1
 
-        plat.last_updated = datetime.utcnow()
+        plat.last_updated = datetime.now(UTC)
 
         # Persist
         conn.execute(
@@ -412,7 +412,7 @@ class KnowledgeGraph:
         if outcome.failure_reason:
             agent.failure_patterns[outcome.failure_reason] = agent.failure_patterns.get(outcome.failure_reason, 0) + 1
 
-        agent.last_updated = datetime.utcnow()
+        agent.last_updated = datetime.now(UTC)
 
         conn.execute(
             """
@@ -531,7 +531,7 @@ class KnowledgeGraph:
 
     def get_decision_regret_stats(self, days: int = 30) -> dict[str, float]:
         """Estadísticas de regret para calibrar el motor de decisiones"""
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         recent = [d for d in self._decision_log if d.timestamp > cutoff and d.actual_outcome]
 
         if not recent:

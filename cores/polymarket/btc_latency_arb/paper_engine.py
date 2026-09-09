@@ -10,9 +10,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import PaperTradingConfig
+from cores.polymarket.btc_latency_arb.config import PaperTradingConfig
 
-from core.trading.virtual_wallet import VirtualWallet
+from cores.trading.virtual_wallet import VirtualWallet
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.paper_engine")
 

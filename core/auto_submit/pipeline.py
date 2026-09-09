@@ -9,8 +9,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.reports.quality.classifier import QualityClassifier
-from core.reports.quality.scorer import QualityScorer
+from cores.reports.quality.classifier import QualityClassifier
+from cores.reports.quality.scorer import QualityScorer
 from cores.events.types import Events
 from database import db, models
 
@@ -21,7 +21,7 @@ _REVIEW_THRESHOLD = 60.0
 
 
 def get_revenue_pipeline():
-    from core.revenue.pipeline import RevenuePipeline
+    from cores.revenue.pipeline import RevenuePipeline
 
     return RevenuePipeline()
 
@@ -33,7 +33,7 @@ def get_vault():
 
 
 def get_acceptance_learner():
-    from core.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.learner import AcceptanceLearner
 
     return AcceptanceLearner()
 

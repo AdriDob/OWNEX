@@ -8,7 +8,7 @@ Provides:
   - Thread-safe operations (file-level lock, no thread dependencies)
 
 Usage:
-    from core.system.temp_manager import get_temp_manager
+    from cores.system.temp_manager import get_temp_manager
 
     tm = get_temp_manager()
 

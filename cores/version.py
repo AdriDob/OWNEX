@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-OWNEX_VERSION = "7.0.0"
+OWNEX_VERSION = "7.1.0"
 OWNEX_CODENAME = "OMEGA"
 PLUGIN_API = "1.0"
 EVENT_SCHEMA = "2.0"

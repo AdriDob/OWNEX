@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from threading import Lock
 
 
@@ -20,7 +20,7 @@ class PromptGenome:
     parent_ids: list[str] = field(default_factory=list)
     mutations: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class PromptEvolutionEngine:

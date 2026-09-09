@@ -6,8 +6,8 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.evolution.analyze import get_analyze_engine
-from core.evolution.engine import get_evolution_engine
+from cores.evolution.analyze import get_analyze_engine
+from cores.evolution.engine import get_evolution_engine
 
 logger = logging.getLogger("orion.api.evolution")
 

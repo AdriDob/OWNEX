@@ -22,7 +22,7 @@ async def collect_intel() -> dict[str, Any]:
 
         # 1. Opportunity counts
         try:
-            from core.opportunity import get_engine
+            from cores.opportunity import get_engine
 
             engine = get_engine()
             all_opps = engine.get_all()
@@ -53,7 +53,7 @@ async def collect_intel() -> dict[str, Any]:
 
         # 4. Active jobs from scheduler
         try:
-            from core.scheduler.scheduler import get_core_scheduler
+            from cores.scheduler.scheduler import get_core_scheduler
 
             scheduler = get_core_scheduler()
             jobs = scheduler.get_jobs()

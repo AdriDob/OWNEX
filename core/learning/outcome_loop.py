@@ -224,9 +224,9 @@ class OutcomeLearningLoop:
 
     def record_outcome_from_mission(self, mission_id: str) -> list[Any]:
         """Record outcomes for all completed work in a mission."""
-        from core.mission.controller import get_mission_controller
-        from core.revenue.ledger import get_revenue_ledger
-        from core.trust_engine import get_trust_engine
+        from cores.mission.controller import get_mission_controller
+        from cores.revenue.ledger import get_revenue_ledger
+        from cores.trust_engine import get_trust_engine
 
         mission_ctrl = get_mission_controller()
         mission = mission_ctrl.get_mission(mission_id)
@@ -395,7 +395,7 @@ class OutcomeLearningLoop:
 
     def recalibrate_scorer(self) -> dict[str, Any]:
         """Recalibrate Scorer using actual outcomes from Revenue Ledger."""
-        from core.revenue.ledger import get_revenue_ledger
+        from cores.revenue.ledger import get_revenue_ledger
 
         ledger = get_revenue_ledger()
 
@@ -431,7 +431,7 @@ class OutcomeLearningLoop:
         except ImportError:
             recommender = None
 
-        from core.revenue.ledger import get_revenue_ledger
+        from cores.revenue.ledger import get_revenue_ledger
 
         ledger = get_revenue_ledger()
 

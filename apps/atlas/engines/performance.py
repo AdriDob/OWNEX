@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 
 from apps.atlas.models import Asset
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.atlas.engines.performance")
 

@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from apps.aegis.models import AegisTarget, ScanResult
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.aegis.engines.recon")
 

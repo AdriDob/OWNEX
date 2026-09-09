@@ -19,7 +19,7 @@ from enum import StrEnum
 from queue import PriorityQueue
 from typing import Any
 
-from core.autonomy.bounty_pipeline import BountyPipeline, get_bounty_pipeline
+from cores.autonomy.bounty_pipeline import BountyPipeline, get_bounty_pipeline
 from cores.events.event_bus import get_event_bus
 from cores.opportunity.models import Opportunity
 

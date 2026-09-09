@@ -124,7 +124,7 @@ def _check_rate_limit(max_per_hour: int) -> tuple[bool, str]:
 def _get_quality_score(finding_id: int) -> float | None:
     """Get quality score for a finding."""
     try:
-        from core.reports.quality.scorer import QualityScorer
+        from cores.reports.quality.scorer import QualityScorer
 
         scorer = QualityScorer()
         score = scorer.score(finding_id)

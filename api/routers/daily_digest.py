@@ -79,7 +79,7 @@ async def daily_digest() -> dict[str, Any]:
 
     # Execution Queue WAITING_HUMAN
     try:
-        from core.execution_queue.models import ExecutionQueueStore
+        from cores.execution_queue.models import ExecutionQueueStore
 
         eq = ExecutionQueueStore()
         waiting = eq.pending_by_state("waiting_human")

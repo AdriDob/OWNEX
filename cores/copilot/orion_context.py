@@ -52,7 +52,7 @@ class OrionContext:
 
     def _get_system_state(self) -> dict[str, Any]:
         try:
-            from core.system_state import get_system_state
+            from cores.system_state import get_system_state
 
             s = get_system_state()
             return {
@@ -104,7 +104,7 @@ class OrionContext:
 
     def _get_memory_snapshot(self) -> list[dict[str, Any]]:
         try:
-            from core.memory.store import get_memory_store
+            from cores.memory.store import get_memory_store
 
             store = get_memory_store()
             entries = store.query(namespace="global", limit=5)

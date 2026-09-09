@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from core.opportunity.models import OWNEX_WORK_CYCLE_ORDER, ScoredOpportunity, Top5Recommendation
+from cores.opportunity.models import OWNEX_WORK_CYCLE_ORDER, ScoredOpportunity, Top5Recommendation
 
 logger = logging.getLogger("ownex.opportunity.top5")
 

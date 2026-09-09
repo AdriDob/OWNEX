@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 
 class OpenCollectiveAdapter(OpportunityAdapter):

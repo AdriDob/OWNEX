@@ -583,7 +583,7 @@ async def quick_complete_work(
 def register_finance_capabilities() -> None:
     """Register Finance Engine capabilities in the CapabilityRegistry."""
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         reg.unregister("finance", "finance_engine")

@@ -23,7 +23,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 
-from core.execution_queue.models import ExecState
+from cores.execution_queue.models import ExecState
 
 logger = logging.getLogger("ownex.payment_pipeline")
 
@@ -405,7 +405,7 @@ def sync_workbank_to_pipeline() -> dict:
 
 def sync_execution_to_pipeline() -> dict:
     """Sync ExecutionQueue items to canonical pipeline."""
-    from core.execution_queue.models import ExecutionQueueStore
+    from cores.execution_queue.models import ExecutionQueueStore
 
     store = PaymentPipelineStore()
     eq_store = ExecutionQueueStore()
@@ -533,7 +533,7 @@ from enum import StrEnum  # noqa: E402
 
 logger = logging.getLogger("ownex.payment_pipeline")
 
-from core.execution_queue.models import ExecState  # noqa: E402
+from cores.execution_queue.models import ExecState  # noqa: E402
 
 # Legacy WorkBank statuses → PaymentState
 _WORKBANK_TO_PAYMENT = {

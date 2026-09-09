@@ -13,7 +13,7 @@ import logging
 import re
 from typing import Any
 
-from core.offensive.models import EndpointInfo, EndpointRelationship, OwnershipEdge, RelationshipContext
+from cores.offensive.models import EndpointInfo, EndpointRelationship, OwnershipEdge, RelationshipContext
 
 logger = logging.getLogger("orion.core.offensive.relationship")
 

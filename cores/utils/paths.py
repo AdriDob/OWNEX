@@ -7,7 +7,7 @@ Resolves paths dynamically across all runtime environments:
   - Native Linux dev
 
 Usage:
-    from core.utils.paths import get_app_root, get_data_path
+    from cores.utils.paths import get_app_root, get_data_path
 
 Rules:
   - NEVER hardcode WSL or Windows paths

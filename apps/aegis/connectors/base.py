@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from core.interfaces.connector import IConnector
+from cores.interfaces.connector import IConnector
 
 
 class AegisConnector(IConnector):

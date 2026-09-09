@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -68,7 +68,7 @@ def get_orion_context(force_refresh: bool = False) -> dict[str, Any]:
 def _build_context() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         cutoff_24h = now - timedelta(hours=24)
 
         # ── Batch 1: Counts & simple aggregates ──
@@ -325,7 +325,7 @@ def _build_context() -> dict[str, Any]:
     except Exception as e:
         logger.error("Failed to build context: %s", e)
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "error": str(e),
             "system": {"status": "error", "health_score": 0, "details": [str(e)], "uptime_hours": 0},
             "counts": {},

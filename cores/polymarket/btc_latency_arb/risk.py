@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import RiskConfig
+from cores.polymarket.btc_latency_arb.config import RiskConfig
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.risk")
 

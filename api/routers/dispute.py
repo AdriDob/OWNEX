@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core.auto_dispute import get_dispute_client, open_auto_dispute
+from cores.auto_dispute import get_dispute_client, open_auto_dispute
 
 router = APIRouter(prefix="/api/dispute", tags=["dispute"])
 

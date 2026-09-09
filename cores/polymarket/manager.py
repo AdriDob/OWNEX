@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.polymarket.strategies import (
+from cores.polymarket.strategies import (
     BTCArbitrageStrategy,
     CompleteSetArbitrage,
     PolymarketLPMarketMaker,

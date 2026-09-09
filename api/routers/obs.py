@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 
-from core.observability.engine import ObservabilityEngine, get_obs_engine
+from cores.observability.engine import ObservabilityEngine, get_obs_engine
 
 logger = logging.getLogger("ownex.api.obs")
 

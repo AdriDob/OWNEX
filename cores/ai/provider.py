@@ -460,7 +460,7 @@ class FreebuffProvider(AIProvider):
 
     def __init__(self, config_path: str | None = None):
         try:
-            from core.ai_providers.freebuff import detect_freebuff, load_config
+            from cores.ai_providers.freebuff import detect_freebuff, load_config
         except ImportError:
             from cores.ai_providers.freebuff import detect_freebuff, load_config
 
@@ -489,7 +489,7 @@ class FreebuffProvider(AIProvider):
             return "No se proporcionó ninguna tarea para Freebuff."
 
         try:
-            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+            from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
         except ImportError:
             from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
 

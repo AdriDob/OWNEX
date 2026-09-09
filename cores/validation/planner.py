@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
-from core.validation.models import (
+from cores.validation.models import (
     AttackCandidate,
     ProbeInstruction,
     ProbeType,

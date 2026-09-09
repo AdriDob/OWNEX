@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.context import CopilotContext
+from cores.copilot.context import CopilotContext
 
 logger = logging.getLogger("orion.core.copilot.recommender")
 

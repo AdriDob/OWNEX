@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -39,7 +39,7 @@ class QuantSignal:
     timeframe: str
     confidence: float
     metadata: dict[str, Any] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=datetime.utcnow)
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -54,7 +54,7 @@ class QuantPosition:
     realized_pnl: float = 0.0
     stop_loss: float = 0.0
     take_profit: float = 0.0
-    opened_at: datetime = field(default_factory=datetime.utcnow)
+    opened_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     strategy: str = ""
 
 

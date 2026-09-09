@@ -78,10 +78,9 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
     "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
-    "freelancer": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Freelancer."),
+    "workana": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Workana (Payoneer/banco)."),
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
-    "upwork": ("needs_manual_setup", "Crear perfil y conectar método de pago en Upwork."),
 }
 
 # Bug bounty platforms require only free registration (open programs). The
@@ -250,7 +249,7 @@ class WorkBank:
             payout_method = ""
             payout_method_rationale = ""
             try:
-                from core.payout_net import get_payout_net
+                from cores.payout_net import get_payout_net
 
                 payout_net = get_payout_net()
                 rec = payout_net.recommend_for(platform_key)
@@ -296,7 +295,7 @@ class WorkBank:
         # ready_to_deliver nacen QUALIFIED→READY en la cola única. Best-effort:
         # un fallo del espejo jamás rompe el banco. (Re-aplicado tras fb30df08)
         try:
-            from core.execution_queue.mirror import mirror_workbank_prepared
+            from cores.execution_queue.mirror import mirror_workbank_prepared
 
             for item in self._items.values():
                 if item.ready_to_deliver:

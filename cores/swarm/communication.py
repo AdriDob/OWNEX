@@ -7,7 +7,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from threading import Lock
 from typing import Any
@@ -47,7 +47,7 @@ class AgentMessage:
     recipient: str | None
     payload: dict[str, Any]
     priority: Priority = Priority.NORMAL
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     correlation_id: str | None = None
     expires_at: datetime | None = None
     requires_ack: bool = False

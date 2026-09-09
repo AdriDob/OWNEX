@@ -1,4 +1,4 @@
-from core.sync.engine import (
+from cores.sync.engine import (
     DeviceIdentity,
     SyncEngine,
     SyncEvent,

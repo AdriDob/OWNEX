@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.knowledge.graph import get_knowledge_graph
+from cores.knowledge.graph import get_knowledge_graph
 
 logger = logging.getLogger("ownex.api.knowledge_graph")
 

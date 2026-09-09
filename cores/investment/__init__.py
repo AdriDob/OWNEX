@@ -1,7 +1,7 @@
-from core.investment.allocation import RevenueAllocationController, get_allocation_controller
-from core.investment.manager import InvestmentManager, get_investment_manager
-from core.investment.metrics import InvestmentMetrics, get_investment_metrics
-from core.investment.models import (
+from cores.investment.allocation import RevenueAllocationController, get_allocation_controller
+from cores.investment.manager import InvestmentManager, get_investment_manager
+from cores.investment.metrics import InvestmentMetrics, get_investment_metrics
+from cores.investment.models import (
     AllocationConfig,
     InvestmentSnapshot,
     RiskLevel,

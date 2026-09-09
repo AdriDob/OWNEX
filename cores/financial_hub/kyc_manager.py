@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from core.financial_hub.models import KYCRecord
+from cores.financial_hub.models import KYCRecord
 from database.db import SessionLocal
 
 # Default KYC information for each major platform

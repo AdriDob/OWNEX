@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from threading import Lock
 
 import numpy as np
@@ -44,7 +44,7 @@ class ContrastiveLearner:
             {
                 "positive": pos_emb,
                 "negative": neg_emb,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
 

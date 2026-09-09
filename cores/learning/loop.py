@@ -7,7 +7,7 @@ import uuid
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from threading import Lock, Thread
 
 from cores.learning.contrastive import train_contrastive
@@ -102,7 +102,7 @@ class LearningLoop:
         self._running = True
         self._thread = Thread(target=self._run_loop, daemon=True)
         self._thread.start()
-        self._next_cycle = datetime.utcnow()
+        self._next_cycle = datetime.now(UTC)
         print(f"[LEARNING] Loop started, first cycle at {self._next_cycle}")
 
     def stop(self) -> None:
@@ -116,7 +116,7 @@ class LearningLoop:
         """Main learning loop."""
         while self._running:
             try:
-                now = datetime.utcnow()
+                now = datetime.now(UTC)
 
                 # Check if it's time for next cycle
                 if self._next_cycle and now < self._next_cycle:
@@ -129,7 +129,7 @@ class LearningLoop:
 
                 with self._lock:
                     self._cycle_history.append(result)
-                    self._last_cycle = datetime.utcnow()
+                    self._last_cycle = datetime.now(UTC)
                     self._next_cycle = self._last_cycle + self.cycle_interval
 
                 print(f"[LEARNING] Cycle {result.cycle_id} completed in {result.duration_seconds:.1f}s")
@@ -154,7 +154,7 @@ class LearningLoop:
         if stats["total_engagements"] < self.min_engagements:
             return LearningCycleResult(
                 cycle_id=cycle_id,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 contrastive_training={"skipped": "insufficient_data"},
                 prompt_evolution={"skipped": "insufficient_data"},
                 distillation={"skipped": "insufficient_data"},
@@ -181,7 +181,7 @@ class LearningLoop:
 
         return LearningCycleResult(
             cycle_id=cycle_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             contrastive_training=contrastive_result,
             prompt_evolution=evolution_result,
             distillation=distillation_result,
@@ -223,7 +223,7 @@ class LearningLoop:
             if stats["total_samples"] >= 100:
                 # Train a new distilled model
                 result = train_distilled_model(
-                    model_name=f"student_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                    model_name=f"student_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                     architecture="linear",
                 )
                 return {"status": "completed", "result": result}
@@ -274,7 +274,7 @@ class LearningLoop:
     def force_cycle(self) -> LearningCycleResult:
         """Force an immediate learning cycle."""
         with self._lock:
-            self._next_cycle = datetime.utcnow()
+            self._next_cycle = datetime.now(UTC)
         # Wait for cycle to complete (with timeout)
         time.sleep(2)
         with self._lock:

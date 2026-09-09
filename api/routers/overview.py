@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from sqlalchemy import func as sa_func
 
 # Import HHD tracker
-from core.system.hhd_tracker import get_hhd_summary, init_hhd_tracker
+from cores.system.hhd_tracker import get_hhd_summary, init_hhd_tracker
 from cores.engine.unified_scoring import score as unified_score
 from cores.engine.unified_scoring import score_target as unified_score_target
 from cores.gateway.schemas import safe_response
@@ -235,7 +235,7 @@ def get_system_health():
 
         # Add loop engine status
         try:
-            from core.loop.startup import get_loop_status
+            from cores.loop.startup import get_loop_status
 
             result["loop_engines"] = get_loop_status()
         except Exception as e:
@@ -243,7 +243,7 @@ def get_system_health():
 
         # Add temp manager status
         try:
-            from core.system.temp_manager import get_temp_manager
+            from cores.system.temp_manager import get_temp_manager
 
             result["temp_manager"] = get_temp_manager().health()
         except Exception as e:

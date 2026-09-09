@@ -9,8 +9,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.acceptance.analyzer import AcceptanceAnalyzer
-from core.acceptance.models import OptimizerSuggestion
+from cores.acceptance.analyzer import AcceptanceAnalyzer
+from cores.acceptance.models import OptimizerSuggestion
 
 logger = logging.getLogger("orion.core.acceptance.optimizer")
 

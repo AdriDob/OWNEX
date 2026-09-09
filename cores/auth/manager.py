@@ -4,9 +4,9 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from core.auth.credentials import CredentialEntry, CredentialStore
-from core.auth.injector import apply_auth_to_request_kwargs
-from core.auth.provider import AuthConfig, get_provider
+from cores.auth.credentials import CredentialEntry, CredentialStore
+from cores.auth.injector import apply_auth_to_request_kwargs
+from cores.auth.provider import AuthConfig, get_provider
 
 logger = logging.getLogger("ownex.auth.manager")
 

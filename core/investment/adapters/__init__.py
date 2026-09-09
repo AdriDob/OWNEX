@@ -6,7 +6,7 @@ Unified interface for all investment, trading, and wealth management adapters.
 from __future__ import annotations
 
 # AI Agent Factory
-from core.investment.adapters.agent_factory_adapter import (
+from cores.investment.adapters.agent_factory_adapter import (
     AgentFactory,
     AgentInstance,
     AgentSpec,
@@ -16,10 +16,10 @@ from core.investment.adapters.agent_factory_adapter import (
 )
 
 # Core Exchange Adapters
-from core.investment.adapters.ccxt_adapter import CCXTAdapter, build_ccxt_adapter
+from cores.investment.adapters.ccxt_adapter import CCXTAdapter, build_ccxt_adapter
 
 # DeFi Yield
-from core.investment.adapters.defi_adapter import (
+from cores.investment.adapters.defi_adapter import (
     AaveAdapter,
     LidoAdapter,
     MorphoAdapter,
@@ -31,19 +31,19 @@ from core.investment.adapters.defi_adapter import (
 )
 
 # Arbitrage & Specialized
-from core.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter, build_global_arbitrage_adapter
+from cores.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter, build_global_arbitrage_adapter
 
 # Prediction Markets
-from core.investment.adapters.polymarket_adapter import PolymarketAdapter, build_polymarket_adapter
+from cores.investment.adapters.polymarket_adapter import PolymarketAdapter, build_polymarket_adapter
 
 # Registry
-from core.investment.adapters.registry import (
+from cores.investment.adapters.registry import (
     InvestmentAdapterRegistry,
     build_default_registry,
 )
 
 # Stocks & Options
-from core.investment.adapters.stocks_adapter import (
+from cores.investment.adapters.stocks_adapter import (
     AlpacaAdapter,
     IBKRAdapter,
     build_alpaca_adapter,

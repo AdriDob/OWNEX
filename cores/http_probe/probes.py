@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from core.http_probe.templates import ProbeTemplate
+from cores.http_probe.templates import ProbeTemplate
 
 logger = logging.getLogger("ownex.http_probe.probes")
 

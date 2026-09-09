@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from typing import Any
 
-from core.memory.store import UnifiedMemoryStore
+from cores.memory.store import UnifiedMemoryStore
 from database import db, models
 
 logger = logging.getLogger("ownex.revenue.economic_memory")

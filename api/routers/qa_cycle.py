@@ -14,7 +14,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.qa import get_qa_cycle
+from cores.cycles.qa import get_qa_cycle
 
 router = APIRouter(prefix="/api/cycles/qa", tags=["qa-cycle"])
 

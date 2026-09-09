@@ -24,7 +24,7 @@ class OpireDweAdapter(LegacyOpportunityDweAdapter):
     """Bridges the legacy Opire adapter into DWE discovery."""
 
     def __init__(self, config: dict[str, Any] | None = None):
-        from core.opportunity.adapters.opire import OpireAdapter
+        from cores.opportunity.adapters.opire import OpireAdapter
 
         super().__init__(
             OpireAdapter(config),

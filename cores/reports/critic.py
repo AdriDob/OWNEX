@@ -5,7 +5,7 @@ Attempts to identify weaknesses, missing information, and rejection risks.
 
 Usage::
 
-    from core.reports.critic import ReportCritic
+    from cores.reports.critic import ReportCritic
 
     critic = ReportCritic()
     result = critic.evaluate(finding_data, platform="hackerone")

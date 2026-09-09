@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from core.extension.capabilities import Capability
-from core.extension.settings import SettingsField
+from cores.extension.capabilities import Capability
+from cores.extension.settings import SettingsField
 
 
 @dataclass

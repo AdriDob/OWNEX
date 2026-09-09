@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from core.interfaces.connector import IConnector
-from core.normalizer.base import NormalizedBet, NormalizedMarket
+from cores.interfaces.connector import IConnector
+from cores.normalizer.base import NormalizedBet, NormalizedMarket
 
 
 class OdysseyConnector(IConnector):

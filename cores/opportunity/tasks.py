@@ -38,7 +38,7 @@ async def sync_cycle_scores(cycle: str = "forge", dry_run: bool = False) -> dict
     logger.info(f"sync_cycle_scores({cycle}) — starting")
 
     try:
-        from core.opportunity.engine import OpportunityOrchestrator
+        from cores.opportunity.engine import OpportunityOrchestrator
 
         orchestrator = OpportunityOrchestrator()
         results = await orchestrator.execute_cycle(cycle, limit=50)
@@ -70,7 +70,7 @@ async def purge_stale_opportunities(hours: int = 72) -> dict[str, Any]:
     logger.info(f"Purge stale opportunities before {stale_before.isoformat()}")
 
     try:
-        from core.opportunity import get_engine
+        from cores.opportunity import get_engine
 
         engine = get_engine()
         purged = engine.purge_stale(before=stale_before)

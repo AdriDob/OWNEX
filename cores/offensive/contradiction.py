@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 
-from core.offensive.models import Contradiction, Hypothesis
+from cores.offensive.models import Contradiction, Hypothesis
 
 logger = logging.getLogger("orion.core.offensive.contradiction")
 

@@ -15,7 +15,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.pulse import get_pulse_cycle
+from cores.cycles.pulse import get_pulse_cycle
 
 router = APIRouter(prefix="/api/cycles/pulse", tags=["pulse-cycle"])
 

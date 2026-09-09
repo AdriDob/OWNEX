@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from core.copilot.permissions import Policy, PolicyEngine
+from cores.copilot.permissions import Policy, PolicyEngine
 
 __all__ = ["Policy", "PolicyEngine"]

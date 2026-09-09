@@ -69,8 +69,8 @@ class EnhancedDesktop:
     def _start_scheduler(self) -> None:
         """Start the LifeScheduler with all jobs."""
         try:
-            from core.scheduler.jobs import get_all_jobs
-            from core.scheduler.life_scheduler import get_life_scheduler
+            from cores.scheduler.jobs import get_all_jobs
+            from cores.scheduler.life_scheduler import get_life_scheduler
 
             scheduler = get_life_scheduler()
             all_jobs = get_all_jobs()

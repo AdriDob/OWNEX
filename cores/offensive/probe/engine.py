@@ -27,9 +27,9 @@ from urllib.parse import urlparse
 
 import httpx
 
-from core.offensive.attack.models import AttackStep, TestPlan
-from core.offensive.models import Hypothesis
-from core.offensive.probe.models import ProbeEvidence, ProbeRequest, ProbeResponse, ProbeResult
+from cores.offensive.attack.models import AttackStep, TestPlan
+from cores.offensive.models import Hypothesis
+from cores.offensive.probe.models import ProbeEvidence, ProbeRequest, ProbeResponse, ProbeResult
 
 logger = logging.getLogger("orion.core.offensive.probe")
 

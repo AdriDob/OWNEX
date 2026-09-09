@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.reports.critic import ReportCritic
+from cores.reports.critic import ReportCritic
 from cores.events.types import Events
 
 logger = logging.getLogger("orion.core.reports.optimizer")
@@ -219,7 +219,7 @@ def get_db_session():
 
 
 def get_quality_scorer():
-    from core.reports.quality.scorer import QualityScorer
+    from cores.reports.quality.scorer import QualityScorer
 
     return QualityScorer()
 
@@ -231,7 +231,7 @@ def get_bus():
 
 
 def get_acceptance_learner():
-    from core.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.learner import AcceptanceLearner
 
     return AcceptanceLearner()
 
@@ -351,7 +351,7 @@ class ReportContextBuilder:
 
             rendered = ""
             try:
-                from core.reports.templates import render_report
+                from cores.reports.templates import render_report
 
                 notes_data = _parse_notes(finding_dict.get("notes", ""))
                 render_data = {

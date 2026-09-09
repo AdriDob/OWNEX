@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from core.normalizer.base import NormalizedMarket
+from cores.normalizer.base import NormalizedMarket
 
 logger = logging.getLogger("orion.odyssey.engines.market")
 

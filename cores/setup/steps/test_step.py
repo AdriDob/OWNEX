@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.setup.steps import define_step
+from cores.setup.steps import define_step
 
 logger = logging.getLogger("orion.core.setup.steps.test")
 
@@ -34,7 +34,7 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
     warnings: list[str] = []
 
     try:
-        from core.events.event_bus import get_core_event_bus
+        from cores.events.event_bus import get_core_event_bus
 
         get_core_event_bus()
         results["event_bus"] = "ok"
@@ -54,7 +54,7 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
         errors.append(f"Database: {exc}")
 
     try:
-        from core.secrets.manager import get_secrets_manager
+        from cores.secrets.manager import get_secrets_manager
 
         manager = get_secrets_manager()
         health = manager.health()
@@ -68,7 +68,7 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
         errors.append(f"Vault: {exc}")
 
     try:
-        from core.copilot.agent import CopilotAgent
+        from cores.copilot.agent import CopilotAgent
 
         CopilotAgent()
         results["copilot"] = "ok"
@@ -77,9 +77,9 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
         warnings.append(f"COPILOT: {exc}")
 
     try:
-        from core.execution.runtime.clock import VirtualClock
-        from core.execution.runtime.kernel import ExecutionKernel
-        from core.execution.runtime.scheduler import Scheduler
+        from cores.execution.runtime.clock import VirtualClock
+        from cores.execution.runtime.kernel import ExecutionKernel
+        from cores.execution.runtime.scheduler import Scheduler
 
         clk = VirtualClock(simulation=True)
         kern = ExecutionKernel(clock=clk)

@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.offensive.models import Hypothesis
+from cores.offensive.models import Hypothesis
 from cores.events.types import EventEnvelope
 
 logger = logging.getLogger("orion.core.evidence.composer")

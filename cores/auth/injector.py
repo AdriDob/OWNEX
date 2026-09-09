@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.auth.provider import AuthConfig, AuthType, get_provider
+from cores.auth.provider import AuthConfig, AuthType, get_provider
 
 
 def create_auth_for_provider(config: AuthConfig) -> dict[str, Any]:

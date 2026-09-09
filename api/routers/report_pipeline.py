@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Body, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from core.report_pipeline import get_pipeline
+from cores.report_pipeline import get_pipeline
 from database.db import SessionLocal
 
 logger = logging.getLogger("ownex.api.report_pipeline")

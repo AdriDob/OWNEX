@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from database.db import SessionLocal
@@ -102,7 +102,7 @@ class MemoryStore:
     def delete_older_than(self, category: str, days: int = RETENTION_DAYS) -> int:
         session = self._session()
         try:
-            cutoff = datetime.utcnow() - timedelta(days=days)
+            cutoff = datetime.now(UTC) - timedelta(days=days)
             deleted = (
                 session.query(MemoryRecord)
                 .filter(MemoryRecord.category == category)

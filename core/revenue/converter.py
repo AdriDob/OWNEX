@@ -13,7 +13,7 @@ def ars_to_usd(amount_ars: float, rate: float = 1000.0) -> float:
 
 def calculate_fee(amount_usd: float, method: str) -> float:
     """Calculate the fee for a payment method."""
-    from core.revenue.models import ARGENTINA_METHODS
+    from cores.revenue.models import ARGENTINA_METHODS
 
     info = ARGENTINA_METHODS.get(method)
     if info is None:

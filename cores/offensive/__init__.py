@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from core.offensive.engine import OffensiveEngine
-from core.offensive.models import EndpointInfo, Hypothesis, ReasonerResult
-from core.offensive.triager import TriagerSimulator
+from cores.offensive.engine import OffensiveEngine
+from cores.offensive.models import EndpointInfo, Hypothesis, ReasonerResult
+from cores.offensive.triager import TriagerSimulator
 
 __all__ = [
     "OffensiveEngine",

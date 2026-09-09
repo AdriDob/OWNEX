@@ -417,7 +417,7 @@ class DiscoveryEngine:
         """Convert sensor observation to scored opportunity."""
         try:
             # Build RawOpportunity from observation
-            from core.opportunity.adapters import RawOpportunity
+            from cores.opportunity.adapters import RawOpportunity
 
             raw = RawOpportunity(
                 id=f"sensor:{observation.external_id}",
@@ -437,7 +437,7 @@ class DiscoveryEngine:
 
             # Use adapter's to_scored method
             # Need an adapter instance - use a generic one
-            from core.opportunity.adapters import OpportunityAdapter
+            from cores.opportunity.adapters import OpportunityAdapter
 
             class GenericAdapter(OpportunityAdapter):
                 platform = "generic"

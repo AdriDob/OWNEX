@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from core.revenue_multiplier.config import ExecutionMode, RevenueMultiplierConfig
-from core.revenue_multiplier.models import (
+from cores.revenue_multiplier.config import ExecutionMode, RevenueMultiplierConfig
+from cores.revenue_multiplier.models import (
     CapitalState,
     Finding,
     RevenueCategory,
@@ -11,11 +11,11 @@ from core.revenue_multiplier.models import (
     ToolStatus,
     TradeSignal,
 )
-from core.revenue_multiplier.orchestrator import (
+from cores.revenue_multiplier.orchestrator import (
     RevenueMultiplierOrchestrator,
     get_revenue_multiplier,
 )
-from core.revenue_multiplier.tool_registry import ToolDef, ToolRegistry, get_tool_registry
+from cores.revenue_multiplier.tool_registry import ToolDef, ToolRegistry, get_tool_registry
 
 __all__ = [
     "CapitalState",

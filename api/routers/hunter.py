@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter
 
@@ -23,7 +23,9 @@ def hunter_summary():
         pending = session.query(models.Finding).filter(models.Finding.status == "open").count()
         confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
 
-        month_ago = datetime.utcnow() - timedelta(days=30)
+        # DB timestamps are naive (server_default=func.now() in SQLite); keep the
+        # comparison bound in naive UTC so the string format matches stored rows.
+        month_ago = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=30)
         monthly_reports = (
             session.query(models.Report).filter(models.Report.created_at >= month_ago).count()
             if hasattr(models, "Report")

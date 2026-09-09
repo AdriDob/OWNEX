@@ -1,4 +1,4 @@
-from core.autonomy.dev_bounty_pipeline import (
+from cores.autonomy.dev_bounty_pipeline import (
     DevBountyPipeline,
     DevBountyPipelineConfig,
     DevBountyPipelineResult,

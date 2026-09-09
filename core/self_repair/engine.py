@@ -83,7 +83,7 @@ class StaleMissionDetector(RepairDetector):
     def check(self) -> list[dict[str, Any]]:
         issues = []
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
             stale = mission_ctrl.get_stale_missions(max_age_hours=self.max_age_hours)
@@ -113,7 +113,7 @@ class StaleJobDetector(RepairDetector):
     def check(self) -> list[dict[str, Any]]:
         issues = []
         try:
-            from core.scheduler.scheduler import get_core_scheduler
+            from cores.scheduler.scheduler import get_core_scheduler
 
             scheduler = get_core_scheduler()
             jobs = scheduler.get_jobs()
@@ -147,7 +147,7 @@ class FailedAPIDetector(RepairDetector):
     def check(self) -> list[dict[str, Any]]:
         issues = []
         try:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             bus = get_core_event_bus()
             # Check recent events for API failures
@@ -190,7 +190,7 @@ class StalledWorkflowDetector(RepairDetector):
     def check(self) -> list[dict[str, Any]]:
         issues = []
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
             active = mission_ctrl.get_active_missions()
@@ -315,7 +315,7 @@ class StalledMissionDetector(RepairDetector):
     def check(self) -> list[dict[str, Any]]:
         issues = []
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
             waiting = mission_ctrl.get_waiting_human_missions()
@@ -380,7 +380,7 @@ class RestartMissionAction(RepairAction):
         if not mission_id:
             return False, "No mission_id provided"
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             ctrl = get_mission_controller()
             mission = ctrl.get_mission(mission_id)
@@ -404,7 +404,7 @@ class RetryJobAction(RepairAction):
         if not job_id:
             return False, "No job_id provided"
         try:
-            from core.scheduler.scheduler import get_core_scheduler
+            from cores.scheduler.scheduler import get_core_scheduler
 
             scheduler = get_core_scheduler()
             # Trigger job manually
@@ -442,7 +442,7 @@ class ResumeFromCheckpointAction(RepairAction):
         if not mission_id:
             return False, "No mission_id provided"
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             ctrl = get_mission_controller()
             ctrl.restore_from_checkpoint(mission_id)

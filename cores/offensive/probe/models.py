@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from core.offensive.attack.models import ProbeRequest  # noqa: F401 — re-exported for compatibility
+from cores.offensive.attack.models import ProbeRequest  # noqa: F401 — re-exported for compatibility
 
 
 @dataclass

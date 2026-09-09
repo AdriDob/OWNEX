@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.offensive.models import CuriosityQuestion, CuriosityResult, Hypothesis
+from cores.offensive.models import CuriosityQuestion, CuriosityResult, Hypothesis
 
 logger = logging.getLogger("orion.core.offensive.curiosity")
 

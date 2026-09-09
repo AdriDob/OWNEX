@@ -1,6 +1,6 @@
 """Data models for the Opportunity Intelligence Layer — read-only metadata.
 
-This module provides backward compatibility for tests that import from core.opportunity.models.
+This module provides backward compatibility for tests that import from cores.opportunity.models.
 """
 
 from __future__ import annotations

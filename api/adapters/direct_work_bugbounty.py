@@ -125,7 +125,7 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
     def _credentials_for(source: str) -> dict[str, str]:
         """Resolve vault credentials for a platform (empty when not configured)."""
         try:
-            from core.credentials.vault import get_platform_credentials
+            from cores.credentials.vault import get_platform_credentials
 
             return get_platform_credentials(source) or {}
         except Exception as exc:  # pragma: no cover

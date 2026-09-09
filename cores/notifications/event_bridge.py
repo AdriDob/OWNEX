@@ -6,7 +6,7 @@ Uses `EventBus` from `cores.events.event_bus` for compatibility.
 import logging
 from typing import Any
 
-from core.events.event_bus import CoreEventBus
+from cores.events.event_bus import CoreEventBus
 from cores.notifications.discord import get_discord_adapter
 
 logger = logging.getLogger("cateye.notifications.event_bridge")

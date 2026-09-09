@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.financial_intelligence.models import F1Message, Opportunity
+from cores.financial_intelligence.models import F1Message, Opportunity
 
 logger = logging.getLogger("orion.financial_intelligence.publisher")
 

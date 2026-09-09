@@ -9,7 +9,7 @@ import logging
 import threading
 from typing import Any
 
-from core.commands.models import (
+from cores.commands.models import (
     CommandCost,
     CommandDefinition,
     CommandParam,

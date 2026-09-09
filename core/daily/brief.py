@@ -147,7 +147,7 @@ class DailyBriefEngine:
 
         try:
             # Missions waiting for human approval
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
 
@@ -180,7 +180,7 @@ class DailyBriefEngine:
                 )
 
             # Missions that failed and need retry decision
-            from core.mission.store import MissionModel, MissionStatus, get_mission_store
+            from cores.mission.store import MissionModel, MissionStatus, get_mission_store
 
             store = get_mission_store()
             session = store._get_session()
@@ -305,7 +305,7 @@ class DailyBriefEngine:
         works = []
 
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
 
@@ -336,7 +336,7 @@ class DailyBriefEngine:
         waiting = []
 
         try:
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
 
@@ -357,7 +357,7 @@ class DailyBriefEngine:
                 )
 
             # Stale missions
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             stale = mission_ctrl.get_stale_missions(max_age_hours=2.0)
             for mission in stale:
@@ -385,7 +385,7 @@ class DailyBriefEngine:
         try:
             from datetime import timedelta
 
-            from core.mission.store import MissionModel, MissionStatus, get_mission_store
+            from cores.mission.store import MissionModel, MissionStatus, get_mission_store
 
             store = get_mission_store()
             cutoff = datetime.now(UTC) - timedelta(hours=24)
@@ -424,7 +424,7 @@ class DailyBriefEngine:
     def _get_revenue_summary(self) -> dict[str, Any]:
         """Get revenue summary for dashboard."""
         try:
-            from core.revenue.ledger import get_revenue_ledger
+            from cores.revenue.ledger import get_revenue_ledger
 
             ledger = get_revenue_ledger()
             return ledger.get_summary()
@@ -447,13 +447,13 @@ class DailyBriefEngine:
 
         try:
             # Calibration alerts
-            from core.learning.outcome_loop import get_outcome_learning_loop
+            from cores.learning.outcome_loop import get_outcome_learning_loop
 
             loop = get_outcome_learning_loop()
             alerts.extend(loop.check_calibration_alerts())
 
             # Stale missions
-            from core.mission.controller import get_mission_controller
+            from cores.mission.controller import get_mission_controller
 
             mission_ctrl = get_mission_controller()
             stale = len(mission_ctrl.get_stale_missions(max_age_hours=2.0))
@@ -467,7 +467,7 @@ class DailyBriefEngine:
                 )
 
             # Failed missions with max retries
-            from core.mission.store import MissionModel, MissionStatus, get_mission_store
+            from cores.mission.store import MissionModel, MissionStatus, get_mission_store
 
             store = get_mission_store()
             session = store._get_session()
@@ -494,7 +494,7 @@ class DailyBriefEngine:
 
     def save_brief(self, brief: DailyBrief) -> None:
         """Save brief to database for history."""
-        from core.daily.brief_store import save_brief
+        from cores.daily.brief_store import save_brief
 
         save_brief(asdict(brief))
 

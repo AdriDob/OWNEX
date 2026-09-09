@@ -1,12 +1,12 @@
-from core.revenue.engine import RevenueEngine
-from core.revenue.models import (
+from cores.revenue.engine import RevenueEngine
+from cores.revenue.models import (
     ARGENTINA_METHODS,
     ArgentinaPaymentMethod,
     Payment,
     RevenueRecord,
     RevenueStats,
 )
-from core.revenue.tracker import PaymentTracker
+from cores.revenue.tracker import PaymentTracker
 
 __all__ = [
     "RevenueEngine",

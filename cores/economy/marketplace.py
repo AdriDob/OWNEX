@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -44,14 +44,14 @@ class Job:
     status: JobStatus = JobStatus.OPEN
     escrow_id: str | None = None
     assigned_provider: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     assigned_at: datetime | None = None
     deadline: datetime | None = None
     completed_at: datetime | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def is_expired(self) -> bool:
-        return self.deadline and datetime.utcnow() > self.deadline
+        return self.deadline and datetime.now(UTC) > self.deadline
 
 
 @dataclass(slots=True)
@@ -64,7 +64,7 @@ class Bid:
     estimated_duration: timedelta | None = None
     message: str = ""
     status: BidStatus = BidStatus.PENDING
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     accepted_at: datetime | None = None
 
 
@@ -75,7 +75,7 @@ class Delivery:
     provider_id: str
     content: dict[str, Any]
     evidence: dict[str, Any] = field(default_factory=dict)
-    submitted_at: datetime = field(default_factory=datetime.utcnow)
+    submitted_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     accepted: bool | None = None
     reviewed_at: datetime | None = None
 
@@ -122,7 +122,7 @@ class Marketplace:
             required_tags=required_tags or [],
             budget=budget,
             currency=currency,
-            deadline=datetime.utcnow() + timedelta(hours=deadline_hours),
+            deadline=datetime.now(UTC) + timedelta(hours=deadline_hours),
             metadata=metadata or {},
         )
         self._jobs[job_id] = job
@@ -179,7 +179,7 @@ class Marketplace:
             amount=bid.amount,
             currency=job.currency,
             description=f"Job {job_id}: {job.title}",
-            expires_in=job.deadline - datetime.utcnow() if job.deadline else None,
+            expires_in=job.deadline - datetime.now(UTC) if job.deadline else None,
             auto_release_after=timedelta(hours=2),
         )
         if not self.escrow.fund_escrow(escrow_id, requester_id):
@@ -187,13 +187,13 @@ class Marketplace:
         if not self.escrow.lock_escrow(escrow_id):
             return False
         bid.status = BidStatus.ACCEPTED
-        bid.accepted_at = datetime.utcnow()
+        bid.accepted_at = datetime.now(UTC)
         for b in bids:
             if b.id != bid_id:
                 b.status = BidStatus.REJECTED
         job.status = JobStatus.ASSIGNED
         job.assigned_provider = bid.provider_id
-        job.assigned_at = datetime.utcnow()
+        job.assigned_at = datetime.now(UTC)
         job.escrow_id = escrow_id
         return True
 
@@ -223,9 +223,9 @@ class Marketplace:
         if job.status != JobStatus.SUBMITTED or delivery.job_id != job_id:
             return False
         delivery.accepted = True
-        delivery.reviewed_at = datetime.utcnow()
+        delivery.reviewed_at = datetime.now(UTC)
         job.status = JobStatus.COMPLETED
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now(UTC)
         escrow = self.escrow.get_escrow(job.escrow_id) if job.escrow_id else None
         if escrow:
             self.escrow.release_escrow(job.escrow_id, requester_id)
@@ -240,7 +240,7 @@ class Marketplace:
         if job.status != JobStatus.SUBMITTED:
             return False
         delivery.accepted = False
-        delivery.reviewed_at = datetime.utcnow()
+        delivery.reviewed_at = datetime.now(UTC)
         job.status = JobStatus.FAILED
         escrow = self.escrow.get_escrow(job.escrow_id) if job.escrow_id else None
         if escrow:
@@ -254,7 +254,7 @@ class Marketplace:
                 job.assigned_provider,
                 earnings=delivery.content.get("earnings", 0) if success else 0,
                 success=success,
-                duration=(delivery.submitted_at - (job.assigned_at or datetime.utcnow())).total_seconds(),
+                duration=(delivery.submitted_at - (job.assigned_at or datetime.now(UTC))).total_seconds(),
             )
             event_type = ReputationEventType.JOB_COMPLETED if success else ReputationEventType.JOB_FAILED
             self.reputation.record_event(

@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.offensive.web3.models import SmartContractInfo, Web3Hypothesis
-from core.offensive.web3.reasoners import (
+from cores.offensive.web3.models import SmartContractInfo, Web3Hypothesis
+from cores.offensive.web3.reasoners import (
     AccessControlReasoner,
     ERC20Reasoner,
     FlashLoanAttackReasoner,

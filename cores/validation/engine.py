@@ -23,10 +23,10 @@ import logging
 import time
 from typing import Any
 
-from core.validation.adapters import HTTPAdapter
-from core.validation.confidence import ConfidenceEngine
-from core.validation.economic_scorer import EconomicScorer
-from core.validation.models import (
+from cores.validation.adapters import HTTPAdapter
+from cores.validation.confidence import ConfidenceEngine
+from cores.validation.economic_scorer import EconomicScorer
+from cores.validation.models import (
     AttackCandidate,
     ConfidenceScore,
     EconomicScore,
@@ -36,8 +36,8 @@ from core.validation.models import (
     ValidationPlan,
     ValidationResult,
 )
-from core.validation.planner import ValidationPlanner
-from core.validation.promoter import ValidationPromoter
+from cores.validation.planner import ValidationPlanner
+from cores.validation.promoter import ValidationPromoter
 
 logger = logging.getLogger("orion.core.validation.engine")
 

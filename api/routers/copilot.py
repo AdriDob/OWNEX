@@ -9,10 +9,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core.copilot.hermes_bridge import get_hermes_bridge
-from core.copilot.opencode_bridge import get_opencode_bridge
-from core.copilot.orion_context import get_orion_context
-from core.copilot.providers.router import get_provider_router
+from cores.copilot.hermes_bridge import get_hermes_bridge
+from cores.copilot.opencode_bridge import get_opencode_bridge
+from cores.copilot.orion_context import get_orion_context
+from cores.copilot.providers.router import get_provider_router
 
 logger = logging.getLogger("ownex.api.copilot")
 
@@ -274,7 +274,7 @@ def audit_connections():
       - Components referencing data without fetch
     """
     try:
-        from core.copilot.connections import run_connection_audit
+        from cores.copilot.connections import run_connection_audit
 
         return {"status": "ok", "audit": run_connection_audit()}
     except Exception as exc:
@@ -286,7 +286,7 @@ def audit_connections():
 def audit_frontend_endpoints():
     """List all API endpoints called from frontend."""
     try:
-        from core.copilot.connections import _scan_frontend_api_calls
+        from cores.copilot.connections import _scan_frontend_api_calls
 
         calls = _scan_frontend_api_calls()
         return {"status": "ok", "count": len(calls), "endpoints": sorted(calls)}
@@ -298,7 +298,7 @@ def audit_frontend_endpoints():
 def audit_backend_routes():
     """List all backend API routes."""
     try:
-        from core.copilot.connections import _scan_backend_routes
+        from cores.copilot.connections import _scan_backend_routes
 
         routes = _scan_backend_routes()
         return {"status": "ok", "count": len(routes), "routes": sorted(routes)}
@@ -310,7 +310,7 @@ def audit_backend_routes():
 async def copilot_vision_analyze(path: str):
     """Analyze an image file: OCR, colors, dimensions, layout, vision model."""
     try:
-        from core.copilot.vision import analyze_image, describe_for_prompt
+        from cores.copilot.vision import analyze_image, describe_for_prompt
 
         analysis = analyze_image(path)
         prompt_text = describe_for_prompt(path)
@@ -323,7 +323,7 @@ async def copilot_vision_analyze(path: str):
 async def copilot_vision_clipboard():
     """Grab image from clipboard and analyze it."""
     try:
-        from core.copilot.vision import describe_for_prompt, save_clipboard_image
+        from cores.copilot.vision import describe_for_prompt, save_clipboard_image
 
         saved = save_clipboard_image()
         if saved is None:
@@ -423,7 +423,7 @@ async def computer_use_execute(body: ComputerUseRequest):
 async def computer_use_screenshot():
     """Capture and analyze the current screen."""
     try:
-        from core.copilot.vision import analyze_screenshot
+        from cores.copilot.vision import analyze_screenshot
 
         result = analyze_screenshot()
         return {"status": "ok" if "error" not in result else "error", "analysis": result}
@@ -530,8 +530,8 @@ def computer_use_session_screenshots(session_id: str):
 def bayesian_posterior_summary():
     """Return Bayesian posterior distributions for all platforms."""
     try:
-        from core.copilot.bayesian import BayesianLearner
-        from core.reports.optimizer import get_acceptance_learner
+        from cores.copilot.bayesian import BayesianLearner
+        from cores.reports.optimizer import get_acceptance_learner
 
         learner = get_acceptance_learner()
         bl = BayesianLearner()
@@ -550,7 +550,7 @@ def bayesian_posterior_summary():
 @router.get("/polymarket/strategies")
 def polymarket_list_strategies():
     """List available Polymarket strategies."""
-    from core.polymarket.manager import list_strategies
+    from cores.polymarket.manager import list_strategies
 
     return {"status": "ok", "strategies": list_strategies()}
 
@@ -558,7 +558,7 @@ def polymarket_list_strategies():
 @router.post("/polymarket/scan")
 async def polymarket_scan_strategy(strategy: str = "all"):
     """Run a Polymarket strategy scan."""
-    from core.polymarket.manager import PolymarketManager
+    from cores.polymarket.manager import PolymarketManager
 
     mgr = PolymarketManager()
     if strategy == "all":

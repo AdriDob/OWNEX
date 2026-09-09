@@ -29,7 +29,7 @@ class ForgeAdapter:
     async def fetch_opportunities(self, personal: Any | None = None) -> list[dict]:
         """Fetch dev bounty opportunities from configured platforms."""
         try:
-            from core.opportunity import get_engine
+            from cores.opportunity import get_engine
 
             engine = get_engine()
             opportunities = engine.get_all()

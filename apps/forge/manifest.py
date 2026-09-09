@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.interfaces.app import IAppPlugin
-from core.scheduler.jobs import get_forge_jobs
+from cores.interfaces.app import IAppPlugin
+from cores.scheduler.jobs import get_forge_jobs
 
 # Adapter provider strings for the adapter registry
 FORGE_ADAPTERS = [

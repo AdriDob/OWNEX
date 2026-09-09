@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from core.normalizer.base import NormalizedPortfolio
+from cores.normalizer.base import NormalizedPortfolio
 
 logger = logging.getLogger("orion.atlas.engines.risk")
 

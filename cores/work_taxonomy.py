@@ -16,7 +16,7 @@ total but NOT injective (two local categories may share a canonical target).
 
 from __future__ import annotations
 
-from core.opportunity.mercenary_filter import OpportunityCategory as MercenaryCategory
+from cores.opportunity.mercenary_filter import OpportunityCategory as MercenaryCategory
 from cores.direct_work_engine.models import OpportunityCategory
 from cores.opensource.categories import OpenSourceCategory
 from cores.opportunity.engine import OpportunityCategory as EngineOpportunityCategory

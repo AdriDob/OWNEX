@@ -1,4 +1,4 @@
-from core.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
+from cores.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
 
 __all__ = [
     "AutoSubmitPipeline",

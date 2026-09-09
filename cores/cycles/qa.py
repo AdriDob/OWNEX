@@ -11,14 +11,14 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from cores.cycles.knowledge_capture import KnowledgeCapture, LearningType
+from cores.cycles.models import Cycle, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.qa")
 
 
 def _get_cycle_service():
-    from core.cycles.service import get_cycle_service
+    from cores.cycles.service import get_cycle_service
 
     return get_cycle_service()
 
@@ -287,7 +287,7 @@ class QATestCycle:
 
     def _create_stage_tasks(self, cycle_id: int) -> list[Task]:
         """Create tasks for each QA pipeline stage."""
-        from core.database.manager import get_db_manager
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         db_session = mgr.get_session("cycles")
@@ -323,7 +323,7 @@ class QATestCycle:
 
     def advance_stage(self, cycle_id: int, stage: str, result: dict[str, Any] | None = None) -> Task | None:
         """Mark a stage complete and advance to next."""
-        from core.database.manager import get_db_manager
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         db_session = mgr.get_session("cycles")
@@ -622,7 +622,7 @@ class QATestCycle:
         import uuid
         from pathlib import Path
 
-        from core.cycles.events import publish_cycle_event
+        from cores.cycles.events import publish_cycle_event
 
         config = self._get_cycle_config(cycle_id)
         base_dir = evidence_dir or config.get("evidence_dir", "data/qa_evidence")
@@ -749,7 +749,7 @@ class QATestCycle:
         """
         from pathlib import Path
 
-        from core.cycles.events import publish_cycle_event
+        from cores.cycles.events import publish_cycle_event
 
         total_duration = sum(r.duration_ms for r in results)
         passed = [r for r in results if r.passed]
@@ -869,7 +869,7 @@ class QATestCycle:
         Records follow-up entries for each failed test, captures retest
         attempts, and integrates with KnowledgeCapture to learn from outcomes.
         """
-        from core.cycles.events import publish_cycle_event
+        from cores.cycles.events import publish_cycle_event
 
         config = self._get_cycle_config(cycle_id)
         max_attempts = max_attempts or config.get("max_retest_attempts", 3)
@@ -1128,7 +1128,7 @@ def register_qa_cycle(registry) -> None:
     """Register QA Testing cycle definition."""
     import contextlib
 
-    from core.cycles.registry import CycleDefinition
+    from cores.cycles.registry import CycleDefinition
 
     with contextlib.suppress(ValueError):
         registry.register(

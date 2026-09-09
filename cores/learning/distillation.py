@@ -6,7 +6,7 @@ import json
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Any
@@ -22,7 +22,7 @@ class DistillationSample:
     student_output: dict | None = None
     loss: float | None = None
     metadata: dict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(slots=True)
@@ -36,7 +36,7 @@ class DistilledModel:
     parameters: dict = field(default_factory=dict)
     training_samples: int = 0
     validation_loss: float = 0.0
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     artifacts_path: str = ""
 
 

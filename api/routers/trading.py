@@ -11,13 +11,13 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.trading.config import TradingConfig
-from core.trading.copy_trading import CopyTradingEngine, FollowedTrader, MasterTrade, ReplicationResult
-from core.trading.executor import create_executor
-from core.trading.models import OrderSide
-from core.trading.reasoning import AutoParamOptimizer, DecisionCorrelator
-from core.trading.store import TradingStore
-from core.trading.trader_intelligence import (
+from cores.trading.config import TradingConfig
+from cores.trading.copy_trading import CopyTradingEngine, FollowedTrader, MasterTrade, ReplicationResult
+from cores.trading.executor import create_executor
+from cores.trading.models import OrderSide
+from cores.trading.reasoning import AutoParamOptimizer, DecisionCorrelator
+from cores.trading.store import TradingStore
+from cores.trading.trader_intelligence import (
     BacktestValidator,
     LiveTraderMonitor,
     TraderDiscovery,

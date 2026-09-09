@@ -12,7 +12,7 @@ from apps.aegis.engines.recon import ReconEngine
 from apps.aegis.engines.reporter import ReporterEngine
 from apps.aegis.engines.scanner import ScannerEngine
 from apps.aegis.models import AegisTarget, KnowHow, ScanReport, ScanResult, VulnFinding
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.aegis.api")
 router = APIRouter(prefix="/api/aegis", tags=["aegis"])

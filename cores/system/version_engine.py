@@ -8,7 +8,7 @@ Unified system that reads from VERSION.txt and can sync to all project files:
   - apps/*/__init__.py        (__version__ where present)
 
 Usage:
-    >>> from core.system.version_engine import VersionEngine
+    >>> from cores.system.version_engine import VersionEngine
     >>> ve = VersionEngine()
     >>> ve.get_version()          # "4.6.0"
     >>> ve.bump("patch")          # "4.6.1"

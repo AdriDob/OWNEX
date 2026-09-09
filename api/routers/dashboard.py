@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -106,7 +106,7 @@ async def check_provider_health(provider_id: str, provider: any) -> HealthStatus
             status="healthy" if available else "degraded",
             latency_ms=round(latency, 2),
             models_count=models,
-            last_check=datetime.utcnow().isoformat() + "Z",
+            last_check=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         )
     except TimeoutError:
         return HealthStatus(
@@ -114,11 +114,11 @@ async def check_provider_health(provider_id: str, provider: any) -> HealthStatus
             status="degraded",
             latency_ms=5000,
             error="timeout",
-            last_check=datetime.utcnow().isoformat() + "Z",
+            last_check=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         )
     except Exception as e:
         return HealthStatus(
-            provider=provider_id, status="down", error=str(e), last_check=datetime.utcnow().isoformat() + "Z"
+            provider=provider_id, status="down", error=str(e), last_check=datetime.now(UTC).isoformat().replace("+00:00", "Z")
         )
 
 
@@ -139,7 +139,7 @@ async def get_dashboard_status():
     fallback_chain = [p["id"] for p in providers]
 
     return DashboardStatus(
-        timestamp=datetime.utcnow().isoformat() + "Z",
+        timestamp=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         providers=health_checks,
         active_provider=active,
         total_models=total_models,

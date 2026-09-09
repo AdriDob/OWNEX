@@ -6,13 +6,13 @@ import logging
 import time
 from typing import Any
 
-from core.commands.models import (
+from cores.commands.models import (
     CommandDefinition,
     CommandRecord,
     CommandResult,
     PermissionLevel,
 )
-from core.commands.registry import get_command_registry
+from cores.commands.registry import get_command_registry
 
 logger = logging.getLogger("orion.core.commands.dispatcher")
 

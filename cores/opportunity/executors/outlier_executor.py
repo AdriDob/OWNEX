@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.automation.browser_agent import BrowserAgent
-from core.opportunity.executors import BaseExecutor, ExecutionResult
+from cores.automation.browser_agent import BrowserAgent
+from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
 __all__ = ["OutlierExecutor"]
 

@@ -9,10 +9,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from core.trading.contracts import (
+from cores.trading.contracts import (
     PatrimonialLevel,
 )
-from core.trading.ladder import get_ladder_engine
+from cores.trading.ladder import get_ladder_engine
 
 router = APIRouter(prefix="/api/patrimony", tags=["patrimony"])
 
@@ -60,7 +60,7 @@ _ladder_engine = None
 def _get_ladder_engine():
     global _ladder_engine
     if _ladder_engine is None:
-        from core.trading.ladder import get_ladder_engine
+        from cores.trading.ladder import get_ladder_engine
 
         _ladder_engine = get_ladder_engine()
     return _ladder_engine
@@ -75,8 +75,8 @@ async def get_net_worth_snapshot() -> dict[str, Any]:
     engine = _get_ladder_engine()
 
     # For now, compute from capital engine
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()
@@ -131,8 +131,8 @@ async def get_net_worth_snapshot() -> dict[str, Any]:
 @router.get("/breakdown")
 async def get_net_worth_breakdown() -> dict[str, Any]:
     """Get detailed net worth breakdown by category."""
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()
@@ -161,8 +161,8 @@ async def get_net_worth_breakdown() -> dict[str, Any]:
 @router.get("/ladder")
 async def get_ladder_status() -> dict[str, Any]:
     """Get current patrimonial ladder status."""
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()
@@ -204,8 +204,8 @@ async def get_ladder_status() -> dict[str, Any]:
 @router.post("/ladder/advance")
 async def advance_level(request: AdvanceLevelRequest) -> LadderAdvanceResponse:
     """Attempt to advance to next patrimonial level (requires human approval)."""
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()
@@ -345,8 +345,8 @@ async def get_capital_gates(
     monthly_revenue_usd: float = Query(0.0),
 ) -> dict:
     """Check current capital gates status."""
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()

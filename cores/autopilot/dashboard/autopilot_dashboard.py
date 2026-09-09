@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.autopilot.config.autopilot_config import AutopilotConfig
@@ -85,7 +85,7 @@ class AutopilotDashboard:
         """Get complete dashboard state for frontend."""
 
         # Check cache
-        datetime.utcnow()
+        datetime.now(UTC)
         if self._is_cache_valid():
             return self._cache
 
@@ -115,13 +115,13 @@ class AutopilotDashboard:
             check_results=[],
             checks_summary={},
             system_health=self._build_system_health(),
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
         # Convert to dict for JSON serialization
         result = self._dataclass_to_dict(data)
         self._cache = result
-        self._last_fetch["full"] = datetime.utcnow()
+        self._last_fetch["full"] = datetime.now(UTC)
 
         return result
 
@@ -171,7 +171,7 @@ class AutopilotDashboard:
                     "auto_approvable": gate.auto_approvable,
                     "created_at": gate.created_at.isoformat() if gate.created_at else None,
                     "waiting_since": gate.waiting_since.isoformat() if gate.waiting_since else None,
-                    "waiting_minutes": int((datetime.utcnow() - gate.waiting_since).total_seconds() / 60)
+                    "waiting_minutes": int((datetime.now(UTC) - gate.waiting_since).total_seconds() / 60)
                     if gate.waiting_since
                     else 0,
                 }
@@ -257,4 +257,4 @@ class AutopilotDashboard:
         last = self._last_fetch.get("full")
         if not last:
             return False
-        return (datetime.utcnow() - last).total_seconds() < self._cache_ttl
+        return (datetime.now(UTC) - last).total_seconds() < self._cache_ttl

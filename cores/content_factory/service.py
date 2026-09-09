@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -96,7 +96,7 @@ class ContentFactoryService:
     def mark_topic_used(self, topic: VideoTopic) -> None:
         """Mark a topic as used, increment counter."""
         topic.usage_count = topic.usage_count + 1  # type: ignore[assignment]
-        topic.last_used_at = datetime.utcnow()  # type: ignore[assignment]
+        topic.last_used_at = datetime.now(UTC)  # type: ignore[assignment]
         if topic.usage_count >= 3:  # type: ignore[attr-defined]
             topic.status = "exhausted"  # type: ignore[assignment]
         self.db.commit()
@@ -122,7 +122,7 @@ class ContentFactoryService:
                 "material_source": "pexels",
                 "voice_provider": "edge",
             },
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
         )
         self.db.add(job)
         self.db.commit()
@@ -252,7 +252,7 @@ class ContentFactoryService:
         channel: ChannelConfig,
     ) -> bool:
         job.status = "published"  # type: ignore[assignment]
-        job.published_at = datetime.utcnow()  # type: ignore[assignment]
+        job.published_at = datetime.now(UTC)  # type: ignore[assignment]
         self.db.commit()
         return True
 

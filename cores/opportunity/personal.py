@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.opportunity.models import PersonalHistory
-from core.revenue.metrics import RevenueMetrics
+from cores.opportunity.models import PersonalHistory
+from cores.revenue.metrics import RevenueMetrics
 
 logger = logging.getLogger("ownex.opportunity.personal")
 

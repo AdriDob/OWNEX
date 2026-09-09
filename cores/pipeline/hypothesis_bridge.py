@@ -171,7 +171,7 @@ def run_promote(session: Any) -> dict[str, Any]:
 
     Returns a summary dict with counts.
     """
-    from core.http_probe.engine import ProbeEngine
+    from cores.http_probe.engine import ProbeEngine
 
     start = time.time()
     stats: dict[str, Any] = {

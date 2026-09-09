@@ -5,8 +5,8 @@ Never modifies pipeline data. All outputs are metadata and recommendations.
 Supports advanced layered scoring, EVH, and identity vault integration.
 """
 
-# Legacy compatibility layer for tests (from core.opportunity.models)
-from core.opportunity.models import (
+# Legacy compatibility layer for tests (from cores.opportunity.models)
+from cores.opportunity.models import (
     OWNEX_WORK_CYCLE_ORDER,
     OWNEX_WORK_CYCLES,
     PersonalHistory,

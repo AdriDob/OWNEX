@@ -313,7 +313,7 @@ class AchievementEngine:
 
     def _scan_execution_queue(self, achievements: list, target: date, total_reward: float) -> None:
         try:
-            from core.execution_queue.models import ExecutionQueueStore
+            from cores.execution_queue.models import ExecutionQueueStore
 
             eq = ExecutionQueueStore()
             for item in eq.get_all():

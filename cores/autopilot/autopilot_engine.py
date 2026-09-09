@@ -8,7 +8,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.autopilot.achievements.achievement_engine import AchievementEngine
@@ -148,7 +148,7 @@ class AutopilotEngine:
         logger.info("Starting OWNEX Autopilot...")
         self._running = True
         self.status.is_running = True
-        self.status.started_at = datetime.utcnow()
+        self.status.started_at = datetime.now(UTC)
         try:
             self.status.current_mode = IncomeMode(self.config.automation.mode)
         except ValueError:
@@ -212,7 +212,7 @@ class AutopilotEngine:
                 await self._run_cycle()
             except Exception as e:
                 logger.error(f"Autopilot cycle error: {e}")
-                self.status.errors.append(f"{datetime.utcnow().isoformat()}: {e}")
+                self.status.errors.append(f"{datetime.now(UTC).isoformat()}: {e}")
                 if len(self.status.errors) > 100:
                     self.status.errors = self.status.errors[-100:]
 
@@ -231,7 +231,7 @@ class AutopilotEngine:
     async def _run_cycle(self) -> None:
         """Execute one full autopilot cycle."""
         cycle_start = time.time()
-        self.status.last_cycle = datetime.utcnow()
+        self.status.last_cycle = datetime.now(UTC)
         self.status.cycles_completed += 1
 
         logger.debug(f"Starting autopilot cycle #{self.status.cycles_completed}")
@@ -273,7 +273,7 @@ class AutopilotEngine:
         for gate in pending_gates:
             if (
                 gate.waiting_since
-                and (datetime.utcnow() - gate.waiting_since).total_seconds() > 3600
+                and (datetime.now(UTC) - gate.waiting_since).total_seconds() > 3600
                 and self._on_check_warning
             ):
                 self._on_check_warning(
@@ -318,7 +318,7 @@ class AutopilotEngine:
                 # Fallback: check if cycle ran today by checking state
                 last_cycle = None
 
-            today = datetime.utcnow().date()
+            today = datetime.now(UTC).date()
 
             if last_cycle != today:
                 self._workbank.daily_cycle(opportunities=[])

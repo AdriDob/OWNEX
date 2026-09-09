@@ -5,15 +5,15 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from core.market_intelligence.memory import get_intel_memory
-from core.market_intelligence.models import (
+from cores.market_intelligence.memory import get_intel_memory
+from cores.market_intelligence.models import (
     IntelligenceBrief,
     IntelligenceSource,
     OpportunityAssessment,
     SourceSignal,
     SourceTier,
 )
-from core.market_intelligence.source_manager import get_source_manager
+from cores.market_intelligence.source_manager import get_source_manager
 
 logger = logging.getLogger("orion.intel.brief")
 

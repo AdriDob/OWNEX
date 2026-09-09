@@ -548,7 +548,7 @@ class AIRouterEngine:
 
     def register_capabilities(self) -> None:
         try:
-            from core.capabilities.registry import get_capability_registry
+            from cores.capabilities.registry import get_capability_registry
 
             reg = get_capability_registry()
             reg.register(

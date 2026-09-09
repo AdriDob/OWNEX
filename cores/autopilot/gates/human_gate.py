@@ -6,7 +6,7 @@ import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -41,8 +41,8 @@ class GateRequest:
     amount_usd: float = 0.0
     platform: str = ""
     auto_approvable: bool = False
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    waiting_since: datetime | None = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    waiting_since: datetime | None = field(default_factory=lambda: datetime.now(UTC))
     resolved_at: datetime | None = None
     decision: GateDecision | None = None
     resolver_notes: str = ""
@@ -267,14 +267,14 @@ class HumanGate:
         ):
             # Auto-approve
             gate.decision = GateDecision.APPROVED
-            gate.resolved_at = datetime.utcnow()
+            gate.resolved_at = datetime.now(UTC)
             gate.resolver_notes = "Auto-approved per rules"
             logger.info(f"Gate auto-approved: {gate.gate_id} ({gate.title})")
             return gate
 
         # Queue for human review
         self._pending_gates[gate.gate_id] = gate
-        gate.waiting_since = datetime.utcnow()
+        gate.waiting_since = datetime.now(UTC)
 
         # Notify callbacks
         for callback in self._callbacks:
@@ -321,7 +321,7 @@ class HumanGate:
             return False
 
         gate.decision = decision
-        gate.resolved_at = datetime.utcnow()
+        gate.resolved_at = datetime.now(UTC)
         gate.resolver_notes = notes
 
         # Remove from pending
@@ -368,7 +368,7 @@ class HumanGate:
             "total_pending": len(pending),
             "by_type": {gt.value: len([g for g in pending if g.gate_type == gt]) for gt in GateType},
             "total_amount_usd": sum(g.amount_usd for g in pending),
-            "oldest_waiting_minutes": (int((datetime.utcnow() - oldest).total_seconds() / 60) if oldest else 0),
+            "oldest_waiting_minutes": (int((datetime.now(UTC) - oldest).total_seconds() / 60) if oldest else 0),
         }
 
     def set_auto_approve_enabled(self, enabled: bool) -> None:

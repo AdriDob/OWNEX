@@ -6,7 +6,7 @@ import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -43,8 +43,8 @@ class Goal:
     status: GoalStatus = GoalStatus.ACTIVE
     parent_id: str | None = None
     children: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -261,8 +261,8 @@ class GoalHierarchy:
                 focus="Configurar 8+ plataformas, validar payment rails",
                 key_metric="Plataformas activas",
                 target=8,
-                start_date=datetime.utcnow(),
-                end_date=datetime.utcnow() + timedelta(days=14),
+                start_date=datetime.now(UTC),
+                end_date=datetime.now(UTC) + timedelta(days=14),
                 goals=["first_platform", "keys_configured", "profile_complete"],
             ),
             Sprint(
@@ -272,8 +272,8 @@ class GoalHierarchy:
                 focus="Alcanzar $500 EV/día consistente",
                 key_metric="$EV/día",
                 target=500,
-                start_date=datetime.utcnow() + timedelta(days=14),
-                end_date=datetime.utcnow() + timedelta(days=28),
+                start_date=datetime.now(UTC) + timedelta(days=14),
+                end_date=datetime.now(UTC) + timedelta(days=28),
                 goals=["first_100", "first_1k", "weekly_500"],
             ),
             Sprint(
@@ -283,8 +283,8 @@ class GoalHierarchy:
                 focus="10 findings válidos, primer private invite",
                 key_metric="Findings válidos",
                 target=10,
-                start_date=datetime.utcnow() + timedelta(days=28),
-                end_date=datetime.utcnow() + timedelta(days=42),
+                start_date=datetime.now(UTC) + timedelta(days=28),
+                end_date=datetime.now(UTC) + timedelta(days=42),
                 goals=["first_valid", "private_invite"],
             ),
             Sprint(
@@ -294,8 +294,8 @@ class GoalHierarchy:
                 focus="3 bounties $500+/semana consistentes",
                 key_metric="$500+/semana",
                 target=3,
-                start_date=datetime.utcnow() + timedelta(days=42),
-                end_date=datetime.utcnow() + timedelta(days=56),
+                start_date=datetime.now(UTC) + timedelta(days=42),
+                end_date=datetime.now(UTC) + timedelta(days=56),
                 goals=["fifty_delivered", "hundred_ready"],
             ),
             Sprint(
@@ -305,8 +305,8 @@ class GoalHierarchy:
                 focus="Rate coding $35/hr en Outlier/Mercor",
                 key_metric="Rate coding",
                 target=35,
-                start_date=datetime.utcnow() + timedelta(days=56),
-                end_date=datetime.utcnow() + timedelta(days=70),
+                start_date=datetime.now(UTC) + timedelta(days=56),
+                end_date=datetime.now(UTC) + timedelta(days=70),
                 goals=["first_10k", "specialist_tier"],
             ),
             Sprint(
@@ -316,8 +316,8 @@ class GoalHierarchy:
                 focus="Hunter 1 onboard y productivo",
                 key_metric="Hunter 1 output",
                 target=3000,
-                start_date=datetime.utcnow() + timedelta(days=70),
-                end_date=datetime.utcnow() + timedelta(days=84),
+                start_date=datetime.now(UTC) + timedelta(days=70),
+                end_date=datetime.now(UTC) + timedelta(days=84),
                 goals=["hunter_1", "team_10k"],
             ),
             Sprint(
@@ -327,8 +327,8 @@ class GoalHierarchy:
                 focus="5 pilotos pagando OWNEX Scout",
                 key_metric="Pilotos pagando",
                 target=5,
-                start_date=datetime.utcnow() + timedelta(days=84),
-                end_date=datetime.utcnow() + timedelta(days=98),
+                start_date=datetime.now(UTC) + timedelta(days=84),
+                end_date=datetime.now(UTC) + timedelta(days=98),
                 goals=["saas_pilot", "saas_10k_mrr"],
             ),
         ]
@@ -361,11 +361,11 @@ class GoalHierarchy:
             new_value = await self._fetch_metric(goal.id)
             if new_value is not None:
                 goal.current_value = new_value
-                goal.updated_at = datetime.utcnow()
+                goal.updated_at = datetime.now(UTC)
 
                 if goal.is_completed:
                     goal.status = GoalStatus.COMPLETED
-                    goal.completed_at = datetime.utcnow()
+                    goal.completed_at = datetime.now(UTC)
                     completed.append(goal.id)
 
                     # Notify callbacks
@@ -399,7 +399,7 @@ class GoalHierarchy:
         return self._sprints
 
     def get_current_sprint(self) -> Sprint | None:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for sprint in self._sprints:
             if sprint.start_date <= now <= sprint.end_date:
                 return sprint

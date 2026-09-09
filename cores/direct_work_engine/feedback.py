@@ -36,6 +36,12 @@ class LearningRecord:
     amount: float = 0.0
     category: OpportunityCategory | None = None
     time_to_payout_days: float | None = None
+    # Prediction snapshot (optional): what the engine estimated BEFORE execution.
+    # Enables estimated-vs-actual calibration. Absent = unknown, never invented.
+    predicted_amount: float | None = None
+    predicted_hours: float | None = None
+    predicted_probability: float | None = None
+    actual_hours: float | None = None
 
 
 def apply_learning(profile: UserProfile, records: list[LearningRecord]) -> UserProfile:

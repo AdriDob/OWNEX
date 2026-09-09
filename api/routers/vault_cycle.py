@@ -15,7 +15,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.vault import get_vault_cycle
+from cores.cycles.vault import get_vault_cycle
 
 router = APIRouter(prefix="/api/cycles/vault", tags=["vault-cycle"])
 

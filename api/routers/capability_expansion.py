@@ -19,12 +19,12 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.capabilities.expansion import (
+from cores.capabilities.expansion import (
     CapabilityCandidate,
     CapabilityExpansionEngine,
     get_expansion_engine,
 )
-from core.capabilities.registry import get_capability_registry
+from cores.capabilities.registry import get_capability_registry
 
 logger = logging.getLogger("ownex.api.capability_expansion")
 

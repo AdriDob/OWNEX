@@ -10,7 +10,7 @@ import logging
 import os
 from typing import Any
 
-from core.opportunity.executors import BaseExecutor, ExecutionResult
+from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
 try:
     from cores.automation.browser_agent import BrowserAgent

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.setup.requirements_check import check_all as check_requirements
-from core.setup.steps import define_step
+from cores.setup.requirements_check import check_all as check_requirements
+from cores.setup.steps import define_step
 
 SYSTEM_SCHEMA: dict[str, Any] = {
     "type": "checklist",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.financial_hub.models import KYCRecord, PayoutDocument
+from cores.financial_hub.models import KYCRecord, PayoutDocument
 from database.db import SessionLocal
 
 

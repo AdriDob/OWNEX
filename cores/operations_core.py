@@ -6,7 +6,7 @@ Decide QUÉ hacer, CUÁNDO, con QUÉ AGENTE, por CUÁNTO TIEMPO.
 import heapq
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -176,7 +176,7 @@ class OperationsResearchEngine:
     ) -> list[tuple[float, TaskCandidate]]:
         """Score compuesto: rate * confidence * priority * urgency * agent_fit"""
         scored = []
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         for c in candidates:
             # Base rate
@@ -217,7 +217,7 @@ class OperationsResearchEngine:
         schedule = []
         used_cost = 0.0
         used_hours = 0.0
-        agent_timelines: dict[str, datetime] = defaultdict(lambda: datetime.utcnow())
+        agent_timelines: dict[str, datetime] = defaultdict(lambda: datetime.now(UTC))
         parallel_slots = budget.max_parallel_tasks
 
         # Agentes disponibles
@@ -243,7 +243,7 @@ class OperationsResearchEngine:
             # Verificar presupuesto
             if used_cost + candidate.estimated_cost > budget.max_cost_usd:
                 continue
-            if (end - datetime.utcnow()).total_seconds() / 3600 > budget.max_compute_hours:
+            if (end - datetime.now(UTC)).total_seconds() / 3600 > budget.max_compute_hours:
                 continue
 
             # Verificar paralelismo
@@ -295,7 +295,7 @@ class OperationsResearchEngine:
         self, candidate: TaskCandidate, agent: str, timelines: dict[str, datetime], budget: ResourceBudget
     ) -> datetime:
         """Calcula hora de inicio respetando dependencias y disponibilidad"""
-        earliest = max(timelines[agent], budget.time_window_start or datetime.utcnow())
+        earliest = max(timelines[agent], budget.time_window_start or datetime.now(UTC))
 
         # Verificar dependencias
         for dep_id in candidate.dependencies:
@@ -391,7 +391,7 @@ class ContinuousPlanner:
         self.engine = engine
         self.current_budget: ResourceBudget | None = None
         self.current_schedule: list[ScheduledTask] = []
-        self.last_replan = datetime.utcnow()
+        self.last_replan = datetime.now(UTC)
         self.replan_interval = timedelta(minutes=15)
 
     def set_budget(self, budget: ResourceBudget):
@@ -405,7 +405,7 @@ class ContinuousPlanner:
             self.replan()
 
     def _should_replan(self) -> bool:
-        return datetime.utcnow() - self.last_replan > self.replan_interval
+        return datetime.now(UTC) - self.last_replan > self.replan_interval
 
     def replan(self) -> list[ScheduledTask]:
         if not self.current_budget:
@@ -417,7 +417,7 @@ class ContinuousPlanner:
         # Re-planificar
         new_schedule = self.engine.plan(self.current_budget, pending)
         self.current_schedule = new_schedule
-        self.last_replan = datetime.utcnow()
+        self.last_replan = datetime.now(UTC)
 
         return new_schedule
 
@@ -434,7 +434,7 @@ class ContinuousPlanner:
         if not self.current_schedule:
             self.replan()
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for s in self.current_schedule:
             if s.start_time <= now < s.end_time:
                 return s

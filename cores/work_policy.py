@@ -75,7 +75,7 @@ class CategoryProfile:
 
 def _build_profiles() -> dict[OpportunityCategory, CategoryProfile]:
     inherited: dict[OpportunityCategory, int] = {}
-    from core.opportunity.mercenary_filter import CATEGORY_PRIORITIES
+    from cores.opportunity.mercenary_filter import CATEGORY_PRIORITIES
 
     for legacy_member, legacy_priority in CATEGORY_PRIORITIES.items():
         canonical = MERCENARY_TO_CANONICAL[legacy_member]

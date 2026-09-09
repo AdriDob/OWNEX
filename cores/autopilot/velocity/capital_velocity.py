@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +25,7 @@ class CapitalVelocityData:
     target_500k_pct: float = 0.0
     eta_500k_months: float = 0.0
     velocity_trend: str = "stable"  # accelerating, stable, decelerating
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class CapitalVelocity:
@@ -62,7 +62,7 @@ class CapitalVelocity:
         # - Dividends from portfolio
 
         # For now, return current state
-        self._velocity.last_updated = datetime.utcnow()
+        self._velocity.last_updated = datetime.now(UTC)
 
         # Save history point
         self._save_history_point()
@@ -163,7 +163,7 @@ class CapitalVelocity:
     def _save_history_point(self) -> None:
         """Save current velocity as history point."""
         point = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "income_today": self._velocity.income_today,
             "saved_today": self._velocity.saved_today,
             "invested_today": self._velocity.invested_today,

@@ -9,7 +9,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from core.revenue.metrics import RevenueMetrics
+from cores.revenue.metrics import RevenueMetrics
 
 logger = logging.getLogger("ownex.cycles.executive")
 
@@ -141,7 +141,7 @@ class ExecutiveDashboard:
     def _get_cycle_status(self) -> dict[str, Any]:
         """Get status of all work cycles."""
         try:
-            from core.cycles import get_cycle_service
+            from cores.cycles import get_cycle_service
 
             svc = get_cycle_service()
             cycles = svc.list(enabled_only=True)

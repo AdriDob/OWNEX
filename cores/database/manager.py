@@ -15,7 +15,7 @@ from typing import Any
 from sqlalchemy import Engine, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.interfaces import IDatabase
+from cores.interfaces import IDatabase
 
 logger = logging.getLogger("ownex.core.database")
 

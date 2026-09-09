@@ -1,6 +1,6 @@
-"""Re-exports from core.revenue.converter for backward compatibility."""
+"""Re-exports from cores.revenue.converter for backward compatibility."""
 
-from core.revenue.converter import (
+from cores.revenue.converter import (
     ars_to_usd,
     calculate_fee,
     net_after_fee,

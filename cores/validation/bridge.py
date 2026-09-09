@@ -15,11 +15,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.offensive.engine import OffensiveEngine
-from core.offensive.models import Hypothesis
-from core.validation.economic_scorer import EconomicScorer
-from core.validation.engine import ValidationEngine
-from core.validation.models import (
+from cores.offensive.engine import OffensiveEngine
+from cores.offensive.models import Hypothesis
+from cores.validation.economic_scorer import EconomicScorer
+from cores.validation.engine import ValidationEngine
+from cores.validation.models import (
     AttackCandidate,
     VulnType,
 )
@@ -292,7 +292,7 @@ class ValidationBridge:
             engine_result: ValidationEngineResult de engine.run()
             target_id: ID del target (opcional, extraído del candidate si existe)
         """
-        from core.validation.learning import ValidationOutcome, record_outcome  # fmt: skip
+        from cores.validation.learning import ValidationOutcome, record_outcome  # fmt: skip
 
         candidate = engine_result.candidate
         if not candidate:

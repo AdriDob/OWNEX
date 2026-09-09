@@ -22,7 +22,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.defi.positions import HIGH_YIELD_PROTOCOLS
+from cores.defi.positions import HIGH_YIELD_PROTOCOLS
 
 
 @dataclass

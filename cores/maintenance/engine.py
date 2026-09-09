@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.core.maintenance")
 

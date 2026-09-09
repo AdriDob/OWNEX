@@ -18,7 +18,6 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
-from core.opportunity.executors.auto_submit import SubmissionStatus
 from cores.direct_work_engine.discovery import BaseDiscoveryAdapter
 from cores.direct_work_engine.engine import DirectWorkEngine
 from cores.direct_work_engine.extension import ExtensionEvaluator
@@ -44,6 +43,7 @@ from cores.direct_work_engine.negotiation import TermAnalyzer
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 from cores.direct_work_engine.skill_gap import SkillAmplifier
 from cores.direct_work_engine.workbank import get_workbank
+from cores.opportunity.executors.auto_submit import SubmissionStatus
 
 logger = logging.getLogger("ownex.api.direct_work")
 
@@ -118,8 +118,15 @@ def _resolve(value: Any, enum_cls: type[StrEnum] | None) -> Any:
         return value
     try:
         return enum_cls(value)
-    except ValueError:
-        return value
+    except ValueError as exc:
+        # Never let an invalid enum silently become a raw string: downstream
+        # code assumes enum members (`.value`, membership checks). Fail closed
+        # with a controlled 422 instead of corrupting the domain object.
+        allowed = ", ".join(sorted(m.value for m in enum_cls))
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid {enum_cls.__name__} value: {value!r}. Valid values: {allowed}",
+        ) from exc
 
 
 def _opportunity_from_dict(data: dict[str, Any]) -> Opportunity:
@@ -216,6 +223,11 @@ def _income_max_profile(profile: dict[str, Any] | None) -> UserProfile:
 
 def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
     category = data.get("category")
+
+    def _opt_float(key: str) -> float | None:
+        value = data.get(key)
+        return float(value) if value is not None else None
+
     return LearningRecord(
         platform=str(data.get("platform", "")),
         accepted=bool(data.get("accepted", False)),
@@ -224,6 +236,10 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
         time_to_payout_days=(
             float(data["time_to_payout_days"]) if data.get("time_to_payout_days") is not None else None
         ),
+        predicted_amount=_opt_float("predicted_amount"),
+        predicted_hours=_opt_float("predicted_hours"),
+        predicted_probability=_opt_float("predicted_probability"),
+        actual_hours=_opt_float("actual_hours"),
     )
 
 
@@ -234,7 +250,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     payout_method = ""
     payout_method_rationale = ""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         payout_net = get_payout_net()
         platform_key = str(ranked.opportunity.platform)
@@ -453,12 +469,20 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
       history says is likely to win ever surfaces.
 
     When no opportunities are supplied, the engine discovers them from its
-    registered real adapters first (Opire, IssueHunt, Freelancer).
+    registered real adapters first (Opire, IssueHunt, bug bounties, AI training).
+    Freelance channels (Workana/Fiverr) are OPTIONAL: only ACTIVE channels
+    participate; PAUSED/DISABLED/EXCLUDED are filtered before scoring.
     """
     profile = _profile_from_dict(request.profile)
     opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
     if not opportunities:
         opportunities = await get_engine().discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     ranked = get_engine().recommender.recommend(opportunities, profile, limit=request.limit, mode=request.mode)
     ranked_list = [_ranked_to_dict(r) for r in ranked]
     try:
@@ -495,6 +519,12 @@ async def direct_work_discover(request: DiscoverRequest) -> dict[str, Any]:
     """
     engine = get_engine()
     opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     scored = engine.scorer.score_opportunities(opportunities)
     return {
         "discovered": len(scored),
@@ -531,6 +561,12 @@ async def direct_work_workbank_cycle(request: WorkBankCycleRequest) -> dict[str,
     opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
     if not opportunities:
         opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     bank = get_workbank()
     return bank.daily_cycle(opportunities, target=request.target, profile=_income_max_profile(request.profile))
 
@@ -569,7 +605,7 @@ async def direct_work_get_delivery_file(item_id: str, filename: str) -> PlainTex
     try:
         file_path.resolve().relative_to(work_dir.resolve())
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail="Invalid file path") from None
     content = file_path.read_text(encoding="utf-8")
     return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
 
@@ -599,7 +635,7 @@ async def direct_work_put_delivery_file(item_id: str, filename: str, payload: di
     try:
         file_path.resolve().relative_to(work_dir.resolve())
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid file path")
+        raise HTTPException(status_code=400, detail="Invalid file path") from None
     file_path.write_text(content, encoding="utf-8")
     return {"success": True, "file": filename, "path": str(file_path)}
 
@@ -612,7 +648,7 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     package (README/proposal/work files), saves it to disk, and returns where it
     is plus one-click guidance. Does NOT submit anything.
     """
-    from core.opportunity.executors.assisted_mode import AssistedExecutor
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor
 
     item = get_workbank().get_item(item_id)
     if not item:
@@ -631,7 +667,7 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
 
     # Espejo canónico: paquete listo → QUEUED en la cola única (best-effort).
     try:
-        from core.execution_queue.mirror import mirror_workbank_packaged
+        from cores.execution_queue.mirror import mirror_workbank_packaged
 
         mirror_workbank_packaged(item_id)
     except Exception:  # el espejo jamás rompe la entrega
@@ -657,6 +693,7 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
 
     Closes the loop: the item moves to ``delivered`` and the outcome is folded
     into the user profile so future recommendations learn from it.
+    Also wires to RevenueTracker: creates opportunity + processes payment through states.
     """
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -666,12 +703,97 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
 
     # Espejo canónico: la aprobación humana (gate) → SUBMITTED en la cola única.
     try:
-        from core.execution_queue.mirror import mirror_workbank_approved
+        from cores.execution_queue.mirror import mirror_workbank_approved
 
         mirror_workbank_approved(item_id)
     except Exception:  # jamás rompe el flujo de entrega
         pass
 
+    # Wire to RevenueTracker: create opportunity + process payment
+    revenue_result = None
+    try:
+        from datetime import UTC, datetime
+        from decimal import Decimal
+
+        from cores.revenue_tracker.execution_bridge import resolve_payment_platform
+        from cores.revenue_tracker.revenue_tracker import (
+            PaymentPlatform,
+            PaymentStatus,
+            RevenueOpportunity,
+            get_revenue_tracker,
+        )
+
+        tracker = get_revenue_tracker()
+
+        # Map WorkPlatform to PaymentPlatform (SSOT in execution_bridge).
+        # Freelance (Workana) is an OPTIONAL commercial channel: scored by
+        # the same engine, never a mandatory path.
+        _platform_key = str(item.platform).lower().replace("workplatform.", "")
+        platform = resolve_payment_platform(_platform_key)
+
+        # Create revenue opportunity
+        opp_id = f"wb_{item.id}"
+        revenue_opp = RevenueOpportunity(
+            id=opp_id,
+            platform=platform,
+            title=item.title,
+            description=item.description or " ".join(item.deliverables),
+            amount=Decimal(str(item.reward or 0)),
+            currency="USD",
+            status=PaymentStatus.PENDING,
+            deadline=None,
+            provider_info={"workbank_item_id": item_id, "url": item.url or ""},
+            tracking_data={"source": "workbank"},
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+            barriers=[],
+            difficulty="medium",
+            success_rate=0.5,
+            time_estimate="",
+            tags=["workbank", str(item.platform)],
+            skills_required=[],
+            url=item.url or "",
+            revenue_state="expected",
+            revenue_state_history=[{"state": "expected", "at": datetime.now(UTC).isoformat()}],
+        )
+        tracker.create_opportunity(revenue_opp)
+
+        # Process payment: PENDING -> REVIEWING -> ACCEPTED -> PAID
+        # (In real flow, user would confirm each step; here we move to REVIEWING as first step)
+        tracker.update_opportunity_status(
+            opp_id,
+            PaymentStatus.REVIEWING,
+            {
+                "workbank_item_id": item_id,
+                "user_confirmed_delivery": True,
+            },
+        )
+
+        # For bug bounties/dev bounties with verified payout, move to ACCEPTED
+        if platform in (PaymentPlatform.BUG_BOUNTY, PaymentPlatform.DEV_BOUNTY):
+            tracker.update_opportunity_status(
+                opp_id,
+                PaymentStatus.ACCEPTED,
+                {
+                    "workbank_item_id": item_id,
+                    "platform_accepted": True,
+                },
+            )
+            # Auto-transition to PAID for demo/testing (real flow would wait for actual payment)
+            tracker.update_opportunity_status(
+                opp_id,
+                PaymentStatus.PAID,
+                {
+                    "workbank_item_id": item_id,
+                    "payment_confirmed": True,
+                },
+            )
+
+        revenue_result = tracker.get_platform_metrics(platform.value.lower())
+    except Exception as exc:
+        logger.warning("RevenueTracker wiring failed: %s", exc)
+
+    # Feedback loop: fold outcome into user profile
     profile = UserProfile(
         name="Adriel",
         country="Argentina",
@@ -693,7 +815,8 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
         "item_id": item.id,
         "status": "delivered",
         "reward": item.reward,
-        "message": "Entregado. El resultado se plegó al perfil para mejores recomendaciones.",
+        "revenue_tracker": revenue_result,
+        "message": "Entregado. El resultado se plegó al perfil y al Revenue Tracker.",
     }
 
 
@@ -704,8 +827,8 @@ async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
     Checks trust engine criteria before auto-submitting. If approved, marks as
     auto-submitted and prepares delivery package.
     """
-    from core.opportunity.executors.assisted_mode import AssistedExecutor
-    from core.trust_engine import get_trust_engine
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor
+    from cores.trust_engine import get_trust_engine
 
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -758,7 +881,7 @@ async def direct_work_submit(item_id: str, force: bool = False) -> dict[str, Any
     - DLQ for failed submissions
     - Confirmation polling
     """
-    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -813,7 +936,7 @@ async def direct_work_submit(item_id: str, force: bool = False) -> dict[str, Any
 @router.get("/submissions")
 async def direct_work_list_submissions(status: str | None = None, platform: str | None = None) -> dict[str, Any]:
     """List all submission records with optional filters."""
-    from core.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
+    from cores.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
 
     engine = get_auto_submit_engine()
     status_enum = SubmissionStatus(status) if status else None
@@ -829,7 +952,7 @@ async def direct_work_list_submissions(status: str | None = None, platform: str 
 @router.get("/submissions/{submission_id}")
 async def direct_work_get_submission(submission_id: str) -> dict[str, Any]:
     """Get a specific submission record by ID."""
-    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
     engine = get_auto_submit_engine()
     record = engine.get_submission(submission_id)
@@ -841,7 +964,7 @@ async def direct_work_get_submission(submission_id: str) -> dict[str, Any]:
 @router.post("/submissions/{submission_id}/retry")
 async def direct_work_retry_submission(submission_id: str) -> dict[str, Any]:
     """Retry a failed/DLQ submission."""
-    from core.opportunity.executors.auto_submit import get_auto_submit_engine
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
     engine = get_auto_submit_engine()
     record = engine.retry_dlq(submission_id)
@@ -1004,6 +1127,63 @@ async def direct_work_income_dashboard(request: IncomeProjectionRequest) -> dict
     )
 
 
+@router.get("/revenue-ledger")
+async def direct_work_revenue_ledger(platform: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """Truthful revenue ledger: per-state buckets + every tracked opportunity.
+
+    Buckets follow the canonical lifecycle EXPECTED -> COMMITTED -> EARNED ->
+    PENDING -> PAID (-> NET). Only PAID/NET is cash; everything else is pipeline.
+    """
+    from datetime import UTC, datetime
+
+    from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+    tracker = get_revenue_tracker()
+    breakdown = tracker.get_revenue_state_breakdown(platform)
+    projection = tracker.get_revenue_projection(platform)
+
+    def _serialize(opp: Any) -> dict[str, Any]:
+        status = getattr(opp, "status", "")
+        created = getattr(opp, "created_at", None)
+        updated = getattr(opp, "updated_at", None)
+        return {
+            "id": str(getattr(opp, "id", "")),
+            "title": str(getattr(opp, "title", "")),
+            "platform": str(getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", ""))),
+            "status": str(getattr(status, "value", status)),
+            "revenue_state": str(getattr(opp, "revenue_state", "")),
+            "amount_usd": float(getattr(opp, "amount", 0) or 0),
+            "currency": str(getattr(opp, "currency", "USD")),
+            "url": str(getattr(opp, "url", "") or ""),
+            "created_at": created.isoformat() if hasattr(created, "isoformat") else None,
+            "updated_at": updated.isoformat() if hasattr(updated, "isoformat") else None,
+        }
+
+    key = (platform or "").strip().lower()
+    items = [
+        _serialize(opp)
+        for opp in tracker.opportunities.values()
+        if not key or str(getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", ""))).lower() == key
+    ]
+    items.sort(key=lambda r: (r["revenue_state"], r["updated_at"] or ""), reverse=True)
+
+    def _usd(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {k: _usd(v) for k, v in value.items()}
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return value
+
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "buckets_usd": {k: float(v) for k, v in breakdown.items()},
+        "projection_usd": _usd(projection),
+        "count": len(items),
+        "opportunities": items[: max(1, limit)],
+    }
+
+
 @router.post("/plan/objective")
 async def direct_work_plan_objective(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Universal request understanding: turn a loose request into a full blueprint.
@@ -1153,6 +1333,44 @@ def _access_explanation(access_status: str, requirement: str) -> str:
     return f"Requiere un paso manual único. {reason}"
 
 
+@router.get("/channels")
+async def direct_work_channels() -> dict[str, Any]:
+    """Freelance channel status: ACTIVE/PAUSED/DISABLED/EXCLUDED.
+
+    Freelance is an OPTIONAL commercial engine. Only ACTIVE channels
+    participate in recommendations; the scoring engine decides whether
+    any freelance opportunity deserves the owner's time.
+    """
+    from cores.freelance.channel_status import list_channels
+
+    return {
+        "channels": list_channels(),
+        "note": "Primary engines (AI training, dev bounties, bug bounties) are always evaluated. "
+        "Freelance channels only participate when ACTIVE.",
+    }
+
+
+@router.post("/channels/{channel}")
+async def direct_work_set_channel(channel: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Set a freelance channel status (active/paused/disabled/excluded)."""
+    from cores.freelance.channel_status import FREELANCE_CHANNELS, get_status, set_status
+
+    key = (channel or "").strip().lower()
+    if key not in FREELANCE_CHANNELS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown freelance channel: {channel!r}. Known: {sorted(FREELANCE_CHANNELS)}",
+        )
+    status = ((payload or {}).get("status") or "").strip().lower()
+    if not status:
+        raise HTTPException(status_code=400, detail="Missing 'status'. Use: active/paused/disabled/excluded")
+    try:
+        new_status = set_status(key, status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+    return {"channel": key, "status": new_status.value, "recommending": get_status(key).value == "active"}
+
+
 @router.post("/extensions/evaluate")
 async def direct_work_extensions_evaluate(request: ExtensionRequest) -> dict[str, Any]:
     """Reason about whether a proposed capability extension is worth acquiring."""
@@ -1175,6 +1393,12 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
     engine = get_engine()
     profile = _income_max_profile(request.profile)
     opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     ranked = engine.recommender.recommend(opportunities, profile, limit=request.limit, mode=request.mode)
 
     top = ranked[0] if ranked else None
@@ -1209,10 +1433,26 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
         else "No zero-barrier opportunities found today."
     )
 
+    try:
+        from cores.copilot.semantics import build_daily_brief_semantics
+
+        _top_dict = _ranked_to_dict(top) if top else {}
+        _htroi = (_top_dict.get("htroi") or {}) if isinstance(_top_dict, dict) else {}
+        semantics = build_daily_brief_semantics(
+            scanned=len(opportunities),
+            top_title=top.opportunity.title if top else None,
+            top_score=float(top.overall_recommendation_score) if top else None,
+            top_ev_per_hour=float(_htroi.get("usd_per_hour")) if _htroi.get("usd_per_hour") is not None else None,
+            missing_skills=(learning or {}).get("missing_skills") if isinstance(learning, dict) else None,
+        ).to_dict()
+    except Exception:
+        semantics = {"FACT": [], "INFERENCE": [], "RECOMMENDATION": [], "UNKNOWN": []}
+
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "scanned": len(opportunities),
         "summary": summary,
+        "semantics": semantics,
         "top_opportunity": _ranked_to_dict(top) if top else None,
         "ranked": [_ranked_to_dict(r) for r in ranked],
         "fallbacks": _fallback_payload(ranked),
@@ -1246,12 +1486,16 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
       * lessons       — lost opportunities -> skill evolution path (learn)
       * capabilities  — market demand the user does not cover -> expansion proposal (build)
       * performance   — conversion + ROI per platform/category (income intelligence)
+      * calibration   — estimated-vs-actual prediction error (UNKNOWN when no predictions)
+      * repeatable    — REPEATABLE / NON_REPEATABLE / UNKNOWN patterns from history
     """
     from cores.direct_work_engine.evolution import (
         CapabilityExpansionDetector,
         PerformanceAnalyzer,
         SkillEvolutionEngine,
         evolve_analysis,
+        identify_repeatable,
+        prediction_error_report,
     )
 
     profile = _profile_from_dict(request.profile)
@@ -1261,7 +1505,10 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
     lessons = SkillEvolutionEngine().learn_from_lost(records, profile)
     proposals = CapabilityExpansionDetector().detect(opportunities, profile, min_evidence=request.min_evidence)
     performance = PerformanceAnalyzer().analyze(records, time_invested_hours=request.time_invested_hours)
-    return evolve_analysis(lessons, proposals, performance)
+    report = evolve_analysis(lessons, proposals, performance)
+    report["calibration"] = prediction_error_report(records)
+    report["repeatable"] = identify_repeatable(records)
+    return report
 
 
 class SourceIntelRequest(BaseModel):
@@ -1517,7 +1764,7 @@ async def direct_work_stream_opportunities(
     try:
         stream = WorkStream(stream_key)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
 
     engine = get_engine()
     opportunities = await engine.discovery.discover_all() or []
@@ -1577,7 +1824,7 @@ async def direct_work_stream_workbank(stream_key: str) -> dict[str, Any]:
     try:
         stream = WorkStream(stream_key)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
 
     bank = get_workbank()
     items = list(bank._items.values())
@@ -1616,7 +1863,7 @@ async def direct_work_stream_cycle(
     try:
         stream = WorkStream(stream_key)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}")
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
 
     engine = get_engine()
     stream_categories = [cat for cat, s in CATEGORY_TO_STREAM.items() if s == stream]

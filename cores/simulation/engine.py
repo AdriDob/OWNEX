@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy as np
 
-from core.decision_journal import journal
+from cores.decision_journal import journal
 
 logger = logging.getLogger("orion.core.simulation")
 

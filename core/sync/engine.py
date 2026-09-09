@@ -397,7 +397,7 @@ class SyncStatusResponse(BaseModel):
 @router.post("/device/register")
 async def register_device(request: DeviceRegisterRequest):
     """Register a new device for synchronization."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     device = engine.register_device(
@@ -412,7 +412,7 @@ async def register_device(request: DeviceRegisterRequest):
 @router.get("/device/identity")
 async def get_device_identity():
     """Get current device identity."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     identity = engine.get_device_identity()
@@ -424,7 +424,7 @@ async def get_device_identity():
 @router.get("/devices")
 async def list_devices():
     """List all registered devices."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     devices = engine.get_all_devices()
@@ -434,7 +434,7 @@ async def list_devices():
 @router.get("/status", response_model=SyncStatusResponse)
 async def get_sync_status():
     """Get current sync status."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     status = engine.get_sync_status()
@@ -444,7 +444,7 @@ async def get_sync_status():
 @router.post("/events")
 async def create_event(request: SyncEventRequest):
     """Create and broadcast a sync event."""
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     event_type = SyncEventType(request.event_type)
@@ -459,7 +459,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     device_id = f"ws_{uuid.uuid4().hex[:8]}"
 
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     engine.register_ws_connection(f"ws_{uuid.uuid4().hex[:8]}", None)  # WebSocket object

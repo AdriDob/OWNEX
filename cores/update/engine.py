@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.core.update")
 
@@ -47,7 +47,7 @@ class UpdateManager:
     """Manages version checks, update download, and rollback."""
 
     def __init__(self) -> None:
-        from core.version import OWNEX_VERSION
+        from cores.version import OWNEX_VERSION
 
         self._current_version = OWNEX_VERSION
         self._remote_version: str | None = None
@@ -125,7 +125,7 @@ class UpdateManager:
 
         Returns status dict with backup_path and download result.
         """
-        from core.backup.engine import create_backup
+        from cores.backup.engine import create_backup
 
         # Step 1: Backup before update
         backup_result = create_backup()
@@ -166,7 +166,7 @@ class UpdateManager:
         if not backup_path:
             return {"status": "error", "reason": "No backup available for rollback"}
 
-        from core.backup.engine import restore_backup, verify_backup
+        from cores.backup.engine import restore_backup, verify_backup
 
         # Verify backup integrity first
         verification = verify_backup(backup_path)

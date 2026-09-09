@@ -73,14 +73,24 @@ sync(
 )
 
 # 8. src-tauri/Cargo.toml — versión del crate
+# NOTA: el patrón está anclado a inicio de línea y el archivo NO empieza con
+# "version", así que requiere el flag re.MULTILINE — sin él el sync nunca
+# matcheaba y Cargo.toml quedaba desincronizado (bug silencioso).
 sync(
     "src-tauri/Cargo.toml",
-    r'^version = ["\']\d+\.\d+\.\d+["\']',
+    r'(?m)^version = ["\']\d+\.\d+\.\d+["\']',
     f'version = "{VERSION}"',
 )
 
+# 9. cores/version.py — OWNEX_VERSION (consumido por /api/stability/status)
+sync(
+    "cores/version.py",
+    r'OWNEX_VERSION = ["\']\d+\.\d+\.\d+["\']',
+    f'OWNEX_VERSION = "{VERSION}"',
+)
+
 if changed:
-    print(f"✅ Version {VERSION} sincronizada en 5 archivos del proyecto.")
+    print(f"✅ Version {VERSION} sincronizada en los archivos del proyecto.")
 else:
     print(f"⚠️ No se detectaron diferencias — todos los archivos ya tienen version {VERSION}.")
 

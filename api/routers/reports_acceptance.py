@@ -4,8 +4,8 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.reports.acceptance.learner import AcceptanceLearner
-from core.reports.quality.scorer import QualityScorer
+from cores.reports.acceptance.learner import AcceptanceLearner
+from cores.reports.quality.scorer import QualityScorer
 
 logger = logging.getLogger("orion.api.reports_acceptance")
 
@@ -166,7 +166,7 @@ def sync_from_db():
 @router.post("/sync-hacktivity")
 def sync_hacktivity(max_pages: int = Query(3, ge=1, le=10)):
     """Scrape HackerOne hacktivity and feed disclosed reports into the learner."""
-    from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+    from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
     count = feed_hacktivity_to_learner(max_pages=max_pages, delay=1.5)
     learner = _get_learner()

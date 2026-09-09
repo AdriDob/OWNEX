@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Request
 
-from core.notifications.intelligent import DetailLevel, get_intelligent_notifier
+from cores.notifications.intelligent import DetailLevel, get_intelligent_notifier
 from cores.gateway.schemas import error, ok
 from cores.notifications.hub import NOTIFICATION_TYPES, get_hub
 from database import db

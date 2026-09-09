@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from core.investment.models import InvestmentSnapshot, RiskMetrics
+from cores.investment.models import InvestmentSnapshot, RiskMetrics
 
 logger = logging.getLogger("orion.investment.metrics")
 

@@ -5,7 +5,7 @@ Each cycle has staggered discovery jobs + a sync/scoring job.
 
 from __future__ import annotations
 
-from core.interfaces.scheduler import JobDefinition
+from cores.interfaces.scheduler import JobDefinition
 
 
 def _discovery_job(

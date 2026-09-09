@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.btc_latency_arb.indicators.rsi import clamp
+from cores.polymarket.btc_latency_arb.indicators.rsi import clamp
 
 
 @dataclass(slots=True)

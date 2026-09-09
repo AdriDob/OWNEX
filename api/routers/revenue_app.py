@@ -62,6 +62,6 @@ async def process_payment(payload: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/usd-to-ars")
 async def usd_to_ars(amount: float = 100, rate: float = 1000) -> dict[str, Any]:
-    from core.revenue.converter import usd_to_ars
+    from cores.revenue.converter import usd_to_ars
 
     return {"usd": amount, "ars": usd_to_ars(amount, rate), "rate": rate}

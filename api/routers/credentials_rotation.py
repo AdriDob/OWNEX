@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.credentials.vault import (
+from cores.credentials.vault import (
     auto_rotate_all,
     check_rotation_needs,
     get_expiring_credentials,
@@ -51,7 +51,7 @@ async def get_rotation_status() -> dict[str, Any]:
     - failed_auth_count: int
     - last_rotated: str | None
     """
-    from core.credentials.vault import _AUTO_REFRESH_PLATFORMS, _MANUAL_ROTATION_PLATFORMS
+    from cores.credentials.vault import _AUTO_REFRESH_PLATFORMS, _MANUAL_ROTATION_PLATFORMS
 
     all_platforms = list(_AUTO_REFRESH_PLATFORMS | _MANUAL_ROTATION_PLATFORMS)
     status = {}

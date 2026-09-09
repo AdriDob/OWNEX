@@ -157,8 +157,8 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     """Build the default real discovery adapters (idempotent registration list).
 
     Each entry is constructed lazily so an unavailable platform only logs and
-    never blocks the engine. Freelancer is classified as the freelance model
-    (selection world); bounties are outcome-based.
+    never blocks the engine. Bounties are outcome-based; freelance (Workana)
+    is an OPTIONAL commercial channel evaluated by the same scoring engine.
     """
     adapters: list[BaseDiscoveryAdapter] = []
 
@@ -192,7 +192,7 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         logger.warning("Could not build bugbounty adapters: %s", exc)
 
     try:
-        from core.opportunity.adapters.issuehunt import IssueHuntAdapter
+        from cores.opportunity.adapters.issuehunt import IssueHuntAdapter
 
         adapters.append(
             LegacyOpportunityDweAdapter(
@@ -208,26 +208,17 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build issuehunt adapter: %s", exc)
 
+    # Workana — OPTIONAL freelance channel (LATAM). Manual leads only,
+    # evaluated by the same scoring engine. Never blocks the engine.
     try:
-        from core.opportunity.adapters.freelancer import FreelancerAdapter
+        from api.adapters.direct_work_workana import WorkanaDweAdapter
 
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                FreelancerAdapter(),
-                name="freelancer",
-                platform=WorkPlatform.FREELANCER,
-                category=OpportunityCategory.SOFTWARE_ENGINEERING,
-                employment_type=EmploymentType.FREELANCE,
-                registration_required=True,
-                tier=3,
-                analysis_cadence_hours=72,
-            )
-        )
+        adapters.append(WorkanaDweAdapter())
     except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build freelancer adapter: %s", exc)
+        logger.warning("Could not build workana adapter: %s", exc)
 
     try:
-        from core.opportunity.adapters.opencollective import OpenCollectiveAdapter
+        from cores.opportunity.adapters.opencollective import OpenCollectiveAdapter
 
         adapters.append(
             LegacyOpportunityDweAdapter(
@@ -243,16 +234,22 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build opencollective adapter: %s", exc)
 
-    # Pulse cycle adapters (AI work / data annotation — speed 1.0, cobro en días)
+    # Fiverr — primary revenue ecosystem (solution-based, not hours)
     try:
-        from core.opportunity.adapters.pulse import (
-            DataAnnotationAdapter,
-            FreelancerMicrotaskAdapter,
+        from api.adapters.direct_work_fiverr import FiverrDweAdapter
+
+        adapters.append(FiverrDweAdapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build fiverr adapter: %s", exc)
+
+    # Pulse cycle adapters (AI work — Outlier/Mindrift accept AR directly;
+    # DataAnnotation/Remotasks removed: not available from Argentina)
+    try:
+        from cores.opportunity.adapters.pulse import (
             LinkedInEasyApplyAdapter,
             MindriftAdapter,
             OpyreMicrotaskAdapter,
             OutlierAdapter,
-            RemotasksAdapter,
         )
 
         adapters.append(
@@ -268,32 +265,10 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         )
         adapters.append(
             LegacyOpportunityDweAdapter(
-                DataAnnotationAdapter(),
-                name="dataannotation",
-                platform=WorkPlatform.DATA_ANNOTATION_PLATFORM,
-                category=OpportunityCategory.DATA_ANNOTATION,
-                employment_type=EmploymentType.MICROTASK,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
                 MindriftAdapter(),
                 name="mindrift",
                 platform=WorkPlatform.MINDRIFT,
                 category=OpportunityCategory.AI_EVALUATION,
-                employment_type=EmploymentType.MICROTASK,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                RemotasksAdapter(),
-                name="remotasks",
-                platform=WorkPlatform.REMOTASKS,
-                category=OpportunityCategory.DATA_ANNOTATION,
                 employment_type=EmploymentType.MICROTASK,
                 tier=1,
                 analysis_cadence_hours=6,
@@ -317,17 +292,6 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
                 platform=WorkPlatform.LINKEDIN,
                 category=OpportunityCategory.SOFTWARE_ENGINEERING,
                 employment_type=EmploymentType.FULL_TIME,
-                tier=2,
-                analysis_cadence_hours=24,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                FreelancerMicrotaskAdapter(),
-                name="freelancer_microtask",
-                platform=WorkPlatform.FREELANCER_MICROTASK,
-                category=OpportunityCategory.DEV_BOUNTY,
-                employment_type=EmploymentType.MICROTASK,
                 tier=2,
                 analysis_cadence_hours=24,
             )

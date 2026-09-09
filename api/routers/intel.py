@@ -5,9 +5,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.intel.cve_intel import CVEResult, prioritize_cves
-from core.intel.finance import FinanceIntel, get_finance_intel
-from core.intel.llm_scanner import LLMScanResult, scan_llm_endpoint
+from cores.intel.cve_intel import CVEResult, prioritize_cves
+from cores.intel.finance import FinanceIntel, get_finance_intel
+from cores.intel.llm_scanner import LLMScanResult, scan_llm_endpoint
 
 logger = logging.getLogger("catseye.intel")
 router = APIRouter(prefix="/api/intel", tags=["intel"])

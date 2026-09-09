@@ -293,7 +293,7 @@ def feed_hacktivity_to_learner(
     delay: float = 1.0,
 ) -> int:
     """Scrape hacktivity and feed results into the AcceptanceLearner."""
-    from core.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.learner import AcceptanceLearner
 
     scraped = scrape_hacktivity_pages(
         max_pages=max_pages,

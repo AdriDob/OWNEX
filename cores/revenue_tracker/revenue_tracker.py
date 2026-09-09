@@ -107,7 +107,7 @@ _STAGE_FROM_EXEC_MAP_CACHE: dict[str, "OpportunityStage"] | None = None
 def _stage_from_exec_map() -> dict[str, "OpportunityStage"]:
     global _STAGE_FROM_EXEC_MAP_CACHE
     if _STAGE_FROM_EXEC_MAP_CACHE is None:
-        from core.execution_queue import ExecState
+        from cores.execution_queue import ExecState
 
         _STAGE_FROM_EXEC_MAP_CACHE = {
             ExecState.DISCOVERED.value: OpportunityStage.DISCOVERED,
@@ -147,7 +147,7 @@ def exec_state_for_stage(stage: OpportunityStage | str) -> str:
     to VERIFICATION because the cash has not landed yet). Returns the raw
     string value — the caller validates via can_transition() if mutating.
     """
-    from core.execution_queue import ExecState
+    from cores.execution_queue import ExecState
 
     value = getattr(stage, "value", stage)
     reverse = {
@@ -549,7 +549,7 @@ class RevenueTracker:
         (coincide con stage_from_payment_status: ACCEPTED → Stage.ACCEPTED,
         no REWARDED/PAID). CANCELLED es pérdida documentada, no cash.
         """
-        platform_key = opportunity.platform.lower()
+        platform_key = str(getattr(opportunity.platform, "value", opportunity.platform) or "").lower()
         currency = opportunity.currency
 
         pending = Decimal("0")
@@ -558,7 +558,7 @@ class RevenueTracker:
         total_opps = 0
         paid_opps = 0
         for opp in self.opportunities.values():
-            if opp.platform.lower() != platform_key:
+            if str(getattr(opp.platform, "value", opp.platform) or "").lower() != platform_key:
                 continue
             total_opps += 1
             if opp.status == PaymentStatus.PENDING or opp.status == PaymentStatus.REVIEWING:
@@ -624,7 +624,7 @@ class RevenueTracker:
         net_amount = Decimal("0")
 
         for opp in self.opportunities.values():
-            if opp.platform.lower() != platform_key:
+            if str(getattr(opp.platform, "value", opp.platform) or "").lower() != platform_key:
                 continue
             if opp.revenue_state == "expected":
                 expected_amount += opp.amount
@@ -645,7 +645,8 @@ class RevenueTracker:
         metrics.failed_amount = sum(
             opp.amount
             for opp in self.opportunities.values()
-            if opp.platform.lower() == platform_key and opp.revenue_state in {"cancelled", "failed"}
+            if str(getattr(opp.platform, "value", opp.platform) or "").lower() == platform_key
+            and opp.revenue_state in {"cancelled", "failed"}
         ) or Decimal("0")
         metrics.total_amount = (
             expected_amount + committed_amount + earned_amount + pending_amount + paid_amount + net_amount
@@ -674,15 +675,14 @@ class RevenueTracker:
             "failed": Decimal("0"),
         }
 
-        platforms = (
-            [platform]
-            if platform
-            else [p.lower() for p in set(opp.platform.lower() for opp in self.opportunities.values())]
-        )
+        def _pkey(opp: Any) -> str:
+            return str(getattr(opp.platform, "value", opp.platform) or "").lower()
+
+        platforms = [platform] if platform else sorted({_pkey(opp) for opp in self.opportunities.values()})
 
         for platform_key in platforms:
             for opp in self.opportunities.values():
-                if opp.platform.lower() != platform_key:
+                if _pkey(opp) != platform_key:
                     continue
                 state = opp.revenue_state
                 if state in result:

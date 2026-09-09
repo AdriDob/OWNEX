@@ -4,8 +4,8 @@ import logging
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.reports.quality.classifier import QualityClassifier
-from core.reports.quality.scorer import QualityScorer
+from cores.reports.quality.classifier import QualityClassifier
+from cores.reports.quality.scorer import QualityScorer
 from database import db
 from database.models import Finding
 
@@ -51,7 +51,7 @@ def optimize_report(
     platform: str = Query("hackerone", description="Target platform (hackerone, bugcrowd, intigriti, immunefi)"),
 ):
     """Generate an optimized report for a finding with auto-remediation, CVSS, CWE, and quality analysis."""
-    from core.reports.optimizer import ReportOptimizer
+    from cores.reports.optimizer import ReportOptimizer
 
     try:
         optimizer = ReportOptimizer()
@@ -72,7 +72,7 @@ def batch_optimize(
     platform: str = Query("hackerone", description="Target platform"),
 ):
     """Batch optimize multiple findings."""
-    from core.reports.optimizer import ReportOptimizer
+    from cores.reports.optimizer import ReportOptimizer
 
     try:
         optimizer = ReportOptimizer()

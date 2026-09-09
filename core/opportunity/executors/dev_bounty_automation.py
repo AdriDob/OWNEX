@@ -15,9 +15,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.autonomy.coder_agent import CoderAgent, CoderAgentConfig, CoderAgentResult, solve_issue
-from core.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
-from core.opportunity.models import Opportunity
+from cores.autonomy.coder_agent import CoderAgent, CoderAgentConfig, CoderAgentResult, solve_issue
+from cores.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
+from cores.opportunity.models import Opportunity
 
 logger = logging.getLogger("ownex.dev_bounty_automation")
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from core.opportunity.models import PersonalHistory, ScoredOpportunity
-from core.opportunity.scorer import score_opportunity
+from cores.opportunity.models import PersonalHistory, ScoredOpportunity
+from cores.opportunity.scorer import score_opportunity
 from cores.opportunity.models import Opportunity
 
 

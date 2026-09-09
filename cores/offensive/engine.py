@@ -15,21 +15,21 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
-from core.capabilities.registry import get_capability_registry
-from core.knowledge.graph import get_knowledge_graph
-from core.offensive.contradiction import ContradictionEngine
-from core.offensive.curiosity import CuriosityEngine
-from core.offensive.models import EndpointInfo, ReasonerResult
-from core.offensive.planner import InvestigationPlanner
-from core.offensive.publisher import publish_offensive_event
-from core.offensive.reasoners.auth_bypass import AuthBypassReasoner
-from core.offensive.reasoners.base import BaseReasoner
-from core.offensive.reasoners.idor import IDORReasoner
-from core.offensive.reasoners.sqli import SQLiReasoner
-from core.offensive.reasoners.ssrf import SSRFReasoner
-from core.offensive.reasoners.xss import XSSReasoner
-from core.offensive.relationship import EndpointRelationshipEngine
-from core.offensive.triager import TriagerSimulator
+from cores.capabilities.registry import get_capability_registry
+from cores.knowledge.graph import get_knowledge_graph
+from cores.offensive.contradiction import ContradictionEngine
+from cores.offensive.curiosity import CuriosityEngine
+from cores.offensive.models import EndpointInfo, ReasonerResult
+from cores.offensive.planner import InvestigationPlanner
+from cores.offensive.publisher import publish_offensive_event
+from cores.offensive.reasoners.auth_bypass import AuthBypassReasoner
+from cores.offensive.reasoners.base import BaseReasoner
+from cores.offensive.reasoners.idor import IDORReasoner
+from cores.offensive.reasoners.sqli import SQLiReasoner
+from cores.offensive.reasoners.ssrf import SSRFReasoner
+from cores.offensive.reasoners.xss import XSSReasoner
+from cores.offensive.relationship import EndpointRelationshipEngine
+from cores.offensive.triager import TriagerSimulator
 
 logger = logging.getLogger("orion.core.offensive.engine")
 

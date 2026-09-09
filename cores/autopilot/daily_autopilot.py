@@ -113,7 +113,7 @@ class DailyAutopilot:
     def _source_platform_applications(self, context: dict[str, Any] | None) -> list:
         """Source: Platform applications needing action."""
         try:
-            from core.application_assistant import get_application_assistant
+            from cores.application_assistant import get_application_assistant
 
             assistant = get_application_assistant()
             assistant.overview()

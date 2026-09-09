@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.f1 import templates  # noqa: N812
-from core.f1.assistant import F1Assistant, get_f1
-from core.orion_cli.models import CommandResult
+from cores.f1 import templates  # noqa: N812
+from cores.f1.assistant import F1Assistant, get_f1
+from cores.orion_cli.models import CommandResult
 
 logger = logging.getLogger("orion.cli")
 
@@ -88,7 +88,7 @@ class OrionCLI:
 
     def hunt(self, target: str = "", detail: int = 1) -> CommandResult:
         try:
-            from core.revenue_multiplier import (
+            from cores.revenue_multiplier import (
                 RevenueMultiplierConfig,
                 RevenueMultiplierOrchestrator,
             )
@@ -131,7 +131,7 @@ class OrionCLI:
 
     def trade(self, detail: int = 1) -> CommandResult:
         try:
-            from core.revenue_multiplier import (
+            from cores.revenue_multiplier import (
                 RevenueMultiplierConfig,
                 RevenueMultiplierOrchestrator,
             )
@@ -167,7 +167,7 @@ class OrionCLI:
 
     def revenue(self, detail: int = 1) -> CommandResult:
         try:
-            from core.revenue_multiplier import get_revenue_multiplier
+            from cores.revenue_multiplier import get_revenue_multiplier
 
             rm = get_revenue_multiplier()
             metrics = rm.metrics.to_dict()
@@ -198,7 +198,7 @@ class OrionCLI:
 
     def max_revenue(self, detail: int = 1) -> CommandResult:
         try:
-            from core.revenue_multiplier import (
+            from cores.revenue_multiplier import (
                 RevenueMultiplierConfig,
                 RevenueMultiplierOrchestrator,
             )

@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/revenue-multiplier", tags=["revenue_multiplier"]
 async def revenue_status():
     """Get current orchestrator status."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "status": rm.get_status()}
@@ -28,7 +28,7 @@ async def revenue_status():
 async def activate_max_revenue(data: dict[str, Any] | None = None):
     """Activate MAX REVENUE MODE — runs bounty pipeline and/or crypto trading."""
     try:
-        from core.revenue_multiplier import (
+        from cores.revenue_multiplier import (
             ExecutionMode,
             RevenueMultiplierConfig,
             RevenueMultiplierOrchestrator,
@@ -53,11 +53,11 @@ async def activate_max_revenue(data: dict[str, Any] | None = None):
 async def list_tools(category: str | None = None):
     """List all registered tools with availability status."""
     try:
-        from core.revenue_multiplier import get_tool_registry
+        from cores.revenue_multiplier import get_tool_registry
 
         reg = get_tool_registry()
         if category:
-            from core.revenue_multiplier.models import ToolCategory
+            from cores.revenue_multiplier.models import ToolCategory
 
             cat = ToolCategory(category)
             tools = reg.list_by_category(cat)
@@ -95,7 +95,7 @@ def shutil_which(binary: str) -> bool:
 async def revenue_metrics():
     """Get combined bounty + trading metrics."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "metrics": rm.metrics.to_dict()}
@@ -108,7 +108,7 @@ async def revenue_metrics():
 async def recent_events(limit: int = 20):
     """Get recent revenue events."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         events = rm.publisher.get_recent_events(limit=limit)
@@ -135,7 +135,7 @@ async def recent_events(limit: int = 20):
 async def get_config():
     """Get current revenue multiplier configuration."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "config": rm.get_status().get("config", {})}
@@ -148,7 +148,7 @@ async def get_config():
 async def update_config(data: dict[str, Any]):
     """Update revenue multiplier configuration for current session."""
     try:
-        from core.revenue_multiplier import (
+        from cores.revenue_multiplier import (
             ExecutionMode,
             get_revenue_multiplier,
         )
@@ -179,7 +179,7 @@ async def update_config(data: dict[str, Any]):
 async def generate_report():
     """Generate a revenue report from accumulated events."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         events = rm.publisher.get_recent_events()

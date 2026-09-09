@@ -10,10 +10,10 @@ import importlib
 import logging
 from pathlib import Path
 
-from core.extension.capabilities import Capability, get_capability_registry
-from core.extension.hooks import get_hook_registry
-from core.extension.manifest import ExtensionManifest
-from core.plugin.discovery import discover_manifests
+from cores.extension.capabilities import Capability, get_capability_registry
+from cores.extension.hooks import get_hook_registry
+from cores.extension.manifest import ExtensionManifest
+from cores.plugin.discovery import discover_manifests
 
 logger = logging.getLogger("orion.core.extensions")
 

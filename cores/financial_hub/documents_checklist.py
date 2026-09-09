@@ -6,7 +6,7 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-from core.financial_hub.models import PayoutDocument
+from cores.financial_hub.models import PayoutDocument
 from database.db import SessionLocal
 
 _DEFAULT_DOCUMENTS: list[dict[str, Any]] = [

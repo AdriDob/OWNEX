@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from core.orion.models import (
+from cores.orion.models import (
     OrionDecision,
     OrionTask,
     PriorityLevel,

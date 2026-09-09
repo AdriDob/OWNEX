@@ -1,6 +1,6 @@
-"""Re-export from core.revenue.models for backward compatibility."""
+"""Re-export from cores.revenue.models for backward compatibility."""
 
-from core.revenue.models import (
+from cores.revenue.models import (
     Payment,
     RevenueRecord,
     RevenueStats,

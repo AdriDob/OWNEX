@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from core.autonomy.dev_bounty_pipeline import (
+from cores.autonomy.dev_bounty_pipeline import (
     DevBountyPipelineConfig,
     get_dev_bounty_pipeline,
 )

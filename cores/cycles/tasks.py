@@ -7,9 +7,9 @@ Handlers referenced by scheduler jobs:
 import logging
 from typing import Any
 
-from core.cycles.models import Task, TaskStatus
-from core.cycles.security import get_security_cycle
-from core.database.manager import get_db_manager
+from cores.cycles.models import Task, TaskStatus
+from cores.cycles.security import get_security_cycle
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("ownex.cycles.tasks")
 
@@ -81,3 +81,70 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return {"status": "error", "message": str(e)}
     finally:
         db.close()
+
+
+def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
+    """Auto-prepare delivery packages for all ready WorkBank items.
+
+    Called daily by the scheduler after the Work Bank cycle: iterates items
+    flagged ready_to_deliver, builds delivery packages (README/proposal/work
+    files), and saves them to disk. The user only needs to review and submit
+    — no manual preparation required.
+    """
+    import asyncio
+
+    try:
+        from cores.opportunity.executors.assisted_mode import AssistedExecutor
+        from cores.direct_work_engine.workbank import get_workbank
+
+        max_delivery_items: int = 10
+        wb = get_workbank()
+        ready_items = [i for i in wb.best_ready(limit=200) if i.ready_to_deliver][:max_delivery_items]
+        executor = AssistedExecutor(base_executor=None)
+
+        async def _prepare() -> int:
+            prepared = 0
+            for item in ready_items:
+                opportunity = {
+                    "platform": str(item.platform),
+                    "id": item.id,
+                    "title": item.title,
+                    "description": item.description or " ".join(item.deliverables),
+                    "url": item.url or "",
+                }
+                pkg = await executor.prepare_work(opportunity)
+                await executor.save_work_to_disk(pkg)
+                prepared += 1
+            return prepared
+
+        prepared = asyncio.run(_prepare())
+
+        # Notify user that packages are ready for submission
+        if prepared:
+            from cores.notifications.action_required import notify_action_required
+
+            notify_action_required(
+                title=f"{prepared} paquetes de entrega listos para submitir",
+                reason="Preparación automática completada. Revisar y submitir.",
+                impact=f"{prepared} trabajos preparados en ~/ownex/submissions/",
+                steps=[
+                    "Revisar los paquetes en ~/ownex/submissions/",
+                    "Submitir cada trabajo en la plataforma correspondiente",
+                    "Marcar como entregado en el dashboard",
+                ],
+                ui_path="/direct-work",
+                category="delivery",
+                priority="medium",
+                channels=["web", "desktop"],
+                subject_id="daily_delivery",
+                subject_type="workflow",
+            )
+
+        return {
+            "status": "ok",
+            "prepared_count": prepared,
+            "total_ready": len(ready_items),
+        }
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not auto-prepare delivery: %s", e)
+        return {"status": "error", "message": str(e)}

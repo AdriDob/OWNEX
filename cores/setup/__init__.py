@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from core.setup.first_run import complete_setup, is_setup_complete, setup_status
-from core.setup.requirements_check import check_all as check_requirements
-from core.setup.wizard import (
+from cores.setup.first_run import complete_setup, is_setup_complete, setup_status
+from cores.setup.requirements_check import check_all as check_requirements
+from cores.setup.wizard import (
     get_wizard_progress,
     go_back,
     reset_wizard,

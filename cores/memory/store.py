@@ -9,8 +9,8 @@ from typing import Any
 
 from sqlalchemy import or_
 
-from core.database.manager import get_db_manager
-from core.memory.models import Base, MemoryEntry
+from cores.database.manager import get_db_manager
+from cores.memory.models import Base, MemoryEntry
 
 logger = logging.getLogger("orion.core.memory")
 

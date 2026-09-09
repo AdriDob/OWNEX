@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.engine.base import Engine
+from cores.engine.base import Engine
 
 logger = logging.getLogger("ownex.capability")
 

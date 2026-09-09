@@ -6,7 +6,7 @@ import logging
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from core.market_intelligence.models import (
+from cores.market_intelligence.models import (
     IntelligenceSource,
     MarketDomain,
     Sentiment,

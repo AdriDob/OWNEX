@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from core.obsidian_sync import (
+from cores.obsidian_sync import (
     _delete_file,
     _list_all_files,
     _load_state,

@@ -7,7 +7,7 @@ from typing import Any
 
 from apps.aegis.engines.recon import ReconEngine
 from apps.aegis.models import AegisTarget, ScanResult, VulnFinding
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.aegis.engines.scanner")
 

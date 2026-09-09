@@ -182,8 +182,13 @@ class BrowserAgent:
             return BrowserResult(True, "login_linkedin", "linkedin.com", "Logged in successfully")
         return BrowserResult(False, "login_linkedin", "linkedin.com", error="Login failed")
 
-    async def easy_apply_linkedin(self, job_url: str) -> BrowserResult:
-        """Apply to LinkedIn job via Easy Apply."""
+    async def easy_apply_linkedin(self, job_url: str, approval_token: str | None = None) -> BrowserResult:
+        """Apply to LinkedIn job via Easy Apply (REQUIRES human approval: sends an application)."""
+        from cores.automation.safety import require_browser_approval
+
+        ok, message = require_browser_approval("easy_apply_linkedin", job_url, approval_token)
+        if not ok:
+            return BrowserResult(False, "easy_apply", job_url, error=message)
         result = await self.goto(job_url)
         if not result.success:
             return result
@@ -199,8 +204,13 @@ class BrowserAgent:
         # This would need expansion for multi-step forms
         return BrowserResult(True, "easy_apply", job_url, "Application submitted")
 
-    async def claim_algora_issue(self, issue_url: str) -> BrowserResult:
-        """Claim issue on Algora via web."""
+    async def claim_algora_issue(self, issue_url: str, approval_token: str | None = None) -> BrowserResult:
+        """Claim issue on Algora via web (REQUIRES human approval: binds the owner to work)."""
+        from cores.automation.safety import require_browser_approval
+
+        ok, message = require_browser_approval("claim_algora_issue", issue_url, approval_token)
+        if not ok:
+            return BrowserResult(False, "claim_algora", issue_url, error=message)
         result = await self.goto(issue_url)
         if not result.success:
             return result
@@ -211,8 +221,13 @@ class BrowserAgent:
 
         return BrowserResult(True, "claim_algora", issue_url, "Issue claimed via web")
 
-    async def dataannotation_claim_task(self, task_url: str) -> BrowserResult:
-        """Claim task on DataAnnotation.tech."""
+    async def dataannotation_claim_task(self, task_url: str, approval_token: str | None = None) -> BrowserResult:
+        """Claim task on DataAnnotation.tech (REQUIRES human approval)."""
+        from cores.automation.safety import require_browser_approval
+
+        ok, message = require_browser_approval("dataannotation_claim_task", task_url, approval_token)
+        if not ok:
+            return BrowserResult(False, "dataannotation_claim", task_url, error=message)
         result = await self.goto(task_url)
         if not result.success:
             return result
@@ -223,8 +238,13 @@ class BrowserAgent:
 
         return BrowserResult(True, "dataannotation_claim", task_url, "Task claimed")
 
-    async def outlier_claim_task(self, task_url: str) -> BrowserResult:
-        """Claim task on Outlier.ai."""
+    async def outlier_claim_task(self, task_url: str, approval_token: str | None = None) -> BrowserResult:
+        """Claim task on Outlier.ai (REQUIRES human approval)."""
+        from cores.automation.safety import require_browser_approval
+
+        ok, message = require_browser_approval("outlier_claim_task", task_url, approval_token)
+        if not ok:
+            return BrowserResult(False, "outlier_claim", task_url, error=message)
         result = await self.goto(task_url)
         if not result.success:
             return result

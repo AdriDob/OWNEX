@@ -20,11 +20,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from core.autonomy.code_generator import CodeGenerator, GenerationPlan
-from core.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
-from core.autonomy.pr_builder import PRBuilder, PRResult, create_pr_from_plan
-from core.autonomy.repo_analyzer import RepoAnalyzer, RepoInfo
-from core.autonomy.test_runner import TestRunner, TestRunSummary
+from cores.autonomy.code_generator import CodeGenerator, GenerationPlan
+from cores.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
+from cores.autonomy.pr_builder import PRBuilder, PRResult, create_pr_from_plan
+from cores.autonomy.repo_analyzer import RepoAnalyzer, RepoInfo
+from cores.autonomy.test_runner import TestRunner, TestRunSummary
 
 
 @dataclass
@@ -71,6 +71,12 @@ class CoderAgentConfig:
     cleanup_repo: bool = True
     run_lint: bool = True
 
+    # Safety (owner = final authority; see cores/automation/safety.py)
+    allowed_repo_roots: list[str] = field(default_factory=list)
+    extra_blocked_commands: list[str] = field(default_factory=list)
+    require_approval_for_pr: bool = True
+    redact_secrets_in_prompts: bool = True
+
     # Platform-specific
     platform_configs: dict[str, dict[str, Any]] = field(default_factory=dict)
 
@@ -97,6 +103,7 @@ class CoderAgent:
         issue_data: dict[str, Any],
         repo_url: str | None = None,
         platform: str = "unknown",
+        approval_token: str | None = None,
     ) -> CoderAgentResult:
         """Main entry point: solve an issue end-to-end.
 
@@ -104,6 +111,8 @@ class CoderAgent:
             issue_data: Raw issue data from platform (Algora, Opire, GitHub, etc.)
             repo_url: Repository URL (if not in issue_data)
             platform: Platform name (algora, opire, issuehunt, github, freelancer, etc.)
+            approval_token: Human approval for PR creation/push (required by
+                default; see CoderAgentConfig.require_approval_for_pr).
 
         Returns:
             CoderAgentResult with all phase results
@@ -127,6 +136,11 @@ class CoderAgent:
                 raise ValueError("No repository URL provided")
 
             repo_path = self.work_dir / f"repo_{result.issue_id}"
+            from cores.automation.safety import is_path_allowed
+
+            roots = [str(self.work_dir), *(self.config.allowed_repo_roots or [])]
+            if not is_path_allowed(repo_path, roots):
+                raise ValueError(f"Repo path outside allowed roots: {repo_path}")
             if repo_path.exists():
                 shutil.rmtree(repo_path)
 
@@ -197,13 +211,15 @@ class CoderAgent:
                 return self._finalize_result(result, start_time, repo_path)
 
             # ============================================================
-            # PHASE 5: CREATE PR
+            # PHASE 5: CREATE PR (REQUIRES human approval by default)
             # ============================================================
             phase_start = time.time()
             pr_result = await create_pr_from_plan(
                 result.generation_plan,
                 result.repo_info,
                 platform="github",  # Most bounty platforms use GitHub
+                approval_token=approval_token,
+                require_approval=self.config.require_approval_for_pr,
             )
             result.phases_duration["pr_creation"] = time.time() - phase_start
 

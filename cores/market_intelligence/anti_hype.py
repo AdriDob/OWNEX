@@ -6,7 +6,7 @@ import logging
 import re
 from typing import Any
 
-from core.market_intelligence.models import Confidence, SourceSignal, SourceTier
+from cores.market_intelligence.models import Confidence, SourceSignal, SourceTier
 
 logger = logging.getLogger("orion.intel.anti_hype")
 

@@ -14,7 +14,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.forge import get_forge_cycle
+from cores.cycles.forge import get_forge_cycle
 
 router = APIRouter(prefix="/api/cycles/forge", tags=["forge-cycle"])
 

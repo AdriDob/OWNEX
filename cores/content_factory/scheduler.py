@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from apscheduler.triggers.cron import CronTrigger
@@ -186,9 +186,9 @@ async def run_hourly_analytics() -> dict[str, Any]:
     db = SessionLocal()
     try:
         # Get recently published videos (last 7 days)
-        from datetime import datetime, timedelta
+        from datetime import UTC, datetime, timedelta
 
-        cutoff = datetime.utcnow() - timedelta(days=7)
+        cutoff = datetime.now(UTC) - timedelta(days=7)
 
         published_jobs = (
             db.query(VideoJob)
@@ -270,13 +270,13 @@ async def run_health_check() -> dict[str, Any]:
 
         return {
             "healthy": healthy,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         return {
             "healthy": False,
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 

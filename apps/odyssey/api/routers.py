@@ -10,7 +10,7 @@ from sqlalchemy import func
 
 from apps.odyssey.models import Bankroll, Bet, Strategy
 from apps.odyssey.providers.kelly import KellyProvider
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.odyssey.api")
 router = APIRouter(prefix="/api/odyssey", tags=["odyssey"])

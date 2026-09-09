@@ -11,7 +11,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.defi.positions import DefiPosition, YieldSnapshot
+from cores.defi.positions import DefiPosition, YieldSnapshot
 
 logger = logging.getLogger("orion.core.defi.tracker")
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from core.scheduler.jobs import get_trading_jobs
+from cores.scheduler.jobs import get_trading_jobs
 
 router = APIRouter(prefix="/api/trading", tags=["trading_dashboard"])
 

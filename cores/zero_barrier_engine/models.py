@@ -7,7 +7,7 @@ Public-first, zero-barrier, EV/hour focused.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -207,8 +207,8 @@ class PublicOpportunity:
     skill_match_details: dict[str, float] = field(default_factory=dict)
 
     # Timing
-    discovered_at: datetime = field(default_factory=datetime.utcnow)
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     deadline: datetime | None = None
     time_to_first_payment_days: int = 30
     time_to_work_start_hours: float = 0.0

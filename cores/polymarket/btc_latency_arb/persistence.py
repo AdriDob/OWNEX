@@ -7,7 +7,7 @@ import logging
 import time
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import BTCArbConfig
+from cores.polymarket.btc_latency_arb.config import BTCArbConfig
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.persistence")
 

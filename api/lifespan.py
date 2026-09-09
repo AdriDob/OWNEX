@@ -151,7 +151,7 @@ def _init_identity() -> None:
 
 
 def _init_temp_manager() -> None:
-    from core.system.temp_manager import get_temp_manager
+    from cores.system.temp_manager import get_temp_manager
 
     get_temp_manager()
 
@@ -176,6 +176,17 @@ def _init_trackers() -> None:
     from cores.accountability.outcome_tracker import get_outcome_tracker
 
     get_outcome_tracker()
+
+    # Revenue truth must survive restarts: replay persisted execution state
+    # (submission queue + delivered workbank items) through the idempotent
+    # bridge. Non-fatal by design.
+    try:
+        from cores.revenue_tracker.execution_bridge import reconcile_from_persisted_state
+
+        counts = reconcile_from_persisted_state()
+        logger.info("[BG-INIT] revenue reconcile: %s", counts)
+    except Exception as exc:
+        logger.warning("[BG-INIT] revenue reconcile skipped: %s", exc)
 
 
 def _init_scorecard() -> None:
@@ -206,14 +217,14 @@ def _init_memory_stores() -> None:
 
 
 async def _init_self_healing() -> None:
-    from core.self_healing.system import get_self_healing_system
+    from cores.self_healing.system import get_self_healing_system
 
     hs = get_self_healing_system()
     await asyncio.get_event_loop().run_in_executor(None, hs.validate_system)
 
 
 async def _init_self_update() -> None:
-    from core.self_healing.update import SelfUpdateSystem
+    from cores.self_healing.update import SelfUpdateSystem
 
     u = SelfUpdateSystem()
     await asyncio.get_event_loop().run_in_executor(None, u.check_for_updates)
@@ -226,14 +237,14 @@ def _init_priority_engine() -> None:
 
 
 def _init_loop_engines(bus: Any) -> None:
-    from core.loop.startup import init_loop_engines
-    from core.scheduler.scheduler import get_core_scheduler
+    from cores.loop.startup import init_loop_engines
+    from cores.scheduler.scheduler import get_core_scheduler
 
     init_loop_engines(scheduler=get_core_scheduler(), event_bus=bus)
 
 
 async def _init_obs_engine(bus: Any) -> Any:
-    from core.sensors.observation_engine import ObservationEngine
+    from cores.sensors.observation_engine import ObservationEngine
 
     obs = ObservationEngine(event_bus=bus)
     await obs.initialize()
@@ -241,20 +252,20 @@ async def _init_obs_engine(bus: Any) -> Any:
 
 
 def _init_copilot() -> Any:
-    from core.copilot.agent import CopilotAgent
-    from core.copilot.permissions import AuthorityLevel
+    from cores.copilot.agent import CopilotAgent
+    from cores.copilot.permissions import AuthorityLevel
 
     return CopilotAgent(authority=AuthorityLevel.SENIOR_HUNTER)
 
 
 def _init_evidence_graph() -> None:
-    from core.evidence_graph.graph import get_evidence_graph
+    from cores.evidence_graph.graph import get_evidence_graph
 
     get_evidence_graph()
 
 
 def _init_knowledge_graph() -> None:
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     get_knowledge_graph()
 
@@ -283,8 +294,8 @@ def _init_agents() -> None:
 
 
 def _init_health_checks() -> None:
-    from core.health.checks import register_default_checks
-    from core.health.engine import get_health_center
+    from cores.health.checks import register_default_checks
+    from cores.health.engine import get_health_center
 
     center = get_health_center()
     center.enable_persistence()
@@ -324,16 +335,16 @@ async def _init_operations(app: Any) -> Any:
 
 
 async def _init_orion_platform(app: Any, bus: Any) -> Any:
-    from core.app_registry import get_app_registry
-    from core.database.manager import get_db_manager
-    from core.scheduler.scheduler import JobDefinition, get_core_scheduler
+    from cores.app_registry import get_app_registry
+    from cores.database.manager import get_db_manager
+    from cores.scheduler.scheduler import JobDefinition, get_core_scheduler
     from cores.events.event_bus import get_event_bus
 
     registry = get_app_registry()
     registry.discover()
 
     try:
-        from core.capabilities.registration import register_all_capabilities
+        from cores.capabilities.registration import register_all_capabilities
 
         register_all_capabilities()
     except Exception:
@@ -347,7 +358,7 @@ async def _init_orion_platform(app: Any, bus: Any) -> Any:
         pass
 
     try:
-        from core.self_heal.engine import SelfHealEngine
+        from cores.self_heal.engine import SelfHealEngine
 
         SelfHealEngine().heal()
     except Exception:
@@ -442,7 +453,7 @@ async def _init_orion_platform(app: Any, bus: Any) -> Any:
         orion_scheduler.add_job(jd)
 
     try:
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         registered_ids = {job.job_id for job in orion_scheduler.get_jobs()}
         for _cycle, cycle_jobs in get_all_jobs().items():
@@ -478,8 +489,8 @@ def _init_autonomous() -> None:
 
 
 def _init_extensions() -> None:
-    from core.extension.registry import get_extension_registry
-    from core.integrations.registry import init_integration_registry
+    from cores.extension.registry import get_extension_registry
+    from cores.integrations.registry import init_integration_registry
 
     ext_reg = get_extension_registry()
     ext_reg.discover()
@@ -488,14 +499,14 @@ def _init_extensions() -> None:
 
 
 def _init_secrets() -> None:
-    from core.secrets.manager import get_secrets_manager
+    from cores.secrets.manager import get_secrets_manager
 
     sm = get_secrets_manager()
     logger.info("[BG-INIT] Secrets: %d keys cached", len(sm.list_keys()))
 
 
 def _init_evolution() -> None:
-    from core.evolution.engine import init_evolution_engine
+    from cores.evolution.engine import init_evolution_engine
 
     init_evolution_engine()
 
@@ -505,12 +516,12 @@ def _init_event_store(bus: Any) -> None:
 
     _event_store = get_event_store()
 
-    from core.capabilities.registry import get_capability_registry
+    from cores.capabilities.registry import get_capability_registry
 
     _creg = get_capability_registry()
 
     try:
-        from core.integrations.ext.hunter_bridge import status_summary
+        from cores.integrations.ext.hunter_bridge import status_summary
 
         _hunter_status = status_summary()
         for name, info in _hunter_status.items():
@@ -560,7 +571,7 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
 def _init_copilot_handlers(bus: Any, app: Any) -> None:
     # Evidence graph handler
     try:
-        from core.evidence_graph.graph import get_evidence_graph
+        from cores.evidence_graph.graph import get_evidence_graph
 
         _eg = get_evidence_graph()
 
@@ -580,7 +591,7 @@ def _init_copilot_handlers(bus: Any, app: Any) -> None:
 
     # Knowledge graph handler
     try:
-        from core.knowledge.graph import get_knowledge_graph
+        from cores.knowledge.graph import get_knowledge_graph
 
         _kg = get_knowledge_graph()
 
@@ -609,7 +620,7 @@ def _init_copilot_handlers(bus: Any, app: Any) -> None:
     # Copilot API router
     try:
         from api.routers.copilot import router as copilot_router
-        from core.copilot.orion_context import get_orion_context
+        from cores.copilot.orion_context import get_orion_context
         from database import db as _db
 
         get_orion_context(db_factory=_db.SessionLocal)
@@ -621,7 +632,7 @@ def _init_copilot_handlers(bus: Any, app: Any) -> None:
 def _init_telegram_bridge(bus: Any) -> None:
     def _telegram_handler(event_type: str, **payload: Any) -> None:
         with suppress(Exception):
-            from core.notifications.telegram.bridge import handle_event
+            from cores.notifications.telegram.bridge import handle_event
 
             handle_event(event_type, **payload)
 
@@ -662,7 +673,7 @@ def _init_auto_report(bus: Any) -> None:
         if payload.get("new_status") != "confirmed":
             return
         with suppress(Exception):
-            from core.auto_submit.pipeline import get_auto_submit_pipeline
+            from cores.auto_submit.pipeline import get_auto_submit_pipeline
 
             pipeline = get_auto_submit_pipeline()
             pipeline.process_finding(payload["id"])
@@ -690,7 +701,7 @@ def _init_feedback_tuner(bus: Any) -> None:
 
 def _init_verdict_learner(bus: Any) -> None:
     try:
-        from core.learning.verdict_learner import get_verdict_learner
+        from cores.learning.verdict_learner import get_verdict_learner
 
         _vl = get_verdict_learner()
         bus.subscribe("finding:status_changed", lambda et, **pl: _vl.handle_finding_status_changed(pl))
@@ -699,7 +710,7 @@ def _init_verdict_learner(bus: Any) -> None:
 
 
 def _init_unified_memory() -> None:
-    from core.memory.store import get_memory_store
+    from cores.memory.store import get_memory_store
 
     _store = get_memory_store()
     logger.info("[BG-INIT] Unified Memory: %d entries", _store.count())
@@ -707,7 +718,7 @@ def _init_unified_memory() -> None:
 
 def _init_smart_notifications(bus: Any) -> None:
     try:
-        from core.notifications.intelligent import get_intelligent_notifier
+        from cores.notifications.intelligent import get_intelligent_notifier
 
         notifier = get_intelligent_notifier()
 

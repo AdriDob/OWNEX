@@ -4,9 +4,9 @@ import logging
 import uuid
 from typing import Any
 
-from core.revenue_multiplier.config import RevenueMultiplierConfig
-from core.revenue_multiplier.models import Finding
-from core.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
+from cores.revenue_multiplier.config import RevenueMultiplierConfig
+from cores.revenue_multiplier.models import Finding
+from cores.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
 
 logger = logging.getLogger("orion.revenue.bugbounty")
 
@@ -152,39 +152,39 @@ class BugBountyHunter:
 
     def _get_adapter(self, name: str) -> Any:
         if name == "nuclei":
-            from core.revenue_multiplier.adapters.base import NucleiAdapter
+            from cores.revenue_multiplier.adapters.base import NucleiAdapter
 
             return NucleiAdapter(binary=self._config.nuclei_binary)
         if name == "katana":
-            from core.revenue_multiplier.adapters.base import KatanaAdapter
+            from cores.revenue_multiplier.adapters.base import KatanaAdapter
 
             return KatanaAdapter(binary=self._config.katana_binary)
         if name == "ffuf":
-            from core.revenue_multiplier.adapters.base import FfufAdapter
+            from cores.revenue_multiplier.adapters.base import FfufAdapter
 
             return FfufAdapter(binary=self._config.ffuf_binary)
         if name == "subfinder":
-            from core.revenue_multiplier.adapters.base import SubfinderAdapter
+            from cores.revenue_multiplier.adapters.base import SubfinderAdapter
 
             return SubfinderAdapter(binary=self._config.subfinder_binary)
         if name == "assetfinder":
-            from core.revenue_multiplier.adapters.base import SubfinderAdapter
+            from cores.revenue_multiplier.adapters.base import SubfinderAdapter
 
             return SubfinderAdapter(binary="assetfinder")
         if name == "gau":
-            from core.revenue_multiplier.adapters.base import GauAdapter
+            from cores.revenue_multiplier.adapters.base import GauAdapter
 
             return GauAdapter()
         if name == "sqlmap":
-            from core.revenue_multiplier.adapters.base import SqlmapAdapter
+            from cores.revenue_multiplier.adapters.base import SqlmapAdapter
 
             return SqlmapAdapter()
         if name == "xsstrike":
-            from core.revenue_multiplier.adapters.base import XSStrikeAdapter
+            from cores.revenue_multiplier.adapters.base import XSStrikeAdapter
 
             return XSStrikeAdapter()
         if name == "gitleaks":
-            from core.revenue_multiplier.adapters.base import GitleaksAdapter
+            from cores.revenue_multiplier.adapters.base import GitleaksAdapter
 
             return GitleaksAdapter()
         return None

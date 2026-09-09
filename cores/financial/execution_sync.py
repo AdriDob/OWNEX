@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from core.execution_queue import ExecState
+from cores.execution_queue import ExecState
 from cores.events.event_bus import get_event_bus
 from cores.ledger import LedgerEvent, record_event
 from cores.revenue_tracker import (

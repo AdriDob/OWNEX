@@ -8,10 +8,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.auth.provider import AuthConfig
-from core.capabilities.registry import get_capability_registry
-from core.http_probe.analyzer import AnalysisResult, Analyzer
-from core.http_probe.probes import (
+from cores.auth.provider import AuthConfig
+from cores.capabilities.registry import get_capability_registry
+from cores.http_probe.analyzer import AnalysisResult, Analyzer
+from cores.http_probe.probes import (
     AuthBypassProbe,
     BaseProbe,
     HttpResponse,
@@ -66,7 +66,7 @@ class HTTPClient:
             )
 
             if self._auth_config is not None:
-                from core.auth.injector import inject_into_client
+                from cores.auth.injector import inject_into_client
 
                 inject_into_client(self._client, self._auth_config)
 

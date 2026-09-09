@@ -19,13 +19,13 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.trading.ensemble import EnsembleIntelligence
-from core.trading.lifecycle import (
+from cores.trading.ensemble import EnsembleIntelligence
+from cores.trading.lifecycle import (
     complete_backtest,
     get_lifecycle_manager,
     start_backtest,
 )
-from core.trading.optimizer import PortfolioOptimizer
+from cores.trading.optimizer import PortfolioOptimizer
 from cores.events.event_bus import get_event_bus
 
 logger = logging.getLogger("orion.trading.orchestrator")
@@ -168,7 +168,7 @@ class StrategyOrchestrator:
 
     def _run_validation_pipeline(self, strategy) -> dict[str, Any]:
         try:
-            from core.trading.lifecycle import complete_backtest
+            from cores.trading.lifecycle import complete_backtest
 
             checks = {}
             for c in ["oos", "martingale", "slippage", "survivorship", "sample"]:

@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
+from cores.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
 logger = logging.getLogger("orion.copilot.providers.omniroute")
 

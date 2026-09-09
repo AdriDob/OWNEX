@@ -8,7 +8,7 @@ Pipeline:
       → optional: JSON structured data for API responses
 """
 
-from core.reporting.validator_report import ValidatorReport
+from cores.reporting.validator_report import ValidatorReport
 
 __all__ = ["ValidatorReport", "generate_and_save_report"]
 

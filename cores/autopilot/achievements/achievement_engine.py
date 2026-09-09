@@ -6,7 +6,7 @@ import json
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -218,7 +218,7 @@ class AchievementEngine:
     async def increment_streak(self, name: str) -> int:
         """Increment a streak counter."""
         streak = self._streaks.get(name, Streak(name=name))
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         if streak.last_increment:
             days_diff = (now - streak.last_increment).days
@@ -262,7 +262,7 @@ class AchievementEngine:
         return False
 
     async def _unlock(self, ach: Achievement) -> None:
-        ach.unlocked_at = datetime.utcnow()
+        ach.unlocked_at = datetime.now(UTC)
         ach.progress = ach.target
         self._unlocked.add(ach.id)
 
@@ -276,7 +276,7 @@ class AchievementEngine:
 
     def _check_streak_continuity(self) -> None:
         """Check if daily streaks should be reset."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for streak in self._streaks.values():
             if streak.last_increment:
                 days_since = (now - streak.last_increment).days

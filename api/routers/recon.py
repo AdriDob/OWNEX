@@ -7,9 +7,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.recon.fingerprint import Fingerprinter
-from core.recon.router import ReconRouter
-from core.recon.strategies import list_strategies
+from cores.recon.fingerprint import Fingerprinter
+from cores.recon.router import ReconRouter
+from cores.recon.strategies import list_strategies
 
 logger = logging.getLogger("orion.recon")
 router = APIRouter(prefix="/api/recon", tags=["recon"])

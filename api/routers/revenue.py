@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from core.revenue.pipeline import RevenuePipeline, register_revenue_capabilities
+from cores.revenue.pipeline import RevenuePipeline, register_revenue_capabilities
 
 logger = logging.getLogger("ownex.api.revenue")
 
@@ -135,6 +135,6 @@ def revenue_summary():
 @router.get("/capital-dashboard")
 def capital_dashboard():
     """Unified Capital Dashboard — capital, pipeline, targets, hot targets, program ranking."""
-    from core.revenue.metrics import RevenueMetrics
+    from cores.revenue.metrics import RevenueMetrics
 
     return RevenueMetrics().capital_dashboard()

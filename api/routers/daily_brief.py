@@ -198,7 +198,7 @@ def _determine_next_action(opp: Any) -> str:
         return "Analyze issue and generate fix"
     elif platform in ("outlier", "mindrift", "dataannotation"):
         return "Open platform and start task"
-    elif platform in ("fiverr", "upwork"):
+    elif platform in ("fiverr", "workana"):
         return "Review requirements and prepare proposal"
     elif "ai_training" in category or "ai_evaluation" in category:
         return "Open platform and begin evaluation"

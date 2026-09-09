@@ -703,6 +703,16 @@ app.include_router(devin.router)
 # Onboarding router
 app.include_router(onboarding.router)
 
+# Platform Guides router (Zero-to-Earning onboarding)
+from api.routers.platform_guides import router as platform_guides_router  # noqa: E402
+
+app.include_router(platform_guides_router)
+
+# First Money router (Zero-to-Earning workflow)
+from api.routers.first_money import router as first_money_router  # noqa: E402
+
+app.include_router(first_money_router)
+
 # Wear OS router
 
 # Security Cycle router
@@ -722,10 +732,10 @@ app.include_router(payment_compat.router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.
-from core.api.routers import router as core_router  # noqa: E402
+from cores.api.routers import router as core_router  # noqa: E402
 
 app.include_router(core_router)
-from core.app_registry import get_app_registry  # noqa: E402
+from cores.app_registry import get_app_registry  # noqa: E402
 
 registry = get_app_registry()
 registry.mount_routers(app)

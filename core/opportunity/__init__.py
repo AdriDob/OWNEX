@@ -4,7 +4,7 @@ from __future__ import annotations
 # This module provides the primary interface for opportunity discovery, scoring, and execution
 # New Opportunity Intelligence Engine (multi-type, preparator, scorer)
 # Orchestrator for Forge/Pulse cycles (adapters + executors + autonomous agents)
-from core.opportunity.engine import (
+from cores.opportunity.engine import (
     DecisionMode,
     Opportunity,
     OpportunityEngine,
@@ -18,18 +18,18 @@ from core.opportunity.engine import (
 )
 
 # Executors
-from core.opportunity.executors import BaseExecutor, ExecutionResult, get_executors
-from core.opportunity.executors.algora_executor import AlgoraExecutor
-from core.opportunity.executors.freelancer_executor import FreelancerExecutor
-from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-from core.opportunity.executors.mindrift_executor import MindriftExecutor
-from core.opportunity.executors.opire_executor import OpireExecutor
+from cores.opportunity.executors import BaseExecutor, ExecutionResult, get_executors
+from cores.opportunity.executors.algora_executor import AlgoraExecutor
+from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
+from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+from cores.opportunity.executors.opire_executor import OpireExecutor
 
 # Mercenary filter
-from core.opportunity.mercenary_filter import MercenaryAttributes, get_mercenary_filter
+from cores.opportunity.mercenary_filter import MercenaryAttributes, get_mercenary_filter
 
 # Scoring models (for tests) - from core/opportunity/models.py
-from core.opportunity.models import (
+from cores.opportunity.models import (
     OWNEX_WORK_CYCLE_ORDER,
     OWNEX_WORK_CYCLES,
     PersonalHistory,
@@ -37,23 +37,23 @@ from core.opportunity.models import (
     Top5Recommendation,
     UnifiedScore,  # This is the test model from models.py
 )
-from core.opportunity.scorer import score_opportunity
+from cores.opportunity.scorer import score_opportunity
 
 # Legacy Finding-based scoring engine (backward compatibility)
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     OpportunityEngineLegacy,
     get_legacy_engine,
 )
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     PersonalHistoryTracker as LegacyPersonalHistoryTracker,
 )
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     Top5Engine as LegacyTop5Engine,
 )
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     Top5Entry as LegacyTop5Entry,
 )
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     UnifiedScore as LegacyUnifiedScore,
 )
 from cores.opportunity.personal import PersonalHistoryTracker

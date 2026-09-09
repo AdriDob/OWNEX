@@ -9,7 +9,7 @@ Exports:
 - Event publishing helpers
 """
 # ruff: noqa: E402
-from core.cycles.events import (
+from cores.cycles.events import (
     publish_cycle_activated,
     publish_cycle_created,
     publish_cycle_deleted,
@@ -20,10 +20,10 @@ from core.cycles.events import (
     publish_cycle_status_changed,
     publish_cycle_updated,
 )
-from core.cycles.metrics import CycleMetricsEngine
-from core.cycles.models import DEFAULT_CYCLES, Cycle, CycleCategory, CycleStatus
-from core.cycles.registry import CycleDefinition, CycleRegistry, get_cycle_registry
-from core.cycles.schemas import (
+from cores.cycles.metrics import CycleMetricsEngine
+from cores.cycles.models import DEFAULT_CYCLES, Cycle, CycleCategory, CycleStatus
+from cores.cycles.registry import CycleDefinition, CycleRegistry, get_cycle_registry
+from cores.cycles.schemas import (
     CycleBase,
     CycleCreate,
     CycleMetrics,
@@ -31,7 +31,7 @@ from core.cycles.schemas import (
     CycleStatusUpdate,
     CycleUpdate,
 )
-from core.cycles.service import CycleService, get_cycle_service
+from cores.cycles.service import CycleService, get_cycle_service
 
 __all__ = [
     # Models

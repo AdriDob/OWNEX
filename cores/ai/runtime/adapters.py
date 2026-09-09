@@ -758,7 +758,7 @@ class FreebuffAdapter(AIProviderProtocol):
 
         # Import Freebuff - try both paths
         try:
-            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+            from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
         except ImportError:
             try:
                 from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task

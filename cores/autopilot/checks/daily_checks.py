@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.autopilot.config.autopilot_config import AutopilotConfig
@@ -20,7 +20,7 @@ class CheckResult:
     message: str = ""
     severity: str = "info"  # info, warning, critical
     metadata: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class DailyChecks:

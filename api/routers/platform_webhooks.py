@@ -21,8 +21,8 @@ from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response
 
-from core.credentials.vault import OpportunityCredentials
-from core.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
+from cores.credentials.vault import OpportunityCredentials
+from cores.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
 from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
 
 logger = logging.getLogger("ownex.platform_webhooks")

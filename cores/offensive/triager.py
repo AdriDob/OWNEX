@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.offensive.models import (
+from cores.offensive.models import (
     AcceptancePrediction,
     EvidenceCompleteness,
     EvidenceItem,

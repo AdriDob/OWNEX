@@ -7,7 +7,7 @@ Handlers referenced by scheduler jobs:
 import logging
 from typing import Any
 
-from core.cycles.security import get_security_cycle
+from cores.cycles.security import get_security_cycle
 
 logger = logging.getLogger("ownex.cycles.tasks")
 
@@ -18,7 +18,7 @@ def run_qa_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
     Called daily by the scheduler: generates test cases from the current
     targets/endpoints/findings, executes them, and persists the report.
     """
-    from core.cycles.qa import get_qa_cycle
+    from cores.cycles.qa import get_qa_cycle
 
     qa = get_qa_cycle()
     cycle = qa.ensure_cycle()
@@ -122,7 +122,7 @@ def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
     import asyncio
 
     try:
-        from core.opportunity.executors.assisted_mode import AssistedExecutor
+        from cores.opportunity.executors.assisted_mode import AssistedExecutor
         from cores.direct_work_engine.workbank import get_workbank
 
         max_delivery_items: int = 10
@@ -211,7 +211,7 @@ def run_daily_task_refresh(*args: Any, **kwargs: Any) -> dict[str, Any]:
     the board so the operator always has an up-to-date action list.
     """
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         board = get_daily_task_board()
         auto_done = board.complete_done_from_state()
@@ -236,7 +236,7 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
     findings to their target platform.
     """
     try:
-        from core.auto_submit.pipeline import get_auto_submit_pipeline
+        from cores.auto_submit.pipeline import get_auto_submit_pipeline
         from database import db, models
 
         session = db.SessionLocal()

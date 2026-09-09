@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -56,7 +56,7 @@ class Handoff:
 
     def __post_init__(self) -> None:
         if self.created_at is None:
-            self.created_at = datetime.utcnow()
+            self.created_at = datetime.now(UTC)
 
 
 class HandoffManager:
@@ -208,7 +208,7 @@ class HandoffManager:
             return False
 
         handoff.status = HandoffStatus.INITIATED
-        handoff.initiated_at = datetime.utcnow()
+        handoff.initiated_at = datetime.now(UTC)
         logger.info(f"[HANDOFF] Initiated handoff {handoff_id}")
 
         # Auto-handoff if configured
@@ -228,7 +228,7 @@ class HandoffManager:
             return False
 
         handoff.status = HandoffStatus.ACCEPTED
-        handoff.accepted_at = datetime.utcnow()
+        handoff.accepted_at = datetime.now(UTC)
         logger.info(f"[HANDOFF] Accepted handoff {handoff_id}: {handoff.target_agent}")
         return True
 
@@ -240,7 +240,7 @@ class HandoffManager:
 
         handoff.status = HandoffStatus.REJECTED
         handoff.error = reason
-        handoff.completed_at = datetime.utcnow()
+        handoff.completed_at = datetime.now(UTC)
         logger.warning(f"[HANDOFF] Rejected handoff {handoff_id}: {reason}")
         return True
 
@@ -255,7 +255,7 @@ class HandoffManager:
             return False
 
         handoff.status = HandoffStatus.COMPLETED
-        handoff.completed_at = datetime.utcnow()
+        handoff.completed_at = datetime.now(UTC)
         logger.info(f"[HANDOFF] Completed handoff {handoff_id}")
         return True
 
@@ -267,7 +267,7 @@ class HandoffManager:
 
         handoff.status = HandoffStatus.FAILED
         handoff.error = error
-        handoff.completed_at = datetime.utcnow()
+        handoff.completed_at = datetime.now(UTC)
         logger.error(f"[HANDOFF] Failed handoff {handoff_id}: {error}")
         return True
 

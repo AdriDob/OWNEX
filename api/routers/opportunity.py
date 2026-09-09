@@ -11,7 +11,7 @@ from logging import getLogger
 
 from fastapi import APIRouter, HTTPException
 
-from core.opportunity.scoring import FeedbackOutcome, get_engine
+from cores.opportunity.scoring import FeedbackOutcome, get_engine
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])
 

@@ -18,8 +18,8 @@ import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from core.reports.quality.classifier import QualityClassifier
-from core.reports.quality.scorer import QualityScorer
+from cores.reports.quality.classifier import QualityClassifier
+from cores.reports.quality.scorer import QualityScorer
 from cores.events.types import Events
 from cores.settings.service import get_setting
 from database import db, models
@@ -32,7 +32,7 @@ _MAX_SUBMISSIONS_PER_HOUR = 5
 
 
 def get_revenue_pipeline():
-    from core.revenue.pipeline import RevenuePipeline
+    from cores.revenue.pipeline import RevenuePipeline
 
     return RevenuePipeline()
 
@@ -44,7 +44,7 @@ def get_vault():
 
 
 def get_acceptance_learner():
-    from core.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.learner import AcceptanceLearner
 
     return AcceptanceLearner()
 

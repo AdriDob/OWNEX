@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from core.mission.controller import (
+from cores.mission.controller import (
     MissionController,
     MissionType,
     get_mission_controller,

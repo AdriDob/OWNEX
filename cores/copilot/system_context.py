@@ -11,8 +11,8 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.copilot.context import CopilotContext
-from core.copilot.permissions import AuthorityLevel
+from cores.copilot.context import CopilotContext
+from cores.copilot.permissions import AuthorityLevel
 
 logger = logging.getLogger("orion.core.copilot.system_context")
 

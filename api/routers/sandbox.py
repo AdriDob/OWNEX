@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core.sandbox_mode import (
+from cores.sandbox_mode import (
     get_sandbox_bounties,
     get_sandbox_bounty,
     get_sandbox_progress,

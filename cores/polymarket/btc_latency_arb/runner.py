@@ -9,9 +9,9 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.btc_latency_arb.config import BTCArbConfig
-from core.polymarket.btc_latency_arb.data import fetch_chainlink_btc_usd, fetch_polymarket_snapshot
-from core.polymarket.btc_latency_arb.engines import (
+from cores.polymarket.btc_latency_arb.config import BTCArbConfig
+from cores.polymarket.btc_latency_arb.data import fetch_chainlink_btc_usd, fetch_polymarket_snapshot
+from cores.polymarket.btc_latency_arb.engines import (
     Decision,
     EdgeResult,
     ScoredDirection,
@@ -21,8 +21,8 @@ from core.polymarket.btc_latency_arb.engines import (
     detect_regime,
     score_direction,
 )
-from core.polymarket.btc_latency_arb.feeds import BinanceWSFeed, PolymarketWSFeed
-from core.polymarket.btc_latency_arb.indicators import (
+from cores.polymarket.btc_latency_arb.feeds import BinanceWSFeed, PolymarketWSFeed
+from cores.polymarket.btc_latency_arb.indicators import (
     compute_heiken_ashi,
     compute_macd,
     compute_rsi,
@@ -36,8 +36,8 @@ from core.polymarket.btc_latency_arb.indicators import (
     slope_last,
     sma,
 )
-from core.polymarket.btc_latency_arb.paper_engine import PaperTradingEngine
-from core.polymarket.btc_latency_arb.persistence import TradeHistory
+from cores.polymarket.btc_latency_arb.paper_engine import PaperTradingEngine
+from cores.polymarket.btc_latency_arb.persistence import TradeHistory
 
 logger = logging.getLogger("orion.polymarket.btc_latency_arb.runner")
 

@@ -271,11 +271,11 @@ class ObservabilityEngine:
 
     def get_dashboard_snapshot(self) -> dict[str, Any]:
         """Get complete dashboard snapshot."""
-        from core.learning.outcome_loop import get_outcome_learning_loop
-        from core.mission.controller import get_mission_controller
-        from core.revenue.ledger import get_revenue_ledger
-        from core.self_repair.engine import get_self_repair_engine
-        from core.sync.engine import get_sync_engine
+        from cores.learning.outcome_loop import get_outcome_learning_loop
+        from cores.mission.controller import get_mission_controller
+        from cores.revenue.ledger import get_revenue_ledger
+        from cores.self_repair.engine import get_self_repair_engine
+        from cores.sync.engine import get_sync_engine
 
         mission_ctrl = get_mission_controller()
         ledger = get_revenue_ledger()
@@ -436,7 +436,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     ws_id = f"obs_ws_{uuid.uuid4().hex[:8]}"
 
-    from core.observability.engine import get_obs_engine
+    from cores.observability.engine import get_obs_engine
 
     engine = get_obs_engine()
     engine.register_ws(ws_id, None)

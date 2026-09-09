@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.validation.models import AttackCandidate, EconomicScore, VulnType
+from cores.validation.models import AttackCandidate, EconomicScore, VulnType
 
 logger = logging.getLogger("orion.core.validation.economic_scorer")
 
@@ -88,7 +88,7 @@ class EconomicScorer:
         if self._loaded:
             return
         try:
-            from core.revenue.economic_memory import EconomicMemory
+            from cores.revenue.economic_memory import EconomicMemory
 
             self._economic_memory = EconomicMemory()
             self._loaded = True

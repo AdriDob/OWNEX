@@ -7,8 +7,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from core.copilot.planner import Plan, PlanStep
-from core.memory.store import UnifiedMemoryStore
+from cores.copilot.planner import Plan, PlanStep
+from cores.memory.store import UnifiedMemoryStore
 
 logger = logging.getLogger("orion.core.copilot.executor")
 

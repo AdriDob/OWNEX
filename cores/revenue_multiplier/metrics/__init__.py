@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.revenue_multiplier.metrics.metrics_tracker import (
+from cores.revenue_multiplier.metrics.metrics_tracker import (
     BountyMetrics,
     CombinedMetrics,
     MetricsTracker,

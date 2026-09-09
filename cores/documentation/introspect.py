@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 
-from core.documentation.models import (
+from cores.documentation.models import (
     ApiDoc,
     CapabilityDoc,
     CommandDoc,
@@ -17,7 +17,7 @@ from core.documentation.models import (
     IntegrationDoc,
     ModuleDoc,
 )
-from core.documentation.registrar import register_module
+from cores.documentation.registrar import register_module
 
 logger = logging.getLogger("orion.core.documentation.introspect")
 
@@ -25,7 +25,7 @@ logger = logging.getLogger("orion.core.documentation.introspect")
 def introspect_capability_registry() -> list[CapabilityDoc]:
     """Read every registered capability and return as CapabilityDoc list."""
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         caps: list[CapabilityDoc] = []
@@ -116,7 +116,7 @@ def introspect_api_routers() -> list[ApiDoc]:
 def introspect_integrations() -> list[IntegrationDoc]:
     """Read the IntegrationRegistry and return as IntegrationDoc list."""
     try:
-        from core.integrations import init_integration_registry
+        from cores.integrations import init_integration_registry
 
         registry = init_integration_registry()
         summary = registry.summary()

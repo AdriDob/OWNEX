@@ -11,6 +11,11 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
+# DB Column defaults stay NAIVE on purpose: rows store naive UTC strings that
+# match server_default=func.now() values elsewhere in the schema. Do NOT make
+# these aware — comparisons against existing rows would raise TypeError.
+_naive_utcnow = datetime.utcnow
+
 if TYPE_CHECKING:
     pass
 
@@ -75,8 +80,8 @@ class ChannelConfig(Base):
     min_duration_seconds = Column(Integer, default=55)
 
     # Metadata
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_naive_utcnow)
+    updated_at = Column(DateTime, default=_naive_utcnow, onupdate=_naive_utcnow)
     is_active = Column(Integer, default=1)
 
     # Relationships
@@ -115,8 +120,8 @@ class VideoTopic(Base):
     # Metadata
     source_url = Column(String(500), nullable=True)  # Original source
     metadata_json = Column(JSON, default=dict)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_naive_utcnow)
+    updated_at = Column(DateTime, default=_naive_utcnow, onupdate=_naive_utcnow)
 
     # Relationships
     channel = relationship("ChannelConfig", back_populates="topics")
@@ -163,7 +168,7 @@ class VideoJob(Base):
     max_retries = Column(Integer, default=3)
 
     # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_naive_utcnow)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
 
@@ -208,7 +213,7 @@ class VideoAnalytics(Base):
     # Time windows
     period_start = Column(DateTime, nullable=False)
     period_end = Column(DateTime, nullable=False)
-    last_synced_at = Column(DateTime, default=datetime.utcnow)
+    last_synced_at = Column(DateTime, default=_naive_utcnow)
 
     # Relationships
     video_job = relationship("VideoJob")
@@ -235,7 +240,7 @@ class TopicPerformance(Base):
     trend_retention = Column(Integer, default=0)
 
     # Metadata
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=_naive_utcnow, onupdate=_naive_utcnow)
 
     # Relationships
     topic = relationship("VideoTopic")

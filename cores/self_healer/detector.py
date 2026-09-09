@@ -233,7 +233,7 @@ class ProblemDetector:
     async def _scan_scheduler(self) -> list[Problem]:
         problems = []
         try:
-            from core.scheduler.scheduler import get_scheduler
+            from cores.scheduler.scheduler import get_scheduler
 
             scheduler = get_scheduler()
             status = scheduler.get_status()

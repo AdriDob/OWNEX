@@ -2,14 +2,14 @@ from __future__ import annotations
 
 """ORION Integration Center — unified view of all external integrations."""
 # ruff: noqa: E402
-from core.integrations.discovery import (
+from cores.integrations.discovery import (
     BUILTIN_INTEGRATIONS,
     IntegrationDef,
     get_builtin_integrations,
     get_integration,
     get_integrations_by_category,
 )
-from core.integrations.registry import (
+from cores.integrations.registry import (
     IntegrationRegistry,
     IntegrationStatus,
     get_integration_registry,

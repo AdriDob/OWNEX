@@ -18,7 +18,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from core.events.event_bus import get_core_event_bus
+from cores.events.event_bus import get_core_event_bus
 
 logger = logging.getLogger("ownex.operations")
 
@@ -624,7 +624,7 @@ class Doctor:
 
         # Check event bus
         try:
-            from core.events.event_bus import get_core_event_bus
+            from cores.events.event_bus import get_core_event_bus
 
             get_core_event_bus()
             checks.append(

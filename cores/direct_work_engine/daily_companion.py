@@ -74,7 +74,7 @@ def daily_companion(
 
 
 def _system_state() -> dict[str, Any]:
-    from core.health.engine import HealthCenter
+    from cores.health.engine import HealthCenter
 
     center = HealthCenter()
     status = center.status()
@@ -155,7 +155,7 @@ def _focus_check() -> dict[str, Any]:
 
 def _setup_progress() -> dict[str, Any]:
     """Configuración total: % completo + la tarea de config de hoy (una sola)."""
-    from core.setup.checklist import get_setup_checklist
+    from cores.setup.checklist import get_setup_checklist
 
     status = get_setup_checklist().status()
     return {

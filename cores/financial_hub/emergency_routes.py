@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.financial_hub.models import WithdrawalRoute
+from cores.financial_hub.models import WithdrawalRoute
 from database.db import SessionLocal
 
 

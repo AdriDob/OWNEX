@@ -10,7 +10,7 @@ import logging
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from core.trading.ev_calculator import get_unified_ev_calculator
+from cores.trading.ev_calculator import get_unified_ev_calculator
 
 logger = logging.getLogger("ownex.unified_income")
 
@@ -117,7 +117,7 @@ _unified_ev = None
 def _get_unified_ev():
     global _unified_ev
     if _unified_ev is None:
-        from core.trading.ev_calculator import get_unified_ev_calculator
+        from cores.trading.ev_calculator import get_unified_ev_calculator
 
         _unified_ev = get_unified_ev_calculator()
     return _unified_ev
@@ -126,8 +126,8 @@ def _get_unified_ev():
 @router.get("/dashboard")
 async def get_unified_income_dashboard() -> UnifiedIncomeDashboard:
     """Get unified income dashboard across all engines."""
-    from core.trading.capital import get_capital_engine
-    from core.trading.risk import get_risk_engine
+    from cores.trading.capital import get_capital_engine
+    from cores.trading.risk import get_risk_engine
 
     capital = get_capital_engine()
     risk = get_risk_engine()
@@ -203,7 +203,7 @@ async def get_weekly_plan(request: WeeklyPlanRequest) -> WeeklyIncomePlan:
 @router.get("/workbank")
 async def get_workbank_stats() -> WorkBankStats:
     """Get work bank statistics."""
-    from core.direct_work_engine.workbank import get_workbank
+    from cores.direct_work_engine.workbank import get_workbank
 
     wb = get_workbank()
     progress = wb.progress()

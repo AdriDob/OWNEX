@@ -5,7 +5,7 @@ import logging
 import uuid
 from contextlib import suppress
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -44,7 +44,7 @@ class LedgerEntry:
     balance_after: Decimal = Decimal()
     reason: str = ""
     order_id: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -56,7 +56,7 @@ class PerformanceSnapshot:
     total_pnl: Decimal = Decimal()
     peak_balance: Decimal = Decimal()
     current_balance: Decimal = Decimal()
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class VirtualWallet:
@@ -185,7 +185,7 @@ class VirtualWallet:
                     {k: str(v) if isinstance(v, (Decimal, datetime)) else v for k, v in asdict(e).items()}
                     for e in self._ledger[-1000:]
                 ],
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
             }
             self._persist_path.write_text(json.dumps(data, indent=2, cls=DecimalEncoder))
         except Exception as e:

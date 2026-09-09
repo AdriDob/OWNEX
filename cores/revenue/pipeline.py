@@ -527,7 +527,7 @@ def _finding_to_evidence(finding: Any) -> dict[str, Any]:
 def register_revenue_capabilities() -> None:
     """Register Revenue Pipeline capabilities in the CapabilityRegistry."""
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         reg.register(

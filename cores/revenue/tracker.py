@@ -1,6 +1,6 @@
-"""Re-export from core.revenue.tracker for backward compatibility."""
+"""Re-export from cores.revenue.tracker for backward compatibility."""
 
-from core.revenue.tracker import (
+from cores.revenue.tracker import (
     PaymentTracker,
 )
 

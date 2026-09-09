@@ -3,12 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.providers.base import BaseProvider, ProviderResponse
-from core.copilot.providers.fcc_provider import FCCProvider
-from core.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
-from core.copilot.providers.ollama_provider import OllamaProvider
-from core.copilot.providers.omniroute_provider import OmniRouteProvider
-from core.copilot.providers.opencode_provider import OpenCodeProvider
+from cores.copilot.providers.base import BaseProvider, ProviderResponse
+from cores.copilot.providers.fcc_provider import FCCProvider
+from cores.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
+from cores.copilot.providers.ollama_provider import OllamaProvider
+from cores.copilot.providers.omniroute_provider import OmniRouteProvider
+from cores.copilot.providers.opencode_provider import OpenCodeProvider
 
 logger = logging.getLogger("orion.copilot.providers.router")
 

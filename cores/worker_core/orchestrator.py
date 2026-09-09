@@ -198,7 +198,7 @@ class WorkerCore:
     def _init_self_repair(self) -> None:
         """Initialize self-repair engine integration."""
         try:
-            from core.self_repair.engine import get_self_repair_engine
+            from cores.self_repair.engine import get_self_repair_engine
 
             self._self_repair = get_self_repair_engine()
             logger.info("Self-repair engine connected to WorkerCore")
@@ -1241,7 +1241,7 @@ class WorkerCore:
 
             # Wire AutoSubmit for real platform submissions
             try:
-                from core.opportunity.executors.auto_submit import get_auto_submit_engine
+                from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
                 auto_submit = get_auto_submit_engine()
                 delivery.set_auto_submit(auto_submit)

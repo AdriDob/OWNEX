@@ -6,7 +6,7 @@ import logging
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from core.execution_queue.models import (
+from cores.execution_queue.models import (
     ExecState,
     ExecutionQueueStore,
 )
@@ -15,27 +15,27 @@ logger = logging.getLogger("ownex.execution_queue.driver")
 
 # Import executors
 try:
-    from core.opportunity.executors.algora_executor import AlgoraExecutor
-    from core.opportunity.executors.bugcrowd_executor import BugcrowdExecutor
-    from core.opportunity.executors.freelancer_executor import FreelancerExecutor
+    from cores.opportunity.executors.algora_executor import AlgoraExecutor
+    from cores.opportunity.executors.bugcrowd_executor import BugcrowdExecutor
+    from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
 
     # Security bounty executors
-    from core.opportunity.executors.hackerone_executor import HackerOneExecutor
-    from core.opportunity.executors.immunefi_executor import ImmunefiExecutor
-    from core.opportunity.executors.intigriti_executor import IntigritiExecutor
-    from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-    from core.opportunity.executors.mindrift_executor import MindriftExecutor
-    from core.opportunity.executors.opire_executor import OpireExecutor
-    from core.opportunity.executors.outlier_executor import OutlierExecutor
-    from core.opportunity.executors.synack_executor import SynackExecutor
-    from core.opportunity.executors.yeswehack_executor import YesWeHackExecutor
+    from cores.opportunity.executors.hackerone_executor import HackerOneExecutor
+    from cores.opportunity.executors.immunefi_executor import ImmunefiExecutor
+    from cores.opportunity.executors.intigriti_executor import IntigritiExecutor
+    from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+    from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+    from cores.opportunity.executors.opire_executor import OpireExecutor
+    from cores.opportunity.executors.outlier_executor import OutlierExecutor
+    from cores.opportunity.executors.synack_executor import SynackExecutor
+    from cores.opportunity.executors.yeswehack_executor import YesWeHackExecutor
 except ImportError as e:
     logger.warning(f"Some executors not available: {e}")
 
 # Import assisted mode for human-in-the-loop
 try:
-    from core.opportunity.executors.assisted_mode import AssistedExecutor, PreparedWork
-    from core.opportunity.guides.platform_guides import get_platform_guide
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor, PreparedWork
+    from cores.opportunity.guides.platform_guides import get_platform_guide
 except ImportError:
     AssistedExecutor = None
     PreparedWork = None
@@ -43,7 +43,7 @@ except ImportError:
 
 # Import trust engine for auto-approval
 try:
-    from core.trust_engine import get_trust_engine
+    from cores.trust_engine import get_trust_engine
 except ImportError:
     get_trust_engine = None
 
@@ -446,7 +446,7 @@ class ExecutionQueueDriver:
 
             # Trigger auto-submission for approved items
             try:
-                from core.opportunity.executors.auto_submit import get_auto_submit_engine
+                from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
                 engine = get_auto_submit_engine()
                 payload = item.get("payload", {})
@@ -476,7 +476,7 @@ class ExecutionQueueDriver:
     async def _auto_submit_work(self, item_id: str, payload: dict) -> None:
         """Background task: submit approved work via AutoSubmitEngine."""
         try:
-            from core.opportunity.executors.auto_submit import get_auto_submit_engine
+            from cores.opportunity.executors.auto_submit import get_auto_submit_engine
 
             engine = get_auto_submit_engine()
             platform = payload.get("platform", "")

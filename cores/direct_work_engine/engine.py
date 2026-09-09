@@ -198,7 +198,7 @@ def register_capabilities() -> None:
     Idempotent — safe to call multiple times.
     """
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         reg.unregister("opportunity_discovery", "direct_work_engine")

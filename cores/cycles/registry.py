@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.cycles.models import CycleStatus
+from cores.cycles.models import CycleStatus
 
 
 @dataclass

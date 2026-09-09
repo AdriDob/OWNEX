@@ -13,10 +13,10 @@ Modules:
 
 from __future__ import annotations
 
-from core.acceptance.analyzer import AcceptanceAnalyzer
-from core.acceptance.models import AcceptanceOutcome, PlatformProfile, SubmissionRecord
-from core.acceptance.optimizer import AcceptanceOptimizer
-from core.acceptance.predictor import AcceptancePredictor
+from cores.acceptance.analyzer import AcceptanceAnalyzer
+from cores.acceptance.models import AcceptanceOutcome, PlatformProfile, SubmissionRecord
+from cores.acceptance.optimizer import AcceptanceOptimizer
+from cores.acceptance.predictor import AcceptancePredictor
 
 __all__ = [
     "AcceptanceAnalyzer",

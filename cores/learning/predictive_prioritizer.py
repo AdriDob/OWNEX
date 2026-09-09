@@ -121,7 +121,7 @@ class PredictivePrioritizer:
     def _velocity_days() -> dict[str, float]:
         """Average days-to-payment per platform from verified history."""
         with suppress(Exception):
-            from core.revenue.metrics import RevenueMetrics
+            from cores.revenue.metrics import RevenueMetrics
 
             metrics = RevenueMetrics()
             return {k: float(v) for k, v in metrics.platform_speed_days().items() if v}

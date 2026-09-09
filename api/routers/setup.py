@@ -108,7 +108,7 @@ async def get_available_platforms():
 @router.get("/checklist/status")
 async def setup_checklist_status():
     """Progreso de configuración total + la tarea de hoy (una sola)."""
-    from core.setup.checklist import get_setup_checklist
+    from cores.setup.checklist import get_setup_checklist
 
     try:
         return get_setup_checklist().status()
@@ -119,7 +119,7 @@ async def setup_checklist_status():
 @router.post("/checklist/{item_id}/done")
 async def setup_checklist_mark_done(item_id: str):
     """Marca un ítem manual (onboarding externo) como completado."""
-    from core.setup.checklist import get_setup_checklist
+    from cores.setup.checklist import get_setup_checklist
 
     try:
         return get_setup_checklist().mark_done(item_id)
@@ -134,7 +134,7 @@ async def setup_checklist_mark_done(item_id: str):
 @router.post("/checklist/{item_id}/undone")
 async def setup_checklist_mark_undone(item_id: str):
     """Deshace el marcado manual de un ítem (corrección de error)."""
-    from core.setup.checklist import get_setup_checklist
+    from cores.setup.checklist import get_setup_checklist
 
     try:
         return get_setup_checklist().mark_undone(item_id)

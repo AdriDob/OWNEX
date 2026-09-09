@@ -14,7 +14,7 @@ from typing import Any
 
 import httpx
 
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.code4rena")
 

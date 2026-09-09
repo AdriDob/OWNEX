@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from core.trading.contracts import (
+from cores.trading.contracts import (
     LADDER_LEVELS,
     CapitalGates,
     LadderLevel,

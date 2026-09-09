@@ -7,7 +7,7 @@ from typing import Any
 
 import httpx
 
-from core.credentials.vault import get_platform_credentials
+from cores.credentials.vault import get_platform_credentials
 
 logger = logging.getLogger("ownex.adapters.forge.algora")
 

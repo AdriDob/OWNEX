@@ -10,8 +10,8 @@ Provides:
   - OWNEX-specific patterns for Security, Forge, Pulse, Vault, Atlas
 """
 # ruff: noqa: E402
-from core.loop.engine import LoopEngine
-from core.loop.models import (
+from cores.loop.engine import LoopEngine
+from cores.loop.models import (
     LoopPattern,
     LoopRunResult,
     LoopState,
@@ -20,12 +20,12 @@ from core.loop.models import (
     Phase,
     Skill,
 )
-from core.loop.registry import (
+from cores.loop.registry import (
     PatternRegistry,
     get_ownex_patterns,
     register_ownex_patterns,
 )
-from core.loop.startup import (
+from cores.loop.startup import (
     get_loop_engine,
     get_loop_status,
     init_loop_engines,

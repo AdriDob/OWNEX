@@ -9,8 +9,8 @@ MERLIN lives inside ORION as the intelligence layer:
 
 from __future__ import annotations
 
-from core.merlin.brief import MerlinBrief
-from core.merlin.decision_log import MerlinDecisionLog
-from core.merlin.memory import MerlinMemory
+from cores.merlin.brief import MerlinBrief
+from cores.merlin.decision_log import MerlinDecisionLog
+from cores.merlin.memory import MerlinMemory
 
 __all__ = ["MerlinBrief", "MerlinDecisionLog", "MerlinMemory"]

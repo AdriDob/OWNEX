@@ -5,8 +5,8 @@ Namespaces: global, cateye, atlas, odyssey, hermes, copilot, user, projects, res
 """
 # ruff: noqa: E402
 
-from core.memory.models import DEFAULT_NAMESPACES, MemoryEntry
-from core.memory.store import UnifiedMemoryStore, get_memory_store
+from cores.memory.models import DEFAULT_NAMESPACES, MemoryEntry
+from cores.memory.store import UnifiedMemoryStore, get_memory_store
 
 __all__ = [
     "UnifiedMemoryStore",

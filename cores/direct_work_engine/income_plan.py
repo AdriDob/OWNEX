@@ -120,7 +120,7 @@ class UnifiedIncomePlan:
     def _engines(self) -> tuple[Any, FirstDayGuide, Any]:
         assistant = self._assistant
         if assistant is None:
-            from core.application_assistant import get_application_assistant
+            from cores.application_assistant import get_application_assistant
 
             assistant = get_application_assistant()
         first_day = self._first_day or FirstDayGuide()

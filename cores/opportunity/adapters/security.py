@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 
 class SecurityBaseAdapter(OpportunityAdapter):
@@ -28,8 +28,8 @@ class SecurityAdapter(SecurityBaseAdapter):
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
         """Fetch opportunities from Rastro pipeline."""
         try:
-            from core.database.manager import get_db_manager
-            from core.opportunity import get_engine
+            from cores.database.manager import get_db_manager
+            from cores.opportunity import get_engine
 
             engine = get_engine()
             opportunities = engine.get_all()
@@ -76,7 +76,7 @@ class AegisAdapter(SecurityBaseAdapter):
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
         """Fetch Aegis findings as opportunities."""
         try:
-            from core.database.manager import get_db_manager
+            from cores.database.manager import get_db_manager
 
             mgr = get_db_manager()
             if "aegis" not in mgr.list_databases():

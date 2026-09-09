@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from core.maintenance.engine import MaintenanceEngine, run_maintenance
+from cores.maintenance.engine import MaintenanceEngine, run_maintenance
 
 __all__ = ["MaintenanceEngine", "run_maintenance"]

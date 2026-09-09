@@ -452,3 +452,9 @@ def reset_system_health_engine() -> None:
     if _ENGINE is not None:
         _ENGINE.stop()
     _ENGINE = None
+
+
+# Alias for backward compatibility
+def get_health_center() -> SystemHealthEngine:
+    """Alias for get_system_health_engine() for backward compatibility."""
+    return get_system_health_engine()

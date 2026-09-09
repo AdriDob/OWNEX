@@ -24,7 +24,7 @@ class AlgoraDweAdapter(LegacyOpportunityDweAdapter):
     """Bridges the legacy Algora adapter into DWE discovery."""
 
     def __init__(self, config: dict[str, Any] | None = None):
-        from core.opportunity.adapters.forge.algora import fetch_opportunities
+        from cores.opportunity.adapters.forge.algora import fetch_opportunities
 
         # Create a minimal adapter object with fetch_opportunities method
         class _AlgoraAdapter:

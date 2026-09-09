@@ -13,7 +13,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.memory.store import UnifiedMemoryStore
+from cores.memory.store import UnifiedMemoryStore
 
 logger = logging.getLogger("orion.core.merlin.memory")
 

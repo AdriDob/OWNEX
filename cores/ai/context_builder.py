@@ -7,7 +7,7 @@ No mock data, no placeholders.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from cores.engine.snapshot import EndpointSnapshot, PipelineSnapshot, TargetSnapshot
@@ -22,7 +22,7 @@ from database import db, models
 def build_full_context() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         context: dict[str, Any] = {
             "timestamp": now.isoformat(),
             "generated_ago": "just now",

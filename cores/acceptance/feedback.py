@@ -13,8 +13,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.acceptance.analyzer import AcceptanceAnalyzer
-from core.acceptance.models import AcceptanceOutcome
+from cores.acceptance.analyzer import AcceptanceAnalyzer
+from cores.acceptance.models import AcceptanceOutcome
 
 logger = logging.getLogger("orion.core.acceptance.feedback")
 

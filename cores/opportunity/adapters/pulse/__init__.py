@@ -22,8 +22,8 @@ from typing import Any
 
 import httpx
 
-from core.credentials.vault import get_credentials
-from core.opportunity.adapters.pulse_adapter_base import PulseAdapter
+from cores.credentials.vault import get_credentials
+from cores.opportunity.adapters.pulse_adapter_base import PulseAdapter
 
 logger = logging.getLogger("ownex.adapters.pulse")
 

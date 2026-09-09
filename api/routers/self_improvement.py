@@ -8,9 +8,9 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core.self_improvement.engine import get_self_improvement_engine
-from core.self_improvement.plan_generator import get_plan_generator
-from core.self_improvement.reflection import (
+from cores.self_improvement.engine import get_self_improvement_engine
+from cores.self_improvement.plan_generator import get_plan_generator
+from cores.self_improvement.reflection import (
     IssueType,
     Severity,
     get_reflection_engine,

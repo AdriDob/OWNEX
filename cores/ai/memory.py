@@ -8,7 +8,7 @@ in the MemoryRecord database model for cross-session reference.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from database import db, models
@@ -20,7 +20,7 @@ class ConversationMemory:
         self._max = max_exchanges
 
     def add(self, role: str, content: str) -> None:
-        self._exchanges.append({"role": role, "content": content, "timestamp": datetime.utcnow().isoformat()})
+        self._exchanges.append({"role": role, "content": content, "timestamp": datetime.now(UTC).isoformat()})
         if len(self._exchanges) > self._max:
             self._exchanges = self._exchanges[-self._max :]
 
@@ -49,7 +49,7 @@ def save_interaction(role: str, content: str, category: str = "assistant_chat") 
     try:
         record = models.MemoryRecord(
             category=category,
-            key=f"{role}_{datetime.utcnow().timestamp()}",
+            key=f"{role}_{datetime.now(UTC).timestamp()}",
             details=json.dumps({"role": role, "content": content[:1000]}),
         )
         session.add(record)

@@ -36,14 +36,20 @@ async def start_hunt():
     _hunt_state["targets_scanned"] = 0
     logger.info("Hunt started")
 
-    # Kick off immediate pipeline run
+    # Kick off an immediate pipeline cycle on the LIVE scheduler instance.
+    # Never create a second ScanScheduler here: it would run with empty state
+    # (no cooldowns/last_run) and drift from the instance the app actually runs.
     try:
         import asyncio
 
+        from api import scheduler as sched_mod
         from api.scheduler import ScanScheduler
 
-        sched = ScanScheduler(interval_minutes=30)
-        t = asyncio.create_task(sched._run_pipeline())
+        sched = sched_mod.scheduler_instance
+        if sched is None:
+            sched = ScanScheduler(interval_minutes=30)
+            sched_mod.scheduler_instance = sched
+        t = asyncio.create_task(sched.run_cycle())
         _hunt_tasks.add(t)
         t.add_done_callback(_hunt_tasks.discard)
     except Exception as e:

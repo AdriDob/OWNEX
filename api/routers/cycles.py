@@ -6,21 +6,21 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.cycles.events import (
+from cores.cycles.events import (
     publish_cycle_created,
     publish_cycle_deleted,
     publish_cycle_metrics_updated,
     publish_cycle_status_changed,
     publish_cycle_updated,
 )
-from core.cycles.schemas import (
+from cores.cycles.schemas import (
     CycleActionResponse,
     CycleCreate,
     CycleMetrics,
     CycleRead,
     CycleUpdate,
 )
-from core.cycles.service import get_cycle_service
+from cores.cycles.service import get_cycle_service
 
 router = APIRouter(prefix="/api/cycles", tags=["cycles"])
 
@@ -226,8 +226,8 @@ def update_cycle_metrics(cycle_id: int, metrics: dict[str, Any]):
 def initialize_cycles():
     """Force initialization of default cycles."""
     # Access private method to re-seed
-    from core.cycles.models import DEFAULT_CYCLES, Base, Cycle
-    from core.database.manager import get_db_manager
+    from cores.cycles.models import DEFAULT_CYCLES, Base, Cycle
+    from cores.database.manager import get_db_manager
 
     mgr = get_db_manager()
     if "cycles" not in mgr.list_databases():

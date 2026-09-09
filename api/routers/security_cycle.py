@@ -14,7 +14,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.security import get_security_cycle
+from cores.cycles.security import get_security_cycle
 
 router = APIRouter(prefix="/api/cycles/security", tags=["security-cycle"])
 

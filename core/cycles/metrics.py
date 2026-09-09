@@ -7,8 +7,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from core.cycles.models import Cycle
-from core.database.manager import get_db_manager
+from cores.cycles.models import Cycle
+from cores.database.manager import get_db_manager
 from cores.opportunity.engine import SEED_OPPORTUNITIES
 
 logger = logging.getLogger("core.cycles.metrics")
@@ -19,7 +19,7 @@ CYCLES_DB = "cycles"
 def _get_session() -> Session:
     mgr = get_db_manager()
     if "cycles" not in mgr.list_databases():
-        from core.cycles.models import Base
+        from cores.cycles.models import Base
 
         mgr.register("cycles", "cycles.db")
         mgr.run_migrations("cycles", Base)
@@ -149,8 +149,8 @@ class CycleMetricsEngine:
 
     def persist_metrics(self, cycle_slug: str, metrics: dict[str, Any]) -> bool:
         """Persist computed metrics to cycle config."""
-        from core.cycles.models import Base, Cycle
-        from core.database.manager import get_db_manager
+        from cores.cycles.models import Base, Cycle
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         if "cycles" not in mgr.list_databases():

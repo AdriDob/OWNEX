@@ -10,7 +10,7 @@ The Copilot queries this to make informed decisions.
 
 from __future__ import annotations
 
-from core.evidence_graph.graph import EvidenceGraph, get_evidence_graph
+from cores.evidence_graph.graph import EvidenceGraph, get_evidence_graph
 
 __all__ = [
     "EvidenceGraph",

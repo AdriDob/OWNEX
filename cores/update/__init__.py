@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from core.update.engine import UpdateManager, check_for_updates
+from cores.update.engine import UpdateManager, check_for_updates
 
 __all__ = ["UpdateManager", "check_for_updates"]

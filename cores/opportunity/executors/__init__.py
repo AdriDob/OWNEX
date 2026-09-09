@@ -46,11 +46,11 @@ class BaseExecutor:
 
 def get_executors(config: dict[str, Any] | None = None) -> dict[str, BaseExecutor]:
     """Get executor instances for all registered executors."""
-    from core.opportunity.executors.algora_executor import AlgoraExecutor
-    from core.opportunity.executors.freelancer_executor import FreelancerExecutor
-    from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-    from core.opportunity.executors.mindrift_executor import MindriftExecutor
-    from core.opportunity.executors.opire_executor import OpireExecutor
+    from cores.opportunity.executors.algora_executor import AlgoraExecutor
+    from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
+    from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+    from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+    from cores.opportunity.executors.opire_executor import OpireExecutor
 
     _config = config or {}
     executors: dict[str, BaseExecutor] = {}

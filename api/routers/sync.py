@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
-from core.sync.engine import (
+from cores.sync.engine import (
     SyncEvent,
     SyncEventType,
     get_sync_engine,
@@ -97,7 +97,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     device_id = f"ws_{uuid.uuid4().hex[:8]}"
 
-    from core.sync.engine import get_sync_engine
+    from cores.sync.engine import get_sync_engine
 
     engine = get_sync_engine()
     engine.register_ws_connection(f"ws_{uuid.uuid4().hex[:8]}", None)
