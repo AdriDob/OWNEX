@@ -11,6 +11,8 @@ import {
   CheckSquare,
   Database,
   DollarSign,
+  Banknote,
+  GraduationCap,
   ExternalLink,
   FileText,
   Globe,
@@ -105,6 +107,8 @@ const navSections = [
     cycle: 'forge',
     items: [
       { name: 'Work Queue', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
+      { name: 'First Money', path: '/operations/first-money', icon: Banknote },
+      { name: 'Platform Guides', path: '/operations/platforms', icon: GraduationCap },
       { name: 'Opportunities', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
     ],
   },
@@ -113,6 +117,7 @@ const navSections = [
     cycle: 'vault',
     items: [
       { name: 'Capital', path: '/capital', icon: DollarSign },
+      { name: 'Ledger', path: '/operations/ledger', icon: FileText },
       { name: 'Trading', path: '/trading', icon: TrendingUp },
     ],
   },

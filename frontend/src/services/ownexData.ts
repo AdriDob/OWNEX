@@ -2091,3 +2091,263 @@ export async function deleteReport(reportId: number): Promise<{ id: number; dele
 export async function submitReport(reportId: number, data?: { submission_url?: string }): Promise<{ id: number; status: string }> {
   return api.post(`/api/reports/${reportId}/submit`, data || {})
 }
+
+// ── First Money Workflow (Zero-to-Earning) ──
+
+export type FirstMoneyStageStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped' | 'blocked'
+
+export interface FirstMoneyStageProgress {
+  stage: string
+  label: string
+  description: string
+  status: FirstMoneyStageStatus
+  started_at: string | null
+  completed_at: string | null
+  platform: string | null
+  is_current: boolean
+  blocking_reason: string | null
+}
+
+export interface FirstMoneyProgress {
+  user_name: string
+  current_stage: string
+  current_stage_label: string
+  completion_percentage: number
+  completed_count: number
+  total_count: number
+  first_revenue_amount: number
+  first_revenue_platform: string | null
+  started_at: string
+  completed_at: string | null
+  stages: FirstMoneyStageProgress[]
+  is_complete: boolean
+}
+
+export interface FirstMoneyNextAction {
+  action: string
+  title: string
+  description: string
+  platform: string | null
+}
+
+export async function fetchFirstMoneyProgress(): Promise<FirstMoneyProgress> {
+  return api.get<FirstMoneyProgress>('/first-money/progress')
+}
+
+export async function fetchFirstMoneyNextAction(): Promise<FirstMoneyNextAction> {
+  return api.get<FirstMoneyNextAction>('/first-money/next-action')
+}
+
+export async function startFirstMoneyStage(
+  stage: string,
+  platform?: string | null,
+): Promise<{ success: boolean; stage: string; platform: string | null }> {
+  const qs = platform ? `?platform=${encodeURIComponent(platform)}` : ''
+  return api.post(`/first-money/stage/${encodeURIComponent(stage)}/start${qs}`, {})
+}
+
+export async function completeFirstMoneyStage(
+  stage: string,
+  notes?: string,
+): Promise<{ success: boolean; stage: string }> {
+  const qs = notes ? `?notes=${encodeURIComponent(notes)}` : ''
+  return api.post(`/first-money/stage/${encodeURIComponent(stage)}/complete${qs}`, {})
+}
+
+export async function recordFirstRevenue(
+  amount: number,
+  platform: string,
+  notes?: string,
+): Promise<{ success: boolean; amount: number; platform: string }> {
+  const qs = new URLSearchParams({
+    amount: String(amount),
+    platform,
+    ...(notes ? { notes } : {}),
+  }).toString()
+  return api.post(`/first-money/first-revenue?${qs}`, {})
+}
+
+// ── Freelance Channels (OPTIONAL commercial engine) ──
+
+export type FreelanceChannelStatus = 'active' | 'paused' | 'disabled' | 'excluded'
+
+export interface FreelanceChannelInfo {
+  status: FreelanceChannelStatus
+  recommending: boolean
+}
+
+export async function fetchFreelanceChannels(): Promise<{
+  channels: Record<string, FreelanceChannelInfo>
+  note: string
+}> {
+  return api.get('/direct-work/channels')
+}
+
+export async function setFreelanceChannel(
+  channel: string,
+  status: FreelanceChannelStatus,
+): Promise<{ channel: string; status: string; recommending: boolean }> {
+  return api.post(`/direct-work/channels/${encodeURIComponent(channel)}`, { status })
+}
+
+// ── Platform Guides (Zero-to-Earning onboarding) ──
+
+export interface PlatformGuideStep {
+  index: number
+  title: string
+  description: string
+  action: string
+  element: string
+  value: string | null
+  url: string | null
+  screenshot_hint: string | null
+}
+
+export interface PlatformGuideDetail {
+  platform: string
+  name: string
+  url: string
+  guide_type: string
+  formatted: string
+  steps_count: number
+  file_formats: Record<string, string>
+  tips: string[]
+  common_errors: Array<{ error: string; solution: string }>
+}
+
+export interface PlatformGuideSteps {
+  platform: string
+  name: string
+  url: string
+  guide_type: string
+  steps: PlatformGuideStep[]
+  file_formats: Record<string, string>
+  tips: string[]
+  common_errors: Array<{ error: string; solution: string }>
+}
+
+export interface PlatformFirstOpportunity {
+  platform: string
+  name: string
+  recommendation: {
+    title: string
+    description: string
+    url: string
+    why: string
+    difficulty: string
+    estimated_time: string
+    skills_practiced: string[]
+    next_action: string
+  }
+  guide_available: boolean
+}
+
+export async function fetchPlatformGuides(): Promise<{ platforms: string[]; count: number }> {
+  return api.get('/platform-guides/')
+}
+
+export async function fetchPlatformGuide(
+  platform: string,
+  guideType: 'account' | 'work' = 'account',
+): Promise<PlatformGuideDetail> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}`, { guide_type: guideType })
+}
+
+export async function fetchPlatformGuideSteps(
+  platform: string,
+  guideType: 'account' | 'work' = 'account',
+): Promise<PlatformGuideSteps> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}/steps`, { guide_type: guideType })
+}
+
+export async function fetchPlatformFirstOpportunity(platform: string): Promise<PlatformFirstOpportunity> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}/first-opportunity`)
+}
+
+export async function fetchWorkPlatformMapping(): Promise<{
+  total_platforms: number
+  platforms_with_guides: number
+  mapping: Record<string, { has_guide: boolean; guide_url: string | null }>
+}> {
+  return api.get('/platform-guides/workplatform/mapping')
+}
+
+// ── Revenue Ledger (truthful buckets: only PAID/NET is cash) ──
+
+export interface RevenueLedgerOpportunity {
+  id: string
+  title: string
+  platform: string
+  status: string
+  revenue_state: string
+  amount_usd: number
+  currency: string
+  url: string
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface RevenueLedger {
+  generated_at: string
+  buckets_usd: Record<string, number>
+  projection_usd: {
+    pipeline: number
+    earned_not_paid: number
+    realized: number
+    total_potential: number
+    breakdown: Record<string, number>
+  }
+  count: number
+  opportunities: RevenueLedgerOpportunity[]
+}
+
+export async function fetchRevenueLedger(platform?: string, limit: number = 100): Promise<RevenueLedger> {
+  return api.get<RevenueLedger>('/direct-work/revenue-ledger', {
+    ...(platform ? { platform } : {}),
+    limit,
+  })
+}
+
+// ── Evolution: calibration + repeatable (estimated-vs-actual learning) ──
+
+export interface EvolutionCalibration {
+  verdict: string
+  records_total: number
+  records_with_amount_prediction: number
+  records_with_hours_prediction: number
+  records_with_probability_prediction: number
+  mae_amount_usd: number | null
+  mae_hours: number | null
+  mean_probability_error: number | null
+  note: string
+}
+
+export interface RepeatableRow {
+  platform: string
+  category: string
+  accepted: number
+  total: number
+  conversion: number
+  revenue_usd: number
+  verdict: string
+}
+
+export interface EvolutionLearningReport {
+  lessons: unknown[]
+  capabilities: unknown[]
+  performance: Record<string, unknown>
+  calibration: EvolutionCalibration
+  repeatable: RepeatableRow[]
+}
+
+export async function fetchEvolutionLearning(
+  records: Array<Record<string, unknown>> = [],
+  timeInvestedHours: number = 0,
+): Promise<EvolutionLearningReport> {
+  return api.post<EvolutionLearningReport>('/direct-work/evolution', {
+    profile: buildDirectWorkProfile(),
+    records,
+    opportunities: [],
+    time_invested_hours: timeInvestedHours,
+  })
+}

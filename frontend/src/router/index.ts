@@ -235,6 +235,24 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Cola de Trabajo' },
   },
   {
+    path: '/operations/first-money',
+    name: 'first-money',
+    component: () => import('@/pages/FirstMoney.vue'),
+    meta: { title: 'First Money' },
+  },
+  {
+    path: '/operations/platforms/:platform?',
+    name: 'platform-onboarding',
+    component: () => import('@/pages/PlatformOnboarding.vue'),
+    meta: { title: 'Guías de plataforma' },
+  },
+  {
+    path: '/operations/ledger',
+    name: 'revenue-ledger',
+    component: () => import('@/pages/Ledger.vue'),
+    meta: { title: 'Revenue Ledger' },
+  },
+  {
     path: '/operations/work-room/:id',
     name: 'work-room',
     component: () => import('@/components/work/WorkRoom.vue'),
