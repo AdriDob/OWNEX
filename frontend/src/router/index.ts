@@ -55,6 +55,14 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/ownex-chat/OwnexChat.vue'),
     meta: { title: 'MERLIN Chat' },
   },
+  {
+    // Canonical OWNEX AI chat (single conversation, canonical-state grounding,
+    // backend-authoritative FACT/INFERENCE/RECOMMENDATION/UNKNOWN semantics).
+    path: '/ai',
+    name: 'ownex-ai',
+    component: () => import(/* webpackChunkName: "ai-command-center" */ '@/components/ai/AiCommandCenter.vue'),
+    meta: { title: 'OWNEX AI' },
+  },
 
   // ── AUTH ──
   {

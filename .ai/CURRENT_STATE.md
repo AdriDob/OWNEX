@@ -1,3 +1,40 @@
+## Sesión 2026-09-09 — BLOQUE 0 (100/100 plan): 6 integrity fixes + verificación
+
+> **QUÉ SE HIZO:** Ejecución BLOQUE 0 con decisiones selladas (HUMAN GATE obligatorio, AUTO-SUBMIT desactivado, SIGNING ready/unsigned, validación Windows obligatoria, baseline 1h/día).
+> - **Demo-PAID muerto** (`api/routers/direct_work.py::direct_work_deliver_approve`): el approve movía REVIEWING→ACCEPTED→PAID automático. Ahora REVIEWING-only (flujo concurrente lo llevó más lejos: sin ACCEPTED, sin learning falso en approval, mensaje honesto "El pago se registra solo con evidencia real"). PAID solo vía webhook/verificación/manual.
+> - **Synack honesto** (`cores/opportunity/adapters/security/synack.py`): eliminado `_fallback_missions()` (3 missions inventadas $25k/$15k/$12k que contaminaban EV scoring). Sin API/autenticación → `[]` honesto (invite-only).
+> - **Naabu cableado** (`cores/cycles/stages/attack_surface_executor.py`): `_scan_ports_naabu()` — scan real `top-100` cuando `scan_type != passive` y el binario existe; fallback a guesses pasivos etiquetados. Nunca rompe el stage.
+> - **Registro muerto vivo** (`cores/opportunity/adapters/__init__.py`): `security.py` legacy opacado por el paquete `security/` → carga explícita por path. `rastro`+`aegis` registran (32 adapters totales).
+> - **Huérfano eliminado**: `frontend/src/pages/MissionControl.vue` + test (0 referencias productivas; `mission-control/` no tocado por posible WIP ajeno).
+> - **Checksums honestos** (`installer/checksums/SHA256SUMS.txt`): hash Gen2 válido conservado + procedencia MSI documentada (CI + sidecar `.sha256`; MSI no construible en Linux).
+> - **Verificación**: ruff limpio en 4 archivos; `import api.main` OK; **206 passed** (61 direct_work/e2e/security + 104 scoring/opportunity/scheduler/contest + 41 workbank/mirror/bridge); 0 dangling imports frontend.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `mission-control/`, `core/`.
+> - **Siguiente**: BLOQUE 1 — instalación física MSI en Windows 11 (W1-W12) → veredicto STABLE.
+
+## Sesión 2026-09-09 — 100/100 BLOQUE 0: 5 auditorías + scorecard + P1.1–P1.5 (revenue honesty primero)
+
+> **QUÉ SE HIZO:** Ejecución del master prompt 100/100 (ETAPA A completa con 5 subagentes en paralelo → scorecard con evidencia → ETAPA B Phase 0+1). Hallazgo central: el loop ya estaba 90% construido; los gaps eran honestidad de revenue, no features.
+> - **P1.1 PAID honesty (crítico)**: `direct_work.py::deliver/approve` fabricaba PAID ("demo/testing") + ACCEPTED sin evidencia + `apply_learning(accepted=True)` hardcoded → ahora REVIEWING-only + sin learning (los outcomes verificados pliegan vía tracker-history/closed_loop//learn). `execution_bridge::reconcile` hacía ACCEPTED→PAID en boot → ahora REVIEWING-only (+ helper `_paid_platforms` muerto eliminado). Test que pineaba PAID actualizado al contrato honesto. 121 passed (income-chain E2E intacto: PAID solo vía verificación explícita).
+> - **P1.3 revenue edge**: `execution_sync` ignoraba eventos SUBMITTED (el driver nunca emite PAID) → ahora SUBMITTED/FAILED espejan al tracker vía bridge SSOT (mismo camino que AutoSubmitEngine). 3 tests nuevos (18 passed en el archivo).
+> - **P1.4 chat canónico**: `AiCommandCenter.vue` existía pero con 0 importers (DEAD) → montado en ruta `/ai` + sidebar APPS primero (sin borrar los 3 chats vivos).
+> - **P1.5 higiene**: redact `docs/AI.md` key + `CURRENT_STATE` Gmail app-password (**ROTAR en Google Account — quedó en historial git**) + `core/version.py` 7.0.0→7.1.0 (último drift). Installers stale NO movidos (referenciados por README-INSTALACION + sync_version → Phase 15).
+> - **P1.2 veredicto**: ledger `record_payout` es estricto-correcto (no bug); endpoint sirve tracker (verdad viva) — unificación tracker↔ledger es Phase 9, no Phase 1.
+> - **Verificación**: ruff limpio · `import api.main` OK · 174 passed afectadas · fast 100/1 · vue-tsc 0 en tocados · `vite build` 11.66s OK · financial_hub 40 errores pre-existentes extranjeras (verificado stash).
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `adapters/__init__.py`, `attack_surface_executor.py`, `synack.py` (WIP ajeno activo en el árbol — el flujo concurrente además corrigió el PAID-block en paralelo; convergencia sin conflicto).
+>
+> **SCORECARD 100/100 (evidencia ETAPA A)** — 100 = preparación/robustez/automatización honestas, NO cero-errores-ni-garantía-de-dinero:
+> | Dimensión | Score | Estado |
+> |---|---|---|
+> | Loop autónomo revenue | 95 | Jobs resuelven 100%, sweep+queue+bridge+reconcile testeados; PAID solo con evidencia |
+> | Revenue honesty | 95 | 2 bypass muertos + fake learning muerto; queda unificación tracker↔ledger (Ph9) |
+> | Arquitectura | 70 | cores/ canónico por imports; core/ sombra muerta; Opportunity ×4, Ledger ×3, OAR 1-de-5, Identity ×6 |
+> | Seguridad | 85 | Gates/CSRF/vault-path OK; Human Gate ×3 familias (Ph4); prompt-injection sin enforcement (Ph3); docs redactados |
+> | Frontend | 85 | Mission Control responde las 5; chat canónico montado; semantics 1/4 UIs |
+> | Windows packaging | 80 | MSI-only + spec ONEFILE + CI tag→MSI + data-dir OK; sin firma (decisión); WebView2 parcial; sin validación física |
+> | Testing/CI | 80 | Fast gate verde; full suite con drift ajeno (KNOWN_DEBT #14) |
+> | Observabilidad | 70 | operation_id + health endpoints OK; sin trace global ni logs JSON |
+> - **Siguiente**: validación física Windows W1–W12 → veredicto STABLE → borrado `core/` + PR #37.
+
 ## Sesión 2026-09-09 — LOOP AUTÓNOMO CERRADO: 6 handlers + 10 jobs muertos + P2/P3 verificados (cierre proyecto)
 
 > **QUÉ SE HIZO:** Cierre del loop autónomo de revenue para instalar en Windows mañana. Audit-first: execution queue (store+driver+3 jobs), auto-submit (retry/DLQ/bridge/reconcile), availability (engine+recommender), ledger (endpoint+consumidores) YA existían — solo se cerraron los gaps genuinos de wiring.
@@ -1099,7 +1136,7 @@
 - `frontend/src/router/index.ts`: ruta `/verify` pública añadida.
 - `api/middleware/csrf_middleware.py`: `/api/auth/users/verify` excluido del CSRF.
 - `api/main.py`: `asyncio.wait_for(opp_engine.discover_all(), timeout=30)` (timeout 30s).
-- `.env`: `OWNNEX_MAIL_PASSWORD=hdkkflicvaluwdyc` (16 chars sin espacios).
+- `.env`: `OWNNEX_MAIL_PASSWORD=[REDACTED 2026-09-09 — app-password en texto plano removida del doc; ROTAR en Google Account ya que quedó en historial git]`.
 
 ### Verificación
 - `ruff check api/routers/auth_users.py`: All checks passed.

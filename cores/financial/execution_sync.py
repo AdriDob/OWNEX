@@ -78,15 +78,52 @@ class ExecutionRevenueSync:
         new_state = data.get("new_state")
         payload = data.get("payload", {})
 
-        if not item_id or new_state != ExecState.PAID.value:
+        if not item_id:
             return
 
-        logger.info(f"[SYNC] Execution {item_id} reached PAID, syncing to revenue tracker")
+        if new_state == ExecState.PAID.value:
+            logger.info(f"[SYNC] Execution {item_id} reached PAID, syncing to revenue tracker")
 
+            try:
+                self._sync_paid_execution(item_id, payload)
+            except Exception as e:
+                logger.error(f"Failed to sync paid execution {item_id}: {e}")
+            return
+
+        if new_state in (ExecState.SUBMITTED.value, ExecState.FAILED.value):
+            self._sync_submission_outcome(item_id, payload, new_state)
+
+    def _sync_submission_outcome(self, item_id: str, payload: dict[str, Any], new_state: str) -> None:
+        """Mirror a queue SUBMITTED/FAILED transition into the RevenueTracker.
+
+        Rule §39: a submission is pipeline (REVIEWING) or documented loss
+        (FAILED) — never cash. Delegates to the execution_bridge SSOT so the
+        queue path records exactly like the AutoSubmitEngine path. Guarded:
+        revenue recording never breaks execution.
+        """
         try:
-            self._sync_paid_execution(item_id, payload)
+            from types import SimpleNamespace
+
+            from cores.revenue_tracker.execution_bridge import record_submission_outcome
+
+            record = SimpleNamespace(
+                status=new_state,
+                platform=str(payload.get("platform", "")),
+                id=f"exec_{item_id}",
+                opportunity_id=str(payload.get("id", item_id)),
+                opportunity_title=str(payload.get("title", item_id)),
+                attempts=0,
+                metadata={
+                    "opportunity": {
+                        "title": payload.get("title", ""),
+                        "reward": payload.get("reward", payload.get("amount", 0.0)),
+                        "url": payload.get("url", ""),
+                    }
+                },
+            )
+            record_submission_outcome(record)
         except Exception as e:
-            logger.error(f"Failed to sync paid execution {item_id}: {e}")
+            logger.warning(f"Failed to sync submission outcome for {item_id}: {e}")
 
     def _sync_paid_execution(self, item_id: str, payload: dict[str, Any]):
         """Create/update revenue opportunity from a paid execution."""

@@ -691,9 +691,12 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
 async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     """Mark a work-bank item as delivered (user confirmed the submission landed).
 
-    Closes the loop: the item moves to ``delivered`` and the outcome is folded
-    into the user profile so future recommendations learn from it.
-    Also wires to RevenueTracker: creates opportunity + processes payment through states.
+    Honest semantics (Rule §39): delivery is NOT payment. The item moves to
+    ``delivered`` and the revenue opportunity moves to REVIEWING (submitted,
+    awaiting platform review). ACCEPTED arrives via confirmation
+    (polling/webhook/manual verify); PAID only via real payout evidence
+    (platform webhook ``payout_received`` or documented user declaration in
+    First Money). Learning folds verified outcomes only — never this approval.
     """
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -717,7 +720,6 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
 
         from cores.revenue_tracker.execution_bridge import resolve_payment_platform
         from cores.revenue_tracker.revenue_tracker import (
-            PaymentPlatform,
             PaymentStatus,
             RevenueOpportunity,
             get_revenue_tracker,
@@ -769,54 +771,25 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
             },
         )
 
-        # For bug bounties/dev bounties with verified payout, move to ACCEPTED
-        if platform in (PaymentPlatform.BUG_BOUNTY, PaymentPlatform.DEV_BOUNTY):
-            tracker.update_opportunity_status(
-                opp_id,
-                PaymentStatus.ACCEPTED,
-                {
-                    "workbank_item_id": item_id,
-                    "platform_accepted": True,
-                },
-            )
-            # Auto-transition to PAID for demo/testing (real flow would wait for actual payment)
-            tracker.update_opportunity_status(
-                opp_id,
-                PaymentStatus.PAID,
-                {
-                    "workbank_item_id": item_id,
-                    "payment_confirmed": True,
-                },
-            )
+        # REVIEWING only: the submission landed (human-confirmed), the platform
+        # has NOT accepted anything yet. ACCEPTED arrives via platform
+        # confirmation (polling/webhook/manual verify); PAID only via real
+        # payout evidence (Rule §39: SUBMITTED→PAID forbidden).
 
         revenue_result = tracker.get_platform_metrics(platform.value.lower())
     except Exception as exc:
         logger.warning("RevenueTracker wiring failed: %s", exc)
 
-    # Feedback loop: fold outcome into user profile
-    profile = UserProfile(
-        name="Adriel",
-        country="Argentina",
-        languages={"es", "en"},
-        skills={"python", "go", "unity", "typescript"},
-        remote_only=True,
-    )
-    category = getattr(item, "category", None)
-    record = LearningRecord(
-        platform=str(item.platform),
-        accepted=True,
-        amount=float(item.reward or 0.0),
-        category=_resolve(category, OpportunityCategory) if category else None,
-        time_to_payout_days=None,
-    )
-    apply_learning(profile, [record])
+    # No learning folded here: delivery approval is not an outcome. Verified
+    # outcomes (accepted/paid/failed) fold via build_history_from_revenue_tracker,
+    # closed_loop payments, or POST /direct-work/learn — never from approval.
 
     return {
         "item_id": item.id,
         "status": "delivered",
         "reward": item.reward,
         "revenue_tracker": revenue_result,
-        "message": "Entregado. El resultado se plegó al perfil y al Revenue Tracker.",
+        "message": "Entregado y en revisión. El pago se registra solo con evidencia real.",
     }
 
 

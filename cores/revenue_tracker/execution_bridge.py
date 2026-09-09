@@ -253,7 +253,6 @@ def reconcile_from_persisted_state() -> dict[str, int]:
                     counts["delivered"] += 1
                     continue
                 platform_key = str(getattr(item, "platform", "") or "").lower().replace("workplatform.", "")
-                platform = _resolve_payment_platform(platform_key)
                 _get_or_create_opp(
                     tracker,
                     opp_id,
@@ -264,10 +263,10 @@ def reconcile_from_persisted_state() -> dict[str, int]:
                     source="workbank_reconcile",
                     extra_tracking={"workbank_item_id": item.id, "reconciled_at_boot": True},
                 )
+                # REVIEWING only (Rule §39): a delivered workbank item proves
+                # submission, not platform acceptance and not payment. ACCEPTED
+                # arrives via confirmation; PAID only via payout evidence.
                 tracker.update_opportunity_status(opp_id, PaymentStatus.REVIEWING, {"reconciled_at_boot": True})
-                if platform in _paid_platforms():
-                    tracker.update_opportunity_status(opp_id, PaymentStatus.ACCEPTED, {"reconciled_at_boot": True})
-                    tracker.update_opportunity_status(opp_id, PaymentStatus.PAID, {"reconciled_at_boot": True})
                 counts["delivered"] += 1
             except Exception as exc:
                 logger.warning("Reconcile skipped workbank item %s: %s", getattr(item, "id", "?"), exc)
@@ -275,9 +274,3 @@ def reconcile_from_persisted_state() -> dict[str, int]:
     except Exception as exc:
         logger.warning("Reconcile workbank skipped: %s", exc)
     return counts
-
-
-def _paid_platforms() -> Any:
-    from cores.revenue_tracker.revenue_tracker import PaymentPlatform
-
-    return (PaymentPlatform.BUG_BOUNTY, PaymentPlatform.DEV_BOUNTY)

@@ -145,6 +145,7 @@ const navSections = [
     section: 'APPS',
     cycle: 'security',
     items: [
+      { name: 'OWNEX AI', path: '/ai', icon: Bot },
       { name: 'MERLIN', path: '/merlin', icon: Bot },
       { name: 'Atlas', path: '/atlas/', icon: Landmark },
       { name: 'Odyssey', path: '/odyssey/', icon: Sparkles },

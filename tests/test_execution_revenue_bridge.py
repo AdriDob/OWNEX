@@ -195,7 +195,9 @@ def test_reconcile_replays_delivered_workbank_items(monkeypatch, tracker):
     monkeypatch.setattr(wb_mod, "get_workbank", lambda *a, **k: _FakeBank([_FakeItem()]))
     counts = reconcile_from_persisted_state()
     assert counts == {"submissions": 0, "delivered": 1, "skipped": 0}
-    assert tracker.opportunities["wb_wb-9"].status == PaymentStatus.PAID
+    # Rule §39: reconcile replays delivery as REVIEWING (submitted, awaiting
+    # platform review) — never ACCEPTED/PAID without payout evidence.
+    assert tracker.opportunities["wb_wb-9"].status == PaymentStatus.REVIEWING
 
 
 def test_reconcile_skips_transient_statuses(monkeypatch, tracker):
@@ -209,3 +211,49 @@ def test_reconcile_skips_transient_statuses(monkeypatch, tracker):
     counts = reconcile_from_persisted_state()
     assert counts == {"submissions": 0, "delivered": 0, "skipped": 0}
     assert not tracker.opportunities
+
+
+class TestQueueSubmissionSync:
+    """ExecutionQueue driver SUBMITTED/FAILED transitions must reach the
+    RevenueTracker as REVIEWING/FAILED via the bridge SSOT (Rule §39)."""
+
+    def _sync(self):
+        from cores.financial.execution_sync import ExecutionRevenueSync
+
+        sync = ExecutionRevenueSync.__new__(ExecutionRevenueSync)
+        sync.tracker = get_revenue_tracker()
+        return sync
+
+    def test_queue_submitted_becomes_reviewing(self, tracker):
+        from cores.execution_queue import ExecState
+
+        sync = self._sync()
+        sync._on_state_changed(
+            item_id="q-1",
+            new_state=ExecState.SUBMITTED.value,
+            payload={"platform": "opire", "id": "b-10", "title": "Fix bug", "reward": 200.0},
+        )
+        opp = tracker.opportunities.get("sub_exec_q-1")
+        assert opp is not None
+        assert opp.status == PaymentStatus.REVIEWING
+        assert opp.revenue_state == "committed"
+
+    def test_queue_failed_becomes_failed(self, tracker):
+        from cores.execution_queue import ExecState
+
+        sync = self._sync()
+        sync._on_state_changed(
+            item_id="q-2",
+            new_state=ExecState.FAILED.value,
+            payload={"platform": "hackerone", "id": "f-3", "title": "XSS", "reward": 500.0},
+        )
+        opp = tracker.opportunities.get("sub_exec_q-2")
+        assert opp is not None
+        assert opp.status == PaymentStatus.FAILED
+
+    def test_other_states_ignored(self, tracker):
+        from cores.execution_queue import ExecState
+
+        sync = self._sync()
+        sync._on_state_changed(item_id="q-3", new_state=ExecState.EXECUTING.value, payload={})
+        assert "sub_exec_q-3" not in tracker.opportunities

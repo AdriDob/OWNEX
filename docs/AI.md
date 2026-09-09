@@ -180,7 +180,7 @@ model:
   provider: omniroute
   base_url: http://localhost:20128/v1
   name: auto/best-free
-  api_key: sk-f8bed9b225539e00-8d7be9-af8dabba
+  api_key: sk-REDACTED-use-your-own-local-key
 fallback_providers:
   - base_url: http://localhost:8082
     model: claude-sonnet-4-20250514
