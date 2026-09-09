@@ -76,6 +76,17 @@ class TestSidecarSpec:
         workflow = (REPO_ROOT / ".github" / "workflows" / "ownex-tauri-windows.yml").read_text(encoding="utf-8")
         assert "50" in workflow and ("Validate sidecar" in workflow or "minimum" in workflow.lower())
 
+    def test_ci_windows_sidecar_uses_triple_suffix(self) -> None:
+        """Tauri v2 resolves externalBin to binaries/<name>-<triple>.exe.
+
+        Regression guard for v7.1.0 CI: the Windows copy step dropped the
+        exe as plain `ownex-backend` and build-script-build failed with
+        "resource path binaries\\ownex-backend-x86_64-pc-windows-msvc.exe
+        doesn't exist" while all 3 sidecars were green.
+        """
+        workflow = (REPO_ROOT / ".github" / "workflows" / "ownex-tauri-windows.yml").read_text(encoding="utf-8")
+        assert "ownex-backend-x86_64-pc-windows-msvc.exe" in workflow
+
 
 class TestVersionSync:
     def test_versions_agree_across_manifests(self, tauri_conf: dict) -> None:
