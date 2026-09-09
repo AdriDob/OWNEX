@@ -1,6 +1,15 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN ABIERTA: P1-backlog E2E chat canónico consolidado (semantics autoritativas en la UI). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+> v7.1.0 — SESIÓN ABIERTA: P1-backlog E2E chat canónico consolidado + hook de commits → suite fast. Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+
+## Sesión 2026-09-09 (post-cierre) — HOOK PRE-COMMIT → FAST SUITE (gate de commits desbloqueado)
+
+### Qué se hizo
+- **Descubrimiento**: el hook (suite completa) estaba roto por **~123 fallas en ~25 archivos** del flujo concurrente — no 2. Categorizado por causa raíz (drift de contrato): módulos sin aterrizar (`cores.commander.agent_registry`, `api.routers.financial_hub`), firmas cambiadas a mitad (`ConfidenceScorer.calculate()` que el flujo ajeno edita en el árbol), kwargs nuevos (`reset_capability_registry(store_path=)`), atributos renombrados (`DailyBriefEngine._run_ddl_visitor`, `_check_gooseai`), default de providers (`devin` vs `omniroute`), env var del develop (`NIM_API_KEY` real que `test_ai_router` asume vacía — key no commiteada, `rg` del repo vacío).
+- **Decisión del owner**: hook pytest → **suite fast** (scoring + opportunity + scheduler-jobs + e2e + security_cycle = 100/1 determinista, ~1s), mismo contrato que `make test-fast`, en lugar de whitelist de ~25 archivos (frágil, taparía regresiones propias).
+- **Cambios**: `.pre-commit-config.yaml` (hook pytest = fast set + comentario de por qué NO suite completa) · `Makefile` (nota: commits gatean en test-fast, `make test` explícito con breaks conocidos; se sumaron excludes financial_hub/self_improvement) · `scripts/dev` (mismas excludes) · `KNOWN_DEBT.md` #14 actualizado a "drift de contrato amplio" con tabla de causas + condiciones de re-apertura (`ownership: concurrent-flow`).
+- **Verificación**: hook fast **100 passed / 1 skipped en 1.00s** · YAML del hook válido · ruff limpio en scripts/dev.
+- **Fuera de alcance**: ninguno de los ~25 archivos rotos (territorio del flujo ajeno, sin tocar). `make test` completo sigue mostrando sus breaks hasta que aterrice.
 
 ## Sesión 2026-09-09 (post-cierre) — E2E CHAT CANÓNICO: semantics backend → UI (P1-backlog cerrado)
 

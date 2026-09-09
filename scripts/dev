@@ -36,6 +36,8 @@ DEFAULT_TEST_ARGS = [
     "--ignore=tests/test_security.py",
     "--ignore=tests/test_vision_gateway.py",
     "--ignore=tests/test_scheduler.py",
+    "--ignore=tests/test_financial_hub.py",
+    "--ignore=tests/test_self_improvement.py",
 ]
 
 TEST_TARGETS = [
