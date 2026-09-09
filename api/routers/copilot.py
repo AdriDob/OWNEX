@@ -132,6 +132,7 @@ async def copilot_chat(body: ChatRequest):
             semantics = label_free_text(result.content or "").to_dict()
         except Exception:
             semantics = {"FACT": [], "INFERENCE": [], "RECOMMENDATION": [], "UNKNOWN": []}
+        extra = getattr(result, "extra", None) or {}
         return {
             "status": "ok" if not result.error else "error",
             "response": result.content,
@@ -140,6 +141,7 @@ async def copilot_chat(body: ChatRequest):
             "duration_ms": result.duration_ms,
             "error": result.error,
             "semantics": semantics,
+            "injection_suspected": bool(extra.get("injection_suspected", False)),
         }
     except Exception as exc:
         logger.warning("[COPILOT] Chat error: %s", exc)

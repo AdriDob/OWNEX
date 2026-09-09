@@ -93,6 +93,13 @@ class TestSidecarSpec:
         assert "wix" in windows
         assert "nsis" not in windows
 
+    def test_webview2_bootstrapper_pinned(self, tauri_conf: dict) -> None:
+        """WebView2 strategy explicit: silent downloadBootstrapper (needs
+        internet at install; Win11 Evergreen covers offline)."""
+        mode = tauri_conf["bundle"]["windows"].get("webviewInstallMode", {})
+        assert mode.get("type") == "downloadBootstrapper"
+        assert mode.get("silent") is True
+
 
 class TestVersionSync:
     def test_versions_agree_across_manifests(self, tauri_conf: dict) -> None:

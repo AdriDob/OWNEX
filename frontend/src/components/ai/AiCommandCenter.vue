@@ -21,6 +21,7 @@ import {
   type AiSendResult,
 } from '@/services/ownexAi'
 import type { AiMessage, AiToolApproval, ChatMessage, SemanticBlock } from '@/types/ownex'
+import { blocksFromLabels } from '@/services/chatSemantics'
 import { fetchOneAction } from '@/services/ownexData'
 
 const emit = defineEmits<{
@@ -91,13 +92,7 @@ function toSemantics(text: string): SemanticBlock[] {
 /** Map the backend's authoritative labels to display blocks; fallback kept for contract drift. */
 function fromBackendSemantics(labels?: Record<'FACT' | 'INFERENCE' | 'RECOMMENDATION' | 'UNKNOWN', string[]> | null, text = ''): SemanticBlock[] {
   if (!labels) return toSemantics(text)
-  const blocks: SemanticBlock[] = []
-  for (const tag of ['FACT', 'INFERENCE', 'RECOMMENDATION', 'UNKNOWN'] as const) {
-    for (const line of (labels[tag] ?? []).slice(0, 3)) {
-      blocks.push({ tag, text: line.slice(0, 220) })
-    }
-    if (blocks.length >= 12) break
-  }
+  const blocks = blocksFromLabels(labels)
   return blocks.length ? blocks : toSemantics(text)
 }
 

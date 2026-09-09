@@ -112,6 +112,15 @@
                 </div>
                 <div v-else class="message-text">{{ message.content }}</div>
               </div>
+              <div v-if="message.semantics && message.semantics.length" class="semantics-row">
+                <span
+                  v-for="(b, i) in message.semantics"
+                  :key="i"
+                  class="sem-tag"
+                  :class="'tag-' + b.tag"
+                  :title="b.text"
+                >{{ b.tag }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -221,6 +230,7 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
+import { blocksFromLabels } from '@/services/chatSemantics'
 import VoiceAssistantRecorder from '@/components/voice/VoiceAssistantRecorder.vue'
 import { fetchGoodMorning, fetchDirectWorkWorkBank, fetchOwnexDashboard, fetchDirectWorkDailyBrief } from '@/services/ownexData'
 
@@ -325,6 +335,7 @@ async function sendMessage() {
       id: Date.now(),
       role: 'merlin',
       content: response.data.response,
+      semantics: blocksFromLabels(response.data.semantics),
       timestamp: new Date(),
       isTyping: false,
     })
@@ -675,6 +686,13 @@ onMounted(async () => {
   color: var(--ownex-green);
 }
 .message-text { white-space: pre-wrap; word-break: break-word; }
+/* Backend-authoritative semantics badges */
+.semantics-row { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.sem-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.65); }
+.sem-tag.tag-FACT { color: #7ee2a8; border-color: rgba(126, 226, 168, 0.35); }
+.sem-tag.tag-INFERENCE { color: #8fc7ff; border-color: rgba(143, 199, 255, 0.35); }
+.sem-tag.tag-RECOMMENDATION { color: #ffd791; border-color: rgba(255, 215, 145, 0.35); }
+.sem-tag.tag-UNKNOWN { color: #c9c9c9; border-style: dashed; }
 .typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
 .typing-dot {
   width: 6px;

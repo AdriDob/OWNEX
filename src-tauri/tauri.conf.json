@@ -50,6 +50,10 @@
     "windows": {
       "wix": {
         "language": "es-ES"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
       }
     },
     "linux": {

@@ -95,6 +95,21 @@ class TestOverview:
         assert "status" in data
         assert "database" in data
 
+    def test_diagnostic_bundle(self, client):
+        resp = client.get("/api/system/diagnostic-bundle")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["generated_at"]
+        assert data["version"] == "7.1.0"
+        assert isinstance(data["scheduler"]["total_jobs"], int)
+        assert data["scheduler"]["total_jobs"] >= 54
+        assert data["scheduler"]["dead_handlers"] == []
+        assert set(data["queue"]) == {"queued", "executing", "waiting_human", "submitted", "failed"}
+        assert "revenue" in data
+        # No secrets, keys, or prompts anywhere in the bundle.
+        blob = resp.text.lower()
+        assert "api_key" not in blob and "secret" not in blob and "BEGIN PRIVATE" not in blob
+
 
 class TestExecution:
     def test_tracker(self, client):

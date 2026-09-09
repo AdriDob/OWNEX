@@ -11,6 +11,31 @@
 > - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `mission-control/`, `core/`.
 > - **Siguiente**: BLOQUE 1 — instalación física MSI en Windows 11 (W1-W12) → veredicto STABLE.
 
+## Sesión 2026-09-09 — 100/100 BLOQUE 1: score 83→87 (Seg/Front/Win/Test/Obs con cambios reales)
+
+> **QUÉ SE HIZO:** Segunda oleada del master prompt — subir cada dimensión solo con cambios verificables, sin inflar.
+> - **S1 prompt-injection (Seg 85→90)**: `cores/copilot/prompt_guard.py` NUEVO (12 patrones EN/ES directos, policy de untrusted-data, flag en metadata) enganchado en `ProviderRouter.route()/route_stream()` (choke único) + `injection_suspected` aditivo en `POST /api/copilot/chat`. Alcance honesto documentado: NO cubre payloads ofuscados. 8 tests nuevos (`test_prompt_guard.py`).
+> - **S2 semantics 3/4 UIs (Front 85→90)**: helper compartido `chatSemantics.ts` (`blocksFromLabels`); `OwnexChat` + `MerlinJarvis` (ambos consumen `/merlin/chat` que ya devolvía semantics) ahora renderizan badges FACT/INFERENCE/RECOMMENDATION/UNKNOWN; `AiCommandCenter` delega al helper (sin cambio de comportamiento). Streaming excluido por diseño.
+> - **S3 WebView2 (Win 80→85)**: `webviewInstallMode: downloadBootstrapper+silent` pineado explícito (verificado contra el schema del CLI instalado, no de memoria) + test guard. Contrato honesto: requiere internet en install; Win11 Evergreen cubre offline.
+> - **S4 reinstall test (Win)**: `test_reinstall_preserves_data` — re-`init_db()` sobre mismo data-dir preserva filas (supervivencia a reinstall por construcción + test).
+> - **S5 diagnostic bundle (Obs 70→82)**: `GET /api/system/diagnostic-bundle` — versión+health+scheduler(queue depth, dead-handlers en vivo)+revenue en una llamada, best-effort, assertion de cero-secretos en test. Sin trace global ni logs JSON (techo declarado).
+> - **S6 verificado sin código**: `error_handling` montado (`main.py:497/499`) + pineado por `test_error_handling.py` (7 tests verdes).
+> - **Verificación**: ruff limpio · `import api.main` OK · 203 passed afectadas · fast 100/1 · vue-tsc 0 en tocados · biome 0 · `vite build` 12.64s OK.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, WIP ajeno del árbol.
+>
+> **SCORECARD 100/100 v2 (83→87, todo ganado con evidencia)**:
+> | Dimensión | Antes | Ahora | Techo / desbloqueo |
+> |---|---|---|---|
+> | Loop autónomo revenue | 95 | 95 | Unificación + proof Windows |
+> | Revenue honesty | 95 | 95 | Unificación tracker↔ledger (Ph9) |
+> | Arquitectura | 70 | 70 | SIN CAMBIO honesto: core/-OAR-Identity-Opportunity-Ledger requieren migraciones grandes |
+> | Seguridad | 85 | 90 | Human Gate ×3 (Ph4); machine-id legacy por diseño; ofuscados fuera de alcance |
+> | Frontend | 85 | 90 | Placeholder /copilot; recorder proxy-path |
+> | Windows packaging | 80 | 85 | Validación física W1–W12; firma (decisión) |
+> | Testing/CI | 80 | 85 | Full suite verde post-merge flujo ajeno |
+> | Observabilidad | 70 | 82 | Trace global; logs JSON |
+> - **Veredicto**: RC (sin cambios) — Windows físico + firma pendiente. Mínimos §36 (Windows/Seguridad) aún bajo umbral STABLE.
+
 ## Sesión 2026-09-09 — 100/100 BLOQUE 0: 5 auditorías + scorecard + P1.1–P1.5 (revenue honesty primero)
 
 > **QUÉ SE HIZO:** Ejecución del master prompt 100/100 (ETAPA A completa con 5 subagentes en paralelo → scorecard con evidencia → ETAPA B Phase 0+1). Hallazgo central: el loop ya estaba 90% construido; los gaps eran honestidad de revenue, no features.

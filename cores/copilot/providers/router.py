@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from cores.copilot.prompt_guard import flag_response, guard_messages
 from cores.copilot.providers.base import BaseProvider, ProviderResponse
 from cores.copilot.providers.devin_provider import DevinProvider
 from cores.copilot.providers.fcc_provider import FCCProvider
@@ -50,14 +51,23 @@ class ProviderRouter:
                 return p
         return None
 
+    async def _chat_guarded(
+        self, provider: BaseProvider, messages: list[dict[str, str]], matched: list[str], **kwargs: Any
+    ) -> ProviderResponse:
+        """Single provider call site: runs chat and flags suspected injections."""
+        result = await provider.chat(messages, **kwargs)
+        if matched:
+            flag_response(result, matched)
+        return result
+
     async def route(
         self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any
     ) -> ProviderResponse:
-        messages = messages or []
+        messages, _suspected, matched = guard_messages(messages or [])
 
         # Try Devin first (free AI agent with tools)
         if (provider := self.get_provider("devin")) and await provider.check():
-            return await provider.chat(messages, **kwargs)
+            return await self._chat_guarded(provider, messages, matched, **kwargs)
         logger.warning("Devin unavailable, falling back to other providers")
 
         # Task-specific routing with proper fallback chain
@@ -65,21 +75,21 @@ class ProviderRouter:
             # code -> Freebuff -> OpenCode -> FCC -> NVIDIA -> Ollama
             for provider_name in ["freebuff", "opencode", "fcc", "nvidia", "ollama"]:
                 if (provider := self.get_provider(provider_name)) and await provider.check():
-                    return await provider.chat(messages, **kwargs)
+                    return await self._chat_guarded(provider, messages, matched, **kwargs)
                 logger.warning("%s unavailable, trying next", provider_name)
 
         elif task_type == TASK_REASON:
             # reason -> FCC -> NVIDIA -> OpenCode -> Ollama
             for provider_name in ["fcc", "nvidia", "opencode", "ollama"]:
                 if (provider := self.get_provider(provider_name)) and await provider.check():
-                    return await provider.chat(messages, **kwargs)
+                    return await self._chat_guarded(provider, messages, matched, **kwargs)
                 logger.warning("%s unavailable, trying next", provider_name)
 
         else:
             # chat/default -> Ollama -> NVIDIA -> FCC -> OpenCode
             for provider_name in ["ollama", "nvidia", "fcc", "opencode"]:
                 if (provider := self.get_provider(provider_name)) and await provider.check():
-                    return await provider.chat(messages, **kwargs)
+                    return await self._chat_guarded(provider, messages, matched, **kwargs)
                 logger.warning("%s unavailable, trying next", provider_name)
 
         return ProviderResponse(content="No provider available", provider="none", error="all providers unavailable")
@@ -87,7 +97,8 @@ class ProviderRouter:
     async def route_stream(
         self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any
     ):
-        messages = messages or []
+        # Guarded (log-only: token streams carry no response metadata channel).
+        messages, _suspected, _matched = guard_messages(messages or [])
         if (
             task_type == TASK_REASON
             and (provider := self.get_provider("fcc"))

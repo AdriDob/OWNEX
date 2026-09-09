@@ -7,6 +7,7 @@
 - **Siguiente**: instalación física en Windows 11 (protocolo 5 escenarios en `README-INSTALACION.md`) → veredicto STABLE → desbloquea borrado `core/` + PR #37.
 - **MSI único** (decisión usuario 2026-09-09): commit `45889085` retira `nsis` de `tauri.conf.json` (solo WiX es-ES) + glob nsis de `artifact_paths` + docs a MSI único + guard `test_windows_bundle_is_msi_only` (packaging 11/11, fast 100/1, cargo OK). Tag `v7.1.2` (run 34413175931).
 - **Verde MSI-only** (run 34413175931, 19m8s): 6/6 SUCCESS; artefacto `OWNEX-Tauri-Windows` = MSI 138MB + `.sha256` (sin setup.exe). Hallazgo cosmético: un `nsis/*.sha256` huérfano viajó en el artefacto (el rust-cache restaura `src-tauri/target/` con restos del config anterior) → fix: wipe de `release/bundle` pre-build + tag `v7.1.3` (run 34415840981).
+- **v7.1.3 rojo por sintaxis**: el wipe usó `rm -rf` pero el step corre en pwsh (`A parameter cannot be found that matches parameter name 'rf'`) → fix `Remove-Item -Recurse -Force` + tag `v7.1.4` (run 34416859750). Lección: verificar `shell:` de cada step antes de escribir comandos (los steps bash llevan `shell: bash` explícito; el default Windows es pwsh).
 - **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
 
 ## 2026-09-09: WIN11-STABLE — rama release + P0 frozen + bug frozen /api/version
@@ -940,3 +941,13 @@
 - **P2/P3 auditados, NO construidos**: AvailabilityEngine ya alimenta `one_best_action.can_accommodate` + `income_plan` (fallback honesto profile hours); el auto-feed outlook→calendar se DESCARTÓ deliberadamente (el engine solo suma bloques `available`; inyectar busy colapsaría availability a 0 — documentado como follow-up con rediseño de semántica). Revenue Ledger ya cerrado (endpoint `/revenue-ledger` + consumidores outcome_loop/brief/observability + suite).
 - **Evidencia**: `tests/test_cycle_task_handlers.py` NUEVO (10 tests: resolución de TODOS los handlers registrados — regresión permanente de esta clase de bug — + sweep con DB aislada + skips); 61 passed (handlers+scheduler), 83 (auto_submit/bridge), 164 (queue/workbank/market/qa/direct_work), fast 100/1; ruff limpio; `import api.main` OK. `test_total_jobs_count >= 54` intacto tras remover 10.
 - **Regla permanente**: todo handler registrado en `get_all_jobs()` debe resolver a callable (el test lo pinea); ningún job muerto vuelve sin runner real.
+
+## 2026-09-09: 100/100 BLOQUE 1 — subidas verificables sin inflar (83→87)
+
+- **Prompt-injection (Seg 85→90)**: enforcement real pero de alcance declarado — detección de 12 patrones directos EN/ES + policy untrusted-data + flag en metadata/logs, enganchado en el choke único (`ProviderRouter.route()/route_stream()`). NO se reclama bloqueo total: ofuscados fuera de alcance (documentado en el módulo + test).
+- **Semantics 3/4 UIs (Front 85→90)**: el contrato ya existía en `/merlin/chat`; faltaba render. Helper compartido `chatSemantics.ts` + badges en OwnexChat/MerlinJarvis; AiCommandCenter delega (mismo comportamiento). Streaming sin semantics por diseño (no hay canal de metadata en SSE).
+- **WebView2 + reinstall (Win 80→85)**: modo pineado contra el schema del CLI instalado (no de memoria); test de supervivencia a reinstall (re-`init_db` preserva filas). Contrato honesto: bootstrapper necesita internet; offline = Evergreen del sistema.
+- **Diagnostic bundle (Obs 70→82)**: agregador best-effort de getters existentes (cero fuentes nuevas), con assertion de cero-secretos y detector vivo de dead-handlers (el bundle mismo confirma 0).
+- **Arquitectura 70 SIN CAMBIO (decisión explícita)**: subirla exigía migraciones (Opportunity ×4, Ledger ×3, OAR 1-de-5, Identity ×6, borrado core/) que violan "cambios pequeños" la noche previa a install. El score queda honesto con unlock path documentado.
+- **Evidencia**: 203 passed afectadas · fast 100/1 · ruff · `import api.main` · vue-tsc 0 · biome 0 · `vite build` 12.64s.
+- **Regla permanente**: ningún score sube sin cambio verificable que lo respalde; techos estructurales se declaran, no se maquillan.

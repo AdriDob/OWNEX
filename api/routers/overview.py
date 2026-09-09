@@ -187,6 +187,76 @@ def get_overview():
         session.close()
 
 
+@router.get("/system/diagnostic-bundle")
+def get_diagnostic_bundle() -> dict[str, Any]:
+    """Exportable diagnostic bundle: version + health + scheduler + queue +
+    revenue totals in one call. Every section best-effort (never raises);
+    contains counts and states only — no secrets, keys, or prompts."""
+    from datetime import UTC, datetime
+
+    bundle: dict[str, Any] = {"generated_at": datetime.now(UTC).isoformat()}
+
+    try:
+        from cores.version import OWNEX_VERSION
+
+        bundle["version"] = OWNEX_VERSION
+    except Exception as e:
+        bundle["version"] = f"unknown ({e})"
+
+    try:
+        bundle["health"] = get_system_health()
+    except Exception as e:
+        bundle["health"] = {"status": "unavailable", "error": str(e)}
+
+    try:
+        import importlib
+
+        from cores.scheduler.jobs import get_all_jobs
+
+        dead: list[str] = []
+        total = 0
+        for _cycle, jobs in get_all_jobs().items():
+            for job in jobs:
+                total += 1
+                try:
+                    module_path, _, attr_path = job.handler.partition(":")
+                    obj: Any = importlib.import_module(module_path)
+                    for part in attr_path.split("."):
+                        obj = getattr(obj, part)
+                    if not callable(obj):
+                        dead.append(job.job_id)
+                except Exception:
+                    # Bare dotted paths resolve via lifespan fallback; only
+                    # module:attr strings are pinned here.
+                    if ":" in job.handler:
+                        dead.append(job.job_id)
+        bundle["scheduler"] = {"total_jobs": total, "dead_handlers": dead}
+    except Exception as e:
+        bundle["scheduler"] = {"error": str(e)}
+
+    try:
+        from cores.execution_queue.models import ExecutionQueueStore
+
+        store = ExecutionQueueStore()
+        bundle["queue"] = {
+            state: len(store.pending_by_state(state))
+            for state in ("queued", "executing", "waiting_human", "submitted", "failed")
+        }
+    except Exception as e:
+        bundle["queue"] = {"error": str(e)}
+
+    try:
+        from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+        tracker = get_revenue_tracker()
+        breakdown = tracker.get_revenue_state_breakdown()
+        bundle["revenue"] = breakdown if isinstance(breakdown, dict) else {"breakdown": str(breakdown)}
+    except Exception as e:
+        bundle["revenue"] = {"error": str(e)}
+
+    return safe_response(bundle)
+
+
 @router.get("/system/health")
 def get_system_health():
     session = db.SessionLocal()

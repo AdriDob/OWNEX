@@ -148,6 +148,16 @@
                 <!-- Message content -->
                 <div v-else class="message-text" v-html="formatContent(message.content)"></div>
               </div>
+              <!-- Backend-authoritative semantics (FACT/INFERENCE/RECOMMENDATION/UNKNOWN) -->
+              <div v-if="message.semantics && message.semantics.length" class="semantics-row">
+                <span
+                  v-for="(b, i) in message.semantics"
+                  :key="i"
+                  class="sem-tag"
+                  :class="'tag-' + b.tag"
+                  :title="b.text"
+                >{{ b.tag }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -273,6 +283,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { blocksFromLabels } from '@/services/chatSemantics'
 
 // Simple media query hook replacement
 function useMediaQuery(query: string) {
@@ -551,11 +562,13 @@ async function sendMessage(content?: string) {
 
     // Check for tool calls in response
     const data = response.data
+    const semantics = blocksFromLabels(data.semantics)
     if (data.tool_calls && data.tool_calls.length) {
       messages.value.push({
         id: Date.now(),
         role: 'assistant',
         content: data.response || 'Ejecutando herramientas...',
+        semantics,
         timestamp: new Date(),
         toolCalls: data.tool_calls.map((tc: any) => ({
           id: tc.id || Date.now() + Math.random(),
@@ -571,6 +584,7 @@ async function sendMessage(content?: string) {
         id: Date.now(),
         role: 'assistant',
         content: data.response,
+        semantics,
         timestamp: new Date(),
         isTyping: false,
         status: 'completed'
@@ -974,6 +988,14 @@ watch(isProcessing, (val) => {
 
 /* Tool Calls */
 .tool-calls { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Backend-authoritative semantics badges */
+.semantics-row { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.sem-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.65); }
+.sem-tag.tag-FACT { color: #7ee2a8; border-color: rgba(126, 226, 168, 0.35); }
+.sem-tag.tag-INFERENCE { color: #8fc7ff; border-color: rgba(143, 199, 255, 0.35); }
+.sem-tag.tag-RECOMMENDATION { color: #ffd791; border-color: rgba(255, 215, 145, 0.35); }
+.sem-tag.tag-UNKNOWN { color: #c9c9c9; border-style: dashed; }
 .tool-call { background: var(--ownex-bg-base); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; }
 .tool-call.pending { border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.03); }
 .tool-call.approved { border-color: rgba(52, 211, 153, 0.4); background: rgba(52, 211, 153, 0.03); }
