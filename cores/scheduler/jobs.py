@@ -331,16 +331,11 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
-    # CoderAgent autopilot — auto-execute dev bounties ≤ $200 every hour
-    jobs.append(
-        _discovery_job(
-            job_id="coder_autopilot",
-            app_id="security",
-            handler="cores.cycles.tasks_coder_autopilot:run_coder_autopilot",
-            seconds=3600,
-            metadata={"cycle": "security", "type": "coder_autopilot"},
-        )
-    )
+    # NOTE (2026-09-09): coder_autopilot job removed — handler
+    # cores.cycles.tasks_coder_autopilot:run_coder_autopilot was never
+    # implemented (dead silent no-op). Re-add with a real runner
+    # (see DECISIONS.md). Dev bounties still flow via DevBountyPipeline
+    # + execution_queue jobs.
 
     # Security bounty platform discovery — every 2 hours
     jobs.append(
@@ -472,19 +467,10 @@ def get_investment_jobs() -> list[JobDefinition]:
     - risk_guardian_check: auto-pause strategies in drawdown every 15min.
     - startup_checks: detect missing credentials, stalled pipelines every 1h.
     """
+    # NOTE (2026-09-09): investment_arbitrage_scan removed — module
+    # cores.investment.tasks was never created (dead silent no-op).
+    # Re-add with a real scan runner (see DECISIONS.md).
     return [
-        _cron_job(
-            job_id="investment_arbitrage_scan",
-            app_id="investment",
-            handler="cores.investment.tasks:run_global_arbitrage_scan",
-            cron="23 */4 * * *",
-            args=[],
-            metadata={
-                "cycle": "investment",
-                "type": "revenue",
-                "desc": "escaneo automatico de arbitraje cross-exchange",
-            },
-        ),
         _cron_job(
             job_id="risk_guardian_check",
             app_id="investment",
@@ -806,73 +792,12 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "check sample size (total_trades >= 100)",
             },
         ),
-        # ── REGIME DETECTION & ALLOCATION ADJUSTMENT ─────────────────────────
-        # Detect market regime (BULL/BEAR/SIDEWAYS/HIGH_VOL/LOW_VOL)
-        _cron_job(
-            job_id="trading_regime_detection",
-            app_id="trading",
-            handler="cores.trading.ensemble:detect_regime",
-            cron="*/30 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "regime",
-                "desc": "detector de regime de mercado cada 30 minutos",
-            },
-        ),
-        # Auto-adjust portfolio allocation based on regime
-        _cron_job(
-            job_id="trading_auto_allocation",
-            app_id="trading",
-            handler="cores.trading.optimizer:optimize_portfolio",
-            cron="0 4 * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "allocation",
-                "desc": "auto-rebalance portfolio segun regime de mercado",
-            },
-        ),
-        # ── PORTFOLIO REBALANCING ───────────────────────────────────────────
-        _cron_job(
-            job_id="trading_rebalance_daily",
-            app_id="trading",
-            handler="cores.trading.optimizer:check_rebalance_needed",
-            cron="0 4 * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "rebalance",
-                "desc": "rebalanceo diario del portfolio (threshold 5%)",
-            },
-        ),
-        # ── CAPITAL LADDER AUTOMATION ────────────────────────────────────────
-        # Check patrimonial level gates and auto-advance when ready
-        _cron_job(
-            job_id="trading_capital_ladder_check",
-            app_id="trading",
-            handler="cores.trading.ladder:check_ladder_gates",
-            cron="0 2 * * 0",  # Sunday 02:00
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "ladder",
-                "desc": "verificar gates de ladder patrimonial y avanzar automatico",
-            },
-        ),
-        # ── KILL SWITCH MONITORING ──────────────────────────────────────────
-        _cron_job(
-            job_id="trading_kill_switch_monitor",
-            app_id="trading",
-            handler="cores.trading.risk:check_kill_switches",
-            cron="*/10 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "kill_switch",
-                "desc": "monitor activacion de kill switches (GLOBAL/STRATEGY/EXCHANGE/ASSET)",
-            },
-        ),
+        # NOTE (2026-09-09): 5 trading jobs removed here (regime_detection,
+        # auto_allocation, rebalance_daily, capital_ladder_check,
+        # kill_switch_monitor) — handlers were never implemented as
+        # module-level functions (dead silent no-ops). Re-add with real
+        # runners (see DECISIONS.md). Kill-switch protection stays live
+        # via trading_risk_check (CopyTradingEngine.risk_breached).
         # ── PAPER TRADING AUTO-ADVANCE ───────────────────────────────────────
         # Auto-advance paper→canary when win_rate > 55% and PF > 1.5 for 30 days
         _cron_job(
@@ -887,48 +812,10 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "auto-advance paper trading a canary cuando metrics son favorables",
             },
         ),
-        # ── COPY TRADING OPTIMIZATION ───────────────────────────────────────
-        # Optimize copy ratios based on master performance DNA
-        _cron_job(
-            job_id="trading_copy_optimization",
-            app_id="trading",
-            handler="cores.trading.reasoning:optimize_copy_ratios",
-            cron="*/6 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "copy_opt",
-                "desc": "optimizar copy ratios de masters segun DNA y performance recente",
-            },
-        ),
-        # ── LIVE STRATEGY MONITORING & ALERTS ────────────────────────────────
-        # Monitor all live strategies, alert on DD breach, win_rate drop, etc.
-        _cron_job(
-            job_id="trading_live_monitor",
-            app_id="trading",
-            handler="cores.trading.trader_intelligence:check_live_alerts",
-            cron="*/15 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "monitor",
-                "desc": "monitoreo en vivo de estrategias activas y alertas de riesgo",
-            },
-        ),
-        # ── EXPECTED REVENUE TRACKING ────────────────────────────────────────
-        # Track expected revenue from all opportunities, update probabilities
-        _cron_job(
-            job_id="trading_revenue_tracking",
-            app_id="trading",
-            handler="cores.trading.ev_calculator:update_expected_revenue",
-            cron="0 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "revenue",
-                "desc": "actualizar expected revenue y probabilidades de cobro",
-            },
-        ),
+        # NOTE (2026-09-09): 3 trading jobs removed here (copy_optimization,
+        # live_monitor, revenue_tracking) — handlers were never implemented
+        # as module-level functions (dead silent no-ops). Re-add with real
+        # runners (see DECISIONS.md).
     ]
 
 

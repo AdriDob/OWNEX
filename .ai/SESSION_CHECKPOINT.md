@@ -1,6 +1,12 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN CERRADA 2026-09-09: E2E chat canónico (`2d74a793`) + hook pre-commit → fast suite (`25dd4a1a`). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+> v7.1.0 — SESIÓN ABIERTA 2026-09-09: cierre del loop autónomo (P1+P2+P3) para instalar en Windows mañana. Ver `.ai/CURRENT_STATE.md` sesión "LOOP AUTÓNOMO CERRADO".
+
+## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)
+
+- **Hecho**: 6 handlers porteados a `cores/cycles/tasks.py` (2 fixes) + 10 jobs muertos eliminados + `test_cycle_task_handlers.py` (10 tests) + P2/P3 auditados-cerrados. Verificación: 61+83+164 passed, fast 100/1, ruff limpio, `import api.main` OK.
+- **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` (+ `.ai/DECISIONS.md` tiene WIP ajeno al inicio — mi entrada va al final, sin colisión).
+- **Falta**: commit + push de esta sesión.
 
 ## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (post-cierre)
 

@@ -1,3 +1,13 @@
+## Sesión 2026-09-09 — LOOP AUTÓNOMO CERRADO: 6 handlers + 10 jobs muertos + P2/P3 verificados (cierre proyecto)
+
+> **QUÉ SE HIZO:** Cierre del loop autónomo de revenue para instalar en Windows mañana. Audit-first: execution queue (store+driver+3 jobs), auto-submit (retry/DLQ/bridge/reconcile), availability (engine+recommender), ledger (endpoint+consumidores) YA existían — solo se cerraron los gaps genuinos de wiring.
+> - **6 handlers porteados** (`cores/cycles/tasks.py` ← twin `core/`, ya escritos contra `cores.*`): `auto_start_security_cycle`, `auto_submit_pending_findings` (sweep confirmed→elite gate→submit/queue-for-review), `run_daily_market_evolution`, `run_daily_task_refresh`, `run_qa_cycle`, `run_daily_evolution_report`. 2 fixes mínimos genuinos: `process_finding()`→`on_finding_confirmed()` (el twin llamaba método inexistente) + set de exclusión de submitted descartado (dead expression) → ahora parsea `Report.finding_ids` JSON y filtra de verdad.
+> - **10 jobs muertos eliminados** (`cores/scheduler/jobs.py` + NOTA inline c/u): `coder_autopilot`, `investment_arbitrage_scan`, 8 trading (regime/allocation/rebalance/ladder/killswitch/copyopt/livemon/revenue) — handlers inexistentes en ningún árbol, silent no-ops. NO se inventaron runners (DevBountyPipeline exige bounty fully-specified; GlobalArbitrageAdapter exige instancia; las 8 fns trading ni como métodos existen). Kill-switch sigue vivo vía `trading_risk_check`.
+> - **P2/P3 auditados, NO construidos**: availability ya alimenta recommender (fallback honesto profile hours); auto-feed outlook→calendar DESCARTADO (inyectar busy colapsaría availability a 0 con la semántica actual — follow-up con rediseño); ledger ya cerrado.
+> - **Verificación**: `tests/test_cycle_task_handlers.py` NUEVO (10 tests incl. resolución de TODOS los handlers — regresión permanente); 61 + 83 + 164 passed en afectadas; fast **100/1**; ruff limpio; `import api.main` OK.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` (WIP ajeno en el árbol).
+> - **Siguiente**: validación Windows runtime real (MSI) → veredicto STABLE → borrado `core/` + PR #37.
+
 ## Sesión 2026-09-09 — WIN11-STABLE: rama release + P0 frozen + smoke sidecar + bug /api/version
 
 > **QUÉ SE HIZO:** Cierre Windows 11 en rama nueva `release/win11-stable` (decisiones usuario: Tauri canónico, validar en este entorno, rama estabilizada, sin firma).

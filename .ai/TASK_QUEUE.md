@@ -302,7 +302,9 @@ Composer ya existen → NO reconstruir; el gap real es UNIFICARLOS.
 | 4 | Revenue Ledger (expected→committed→earned→pending→paid→net) | 🟡 RevenueTracker parcial |
 | 5 | Trading Intelligence como MÓDULO EXTERNO (Freqtrade), nunca en núcleo | 🟠 post-queue |
 | 6 | Autonomous Scheduler (score×avail×acceptance→prioridad) | 🟡 income_plan ya calcula; falta drive la queue |
-| 1a | ✅ State machine pura (`core/execution_queue.py`, 13 estados, 6/6 tests) — falta: persistencia, adapters a executors, scheduler driver |
+| 1a | ✅ State machine pura + persistencia JSON (`cores/execution_queue/models.py::ExecutionQueueStore`, 13 estados) + adapters a 10 executors (`cores/execution_queue/driver.py`, score×avail×acceptance) + scheduler driver (3 jobs: process/retry/dlq, `get_execution_queue_jobs()`) — verificado 2026-09-09 |
+| 1b | ✅ Handlers de ciclo porteados (`cores/cycles/tasks.py`: auto_start, auto_submit sweep, market_evolution, task_refresh, qa, evolution_report) + 10 jobs muertos eliminados (coder_autopilot, arbitrage, 8 trading — sin runner; ver DECISIONS 2026-09-09) — test de resolución de TODOS los handlers (`test_cycle_task_handlers.py`) |
+| 1c | ⏳ Follow-up: runners reales para jobs removidos (coder autopilot batch ≤$200 vía DevBountyPipeline+discovery; arbitrage scan; 8 fns trading) — re-agregar job SOLO con runner testeado |
 
 ## BACKEND ALPHA 1.0 — spec maestro producción (2026-08-25 noche)
 Spec completo del owner: auditoría total + Revenue Orchestrator + Economic Engine único
