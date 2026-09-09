@@ -1092,6 +1092,15 @@ export interface CopilotChatResponse {
   model: string
   duration_ms: number
   error: string | null
+  /** Authoritative semantic labeling from the backend (model output = INFERENCE, never FACT). */
+  semantics?: SemanticLabels
+}
+
+export interface SemanticLabels {
+  FACT: string[]
+  INFERENCE: string[]
+  RECOMMENDATION: string[]
+  UNKNOWN: string[]
 }
 
 export async function sendChatMessage(
@@ -1498,6 +1507,41 @@ export async function fetchRevenueSummary(): Promise<RevenueSummary> {
     by_platform: data.by_platform ?? [],
     submissions: data.submissions ?? 0,
   }
+}
+
+// ── Revenue Tiers (SURVIVAL / TARGET $5K / STRETCH $15K + pace) ──
+
+export interface RevenueTier {
+  name: string
+  target_usd: number
+  realized_usd: number
+  projection_usd: number
+  gap_usd: number
+  on_track: boolean
+}
+
+export interface RevenueTiers {
+  month: string
+  realized_mtd_net_usd: number
+  pending_usd: number
+  pace_monthly_usd: number
+  projection_monthly_usd: number
+  tiers: {
+    survival: { name: string; question: string; met: boolean; realized_usd: number }
+    target: RevenueTier
+    stretch: RevenueTier
+  }
+  best_opportunity: {
+    title: string | null
+    expected_value: number | null
+    ev_per_hour: number | null
+    opportunity_id: string | null
+    why: string | null
+  }
+}
+
+export async function fetchRevenueTiers(target = 5000, stretch = 15000): Promise<RevenueTiers> {
+  return api.get<RevenueTiers>(`/command-center/tiers?target=${target}&stretch=${stretch}`)
 }
 
 export async function fetchRevenueSubmissions(): Promise<RevenueSubmission[]> {

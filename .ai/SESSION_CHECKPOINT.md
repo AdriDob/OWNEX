@@ -1,6 +1,17 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN CERRADA 2026-09-09: working tree P0→P5 commiteado y pusheado (`9b4d4242` en `origin/release/win11-stable`). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09.
+> v7.1.0 — SESIÓN ABIERTA: P1-backlog E2E chat canónico consolidado (semantics autoritativas en la UI). Ver `.ai/CURRENT_STATE.md` sesiones 2026-09-09 + cierre abajo.
+
+## Sesión 2026-09-09 (post-cierre) — E2E CHAT CANÓNICO: semantics backend → UI (P1-backlog cerrado)
+
+### Qué se hizo
+- **Gap verificado en código**: el backend etiqueta con autoridad (`POST /api/copilot/chat` → `semantics` con regla "output del modelo = INFERENCE, jamás FACT", `copilot.py:128-143`), pero `CopilotChatResponse` (ownexData.ts) NO declaraba `semantics` → el etiquetado se perdía en el borde de tipos y la UI re-etiquetaba con un heurístico local cuyo default era `'FACT'` (`AiCommandCenter.vue::tagFor`) — podía marcar como FACT exactamente lo que el backend prohíbe.
+- **Fix (3 archivos, 0 nuevos, EXTEND)**:
+  1. `frontend/src/services/ownexData.ts`: `CopilotChatResponse.semantics?` (opcional, no rompe otros consumidores) + nueva interface `SemanticLabels`.
+  2. `frontend/src/components/ai/AiCommandCenter.vue`: `fromBackendSemantics()` prefiere las labels autoritativas del backend (cap 12 bloques, 220 chars c/u, mismo límite previo); fallback heurístico soló si el contrato se rompe; **default de `tagFor` corregido `'FACT'`→`'INFERENCE'`** (todo output de modelo es inferencia; el path de error ya usa UNKNOWN explícito, nada honesto se pierde).
+  3. `tests/test_chat_semantics.py` +3 (12 total): round-trip multi-turno exactamente como `sendChatMessage` lo manda (prompt grounded + `history: [{role, content}]`) con `_CapturingRouter` que verifica que al provider llega historia+usuario en orden y que `semantics.FACT == []` con `INFERENCE` no vacío; fallback de drift (nunca FACT); `message` vacío/whitespace → 400 (fail-closed que el frontend asume al trimmear).
+- **Verificación**: `test_chat_semantics.py` **12 passed** · fast suite **100/1** (baseline exacta) · ruff limpio en los 3 tocados · `vue-tsc` 0 errores en los 2 archivos frontend (los errores LSP de ownexData ~1402+ son `CapitalSnapshot` merge preexistente, ajeno, verificado por stash) · `vite build` **OK 16.6s**.
+- **Fuera de alcance**: streaming (`/chat/stream` sin semantics por diseño), otras UIs de chat, archivos del flujo concurrente (`cores/opportunity/engine.py`, `cognee` — sueltos en el árbol, no tocados).
 
 ## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (commit + push)
 

@@ -80,12 +80,25 @@ function tagFor(text: string): 'FACT' | 'INFERENCE' | 'RECOMMENDATION' | 'UNKNOW
   if (t.includes('unknown') || t.includes('no hay') || t.includes('sin datos')) return 'UNKNOWN'
   if (t.startsWith('recomiendo') || t.includes('deberías') || t.includes('te sugiero')) return 'RECOMMENDATION'
   if (t.includes('probablemente') || t.includes('parece') || t.includes('estimaci')) return 'INFERENCE'
-  return 'FACT'
+  return 'INFERENCE'
 }
 
 function toSemantics(text: string): SemanticBlock[] {
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean).slice(0, 12)
   return lines.slice(0, 6).map((line) => ({ tag: tagFor(line), text: line.slice(0, 220) }))
+}
+
+/** Map the backend's authoritative labels to display blocks; fallback kept for contract drift. */
+function fromBackendSemantics(labels?: Record<'FACT' | 'INFERENCE' | 'RECOMMENDATION' | 'UNKNOWN', string[]> | null, text = ''): SemanticBlock[] {
+  if (!labels) return toSemantics(text)
+  const blocks: SemanticBlock[] = []
+  for (const tag of ['FACT', 'INFERENCE', 'RECOMMENDATION', 'UNKNOWN'] as const) {
+    for (const line of (labels[tag] ?? []).slice(0, 3)) {
+      blocks.push({ tag, text: line.slice(0, 220) })
+    }
+    if (blocks.length >= 12) break
+  }
+  return blocks.length ? blocks : toSemantics(text)
 }
 
 async function sendMessage(prefill?: string): Promise<void> {
@@ -111,7 +124,7 @@ async function sendMessage(prefill?: string): Promise<void> {
       provider: response.provider,
       model: response.model,
       taskType: 'chat',
-      semantics: toSemantics(content),
+      semantics: fromBackendSemantics(response.semantics, content),
       status: response.status === 'ok' ? 'completed' : 'error',
     }
     pushMessage(msg)

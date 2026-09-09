@@ -150,3 +150,78 @@ def test_orion_chat_includes_semantics():
     body = r.json()
     assert body["engine"] == "test"
     assert set(body["semantics"]) == {"FACT", "INFERENCE", "RECOMMENDATION", "UNKNOWN"}
+
+
+class _CapturingRouter(_FakeRouter):
+    def __init__(self, content: str = "Do X then Y."):
+        super().__init__(content)
+        self.received_messages: list[dict[str, str]] | None = None
+
+    async def route(self, **kwargs):
+        self.received_messages = kwargs.get("messages")
+        return await super().route(**kwargs)
+
+
+def test_copilot_chat_roundtrip_like_frontend():
+    """The frontend path (ownexAi -> sendChatMessage) must round-trip the
+    grounded prompt with a real history and receive authoritative semantics:
+    model output is INFERENCE, never FACT. Regression: the UI used to relabel
+    locally with a FACT-default heuristic."""
+    router = _CapturingRouter("[OWNEX canonical state] Submit the report today.")
+    with patch("api.routers.copilot.get_provider_router", return_value=router):
+        r = client.post(
+            "/api/copilot/chat",
+            json={
+                "message": "[OWNEX canonical state — ground every claim]\n\nUSER QUESTION: what now?",
+                "history": [
+                    {"role": "user", "content": "primer pregunta"},
+                    {"role": "assistant", "content": "Primera respuesta del modelo."},
+                ],
+                "task_type": "chat",
+            },
+            headers=_auth_headers(),
+        )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["status"] == "ok"
+    # provider received history first, then the user message
+    assert router.received_messages is not None
+    assert router.received_messages[:2] == [
+        {"role": "user", "content": "primer pregunta"},
+        {"role": "assistant", "content": "Primera respuesta del modelo."},
+    ]
+    assert router.received_messages[-1]["role"] == "user"
+    # authoritative semantics: FACT empty by contract, model output labeled INFERENCE
+    assert body["semantics"]["FACT"] == []
+    assert len(body["semantics"]["INFERENCE"]) >= 1
+
+
+def test_copilot_chat_contract_drift_handled_by_frontend_fallback():
+    """If a future backend omits semantics, the FE fallback must not label
+    model output as FACT (tagFor defaults to INFERENCE)."""
+    router = _FakeRouter("Estimación: probably $500. Submit today.")
+    with patch("api.routers.copilot.get_provider_router", return_value=router):
+        r = client.post(
+            "/api/copilot/chat",
+            json={"message": "hello", "history": [], "task_type": "chat"},
+            headers=_auth_headers(),
+        )
+    assert r.status_code == 200, r.text
+    assert r.json()["semantics"]["FACT"] == []
+
+
+def test_copilot_chat_empty_message_returns_400():
+    """Frontend pre-trims input; backend stays fail-closed."""
+    r = client.post(
+        "/api/copilot/chat",
+        json={"message": "", "history": [], "task_type": "chat"},
+        headers=_auth_headers(),
+    )
+    assert r.status_code == 400
+    assert "empty" in r.json()["detail"].lower()
+    r2 = client.post(
+        "/api/copilot/chat",
+        json={"message": "   ", "history": [], "task_type": "chat"},
+        headers=_auth_headers(),
+    )
+    assert r2.status_code == 400
