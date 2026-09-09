@@ -1,6 +1,6 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN ABIERTA 2026-09-09: cierre del loop autónomo (P1+P2+P3) para instalar en Windows mañana. Ver `.ai/CURRENT_STATE.md` sesión "LOOP AUTÓNOMO CERRADO".
+> v7.1.0 — SESIÓN CERRADA 2026-09-09: loop autónomo cerrado (`2333740b`, pusheado). Listo para instalar en Windows mañana. Ver `.ai/CURRENT_STATE.md` sesión "LOOP AUTÓNOMO CERRADO".
 
 ## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)
 
