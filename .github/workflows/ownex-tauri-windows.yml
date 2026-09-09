@@ -361,9 +361,10 @@ jobs:
       # NOTE: wipe the bundle dir first — the rust-cache restores target/,
       # which can leave stale installer files from previous configs
       # (e.g. an orphan nsis/*.sha256 after the MSI-only switch).
+      # (PowerShell syntax: this step runs in pwsh on Windows runners.)
       - name: Tauri build
         run: |
-          rm -rf src-tauri/target/release/bundle
+          if (Test-Path src-tauri/target/release/bundle) { Remove-Item -Recurse -Force src-tauri/target/release/bundle }
           echo "=== Tauri CLI version ==="
           npx tauri --version
           echo "=== Rust version ==="
