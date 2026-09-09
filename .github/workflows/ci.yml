@@ -36,7 +36,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
       - run: pip install -r requirements.txt -q
-      - run: python -m mypy core/opportunity/scoring.py core/scheduler/scheduler.py core/scheduler/jobs.py api/main.py
+      - run: python -m mypy cores/opportunity/scoring.py cores/scheduler/scheduler.py cores/scheduler/jobs.py api/main.py
 
   test-fast:
     name: Fast Tests (smoke)
