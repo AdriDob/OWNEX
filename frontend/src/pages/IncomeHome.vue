@@ -30,6 +30,7 @@ import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
 import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import FirstMoneyStrip from '@/components/daily/FirstMoneyStrip.vue'
+import RevenueTiersStrip from '@/components/daily/RevenueTiersStrip.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import AvailabilityIntelligenceCard from '@/components/daily/AvailabilityIntelligenceCard.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
@@ -420,6 +421,9 @@ onMounted(load)
 
       <!-- N0.1: FIRST MONEY — progreso $0 → primer ingreso -->
       <FirstMoneyStrip />
+
+      <!-- N0.1b: REVENUE TIERS — SURVIVAL / TARGET $5K / STRETCH $15K + pace -->
+      <RevenueTiersStrip />
 
       <!-- N0.1: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
       <DailyDigest />

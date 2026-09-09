@@ -132,3 +132,77 @@ def test_success_conditions_cover_known_action_types():
     for action_type in ("investigate", "submit", "approve", "review", "something_new"):
         condition = cc._success_condition(action_type)
         assert isinstance(condition, str) and condition
+
+
+@pytest.fixture()
+def clean_ledger():
+    """Isolated revenue_ledger table for tier tests."""
+    from cores.revenue.ledger import RevenueLedgerEntry
+    from database.db import Base, engine
+
+    Base.metadata.drop_all(bind=engine, tables=[RevenueLedgerEntry.__table__])
+    Base.metadata.create_all(bind=engine, tables=[RevenueLedgerEntry.__table__])
+    yield
+    Base.metadata.drop_all(bind=engine, tables=[RevenueLedgerEntry.__table__])
+
+
+def _drive_to_paid(ledger, entry_id: str, gross: float, fees: float = 0.0):
+    """Walk an entry through the full valid chain to PAID."""
+    from cores.revenue.ledger import RevenueState
+
+    ledger.create(entry_id, gross_usd=gross)
+    for state in (
+        RevenueState.COMMITTED,
+        RevenueState.IN_PROGRESS,
+        RevenueState.DELIVERED,
+        RevenueState.SUBMITTED,
+        RevenueState.ACCEPTED,
+        RevenueState.AWARDED,
+        RevenueState.PENDING_PAYOUT,
+        RevenueState.PAID,
+    ):
+        kwargs = {"fees_usd": fees} if state == RevenueState.PAID else {}
+        entry = ledger.transition(entry_id, state, **kwargs)
+        assert entry is not None
+    return entry
+
+
+@pytest.mark.asyncio
+async def test_tiers_empty_state_is_honest(clean_ledger):
+    """No ledger rows: zeros everywhere, survival not met, no invention."""
+    tiers = await cc.get_tiers()
+
+    assert tiers["realized_mtd_net_usd"] == 0
+    assert tiers["pending_usd"] == 0
+    assert tiers["tiers"]["survival"]["met"] is False
+    assert tiers["tiers"]["target"]["target_usd"] == 5000.0
+    assert tiers["tiers"]["target"]["on_track"] is False
+    assert tiers["tiers"]["stretch"]["target_usd"] == 15000.0
+    assert tiers["projection_monthly_usd"] == 0
+    assert tiers["semantics"]["FACT"]
+
+
+@pytest.mark.asyncio
+async def test_tiers_counts_only_paid_net_mtd(clean_ledger):
+    """A $1,000 PAID entry (10% fees) counts $900 realized, not $1,000."""
+    from cores.revenue.ledger import get_revenue_ledger
+
+    ledger = get_revenue_ledger()
+    _drive_to_paid(ledger, "tier_test_1", gross=1000.0, fees=100.0)
+
+    tiers = await cc.get_tiers()
+
+    assert tiers["realized_mtd_net_usd"] == 900.0
+    assert tiers["tiers"]["survival"]["met"] is True
+    # Pace scales the $900 over elapsed month days — positive but finite.
+    assert tiers["pace_monthly_usd"] > 900.0
+    assert tiers["tiers"]["target"]["gap_usd"] == round(max(5000.0 - tiers["pace_monthly_usd"], 0.0), 2)
+
+
+@pytest.mark.asyncio
+async def test_tiers_accept_custom_targets(clean_ledger):
+    """Target/stretch thresholds are caller-configurable."""
+    tiers = await cc.get_tiers(target=1000.0, stretch=3000.0)
+
+    assert tiers["tiers"]["target"]["target_usd"] == 1000.0
+    assert tiers["tiers"]["stretch"]["target_usd"] == 3000.0

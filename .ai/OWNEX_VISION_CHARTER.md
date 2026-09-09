@@ -125,6 +125,39 @@ organizar, aprender, optimizar. Pipeline:
 FOUND → ANALYZED → SELECTED → PREPARED → TESTED → READY → USER APPROVAL → SUBMISSION → RESULT TRACKING
 ```
 
+### Economic Objective (DEFINITIVE — 2026-09-09)
+
+**OWNEX is an autonomous economic opportunity operating system. Its primary objective is to maximize the user's expected legitimate net income per unit of human time, across bug bounties, security contests, developer bounties and AI training/data annotation.**
+
+The system continuously discovers, evaluates, researches, prepares, validates, tracks and learns from opportunities. Human intervention is restricted to decisions requiring authorization, judgment, identity, platform interaction or irreversible external actions.
+
+OWNEX must optimize for expected value, probability of success, time efficiency, competition, risk, repeatability and historical performance rather than headline payout.
+
+**The system must never fabricate opportunities, earnings, platform availability, acceptance probability or revenue. Unknown information must remain explicitly unknown.**
+
+Estructura económica:
+
+```text
+             OWNEX
+               │
+       OPPORTUNITY ENGINE
+               │
+     ┌─────────┼─────────┐
+     ▼         ▼         ▼
+    DEV       BUG       AI
+  BOUNTY    BOUNTY    TRAINING
+     │         │         │
+     └─────────┼─────────┘
+               ▼
+          WORK ENGINE (Human Gate obligatorio)
+               ▼
+        REVENUE ENGINE (EXPECTED ≠ PENDING ≠ PAID)
+               ▼
+         CAPITAL ENGINE
+```
+
+Fiverr es canal comercial (no motor): adquisición de clientes/servicios. Upwork y uTest quedan fuera. Revenue tiers visibles: SURVIVAL (¿hay ingreso?) / TARGET $5K / STRETCH $15K, con pace, proyección y gap calculados solo desde ledger PAID.
+
 ---
 
 ## Category Specialists

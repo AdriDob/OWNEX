@@ -93,6 +93,112 @@ async def get_status():
     return await _get_system_status()
 
 
+@router.get("/tiers")
+async def get_tiers(target: float = 5000.0, stretch: float = 15000.0):
+    """Revenue tiers for the month: SURVIVAL / TARGET / STRETCH.
+
+    Answers "where do I stand this month" from measured ledger state only:
+      - realized: net USD in PAID state changed this month (FACT)
+      - pace/projection: linear run-rate from elapsed days (INFERENCE)
+      - gap: distance from projection to each tier (INFERENCE)
+    Unknowns stay explicit. Never mixes expected bounty money into cash.
+    """
+    from datetime import UTC, datetime
+
+    from cores.revenue.ledger import RevenueState, get_revenue_ledger
+
+    now = datetime.now(UTC)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    import calendar
+
+    days_in_month = calendar.monthrange(now.year, now.month)[1]
+    elapsed_days = max(now.day - 1 + (now.hour / 24.0), 1 / 24.0)
+
+    ledger = get_revenue_ledger()
+    realized = 0.0
+    pending = 0.0
+    try:
+        for entry in ledger.get_by_state(RevenueState.PAID):
+            changed = getattr(entry, "state_changed_at", None)
+            if changed is not None and changed.replace(tzinfo=UTC) >= month_start:
+                realized += float(entry.net_usd or 0.0)
+        for entry in ledger.get_pending_payouts():
+            pending += float(entry.gross_usd or 0.0)
+    except Exception as exc:
+        logger.debug("Tiers ledger read failed: %s", exc)
+
+    realized = round(realized, 2)
+    pending = round(pending, 2)
+    pace = round(realized / elapsed_days * days_in_month, 2)
+
+    def _tier(name: str, goal: float) -> dict[str, Any]:
+        gap = round(max(goal - pace, 0.0), 2)
+        return {
+            "name": name,
+            "target_usd": goal,
+            "realized_usd": realized,
+            "projection_usd": pace,
+            "gap_usd": gap,
+            "on_track": pace >= goal,
+        }
+
+    try:
+        best = await _get_next_action()
+        best_summary = {
+            "title": best.get("title"),
+            "expected_value": best.get("expected_value"),
+            "ev_per_hour": best.get("ev_per_hour"),
+            "opportunity_id": best.get("opportunity_id"),
+            "why": best.get("why"),
+        }
+    except Exception:
+        best_summary = {
+            "title": None,
+            "expected_value": None,
+            "ev_per_hour": None,
+            "opportunity_id": None,
+            "why": "Next-action engine unavailable",
+        }
+
+    return {
+        "month": now.strftime("%Y-%m"),
+        "day_of_month": now.day,
+        "days_in_month": days_in_month,
+        "realized_mtd_net_usd": realized,
+        "pending_usd": pending,
+        "pace_monthly_usd": pace,
+        "projection_monthly_usd": pace,
+        "tiers": {
+            "survival": {
+                "name": "survival",
+                "question": "¿Estoy generando dinero?",
+                "met": realized > 0,
+                "realized_usd": realized,
+            },
+            "target": _tier("target", target),
+            "stretch": _tier("stretch", stretch),
+        },
+        "best_opportunity": best_summary,
+        "semantics": {
+            "FACT": [
+                f"Realized (PAID net) this month: ${realized:,.2f}",
+                f"Pending payout gross: ${pending:,.2f}",
+                f"Day {now.day} of {days_in_month}",
+            ],
+            "INFERENCE": [
+                f"Linear pace projects ${pace:,.2f} for the month",
+            ],
+            "RECOMMENDATION": (
+                [f"Review best opportunity: {best_summary.get('title')}"]
+                if best_summary.get("opportunity_id")
+                else ["Add a target or wait for discovery"]
+            ),
+            "UNKNOWN": ["End-of-month total", "Pending payout timing"],
+        },
+        "updated_at": now.isoformat(),
+    }
+
+
 @router.get("/metrics")
 async def get_metrics():
     """Get the two key metrics: HUMAN_MINUTES/DAY and $PAID/HOUR."""
