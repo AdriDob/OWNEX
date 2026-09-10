@@ -423,6 +423,17 @@ jobs:
           fi
           set -e
 
+      # Remove any NSIS artifacts (stale from cache) since we only ship MSI
+      - name: Remove stale NSIS artifacts
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          nsis_dir="src-tauri/target/release/bundle/nsis"
+          if [ -d "$nsis_dir" ]; then
+            echo "Removing stale NSIS artifacts..."
+            rm -rf "$nsis_dir"
+          fi
+
       # Calculate checksums (non-failing)
       - name: Calculate SHA256 checksums
         shell: bash
