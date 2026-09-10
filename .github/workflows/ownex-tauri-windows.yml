@@ -212,8 +212,15 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           destDir="src-tauri/binaries"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            dest="$destDir/ownex-backend-x86_64-unknown-linux-gnu"
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            dest="$destDir/ownex-backend-aarch64-apple-darwin"
+          else
+            echo "Unknown OS: ${{ runner.os }}"
+            exit 1
+          fi
           src="dist/ownex-backend"
-          dest="$destDir/ownex-backend"
           mkdir -p "$destDir"
           if [ ! -f "$src" ]; then echo "ERROR: Source sidecar not found: $src"; exit 1; fi
           cp "$src" "$dest"
