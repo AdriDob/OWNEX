@@ -8,6 +8,11 @@
 - **MSI único** (decisión usuario 2026-09-09): commit `45889085` retira `nsis` de `tauri.conf.json` (solo WiX es-ES) + glob nsis de `artifact_paths` + docs a MSI único + guard `test_windows_bundle_is_msi_only` (packaging 11/11, fast 100/1, cargo OK). Tag `v7.1.2` (run 34413175931).
 - **Verde MSI-only** (run 34413175931, 19m8s): 6/6 SUCCESS; artefacto `OWNEX-Tauri-Windows` = MSI 138MB + `.sha256` (sin setup.exe). Hallazgo cosmético: un `nsis/*.sha256` huérfano viajó en el artefacto (el rust-cache restaura `src-tauri/target/` con restos del config anterior) → fix: wipe de `release/bundle` pre-build + tag `v7.1.3` (run 34415840981).
 - **v7.1.3 rojo por sintaxis**: el wipe usó `rm -rf` pero el step corre en pwsh (`A parameter cannot be found that matches parameter name 'rf'`) → fix `Remove-Item -Recurse -Force` + tag `v7.1.4` (run 34416859750). Lección: verificar `shell:` de cada step antes de escribir comandos (los steps bash llevan `shell: bash` explícito; el default Windows es pwsh).
+- **v7.1.5–v7.1.6**: target-triple suffix en sidecars Windows/macOS/Linux corregido; shell explícito `bash` en Tauri build.
+- **v7.1.7**: WebView2 fix con exit code 14024835 (ya instalado).
+- **v7.1.8**: limpieza explícita de artefactos NSIS huérfanos pre-checksum.
+- **v7.1.9**: WebView2 via bootstrapper directo (evita cancelaciones de winget).
+- **Verde definitivo v7.1.9** (run 34428234952, 34m): 6/6 jobs SUCCESS. Artefacto limpio `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `.sha256` (sin NSIS). MSI único para instalar en Windows 11.
 - **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
 
 ## 2026-09-09: WIN11-STABLE — rama release + P0 frozen + bug frozen /api/version
