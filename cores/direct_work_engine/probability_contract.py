@@ -9,10 +9,9 @@ Every engine, every UI, every test must import from here.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 
 # ────────────────────────────────────────────────────────────────
 # Probability Types — Universal vocabulary for ALL categories
@@ -167,8 +166,18 @@ class CategoryFunnel:
         try:
             idx = self.probability_types.index(prob_type)
             return self.stages[idx + 1]
-        except ValueError:
-            raise ValueError(f"{prob_type} not in funnel {self.category}")
+        except ValueError as e:
+            raise ValueError(f"{prob_type} not in funnel {self.category}") from e
+
+    def summary(self) -> dict[str, Any]:
+        """Get funnel summary for debugging/UX."""
+        return {
+            "category": self.category,
+            "stages": list(self.stages),
+            "probability_types": [pt.value for pt in self.probability_types],
+            "outcome_mapping": self.outcome_mapping,
+            "description": self.description,
+        }
 
 
 # ────────────────────────────────────────────────────────────────
@@ -189,8 +198,8 @@ def get_funnel(category: str) -> CategoryFunnel:
     """Get funnel for category. Raises if not registered."""
     try:
         return _CATEGORY_FUNNELS[category]
-    except KeyError:
-        raise KeyError(f"No funnel registered for category: {category}")
+    except KeyError as e:
+        raise KeyError(f"No funnel registered for category: {category}") from e
 
 
 def get_all_funnels() -> dict[str, CategoryFunnel]:

@@ -6,16 +6,12 @@ Every category MUST declare its funnel here.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
-
 from cores.direct_work_engine.probability_contract import (
     CategoryFunnel,
     ProbabilityType,
-    get_funnel,
-    get_funnel as _get_funnel,
     get_all_funnels,
     get_categories_with_funnels,
+    get_funnel,
     get_probability_types_for_category,
     get_stages_for_category,
     register_funnel,

@@ -2,19 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 from cores.direct_work_engine.probability_contract import (
-    CategoryFunnel,
-    EvidenceLabel,
-    ProbabilityEstimate,
     ProbabilityType,
-    get_all_funnels,
-    get_categories_with_funnels,
-    get_funnel,
-    get_probability_types_for_category,
-    get_stages_for_category,
-    register_funnel,
 )
 
 
