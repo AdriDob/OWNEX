@@ -361,7 +361,16 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           echo "Installing WebView2..."
-          winget install Microsoft.EdgeWebView2Runtime -e --accept-source-agreements --accept-package-agreements 2>&1 || echo "WebView2 install failed or already installed"
+          winget install Microsoft.EdgeWebView2Runtime -e --accept-source-agreements --accept-package-agreements 2>&1
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -eq 0 -or $exitCode -eq 14024835) {
+            # 0 = success, 14024835 = already installed (no upgrade available)
+            Write-Host "WebView2 installed or already present"
+            exit 0
+          } else {
+            Write-Error "WebView2 install failed with exit code $exitCode"
+            exit $exitCode
+          }
         shell: pwsh
 
       # Wipe stale bundle outputs (own step with bash: the rust-cache
