@@ -363,6 +363,56 @@ class UniversalProbabilityEngine:
 
 
 # ────────────────────────────────────────────────────────────────
+# HIGH_CONFIDENCE_90 Cross-Category Thresholds
+# ────────────────────────────────────────────────────────────────
+
+HIGH_CONFIDENCE_90_THRESHOLDS: dict[str, dict[str, Any]] = {
+    "bug_bounty": {
+        "prob_type": ProbabilityType.P_ACCEPT,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 15,
+        "min_effective_n": 10,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+    "dev_bounty": {
+        "prob_type": ProbabilityType.P_ACCEPT,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 10,
+        "min_effective_n": 7,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+    "ai_training": {
+        "prob_type": ProbabilityType.P_COMPLETION,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 20,
+        "min_effective_n": 15,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+    "client_work": {
+        "prob_type": ProbabilityType.P_ACCEPT,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 10,
+        "min_effective_n": 7,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+    "employment": {
+        "prob_type": ProbabilityType.P_OFFER,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 5,
+        "min_effective_n": 3,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+    "investment": {
+        "prob_type": ProbabilityType.P_RETURN,
+        "lower_bound_threshold": 0.90,
+        "min_raw_n": 20,
+        "min_effective_n": 15,
+        "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
+    },
+}
+
+
+# ────────────────────────────────────────────────────────────────
 # Singleton
 # ────────────────────────────────────────────────────────────────
 
