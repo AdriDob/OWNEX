@@ -23,7 +23,7 @@ class TestCatalog:
     def test_catalog_has_eleven_items_with_required_keys(self) -> None:
         required = {"id", "phase", "priority", "title", "why", "est_minutes", "how_to", "auto"}
         items = cl._catalog()
-        assert len(items) == 11
+        assert len(items) == 13
         for item in items:
             assert required <= set(item), item["id"]
 
@@ -43,7 +43,7 @@ class TestStatus:
         status = checklist.status()
         assert status["complete_pct"] == 0
         assert status["done_items"] == 0
-        assert len(status["pending"]) == 11
+        assert len(status["pending"]) == 13
         assert status["complete"] is False
         assert status["next_task"] is not None
 
@@ -52,7 +52,7 @@ class TestStatus:
         status = checklist.status()
         assert "profile_kit" in status["done"]
         assert status["done_items"] == 1
-        assert status["complete_pct"] == 9
+        assert status["complete_pct"] == 8
         assert all(p["id"] != "profile_kit" for p in status["pending"])
 
     def test_status_shape_has_phases_labels(self, checklist: SetupChecklist) -> None:
@@ -66,7 +66,7 @@ class TestNextDailyTask:
     def test_essentials_beat_lower_priority_number_in_later_phase(self, checklist: SetupChecklist) -> None:
         task = checklist.next_daily_task()
         assert task is not None
-        assert task["id"] == "profile_kit"
+        assert task["id"] == "ai_provider"
         assert task["phase"] == cl.PHASE_ESSENTIALS
 
     def test_phase_ranking_over_priority_number(self, checklist: SetupChecklist, tmp_path) -> None:
@@ -120,9 +120,11 @@ class TestComplete:
         self, checklist: SetupChecklist, monkeypatch, all_detectors_false
     ) -> None:
         for name in (
+            "ai_provider",
             "profile_kit",
             "payment_accounts",
             "bounty_api_key",
+            "devbounty_api_key",
             "first_target",
             "mpt_material_key",
             "obsidian_vault",
@@ -157,6 +159,49 @@ class TestMptMaterialKey:
     def test_item_is_auto_and_undoable_only_by_key(self, checklist: SetupChecklist) -> None:
         with pytest.raises(ValueError):
             checklist.mark_done("mpt_material_key")
+
+
+class TestAiProvider:
+    def test_detector_true_with_remote_key(self, monkeypatch) -> None:
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+        for key in ("ANTHROPIC_API_KEY", "FCC_API_KEY", "GEMINI_API_KEY"):
+            monkeypatch.delenv(key, raising=False)
+        assert cl._detect_ai_provider() is True
+
+    def test_detector_false_without_key_and_no_ollama(self, monkeypatch) -> None:
+        for key in cl._AI_API_KEY_ENVS:
+            monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:9")
+        assert cl._detect_ai_provider() is False
+
+    def test_ollama_reachable_false_on_refused(self, monkeypatch) -> None:
+        monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:9")
+        assert cl._ollama_reachable(timeout=1.0) is False
+
+    def test_item_is_auto_first_essential(self, checklist: SetupChecklist) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "ai_provider")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_ESSENTIALS
+        assert item["priority"] == 1
+        with pytest.raises(ValueError):
+            checklist.mark_done("ai_provider")
+
+
+class TestDevbountyApiKey:
+    def test_detector_false_without_keys(self, monkeypatch) -> None:
+        for key in ("OPIRE_API_KEY", "ISSUEHUNT_API_KEY", "ALGORA_API_KEY"):
+            monkeypatch.delenv(key, raising=False)
+        assert cl._detect_devbounty_api_key() is False
+
+    def test_detector_true_with_opire_key(self, monkeypatch) -> None:
+        monkeypatch.setenv("OPIRE_API_KEY", "test-token")
+        assert cl._detect_devbounty_api_key() is True
+
+    def test_item_is_auto(self, checklist: SetupChecklist) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "devbounty_api_key")
+        assert item["auto"] is True
+        with pytest.raises(ValueError):
+            checklist.mark_done("devbounty_api_key")
 
 
 class TestSingleton:

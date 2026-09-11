@@ -30,7 +30,7 @@ import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
 import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import FirstMoneyStrip from '@/components/daily/FirstMoneyStrip.vue'
-import MptPendingStrip from '@/components/daily/MptPendingStrip.vue'
+import SetupPendingStrip from '@/components/daily/SetupPendingStrip.vue'
 import RevenueTiersStrip from '@/components/daily/RevenueTiersStrip.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import AvailabilityIntelligenceCard from '@/components/daily/AvailabilityIntelligenceCard.vue'
@@ -445,8 +445,8 @@ onMounted(load)
       <!-- N0.1: FIRST MONEY — progreso $0 → primer ingreso -->
       <FirstMoneyStrip />
 
-      <!-- N0.1c: MPT PENDING — key gratis que bloquea el primer Short (auto-oculto al resolver) -->
-      <MptPendingStrip />
+      <!-- N0.1c: SETUP PENDING — cualquier config esencial faltante (auto-oculto al resolver) -->
+      <SetupPendingStrip />
 
       <!-- N0.1b: REVENUE TIERS — SURVIVAL / TARGET $5K / STRETCH $15K + pace -->
       <RevenueTiersStrip />

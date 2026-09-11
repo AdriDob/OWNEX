@@ -10,6 +10,7 @@ Reutiliza detectores existentes — cero duplicación (Regla de Oro):
 - ProfileKitEngine.has_profile()            → perfil del usuario guardado
 - PaymentCompatibilityEngine                → cuentas de pago configuradas
 - cores.credentials.vault.get_credentials()  → API keys de plataformas
+- env keys remotas u Ollama local            → proveedor de IA disponible
 - database SessionLocal(Target)             → al menos un target agregado
 - VaultManager (Knowledge Bridge)           → vault de Obsidian conectado
 """
@@ -78,7 +79,9 @@ def _detect_bounty_api_key() -> bool:
     try:
         from cores.credentials.vault import get_credentials
 
-        creds = get_credentials()
+        # force_refresh: the vault singletons credentials at import; the user
+        # may have just pasted a key and expects the checklist to notice now.
+        creds = get_credentials(force_refresh=True)
         return any(
             [
                 getattr(creds, "hackerone_api_key", ""),
@@ -120,6 +123,66 @@ def _detect_smtp_mail() -> bool:
     try:
         return bool(os.environ.get("OWNNEX_MAIL_SMTP_HOST"))
     except Exception:  # pragma: no cover - trivial
+        return False
+
+
+# Env keys that prove a remote AI provider is configured (no network call).
+_AI_API_KEY_ENVS = (
+    "ANTHROPIC_API_KEY",
+    "FCC_API_KEY",
+    "OPENAI_API_KEY",
+    "GEMINI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "GOSEAI_API_KEY",
+    "NVIDIA_API_KEY",
+    "NIM_API_KEY",
+    "OPENCODE_API_KEY",
+)
+
+
+def _ollama_reachable(timeout: float = 2.0) -> bool:
+    """True when a local Ollama answers /api/tags. Loopback-only, fast timeout."""
+    try:
+        import urllib.request
+
+        host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+        req = urllib.request.Request(f"{host}/api/tags", method="GET")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def _detect_ai_provider() -> bool:
+    """True when ANY AI provider can serve: remote key configured or Ollama up.
+
+    Without this, copilot/chat/briefs degrade silently — hence essential.
+    Order matters: env keys first (instant), Ollama last (loopback, 2s cap).
+    """
+    try:
+        if any(os.environ.get(key) for key in _AI_API_KEY_ENVS):
+            return True
+        return _ollama_reachable()
+    except Exception as exc:  # pragma: no cover - defensivo
+        logger.warning("detector ai_provider falló: %s", exc)
+        return False
+
+
+def _detect_devbounty_api_key() -> bool:
+    """True when at least one dev-bounty platform key exists (Opire/IssueHunt/Algora)."""
+    try:
+        from cores.credentials.vault import get_credentials
+
+        creds = get_credentials(force_refresh=True)
+        return any(
+            [
+                getattr(creds, "opire_api_key", ""),
+                getattr(creds, "issuehunt_api_key", ""),
+                getattr(creds, "algora_api_key", ""),
+            ]
+        )
+    except Exception as exc:  # pragma: no cover - defensivo
+        logger.warning("detector devbounty_api_key falló: %s", exc)
         return False
 
 
@@ -167,9 +230,19 @@ def _catalog() -> list[dict[str, Any]]:
     """Checklist curado, ordenado por prioridad dentro de cada fase."""
     return [
         {
-            "id": "profile_kit",
+            "id": "ai_provider",
             "phase": PHASE_ESSENTIALS,
             "priority": 1,
+            "title": "Activar un proveedor de IA",
+            "why": "Sin esto, copilot, briefs y chat degradan en silencio. Ollama local o una key remota.",
+            "est_minutes": 10,
+            "how_to": "Settings → AI: usar Ollama local (:11434) o pegar key (Anthropic/OpenAI/Gemini/OpenRouter).",
+            "auto": _AUTO,
+        },
+        {
+            "id": "profile_kit",
+            "phase": PHASE_ESSENTIALS,
+            "priority": 2,
             "title": "Completar tu Profile Kit",
             "why": "Alimenta el autofill de TODAS las postulaciones y propuestas.",
             "est_minutes": 10,
@@ -179,7 +252,7 @@ def _catalog() -> list[dict[str, Any]]:
         {
             "id": "payment_accounts",
             "phase": PHASE_ESSENTIALS,
-            "priority": 2,
+            "priority": 3,
             "title": "Marcar tus cuentas de cobro",
             "why": "El Payment Compatibility Engine verifica cobrabilidad ANTES de invertir tiempo.",
             "est_minutes": 15,
@@ -189,7 +262,7 @@ def _catalog() -> list[dict[str, Any]]:
         {
             "id": "bounty_api_key",
             "phase": PHASE_ESSENTIALS,
-            "priority": 3,
+            "priority": 4,
             "title": "Configurar al menos 1 API key de bug bounty",
             "why": "Habilita envío de reportes y sync de earnings (HackerOne/Bugcrowd/Intigriti/YesWeHack/Immunefi).",
             "est_minutes": 5,
@@ -197,9 +270,19 @@ def _catalog() -> list[dict[str, Any]]:
             "auto": _AUTO,
         },
         {
+            "id": "devbounty_api_key",
+            "phase": PHASE_ESSENTIALS,
+            "priority": 5,
+            "title": "Configurar al menos 1 API key de dev bounty",
+            "why": "Sin esto no hay submit ni tracking en Opire/IssueHunt/Algora.",
+            "est_minutes": 5,
+            "how_to": "~/.config/ownex/opportunity.env → OPIRE_API_KEY / ISSUEHUNT_API_KEY / ALGORA_API_KEY.",
+            "auto": _AUTO,
+        },
+        {
             "id": "first_target",
             "phase": PHASE_ESSENTIALS,
-            "priority": 4,
+            "priority": 6,
             "title": "Agregar tu primer target",
             "why": "Sin target no hay pipeline: recon → hipótesis → finding → reporte.",
             "est_minutes": 3,
@@ -384,9 +467,11 @@ class SetupChecklist:
 
 
 _DETECTORS: dict[str, Callable[[], bool]] = {
+    "ai_provider": _detect_ai_provider,
     "profile_kit": _detect_profile_kit,
     "payment_accounts": _detect_payment_accounts,
     "bounty_api_key": _detect_bounty_api_key,
+    "devbounty_api_key": _detect_devbounty_api_key,
     "first_target": _detect_first_target,
     "mpt_material_key": _detect_mpt_material_key,
     "obsidian_vault": _detect_obsidian_vault,

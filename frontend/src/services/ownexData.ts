@@ -2419,6 +2419,18 @@ export async function fetchFirstMoneyNextAction(): Promise<FirstMoneyNextAction>
 
 export interface SetupChecklistPendingItem {
   id: string
+  phase: string
+  priority: number
+  title: string
+  why: string
+  est_minutes: number
+  how_to: string
+}
+
+export interface SetupChecklistNextTask {
+  id: string
+  phase: string
+  phase_label: string
   title: string
   why: string
   est_minutes: number
@@ -2431,6 +2443,7 @@ export interface SetupChecklistStatus {
   done_items: number
   done: string[]
   pending: SetupChecklistPendingItem[]
+  next_task?: SetupChecklistNextTask | null
 }
 
 export async function fetchSetupChecklistStatus(): Promise<SetupChecklistStatus> {

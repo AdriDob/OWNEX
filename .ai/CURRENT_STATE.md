@@ -1,3 +1,16 @@
+## Sesión 2026-09-11 — SETUP AVISA TODO: detectores ai/devbounty + strip genérico
+
+> **QUÉ SE HIZO:** Pedido owner (toda config faltante avisa en frontend). Detectores `ai_provider` + `devbounty_api_key` (auto); catálogo 11→13; fix vault `force_refresh` (keys recién pegadas se detectan sin reiniciar); `SetupPendingStrip.vue` genérico reemplaza `MptPendingStrip.vue` (eliminado).
+> - **Verificación**: checklist 31/31; fast 100/1; ruff+format limpios; biome 0; `vite build` 12.64s.
+> - **No tocado**: resto de `cores/setup/*`, `daily_mode.py` (mismo contrato), WIP ajeno.
+
+## Sesión 2026-09-11 — MONEY VALIDATION: freeze + instrumentación mínima hacia el primer PAID
+
+> **QUÉ SE HIZO:** Sprint aprobado por el owner (auditoría económica: $0 asegurable hoy). OWNEX congelado; solo instrumentación para convertir oportunidades en dinero medible. E1 `LearningRecord` paid/net/fees (ACCEPTED≠PAID a nivel aprendizaje) · E2 `channel_economy()` (tabla empírica por canal, veredicto UNKNOWN/THIN/MEASURED) + `report["economy"]` en `/evolution` · E3 `WorkItem` tiempo humano (START/DELIVER + corrección manual, legacy-safe) · E4 P_REWARD sobre rails reales (`require_configured`, tri-state CONFIGURED/NOT_CONFIGURED/UNVERIFIED, `GET+POST /payment-compat/configured`) · E5 `FunnelLedger` Fiverr (published→withdrawn + CTR/conversión) · E6 `_record_from_dict` paid + `/access/explain` configured.
+> - **Verificación**: `tests/test_money_validation.py` 17/17 + regresión 222 + fast 100/1; ruff+format limpios; `import api.main` OK; 0 módulos nuevos (solo EXTEND); 18 tests nuevos (≤20 budget).
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, WIP ajeno. Preexistentes: F841 `recommendation.py:933` ajeno + LSP ambiental.
+> - **Siguiente**: configurar rails reales + WorkBank daily_cycle + 2 gigs Fiverr (experimento) → 1er PAID → 3-5 → 10+ → 30-50 outcomes.
+
 ## Sesión 2026-09-11 — LEVELS L1-L10: score, policies, gating, levels, mission hub
 
 > **QUÉ SE HIZO:** Auditoría previa (L3/L5/L5b/L6 existen y pasan; L5b con 4 fallas preexistentes) + construido lo ausente: `StrictFilter.score()` 0-100, `policies.py` (roles de renta), opt-in `allow_interview/allow_cv_portfolio`, `cores/levels.py` (XP verificado, 10 niveles), router `mission_hub` (overview/target/award/toggles), página `/mission` + sidebar.
