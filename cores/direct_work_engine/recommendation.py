@@ -184,6 +184,62 @@ _HIGH_CONFIDENCE_90_CONFIG = RecommenderConfig(
 
 HIGH_CONFIDENCE_90_RECOMMENDER_CONFIG = _HIGH_CONFIDENCE_90_CONFIG
 
+# Zero-First Mode — beginner with no history: barrier-minimal + fast + likely.
+# No acceptance floor (a newcomer has no history to floor on — the floor would
+# nuke everything). New-user flows request this mode explicitly; balanced
+# NEVER auto-switches (pinned deterministic behavior for existing callers).
+_ZERO_FIRST_CONFIG = RecommenderConfig(
+    weight_zero_barrier=0.30,
+    weight_speed=0.25,
+    weight_acceptance_probability=0.25,
+    weight_expected_value=0.10,
+    weight_compatibility=0.05,
+    weight_reputation=0.05,
+    min_zero_barrier_score=60.0,
+    min_expected_value=0.0,
+    min_acceptance_probability=0.1,
+)
+
+ZERO_FIRST_RECOMMENDER_CONFIG = _ZERO_FIRST_CONFIG
+
+# Country aliases for eligibility matching (lowercase, stripped).
+_COUNTRY_ALIASES = {
+    "ar": "argentina",
+    "arg": "argentina",
+    "usa": "united states",
+    "us": "united states",
+    "uk": "united kingdom",
+    "uae": "united arab emirates",
+}
+
+
+def _normalize_country(raw: object) -> str:
+    key = str(getattr(raw, "value", raw) or "").strip().lower()
+    return _COUNTRY_ALIASES.get(key, key)
+
+
+def filter_by_region(
+    opportunities: list[Opportunity],
+    region: str | None,
+) -> list[Opportunity]:
+    """Keep opportunities whose allowed_countries include the region.
+
+    Empty allowed_countries = global (always passes). Empty region = no
+    filtering (legacy behavior). Never invents eligibility.
+    """
+    norm = _normalize_country(region) if region else ""
+    if not norm:
+        return opportunities
+    kept: list[Opportunity] = []
+    for opp in opportunities:
+        allowed = [c for c in (getattr(opp, "allowed_countries", None) or []) if str(c).strip()]
+        if not allowed:
+            kept.append(opp)
+            continue
+        if any(_normalize_country(c) == norm for c in allowed):
+            kept.append(opp)
+    return kept
+
 
 # SECURE_INCOME Mode — base segura: máxima P(cobrar) + mínimo tiempo sin
 # ingresos. Acceptance y velocidad mandan; EV y barrera acompañan; floor
@@ -292,6 +348,7 @@ class IntelligentRecommender:
         mode: str = "balanced",
         zero_experience_only: bool = False,
         zero_barrier_strict: bool = False,
+        region: str | None = None,
     ) -> list[RankedOpportunity]:
         """Generate ranked recommendations for a user profile.
 
@@ -323,6 +380,15 @@ class IntelligentRecommender:
         toward EV. Usage guide: ~2h secure base, ~1.5h dev bounty,
         ~0.5h high-EV bug bounty (hour splitter is follow-up).
 
+        ``mode="zero_first"`` is the beginner mode (no history): barrier-minimal
+        first, then speed and acceptance. No acceptance floor (nothing to floor
+        on). New-user flows request it explicitly — balanced never auto-switches,
+        so existing callers keep byte-identical behavior.
+
+        ``region`` filters by ``allowed_countries`` (empty = global, passes).
+        Defaults to ``profile.country``; explicit value overrides. ``None`` and
+        empty both mean "no filtering" (legacy behavior).
+
         Keyword filters (independent of mode):
 
         ``zero_experience_only`` drops opportunities requiring prior experience
@@ -348,8 +414,15 @@ class IntelligentRecommender:
             self.config = _SECURE_INCOME_CONFIG
         elif mode == "secure_plus_upside":
             self.config = _SECURE_PLUS_UPSIDE_CONFIG
+        elif mode == "zero_first":
+            self.config = _ZERO_FIRST_CONFIG
         else:
             self.config = DEFAULT_RECOMMENDER_CONFIG
+        effective_region = region if region is not None else getattr(profile, "country", None)
+        if effective_region:
+            opportunities = filter_by_region(opportunities, str(effective_region))
+            if not opportunities:
+                return []
         if zero_experience_only:
             opportunities = filter_zero_experience(opportunities)
         if zero_barrier_strict:
