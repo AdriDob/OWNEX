@@ -6,6 +6,17 @@
 - **Regla permanente**: ninguna probabilidad de cobro se inventa — UNKNOWN etiquetado; bug bounty = upside hasta que el historial personal demuestre repetibilidad (veredicto REPEATABLE de `identify_repeatable`).
 - **Follow-ups (NO código ahora, budget)**: splitter automático por horas (2h base/1.5h dev/0.5h upside) y `P(monthly ≥ $X)` desde outcomes reales (tiers `income_target.py` + `identify_repeatable` ya existen como base).
 
+## 2026-09-10: MILESTONE TRACKER + AGGRESSIVE PLAN + HIGH-UPSIDE 90D (first-money EOY)
+
+- **Objetivo owner**: tracker visible $100→$500→$1k→$2.5k→$5k→$10k + plan agresivo $5k/$10k fin de año con output semanal por motor + modo recommender high-upside. Adriel Webs queda FUERA de motores primarios (canal freelance opcional, misma categoría que Fiverr/Workana; lo cubre el sistema de channels).
+- **Backend** (`cores/first_money/tracker.py`): enums `IncomeEngine` (3, sin webs) + `Milestone` (+`M5K_EOY`/`M10K_EOY`); dataclasses `EngineProximity`/`MilestoneProgress`/`DailyAction`; `get_engine_proximity()` (ordenado por cercanía), `get_milestone_tracker_data()` (hitos + proximidades + closest + daily), `get_aggressive_plan(5000|10000)` (gap/semanas→weekly_required, split 70/30 ready/setup, rates AI $30/h·Bug $40/h·Dev $35/h, checklist + nota ALTA/MEDIA/BAJA). Heurísticas desde etapas (placeholder honesto hasta trackers reales).
+- **Recommender** (`cores/direct_work_engine/recommendation.py`): preset `HIGH_UPSIDE_90D` (EV .38/accept .19, floor 0.15, evidence gate ON, upside_boost) + modo `high_upside_90d` + reasoning ES (`P personal`/`Frescura`/`Competencia` solo en ese modo) + fixes enum-vs-str (`category`/`platform`/`payment_method`/`experience_required` en strategy/diversity/scoring/payment-reliability) para payloads dict del router.
+- **Calibration/funnel**: `reset_funnel_tracker()` + test usa singleton reseteado (el singleton cacheado rompía el test en suite completa).
+- **API**: `GET /first-money/milestone-tracker` + `GET /first-money/aggressive-plan?target_usd=5000|10000` (400 si no es 5000/10000).
+- **Frontend** (`FirstMoney.vue` + `ownexData.ts`): card milestone (próximo hito + tabla 6 hitos + motores + daily action con `goToUrl`) + card aggressive ($5k/$10k toggle, plan semanal por motor, checklist, probabilidad).
+- **Evidencia**: reward_probability 20/20 · guards 28/28 · fast 100/1 · endpoints 200 (milestone + aggressive 5k/10k) · ruff limpio en tocados (15 errores baseline en reward_probability/recommendation preexistentes, verificados por stash) · `vite build` OK.
+- **Nota**: `recommendation.py` commiteado con contexto secure-income/high-confidence del árbol compartido (en vuelo ajeno, tests verdes en conjunto; precedente `9b4d4242`).
+
 ## 2026-09-09: CI v7.1.0 — sidecar verde ×3, Tauri Windows rojo por triple-suffix (fix → v7.1.1)
 
 - **Resultado tag `v7.1.0`** (run 34407423757, 14m44s): sidecars `windows/macos/ubuntu` SUCCESS (smoke + guard 50MB OK — el P0 frozen viaja bien), Tauri `ubuntu/macos` SUCCESS, Tauri `windows` FAILURE en step "Tauri build".
@@ -979,3 +990,10 @@
 - **Decisión**: 3 reasoners NUEVOS con el patrón IDOR verbatim (signals→confidence→Hypothesis completa + helpers), alcance honesto documentado (superficie API del backend mobile, NO binario). `VulnType` ×3 + scorer maps extendidos (todos con `.get()`+defaults, verificados). Planner intacto (fallback genérico). Engine 5→8.
 - **Evidencia**: 17/17 mobile + 101 offensive (conteo pineado 8) + fast 100/1; ruff 0 nuevos.
 - **Regla permanente**: nuevo vuln-type = reasoner + VulnType + scorer entries + tests positivo/negativo; jamás asumir planner dedicado (el fallback genérico es el contrato).
+
+## 2026-09-10: MOBILE ON-DEVICE — validador con degradación honesta, sin auto-ejecución
+
+- **Problema**: las test instructions del reasoner mobile_transport exigen verificación on-device pero no existía tooling (ni en repo ni en host).
+- **Decisión**: `MobileDeviceValidator` NUEVO con 5 veredictos (PASS solo tras ejecutar; UNAVAILABLE≠FAIL; todo con manual_steps). Deliberadamente SIN cablear a scheduler/reasoners (headless + tools externas jamás corren autónomas).
+- **Evidencia**: 17/17 validator + 135 affected + fast 100/1; ruff 0 nuevos.
+- **Regla permanente**: sin PASS sin ejecutar; timeout+shell=False siempre; UNAVAILABLE lleva pasos manuales.

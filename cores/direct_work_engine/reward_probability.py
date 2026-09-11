@@ -262,6 +262,7 @@ class AcceptanceRecord:
     evidence_quality: float = 0.0
     hours_invested: float = 0.0
     predicted_p_accept: float | None = None
+    reward_usd: float = 0.0
     opportunity_id: str | None = None
     recorded_at: str = ""
 
@@ -365,6 +366,7 @@ class PersonalAcceptanceProbability:
         evidence_quality: float = 0.0,
         hours_invested: float = 0.0,
         predicted_p_accept: float | None = None,
+        reward_usd: float = 0.0,
         opportunity_id: str | None = None,
     ) -> AcceptanceRecord:
         """Persist one VERIFIED acceptance outcome. Only call with real platform verdicts."""
@@ -382,6 +384,7 @@ class PersonalAcceptanceProbability:
             evidence_quality=max(0.0, min(1.0, evidence_quality)),
             hours_invested=max(0.0, float(hours_invested)),
             predicted_p_accept=predicted_p_accept,
+            reward_usd=reward_usd,
             opportunity_id=opportunity_id,
             recorded_at=datetime.now(UTC).isoformat(),
         )
@@ -910,6 +913,12 @@ def get_funnel_tracker() -> FunnelTracker:
     if _singleton_funnel is None:
         _singleton_funnel = FunnelTracker()
     return _singleton_funnel
+
+
+def reset_funnel_tracker() -> None:
+    """Reset the singleton (for testing)."""
+    global _singleton_funnel
+    _singleton_funnel = None
 
 
 def get_evidence_gate() -> EvidenceGate:

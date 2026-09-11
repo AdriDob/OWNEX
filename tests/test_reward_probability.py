@@ -165,6 +165,7 @@ class TestHighUpside90DMode:
             "currency": "USD",
             "payment_method": PaymentMethod.PAYPAL,
             "estimated_time_hours": 10.0,
+            "evidence_gate_status": "HIGH_CONFIDENCE",
         }
         opp_defaults.update(overrides)
         opp = Opportunity(**opp_defaults)
@@ -216,10 +217,11 @@ class TestFunnelHooks:
     def test_bridge_submitted_records_funnel(self, tmp_path, monkeypatch):
         from types import SimpleNamespace
 
-        from cores.direct_work_engine.reward_probability import FunnelTracker
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, reset_funnel_tracker
         from cores.revenue_tracker.execution_bridge import record_submission_outcome
 
         monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        reset_funnel_tracker()
         rec = SimpleNamespace(
             id="s1",
             opportunity_id="wb-1",
@@ -231,5 +233,5 @@ class TestFunnelHooks:
             attempts=1,
         )
         record_submission_outcome(rec)
-        summary = FunnelTracker().summary()
+        summary = get_funnel_tracker().summary()
         assert summary["stages"]["submitted"] == 1

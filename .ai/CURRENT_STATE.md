@@ -1,3 +1,12 @@
+## Sesión 2026-09-10 — MOBILE ON-DEVICE: validador frida/adb/objection con degradación honesta
+
+> **QUÉ SE HIZO:** Cierre de la brecha "test instructions dicen *verify pinning on-device* pero no hay tooling". Audit-first: cero tooling en repo/host (`which frida objection adb` vacío); patrón `shutil.which` ya existe (nuclei_adapter); WebView2 ya pineado+testeado (sin cambios).
+> - **NUEVO** `cores/offensive/mobile_validator.py` (`MobileDeviceValidator` + `DeviceVerdict` PASS/FAIL/INCONCLUSIVE/UNAVAILABLE/NOT_APPLICABLE): matriz de disponibilidad con caché, `_run()` con timeout + sin shell (nunca raisea), `check_adb_devices`, `check_app_installed`, `check_frida_server`, `check_pinning_enforced` (INCONCLUSIVE honesto: el handshake solo se observa con proxy en vivo + steps manuales). Reglas: sin PASS sin ejecutar, UNAVAILABLE≠FAIL, todo lleva manual_steps.
+> - **Deliberadamente NO cableado** al scheduler ni a reasoners (headless + herramientas externas jamás corren autónomas); herramienta invocada por el hunter.
+> - **Verificación**: `tests/test_mobile_validator.py` 17/17 (matriz, parsing adb, timeout, no-shell pineado, serialización); 135 affected + fast 100/1; ruff 0 nuevos; `import api.main` OK.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, WIP ajeno.
+> - **Bloqueos que ningún código resuelve**: validación física Windows W1–W12 (sin hardware), firma (sin certificado), PR #37 (314 conflictos, merge ajeno), `core/` (regla: solo tras Windows), financial_hub/self_improvement (WIP ajeno).
+
 ## Sesión 2026-09-10 — MOBILE GAP CERRADO: 3 reasoners (deeplink/data-exposure/transport) + VulnType + scorer
 
 > **QUÉ SE HIZO:** La brecha mobile-security (reasoners solo web: IDOR/XSS/SQLi/SSRF/AuthBypass, cero validadores mobile). Audit-first: `VulnType` + `economic_scorer` usan `.get()` con defaults + planner con fallback genérico → extensión segura sin tocar lógica viva.
@@ -100,6 +109,16 @@
 > - **Verificación**: `tests/test_cycle_task_handlers.py` NUEVO (10 tests incl. resolución de TODOS los handlers — regresión permanente); 61 + 83 + 164 passed en afectadas; fast **100/1**; ruff limpio; `import api.main` OK.
 > - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` (WIP ajeno en el árbol).
 > - **Siguiente**: validación Windows runtime real (MSI) → veredicto STABLE → borrado `core/` + PR #37.
+
+## Sesión 2026-09-10 — MILESTONE TRACKER + AGGRESSIVE PLAN + HIGH-UPSIDE 90D
+
+> **QUÉ SE HIZO:** Tracker visible de hitos $100→$10k + plan agresivo EOY $5k/$10k + modo recommender high-upside (objetivo owner: $5k EOY bug bounty + upside).
+> - **Backend**: `IncomeEngine` ×3 (sin webs) + `Milestone` (+EOY) + `get_engine_proximity` + `get_milestone_tracker_data` + `get_aggressive_plan` (split 70/30, rates 30/40/35, checklist, ALTA/MEDIA/BAJA).
+> - **Recommender**: preset `HIGH_UPSIDE_90D` + modo + reasoning ES + fixes enum-vs-str (5 sitios).
+> - **API**: `GET /first-money/milestone-tracker` + `GET /first-money/aggressive-plan` (200 ambos targets).
+> - **Frontend**: cards milestone + aggressive en `FirstMoney.vue` + tipos/fetchers en `ownexData.ts`.
+> - **Verificación**: reward_probability 20/20 · guards 28/28 · fast 100/1 · ruff limpio en tocados · `vite build` OK.
+> - **No tocado**: territorio concurrente salvo contexto compartido ya verde (`recommendation.py`).
 
 ## Sesión 2026-09-09 — WIN11-STABLE: rama release + P0 frozen + smoke sidecar + bug /api/version
 

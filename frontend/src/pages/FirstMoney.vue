@@ -15,18 +15,26 @@ import ProgressBar from '@/components/ui/ProgressBar.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
 import {
   completeFirstMoneyStage,
+  fetchAggressivePlan,
   fetchEvolutionLearning,
   fetchFirstMoneyNextAction,
   fetchFirstMoneyProgress,
   fetchFreelanceChannels,
+  fetchMilestoneTracker,
   recordFirstRevenue,
   setFreelanceChannel,
   startFirstMoneyStage,
+  type AggressiveEnginePlan,
+  type AggressivePlanState,
+  type DailyAction,
+  type EngineProximity,
   type EvolutionCalibration,
   type FirstMoneyNextAction,
   type FirstMoneyProgress,
   type FirstMoneyStageStatus,
   type FreelanceChannelInfo,
+  type MilestoneProgressItem,
+  type MilestoneTrackerState,
   type RepeatableRow,
 } from '@/services/ownexData'
 
@@ -47,6 +55,15 @@ const revenueBusy = ref(false)
 const revenueDone = ref<string | null>(null)
 const calibration = ref<EvolutionCalibration | null>(null)
 const repeatable = ref<RepeatableRow[]>([])
+
+// Milestone Tracker
+const milestoneTracker = ref<MilestoneTrackerState | null>(null)
+const busyMilestone = ref(false)
+
+// Aggressive Plan (EOY Targets)
+const aggressivePlan = ref<AggressivePlanState | null>(null)
+const aggressiveTarget = ref<5000 | 10000>(5000)
+const busyAggressive = ref(false)
 
 const statusVariant = (s: FirstMoneyStageStatus): 'success' | 'warning' | 'error' | 'default' => {
   if (s === 'completed') return 'success'
@@ -76,14 +93,18 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = null
   try {
-    const [p, n, c] = await Promise.all([
+    const [p, n, c, m, a] = await Promise.all([
       fetchFirstMoneyProgress(),
       fetchFirstMoneyNextAction(),
       fetchFreelanceChannels().catch(() => ({ channels: {}, note: '' })),
+      fetchMilestoneTracker().catch(() => null),
+      fetchAggressivePlan(aggressiveTarget.value).catch(() => null),
     ])
     progress.value = p
     nextAction.value = n
     channels.value = c.channels ?? {}
+    milestoneTracker.value = m
+    aggressivePlan.value = a
     try {
       const evo = await fetchEvolutionLearning([], 0)
       calibration.value = evo.calibration ?? null
@@ -157,8 +178,29 @@ function goToPlatforms(): void {
   void router.push('/operations/platforms')
 }
 
+async function setAggressiveTarget(target: 5000 | 10000): Promise<void> {
+  aggressiveTarget.value = target
+  busyAggressive.value = true
+  try {
+    const plan = await fetchAggressivePlan(target)
+    aggressivePlan.value = plan
+  } catch (e) {
+    console.error('fetch aggressive plan failed', e)
+  } finally {
+    busyAggressive.value = false
+  }
+}
+
 function goToWorkQueue(): void {
   void router.push('/operations/work-queue')
+}
+
+function goToUrl(url: string): void {
+  if (url.startsWith('/')) {
+    void router.push(url)
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }
 
 onMounted(() => {
@@ -200,6 +242,191 @@ onMounted(() => {
             Primer ingreso: <strong>${{ progress.first_revenue_amount }}</strong>
             <span class="opacity-70">({{ progress.first_revenue_platform }})</span>
           </div>
+        </div>
+      </OwnexCard>
+
+      <!-- Milestone Tracker Dashboard -->
+      <OwnexCard v-if="milestoneTracker" class="mb-4" variant="highlight">
+        <div class="mb-3 flex flex-wrap items-center gap-3">
+          <div class="flex-1">
+            <div class="text-xs uppercase opacity-60">Próximo hito</div>
+            <div class="flex items-baseline gap-2">
+              <div class="text-2xl font-bold">{{ milestoneTracker.next_milestone.label }}</div>
+              <OwnexBadge :variant="milestoneTracker.next_milestone.pct_complete > 0 ? 'success' : 'default'">
+                {{ milestoneTracker.next_milestone.pct_complete.toFixed(1) }}%
+              </OwnexBadge>
+            </div>
+            <div class="text-sm opacity-70">Faltan ${{ milestoneTracker.next_milestone.usd_needed.toLocaleString() }}</div>
+          </div>
+          <ProgressBar :value="milestoneTracker.next_milestone.pct_complete" color="primary" size="md" show-label class="w-48" />
+        </div>
+
+        <!-- Hititos -->
+        <div class="mb-3 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border opacity-50">
+                <th class="text-left pb-1">Hito</th>
+                <th class="text-left pb-1">Progreso</th>
+                <th class="text-left pb-1">Falta</th>
+                <th class="text-left pb-1">Motores</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="m in milestoneTracker.milestones" :key="m.milestone" :class="{ 'bg-primary/5': m.is_next }">
+                <td class="py-1 font-medium">{{ m.label }}</td>
+                <td class="py-1">
+                  <ProgressBar :value="m.pct_complete" color="primary" size="sm" show-label class="w-32" />
+                </td>
+                <td class="py-1 opacity-70">${{ m.usd_needed.toLocaleString() }}</td>
+                <td class="py-1">
+                  <div class="flex flex-wrap gap-1">
+                    <OwnexBadge
+                      v-for="e in m.engines_contributing"
+                      :key="e"
+                      size="xs"
+                      variant="default"
+                    >
+                      {{ e.replace('_', ' ') }}
+                    </OwnexBadge>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Motores más cercanos -->
+        <div class="mb-3">
+          <div class="text-xs uppercase opacity-60 mb-2">Motores hacia el hito</div>
+          <div class="flex flex-wrap gap-2">
+            <div
+              v-for="e in milestoneTracker.engine_proximities"
+              :key="e.engine"
+              class="flex flex-col gap-1 rounded border border-border/60 px-3 py-2 text-sm"
+              :class="{ 'border-primary bg-primary/5': e.is_closest, 'opacity-50': e.status === 'blocked' }"
+            >
+              <div class="flex items-center gap-1">
+                <strong>{{ e.label }}</strong>
+                <OwnexBadge :variant="e.status === 'ready' ? 'success' : e.status === 'needs_action' ? 'warning' : e.status === 'needs_setup' ? 'default' : 'error'" size="xs">
+                  {{ e.status }}
+                </OwnexBadge>
+                <OwnexBadge v-if="e.is_closest" variant="success" size="xs">Más cerca</OwnexBadge>
+              </div>
+              <div class="flex items-center gap-2 text-xs opacity-70">
+                <span>${{ e.current_usd }} → ${{ e.projected_usd }}</span>
+                <span class="font-mono">${{ e.usd_to_milestone.toLocaleString() }} al hito</span>
+                <OwnexBadge :variant="e.confidence > 0.6 ? 'success' : e.confidence > 0.4 ? 'warning' : 'default'" size="xs">
+                  {{ (e.confidence * 100).toFixed(0) }}%
+                </OwnexBadge>
+              </div>
+              <div class="text-xs opacity-60">{{ e.next_action }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acción diaria -->
+        <div v-if="milestoneTracker.daily_action" class="p-3 rounded bg-primary/10 border border-primary/20">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="text-xs uppercase opacity-60">Acción de hoy</div>
+            <OwnexBadge :variant="milestoneTracker.daily_action.priority === 1 ? 'success' : milestoneTracker.daily_action.priority === 2 ? 'warning' : 'default'" size="xs">
+              Prioridad {{ milestoneTracker.daily_action.priority }}
+            </OwnexBadge>
+          </div>
+          <div class="font-semibold">{{ milestoneTracker.daily_action.title }}</div>
+          <div class="text-sm opacity-70">{{ milestoneTracker.daily_action.description }}</div>
+          <div class="flex flex-wrap items-center gap-2 mt-2 text-xs opacity-60">
+            <span>⏱ ~{{ milestoneTracker.daily_action.estimated_minutes }} min</span>
+            <span>💰 EV ~${{ milestoneTracker.daily_action.impact_usd }}</span>
+            <OwnexButton v-if="milestoneTracker.daily_action.url" variant="primary" size="xs" @click="goToUrl(milestoneTracker.daily_action.url!)">
+              Ir
+            </OwnexButton>
+          </div>
+        </div>
+      </OwnexCard>
+
+      <!-- Aggressive Plan (EOY Targets: $5k / $10k) -->
+      <OwnexCard v-if="aggressivePlan" class="mb-4" variant="highlight">
+        <div class="mb-3 flex flex-wrap items-center gap-3">
+          <div class="flex-1">
+            <div class="text-xs uppercase opacity-60">Plan agresivo fin de año</div>
+            <div class="flex items-baseline gap-2">
+              <div class="text-xl font-bold">${{ aggressivePlan.target_usd.toLocaleString() }}</div>
+              <OwnexBadge :variant="aggressivePlan.probability_note.includes('ALTA') ? 'success' : aggressivePlan.probability_note.includes('MEDIA') ? 'warning' : 'error'">
+                {{ aggressivePlan.probability_note.split(':')[0] }}
+              </OwnexBadge>
+            </div>
+            <div class="text-sm opacity-70">
+              Gap: ${{ aggressivePlan.gap_usd.toLocaleString() }} en {{ aggressivePlan.weeks_left }} semanas
+              → ${{ aggressivePlan.weekly_required_total.toFixed(0) }}/sem (${{ aggressivePlan.monthly_required_total.toFixed(0) }}/mes)
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <OwnexButton
+              :variant="aggressiveTarget === 5000 ? 'primary' : 'secondary'"
+              size="sm"
+              :loading="busyAggressive"
+              @click="setAggressiveTarget(5000)"
+            >
+              $5k
+            </OwnexButton>
+            <OwnexButton
+              :variant="aggressiveTarget === 10000 ? 'primary' : 'secondary'"
+              size="sm"
+              :loading="busyAggressive"
+              @click="setAggressiveTarget(10000)"
+            >
+              $10k
+            </OwnexButton>
+          </div>
+        </div>
+
+        <!-- Plan semanal por motor -->
+        <div class="mb-3">
+          <div class="text-xs uppercase opacity-60 mb-2">Plan semanal por motor</div>
+          <div class="space-y-2">
+            <div
+              v-for="e in aggressivePlan.engine_plan"
+              :key="e.engine"
+              class="flex flex-col gap-1 rounded border border-border/60 px-3 py-2 text-sm"
+              :class="{ 'border-primary bg-primary/5': e.is_primary, 'opacity-50': e.setup_phase }"
+            >
+              <div class="flex items-center gap-1">
+                <strong>{{ e.label }}</strong>
+                <OwnexBadge :variant="e.status === 'ready' ? 'success' : e.status === 'needs_action' ? 'warning' : 'default'" size="xs">
+                  {{ e.status }}
+                </OwnexBadge>
+                <OwnexBadge v-if="e.is_primary" variant="success" size="xs">Principal</OwnexBadge>
+                <OwnexBadge v-if="e.setup_phase" variant="default" size="xs">Setup</OwnexBadge>
+              </div>
+              <div class="flex items-center gap-2 text-xs opacity-70">
+                <span class="font-mono">${{ e.weekly_usd_target.toFixed(0) }}/sem</span>
+                <span class="font-mono">${{ e.monthly_usd_target.toFixed(0) }}/mes</span>
+                <span>{{ e.est_hours_per_week.toFixed(1) }}h/sem</span>
+                <OwnexBadge :variant="e.confidence > 0.6 ? 'success' : e.confidence > 0.4 ? 'warning' : 'default'" size="xs">
+                  {{ (e.confidence * 100).toFixed(0) }}%
+                </OwnexBadge>
+              </div>
+              <div class="text-xs opacity-60" v-if="e.setup_phase">{{ e.setup_actions }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checklist semanal -->
+        <div class="mb-3">
+          <div class="text-xs uppercase opacity-60 mb-2">Checklist semanal</div>
+          <ul class="space-y-1">
+            <li v-for="c in aggressivePlan.weekly_checklist" :key="c" class="text-sm flex items-start gap-2">
+              <span class="text-primary mt-0.5">→</span>
+              <span>{{ c }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Probabilidad -->
+        <div class="p-3 rounded border border-warning/30 bg-warning/10">
+          <div class="text-xs uppercase opacity-60 mb-1">Probabilidad honesta</div>
+          <div class="text-sm">{{ aggressivePlan.probability_note }}</div>
         </div>
       </OwnexCard>
 

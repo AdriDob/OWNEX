@@ -88,10 +88,14 @@ class TestSidecarSpec:
         assert "ownex-backend-x86_64-pc-windows-msvc.exe" in workflow
 
     def test_windows_bundle_is_msi_only(self, tauri_conf: dict) -> None:
-        """MSI único por decisión 2026-09-09 (NSIS retirado del bundle)."""
+        """MSI único por decisión 2026-09-09 (NSIS retirado del bundle).
+
+        `nsis: null` cuenta como ausente (deshabilitado en Tauri v2);
+        solo un objeto nsis con contenido reactivaría el setup.exe.
+        """
         windows = tauri_conf["bundle"]["windows"]
         assert "wix" in windows
-        assert "nsis" not in windows
+        assert windows.get("nsis") is None
 
     def test_webview2_bootstrapper_pinned(self, tauri_conf: dict) -> None:
         """WebView2 strategy explicit: silent downloadBootstrapper (needs

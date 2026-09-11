@@ -1672,6 +1672,8 @@ export interface OneAction {
   success_probability: number | null
   acceptance_probability: number | null
   payment_probability: number | null
+  p_cash: number | null
+  p_cash_band: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN' | null
   expected_value_usd: number | null
   ev_per_human_hour_usd: number | null
   estimated_human_hours: number | null
@@ -2134,6 +2136,208 @@ export async function deleteReport(reportId: number): Promise<{ id: number; dele
 
 export async function submitReport(reportId: number, data?: { submission_url?: string }): Promise<{ id: number; status: string }> {
   return api.post(`/api/reports/${reportId}/submit`, data || {})
+}
+
+// ── Milestone Tracker (First Money Extended: $100 → $500 → $1k → $2.5k → $5k → $10k) ──
+
+export type IncomeEngineType = 'ai_training' | 'adriel_webs' | 'bug_bounty' | 'dev_bounty'
+
+export interface EngineProximity {
+  engine: string
+  label: string
+  current_usd: number
+  projected_usd: number
+  next_milestone: string
+  usd_to_milestone: number
+  pct_to_milestone: number
+  status: 'ready' | 'needs_setup' | 'needs_action' | 'blocked'
+  next_action: string
+  action_url: string | null
+  confidence: number
+  is_closest: boolean
+}
+
+export interface MilestoneProgressItem {
+  milestone: string
+  label: string
+  usd_target: number
+  current_usd: number
+  usd_needed: number
+  pct_complete: number
+  engines_contributing: string[]
+  is_next: boolean
+  achieved: boolean
+}
+
+export interface ClosestEngine {
+  engine: string
+  label: string
+  usd_to_milestone: number
+  next_action: string
+  action_url: string | null
+}
+
+export interface DailyAction {
+  engine: string
+  title: string
+  description: string
+  estimated_minutes: number
+  impact_usd: number
+  priority: number
+  url: string | null
+}
+
+export interface MilestoneTrackerState {
+  total_earned_usd: number
+  next_milestone: {
+    milestone: string
+    label: string
+    usd_needed: number
+    pct_complete: number
+  }
+  milestones: Array<{
+    milestone: string
+    label: string
+    usd_target: number
+    current_usd: number
+    usd_needed: number
+    pct_complete: number
+    engines_contributing: string[]
+    is_next: boolean
+    achieved: boolean
+  }>
+  engine_proximities: Array<{
+    engine: string
+    label: string
+    current_usd: number
+    projected_usd: number
+    next_milestone: string
+    usd_to_milestone: number
+    pct_to_milestone: number
+    status: string
+    next_action: string
+    action_url: string | null
+    confidence: number
+    is_closest: boolean
+  }>
+  closest_engine: {
+    engine: string
+    label: string
+    usd_to_milestone: number
+    next_action: string
+    action_url: string | null
+  } | null
+  daily_action: {
+    engine: string
+    title: string
+    description: string
+    estimated_minutes: number
+    impact_usd: number
+    priority: number
+    url: string | null
+  } | null
+  total_earned_usd: number
+}
+
+export interface MilestoneTrackerResponse {
+  total_earned_usd: number
+  next_milestone: { milestone: string; label: string; usd_needed: number; pct_complete: number }
+  milestones: Array<{
+    milestone: string; label: string; usd_target: number; current_usd: number; usd_needed: number; pct_complete: number
+    engines_contributing: string[]; is_next: boolean; achieved: boolean
+  }>
+  engine_proximities: Array<{
+    engine: string; label: string; current_usd: number; projected_usd: number; next_milestone: string
+    usd_to_milestone: number; pct_to_milestone: number; status: string; next_action: string
+    action_url: string | null; confidence: number; is_closest: boolean
+  }>
+  closest_engine: { engine: string; label: string; usd_to_milestone: number; next_action: string; action_url: string | null } | null
+  daily_action: { engine: string; title: string; description: string; estimated_minutes: number; impact_usd: number; priority: number; url: string | null } | null
+  total_earned_usd: number
+}
+
+export async function fetchMilestoneTracker(): Promise<MilestoneTrackerState> {
+  const data = await api.get<MilestoneTrackerResponse>('/first-money/milestone-tracker')
+  // Normalize: ensure all expected fields are present
+  return {
+    total_earned_usd: data.total_earned_usd ?? 0,
+    next_milestone: data.next_milestone ?? { milestone: '100', label: '$100', usd_needed: 100, pct_complete: 0 },
+    milestones: data.milestones ?? [],
+    engine_proximities: data.engine_proximities ?? [],
+    closest_engine: data.closest_engine ?? null,
+    daily_action: data.daily_action ?? null,
+    total_earned_usd: data.total_earned_usd ?? 0,
+  }
+}
+
+// ── Aggressive Plan (EOY Targets: $5k / $10k) ──
+
+export interface AggressiveEnginePlan {
+  engine: string
+  label: string
+  status: string
+  weekly_usd_target: number
+  monthly_usd_target: number
+  est_hours_per_week: number
+  current_projected_monthly: number
+  gap_to_monthly_target: number
+  confidence: number
+  is_primary?: boolean
+  setup_phase?: boolean
+  setup_actions?: string
+}
+
+export interface AggressivePlanState {
+  target_usd: number
+  current_earned: number
+  gap_usd: number
+  weeks_left: number
+  weekly_required_total: number
+  monthly_required_total: number
+  engine_plan: Array<{
+    engine: string
+    label: string
+    status: string
+    weekly_usd_target: number
+    monthly_usd_target: number
+    est_hours_per_week: number
+    current_projected_monthly: number
+    gap_to_monthly_target: number
+    confidence: number
+    is_primary?: boolean
+    setup_phase?: boolean
+    setup_actions?: string
+  }>
+  weekly_checklist: string[]
+  milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+  probability_note: string
+}
+
+export async function fetchAggressivePlan(targetUsd: 5000 | 10000 = 5000): Promise<{
+  target_usd: number
+  current_earned: number
+  gap_usd: number
+  weeks_left: number
+  weekly_required_total: number
+  monthly_required_total: number
+  engine_plan: AggressiveEnginePlan[]
+  weekly_checklist: string[]
+  milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+  probability_note: string
+}> {
+  const data = await api.get<{
+    target_usd: number
+    current_earned: number
+    gap_usd: number
+    weeks_left: number
+    weekly_required_total: number
+    monthly_required_total: number
+    engine_plan: AggressiveEnginePlan[]
+    weekly_checklist: string[]
+    milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+    probability_note: string
+  }>(`/first-money/aggressive-plan?target_usd=${targetUsd}`)
+  return data
 }
 
 // ── First Money Workflow (Zero-to-Earning) ──

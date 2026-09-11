@@ -4,6 +4,9 @@ Tracks the owner's progress from $0 through first earning:
 Platform → Account → Profile → Payment → Opportunity → Prepare → Approve → Execute → Verify → Earn → Record
 
 Each stage is a milestone. The system guides, tracks, and learns.
+
+Extended with: Milestone Tracker ($100 → $500 → $1k → $2.5k → $5k → $10k)
+and Engine Proximity (which income source is closest to next milestone).
 """
 
 from __future__ import annotations
@@ -17,6 +20,96 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("ownex.first_money")
+
+
+class IncomeEngine(StrEnum):
+    """Motores de ingresos disponibles (Adriel Webs es OPCIONAL, no principal)."""
+
+    AI_TRAINING = "ai_training"
+    BUG_BOUNTY = "bug_bounty"
+    DEV_BOUNTY = "dev_bounty"
+
+
+class Milestone(StrEnum):
+    """Hitos de ingreso acumulado."""
+
+    M100 = "100"
+    M500 = "500"
+    M1K = "1k"
+    M2_5K = "2.5k"
+    M5K = "5k"
+    M10K = "10k"
+    # Aggressive mode: end-of-year stretch targets
+    M5K_EOY = "5k_eoy"
+    M10K_EOY = "10k_eoy"
+
+    @property
+    def usd(self) -> int:
+        mapping = {
+            Milestone.M100: 100,
+            Milestone.M500: 500,
+            Milestone.M1K: 1000,
+            Milestone.M2_5K: 2500,
+            Milestone.M5K: 5000,
+            Milestone.M10K: 10000,
+            Milestone.M5K_EOY: 5000,
+            Milestone.M10K_EOY: 10000,
+        }
+        return mapping[self]
+
+    @property
+    def label(self) -> str:
+        return f"${self.usd:,}"
+
+    @property
+    def is_aggressive(self) -> bool:
+        return self in (Milestone.M5K_EOY, Milestone.M10K_EOY)
+
+
+@dataclass
+class EngineProximity:
+    """Proximidad de un motor de ingresos al próximo hito."""
+
+    engine: IncomeEngine
+    label: str
+    current_usd: float
+    projected_usd: float
+    next_milestone: Milestone
+    usd_to_milestone: float
+    pct_to_milestone: float
+    engine_status: str  # "ready" | "needs_setup" | "needs_action" | "blocked"
+    next_action: str
+    action_url: str | None = None
+    confidence: float = 0.5  # 0-1, qué tan confiable es la proyección
+
+    @property
+    def is_closest(self) -> bool:
+        return self.usd_to_milestone <= 0
+
+
+@dataclass
+class MilestoneProgress:
+    """Progreso hacia un hito específico."""
+
+    milestone: Milestone
+    current_total_usd: float
+    usd_needed: float
+    pct_complete: float
+    engines_contributing: list[str]
+    eta_days: int | None = None  # Estimación simple basada en ritmo actual
+
+
+@dataclass
+class DailyAction:
+    """Acción concreta para hoy."""
+
+    engine: IncomeEngine
+    title: str
+    description: str
+    estimated_minutes: int
+    impact_usd: float  # EV estimado
+    priority: int  # 1 = highest
+    url: str | None = None
 
 
 class FirstMoneyStage(StrEnum):
@@ -262,6 +355,370 @@ class FirstMoneyTracker:
         stage_progress.blocking_reason = reason
         self._save_progress()
         return True
+
+    # ── Engine Proximity & Milestone Tracking ────────────────────────────
+
+    def get_engine_proximity(self) -> list[EngineProximity]:
+        """Calcular proximidad de cada motor al próximo hito de ingreso."""
+        if not self.progress:
+            return []
+
+        total_earned = self.progress.first_revenue_amount
+        # Próximo hito no alcanzado
+        next_milestone = None
+        for m in Milestone:
+            if total_earned < m.usd:
+                next_milestone = m
+                break
+
+        if not next_milestone:
+            # Todos los hitos alcanzados
+            next_milestone = Milestone.M10K
+
+        # Datos de motores (en producción vendrían de trackers reales)
+        engines_data = self._get_engines_status(total_earned)
+
+        proximities = []
+        for eng_data in engines_data:
+            engine = eng_data["engine"]
+            current = eng_data["current_usd"]
+            projected = eng_data["projected_usd"]
+            status = eng_data["status"]
+            action = eng_data["next_action"]
+            action_url = eng_data.get("action_url")
+            confidence = eng_data.get("confidence", 0.5)
+
+            usd_to_milestone_eng = max(0, next_milestone.usd - (total_earned + projected - current))
+            pct_to_milestone = (1 - usd_to_milestone_eng / next_milestone.usd) * 100 if next_milestone.usd > 0 else 100
+
+            prox = EngineProximity(
+                engine=engine,
+                label=engine.value.replace("_", " ").title(),
+                current_usd=current,
+                projected_usd=projected,
+                next_milestone=next_milestone,
+                usd_to_milestone=usd_to_milestone_eng,
+                pct_to_milestone=round(pct_to_milestone, 1),
+                engine_status=status,
+                next_action=action,
+                action_url=action_url,
+                confidence=confidence,
+            )
+            proximities.append(prox)
+
+        # Ordenar: más cercano al hito primero
+        proximities.sort(key=lambda p: p.usd_to_milestone)
+        return proximities
+
+    def _get_engines_status(self, total_earned: float) -> list[dict]:
+        """Obtener estado de cada motor (placeholder para integración real)."""
+        if not self.progress:
+            return []
+        # Por ahora, heurísticas basadas en etapas completadas
+        # AI Training: si PLATFORM_LEARNED o superior para Outlier/Outlier-type
+        ai_ready = self.progress.stages.get(FirstMoneyStage.PLATFORM_LEARNED.value, None)
+        ai_stage = ai_ready.status if ai_ready else StageStatus.NOT_STARTED
+
+        # Bug Bounty: si PLATFORM_LEARNED y OPPORTUNITY_SELECTED
+        opp_ready = self.progress.stages.get(FirstMoneyStage.OPPORTUNITY_SELECTED.value, None)
+
+        # Dev Bounty: similar a bug bounty pero para plataformas dev
+        dev_ready = self.progress.stages.get(FirstMoneyStage.OPPORTUNITY_SELECTED.value, None)
+
+        return [
+            {
+                "engine": IncomeEngine.AI_TRAINING,
+                "current_usd": 0.0,
+                "projected_usd": 300.0 if ai_stage == StageStatus.COMPLETED else 50.0,
+                "status": "ready"
+                if ai_stage == StageStatus.COMPLETED
+                else ("needs_setup" if ai_stage == StageStatus.IN_PROGRESS else "needs_action"),
+                "next_action": "Completar onboarding en Outlier/Mindrift"
+                if ai_stage != StageStatus.COMPLETED
+                else "Revisar tareas disponibles hoy",
+                "action_url": "/operations/platforms/outlier",
+                "confidence": 0.7 if ai_stage == StageStatus.COMPLETED else 0.3,
+            },
+            {
+                "engine": IncomeEngine.BUG_BOUNTY,
+                "current_usd": 0.0,
+                "projected_usd": 500.0,
+                "status": "ready" if opp_ready and opp_ready.status == StageStatus.COMPLETED else "needs_setup",
+                "next_action": "Seleccionar primer programa en HackerOne"
+                if opp_ready and opp_ready.status != StageStatus.COMPLETED
+                else "Enviar primer reporte",
+                "action_url": "/operations/work-queue",
+                "confidence": 0.4,
+            },
+            {
+                "engine": IncomeEngine.DEV_BOUNTY,
+                "current_usd": 0.0,
+                "projected_usd": 400.0,
+                "status": "ready" if dev_ready and dev_ready.status == StageStatus.COMPLETED else "needs_setup",
+                "next_action": "Revisar issues en Opire/IssueHunt"
+                if dev_ready and dev_ready.status != StageStatus.COMPLETED
+                else "Enviar PR a bounty abierto",
+                "action_url": "/operations/work-queue",
+                "confidence": 0.5,
+            },
+        ]
+
+    def get_milestone_tracker_data(self) -> dict[str, Any]:
+        """Dashboard completo: hitos, motores, acción diaria."""
+        if not self.progress:
+            return {"error": "No progress"}
+
+        total_earned = self.progress.first_revenue_amount
+
+        # Próximo hito
+        next_milestone = None
+        for m in Milestone:
+            if self.progress.first_revenue_amount < m.usd:
+                next_milestone = m
+                break
+        if not next_milestone:
+            next_milestone = Milestone.M10K
+
+        usd_needed = next_milestone.usd - total_earned
+        pct_complete = (total_earned / next_milestone.usd) * 100 if next_milestone.usd > 0 else 100
+
+        # Proximidad de motores
+        proximities = self.get_engine_proximity()
+
+        # Hitos con progreso
+        milestones = []
+        for m in Milestone:
+            usd_needed_m = max(0, m.usd - total_earned)
+            pct = (total_earned / m.usd) * 100 if m.usd > 0 else 100
+            engines_contrib = [e.engine.value for e in self.get_engine_proximity() if e.projected_usd > 0]
+            milestones.append(
+                {
+                    "milestone": m.value,
+                    "label": m.label,
+                    "usd_target": m.usd,
+                    "current_usd": min(total_earned, m.usd),
+                    "usd_needed": usd_needed_m,
+                    "pct_complete": round(min(pct, 100), 1),
+                    "engines_contributing": engines_contrib,
+                    "is_next": m == next_milestone,
+                    "achieved": total_earned >= m.usd,
+                }
+            )
+
+        # Motor más cercano al hito
+        closest = (
+            min(self.get_engine_proximity(), key=lambda p: p.usd_to_milestone) if self.get_engine_proximity() else None
+        )
+
+        # Acción diaria recomendada
+        daily_action = self._get_daily_action()
+
+        return {
+            "total_earned_usd": total_earned,
+            "next_milestone": {
+                "milestone": next_milestone.value,
+                "label": next_milestone.label,
+                "usd_needed": usd_needed,
+                "pct_complete": round(pct_complete, 1),
+            },
+            "milestones": milestones,
+            "engine_proximities": [
+                {
+                    "engine": p.engine.value,
+                    "label": p.label,
+                    "current_usd": p.current_usd,
+                    "projected_usd": p.projected_usd,
+                    "next_milestone": p.next_milestone.value,
+                    "usd_to_milestone": p.usd_to_milestone,
+                    "pct_to_milestone": p.pct_to_milestone,
+                    "status": p.engine_status,
+                    "next_action": p.next_action,
+                    "action_url": p.action_url,
+                    "confidence": p.confidence,
+                    "is_closest": p.is_closest,
+                }
+                for p in proximities
+            ],
+            "closest_engine": {
+                "engine": closest.engine.value,
+                "label": closest.label,
+                "usd_to_milestone": closest.usd_to_milestone,
+                "next_action": closest.next_action,
+                "action_url": closest.action_url,
+            }
+            if closest
+            else None,
+            "daily_action": daily_action,
+        }
+
+    def _get_daily_action(self) -> DailyAction | None:
+        """Acción concreta recomendada para hoy."""
+        if not self.progress:
+            return None
+
+        proximities = self.get_engine_proximity()
+        if not proximities:
+            return None
+
+        # Priorizar el motor más cercano al hito que esté "ready" o "needs_action"
+        for p in proximities:
+            if p.engine_status in ("ready", "needs_action"):
+                return DailyAction(
+                    engine=p.engine,
+                    title=p.next_action,
+                    description=f"Acercar ${p.usd_to_milestone:,.0f} al hito ${p.next_milestone.label}",
+                    estimated_minutes=30,
+                    impact_usd=p.projected_usd,
+                    priority=1,
+                    url=p.action_url,
+                )
+
+        # Fallback: primer motor que necesite setup
+        for p in proximities:
+            if p.engine_status == "needs_setup":
+                return DailyAction(
+                    engine=p.engine,
+                    title=p.next_action,
+                    description=f"Configurar {p.label} para desbloquear ingresos",
+                    estimated_minutes=45,
+                    impact_usd=p.projected_usd,
+                    priority=2,
+                    url=p.action_url,
+                )
+
+        return DailyAction(
+            engine=IncomeEngine.AI_TRAINING,
+            title="Revisar plataformas de AI training",
+            description="Verificar tareas disponibles en Outlier/Mindrift",
+            estimated_minutes=15,
+            impact_usd=50.0,
+            priority=3,
+            url="/operations/platforms",
+        )
+
+    # ── Aggressive Mode (EOY Targets: $5k / $10k by Dec 31) ────────────
+
+    def get_aggressive_plan(self, target_usd: int = 5000) -> dict[str, Any]:
+        """Plan agresivo para llegar a $target_usd antes de fin de año.
+
+        Calcula output semanal requerido por motor para cerrar la brecha.
+        """
+        if not self.progress:
+            return {"error": "No progress"}
+
+        total_earned = self.progress.first_revenue_amount
+        gap = max(0, target_usd - total_earned)
+
+        # Semanas restantes hasta fin de año (aprox)
+        from datetime import UTC, datetime
+
+        now = datetime.now(UTC)
+        # Semanas restantes hasta fin de año (semana actual a semana 52)
+        current_week = now.isocalendar()[1]
+        weeks_left = max(1, 52 - current_week + 1)  # ej: semana 37 → 16 semanas restantes
+
+        if weeks_left <= 0:
+            return {"error": "No time left", "gap_usd": gap}
+
+        # USD semanal requerido para cerrar la brecha
+        weekly_required = gap / weeks_left
+
+        # Distribución por motor basada en projected_usd y status
+        proximities = self.get_engine_proximity()
+        ready_engines = [p for p in proximities if p.engine_status in ("ready", "needs_action")]
+        setup_engines = [p for p in proximities if p.engine_status == "needs_setup"]
+
+        # Distribuir carga: motores ready llevan 70%, setup 30% (se activan en 2-3 semanas)
+        weekly_ready = weekly_required * 0.7
+        weekly_setup = weekly_required * 0.3
+
+        engine_plan = []
+
+        for p in ready_engines:
+            share = p.projected_usd / sum(e.projected_usd for e in ready_engines) if ready_engines else 1
+            weekly_target = weekly_ready * share
+            # Estimar horas basado en rate efectivo por motor: AI=$30/h, Bug=$40/h, Dev=$35/h
+            rate_map = {
+                IncomeEngine.AI_TRAINING: 30.0,
+                IncomeEngine.BUG_BOUNTY: 40.0,
+                IncomeEngine.DEV_BOUNTY: 35.0,
+            }
+            rate = rate_map.get(p.engine, 30.0)
+            hours_needed = weekly_target / rate
+
+            engine_plan.append(
+                {
+                    "engine": p.engine.value,
+                    "label": p.label,
+                    "status": p.engine_status,
+                    "weekly_usd_target": round(weekly_target, 2),
+                    "monthly_usd_target": round(weekly_target * 4.33, 2),
+                    "est_hours_per_week": round(hours_needed, 1),
+                    "current_projected_monthly": p.projected_usd,
+                    "gap_to_monthly_target": round(max(0, (weekly_target * 4.33) - p.projected_usd), 2),
+                    "confidence": p.confidence,
+                    "is_primary": p.is_closest,
+                }
+            )
+
+        for p in setup_engines:
+            # Motores en setup: activación en 2-3 semanas, luego ramp-up
+            engine_plan.append(
+                {
+                    "engine": p.engine.value,
+                    "label": p.label,
+                    "status": p.engine_status,
+                    "weekly_usd_target": round(weekly_setup / len(setup_engines), 2) if setup_engines else 0,
+                    "monthly_usd_target": round((weekly_setup / len(setup_engines)) * 4.33, 2) if setup_engines else 0,
+                    "est_hours_per_week": 5,  # tiempo de setup/onboarding
+                    "current_projected_monthly": p.projected_usd,
+                    "gap_to_monthly_target": round(p.projected_usd * 0.5, 2),  # 50% ramp-up
+                    "confidence": p.confidence,
+                    "is_primary": False,
+                    "setup_phase": True,
+                    "setup_actions": p.next_action,
+                }
+            )
+
+        # Ordenar: primary first, luego por weekly_usd_target desc
+        engine_plan.sort(key=lambda x: (not x.get("is_primary", False), -x["weekly_usd_target"]))
+
+        # Weekly checklist accionable
+        weekly_checklist = []
+        for ep in engine_plan:
+            if ep.get("setup_phase"):
+                weekly_checklist.append(f"[SETUP] {ep['label']}: {ep['setup_actions']} (~{ep['est_hours_per_week']}h)")
+            else:
+                weekly_checklist.append(
+                    f"[PROD] {ep['label']}: ${ep['weekly_usd_target']:.0f}/sem ({ep['est_hours_per_week']:.1f}h) → ${ep['monthly_usd_target']:.0f}/mes"
+                )
+
+        return {
+            "target_usd": target_usd,
+            "current_earned": self.progress.first_revenue_amount,
+            "gap_usd": gap,
+            "weeks_left": weeks_left,
+            "weekly_required_total": round(weekly_required, 2),
+            "monthly_required_total": round(weekly_required * 4.33, 2),
+            "engine_plan": engine_plan,
+            "weekly_checklist": weekly_checklist,
+            "milestones_remaining": [
+                {"label": m.label, "usd": m.usd, "achieved": self.progress.first_revenue_amount >= m.usd}
+                for m in Milestone
+                if m.usd <= target_usd
+            ],
+            "probability_note": self._estimate_probability(target_usd, weeks_left, weekly_required),
+        }
+
+    def _estimate_probability(self, target_usd: int, weeks_left: int, weekly_required: float) -> str:
+        """Estimación honesta de probabilidad basada en requerimiento semanal."""
+        # Heurística: <$200/sem = alta, $200-400 = media, >$400 = baja
+        if weekly_required < 200:
+            return f"ALTA: ${weekly_required:.0f}/sem es alcanzable con 2 motores activos"
+        elif weekly_required < 400:
+            return f"MEDIA: ${weekly_required:.0f}/sem requiere 3 motores a full + 1 ramping"
+        else:
+            return f"BAJA: ${weekly_required:.0f}/sem requiere todo a full capacity + suerte en bug bounty"
 
     def get_dashboard_data(self) -> dict[str, Any]:
         """Datos para UI dashboard."""

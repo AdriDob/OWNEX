@@ -131,6 +131,25 @@ async def list_stages() -> dict[str, Any]:
     }
 
 
+@router.get("/milestone-tracker")
+async def get_milestone_tracker() -> dict[str, Any]:
+    """Get complete milestone tracker: progress, engine proximities, closest engine, daily action."""
+    tracker = get_first_money_tracker()
+    return tracker.get_milestone_tracker_data()
+
+
+@router.get("/aggressive-plan")
+async def get_aggressive_plan(target_usd: int = 5000) -> dict[str, Any]:
+    """Get aggressive plan to reach target_usd by end of year.
+
+    Calculates weekly output required per engine, hours needed, and probability.
+    """
+    if target_usd not in (5000, 10000):
+        raise HTTPException(status_code=400, detail="target_usd must be 5000 or 10000")
+    tracker = get_first_money_tracker()
+    return tracker.get_aggressive_plan(target_usd)
+
+
 @router.post("/reset")
 async def reset_first_money() -> dict[str, Any]:
     """Reset First Money progress (start fresh)."""
