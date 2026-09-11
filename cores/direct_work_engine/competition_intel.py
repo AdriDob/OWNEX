@@ -42,6 +42,13 @@ class CompetitionAssessment:
     duplicate_risk: float = 0.0
     first_mover_advantage: bool = False
     recommendation: str = ""
+    # ── Observed claims (Pieza 2, PUBLIC WORK) ──
+    # active_claims is ONLY set from an observed source (e.g. Algora bounty
+    # page showing N active claims). None + "unavailable" = we do NOT know —
+    # never 0 by default, never invented.
+    active_claims: int | None = None
+    claims_source: str = "unavailable"
+    claims_observed_at: str | None = None
 
 
 # Platform-specific competition baselines (0–1)
@@ -102,6 +109,39 @@ def _reward_competition_multiplier(reward: float) -> float:
 class CompetitionIntelEngine:
     """Engine for assessing competition on opportunities."""
 
+    @staticmethod
+    def _read_observed_claims(opportunity: Opportunity, platform_facts: dict | None) -> tuple | None:
+        """Extract (count, source, observed_at) ONLY when explicitly observed.
+
+        Returns None when there is no observed source — the assessment then
+        reports active_claims=None / claims_source="unavailable" (UNKNOWN).
+        A count of 0 is only valid when a source explicitly reported zero.
+        """
+        candidates: list[dict] = []
+        facts = getattr(opportunity, "observed_claims", None)
+        if isinstance(facts, dict):
+            candidates.append(facts)
+        if isinstance(platform_facts, dict):
+            nested = platform_facts.get("observed_claims")
+            if isinstance(nested, dict):
+                candidates.append(nested)
+        for cand in candidates:
+            raw = cand.get("active_claims")
+            if raw is None or isinstance(raw, bool):
+                continue
+            try:
+                count = int(raw)
+            except (TypeError, ValueError):
+                continue
+            if count < 0:
+                continue
+            source = str(cand.get("source") or "unavailable")
+            if source == "unavailable":
+                continue
+            observed_at = cand.get("observed_at")
+            return count, source, str(observed_at) if observed_at else None
+        return None
+
     def assess(
         self, opportunity: Opportunity, platform_facts: dict | None = None, user_profile: UserProfile | None = None
     ) -> CompetitionAssessment:
@@ -110,6 +150,21 @@ class CompetitionIntelEngine:
         platform = opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform)
         category = opportunity.category.value if hasattr(opportunity.category, "value") else str(opportunity.category)
         reward = float(opportunity.payment or 0)
+
+        # 0. Observed active claims (Pieza 2) — ONLY from an explicit observed
+        # source stamped on the opportunity (or platform_facts). Absent or
+        # invalid ⇒ UNKNOWN (None), never 0.
+        observed = self._read_observed_claims(opportunity, platform_facts)
+        if observed is not None:
+            count, source, observed_at = observed
+            signals.append(
+                CompetitionSignal(
+                    source="observed_claims",
+                    level=min(1.0, count / 10.0),
+                    confidence=0.9,
+                    details={"active_claims": count, "claims_source": source, "observed_at": observed_at},
+                )
+            )
 
         # 1. Platform baseline
         base_level = _PLATFORM_COMPETITION_BASELINE.get(platform.lower(), 0.5)
@@ -258,6 +313,9 @@ class CompetitionIntelEngine:
             duplicate_risk=duplicate_risk,
             first_mover_advantage=first_mover,
             recommendation=rec,
+            active_claims=observed[0] if observed is not None else None,
+            claims_source=observed[1] if observed is not None else "unavailable",
+            claims_observed_at=observed[2] if observed is not None else None,
         )
 
     def assess_batch(

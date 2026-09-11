@@ -109,6 +109,7 @@ const navSections = [
     items: [
       { name: 'Work Queue', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
       { name: 'Mission', path: '/mission', icon: Target },
+      { name: 'Public Work', path: '/public-work', icon: GraduationCap },
       { name: 'First Money', path: '/operations/first-money', icon: Banknote },
       { name: 'Platform Guides', path: '/operations/platforms', icon: GraduationCap },
       { name: 'Opportunities', path: '/targets/prioritization', icon: Globe, badge: 'targets' },

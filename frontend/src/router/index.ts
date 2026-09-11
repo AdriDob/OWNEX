@@ -243,6 +243,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Cola de Trabajo' },
   },
   {
+    path: '/public-work',
+    name: 'public-work',
+    component: () => import('@/pages/PublicWork.vue'),
+    meta: { title: 'Public Work' },
+  },
+  {
     path: '/operations/first-money',
     name: 'first-money',
     component: () => import('@/pages/FirstMoney.vue'),
@@ -313,12 +319,6 @@ export const routes: RouteRecordRaw[] = [
     name: 'operations-tools',
     component: () => import('@/pages/OpportunityPlanner.vue'),
     meta: { title: 'Herramientas' },
-  },
-  {
-    path: '/operations/settings',
-    name: 'operations-settings',
-    component: () => import('@/pages/Settings.vue'),
-    meta: { title: 'Configuración' },
   },
   {
     path: '/operations/applications',

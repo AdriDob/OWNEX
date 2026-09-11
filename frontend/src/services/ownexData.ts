@@ -509,6 +509,17 @@ export interface DirectWorkOpportunity {
   payment: number
   remote: boolean
   employment_type: string
+  url?: string
+}
+
+export interface PublicWorkBlock {
+  rung: string
+  rung_label_es: string
+  rung_goal_es: string
+  checks: string[]
+  proof: string
+  difficulty: number
+  difficulty_unknown_inputs: boolean
 }
 
 export interface DirectWorkRanked {
@@ -517,6 +528,9 @@ export interface DirectWorkRanked {
   expected_value: number
   acceptance_probability: number
   overall_recommendation_score: number
+  compatibility_score: number
+  speed_score: number
+  risk_score: number
   strategy: string | null
   recommendation_reasoning: string[]
   zero_barrier_score: {
@@ -529,6 +543,10 @@ export interface DirectWorkRanked {
    payout_method_rationale: string
    payment_compat_score: number
    payment_compat_notes: string[]
+   p_cash?: number | null
+   p_cash_band?: string
+   htroi?: { usd_per_hour: number | null } | null
+   public_work?: PublicWorkBlock
  }
  
  export interface DirectWorkRecommendResponse {
@@ -554,6 +572,19 @@ export async function fetchDirectWorkRecommendations(
     profile: buildDirectWorkProfile(),
     opportunities,
     limit: 5,
+  })
+  return data.ranked
+}
+
+export async function fetchPublicWork(
+  mode = 'secure_plus_upside',
+  limit = 30,
+): Promise<DirectWorkRanked[]> {
+  const data = await api.post<DirectWorkRecommendResponse>('/direct-work/recommend', {
+    profile: buildDirectWorkProfile(),
+    opportunities: [],
+    limit,
+    mode,
   })
   return data.ranked
 }
