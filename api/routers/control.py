@@ -173,23 +173,23 @@ async def vpn_windscribe_connect() -> dict[str, Any]:
 
 
 @router.get("/applications/plan")
-async def applications_plan() -> dict[str, Any]:
+async def applications_plan(allow_interview_paths: bool = False) -> dict[str, Any]:
     """Plan asistido de postulación a plataformas de ingreso con qué poner en cada campo."""
     try:
         from cores.application_assistant import get_application_assistant
 
-        return get_application_assistant().get_plan()
+        return get_application_assistant().get_plan(allow_interview_paths=allow_interview_paths)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
 @router.get("/applications/overview")
-async def applications_overview() -> dict[str, Any]:
+async def applications_overview(allow_interview_paths: bool = False) -> dict[str, Any]:
     """Resumen de progreso + próxima acción recomendada."""
     try:
         from cores.application_assistant import get_application_assistant
 
-        return get_application_assistant().overview()
+        return get_application_assistant().overview(allow_interview_paths=allow_interview_paths)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
@@ -235,12 +235,12 @@ async def application_set_status(platform: str, payload: dict[str, Any]) -> dict
 
 
 @router.get("/applications/{platform}/onboarding")
-async def application_onboarding(platform: str) -> dict[str, Any]:
+async def application_onboarding(platform: str, allow_interview_paths: bool = False) -> dict[str, Any]:
     """Onboarding state para una plataforma: readiness %, checklist, next action."""
     try:
         from cores.application_assistant import get_application_assistant
 
-        return get_application_assistant().get_onboarding(platform)
+        return get_application_assistant().get_onboarding(platform, allow_interview_paths=allow_interview_paths)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e)) from None
     except Exception as e:
@@ -248,12 +248,12 @@ async def application_onboarding(platform: str) -> dict[str, Any]:
 
 
 @router.get("/applications/onboarding/all")
-async def all_onboarding() -> dict[str, Any]:
+async def all_onboarding(allow_interview_paths: bool = False) -> dict[str, Any]:
     """Onboarding summary para todas las plataformas."""
     try:
         from cores.application_assistant import get_application_assistant
 
-        results = get_application_assistant().get_all_onboarding()
+        results = get_application_assistant().get_all_onboarding(allow_interview_paths=allow_interview_paths)
         return {"platforms": results, "count": len(results)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None

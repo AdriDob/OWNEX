@@ -135,3 +135,44 @@ class TestApiEndpoints:
         client = TestClient(app)
         assert client.post("/api/applications/nope/status", json={"status": "applied"}).status_code == 404
         assert client.post("/api/applications/outlier/status", json={"status": "bad"}).status_code == 400
+
+
+class TestZeroBarrierGating:
+    """L4: default hides CV/interview steps; opt-in reveals them."""
+
+    def test_default_plan_hides_gated_steps(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan()
+        assert plan["zero_barrier"] is True
+        ids = {s["id"] for p in plan["platforms"] for s in p["steps"]}
+        assert "resume_linkedin" not in ids
+        assert "ai_interview" not in ids
+        # assessments stay (registration-or-assessment is allowed)
+        assert "coding_assessment" in ids
+
+    def test_opt_in_reveals_all_steps(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan(allow_interview_paths=True)
+        assert plan["zero_barrier"] is False
+        ids = {s["id"] for p in plan["platforms"] for s in p["steps"]}
+        assert "resume_linkedin" in ids
+        assert "ai_interview" in ids
+
+    def test_gated_count_reported(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan()
+        gated = sum(p.get("gated_steps", 0) for p in plan["platforms"])
+        assert gated == 4  # outlier CV + mercor CV + mercor interview + alignerr CV
+
+    def test_onboarding_filters_consistently(self, assistant: ApplicationAssistant) -> None:
+        ob = assistant.get_onboarding("mercor")
+        ids = {c["id"] for c in ob["checklist"]}
+        assert "ai_interview" not in ids
+        assert "create_account" not in ids  # CV-gated
+        assert "technical_screening" in ids  # assessment stays
+        ob_full = assistant.get_onboarding("mercor", allow_interview_paths=True)
+        full_ids = {c["id"] for c in ob_full["checklist"]}
+        assert "ai_interview" in full_ids
+        assert "create_account" in full_ids
+
+    def test_complete_gated_step_still_valid(self, tmp_path) -> None:
+        a = ApplicationAssistant(store_path=tmp_path / "a.json")
+        res = a.complete_step("mercor", "ai_interview")
+        assert res["success"] is True

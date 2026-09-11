@@ -142,6 +142,7 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
                 "title": "Subir CV + LinkedIn",
                 "detail": "El CV debe mostrar años de experiencia dev y educación. LinkedIn actualizado con lo mismo.",
                 "est_minutes": 15,
+                "requires": "cv",
                 "fields": {
                     "resume": "CV enfocado en desarrollo (no seguridad): proyectos, stack, años",
                     "linkedin": "URL de tu LinkedIn actualizado",
@@ -168,6 +169,7 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
                 "title": "Crear cuenta y subir CV",
                 "detail": "work.mercor.com — parsea tu CV automáticamente. Revisá que extraiga bien tus skills.",
                 "est_minutes": 15,
+                "requires": "cv",
                 "fields": {"cv": "El mismo CV de Outlier", "domain": "Software Engineering"},
             },
             {
@@ -175,6 +177,7 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
                 "title": "Entrevista IA por video (~20 min)",
                 "detail": "En inglés, cámara prendida. Respuestas claras y estructuradas: situación → acción → resultado.",
                 "est_minutes": 25,
+                "requires": "interview",
                 "fields": {},
             },
             {
@@ -198,6 +201,7 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
                 "title": "Crear cuenta en alignerr.com/jobs",
                 "detail": "Perfil orientado a dominio software/coding. Aplicar a los listings activos para tu región.",
                 "est_minutes": 15,
+                "requires": "cv",
                 "fields": {"profile": "Mismo CV + skills del kit"},
             },
             {
@@ -410,7 +414,7 @@ class ApplicationAssistant:
 
     # ── Plan ──
 
-    def get_plan(self) -> dict[str, Any]:
+    def get_plan(self, allow_interview_paths: bool = False) -> dict[str, Any]:
         state = self._load_state()
         seeds = self._seed_answers()
         platforms: list[dict[str, Any]] = []
@@ -419,7 +423,11 @@ class ApplicationAssistant:
             entry = self._platform_state(state, key)
             done = set(entry.get("completed_steps") or [])
             steps = []
+            gated = 0
             for step in _steps_catalog().get(key, []):
+                if not allow_interview_paths and step.get("requires") in ("cv", "interview"):
+                    gated += 1
+                    continue
                 steps.append({**step, "done": step["id"] in done})
             total = len(steps)
             completed = sum(1 for s in steps if s["done"])
@@ -431,12 +439,20 @@ class ApplicationAssistant:
                     "completed_steps": completed,
                     "total_steps": total,
                     "progress_pct": round(completed / total * 100) if total else 0,
+                    "gated_steps": gated,
                 }
             )
         return {
             "generated_at": _now_iso(),
             "suggested_answers": seeds,
             "note": "Postulación honesta desde Argentina: ID + móvil reales, sin VPN.",
+            "zero_barrier": not allow_interview_paths,
+            "zero_barrier_note": (
+                "Pasos con CV/entrevista ocultos; solo registro y assessments. "
+                "Pasá allow_interview_paths=True para verlos."
+                if not allow_interview_paths
+                else "Mostrando todos los pasos, incluidos CV/entrevista."
+            ),
             "platforms": platforms,
         }
 
@@ -484,13 +500,17 @@ class ApplicationAssistant:
         "UNKNOWN",
     )
 
-    def get_onboarding(self, platform_key: str) -> dict[str, Any]:
+    def get_onboarding(self, platform_key: str, allow_interview_paths: bool = False) -> dict[str, Any]:
         """Onboarding state for a platform: what's done, what's missing, readiness %."""
         if platform_key not in {m["key"] for m in _platform_catalog()}:
             raise KeyError(f"plataforma desconocida: {platform_key}")
         state = self._load_state()
         entry = self._platform_state(state, platform_key)
-        steps = _steps_catalog().get(platform_key, [])
+        steps = [
+            s
+            for s in _steps_catalog().get(platform_key, [])
+            if allow_interview_paths or s.get("requires") not in ("cv", "interview")
+        ]
         done_ids = set(entry.get("completed_steps") or [])
 
         checklist = []
@@ -540,12 +560,12 @@ class ApplicationAssistant:
             "why": meta.get("why", ""),
         }
 
-    def get_all_onboarding(self) -> list[dict[str, Any]]:
+    def get_all_onboarding(self, allow_interview_paths: bool = False) -> list[dict[str, Any]]:
         """Onboarding summary for all platforms."""
         results = []
         for meta in _platform_catalog():
             with contextlib.suppress(Exception):
-                results.append(self.get_onboarding(meta["key"]))
+                results.append(self.get_onboarding(meta["key"], allow_interview_paths=allow_interview_paths))
         return results
 
     def get_platform_ranking(self) -> list[dict[str, Any]]:
@@ -588,8 +608,8 @@ class ApplicationAssistant:
 
     # ── Resumen ──
 
-    def overview(self) -> dict[str, Any]:
-        plan = self.get_plan()
+    def overview(self, allow_interview_paths: bool = False) -> dict[str, Any]:
+        plan = self.get_plan(allow_interview_paths=allow_interview_paths)
         by_status: dict[str, int] = {}
         next_action: dict[str, Any] | None = None
         for platform in plan["platforms"]:
