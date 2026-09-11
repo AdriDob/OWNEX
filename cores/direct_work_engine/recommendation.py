@@ -632,6 +632,11 @@ class IntelligentRecommender:
         score += remote_match
         factors += 1
 
+        # Modality fit (presencial/híbrido score against profile zone + commute;
+        # remote legacy path unchanged when no modality info exists)
+        score += self._modality_fit(opp, profile)
+        factors += 1
+
         # Payment method preference
         payment_match = 1.0 if opp.payment_method in profile.preferred_payment_methods else 0.5
         score += payment_match
@@ -658,6 +663,45 @@ class IntelligentRecommender:
         factors += 1
 
         return score / factors if factors > 0 else 0.5
+
+    @staticmethod
+    def _modality_fit(opp: Opportunity, profile: UserProfile) -> float:
+        """Score work-modality fit 0-1. Neutral (0.75) when either side is silent.
+
+        Presencial with matching zone inside max commute scores high (backup-
+        income path); zone mismatch or over-long commute scores low. Never
+        rejects — rejection stays in StrictFilter for the ABSOLUTE tier.
+        """
+        from cores.direct_work_engine.models import Modality
+
+        def _val(x: object) -> str:
+            return str(getattr(x, "value", x) or "").lower()
+
+        opp_mod = _val(getattr(opp, "modality", "remoto"))
+        pref = getattr(profile, "preferred_modality", None)
+        if pref is not None and _val(pref) == opp_mod:
+            base = 1.0
+        elif pref is None:
+            base = 0.75
+        else:
+            base = 0.4
+        if opp_mod != Modality.PRESENCIAL.value:
+            return base
+        prof_zone = (getattr(profile, "zone", "") or "").strip().lower()
+        opp_zone = (getattr(opp, "zone", "") or "").strip().lower()
+        if prof_zone and opp_zone and prof_zone != opp_zone:
+            return min(base, 0.3)
+        max_commute = getattr(profile, "max_commute_minutes", None)
+        commute = getattr(opp, "commute_minutes", None)
+        if max_commute is not None and commute is not None:
+            try:
+                if float(commute) > float(max_commute):
+                    return min(base, 0.2)
+            except (TypeError, ValueError):
+                pass
+        if prof_zone and opp_zone and prof_zone == opp_zone:
+            return max(base, 0.9)
+        return base
 
     def _experience_match(self, opp: Opportunity, profile: UserProfile) -> float:
         """Match opportunity experience requirement to user level."""
@@ -760,6 +804,28 @@ class IntelligentRecommender:
             factor, _conf = get_calibration_engine().platform_factor(platform_key)
             ev = round(ev * factor, 2)
         except Exception:  # calibration is an enhancement, never a breaker
+            pass
+
+        # Commute cost (presencial only): round-trip minutes valued at the
+        # opportunity's own implied hourly rate. Unknown hours/rate → skip
+        # (UNKNOWN, never invented).
+        try:
+            from cores.direct_work_engine.models import Modality
+
+            opp_mod = getattr(opp.modality, "value", opp.modality)
+            commute = getattr(opp, "commute_minutes", None)
+            hours = getattr(opp, "estimated_time_hours", None)
+            if (
+                opp_mod == Modality.PRESENCIAL.value
+                and commute is not None
+                and hours is not None
+                and float(hours) > 0
+                and float(commute) > 0
+                and opp.payment > 0
+            ):
+                implied_hourly = float(opp.payment) / float(hours)
+                ev = round(ev - (float(commute) * 2 / 60) * implied_hourly, 2)
+        except Exception:
             pass
 
         return ev

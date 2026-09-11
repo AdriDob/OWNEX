@@ -320,6 +320,14 @@ class EmploymentType(StrEnum):
     RETAINER = "retainer"
 
 
+class Modality(StrEnum):
+    """Work modality. REMOTO default preserves legacy behavior (remote=True)."""
+
+    REMOTO = "remoto"
+    HIBRIDO = "hibrido"
+    PRESENCIAL = "presencial"
+
+
 class PaymentMethod(StrEnum):
     PAYPAL = "paypal"
     PAYONEER = "payoneer"
@@ -474,6 +482,15 @@ class Opportunity:
     company: str = ""
     country: str = ""
     remote: bool = True
+    modality: Modality = Modality.REMOTO
+    zone: str = ""
+    commute_minutes: float | None = None
+    region: str = ""
+    allowed_countries: tuple[str, ...] = ()
+    vpn_required: bool = False
+    assessment_difficulty: str | None = None
+    assessment_duration_min: float | None = None
+    assessment_cost_usd: float | None = None
 
     payment: float = 0.0
     currency: str = "USD"
@@ -537,6 +554,17 @@ class Opportunity:
         if self.international_payment is None:
             self.international_payment = self.payment_method in INTERNATIONAL_PAYMENT_METHODS
 
+    # ── HIGH_CONFIDENCE_90 fields (additive, 2026-09-09) ──
+    evidence_quality: float = 0.0  # 0-1 composite: validity + uniqueness + completeness
+    uniqueness_score: float = 0.0  # 0-1 duplicate risk inverse
+    scope_verified: bool = False  # human-verified in scope
+    evidence_gate_status: str = (
+        "NOT_READY"  # NOT_READY|NEEDS_EVIDENCE|NEEDS_UNIQUENESS|HIGH_CONFIDENCE|READY_FOR_HUMAN_REVIEW
+    )
+    acceptance_probability: float = 0.0
+    acceptance_confidence: str = "NONE"  # NONE|LOW|MEDIUM|HIGH|VERY_HIGH
+    acceptance_sample_size: int = 0  # personal outcomes for this segment
+
     # ── Derived entry-model facts (single definition point) ──
 
     @property
@@ -586,6 +614,9 @@ class UserProfile:
     skills: set[str] = field(default_factory=set)
     experience_level: ExperienceLevel = ExperienceLevel.NONE
     remote_only: bool = True
+    preferred_modality: Modality | None = None
+    zone: str = ""
+    max_commute_minutes: float | None = None
     accepts_ai_tools: bool = True
     availability_hours: float = 40.0
     portfolio_url: str = ""
@@ -627,5 +658,8 @@ class RankedOpportunity:
     discovered_at: str = ""
     payment_compat_score: float = 100.0
     payment_compat_notes: list[str] = field(default_factory=list)
+    # P(CASH) — prob. de cobrar realmente (acceptance x cobrabilidad). None = UNKNOWN.
+    p_cash: float | None = None
+    p_cash_band: str = "UNKNOWN"
     # HTROI — Human-Time Adjusted ROI (Fase C, Income Multiplier)
     htroi: HumanTimeAdjustedROI | None = None
