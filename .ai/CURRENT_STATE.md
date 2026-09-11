@@ -12,6 +12,33 @@
 > - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, territory concurrente. Solo loopback/propio/scope.
 > - **Siguiente**: tag v7.1.11 (sidecar+frontend en MSI) → instalar en Windows 11.
 
+## Sesión 2026-09-11 — MEMECOIN AUTO: paper loop automático cada 15m vía scheduler
+
+> **QUÉ SE HIZO:** El loop F2 era manual. `run_paper_cycle_once()` (inyectable, testeable) + `run_memecoin_paper_cycle()` sync thread-safe + job `trading_memecoin_paper` (`*/15`, `cores/` vivo por lifespan) + precios DexScreener. Kill STRATEGY + DRY_RUN intactos; `core/` no tocado.
+> - **Verificación**: 8/8 scheduler + 93 combinado; ruff limpio; fast 100/1.
+> - **Siguiente**: medir paper ≥2 semanas; F3 live solo con tu orden.
+
+## Sesión 2026-09-11 — MEMECOIN F2: estrategia v1 paper-first (filtros+exits+loop)
+
+> **QUÉ SE HIZO:** Estrategia sobre el adapter F1: `strategies/` (filtros duros fail-closed + exits SL>TP>trailing>tiempo) + `paper/memecoin_paper.py` (ledger PnL, sizing fijo, kill-switch reutilizado, métricas con veredicto honesto). Reutilizado `KillSwitchManager` + `TradingStore`; cero red en tests.
+> - **Verificación**: 36/36 (strategy+paper+adapter); ruff limpio; fast 100/1; 6 fallas investment/trading preexistentes idénticas.
+> - **No tocado**: twin `core/`, scheduler, live (F3 bloqueado por política + tu orden).
+> - **Siguiente**: correr paper ≥2 semanas y medir; F3 live solo con tu orden + capital.
+
+## Sesión 2026-09-11 — MEMECOIN F1: adapter real paper-first, fantasma muerto
+
+> **QUÉ SE HIZO:** El "bot" era scaffolding con 3 bugs reales. Reescrito `memecoin_adapter.py` (DexScreener keyless + RugCheck + Jupiter canónico + solders; DRY_RUN default con fills simulados desde quotes reales) + registro fantasma → adapter real + alias `scan_opportunities`.
+> - **Verificación**: `tests/test_memecoin_adapter.py` 9/9 (sin red); ruff limpio; fast 100/1; 6 fallas investment/trading PREEXISTENTES verificadas por stash.
+> - **No tocado**: twin `core/`, estrategias, scheduler, live (bloqueado por política + tu orden).
+> - **Siguiente**: F2 filtros/exits/paper-loop cuando lo pidas.
+
+## Sesión 2026-09-11 — FINAL SHIP: cierre de producto, freeze 7.1.0, veredicto SHIP
+
+> **QUÉ SE HIZO:** Auditoría §5 (13/14 ya resueltos; resto cerrado con one-liners) + 2 fixes genuinos (incomePlan/agenda cruzados en useOwnexState + store duplicado eliminado) + `docs/KNOWN_LIMITATIONS.md` reescrito a runtime + `.ai/RELEASE.md` + freeze. Sin features, sin refactors cosméticos.
+> - **Verificación**: fast 100/1 · afectadas 195/105 · vite 14s · vue-tsc 0 · cargo 4.5s · gates HTTP (health/version/recommend/ledger, auth 401) · ruff 0 nuevos.
+> - **No tocado**: modos duplicados (documentado), `core/` sombra, engine/validation/events, cognee, drift ajeno, MSI/firma (CI Windows).
+> - **Siguiente**: instalación física Windows → key Pexels → 1er Short → canal YouTube. Post-freeze: solo fixes clasificados.
+
 ## Sesión 2026-09-11 — PUBLIC WORK: escalera ETAPA 0→EXPERT + claims observados + /public-work
 
 > **QUÉ SE HIZO:** La rampa que pedía el owner (sin experiencia → PR merged → bounty → reputación). `public_work.py` NUEVO (classifier + labels ES + validation blocks, ETAPA 0 para payment≤0); `active_claims` observado en `competition_intel.py` (+ campo `Opportunity.observed_claims`, UNKNOWN por defecto); página `/public-work` + ruta + sidebar (consume `/recommend`, top-3 por peldaño, sin motor nuevo); `public_work` aditivo en `_ranked_to_dict`.

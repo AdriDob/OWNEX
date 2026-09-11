@@ -54,7 +54,8 @@
       "webviewInstallMode": {
         "type": "downloadBootstrapper",
         "silent": true
-      }
+      },
+      "nsis": null
     },
     "linux": {
       "deb": {

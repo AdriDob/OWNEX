@@ -19,9 +19,11 @@ import {
   fetchAgenda,
   fetchAiCenter,
   fetchCapitalSnapshot,
+  fetchCareerStatus,
   fetchDailyDigest,
   fetchIncomePlan,
   type IncomePlanState,
+  fetchRevenueTimeline,
   type UnifiedAgendaState,
 } from '@/services/ownexData'
 
@@ -32,6 +34,8 @@ const capital: Ref<CapitalSnapshot | null> = ref(null)
 const ai: Ref<AiCenterState | null> = ref(null)
 const incomePlan: Ref<IncomePlanState | null> = ref(null)
 const agenda: Ref<UnifiedAgendaState | null> = ref(null)
+const career: Ref<unknown | null> = ref(null)
+const timeline: Ref<unknown | null> = ref(null)
 
 const loading = ref(false)
 const lastFetch = ref(0)
@@ -52,12 +56,16 @@ async function fetchAll(force = false): Promise<void> {
       fetchAiCenter(),
       fetchAgenda(),
       fetchIncomePlan(),
+      fetchCareerStatus(),
+      fetchRevenueTimeline(3000),
     ])
     if (results[0].status === 'fulfilled') digest.value = results[0].value
     if (results[1].status === 'fulfilled') capital.value = results[1].value
     if (results[2].status === 'fulfilled') ai.value = results[2].value
-    if (results[3].status === 'fulfilled') incomePlan.value = results[3].value
-    if (results[4] && results[4].status === 'fulfilled') agenda.value = results[4].value
+    if (results[3].status === 'fulfilled') agenda.value = results[3].value
+    if (results[4].status === 'fulfilled') incomePlan.value = results[4].value
+    if (results[5] && results[5].status === 'fulfilled') career.value = results[5].value
+    if (results[6] && results[6].status === 'fulfilled') timeline.value = results[6].value
     lastFetch.value = Date.now()
     loading.value = false
     inflight = null
@@ -81,6 +89,8 @@ export function useOwnexState() {
     ai,
     incomePlan,
     agenda,
+    career,
+    timeline,
     loading,
 
     // Computed shortcuts

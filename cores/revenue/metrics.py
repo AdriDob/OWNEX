@@ -403,14 +403,15 @@ class RevenueMetrics:
             target_count = 0
             scanned_recently = 0
             try:
-                from database.models import Target
+                from database.models import Target, Endpoint
 
                 target_count = session.query(Target).count()
                 scanned_recently = (
-                    session.query(Target)
+                    session.query(Endpoint.target_id)
                     .filter(
-                        Target.last_scanned >= datetime.now(UTC) - timedelta(days=7),
+                        Endpoint.last_scanned >= datetime.now(UTC) - timedelta(days=7),
                     )
+                    .distinct()
                     .count()
                 )
             except Exception:

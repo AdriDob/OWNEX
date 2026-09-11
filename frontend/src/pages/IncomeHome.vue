@@ -30,6 +30,7 @@ import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
 import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import FirstMoneyStrip from '@/components/daily/FirstMoneyStrip.vue'
+import MptPendingStrip from '@/components/daily/MptPendingStrip.vue'
 import RevenueTiersStrip from '@/components/daily/RevenueTiersStrip.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import AvailabilityIntelligenceCard from '@/components/daily/AvailabilityIntelligenceCard.vue'
@@ -40,8 +41,7 @@ import OwnexButton from '@/components/ui/OwnexButton.vue'
 import OwnexCard from '@/components/ui/OwnexCard.vue'
 import ComputerUseWidget from '@/components/computer-use/ComputerUseWidget.vue'
 import FlightRecorder from '@/components/system/FlightRecorder.vue'
-import { useHuntStore } from '@/stores/hunt'
-import { api } from '@/lib/api'
+import { useOwnexState } from '@/composables/useOwnexState'
 import {
   type CapitalSnapshot,
   fetchAiCenter,
@@ -243,24 +243,47 @@ async function load(): Promise<void> {
     realized.value = null
   }
 
-  // FEATURE PARITY: capital snapshot + estado de IA (fallo silencioso, no bloquea)
+  // FEATURE PARITY: capital snapshot + estado IA + career + timeline (use singleton)
+  const {
+    capital: stateCapital,
+    ai: stateAi,
+    career: stateCareer,
+    timeline: stateTimeline,
+  } = useOwnexState()
   try {
     const [cap, ai] = await Promise.allSettled([fetchCapitalSnapshot(), fetchAiCenter()])
-    if (cap.status === 'fulfilled') capital.value = cap.status === 'fulfilled' ? cap.value : null
-    if (ai.status === 'fulfilled') aiOk.value = !!ai.value.config?.available
+    if (cap.status === 'fulfilled') {
+      capital.value = cap.value
+      stateCapital.value = cap.value
+    }
+    if (ai.status === 'fulfilled') {
+      aiOk.value = !!ai.value.config?.available
+      stateAi.value = ai.value
+    }
     try {
       const [c, z, t] = await Promise.allSettled([
         fetchCareerStatus(),
         fetchZeroBarrierStats(),
         fetchRevenueTimeline(3000),
       ])
-      if (c.status === 'fulfilled') career.value = c.value
+      if (c.status === 'fulfilled') {
+        career.value = c.value
+        stateCareer.value = c.value
+      }
       if (z.status === 'fulfilled') zbStats.value = z.value
-      if (t.status === 'fulfilled') timeline.value = t.value
+      if (t.status === 'fulfilled') {
+        timeline.value = t.value
+        stateTimeline.value = t.value
+      }
     } catch {}
   } catch {
     /* degradación silenciosa */
   }
+  // Hydrate from singleton if local is empty
+  if (!capital.value && stateCapital.value) capital.value = stateCapital.value
+  if (aiOk.value === null && stateAi.value) aiOk.value = !!stateAi.value.config?.available
+  if (!career.value && stateCareer.value) career.value = stateCareer.value as any
+  if (!timeline.value && stateTimeline.value) timeline.value = stateTimeline.value as any
 
   // PLATFORM RANKING: ¿dónde trabajo hoy? (fallo silencioso)
   try {
@@ -421,6 +444,9 @@ onMounted(load)
 
       <!-- N0.1: FIRST MONEY — progreso $0 → primer ingreso -->
       <FirstMoneyStrip />
+
+      <!-- N0.1c: MPT PENDING — key gratis que bloquea el primer Short (auto-oculto al resolver) -->
+      <MptPendingStrip />
 
       <!-- N0.1b: REVENUE TIERS — SURVIVAL / TARGET $5K / STRETCH $15K + pace -->
       <RevenueTiersStrip />

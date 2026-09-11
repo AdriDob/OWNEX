@@ -345,3 +345,15 @@ Orden propuesto: (1) AUDIT_BACKEND_ALPHA_1.0.md ← primera acción próxima ses
 **Dónde:** nuevo módulo `cores/agenda/` + router `/api/agenda` + página `/agenda`
 **Prioridad:** Media-Alta (mejora retención diaria del usuario)
 **Esfuerzo estimado:** 2-3 días
+
+## SECURE INCOME — especificación owner (2026-09-10)
+
+> Objetivo: máxima P(cobrar) + mínimo tiempo sin ingresos + varias fuentes + aprendizaje rápido. Bug bounty = upside, nunca renta base.
+
+| # | Pieza | Estado |
+|---|-------|--------|
+| S1 | P(CASH) en economics.py (PCASH-V1) + wiring recommender + `p_cash/p_cash_band` en `/recommend` | ✅ HECHO 2026-09-10 (`tests/test_secure_income.py` 10/10) |
+| S2 | Modo `secure_income` (accept .35/speed .25, floor 0.50, diversidad 2/3) | ✅ HECHO 2026-09-10 |
+| S3 | Modo `secure_plus_upside` (accept .30/EV .25, piso 0.30, floor OFF — modo normal) | ✅ HECHO 2026-09-10 |
+| S4 | Splitter automático por horas (2h base / 1.5h dev / 0.5h upside) | ⏳ follow-up (guía de uso en docstring del preset; NO código hasta validar presets en uso real) |
+| S5 | `P(monthly ≥ $X)` desde outcomes reales ($500 → $1k → $2k → $5k) | ⏳ follow-up (base existe: tiers `income_target.py` + `identify_repeatable`; construir SOLO cuando haya outcomes PAID reales que calibrar) |

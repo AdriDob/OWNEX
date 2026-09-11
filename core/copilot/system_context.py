@@ -58,11 +58,11 @@ class SystemContextBuilder:
                     Target.id,
                     Target.name,
                     Target.domain,
-                    Target.status,
+                    Target.active,
                     Target.last_scanned,
                     Target.orion_score,
                 )
-                .filter(Target.status.in_(["active", "pending"]))
+                .filter(Target.active.is_(True))
                 .order_by(Target.orion_score.desc().nullslast())
                 .limit(20)
                 .all()
@@ -73,7 +73,7 @@ class SystemContextBuilder:
                     "id": r.id,
                     "name": r.name,
                     "domain": r.domain,
-                    "status": r.status,
+                    "status": "active" if r.active else "inactive",
                     "last_scanned": str(r.last_scanned) if r.last_scanned else None,
                     "score": float(r.orion_score or 0.0),
                 }

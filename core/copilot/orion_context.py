@@ -75,7 +75,7 @@ class OrionContext:
             from database.models import Target
 
             session = self._db()
-            targets = session.query(Target).filter(Target.status.in_(["active", "scanning"])).limit(10).all()
+            targets = session.query(Target).filter(Target.active.is_(True)).limit(10).all()
             result = [
                 {"id": t.id, "name": t.name, "domain": getattr(t, "domain", ""), "status": t.status} for t in targets
             ]

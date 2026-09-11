@@ -58,6 +58,20 @@ sync(
     VERSION,
 )
 
+# 5b. VERSION.txt — duplicate SSOT file kept in sync
+sync(
+    "VERSION.txt",
+    r"\d+\.\d+\.\d+",
+    VERSION,
+)
+
+# 5c. core/version.py — legacy core twin re-export
+sync(
+    "core/version.py",
+    r'__version__ = ["\']\d+\.\d+\.\d+["\']',
+    f'__version__ = "{VERSION}"',
+)
+
 # 6. frontend/package.json — workspace del frontend
 sync(
     "frontend/package.json",
