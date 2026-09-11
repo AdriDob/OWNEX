@@ -20,10 +20,10 @@ def checklist(tmp_path, monkeypatch, all_detectors_false):
 
 
 class TestCatalog:
-    def test_catalog_has_ten_items_with_required_keys(self) -> None:
+    def test_catalog_has_eleven_items_with_required_keys(self) -> None:
         required = {"id", "phase", "priority", "title", "why", "est_minutes", "how_to", "auto"}
         items = cl._catalog()
-        assert len(items) == 10
+        assert len(items) == 11
         for item in items:
             assert required <= set(item), item["id"]
 
@@ -43,7 +43,7 @@ class TestStatus:
         status = checklist.status()
         assert status["complete_pct"] == 0
         assert status["done_items"] == 0
-        assert len(status["pending"]) == 10
+        assert len(status["pending"]) == 11
         assert status["complete"] is False
         assert status["next_task"] is not None
 
@@ -52,7 +52,7 @@ class TestStatus:
         status = checklist.status()
         assert "profile_kit" in status["done"]
         assert status["done_items"] == 1
-        assert status["complete_pct"] == 10
+        assert status["complete_pct"] == 9
         assert all(p["id"] != "profile_kit" for p in status["pending"])
 
     def test_status_shape_has_phases_labels(self, checklist: SetupChecklist) -> None:
@@ -124,6 +124,7 @@ class TestComplete:
             "payment_accounts",
             "bounty_api_key",
             "first_target",
+            "mpt_material_key",
             "obsidian_vault",
             "smtp_mail",
         ):
@@ -134,6 +135,28 @@ class TestComplete:
         assert status["complete"] is True
         assert status["complete_pct"] == 100
         assert status["next_task"] is None
+
+
+class TestMptMaterialKey:
+    def test_detector_false_without_config(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(tmp_path / "missing.toml"))
+        assert cl._detect_mpt_material_key() is False
+
+    def test_detector_false_with_empty_keys(self, monkeypatch, tmp_path) -> None:
+        cfg = tmp_path / "config.toml"
+        cfg.write_text("pexels_api_keys = []\ncoverr_api_keys = []\n", encoding="utf-8")
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(cfg))
+        assert cl._detect_mpt_material_key() is False
+
+    def test_detector_true_with_pexels_key(self, monkeypatch, tmp_path) -> None:
+        cfg = tmp_path / "config.toml"
+        cfg.write_text('pexels_api_keys = ["demo-key"]\n', encoding="utf-8")
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(cfg))
+        assert cl._detect_mpt_material_key() is True
+
+    def test_item_is_auto_and_undoable_only_by_key(self, checklist: SetupChecklist) -> None:
+        with pytest.raises(ValueError):
+            checklist.mark_done("mpt_material_key")
 
 
 class TestSingleton:

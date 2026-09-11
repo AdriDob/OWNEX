@@ -2386,6 +2386,26 @@ export async function fetchFirstMoneyNextAction(): Promise<FirstMoneyNextAction>
   return api.get<FirstMoneyNextAction>('/first-money/next-action')
 }
 
+export interface SetupChecklistPendingItem {
+  id: string
+  title: string
+  why: string
+  est_minutes: number
+  how_to: string
+}
+
+export interface SetupChecklistStatus {
+  complete_pct: number
+  total_items: number
+  done_items: number
+  done: string[]
+  pending: SetupChecklistPendingItem[]
+}
+
+export async function fetchSetupChecklistStatus(): Promise<SetupChecklistStatus> {
+  return api.get<SetupChecklistStatus>('/setup/checklist/status')
+}
+
 export async function startFirstMoneyStage(
   stage: string,
   platform?: string | null,

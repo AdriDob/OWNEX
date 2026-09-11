@@ -8,12 +8,19 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import httpx
 
 logger = logging.getLogger("ownex.content_factory.mpt_client")
+
+
+def _default_mpt_base_url() -> str:
+    """MPT sidecar URL. Env MPT_BASE_URL wins; default :8081 (:8080 is Open WebUI here)."""
+    import os
+
+    return os.environ.get("MPT_BASE_URL", "http://127.0.0.1:8081").rstrip("/")
 
 
 class MPTError(Exception):
@@ -37,8 +44,8 @@ class MPTAPIError(MPTError):
     pass
 
 
-class MPTJobStatus(str, Enum):
-    """MoneyPrinterTurbo job statuses."""
+class MPTJobStatus(StrEnum):
+    """MoneyPrinterTurbo job statuses (OWNEX view)."""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -46,12 +53,38 @@ class MPTJobStatus(str, Enum):
     FAILED = "failed"
 
 
-class VideoAspect(str, Enum):
+def _mpt_state_to_status(state: Any) -> MPTJobStatus:
+    """Map MPT v1.3.6 integer task state to OWNEX status.
+
+    Upstream consts: FAILED=-1, COMPLETE=1, PROCESSING=4.
+    Anything else (0/queued/unknown) is honestly PENDING.
+    """
+    try:
+        code = int(state)
+    except (TypeError, ValueError):
+        return MPTJobStatus.PENDING
+    if code == 1:
+        return MPTJobStatus.COMPLETED
+    if code == -1:
+        return MPTJobStatus.FAILED
+    if code == 4:
+        return MPTJobStatus.RUNNING
+    return MPTJobStatus.PENDING
+
+
+def _envelope_data(payload: Any) -> dict[str, Any]:
+    """Unwrap MPT v1 envelope {status, message, data} (or legacy flat)."""
+    if isinstance(payload, dict) and isinstance(payload.get("data"), dict):
+        return payload["data"]
+    return payload if isinstance(payload, dict) else {}
+
+
+class VideoAspect(StrEnum):
     PORTRAIT = "9:16"
     LANDSCAPE = "16:9"
 
 
-class MaterialSource(str, Enum):
+class MaterialSource(StrEnum):
     PEXELS = "pexels"
     PIXABAY = "pixabay"
     COVERR = "coverr"
@@ -59,7 +92,7 @@ class MaterialSource(str, Enum):
     WAVESPEED = "wavespeed"
 
 
-class VoiceProvider(str, Enum):
+class VoiceProvider(StrEnum):
     EDGE = "edge"
     ELEVENLABS = "elevenlabs"
     AZURE_V1 = "azure_v1"
@@ -71,7 +104,7 @@ class VoiceProvider(str, Enum):
     FISH_AUDIO = "fish_audio"
 
 
-class SubtitleProvider(str, Enum):
+class SubtitleProvider(StrEnum):
     EDGE = "edge"
     WHISPER = "whisper"
 
@@ -85,12 +118,14 @@ class VideoGenerationRequest:
     video_duration: int = 60
     video_count: int = 3
     video_concat_mode: str = "random"
-    script_generator: str = "kimi"
-    script_model: str = "kimi-k3"
+    # Legacy script knobs (kept for backward compat). MPT v1.3.6 resolves the
+    # LLM server-side via config.toml (llm_provider); these are NOT sent.
+    script_generator: str = "ollama"
+    script_model: str = "qwen2.5:3b-instruct"
     paragraph_count: int = 3
     voice_provider: VoiceProvider = VoiceProvider.EDGE
-    voice_name: str = "en-US-AriaNeural"
-    voice_speed: float = 1.05
+    voice_name: str = "en-US-GuyNeural"
+    voice_speed: float = 1.1
     subtitle_provider: SubtitleProvider = SubtitleProvider.EDGE
     subtitle_position: str = "bottom"
     subtitle_font_size: int = 60
@@ -105,34 +140,48 @@ class VideoGenerationRequest:
     video_quality: str = "high"
 
     def to_mpt_params(self) -> dict[str, Any]:
-        """Convert to MoneyPrinterTurbo API parameters."""
-        params = {
+        """Convert to MoneyPrinterTurbo API v1 parameters.
+
+        Field names follow MPT v1.3.6 VideoParams (TaskVideoRequest).
+        Server-side config.toml governs LLM/TTS providers; only
+        generation knobs travel here.
+        """
+
+        def _val(value: Any) -> Any:
+            return getattr(value, "value", value)
+
+        def _hex(color: Any) -> Any:
+            table = {
+                "white": "#FFFFFF",
+                "black": "#000000",
+                "yellow": "#FFFF00",
+                "red": "#FF0000",
+                "blue": "#0000FF",
+                "green": "#00FF00",
+            }
+            if isinstance(color, str) and not color.startswith("#"):
+                return table.get(color.lower(), color)
+            return color
+
+        return {
             "video_subject": self.video_subject,
-            "video_aspect": self.video_aspect.value,
-            "video_duration": self.video_duration,
+            "video_aspect": _val(self.video_aspect),
+            "video_clip_duration": 3,
             "video_count": self.video_count,
             "video_concat_mode": self.video_concat_mode,
-            "script_generator": self.script_generator,
-            "script_model": self.script_model,
-            "paragraph_count": self.paragraph_count,
-            "voice_provider": self.voice_provider.value,
+            "video_source": _val(self.material_source),
             "voice_name": self.voice_name,
-            "voice_speed": self.voice_speed,
-            "subtitle_provider": self.subtitle_provider.value,
+            "voice_rate": self.voice_speed,
+            "bgm_type": "random",
+            "bgm_volume": self.background_music_volume,
+            "subtitle_enabled": True,
             "subtitle_position": self.subtitle_position,
-            "subtitle_font_size": self.subtitle_font_size,
-            "subtitle_color": self.subtitle_color,
-            "subtitle_stroke": self.subtitle_stroke,
-            "material_source": self.material_source.value,
-            "background_music_volume": self.background_music_volume,
-            "transition_enabled": self.transition_enabled,
-            "transition_duration": self.transition_duration,
-            "ken_burns_enabled": self.ken_burns_enabled,
-            "video_quality": self.video_quality,
+            "font_size": self.subtitle_font_size,
+            "text_fore_color": _hex(self.subtitle_color),
+            "stroke_color": _hex(self.subtitle_stroke),
+            "stroke_width": 1.5,
+            "paragraph_number": self.paragraph_count,
         }
-        if self.background_music:
-            params["background_music"] = self.background_music
-        return params
 
 
 @dataclass
@@ -180,13 +229,13 @@ class MPTClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:8080",
+        base_url: str | None = None,
         timeout: float = 300.0,
         max_retries: int = 3,
         base_backoff: float = 1.0,
         max_backoff: float = 60.0,
     ):
-        self.base_url = base_url.rstrip("/")
+        self.base_url = (base_url or _default_mpt_base_url()).rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
         self.base_backoff = base_backoff
@@ -286,20 +335,19 @@ class MPTClient:
     # ========== Health & Status ==========
 
     async def health_check(self, force: bool = False) -> HealthResponse:
-        """Check API health with caching."""
+        """Check API health with caching.
+
+        MPT v1.3.6 exposes no /health route (stale compose healthcheck);
+        liveness = GET /api/v1/tasks reachable (200).
+        """
         now = time.time()
         if not force and self._health_cache and (now - self._health_cache_time) < self._health_cache_ttl:
             return self._health_cache
 
         try:
-            response = await self._request_with_retry("GET", "/health")
+            response = await self._request_with_retry("GET", "/api/v1/tasks", params={"page_size": 1})
             if response.status_code == 200:
-                data = response.json()
-                health = HealthResponse(
-                    status=data.get("status", "unknown"),
-                    version=data.get("version"),
-                    components=data.get("components", {}),
-                )
+                health = HealthResponse(status="healthy", components={"api": "v1"})
                 self._health_cache = health
                 self._health_cache_time = time.time()
                 return health
@@ -329,10 +377,10 @@ class MPTClient:
     # ========== Video Generation ==========
 
     async def generate_video(self, request: VideoGenerationRequest) -> VideoGenerationResponse:
-        """Submit a video generation job."""
+        """Submit a video generation job (POST /api/v1/videos)."""
         response = await self._request_with_retry(
             "POST",
-            "/api/video/generate",
+            "/api/v1/videos",
             json=request.to_mpt_params(),
         )
 
@@ -345,10 +393,10 @@ class MPTClient:
                 else None,
             )
 
-        data = response.json()
+        data = _envelope_data(response.json())
         return VideoGenerationResponse(
             task_id=data.get("task_id", ""),
-            status=MPTJobStatus(data.get("status", "pending")),
+            status=MPTJobStatus.PENDING,
             message=data.get("message"),
             videos=data.get("videos", []),
         )
@@ -386,8 +434,8 @@ class MPTClient:
     # ========== Job Management ==========
 
     async def get_job_status(self, task_id: str) -> JobStatusResponse:
-        """Get job status by task ID."""
-        response = await self._request_with_retry("GET", f"/api/video/status/{task_id}")
+        """Get job status by task ID (GET /api/v1/tasks/{id})."""
+        response = await self._request_with_retry("GET", f"/api/v1/tasks/{task_id}")
 
         if response.status_code == 404:
             raise MPTAPIError(f"Job not found: {task_id}", status_code=404)
@@ -398,13 +446,16 @@ class MPTClient:
                 status_code=response.status_code,
             )
 
-        data = response.json()
+        data = _envelope_data(response.json())
+        videos = data.get("videos") or []
+        if not videos and data.get("combined_videos"):
+            videos = data["combined_videos"]
         return JobStatusResponse(
             task_id=data.get("task_id", task_id),
-            status=MPTJobStatus(data.get("status", "unknown")),
+            status=_mpt_state_to_status(data.get("state")),
             progress=data.get("progress", 0),
-            message=data.get("message"),
-            videos=data.get("videos", []),
+            message=data.get("failed_stage"),
+            videos=videos,
             error=data.get("error"),
         )
 
@@ -431,8 +482,8 @@ class MPTClient:
         raise MPTConnectionError(f"Job {task_id} timed out after {timeout}s")
 
     async def cancel_job(self, task_id: str) -> bool:
-        """Cancel a running job."""
-        response = await self._request_with_retry("POST", f"/api/video/cancel/{task_id}")
+        """Delete a task (MPT v1.3.6 exposes no cancel — DELETE removes it)."""
+        response = await self._request_with_retry("DELETE", f"/api/v1/tasks/{task_id}")
         return response.status_code in (200, 202, 204)
 
     async def list_jobs(
@@ -441,61 +492,85 @@ class MPTClient:
         limit: int = 50,
         offset: int = 0,
     ) -> list[JobStatusResponse]:
-        """List jobs with optional filtering."""
-        params = {"limit": limit, "offset": offset}
-        if status:
-            params["status"] = status.value  # type: ignore[assignment]
+        """List jobs with optional filtering (GET /api/v1/tasks).
 
-        response = await self._request_with_retry("GET", "/api/video/jobs", params=params)
+        v1 has no server-side status filter; filtering happens client-side.
+        """
+        page = offset // max(limit, 1) + 1
+        response = await self._request_with_retry("GET", "/api/v1/tasks", params={"page": page, "page_size": limit})
 
         if response.status_code != 200:
             raise MPTAPIError(f"List jobs failed: {response.status_code}")
 
-        data = response.json()
-        jobs = data.get("jobs", data.get("tasks", []))
+        data = _envelope_data(response.json())
+        jobs = data.get("tasks", [])
 
-        return [
-            JobStatusResponse(
-                task_id=job.get("task_id", ""),
-                status=MPTJobStatus(job.get("status", "unknown")),
-                progress=job.get("progress", 0),
-                message=job.get("message"),
-                videos=job.get("videos", []),
-                error=job.get("error"),
+        out: list[JobStatusResponse] = []
+        for job in jobs:
+            if not isinstance(job, dict):
+                continue
+            mapped = _mpt_state_to_status(job.get("state"))
+            if status is not None and mapped != status:
+                continue
+            videos = job.get("videos") or job.get("combined_videos") or []
+            out.append(
+                JobStatusResponse(
+                    task_id=job.get("task_id", ""),
+                    status=mapped,
+                    progress=job.get("progress", 0),
+                    message=job.get("failed_stage"),
+                    videos=videos,
+                    error=job.get("error"),
+                )
             )
-            for job in jobs
-        ]
+        return out
 
     # ========== Video Files ==========
 
     async def get_video_file(self, task_id: str, video_index: int = 0) -> bytes:
-        """Download a generated video file."""
-        response = await self._request_with_retry(
-            "GET",
-            f"/api/video/file/{task_id}",
-            params={"index": video_index},
-        )
-
+        """Download a generated video file (via the static /tasks mount)."""
+        status = await self.get_job_status(task_id)
+        if not status.videos or video_index >= len(status.videos):
+            raise MPTAPIError(f"Video file not found: {task_id}[{video_index}]", status_code=404)
+        url = self._resolve_media_url(self.base_url, task_id, status.videos[video_index])
+        await self._ensure_client()
+        assert self._client is not None
+        response = await self._client.get(url, timeout=httpx.Timeout(300.0))
         if response.status_code == 404:
             raise MPTAPIError(f"Video file not found: {task_id}[{video_index}]", status_code=404)
-
+        response.raise_for_status()
         return response.content
 
+    @staticmethod
+    def _resolve_media_url(base_url: str, task_id: str, entry: Any) -> str:
+        """Resolve an MPT videos[] entry to a downloadable URL.
+
+        v1.3.6 already returns absolute or /tasks-relative URIs.
+        """
+        if not isinstance(entry, str) or not entry:
+            raise MPTAPIError(f"Empty video entry for task {task_id}", status_code=404)
+        if entry.startswith(("http://", "https://")):
+            return entry
+        if entry.startswith("/"):
+            return f"{base_url}{entry}"
+        return f"{base_url}/tasks/{task_id}/{entry}"
+
     async def get_video_url(self, task_id: str, video_index: int = 0) -> str:
-        """Get direct URL to video file (if served statically)."""
-        return f"{self.base_url}/api/video/file/{task_id}?index={video_index}"
+        """Get direct URL to video file (served from the static /tasks mount)."""
+        status = await self.get_job_status(task_id)
+        if not status.videos or video_index >= len(status.videos):
+            raise MPTAPIError(f"Video file not found: {task_id}[{video_index}]", status_code=404)
+        return self._resolve_media_url(self.base_url, task_id, status.videos[video_index])
 
     # ========== Configuration ==========
 
     async def get_config(self) -> dict[str, Any]:
-        """Get current configuration."""
-        response = await self._request_with_retry("GET", "/api/config")
-        return response.json()
+        """Get current configuration (NOT exposed by MPT v1.3.6 API)."""
+        raise MPTAPIError("MPT v1.3.6 exposes no /api/config route — edit config.toml directly")
 
     async def update_config(self, config: dict[str, Any]) -> dict[str, Any]:
-        """Update configuration."""
-        response = await self._request_with_retry("POST", "/api/config", json=config)
-        return response.json()
+        """Update configuration (NOT exposed by MPT v1.3.6 API)."""
+        raise MPTAPIError("MPT v1.3.6 exposes no /api/config route — edit config.toml directly")
 
     # ========== Utility ==========
 
@@ -515,7 +590,7 @@ class MPTClient:
 
 
 # Convenience factory
-async def create_mpt_client(base_url: str = "http://localhost:8080", **kwargs) -> MPTClient:
+async def create_mpt_client(base_url: str | None = None, **kwargs) -> MPTClient:
     """Create and initialize MPT client."""
     client = MPTClient(base_url=base_url, **kwargs)
     await client._ensure_client()

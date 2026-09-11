@@ -123,6 +123,46 @@ def _detect_smtp_mail() -> bool:
         return False
 
 
+def _mpt_config_path() -> Path | None:
+    """Locate the MoneyPrinterTurbo sidecar config.toml (outside this repo)."""
+    candidates = []
+    env_path = os.environ.get("MPT_CONFIG_PATH")
+    if env_path:
+        candidates.append(Path(env_path))
+    candidates.append(Path.home() / "projects" / "MoneyPrinterTurbo" / "config.toml")
+    for cand in candidates:
+        try:
+            if cand.is_file():
+                return cand
+        except OSError:
+            continue
+    return None
+
+
+def _detect_mpt_material_key() -> bool:
+    """True when the MPT sidecar has a free stock-material key (Pexels/Coverr).
+
+    Without it, video generation fails at the materials stage
+    (`pexels_api_keys is not set`) — verified end-to-end 2026-09-11.
+    """
+    try:
+        import tomllib
+
+        path = _mpt_config_path()
+        if path is None:
+            return False
+        with path.open("rb") as f:
+            cfg = tomllib.load(f)
+        for key in ("pexels_api_keys", "coverr_api_keys"):
+            values = cfg.get(key) or []
+            if any(str(v).strip() for v in values):
+                return True
+        return False
+    except Exception as exc:  # pragma: no cover - defensivo
+        logger.warning("detector mpt_material_key falló: %s", exc)
+        return False
+
+
 def _catalog() -> list[dict[str, Any]]:
     """Checklist curado, ordenado por prioridad dentro de cada fase."""
     return [
@@ -195,6 +235,16 @@ def _catalog() -> list[dict[str, Any]]:
             "est_minutes": 40,
             "how_to": "Copiar textos del Profile Kit → crear perfil → verificar payout (Payoneer/Airtm).",
             "auto": _MANUAL,
+        },
+        {
+            "id": "mpt_material_key",
+            "phase": PHASE_PLATFORMS,
+            "priority": 4,
+            "title": "Key gratis de materiales para Shorts (Pexels o Coverr)",
+            "why": "Sin esto el pipeline MPT muere en materiales (verificado: guion + voz + subs OK, solo falta la key). Desbloquea el primer Short EN.",
+            "est_minutes": 2,
+            "how_to": 'pexels.com/api (o coverr.co/developers) → crear key gratis → pegarla en ~/projects/MoneyPrinterTurbo/config.toml → pexels_api_keys = ["tu-key"].',
+            "auto": _AUTO,
         },
         {
             "id": "obsidian_vault",
@@ -338,6 +388,7 @@ _DETECTORS: dict[str, Callable[[], bool]] = {
     "payment_accounts": _detect_payment_accounts,
     "bounty_api_key": _detect_bounty_api_key,
     "first_target": _detect_first_target,
+    "mpt_material_key": _detect_mpt_material_key,
     "obsidian_vault": _detect_obsidian_vault,
     "smtp_mail": _detect_smtp_mail,
 }

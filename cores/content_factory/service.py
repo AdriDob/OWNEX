@@ -324,11 +324,12 @@ class ContentFactoryService:
 
 
 async def create_content_factory_service(
-    db_session: Session, mpt_base_url: str = "http://localhost:8080", **kwargs
+    db_session: Session, mpt_base_url: str | None = None, **kwargs
 ) -> ContentFactoryService:
     """Factory function to create ContentFactoryService with MPT client."""
+    from cores.content_factory.mpt_client import _default_mpt_base_url
 
-    mpt_client = MPTClient(base_url=mpt_base_url)
+    mpt_client = MPTClient(base_url=mpt_base_url or _default_mpt_base_url())
     await mpt_client._ensure_client()
 
     return ContentFactoryService(db_session=db_session, mpt_client=mpt_client, **kwargs)

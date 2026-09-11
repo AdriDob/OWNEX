@@ -243,6 +243,24 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
     )
 
 
+def _public_work_block(ranked: RankedOpportunity) -> dict[str, Any]:
+    """Peldaño + validación pública (capa de presentación, nunca rompe)."""
+    try:
+        from cores.direct_work_engine.public_work import enrich_ranked
+
+        return enrich_ranked(ranked)
+    except Exception:
+        return {
+            "rung": "beginner",
+            "rung_label_es": "Principiante",
+            "rung_goal_es": "",
+            "checks": [],
+            "proof": "PR ACEPTADO + PAGO",
+            "difficulty": 0.5,
+            "difficulty_unknown_inputs": True,
+        }
+
+
 def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     zb = ranked.zero_barrier_score
 
@@ -326,6 +344,9 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
         "recommendation_reasoning": ranked.recommendation_reasoning,
         "payment_compat_score": ranked.payment_compat_score,
         "payment_compat_notes": ranked.payment_compat_notes,
+        "p_cash": getattr(ranked, "p_cash", None),
+        "p_cash_band": getattr(ranked, "p_cash_band", "UNKNOWN"),
+        "public_work": _public_work_block(ranked),
         "payout_method": payout_method,
         "payout_method_rationale": payout_method_rationale,
     }
@@ -467,6 +488,17 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     - ``max_success`` (Success Maximizer): acceptance probability weighted
       highest (0.40) with a hard floor — only work the profile's real outcome
       history says is likely to win ever surfaces.
+    - ``high_upside_90d`` (HIGH_UPSIDE_90D): EV-led moonshot with niche
+      priority (AI/LLM -> Web3 -> API/Auth -> classic), freshness,
+      low-competition bonus and personal reward rate boost — 90-day
+      bounty upside maximization. Anti-casino: shows EV/h + probability +
+      time + competition + freshness + confidence, never headline alone.
+    - ``secure_income`` (SECURE_INCOME): base segura — acceptance 0.35 +
+      speed 0.25 with hard 0.50 floor and forced diversification
+      (2/platform, 3/category). Bug bounty only when it passes the floor.
+    - ``secure_plus_upside`` (SECURE_PLUS_UPSIDE, modo normal): secure base
+      plus measured upside — floor off, 0.30 minimum. Cada item expone
+      P(CASH) = prob. de cobrar realmente (acceptance x cobrabilidad).
 
     When no opportunities are supplied, the engine discovers them from its
     registered real adapters first (Opire, IssueHunt, bug bounties, AI training).
