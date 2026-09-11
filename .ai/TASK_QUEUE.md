@@ -17,8 +17,8 @@
 > prompt FINAL BUILD con evidencia runtime (detalle en CURRENT_STATE.md 2026-09-08).
 > Checklist rankeado resultante:
 > - **P0 ✅ RESUELTO**: enum safety fail-closed (`_resolve` → 422, direct_work.py) — 49 tests, fast 100/1.
-> - **P1 ⏳ PENDIENTE**: versión canónica única (`.VERSION.txt`/`VERSION.txt`/`VERSION` + pyproject + package.json).
-> - **P1 ⏳ PENDIENTE**: consolidación core/→cores/ por evidencia runtime (la tree viva es `core/`; §31 del prompt decía lo inverso → corregido el plan). CONGELADA hasta aprobación.
+> - **P1 ✅ RESUELTO (2026-09-08)**: versión canónica única 7.1.0 — 11 superficies vía `scripts/sync_version.py` (incl. `VERSION.txt` + `core/version.py` desde commit ship `db1bc583`).
+> - **P1 ⏳ CONGELADO**: consolidación core/→cores/ — `cores/` canónico por imports runtime (`api/lifespan.py:456`); borrado de `core/` bloqueado a validación física Windows. NO reintentar sin esa validación.
 > - **P1 ✅ RESUELTO (2026-09-08)**: barrido `datetime.utcnow()` COMPLETO — 0 usos restantes en código de producción (cognee vendored excluido). Wave 1: 37 sitios con tests + migración naive (`hhd_tracker::_from_iso_utc`). Wave 2: ~110 sitios adicionales (llamadas + `default_factory` + gemelos core/cores). DB Column defaults preservados NAIVE deliberadamente (`_naive_utcnow` en content_factory/models.py, comentarios en hunter/operations) para mantener compatibilidad con `func.now()` y filas existentes. Excepción documentada: `core|cores/self_improvement/models.py` usa helper `utcnow_iso()` (aware) — nombrelegacy, valor correcto.
 > - **P2 ✅ RESUELTO**: hunt.py reúsa el scheduler vivo (`scheduler_instance` + método público `run_cycle()`) — 3 tests nuevos.
 > - **P2 ✅ RESUELTO**: B904 ×5 en direct_work.py (raise con `from None`).
@@ -91,7 +91,6 @@
 | VaultCycle/AtlasCycle no existen | ✅ COMPLETADO — creados + routers montados; 6 ciclos operativos | AUD-8 |
 | 31+ páginas frontend huérfanas | ✅ COMPLETADO 2026-08-10 — 23 páginas muertas eliminadas (0 referencias externas: router/sidebar/imports); 61/92 páginas ruteadas. `vue-tsc` 0 errores, `vite build` OK | — |
 | console.log en frontend móvil | ✅ COMPLETADO 2026-08-10 — eliminados 3 `console.log` de approvals WS en `MobileCompanion.vue`; quedan solo `console.error` (correcto) | — |
-| QA cycle no conectado | ⚠️ PENDIENTE (`core/cycles/qa.py` 1100 líneas sin callers) | — |
 | OAR + Career Engine sin API | ✅ COMPLETADO 2026-08-04 — routers `/oar/*` y `/career/*` creados y montados; 14 tests nuevos pasan | `tests/test_oar_api.py` + `test_career_api.py` |
 | QA cycle no conectado | ✅ COMPLETADO 2026-08-04 — router `api/routers/qa_cycle.py` (start/status/stage/cases/run) montado en `api/main.py`; scheduler job `qa_daily_cycle` (cron 08:30, handler `run_qa_cycle`); `get_all_jobs()` → 7 ciclos / 28 jobs; 7 tests nuevos. 71+56 passed, ruff limpio | `tests/test_qa_cycle_api.py` |
 

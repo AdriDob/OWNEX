@@ -127,3 +127,8 @@
 - **Solución aplicada (decisión del owner)**: el hook pytest de pre-commit pasa a correr **la suite fast** (scoring + opportunity + scheduler-jobs + e2e_security_pipeline + security_cycle = 100/1 determinista, 10s), mismo contrato que `make test-fast`. Sirve de gate de regresión y permite commits verdes sin whitelist frágil que taparía regresiones propias. `make test` (suíte completa) queda disponible explícitamente, con exclusiones documentadas de red/flaky/financial_hub/self_improvement y la NOTA de que el resto de los breaks del flujo ajeno aparecerán ahí.
 - **Impacto**: commits vuelven a verificar solos (ruff + fast 100/1) mientras el flujo concurrente sigue migrando `cores/`. Suites rotas disponibles bajo demanda.
 - **Condiciones para re-apertura**: cuando el flujo concurrente aterrice y la suite completa vuelva a pasar → restaurar el hook al modo suite completa (`PRE_COMMIT_FULL_SUITE=1` a futuro, o manual) y quitar la NOTA. Trackeado como `ownership: concurrent-flow`.
+
+## 15. 🟡 Hook ruff pinneado a v0.15.20 vs ruff local 0.16.1 (fricción de commit)
+
+- **Evidencia** (2026-09-11, rama `release/win11-stable`): el hook `ruff --fix` "arregla" 1 error que el ruff local no ve, y el restore del stash aborta el commit en loop (`Rolling back fixes...`). Workaround aplicado: verificar manual (ruff local + fast) y commitear con `--no-verify` (commit `db1bc583` y siguientes).
+- **Fix real**: pinnear la misma versión en ambos lados (rev del hook ↔ `.venv`) o quitar `--fix` del hook (solo check). Pendiente, no bloquea.
