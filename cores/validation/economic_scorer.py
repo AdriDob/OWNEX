@@ -45,6 +45,9 @@ VULN_PAYOUT_MULTIPLIER: dict[VulnType, float] = {
     VulnType.CORS: 0.5,
     VulnType.OPEN_REDIRECT: 0.3,
     VulnType.BUSINESS_LOGIC: 1.0,
+    VulnType.DEEPLINK_HIJACK: 1.1,  # Account takeover vía deep link paga bien
+    VulnType.MOBILE_DATA_EXPOSURE: 0.9,  # PII/tokens expuestos, payout medio-alto
+    VulnType.MOBILE_TRANSPORT: 0.7,  # MiTM/Pinning bypass, payout medio
     VulnType.GENERIC: 0.5,
 }
 
@@ -59,6 +62,9 @@ BASE_ACCEPTANCE: dict[VulnType, float] = {
     VulnType.CSRF: 0.35,
     VulnType.LFI: 0.50,
     VulnType.CMDI: 0.60,
+    VulnType.DEEPLINK_HIJACK: 0.55,
+    VulnType.MOBILE_DATA_EXPOSURE: 0.50,
+    VulnType.MOBILE_TRANSPORT: 0.45,
     VulnType.GENERIC: 0.30,
 }
 
@@ -72,6 +78,9 @@ VALIDATION_EFFORT_MINUTES: dict[VulnType, float] = {
     VulnType.CSRF: 4.0,
     VulnType.LFI: 7.0,
     VulnType.CMDI: 12.0,
+    VulnType.DEEPLINK_HIJACK: 8.0,
+    VulnType.MOBILE_DATA_EXPOSURE: 6.0,
+    VulnType.MOBILE_TRANSPORT: 6.0,
     VulnType.GENERIC: 5.0,
 }
 

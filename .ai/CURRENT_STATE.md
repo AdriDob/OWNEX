@@ -1,3 +1,12 @@
+## Sesión 2026-09-10 — MOBILE GAP CERRADO: 3 reasoners (deeplink/data-exposure/transport) + VulnType + scorer
+
+> **QUÉ SE HIZO:** La brecha mobile-security (reasoners solo web: IDOR/XSS/SQLi/SSRF/AuthBypass, cero validadores mobile). Audit-first: `VulnType` + `economic_scorer` usan `.get()` con defaults + planner con fallback genérico → extensión segura sin tocar lógica viva.
+> - **3 reasoners NUEVOS** (`cores/offensive/reasoners/`, patrón IDOR verbatim): `DeepLinkReasoner` (`deeplink_hijack`: schemes/custom, redirect/auth-code en links, UA mobile), `MobileDataExposureReasoner` (`mobile_data_exposure`: secretos/PII en query GET, flags debug, endpoints backup/export), `MobileTransportReasoner` (`mobile_transport`: host http://, sesión en path/query, endpoints auth para pinning). Alcance honesto documentado: superficie API visible del backend mobile, NO análisis de binario (Keychain/manifiesto fuera de alcance).
+> - **Wiring**: `engine._discover_reasoners` 5→8 + `VulnType` ×3 + payout multipliers (1.1/0.9/0.7) + acceptance baselines (0.55/0.50/0.45) + effort (8/6/6 min). Planner sin cambios (fallback genérico cubre).
+> - **Verificación**: `tests/test_mobile_reasoners.py` 17/17 (positivos + silencios honestos + wiring + feedback + defaults económicos); `test_offensive.py` conteo 5→8 pineado; 118 affected + fast 100/1; ruff 0 nuevos; `import api.main` OK (vía suites).
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo adds aditivos), `cognee`, `core/`, WIP ajeno.
+> - **Siguiente**: validación física Windows W1–W12 → veredicto STABLE (línea RC sin cambios).
+
 ## Sesión 2026-09-10 — UNIVERSAL FUNNEL WIRING (Phase 6-9): funnels al modelo, ranking cross-category en daily-brief, adversarial
 
 > **QUÉ SE HIZO:** Cierre Phase 6–9 del programa universal-probability. Audit-first: contract + funnels + engine + calibration + evidence YA existían; solo se cableó lo genuinamente suelto.

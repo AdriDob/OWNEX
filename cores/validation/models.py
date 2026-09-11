@@ -40,6 +40,9 @@ class VulnType(StrEnum):
     CORS = "cors"
     OPEN_REDIRECT = "open_redirect"
     BUSINESS_LOGIC = "business_logic"
+    DEEPLINK_HIJACK = "deeplink_hijack"
+    MOBILE_DATA_EXPOSURE = "mobile_data_exposure"
+    MOBILE_TRANSPORT = "mobile_transport"
     GENERIC = "generic"
 
 

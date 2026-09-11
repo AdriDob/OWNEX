@@ -891,8 +891,8 @@ class TestEngineV3ReasonerRegistration:
 
         self.engine = OffensiveEngine()
 
-    def test_five_reasoners_registered(self):
-        assert len(self.engine._reasoners) == 5
+    def test_eight_reasoners_registered(self):
+        assert len(self.engine._reasoners) == 8
 
     def test_reasoner_types(self):
         types = [r.vulnerability_type for r in self.engine._reasoners]
@@ -901,6 +901,9 @@ class TestEngineV3ReasonerRegistration:
         assert "auth_bypass" in types
         assert "xss" in types
         assert "sqli" in types
+        assert "deeplink_hijack" in types
+        assert "mobile_data_exposure" in types
+        assert "mobile_transport" in types
 
     def test_each_reasoner_generates_hypotheses(self):
         ep = {

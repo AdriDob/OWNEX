@@ -1,3 +1,11 @@
+## 2026-09-10: SECURE INCOME — P(CASH) + modos secure_income/secure_plus_upside (base segura, bug bounty = upside)
+
+- **Problema**: el owner cambió el objetivo: no maximizar EV posible sino **máxima P(cobrar) + mínimo tiempo sin ingresos + varias fuentes + aprendizaje rápido**. Bug bounty tiene varianza fatal como renta base (semanas de trabajo → $0). El recommender no tenía ninguna métrica de "prob. de dinero realmente recibido" ni modo que priorice cobrar sobre upside.
+- **Decisión**: (1) `compute_p_cash()` en `cores/direct_work_engine/economics.py` (SSOT, PCASH-V1): producto de stages dados; cualquier stage None/fuera-de-rango/dict vacío → UNKNOWN (None), jamás inventa; bandas HIGH ≥0.80 / MEDIUM ≥0.50 / LOW. (2) Wiring en `IntelligentRecommender`: `p_cash = acceptance × payment_compat/100` (las dos señales reales existentes) + campos aditivos `RankedOpportunity.p_cash/p_cash_band` + línea P(CASH) en reasoning + `p_cash/p_cash_band` en `POST /direct-work/recommend`. (3) Dos presets EXTEND (cero breaking): `secure_income` (accept .35/speed .25/EV .15/barrier .15/compat .05/rep .05, floor 0.50 + diversidad 2/3 → bug bounty solo si pasa el floor) y `secure_plus_upside` (accept .30/EV .25, piso 0.30, floor OFF → modo normal). Docs del endpoint + exports actualizados.
+- **Evidencia**: `tests/test_secure_income.py` 10/10 (producto, UNKNOWN, bandas, presets suman 1.0, filtro, ranking aceptación>recompensa, P(CASH) en API, plus permite más que secure, balanced intacto); regresión 109 (DWE API+engine+workbank+economics) + 64 (income-chain+evolution) + fast 100/1 + `import api.main` OK; ruff 0 errores nuevos (40 preexistentes verificados por línea).
+- **Regla permanente**: ninguna probabilidad de cobro se inventa — UNKNOWN etiquetado; bug bounty = upside hasta que el historial personal demuestre repetibilidad (veredicto REPEATABLE de `identify_repeatable`).
+- **Follow-ups (NO código ahora, budget)**: splitter automático por horas (2h base/1.5h dev/0.5h upside) y `P(monthly ≥ $X)` desde outcomes reales (tiers `income_target.py` + `identify_repeatable` ya existen como base).
+
 ## 2026-09-09: CI v7.1.0 — sidecar verde ×3, Tauri Windows rojo por triple-suffix (fix → v7.1.1)
 
 - **Resultado tag `v7.1.0`** (run 34407423757, 14m44s): sidecars `windows/macos/ubuntu` SUCCESS (smoke + guard 50MB OK — el P0 frozen viaja bien), Tauri `ubuntu/macos` SUCCESS, Tauri `windows` FAILURE en step "Tauri build".
@@ -964,3 +972,10 @@
 - **Fixes genuinos aplicados**: `_resolve_funnel()` (KeyError→UNKNOWN); niche mapping a taxonomía bounty (sin esto el path universal jamás matcheaba historia); `_to_evidence_label()` (strings LOW/MEDIUM/HIGH→ValueError→UNKNOWN siempre); `is_high_confidence_90`/`rank_cross_category` como métodos con resolución.
 - **Evidencia**: 21 wiring+adversarial + 203 afectadas + fast 100/1; ruff 0 nuevos; `import api.main` OK.
 - **Regla permanente**: ningún ranking default lee stores globales; la evidencia personal entra por profile (in-memory, testeable) o por callers explícitos con stores inyectables.
+
+## 2026-09-10: MOBILE GAP — 3 reasoners sin tocar lógica viva
+
+- **Problema**: reasoners solo web (IDOR/XSS/SQLi/SSRF/AuthBypass); cero validadores mobile pese a que `mobile_development` es categoría y `VulnType` no tenía tipos mobile.
+- **Decisión**: 3 reasoners NUEVOS con el patrón IDOR verbatim (signals→confidence→Hypothesis completa + helpers), alcance honesto documentado (superficie API del backend mobile, NO binario). `VulnType` ×3 + scorer maps extendidos (todos con `.get()`+defaults, verificados). Planner intacto (fallback genérico). Engine 5→8.
+- **Evidencia**: 17/17 mobile + 101 offensive (conteo pineado 8) + fast 100/1; ruff 0 nuevos.
+- **Regla permanente**: nuevo vuln-type = reasoner + VulnType + scorer entries + tests positivo/negativo; jamás asumir planner dedicado (el fallback genérico es el contrato).
