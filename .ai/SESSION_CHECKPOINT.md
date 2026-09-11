@@ -1,6 +1,6 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN CERRADA 2026-09-09: 100/100 BLOQUE 0+1 — score 83→87 (todo ganado con evidencia) + loop autónomo, pusheados. Listo para instalar en Windows mañana. Ver `.ai/CURRENT_STATE.md` sesión "100/100 BLOQUE 1".
+> v7.1.0 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) cerrado + pusheado. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesión "UNIVERSAL FUNNEL WIRING".
 
 ## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)
 

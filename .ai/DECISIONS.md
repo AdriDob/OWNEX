@@ -956,3 +956,11 @@
 - **Arquitectura 70 SIN CAMBIO (decisión explícita)**: subirla exigía migraciones (Opportunity ×4, Ledger ×3, OAR 1-de-5, Identity ×6, borrado core/) que violan "cambios pequeños" la noche previa a install. El score queda honesto con unlock path documentado.
 - **Evidencia**: 203 passed afectadas · fast 100/1 · ruff · `import api.main` · vue-tsc 0 · biome 0 · `vite build` 12.64s.
 - **Regla permanente**: ningún score sube sin cambio verificable que lo respalde; techos estructurales se declaran, no se maquillan.
+
+## 2026-09-10: UNIVERSAL FUNNEL WIRING — P_ACCEPT universal NO entra al path default
+
+- **Problema**: cablear `UniversalProbabilityEngine` en `recommend()` rompió 4 tests deterministas (max_success, workbank cycle, evolution): el store global `data/learning/acceptance_outcomes.jsonl` (real, con historia) volvió rankings ambient-dependientes. La historia personal YA personaliza vía profile in-memory (`platform/category_success_rates`); el store global es una segunda fuente de la misma verdad.
+- **Decisión**: (1) funnel sí se stampea siempre (`funnel_for_category()` + `Opportunity.funnel/funnel_stage`); (2) P_ACCEPT calibrado SOLO para callers explícitos (`rank_cross_category`, `is_high_confidence_90`, futuro Mission Control); (3) el default path queda byte-idéntico (pineado por test de independencia ambient). Adopción global requiere diseño de aislamiento (conftest OWNEX_DATA_DIR→tmp o inyección de engine) — follow-up, no deuda oculta.
+- **Fixes genuinos aplicados**: `_resolve_funnel()` (KeyError→UNKNOWN); niche mapping a taxonomía bounty (sin esto el path universal jamás matcheaba historia); `_to_evidence_label()` (strings LOW/MEDIUM/HIGH→ValueError→UNKNOWN siempre); `is_high_confidence_90`/`rank_cross_category` como métodos con resolución.
+- **Evidencia**: 21 wiring+adversarial + 203 afectadas + fast 100/1; ruff 0 nuevos; `import api.main` OK.
+- **Regla permanente**: ningún ranking default lee stores globales; la evidencia personal entra por profile (in-memory, testeable) o por callers explícitos con stores inyectables.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass
 
@@ -358,7 +359,16 @@ class IntelligentRecommender:
         """Score opportunities and convert to RankedOpportunity."""
         ranked: list[RankedOpportunity] = []
 
+        try:
+            from cores.direct_work_engine.category_funnel import funnel_for_category
+        except Exception:
+            funnel_for_category = None  # type: ignore[assignment]
+
         for opp in opportunities:
+            # Stamp the category funnel (never overwrite an explicit value).
+            if not getattr(opp, "funnel", "") and funnel_for_category is not None:
+                with contextlib.suppress(Exception):
+                    opp.funnel = funnel_for_category(opp.category)
             # Ensure zero barrier score exists
             if opp.zero_barrier_score is None:
                 opp.zero_barrier_score = self.scorer.score(opp)
@@ -417,7 +427,17 @@ class IntelligentRecommender:
             ranked.payment_compat_notes.append("Evaluación de pago no disponible (motor no responde).")
 
     def _calculate_acceptance_probability(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
-        """Estimate probability of acceptance based on profile match."""
+        """Estimate probability of acceptance based on profile match.
+
+        NOTE (Phase 6 decision): the universal engine is NOT consulted on the
+        default path. Personal history already personalizes this heuristic via
+        the in-memory profile (platform/category success rates folded by
+        apply_learning), while the global learning store would make rankings
+        ambient-dependent and break deterministic tests. Explicit callers that
+        want calibrated estimates use UniversalProbabilityEngine directly
+        (see rank_cross_category / is_high_confidence_90). Adoption on the
+        default path is a follow-up requiring test-isolation design.
+        """
         opp = ranked.opportunity
         zb = ranked.zero_barrier_score
 

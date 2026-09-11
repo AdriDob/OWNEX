@@ -121,7 +121,12 @@ class UniversalProbabilityEngine:
             Dict mapping ProbabilityType -> ProbabilityEstimate with full metadata.
         """
         category = self._get_category(opportunity)
-        funnel = get_funnel(category)
+        funnel = self._resolve_funnel(category)
+        if funnel is None:
+            return {
+                pt: self._unknown_estimate(pt, f"no funnel for category {category!r}")
+                for pt in (probability_types or [ProbabilityType.P_ACCEPT])
+            }
 
         if probability_types is None:
             probability_types = list(funnel.probability_types)
@@ -146,7 +151,9 @@ class UniversalProbabilityEngine:
     def get_funnel_status(self, category: str | None = None) -> dict[str, Any]:
         """Get funnel summary for category or all."""
         if category:
-            funnel = get_funnel(category)
+            funnel = self._resolve_funnel(category)
+            if funnel is None:
+                return {"category": category, "error": "no funnel registered"}
             return funnel.summary()
         tracker = get_funnel_tracker()
         return tracker.summary()
@@ -162,15 +169,34 @@ class UniversalProbabilityEngine:
             return cat.value
         return str(cat).strip().lower().replace("opportunitycategory.", "")
 
+    @staticmethod
+    def _resolve_funnel(category: str) -> Any | None:
+        """Map a raw opportunity category onto a registered funnel.
+
+        Uses funnel_for_category() (OpportunityCategory -> funnel); falls back
+        to the raw value for direct funnel names. Returns None when unmapped —
+        callers must answer UNKNOWN, never invent.
+        """
+        from cores.direct_work_engine.category_funnel import funnel_for_category
+
+        mapped = funnel_for_category(category)
+        key = mapped or category
+        try:
+            return get_funnel(key)
+        except KeyError:
+            return None
+
     def _estimate_single(
         self,
         opportunity: Any,
         probability_type: ProbabilityType,
         category: str,
     ) -> ProbabilityEstimate:
-        """Estimate a single probability type for an opportunity."""
-        _ = get_funnel(category)  # validate funnel exists
+        """Estimate a single probability type for an opportunity.
 
+        The funnel was already resolved by estimate(); this method only routes
+        to the estimator. Category here is informational (segment granularity).
+        """
         # Route to appropriate estimator based on probability type
         if probability_type in (ProbabilityType.P_ACCEPT, ProbabilityType.P_ACCEPT):
             return self._estimate_acceptance(opportunity)
@@ -230,8 +256,10 @@ class UniversalProbabilityEngine:
     def _estimate_acceptance(self, opportunity: Any) -> ProbabilityEstimate:
         """Estimate P_ACCEPT using existing acceptance engine."""
         try:
+            from cores.direct_work_engine.reward_probability import niche_for_category
+
             est = self.acceptance_engine.estimate(
-                niche=self._get_category(opportunity),
+                niche=niche_for_category(self._get_category(opportunity)),
                 platform=self._get_platform(opportunity),
                 program=self._get_program(opportunity),
             )
@@ -239,15 +267,14 @@ class UniversalProbabilityEngine:
             logger.warning("acceptance estimate failed: %s", exc)
             return self._unknown_estimate(ProbabilityType.P_ACCEPT, str(exc))
 
+        label = _to_evidence_label(est.evidence_label)
         return ProbabilityEstimate(
             probability_type=ProbabilityType.P_ACCEPT,
             estimate=est.p_accept,
-            confidence=1.0
-            if est.evidence_label in (EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE)
-            else 0.5,
+            confidence=1.0 if label in (EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE) else 0.5,
             lower_bound=est.p_accept_lower,
             upper_bound=est.p_accept_upper,
-            evidence_label=EvidenceLabel(est.evidence_label),
+            evidence_label=label,
             effective_sample_size=est.n_outcomes,
             raw_sample_size=est.n_outcomes,
             prior_type=est.source,
@@ -261,18 +288,21 @@ class UniversalProbabilityEngine:
     def _estimate_reward(self, opportunity: Any) -> ProbabilityEstimate:
         """Estimate P_REWARD using existing reward engine."""
         try:
+            from cores.direct_work_engine.reward_probability import niche_for_category
+
             est = self.reward_engine.estimate(
-                niche=self._get_category(opportunity),
+                niche=niche_for_category(self._get_category(opportunity)),
                 platform=self._get_platform(opportunity),
                 vuln_class=self._get_vuln_class(opportunity),
             )
+            label = _to_evidence_label(est.evidence_label)
             return ProbabilityEstimate(
                 probability_type=ProbabilityType.P_REWARD,
                 estimate=est.p_reward,
-                confidence=1.0 if est.evidence_label in ("SUFFICIENT_EVIDENCE", "HIGH_EVIDENCE") else 0.5,
+                confidence=1.0 if label in (EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE) else 0.5,
                 lower_bound=0.0,
                 upper_bound=1.0,
-                evidence_label=EvidenceLabel(est.evidence_label),
+                evidence_label=label,
                 effective_sample_size=est.n_outcomes,
                 raw_sample_size=est.n_outcomes,
                 prior_type=est.source,
@@ -333,6 +363,108 @@ class UniversalProbabilityEngine:
     def _record_universal_outcome(self, record: Any) -> None:
         """Record universal outcome for cross-category learning."""
         pass
+
+    # ─── HIGH_CONFIDENCE_90 + cross-category ranking ───
+
+    def is_high_confidence_90(self, opportunity: Any, category: str | None = None) -> bool:
+        """Check whether an opportunity meets HIGH_CONFIDENCE_90 for its funnel.
+
+        Resolves raw opportunity categories onto funnel names first; unknown
+        funnels answer False (never invent confidence).
+        """
+        raw = category or self._get_category(opportunity)
+        funnel = self._resolve_funnel(raw)
+        if funnel is None:
+            return False
+        threshold = HIGH_CONFIDENCE_90_THRESHOLDS.get(funnel.category)
+        if not threshold:
+            return False
+        prob_type = threshold["prob_type"]
+        est = self._estimate_single(opportunity, prob_type, raw)
+        if est.lower_bound < threshold["lower_bound_threshold"]:
+            return False
+        if est.evidence_label not in threshold["required_evidence"]:
+            return False
+        if est.raw_sample_size < threshold["min_raw_n"]:
+            return False
+        return est.effective_sample_size >= threshold["min_effective_n"]
+
+    def rank_cross_category(
+        self,
+        opportunities: list[Any],
+        mode: str = "BALANCED",
+    ) -> list[dict[str, Any]]:
+        """Rank opportunities from ANY categories without destroying funnel semantics.
+
+        Each opportunity is scored on its own funnel (P_SUCCESS = product of its
+        funnel probabilities); modes only change the ORDER, never the numbers.
+        Modes: BALANCED | HIGH_CONFIDENCE | HIGH_UPSIDE | FAST_INCOME |
+        HIGH_UPSIDE_90D | MAX_SUCCESS.
+        """
+        ranked: list[dict[str, Any]] = []
+        for opp in opportunities:
+            raw = self._get_category(opp)
+            funnel = self._resolve_funnel(raw)
+            if funnel is None:
+                estimates: dict[Any, Any] = {}
+                p_success = 0.0
+                funnel_name = ""
+            else:
+                funnel_name = funnel.category
+                estimates = self.estimate(opp)
+                p_success = 1.0
+                for pt in funnel.probability_types:
+                    est = estimates.get(pt)
+                    p_success *= est.estimate if est is not None else 0.5
+            ev_hour = self._ev_per_hour(opp)
+            ranked.append(
+                {
+                    "opportunity": opp,
+                    "category": raw,
+                    "funnel": funnel_name,
+                    "p_success": round(p_success, 4),
+                    "ev_per_hour": ev_hour,
+                    "time_to_money_days": self._estimate_time_to_money(opp),
+                    "is_high_confidence_90": self.is_high_confidence_90(opp) if funnel_name else False,
+                    "estimates": estimates,
+                }
+            )
+        if mode == "HIGH_CONFIDENCE":
+            ranked.sort(key=lambda r: (not r["is_high_confidence_90"], -(r["ev_per_hour"] or 0.0)))
+        elif mode == "HIGH_UPSIDE":
+            ranked.sort(key=lambda r: -(r["ev_per_hour"] or 0.0))
+        elif mode == "FAST_INCOME":
+            ranked.sort(
+                key=lambda r: (
+                    (r["time_to_money_days"] is None, r["time_to_money_days"] or 0.0),
+                    -(r["ev_per_hour"] or 0.0),
+                )
+            )
+        elif mode == "MAX_SUCCESS":
+            ranked.sort(key=lambda r: -r["p_success"])
+        else:  # BALANCED + HIGH_UPSIDE_90D: EV/hour weighted by success
+            ranked.sort(key=lambda r: -((r["ev_per_hour"] or 0.0) * r["p_success"]))
+        return ranked
+
+    @staticmethod
+    def _ev_per_hour(opp: Any) -> float | None:
+        reward = getattr(opp, "payment", None) or getattr(opp, "amount", None) or 0.0
+        hours = getattr(opp, "estimated_human_hours", None) or getattr(opp, "estimated_time_hours", None) or 0.0
+        try:
+            reward_f, hours_f = float(reward), float(hours)
+        except (TypeError, ValueError):
+            return None
+        if hours_f <= 0:
+            return None
+        return round(reward_f / hours_f, 2)
+
+    @staticmethod
+    def _estimate_time_to_money(opp: Any) -> float | None:
+        days = getattr(opp, "time_to_payout_days", None)
+        try:
+            return float(days) if days is not None else None
+        except (TypeError, ValueError):
+            return None
 
     def _get_platform(self, opportunity: Any) -> str:
         """Extract platform from opportunity object."""
@@ -410,6 +542,35 @@ HIGH_CONFIDENCE_90_THRESHOLDS: dict[str, dict[str, Any]] = {
         "required_evidence": [EvidenceLabel.SUFFICIENT_EVIDENCE, EvidenceLabel.HIGH_EVIDENCE],
     },
 }
+
+
+# ────────────────────────────────────────────────────────────────
+# Label mapping (engine strings -> contract enum)
+# ────────────────────────────────────────────────────────────────
+
+_ENGINE_LABEL_TO_EVIDENCE: dict[str, EvidenceLabel] = {
+    "NO_EVIDENCE": EvidenceLabel.NO_EVIDENCE,
+    "THIN_EVIDENCE": EvidenceLabel.THIN_EVIDENCE,
+    "LOW": EvidenceLabel.SUFFICIENT_EVIDENCE,
+    "MEDIUM": EvidenceLabel.SUFFICIENT_EVIDENCE,
+    "HIGH": EvidenceLabel.HIGH_EVIDENCE,
+    "VERY_HIGH": EvidenceLabel.HIGH_EVIDENCE,
+    "none": EvidenceLabel.NO_EVIDENCE,
+    "low": EvidenceLabel.SUFFICIENT_EVIDENCE,
+    "medium": EvidenceLabel.SUFFICIENT_EVIDENCE,
+    "high": EvidenceLabel.HIGH_EVIDENCE,
+    "very_high": EvidenceLabel.HIGH_EVIDENCE,
+}
+
+
+def _to_evidence_label(value: object) -> EvidenceLabel:
+    """Map legacy engine evidence strings onto the contract enum.
+
+    Unknown values answer NO_EVIDENCE (never invent confidence).
+    """
+    if isinstance(value, EvidenceLabel):
+        return value
+    return _ENGINE_LABEL_TO_EVIDENCE.get(str(value), EvidenceLabel.NO_EVIDENCE)
 
 
 # ────────────────────────────────────────────────────────────────

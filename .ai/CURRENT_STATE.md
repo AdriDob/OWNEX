@@ -1,3 +1,25 @@
+## Sesión 2026-09-10 — UNIVERSAL FUNNEL WIRING (Phase 6-9): funnels al modelo, ranking cross-category en daily-brief, adversarial
+
+> **QUÉ SE HIZO:** Cierre Phase 6–9 del programa universal-probability. Audit-first: contract + funnels + engine + calibration + evidence YA existían; solo se cableó lo genuinamente suelto.
+> - **Phase 6 (funnel wiring)**: `funnel_for_category()` NUEVO en `category_funnel.py` (OpportunityCategory→funnel vía `CATEGORY_TO_STREAM` SSOT; TECH_CONTENT→client_work documentado; desconocido→"" jamás inventa) + campos `funnel/funnel_stage/probability_type` en `Opportunity` + stamp en `recommender._score_opportunities` (nunca sobrescribe explícito). **Decisión documentada**: P_ACCEPT universal NO entra al path default de `recommend()` — la historia personal ya personaliza vía profile in-memory, y el store global volvería rankings ambient-dependientes (rompió 4 tests deterministas con `data/learning` real; revertido con test que pinea la independencia). Calibrado solo para callers explícitos.
+> - **Fixes genuinos en universal_probability**: `_resolve_funnel()` (categorías crudas como "backend" ya no lanzan KeyError → UNKNOWN honesto) + mapeo de niches a taxonomía bounty + `_to_evidence_label()` (los strings LOW/MEDIUM/HIGH del engine se traducían a ValueError→UNKNOWN siempre; el path universal jamás se habría activado) + `is_high_confidence_90`/`rank_cross_category` restaurados como métodos con resolución de funnel.
+> - **Phase 7 (evidence, verificado sin código)**: `UniversalEvidenceEngine` rutea por categoría y evalúa honestamente (smoke: sin historia → NEEDS_EVIDENCE, no infla). Sin callers en hot paths por la misma razón de determinismo — documentado.
+> - **Phase 8 (UX)**: `GET /api/daily-brief` gana bloque aditivo `ranked_cross_category` (mismas oportunidades, vista funnel: funnel/p_success/ev_per_hour/is_high_confidence_90). Sin cambio en `actions`.
+> - **Phase 9 (adversarial)**: `tests/test_probability_adversarial.py` 10/10 (1/1 jamás 90%, reward no infla P, store corrupto→neutral, missing→neutral, 5/5 conflictivo→moderado con CI ancho, funnel desconocido→KeyError no invento, historia vacía→PRIOR_EXTERNO).
+> - **Verificación**: 21 wiring+adversarial + 203 afectadas + fast 100/1; ruff 0 nuevos (F821 models:642 + F841 recommendation:712 preexistentes); `import api.main` OK.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, WIP ajeno del árbol.
+> - **Siguiente**: validación física Windows W1–W12 → veredicto STABLE (línea RC sin cambios).
+
+## Sesión 2026-09-10 — SECURE INCOME: P(CASH) + modos secure_income/secure_plus_upside
+
+> **QUÉ SE HIZO:** Cambio de objetivo del owner (máxima P(cobrar), no máximo EV posible). Audit-first: modos balanced/fast_income/max_success/max_income/high_upside/high_confidence existían pero ninguno priorizaba cobrar; P(CASH) no existía; repeatable + tiers mensuales sí existían como base.
+> - **P(CASH)** (`cores/direct_work_engine/economics.py::compute_p_cash`, PCASH-V1): producto de stages; None/fuera-de-rango/vacío → UNKNOWN, jamás inventa; bandas HIGH ≥0.80/MEDIUM ≥0.50/LOW.
+> - **Wiring recommender**: `p_cash = acceptance × payment_compat/100` + campos aditivos `RankedOpportunity.p_cash/p_cash_band` + línea P(CASH) en reasoning + `p_cash/p_cash_band` en `POST /direct-work/recommend`.
+> - **Presets**: `secure_income` (accept .35/speed .25, floor 0.50, diversidad 2/3 → bug bounty solo como upside) y `secure_plus_upside` (accept .30/EV .25, piso 0.30, floor OFF → modo normal). Docs endpoint + exports.
+> - **Verificación**: `tests/test_secure_income.py` 10/10; regresión 109 + 64; fast 100/1; `import api.main` OK; ruff 0 nuevos (40 preexistentes).
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`. Follow-ups: splitter por horas + `P(monthly ≥ $X)` desde outcomes reales.
+> - **Siguiente**: validación física Windows W1–W12 → veredicto STABLE (línea RC sin cambios).
+
 ## Sesión 2026-09-09 — BLOQUE 0 (100/100 plan): 6 integrity fixes + verificación
 
 > **QUÉ SE HIZO:** Ejecución BLOQUE 0 con decisiones selladas (HUMAN GATE obligatorio, AUTO-SUBMIT desactivado, SIGNING ready/unsigned, validación Windows obligatoria, baseline 1h/día).

@@ -498,6 +498,12 @@ class Opportunity:
     compatibility: float = 0.5
 
     accepts_beginner: bool = True
+
+    # Universal Probability Contract fields (Phase 0-5). funnel is stamped
+    # from category via funnel_for_category() — empty means "not classified yet".
+    funnel: str = ""  # bug_bounty, dev_bounty, ai_training, client_work, employment, investment
+    funnel_stage: str = "DISCOVERED"  # current stage in category funnel
+    probability_type: str = "p_accept"  # which ProbabilityType is the decisive one
     accepts_freelancers: bool = True
     accepts_individuals: bool = True
     accepts_ai_tools: bool = True

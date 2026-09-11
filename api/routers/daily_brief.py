@@ -65,6 +65,7 @@ async def daily_brief() -> dict[str, Any]:
     completed_today: list[dict[str, Any]] = []
 
     # 1. Get recommendations from Direct Work Engine
+    ranked: list[Any] = []
     try:
         from cores.direct_work_engine.models import UserProfile
 
@@ -110,6 +111,32 @@ async def daily_brief() -> dict[str, Any]:
                     )
     except Exception as exc:
         logger.debug("Daily brief opportunity scan failed: %s", exc)
+
+    # 1b. Cross-category lens (additive, never alters `actions`): the same
+    # opportunities re-ranked through registered funnels with honest
+    # P_SUCCESS (product of funnel probabilities) + HIGH_CONFIDENCE_90 flags.
+    ranked_cross_category: list[dict[str, Any]] = []
+    try:
+        from cores.direct_work_engine.universal_probability import get_universal_probability_engine
+
+        ueng = get_universal_probability_engine()
+        opps_only = [r.opportunity if hasattr(r, "opportunity") else r for r in ranked[:10]]
+        for entry in ueng.rank_cross_category(opps_only, mode="BALANCED"):
+            o = entry["opportunity"]
+            ranked_cross_category.append(
+                {
+                    "id": getattr(o, "id", "unknown"),
+                    "title": getattr(o, "title", "Untitled"),
+                    "category": entry["category"],
+                    "funnel": entry["funnel"],
+                    "p_success": entry["p_success"],
+                    "ev_per_hour": entry["ev_per_hour"],
+                    "time_to_money_days": entry["time_to_money_days"],
+                    "is_high_confidence_90": entry["is_high_confidence_90"],
+                }
+            )
+    except Exception as exc:
+        logger.debug("Daily brief cross-category lens failed: %s", exc)
 
     # 2. Get work bank items ready for delivery
     try:
@@ -174,6 +201,7 @@ async def daily_brief() -> dict[str, Any]:
 
     return {
         "actions": actions,
+        "ranked_cross_category": ranked_cross_category,
         "blocked": blocked,
         "completed_today": completed_today,
         "summary": {
