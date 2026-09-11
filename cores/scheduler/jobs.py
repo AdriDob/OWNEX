@@ -610,6 +610,19 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "descubrimiento y scoring de traders candidatos",
             },
         ),
+        # ── MEMECOIN PAPER LOOP (DRY-RUN, kill-switch gated) ─────────────────
+        _cron_job(
+            job_id="trading_memecoin_paper",
+            app_id="trading",
+            handler="cores.trading.paper.memecoin_paper:run_memecoin_paper_cycle",
+            cron="*/15 * * * *",
+            args=[],
+            metadata={
+                "cycle": "trading",
+                "type": "paper",
+                "desc": "paper loop memecoins cada 15m (scan+filtros+exits, sin fondos)",
+            },
+        ),
         # ── AUTO-BACKTEST PIPELINE (8 phases from contracts) ───────────────
         # Phase 1: Basic backtest (walk-forward)
         _cron_job(

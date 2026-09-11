@@ -257,11 +257,11 @@ def build_default_registry(config: dict[str, Any] | None = None) -> InvestmentAd
         enabled=True,
     )
 
-    # Scanners
+    # Scanners (memecoin via the real MemecoinAdapter — no phantom modules)
     registry.register_adapter(
-        "memecoin_scanner",
-        "cores.investment.adapters.memecoin_scanner_adapter.MemecoinScannerAdapter",
-        config=config.get("memecoin_scanner", {}) if config else {},
+        "memecoin",
+        "cores.investment.adapters.memecoin_adapter.MemecoinAdapter",
+        config=config.get("memecoin", {}) if config else {},
         enabled=True,
     )
 
