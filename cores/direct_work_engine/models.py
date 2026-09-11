@@ -55,6 +55,7 @@ class OpportunityCategory(StrEnum):
     CODE_REVIEW = "code_review"
     GAME_DEVELOPMENT = "game_development"
     COMPETITIONS = "competitions"
+    EMPLOYMENT = "employment"
 
 
 class GameDevSpecialization(StrEnum):
@@ -302,6 +303,9 @@ class WorkPlatform(StrEnum):
     OPYRE_MICROTASK = "opyre_microtask"
     COMPANY_WEBSITE = "company_website"
     CODE4RENA = "code4rena"
+    ZONAJOBS = "zonajobs"
+    BUMERAN = "bumeran"
+    COMPUTRABAJO = "computrabajo"
     OTHER = "other"
 
 
@@ -564,6 +568,11 @@ class Opportunity:
     acceptance_probability: float = 0.0
     acceptance_confidence: str = "NONE"  # NONE|LOW|MEDIUM|HIGH|VERY_HIGH
     acceptance_sample_size: int = 0  # personal outcomes for this segment
+
+    # ── Observed competition facts (additive, PUBLIC WORK) ──
+    # {"active_claims": int, "source": str, "observed_at": str|None}.
+    # None = not observed (UNKNOWN) — never invent, never default to 0.
+    observed_claims: dict | None = None
 
     # ── Derived entry-model facts (single definition point) ──
 

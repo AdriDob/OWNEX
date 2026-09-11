@@ -67,9 +67,13 @@ def funnel_for_category(category: object) -> str:
     if not STREAM_TO_FUNNEL:
         STREAM_TO_FUNNEL = _stream_to_funnel_map()
     key = getattr(category, "value", category)
-    # Direct hit: caller already holds a WorkStream value.
+    # Direct hit: caller already holds a WorkStream value or a funnel name.
     if isinstance(key, str) and key in STREAM_TO_FUNNEL:
         return STREAM_TO_FUNNEL[key]
+    # Employment has no WorkStream (it's hired labor, not a work stream):
+    # it maps straight onto the employment funnel.
+    if key == "employment":
+        return "employment"
     for cat, stream in CATEGORY_TO_STREAM.items():
         if getattr(cat, "value", cat) == key:
             stream_val = getattr(stream, "value", stream)

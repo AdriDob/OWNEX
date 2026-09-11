@@ -103,12 +103,21 @@ def get_adapter_registry() -> AdapterRegistry:
 def _seed_defaults(registry: AdapterRegistry) -> None:
     """Register built-in adapters (lazy import to avoid circular deps)."""
     # Security adapters (Rastro)
+    # NOTE: cores/opportunity/adapters/security.py (legacy SecurityAdapter/
+    # AegisAdapter) is shadowed by the security/ package of the same name, so
+    # it is loaded from its file path explicitly instead of by module import.
     try:
-        from cores.opportunity.adapters.security import SecurityAdapter
+        import importlib.util
+        from pathlib import Path
 
-        registry.register("rastro", SecurityAdapter)
-        registry.register("aegis", SecurityAdapter)
-    except ImportError:
+        _legacy_path = Path(__file__).with_name("security.py")
+        _spec = importlib.util.spec_from_file_location("cores.opportunity.adapters.security_legacy", _legacy_path)
+        if _spec is not None and _spec.loader is not None:
+            _legacy_mod = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_legacy_mod)
+            registry.register("rastro", _legacy_mod.SecurityAdapter)
+            registry.register("aegis", _legacy_mod.AegisAdapter)
+    except (ImportError, AttributeError, OSError):
         pass
 
     # Forge adapters (Dev Bounty)
@@ -164,6 +173,20 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
         registry.register("freelancer", FreelancerAdapter)
         registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
+    except ImportError:
+        pass
+
+    # AR job boards (read-only discovery, manual apply — backup income)
+    try:
+        from cores.opportunity.adapters.ar_jobs import (
+            BumeranAdapter,
+            ComputrabajoAdapter,
+            ZonaJobsAdapter,
+        )
+
+        registry.register("zonajobs", ZonaJobsAdapter)
+        registry.register("bumeran", BumeranAdapter)
+        registry.register("computrabajo", ComputrabajoAdapter)
     except ImportError:
         pass
 

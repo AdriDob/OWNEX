@@ -86,6 +86,38 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             else (EntryMechanism.REGISTRATION if self._registration_required else EntryMechanism.DIRECT)
         )
 
+        # Metadata-driven overrides (e.g. AR job boards): lets adapters declare
+        # modality/zone/region/interview honestly without touching this converter.
+        # Absent keys keep legacy behavior byte-identical.
+        meta = getattr(raw, "metadata", None) or {}
+        if not isinstance(meta, dict):
+            meta = {}
+        from cores.direct_work_engine.models import Modality
+
+        modality_raw = str(meta.get("modality", "") or "").strip().lower()
+        try:
+            modality = Modality(modality_raw) if modality_raw else Modality.REMOTO
+        except ValueError:
+            modality = Modality.REMOTO
+        is_remote = modality == Modality.REMOTO
+        interview_required = bool(meta.get("interview_required", False)) or (
+            bool(self._curated_barriers[1]) if self._curated_barriers and len(self._curated_barriers) > 1 else False
+        )
+
+        def _meta_float(key: str) -> float | None:
+            try:
+                val = meta.get(key)
+                return float(val) if val is not None else None
+            except (TypeError, ValueError):
+                return None
+
+        def _meta_countries() -> tuple[str, ...]:
+            raw_countries = meta.get("allowed_countries") or ()
+            try:
+                return tuple(str(c) for c in raw_countries if str(c).strip())
+            except TypeError:
+                return ()
+
         return Opportunity(
             id=str(getattr(raw, "id", "")),
             title=str(getattr(raw, "name", "") or self.source.name),
@@ -93,7 +125,13 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             category=self._category,
             url=getattr(raw, "url", "") or "",
             description=str(getattr(raw, "description", "") or ""),
-            remote=True,
+            remote=is_remote,
+            modality=modality,
+            zone=str(meta.get("zone", "") or ""),
+            commute_minutes=_meta_float("commute_minutes"),
+            region=str(meta.get("region", "") or ""),
+            allowed_countries=_meta_countries(),
+            vpn_required=bool(meta.get("vpn_required", False)),
             payment=float(getattr(raw, "reward", 0.0) or 0.0),
             currency="USD",
             payment_method=self._payment_method,
@@ -102,7 +140,7 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             estimated_time_hours=effort,
             experience_required=ExperienceLevel.NONE,
             portfolio_required=bool(self._curated_barriers[0]) if self._curated_barriers else False,
-            interview_required=bool(self._curated_barriers[1]) if self._curated_barriers else False,
+            interview_required=interview_required,
             technical_test_required=technical_test,
             registration_required=self._registration_required,
             time_to_payout_days=(
@@ -241,6 +279,34 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         adapters.append(FiverrDweAdapter())
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build fiverr adapter: %s", exc)
+
+    # AR job boards — backup income (presencial CABA/Zona Sur). Read-only
+    # discovery, manual apply; region filter keeps them out unless asked.
+    try:
+        from cores.opportunity.adapters.ar_jobs import (
+            BumeranAdapter,
+            ComputrabajoAdapter,
+            ZonaJobsAdapter,
+        )
+
+        for _cls, _name, _platform in (
+            (ZonaJobsAdapter, "zonajobs", WorkPlatform.ZONAJOBS),
+            (BumeranAdapter, "bumeran", WorkPlatform.BUMERAN),
+            (ComputrabajoAdapter, "computrabajo", WorkPlatform.COMPUTRABAJO),
+        ):
+            adapters.append(
+                LegacyOpportunityDweAdapter(
+                    _cls(),
+                    name=_name,
+                    platform=_platform,
+                    category=OpportunityCategory.EMPLOYMENT,
+                    employment_type=EmploymentType.FULL_TIME,
+                    tier=3,
+                    analysis_cadence_hours=72,
+                )
+            )
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build AR job adapters: %s", exc)
 
     # Pulse cycle adapters (AI work — Outlier/Mindrift accept AR directly;
     # DataAnnotation/Remotasks removed: not available from Argentina)
