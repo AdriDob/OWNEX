@@ -2599,3 +2599,67 @@ export async function fetchEvolutionLearning(
     time_invested_hours: timeInvestedHours,
   })
 }
+
+// ── Mission Hub (L7+L9: economic mission + levels + workspaces) ──
+
+export interface HubMission {
+  target_usd: number
+  earned_usd: number
+  gap_usd: number
+  progress_pct: number
+  is_met: boolean
+  month: string
+  suggested_mix: Array<Record<string, unknown>>
+  disclaimer: string
+}
+
+export interface HubLevels {
+  level: number
+  title: string
+  total_xp: number
+  current_threshold: number
+  next_threshold: number | null
+  pct_to_next: number
+  events: Record<string, number>
+}
+
+export interface HubWorkspace {
+  id: string
+  name: string
+  type: string
+  role: string
+  policy: string
+  active: boolean
+  priority: number
+  goals: string[]
+  automation_policy: string
+  linked: { tasks: number; opportunities: number; revenue: number }
+}
+
+export interface HunterOverview {
+  mission: HubMission
+  levels: HubLevels
+  workspaces: HubWorkspace[]
+  next_action: string
+  target_usd: number
+}
+
+export async function fetchHunterOverview(targetUsd?: number): Promise<HunterOverview> {
+  const qs = targetUsd != null ? `?target_usd=${targetUsd}` : ''
+  return api.get<HunterOverview>(`/mission-hub/overview${qs}`)
+}
+
+export async function setHunterTarget(targetUsd: number): Promise<{ success: boolean; target_usd: number }> {
+  return api.post<{ success: boolean; target_usd: number }>('/mission-hub/target', { target_usd: targetUsd })
+}
+
+export async function setWorkspaceActive(
+  workspaceId: string,
+  active: boolean,
+): Promise<{ success: boolean; workspace_id: string; active: boolean }> {
+  const action = active ? 'activate' : 'deactivate'
+  return api.post<{ success: boolean; workspace_id: string; active: boolean }>(
+    `/mission-hub/workspaces/${encodeURIComponent(workspaceId)}/${action}`,
+    {},
+  )
+}

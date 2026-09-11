@@ -634,6 +634,10 @@ class UserProfile:
     projects: list[str] = field(default_factory=list)
     has_portfolio: bool = False
     async_preferred: bool = True
+    # L4 application gating (opt-in). Defaults True = legacy behavior unchanged:
+    # interviews / CV-portfolio steps are allowed unless the user opts out.
+    allow_interview: bool = True
+    allow_cv_portfolio: bool = True
     preferred_payment_methods: list[PaymentMethod] = field(default_factory=list)
     preferred_currencies: list[str] = field(default_factory=lambda: ["USD"])
     preferred_employment_types: list[EmploymentType] = field(default_factory=list)

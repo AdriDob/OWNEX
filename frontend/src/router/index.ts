@@ -249,6 +249,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'First Money' },
   },
   {
+    path: '/mission',
+    name: 'mission',
+    component: () => import('@/pages/Mission.vue'),
+    meta: { title: 'Mission' },
+  },
+  {
     path: '/operations/platforms/:platform?',
     name: 'platform-onboarding',
     component: () => import('@/pages/PlatformOnboarding.vue'),

@@ -725,6 +725,11 @@ from api.routers.first_money import router as first_money_router  # noqa: E402
 
 app.include_router(first_money_router)
 
+# Mission Hub router (hunter overview: mission + levels + workspaces)
+from api.routers.mission_hub import router as mission_hub_router  # noqa: E402
+
+app.include_router(mission_hub_router)
+
 # Wear OS router
 
 # Security Cycle router

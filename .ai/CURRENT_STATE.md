@@ -1,3 +1,10 @@
+## Sesión 2026-09-11 — LEVELS L1-L10: score, policies, gating, levels, mission hub
+
+> **QUÉ SE HIZO:** Auditoría previa (L3/L5/L5b/L6 existen y pasan; L5b con 4 fallas preexistentes) + construido lo ausente: `StrictFilter.score()` 0-100, `policies.py` (roles de renta), opt-in `allow_interview/allow_cv_portfolio`, `cores/levels.py` (XP verificado, 10 niveles), router `mission_hub` (overview/target/award/toggles), página `/mission` + sidebar.
+> - **Verificación**: 54 tests nuevos + DWE 135 + fast 100/1; ruff+format limpios; `vite build` 11.75s; 0 archivos ajenos tocados (staging quirúrgico por hunk).
+> - **No tocado**: `cores/workspaces/orchestrator.py` + `mission.py` (WIP ajeno), `trading/*`, `test_validation_engine`, `cognee`, `core/`.
+> - **Siguiente**: tag v7.1.12 (MSI con Mission) → instalar en Windows 11.
+
 ## Sesión 2026-09-11 — LIVE HUNT LOOP: caza real verificada en fixture autorizado
 
 > **QUÉ SE HIZO:** El pipeline ofensivo ahora ejecuta de punta a punta con HTTP real. `probe()` URL completa + probing por parámetro; `_detect_idor` ya no confirma cuerpos idénticos; `EvidenceBuilder` curl fiel + variante python; `OffensiveEngine.hunt_endpoint()` (analyze→probe→PoC→Finding persistido).

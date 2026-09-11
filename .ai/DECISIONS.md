@@ -1,3 +1,15 @@
+## 2026-09-11: LEVELS L1-L10 — score, policies, gating, levels, mission hub
+
+- **Auditoría previa**: L3 (region/zero_first), L5 (AR jobs), L5b (paper/kill-switch), L6 (microtask) y L7-orquestador ya existen (verificado con suites verdes; L5b con 4 fallas preexistentes en copy-trading verificadas por stash). Construido solo lo ausente, sin duplicar ni tocar WIP ajeno (`cores/workspaces/orchestrator.py` + `mission.py` sin commitear: leídos, no modificados).
+- **L1** (`filters.py`): `StrictFilter.score()` → `FilterScore` 0-100 (hard-reject ⇒ 0; deducciones fijas documentadas). `reject()` intacto.
+- **L2** (`cores/workspaces/policies.py` NUEVO): `IncomeRole` PRIMARY/UPSIDE/CORE/CAPITAL_ONLY/LAST_RESORT + `allowed_in_income_mix()` + `rank_for_mission()` + `explain()`. Trading jamás renta base; backup solo explícito.
+- **L4** (`models.py` + `recommendation.py`, aditivo): `UserProfile.allow_interview/allow_cv_portfolio` (default True = cero cambio) + gate en `_apply_profile_filter`. Technical test NO gatea (Zero Experience rule).
+- **L8** (`cores/levels.py` NUEVO): XP solo de outcomes verificados (7 eventos, `ValueError` si invento), ledger JSONL, niveles 1-10, `award/total_xp/level/history/summary` + singletons reseteables.
+- **L7+L9 backend** (`api/routers/mission_hub.py` NUEVO, montado en `main.py`): `GET /mission-hub/overview` (mission+levels+workspaces+next_action, nunca 500) + `POST /target|/award|/workspaces/{id}/activate|deactivate` (400/404 honestos, estado JSON persistido).
+- **L9 frontend** (`Mission.vue` NUEVA + ruta `/mission` + sidebar WORK + fetchers): mission card + niveles + workspaces con toggles. No se tocó `api/routers/hunter.py` (concepto distinto: stats bug bounty).
+- **Evidencia**: 54 tests nuevos (9+6+13+10+8+8) + regresión DWE 135 + fast 100/1; ruff+format limpios en tocados (40 errores models/recommendation preexistentes, conteo idéntico por stash); `vite build` 11.75s.
+- **Regla**: un workspace nuevo nace UPSIDE (opt-in); XP jamás por hipótesis/vistas; trading/backup fuera del mix por defecto.
+
 ## 2026-09-11: LIVE HUNT LOOP — reasoner→probe→Finding con HTTP real (fixture loopback)
 
 - **Problema**: audit con evidencia mostró que el loop ofensivo no cazaba: reasoners 100% estáticos (`test_instructions` en lenguaje natural, cero HTTP), `ProbeEngine.probe()` atacaba el host SIN el path (P0: `url=base_url`), `EvidenceBuilder` generaba curl desde headers de *respuesta* y dropeaba params GET, `loop_engine` no llamaba reasoners ni ProbeEngine, y ningún Verdict se persistía como Finding.

@@ -550,11 +550,15 @@ class IntelligentRecommender:
         """Apply profile preferences as hard filters before scoring.
 
         Excluded categories never surface. Rewards below the user's floor are
-        dropped. When no preference is set the profile is a no-op, so legacy
+        dropped. L4 application gating: opted-out interview/CV-portfolio steps
+        filter their opportunities (defaults opt-in = legacy no-op).
+        When no preference is set the profile is a no-op, so legacy
         callers keep their exact behavior.
         """
         excluded = {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories}
-        if not excluded and profile.min_payment <= 0.0:
+        allow_interview = getattr(profile, "allow_interview", True)
+        allow_cv = getattr(profile, "allow_cv_portfolio", True)
+        if not excluded and profile.min_payment <= 0.0 and allow_interview and allow_cv:
             return opportunities
 
         filtered: list[Opportunity] = []
@@ -563,6 +567,10 @@ class IntelligentRecommender:
             if cat_val in excluded:
                 continue
             if profile.min_payment > 0.0 and opp.payment < profile.min_payment:
+                continue
+            if not allow_interview and opp.interview_required:
+                continue
+            if not allow_cv and opp.portfolio_required:
                 continue
             filtered.append(opp)
         return filtered

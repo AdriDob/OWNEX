@@ -21,6 +21,7 @@ import {
   Settings,
   Shield,
   Sparkles,
+  Target,
   TrendingUp,
   Unlink,
 } from '@lucide/vue'
@@ -107,6 +108,7 @@ const navSections = [
     cycle: 'forge',
     items: [
       { name: 'Work Queue', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
+      { name: 'Mission', path: '/mission', icon: Target },
       { name: 'First Money', path: '/operations/first-money', icon: Banknote },
       { name: 'Platform Guides', path: '/operations/platforms', icon: GraduationCap },
       { name: 'Opportunities', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
