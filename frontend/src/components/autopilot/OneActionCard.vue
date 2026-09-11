@@ -153,6 +153,13 @@ const formatDays = (d: number | null | undefined): string => (d != null ? `${d}d
 
 const pct = (n: number | null | undefined): string => (n != null ? `${Math.round(n * 100)}%` : '—')
 
+const pcashBandColors: Record<string, string> = {
+  HIGH: 'bg-success/20 text-success border-success/30',
+  MEDIUM: 'bg-warning/20 text-warning border-warning/30',
+  LOW: 'bg-destructive/20 text-destructive border-destructive/30',
+  UNKNOWN: 'bg-muted/20 text-muted-foreground border-muted/30',
+}
+
 const formatExpiry = (dateStr: string | null | undefined): string => {
   if (!dateStr) return '—'
   try {
@@ -317,7 +324,7 @@ watch(
         </div>
 
         <!-- Economics Row -->
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-4">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-5 mb-4">
           <div class="rounded-lg border border-border/20 bg-surface/20 p-3 text-center">
             <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">EV TOTAL</p>
             <p class="mt-1 font-mono text-lg font-semibold tabular-nums text-success">{{ usd(action?.expected_value_usd) }}</p>
@@ -333,6 +340,10 @@ watch(
           <div class="rounded-lg border border-border/20 bg-surface/20 p-3 text-center">
             <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">A COBRO</p>
             <p class="mt-1 font-mono text-lg font-semibold tabular-nums">{{ formatDays(action?.cash_speed_days) }}</p>
+          </div>
+          <div class="rounded-lg border border-border/20 bg-surface/20 p-3 text-center">
+            <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">P(CASH)</p>
+            <p class="mt-1 font-mono text-lg font-semibold tabular-nums" :class="pcashBandColors[action?.p_cash_band] || 'text-primary'">{{ pct(action?.p_cash) }}</p>
           </div>
         </div>
 

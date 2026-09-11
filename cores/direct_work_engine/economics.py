@@ -324,6 +324,72 @@ def compute_htroi(
     )
 
 
+# ── P(CASH) — Fase SECURE (versioned, spec Secure Income) ──
+
+PCASH_FORMULA_VERSION = "PCASH-V1"
+
+
+@dataclass(frozen=True, slots=True)
+class CashConfidence:
+    """Probability that work actually turns into received money.
+
+    Product of the funnel stage probabilities the caller passes
+    (e.g. p_complete x p_accept x p_pay). Any unknown stage forces
+    UNKNOWN — the system admits it does not know instead of inventing
+    a chain link. Bands: HIGH >= 0.80, MEDIUM >= 0.50, else LOW.
+    """
+
+    p_cash: float | None
+    band: str  # HIGH | MEDIUM | LOW | UNKNOWN
+    formula_version: str
+    warnings: tuple[str, ...] = ()
+
+
+def compute_p_cash(stages: dict[str, float | None]) -> CashConfidence:
+    """Chain product of stage probabilities into P(CASH).
+
+    Empty dict or any None/out-of-range stage -> UNKNOWN (None),
+    never a guess. All-known stages multiply, clamped to [0, 1].
+    """
+    warnings: list[str] = []
+    if not stages:
+        return CashConfidence(
+            p_cash=None,
+            band="UNKNOWN",
+            formula_version=PCASH_FORMULA_VERSION,
+            warnings=("no stages provided -> P(CASH) UNKNOWN",),
+        )
+    missing = sorted(k for k, v in stages.items() if v is None)
+    if missing:
+        warnings.append(f"unknown stages ({', '.join(missing)}) -> P(CASH) UNKNOWN")
+        return CashConfidence(
+            p_cash=None,
+            band="UNKNOWN",
+            formula_version=PCASH_FORMULA_VERSION,
+            warnings=tuple(warnings),
+        )
+    product = 1.0
+    for key in sorted(stages):
+        value = stages[key]
+        assert value is not None  # narrowed above; keeps mypy honest
+        if not 0.0 <= float(value) <= 1.0:
+            return CashConfidence(
+                p_cash=None,
+                band="UNKNOWN",
+                formula_version=PCASH_FORMULA_VERSION,
+                warnings=(f"stage {key}={value} out of [0,1] -> P(CASH) UNKNOWN",),
+            )
+        product *= float(value)
+    product = round(min(max(product, 0.0), 1.0), 4)
+    band = "HIGH" if product >= 0.80 else ("MEDIUM" if product >= 0.50 else "LOW")
+    return CashConfidence(
+        p_cash=product,
+        band=band,
+        formula_version=PCASH_FORMULA_VERSION,
+        warnings=tuple(warnings),
+    )
+
+
 # ── Confidence Engine — Fase E (versioned, spec Income Multiplier §26) ──
 
 CONFIDENCE_FORMULA_VERSION = "CONF-V1"

@@ -56,6 +56,8 @@ from cores.direct_work_engine.recommendation import (
     DEFAULT_RECOMMENDER_CONFIG,
     FAST_INCOME_RECOMMENDER_CONFIG,
     MAX_SUCCESS_RECOMMENDER_CONFIG,
+    SECURE_INCOME_RECOMMENDER_CONFIG,
+    SECURE_PLUS_UPSIDE_RECOMMENDER_CONFIG,
     IntelligentRecommender,
     RecommenderConfig,
 )
@@ -92,6 +94,8 @@ __all__ = [
     "LearningResult",
     "LostOpportunityLesson",
     "MAX_SUCCESS_RECOMMENDER_CONFIG",
+    "SECURE_INCOME_RECOMMENDER_CONFIG",
+    "SECURE_PLUS_UPSIDE_RECOMMENDER_CONFIG",
     "Opportunity",
     "OpportunityCategory",
     "PAYMENT_RELIABILITY",
