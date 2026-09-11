@@ -53,6 +53,7 @@
 - **v7.1.7**: WebView2 fix con exit code 14024835 (ya instalado).
 - **v7.1.8**: limpieza explícita de artefactos NSIS huérfanos pre-checksum.
 - **v7.1.9**: WebView2 via bootstrapper directo (evita cancelaciones de winget).
+- **v7.1.11** (run 34619411295): live hunt loop en el bundle. Windows sidecar+Tauri SUCCESS; MSI 138MB sha `76383c5e…` verificado por descarga (solo MSI, sin NSIS). Ubuntu Tauri lento pero irrelevante para el deliverable.
 - **Verde definitivo v7.1.9** (run 34428234952, 34m): 6/6 jobs SUCCESS. Artefacto limpio `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `.sha256` (sin NSIS). MSI único para instalar en Windows 11.
 - **v7.1.10** (run 34611051840, 6/6 SUCCESS): milestone tracker $100→$10k + aggressive plan $5k/$10k EOY + HIGH_UPSIDE_90D viajan en el bundle (frontend rebuilt en CI). MSI 138MB, sha256 verificado `3d03d10f…` (match descarga). Sin restos NSIS (wipe pre-build funciona).
 - **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
