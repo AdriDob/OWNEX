@@ -1,3 +1,31 @@
+## Sesión 2026-09-11 — LIVE HUNT LOOP: caza real verificada en fixture autorizado
+
+> **QUÉ SE HIZO:** El pipeline ofensivo ahora ejecuta de punta a punta con HTTP real. `probe()` URL completa + probing por parámetro; `_detect_idor` ya no confirma cuerpos idénticos; `EvidenceBuilder` curl fiel + variante python; `OffensiveEngine.hunt_endpoint()` (analyze→probe→PoC→Finding persistido).
+> - **Verificación**: `tests/test_live_probe_loop.py` 10/10 (fixture loopback stdlib con IDOR/XSS/SQLi/auth-bypass/SSRF intencionales; IDOR/XSS/SQLi confirmados y persistidos con PoC ejecutable; regresión P0 path; 252 regresión + fast 100/1; ruff+format limpios; 11 fallas `test_validation_engine` preexistentes verificadas por stash).
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, territory concurrente. Solo loopback/propio/scope.
+> - **Siguiente**: tag v7.1.11 (sidecar+frontend en MSI) → instalar en Windows 11.
+
+## Sesión 2026-09-11 — PUBLIC WORK: escalera ETAPA 0→EXPERT + claims observados + /public-work
+
+> **QUÉ SE HIZO:** La rampa que pedía el owner (sin experiencia → PR merged → bounty → reputación). `public_work.py` NUEVO (classifier + labels ES + validation blocks, ETAPA 0 para payment≤0); `active_claims` observado en `competition_intel.py` (+ campo `Opportunity.observed_claims`, UNKNOWN por defecto); página `/public-work` + ruta + sidebar (consume `/recommend`, top-3 por peldaño, sin motor nuevo); `public_work` aditivo en `_ranked_to_dict`.
+> - **Verificación**: 15/15 nuevos; contrato verificado en los 8 modos; 195 regresión + fast 100/1; `vite build` OK; vue-tsc 0; ruff limpio.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, `AlgoraExecutor`, scrapers. Claim = Human Gate.
+> - **Siguiente**: key Pexels/Coverr → 1er Short EN end-to-end → crear canal YouTube.
+
+## Sesión 2026-09-11 — AVISO PENDIENTE SHORTS: ítem checklist + strip en IncomeHome
+
+> **QUÉ SE HIZO:** El bloqueo Pexels-key quedó como aviso visible en el sistema (pedido owner). Backend: detector `_detect_mpt_material_key()` (lee `pexels_api_keys`/`coverr_api_keys` de `config.toml` vía `MPT_CONFIG_PATH`, tomllib stdlib, nunca raisea) + ítem `mpt_material_key` (platforms p4, AUTO, 2 min, how-to exacto) en `cores/setup/checklist.py`. Front: `MptPendingStrip.vue` (solo visible mientras pendiente, link a /setup/checklist) montado en IncomeHome + `fetchSetupChecklistStatus()` en `ownexData.ts`.
+> - **Verificación**: checklist real 11 ítems, `mpt_material_key` pendiente (sin key); tests checklist 48/48 (catálogo 10→11, pct 10→9, mocks + 4 tests nuevos del detector); fast 100/1; `vite build` OK; vue-tsc 0; ruff limpio.
+> - **Comportamiento**: al pegar la key, el detector lo marca done solo y el strip desaparece sin tocar código.
+> - **Siguiente**: key Pexels/Coverr → 1er Short EN end-to-end → crear canal YouTube.
+
+## Sesión 2026-09-11 — MPT INTEGRADO: clone + preset viral EN $0 + cliente v1 verificado
+
+> **QUÉ SE HIZO:** El repo MPT no existía en el host y el cliente OWNEX apuntaba a una API legacy inexistente. Clone `~/projects/MoneyPrinterTurbo` (337M, fuera del repo) + venv 3.11 + `config.toml` viral (Ollama 3B, Edge en-US-GuyNeural, 9:16, :8081 por Open WebUI en :8080) + cliente remapeado a v1 real + `MPT_BASE_URL` env + CORS + semillas de contexto real en workspaces.
+> - **Verificación**: :8081 vivo, `GET /api/v1/tasks` 200, health OWNEX `healthy`, video E2E (guion 3B + TTS 32.7s + subs OK) bloqueado SOLO en `pexels_api_keys is not set` (key gratis, acción owner 2 min). `tests/test_mpt_client.py` 10/10; 95 DWE + fast 100/1; `vite build` OK; ruff 0 nuevos.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`. Publish DRAFT_ONLY hasta canal + credenciales.
+> - **Siguiente**: pegar key Pexels/Coverr → 1er Short EN end-to-end → crear canal YouTube.
+
 ## Sesión 2026-09-10 — MOBILE ON-DEVICE: validador frida/adb/objection con degradación honesta
 
 > **QUÉ SE HIZO:** Cierre de la brecha "test instructions dicen *verify pinning on-device* pero no hay tooling". Audit-first: cero tooling en repo/host (`which frida objection adb` vacío); patrón `shutil.which` ya existe (nuclei_adapter); WebView2 ya pineado+testeado (sin cambios).

@@ -11,6 +11,7 @@ Pipeline:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
@@ -251,6 +252,142 @@ class OffensiveEngine:
             result.hypotheses[0].acceptance_prediction.probability * 100 if result.hypotheses else 0,
         )
         return result
+
+    def hunt_endpoint(
+        self,
+        endpoint_data: dict[str, Any],
+        session: Any = None,
+        max_probes: int = 3,
+        min_confidence: float = 0.3,
+    ) -> dict[str, Any]:
+        """Analyze one endpoint, live-probe top hypotheses, persist confirmed findings.
+
+        Full offensive loop against an AUTHORIZED target only (loopback test
+        fixture, owned system, or in-scope bounty program):
+          analyze_endpoint → ProbeEngine.probe → EvidenceBuilder PoC →
+          Finding persisted → reasoner outcome recorded.
+
+        Args:
+            endpoint_data: same shape as analyze_endpoint (path, method,
+                params, host, target_id, ...). ``host`` is the origin used
+                for live requests (e.g. http://127.0.0.1:PORT).
+            session: SQLAlchemy session. When None a short-lived one is used.
+            max_probes: cap on hypotheses probed (highest confidence first).
+            min_confidence: skip hypotheses below this reasoner confidence.
+
+        Returns:
+            dict with hypotheses count, probe results and persisted finding ids.
+        """
+        from cores.offensive.probe.engine import ProbeEngine
+
+        result = self.analyze_endpoint(endpoint_data)
+        host = endpoint_data.get("host", "") or ""
+        probe_engine = ProbeEngine()
+
+        candidates = sorted(result.hypotheses, key=lambda h: h.confidence, reverse=True)[:max_probes]
+        probed: list[dict[str, Any]] = []
+        finding_ids: list[int] = []
+        own_session = False
+        db_session = session
+        try:
+            if db_session is None:
+                from database.db import SessionLocal
+
+                db_session = SessionLocal()
+                own_session = True
+            for hyp in candidates:
+                if hyp.confidence < min_confidence or not hyp.parameters_of_interest:
+                    continue
+                probe_result = probe_engine.probe(hyp, host=host)
+                entry: dict[str, Any] = {
+                    "hypothesis_id": hyp.id,
+                    "vulnerability_type": hyp.vulnerability_type,
+                    "confirmed": probe_result.confirmed,
+                    "confidence": round(probe_result.confidence, 2),
+                    "detection_method": probe_result.detection_method,
+                }
+                if probe_result.confirmed and probe_result.test_request is not None:
+                    poc = self._build_probe_poc(probe_result.test_request)
+                    finding_id = self._persist_finding(db_session, endpoint_data, hyp, probe_result, poc)
+                    if finding_id is not None:
+                        finding_ids.append(finding_id)
+                        entry["finding_id"] = finding_id
+                    entry["poc"] = poc
+                    self.record_outcome(hyp.vulnerability_type, hyp.id, True)
+                elif not probe_result.error:
+                    self.record_outcome(hyp.vulnerability_type, hyp.id, False)
+                probed.append(entry)
+        finally:
+            if own_session and db_session is not None:
+                with contextlib.suppress(Exception):
+                    db_session.close()
+        return {
+            "endpoint": endpoint_data.get("path", ""),
+            "hypotheses": len(result.hypotheses),
+            "probed": probed,
+            "finding_ids": finding_ids,
+        }
+
+    @staticmethod
+    def _build_probe_poc(test_request: Any) -> dict[str, str]:
+        """Executable PoC for a confirmed probe (curl + python)."""
+        from cores.validation.evidence_builder import EvidenceBuilder
+
+        try:
+            return EvidenceBuilder().build_poc_from_probe(test_request)
+        except Exception:
+            return {"curl_command": "", "python_command": ""}
+
+    @staticmethod
+    def _persist_finding(
+        db_session: Any, endpoint_data: dict[str, Any], hyp: Any, probe_result: Any, poc: dict[str, str]
+    ) -> int | None:
+        """Persist a confirmed probe as a Finding. Returns the id or None."""
+        import json as _json
+        from urllib.parse import urlparse
+
+        from database.models import Finding, Target
+
+        try:
+            host = endpoint_data.get("host", "") or ""
+            domain = urlparse(host).hostname or host or "loopback"
+            target = db_session.query(Target).filter(Target.domain == domain).first()
+            if target is None:
+                target = db_session.query(Target).filter(Target.name == domain).first()
+            if target is None:
+                target = Target(name=domain, domain=domain, active=True)
+                db_session.add(target)
+                db_session.flush()
+            evidence = {
+                "hypothesis_id": hyp.id,
+                "vulnerability_type": hyp.vulnerability_type,
+                "reasoner_confidence": round(hyp.confidence, 2),
+                "probe_confidence": round(probe_result.confidence, 2),
+                "detection_method": probe_result.detection_method,
+                "detection_details": probe_result.detection_details,
+                "false_positive_risk": probe_result.false_positive_risk,
+                "alternative_explanations": list(probe_result.alternative_explanations or []),
+                "vulnerable_param": probe_result.vulnerable_param,
+                "test_value": probe_result.test_value,
+                "poc": poc,
+            }
+            finding = Finding(
+                target_id=target.id,
+                title=(hyp.summary or f"{hyp.vulnerability_type} on {hyp.endpoint}")[:200],
+                severity=hyp.severity or "medium",
+                description=hyp.description or hyp.summary,
+                status="open",
+                vulnerability_type=hyp.vulnerability_type,
+                notes=_json.dumps(evidence)[:8000],
+            )
+            db_session.add(finding)
+            db_session.commit()
+            return finding.id  # type: ignore[return-value]
+        except Exception:
+            with contextlib.suppress(Exception):
+                db_session.rollback()
+            logger.exception("[HUNT] Failed to persist finding for %s", hyp.id)
+            return None
 
     def analyze_batch(self, endpoints: list[dict[str, Any]]) -> list[ReasonerResult]:
         """Analyze multiple endpoints with full relationship context (parallel)."""

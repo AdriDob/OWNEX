@@ -76,10 +76,13 @@ class ProbeEngine:
 
         try:
             test_value = test_value_override or _test_value_for(hypothesis.vulnerability_type)
-            base_url = host or _extract_host(hypothesis.endpoint)
-            vuln_param = hypothesis.parameters_of_interest[0] if hypothesis.parameters_of_interest else ""
+            # Resolve the FULL request URL: hypothesis.endpoint is usually just
+            # the path (reasoners set endpoint=path); host supplies scheme+netloc.
+            # Probing host-only silently tests "/" — the P0 that killed live hunts.
+            request_url = _resolve_request_url(hypothesis.endpoint, host)
+            params_of_interest = list(hypothesis.parameters_of_interest or [])
 
-            if not vuln_param:
+            if not params_of_interest:
                 result.error = "No parameters of interest to test"
                 result.completed_at = datetime.now(UTC).isoformat()
                 return result
@@ -90,14 +93,9 @@ class ProbeEngine:
                 all_headers.update(auth_headers)
             all_headers.setdefault("User-Agent", _USER_AGENT)
 
-            # Build test params: replace the vulnerable param with test value
-            test_params = dict(baseline_params or {})
-            for p in hypothesis.parameters_of_interest:
-                test_params[p] = test_value
-
-            # Build baseline params (normal values)
+            # Build baseline params (normal values for every param of interest)
             bl_params = dict(baseline_params or {})
-            for p in hypothesis.parameters_of_interest:
+            for p in params_of_interest:
                 if p not in bl_params:
                     bl_params[p] = _baseline_value_for(p)
 
@@ -107,46 +105,67 @@ class ProbeEngine:
                     client=client,
                     label="baseline",
                     method=method,
-                    url=base_url,
+                    url=request_url,
                     params=bl_params,
                     headers=all_headers,
-                    body=hypothesis.relationship_context.collection_endpoint or None,
+                    body=None,
                 )
                 result.evidence.append(bl_evidence)
-
-                # Step 2: Test request with malicious payload
-                test_evidence = self._send_request(
-                    client=client,
-                    label="test",
-                    method=method,
-                    url=base_url,
-                    params=test_params,
-                    headers=all_headers,
-                    body=hypothesis.relationship_context.collection_endpoint or None,
-                )
-                result.evidence.append(test_evidence)
-
-                # Step 3: Analyze for vulnerability
-                detection = _detect_vulnerability(
-                    hypothesis.vulnerability_type,
-                    bl_evidence.response,
-                    test_evidence.response,
-                    vuln_param,
-                    test_value,
-                    bl_params.get(vuln_param, ""),
-                )
-
-                result.confirmed = detection["confirmed"]
-                result.confidence = detection["confidence"]
-                result.detection_method = detection["method"]
-                result.detection_details = detection["details"]
-                result.false_positive_risk = detection["false_positive_risk"]
-                result.alternative_explanations = detection["alternative_explanations"]
-                result.test_value = test_value
-                result.vulnerable_param = vuln_param
-                result.test_request = test_evidence.request
                 result.baseline_response = bl_evidence.response
-                result.test_response = test_evidence.response
+
+                # Step 2: Test ONE parameter at a time. Mutating everything at
+                # once misattributes the finding (e.g. a path keyword like
+                # "user" gets credit for what query param "id" actually did)
+                # and produces PoCs a triager cannot trust. First param that
+                # triggers the detector wins.
+                best: dict[str, Any] = {
+                    "confirmed": False,
+                    "confidence": 0.0,
+                    "method": "",
+                    "details": "No parameter triggered the detector",
+                    "false_positive_risk": "low",
+                    "alternative_explanations": [],
+                }
+                best_param = ""
+                best_evidence = None
+                for p in params_of_interest:
+                    single_params = dict(bl_params)
+                    single_params[p] = test_value
+                    attempt = self._send_request(
+                        client=client,
+                        label=f"test:{p}",
+                        method=method,
+                        url=request_url,
+                        params=single_params,
+                        headers=all_headers,
+                        body=None,
+                    )
+                    result.evidence.append(attempt)
+                    detection = _detect_vulnerability(
+                        hypothesis.vulnerability_type,
+                        bl_evidence.response,
+                        attempt.response,
+                        p,
+                        test_value,
+                        bl_params.get(p, ""),
+                    )
+                    if detection["confirmed"]:
+                        best = detection
+                        best_param = p
+                        best_evidence = attempt
+                        break
+
+                result.confirmed = best["confirmed"]
+                result.confidence = best["confidence"]
+                result.detection_method = best["method"]
+                result.detection_details = best["details"]
+                result.false_positive_risk = best["false_positive_risk"]
+                result.alternative_explanations = best["alternative_explanations"]
+                result.test_value = test_value
+                result.vulnerable_param = best_param
+                if best_evidence is not None:
+                    result.test_request = best_evidence.request
+                    result.test_response = best_evidence.response
 
                 # Step 4: Verification request if confirmed
                 if result.confirmed and verify_request:
@@ -154,7 +173,7 @@ class ProbeEngine:
                         client=client,
                         label="verify",
                         method=method,
-                        url=base_url,
+                        url=request_url,
                         params=bl_params,
                         headers=all_headers,
                     )
@@ -392,6 +411,21 @@ def _extract_host(endpoint: str) -> str:
     return endpoint
 
 
+def _resolve_request_url(endpoint: str, host: str = "") -> str:
+    """Resolve the full request URL for a probe.
+
+    Reasoners set ``hypothesis.endpoint`` to the path only (e.g.
+    ``/api/users``); ``host`` supplies the origin. If the endpoint is
+    already absolute it wins as-is.
+    """
+    parsed = urlparse(endpoint)
+    if parsed.scheme and parsed.netloc:
+        return endpoint
+    base = (host or _extract_host(endpoint)).rstrip("/")
+    path = endpoint if endpoint.startswith("/") else f"/{endpoint}"
+    return f"{base}{path}" if base else path
+
+
 # ── Detection logic ─────────────────────────────────────────────
 
 
@@ -434,13 +468,23 @@ def _detect_idor(
     test_ok = test.status_code in (200, 201)
     baseline_size = baseline.body_size
     test_size = test.body_size
-    size_diff_ratio = abs(test_size - baseline_size) / max(baseline_size, 1)
 
-    # Both return 200 with similar body size = likely IDOR
-    if baseline_ok and test_ok and size_diff_ratio < 0.5 and baseline_size > 10 and test_size > 10:
-        details.append(
-            f"Both requests returned 200 with similar body sizes (baseline={baseline_size}, test={test_size})"
-        )
+    # Both return 200: only meaningful when the bodies DIFFER (a different
+    # object came back for a different id). Identical bodies mean the
+    # parameter is inert — confirming on those is a guaranteed false positive.
+    if baseline_ok and test_ok and baseline_size > 10 and test_size > 10:
+        if test.body == baseline.body:
+            details.append("identical response body — parameter is inert, same resource returned")
+            alt.append("The parameter does not control which object is returned")
+            return {
+                "confirmed": False,
+                "confidence": 0.0,
+                "method": "status_diff",
+                "details": " ".join(details),
+                "false_positive_risk": "low",
+                "alternative_explanations": alt,
+            }
+        details.append(f"Both requests returned 200 with different bodies (baseline={baseline_size}, test={test_size})")
         alt.append("Both resources exist and are publicly accessible")
         alt.append("The parameter might not control access")
         return {

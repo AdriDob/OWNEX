@@ -1,3 +1,25 @@
+## 2026-09-11: LIVE HUNT LOOP — reasoner→probe→Finding con HTTP real (fixture loopback)
+
+- **Problema**: audit con evidencia mostró que el loop ofensivo no cazaba: reasoners 100% estáticos (`test_instructions` en lenguaje natural, cero HTTP), `ProbeEngine.probe()` atacaba el host SIN el path (P0: `url=base_url`), `EvidenceBuilder` generaba curl desde headers de *respuesta* y dropeaba params GET, `loop_engine` no llamaba reasoners ni ProbeEngine, y ningún Verdict se persistía como Finding.
+- **Decisión**: (1) `probe()` resuelve URL completa (`_resolve_request_url`: endpoint absoluto gana, si no host+path) + body None (se eliminó `collection_endpoint` como body) + probing POR PARÁMETRO (un param mutado por vez; el primero que dispara el detector gana y se atribuye — antes mutaba todo junto y acreditaba al path-keyword `user` lo que hacía `id`). (2) `_detect_idor` endurecido: cuerpos idénticos ⇒ parámetro inerte, NO confirma (antes confirmaba hasta lo idéntico). (3) `EvidenceBuilder`: curl desde headers del REQUEST (redact auth) + query string en GET + variante `_build_python` + `build_poc_from_probe()`. (4) `OffensiveEngine.hunt_endpoint()` NUEVO: analyze→probe top-3 (conf≥0.3, con params)→PoC→Finding persistido (Target por dominio, evidence JSON en notes)→`record_outcome`. Todo contra objetivos AUTORIZADOS únicamente (fixture loopback, sistema propio, scope bounty).
+- **Evidencia**: `tests/test_live_probe_loop.py` 10/10 con HTTP real (httpx, cero mocks): IDOR/XSS/SQLi confirmados + Findings persistidos con PoC ejecutable, auth-bypass/SSRF ejecutan, regresión P0 del path, unit URL + PoC. Regresión 252 (offensive/http_probe/evidence/mobile/bridge/web3) + fast 100/1; ruff+format limpios. `test_validation_engine.py` 11 fallas PREEXISTENTES (verificado por stash: fallan sin estos cambios; territorio concurrente, no tocado).
+- **Regla permanente**: ningún probe sale de loopback/propio/scope-verificado; PoC fieles (misma request, auth redactado) o no son PoC.
+
+## 2026-09-11: PUBLIC WORK LADDER — ETAPA 0 incluida, active_claims observado, /public-work
+
+- **Problema**: la escalera "de dinero" empezaba en peldaños que exigen historial; la primera validación real (PR merged sin bounty) no tenía superficie. Además la competencia se estimaba solo con baselines estáticos.
+- **Decisión**: (1) `cores/direct_work_engine/public_work.py` NUEVO — capa de clasificación sobre `RankedOpportunity` (NO otro ranking): `classify_rung()` por índice de dificultad (reward log 0.30 + barrera 0.25 + competencia 0.25 + aceptación 0.20); payment≤0 ⇒ ETAPA 0; rangos $ solo orientativos en labels; enums EN estables + labels ES; bloque VALIDACIÓN PÚBLICA (proof PR MERGED vs PR ACEPTADO+PAGO). (2) `active_claims` en `competition_intel.py`: solo desde fuente observada (`Opportunity.observed_claims` nuevo campo o platform_facts); ausente ⇒ None/"unavailable", jamás 0; baselines quedan como priors. (3) `/public-work` (página + ruta + sidebar WORK): consume `POST /direct-work/recommend`, agrupa por peldaño top-3 con fit/EV-h/P(CASH)/validación/link. `public_work` aditivo en `_ranked_to_dict`.
+- **Evidencia**: `tests/test_public_work.py` 15/15 (rungs, $100-difícil>$500-fácil, UNKNOWN, claims observado/cero-reportado/sin-fuente, contrato API en 8 modos, enrich nunca raisea); regresión 195 + fast 100/1; `vite build` 12.76s; vue-tsc 0; ruff 0 nuevos.
+- **Regla permanente**: reclamar/claim es acción externa → Human Gate, nunca automatizado; la escalera presenta, no promete (UNKNOWN etiquetado).
+
+## 2026-09-11: MPT CLONADO + CLIENTE v1 REAL — Shorts EN $0, bloqueado solo en key gratis
+
+- **Problema**: Content Factory hablaba contra una API MPT legacy (`/api/video/*`, `/health`) que v1.3.6 no expone; repo MPT inexistente en el host; :8080 ocupado por Open WebUI; frontend `moneyprinter.ts` apuntaba al backend OWNEX (rutas inexistentes).
+- **Decisión**: (1) Clone `harry0703/MoneyPrinterTurbo` en `~/projects/MoneyPrinterTurbo` (fuera del repo, 337M) + venv Python 3.11 vía `uv` (host tiene 3.14). (2) `config.toml` preset viral: API :8081, `llm_provider=ollama` + `qwen2.5:3b-instruct` (único LLM local), Edge `en-US-GuyNeural`, 9:16, subtítulos amarillos bold centro, system prompt hook-first EN antialucinación. (3) Cliente OWNEX remapeado a rutas v1 reales (`/api/v1/videos|tasks|tasks/{id}`, envelope `{status,message,data}`, states int -1/1/4) + `MPT_BASE_URL` env (default :8081) en `mpt_client/service/frontend(VITE_MPT_BASE_URL)` + CORS origins (dev 5173 + tauri). (4) Publish siempre DRAFT_ONLY; semillas de contexto real en `WorkspaceRegistry` (droppinglabel/MeLi/webs/content_factory con goals y gates).
+- **Evidencia**: server :8081 vivo + `GET /api/v1/tasks` 200 + health OWNEX `healthy` + video de prueba E2E (guion Ollama 3B ✓, TTS Edge 32.7s ✓, subs ✓) que falla SOLO en materiales: `pexels_api_keys is not set`. `tests/test_mpt_client.py` 10/10 (mapeo puro sin red); regresión 95 DWE + fast 100/1; `vite build` 11.4s; ruff 0 nuevos (5 UP042 preexistentes).
+- **Regla permanente**: ningún video se publica sin canal YouTube creado + credenciales en IdentityVault; Shorts = upside (YPP: 500 subs + 3M views/90d, RPM ~$0.05-0.15), jamás renta base.
+- **Follow-up (acción del owner, 2 min)**: key gratis en `pexels.com/api` (o `coverr.co/developers`) → pegar en `~/projects/MoneyPrinterTurbo/config.toml` (`pexels_api_keys`) → reintentar 1 video.
+
 ## 2026-09-10: SECURE INCOME — P(CASH) + modos secure_income/secure_plus_upside (base segura, bug bounty = upside)
 
 - **Problema**: el owner cambió el objetivo: no maximizar EV posible sino **máxima P(cobrar) + mínimo tiempo sin ingresos + varias fuentes + aprendizaje rápido**. Bug bounty tiene varianza fatal como renta base (semanas de trabajo → $0). El recommender no tenía ninguna métrica de "prob. de dinero realmente recibido" ni modo que priorice cobrar sobre upside.
@@ -32,6 +54,7 @@
 - **v7.1.8**: limpieza explícita de artefactos NSIS huérfanos pre-checksum.
 - **v7.1.9**: WebView2 via bootstrapper directo (evita cancelaciones de winget).
 - **Verde definitivo v7.1.9** (run 34428234952, 34m): 6/6 jobs SUCCESS. Artefacto limpio `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `.sha256` (sin NSIS). MSI único para instalar en Windows 11.
+- **v7.1.10** (run 34611051840, 6/6 SUCCESS): milestone tracker $100→$10k + aggressive plan $5k/$10k EOY + HIGH_UPSIDE_90D viajan en el bundle (frontend rebuilt en CI). MSI 138MB, sha256 verificado `3d03d10f…` (match descarga). Sin restos NSIS (wipe pre-build funciona).
 - **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
 
 ## 2026-09-09: WIN11-STABLE — rama release + P0 frozen + bug frozen /api/version
