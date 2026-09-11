@@ -17,6 +17,38 @@
 - **Evidencia**: `tests/test_live_probe_loop.py` 10/10 con HTTP real (httpx, cero mocks): IDOR/XSS/SQLi confirmados + Findings persistidos con PoC ejecutable, auth-bypass/SSRF ejecutan, regresión P0 del path, unit URL + PoC. Regresión 252 (offensive/http_probe/evidence/mobile/bridge/web3) + fast 100/1; ruff+format limpios. `test_validation_engine.py` 11 fallas PREEXISTENTES (verificado por stash: fallan sin estos cambios; territorio concurrente, no tocado).
 - **Regla permanente**: ningún probe sale de loopback/propio/scope-verificado; PoC fieles (misma request, auth redactado) o no son PoC.
 
+## 2026-09-11: MEMECOIN AUTO — paper loop en scheduler (cada 15m, DRY-RUN, kill-gated)
+
+- **Problema**: F2 dejó loop funcional pero manual — sin handler del scheduler no corre solo.
+- **Decisión**: (1) `run_paper_cycle_once()` async testeable con inyección + `run_memecoin_paper_cycle()` sync que corre en thread dedicado (seguro ante cualquier contexto de event-loop, timeout 600s, nunca raisea). (2) Job `trading_memecoin_paper` (`*/15 * * * *`) en `cores/scheduler/jobs.py` (árbol vivo según `api/lifespan.py:456`; `core/` NO tocado). (3) Precios de track vía DexScreener keyless. Cachado en el camino: `scan()` sin try/except ante feed caído → fixeado.
+- **Evidencia**: `tests/test_memecoin_scheduler.py` 8/8 (resolución dotted-path, ciclo con fakes, offline-safety, entrypoint sync); 93 passed combinado; ruff limpio; fast 100/1.
+- **Regla permanente**: el job jamás mueve fondos (adapter DRY_RUN default); kill STRATEGY requiere humano para desactivar.
+- **Siguiente**: dejar correr ≥2 semanas y leer métricas; F3 live solo con tu orden + capital.
+
+## 2026-09-11: MEMECOIN F2 — filtros duros + exits + paper loop (paper-first, sin live)
+
+- **Problema**: F1 dejó adapter real pero sin estrategia: entrar a todo = donar SOL a rugs.
+- **Decisión**: (1) `cores/trading/strategies/memecoin_filters.py` — reglas duras fail-closed (liquidez/volumen/holders/top10/autoridades/LP/edad/riesgos danger; score RugCheck solo informativo por semántica no documentada). (2) `memecoin_exits.py` — prioridad SL > TP escalonado > trailing > tiempo > hold, puro y testeado. (3) `cores/trading/paper/memecoin_paper.py` — loop scan→filtro→enter→track→ledger con sizing fraccionado fijo, haircut 1% documentado, métricas (win-rate/profit-factor/expectancy/drawdown, veredicto EDGE_CANDIDATE solo con n≥20 y PF>1.2), kill-switch STRATEGY reutilizado, persistencia opcional vía TradingStore.
+- **Evidencia**: 36/36 nuevos (strategy+paper+adapter); ruff limpio; fast 100/1; investment/trading mismos 6 preexistentes.
+- **Regla permanente**: sin métricas paper ≥2 semanas no se habla de live; live = tu orden + IdentityVault + Human Gate + capital declarado.
+- **Siguiente (F3, BLOQUEADO)**: live solo con tu orden explícita.
+
+## 2026-09-11: MEMECOIN F1 — adapter real (DexScreener+RugCheck+Jupiter) + fantasma eliminado
+
+- **Problema**: audit con evidencia mostró scaffolding, no bot: `scan_new_tokens` contra endpoints inexistentes (`api.pumpfun.io`/`api.raydium.io`), `buy/sell` con shape inválido de Jupiter, `registry` apuntando a `memecoin_scanner_adapter` inexistente, sin firma de wallet, sin estrategia.
+- **Decisión**: (1) `memecoin_adapter.py` reescrito sobre piezas reales: descubrimiento DexScreener keyless (`token-profiles/latest` + enrich `/tokens/v1/solana`, filtro liquidez), riesgo RugCheck, quotes vía `trading/dex/jupiter.py` canónico; DRY_RUN default (simula fill desde quote real); live exige `allow_live + private_key`, firma local con solders, key jamás logueada. (2) Registro `memecoin_scanner` fantasma → `memecoin` real + método `scan_opportunities` alias. Twin `core/` NO tocado.
+- **Evidencia**: `tests/test_memecoin_adapter.py` 9/9 (fixtures, sin red); ruff limpio; fast 100/1; suites investment/trading 6 fallas PREEXISTENTES idénticas por stash (incl. `alpaca`, ajeno).
+- **Regla permanente**: sin paper-metrics (win-rate/profit-factor/drawdown ≥2 sem) no se habla de live; live exige aprobación explícita + IdentityVault + Human Gate.
+- **Siguiente (F2)**: filtros duros + exits + paper loop + métricas; F3 live solo con tu orden.
+
+## 2026-09-11: FINAL SHIP — cierre de producto, freeze 7.1.0, veredicto SHIP
+
+- **Alcance real ejecutado**: auditoría §5 completa (13/14 ya resueltos en sesiones previas; §5.2/5.6/5.7/5.8/5.10 cerrados hoy con one-liners verificados), 2 fixes genuinos nuevos (useOwnexState incomePlan/agenda cruzados + store duplicado eliminado), 0 refactor cosmético, 0 features nuevas.
+- **No tocado por riesgo**: modos LITE/FULL/CAPITAL duplicados (ambos vivos, documentado en KNOWN_LIMITATIONS), `core/` sombra, `cores/opportunity/engine.py`, `cores/validation/*`, `cores/events/*`, `cognee`, drift de tests del flujo concurrente.
+- **Evidencia**: fast 100/1 · afectadas 195 · vite 14s · vue-tsc 0 · cargo 4.5s · gates HTTP verificados · `.ai/RELEASE.md` + `docs/KNOWN_LIMITATIONS.md` reescrito a runtime real.
+- **Veredicto**: SHIP (RC sin cambios) — instalable y usable a diario; MSI/firma/mobile-físico pendientes fuera de este host.
+- **Regla post-freeze**: todo cambio se clasifica (BUG/SECURITY/DATA/RELIABILITY/COMPATIBILITY/SMALL-UX/NEW FEATURE); NEW FEATURE no entra solo.
+
 ## 2026-09-11: PUBLIC WORK LADDER — ETAPA 0 incluida, active_claims observado, /public-work
 
 - **Problema**: la escalera "de dinero" empezaba en peldaños que exigen historial; la primera validación real (PR merged sin bounty) no tenía superficie. Además la competencia se estimaba solo con baselines estáticos.
@@ -66,6 +98,7 @@
 - **v7.1.8**: limpieza explícita de artefactos NSIS huérfanos pre-checksum.
 - **v7.1.9**: WebView2 via bootstrapper directo (evita cancelaciones de winget).
 - **v7.1.11** (run 34619411295): live hunt loop en el bundle. Windows sidecar+Tauri SUCCESS; MSI 138MB sha `76383c5e…` verificado por descarga (solo MSI, sin NSIS). Ubuntu Tauri lento pero irrelevante para el deliverable.
+- **v7.1.12** (run 34628806179): LEVELS L1-L10 en el bundle (sidecar+frontend rebuilt en CI). Windows sidecar+Tauri SUCCESS; MSI 138MB sha `719d9b5f…` verificado por descarga (solo MSI). Ubuntu lento como siempre, irrelevante.
 - **Verde definitivo v7.1.9** (run 34428234952, 34m): 6/6 jobs SUCCESS. Artefacto limpio `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `.sha256` (sin NSIS). MSI único para instalar en Windows 11.
 - **v7.1.10** (run 34611051840, 6/6 SUCCESS): milestone tracker $100→$10k + aggressive plan $5k/$10k EOY + HIGH_UPSIDE_90D viajan en el bundle (frontend rebuilt en CI). MSI 138MB, sha256 verificado `3d03d10f…` (match descarga). Sin restos NSIS (wipe pre-build funciona).
 - **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
