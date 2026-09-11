@@ -190,6 +190,20 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
+    # Microtask marketplaces (keyed live fetch or curated fallback, manual apply)
+    try:
+        from cores.opportunity.adapters.microtask import (
+            ClickworkerAdapter,
+            ProlificAdapter,
+            TolokaAdapter,
+        )
+
+        registry.register("toloka", TolokaAdapter)
+        registry.register("prolific", ProlificAdapter)
+        registry.register("clickworker", ClickworkerAdapter)
+    except ImportError:
+        pass
+
     # OpenCollective
     try:
         from cores.opportunity.adapters.opencollective import (
