@@ -115,7 +115,8 @@ class AutopilotConfig:
             "dataannotation": PlatformConfig(enabled=True),
             "mindrift": PlatformConfig(enabled=True),
             "mercor": PlatformConfig(enabled=True, tier="coding"),
-            "crowdgen": PlatformConfig(enabled=True),
+            # CrowdGen/Appen: opcional per owner (purge 2026-09-13) — off por defecto.
+            "crowdgen": PlatformConfig(enabled=False),
             "opire": PlatformConfig(enabled=True),
             "superteam": PlatformConfig(enabled=True, categories=["dev", "content", "design"]),
             "algora": PlatformConfig(enabled=True),

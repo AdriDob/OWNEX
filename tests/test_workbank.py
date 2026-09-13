@@ -52,12 +52,13 @@ class TestWorkBank:
 
     def test_needs_access_is_flagged_for_manual_platforms(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")
-        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.WORKANA)], target=10)
+        # workana purged (2026-09): outlier is the manual-setup platform now.
+        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.OUTLIER)], target=10)
         item = bank.get_item("op-f")
         assert item is not None
         assert item.status == "needs_access"
         assert item.ready_to_deliver is False
-        assert "perfil" in item.access_requirement.lower()
+        assert "cuenta" in item.access_requirement.lower()
         assert bank.needs_access()
 
     def test_zero_barrier_filter_excludes_gated(self, tmp_path) -> None:

@@ -148,7 +148,7 @@ class DirectWorkExecutionEngine:
             "synthetic_data",
         ]
         platform = getattr(work_item, "platform", "").lower()
-        browser_platforms = ["outlier", "mindrift", "remotasks", "upwork"]
+        browser_platforms = ["outlier", "mindrift"]
         return any(cat in category for cat in browser_categories) or platform in browser_platforms
 
     def _execute_with_coder(self, work_item: Any) -> Any:

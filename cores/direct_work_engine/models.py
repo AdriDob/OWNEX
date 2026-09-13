@@ -202,7 +202,7 @@ STREAM_UI_CONFIG: dict[WorkStream, dict] = {
         "label": "Game Dev",
         "icon": "🎮",
         "description": "Especializaciones de programación de videojuegos (Unity, Unreal, Godot, etc.).",
-        "platforms": ["freelancer", "opire", "algora", "upwork"],
+        "platforms": ["freelancer", "opire", "algora"],
         "access_type": "manual_setup",
         "deliverables": ["Code modules", "Systems", "Tools", "Performance fixes"],
         "quick_actions": ["filter_specialization", "view_tech_stack", "submit_unity_cpp"],

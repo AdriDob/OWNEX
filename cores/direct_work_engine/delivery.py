@@ -178,8 +178,6 @@ class DirectWorkDeliveryEngine:
             "freelancer": "Submit via Freelancer.com. Navigate to Project > Submit Deliverable.",
             "outlier": "Submit via Outlier platform. Complete the task in the assigned project.",
             "mindrift": "Submit via Mindrift platform. Complete the assigned task.",
-            "remotasks": "Submit via Remotasks. Complete the assigned task.",
-            "upwork": "Submit via Upwork. Navigate to Contract > Submit Work.",
         }
         return instructions.get(platform.lower(), "Manual submission required. Check platform documentation.")
 

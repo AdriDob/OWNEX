@@ -313,7 +313,7 @@ def _catalog() -> list[dict[str, Any]]:
             "id": "freelance_profile",
             "phase": PHASE_PLATFORMS,
             "priority": 3,
-            "title": "Perfil freelance verificado (Upwork/Fiverr)",
+            "title": "Perfil freelance verificado (Fiverr)",
             "why": "Los textos ya los genera tu Profile Kit — solo pegarlos y verificar método de pago.",
             "est_minutes": 40,
             "how_to": "Copiar textos del Profile Kit → crear perfil → verificar payout (Payoneer/Airtm).",

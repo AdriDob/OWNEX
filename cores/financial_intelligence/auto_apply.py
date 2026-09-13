@@ -220,47 +220,6 @@ class AutoApplySystem:
                 error_message=str(e),
             )
 
-    def _apply_upwork(self, opportunity: dict[str, Any]) -> ApplicationRecord:
-        """Apply via Upwork API (proposal submission)."""
-        app_id = f"upwork_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
-
-        try:
-            # Simulated API call (in production, use Upwork API)
-            logger.info(f"Submitting proposal to Upwork job: {opportunity['title']}")
-
-            # Simulate proposal submission
-            time.sleep(random.uniform(3, 8))
-
-            return ApplicationRecord(
-                id=app_id,
-                platform="upwork",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.SUBMITTED,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=None,
-            )
-        except Exception as e:
-            logger.error(f"Upwork API error: {e}")
-            self._alert_system.create_error_alert(
-                component="Upwork Auto-Apply",
-                error_message=f"Failed to submit proposal to {opportunity['title']}: {str(e)}",
-                context={"opportunity": opportunity, "error": str(e)},
-            )
-            return ApplicationRecord(
-                id=app_id,
-                platform="upwork",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.ERROR,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=str(e),
-            )
-
     def _apply_fiverr(self, opportunity: dict[str, Any]) -> ApplicationRecord:
         """Apply via Fiverr API (gig offer)."""
         app_id = f"fiverr_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
