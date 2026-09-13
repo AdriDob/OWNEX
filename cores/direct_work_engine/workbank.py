@@ -78,7 +78,9 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
     "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
-    "workana": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Workana (Payoneer/banco)."),
+    # workana removed (purge 2026-09): unknown platforms fall through to the
+    # generic needs_manual_setup message; the hard-exclude in
+    # cores/freelance/channel_status.py keeps them out of recommendations.
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
 }
@@ -139,9 +141,34 @@ class WorkItem:
     url: str = ""
     payout_method: str = ""
     payout_method_rationale: str = ""
+    # MONEY VALIDATION (2026-09-11): minimal human-time tracking. Timestamps are
+    # automatic (START/DELIVER); human_minutes_actual is the manual correction
+    # (covers PAUSE/RESUME without timesheet bureaucracy). All optional so
+    # legacy workbank.json files keep loading unchanged.
+    started_at: str | None = None
+    delivered_at: str | None = None
+    human_minutes_actual: float | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    def mark_started(self) -> None:
+        """Stamp work START (idempotent: first stamp wins)."""
+        if self.started_at is None:
+            self.started_at = datetime.now(UTC).isoformat()
+
+    def record_human_minutes(self, minutes: float) -> bool:
+        """Manual correction of real human minutes. Returns False when invalid."""
+        try:
+            value = float(minutes)
+        except (TypeError, ValueError):
+            logger.warning("Invalid human minutes %r for item %s: ignored", minutes, self.id)
+            return False
+        if value < 0:
+            logger.warning("Negative human minutes %.1f for item %s: ignored", value, self.id)
+            return False
+        self.human_minutes_actual = round(value, 1)
+        return True
 
 
 def _default_store_path() -> Path:
@@ -176,11 +203,12 @@ class WorkBank:
         preference filters as the recommender apply (excluded categories and the
         minimum reward floor). Quality over quantity.
 
-        ``success_floor`` (Success Maximizer): when a profile is provided, jobs
-        whose real acceptance probability (derived from the profile's outcome
-        history, never invented) falls below the floor are rejected and reported
-        as ``success_floor_rejected`` — OWNEX only accumulates work it is likely
-        to win. Without a profile the floor is a no-op.
+        ``success_floor`` (Success Maximizer): when a profile WITH measured
+        history is provided, jobs whose real acceptance probability (derived
+        from the profile's outcome history, never invented) falls below the
+        floor are rejected and reported as ``success_floor_rejected`` — OWNEX
+        only accumulates work it is likely to win. Without a profile, or with
+        zero submitted outcomes yet, the floor is a no-op (no data to measure).
         """
         scorer = ZeroBarrierScorer()
         strict_filter = StrictFilter()
@@ -197,7 +225,12 @@ class WorkBank:
         rejected: dict[str, list[str]] = {}
         floor_rejected: dict[str, list[str]] = {}
         scanned_total = len(opportunities)
-        if profile is not None and success_floor > 0.0:
+        # MONEY VALIDATION: the success floor needs measured history. With zero
+        # submitted outcomes there is nothing to measure against, so the floor
+        # is a no-op (otherwise day-1 cold start rejects ~everything and the
+        # bank can never produce the first outcome to learn from).
+        has_history = bool(profile is not None and (profile.applications_submitted or 0) > 0)
+        if has_history and success_floor > 0.0 and profile is not None:
             success_filter = IntelligentRecommender(config=MAX_SUCCESS_RECOMMENDER_CONFIG)
             kept = success_filter.filter_by_success_floor(opportunities, profile)
             passed_ids = {o.id for o in kept}
@@ -329,19 +362,40 @@ class WorkBank:
                         f"reward_verified: ${float(item.reward):.2f}" if item.reward > 0 else "",
                     ]
                     package_path = f"deliveries/{item.id}_{item.platform}"
-                    asyncio.run(
-                        gate_system.request_delivery_approval(
-                            item_id=item.id,
-                            platform=item.platform,
-                            title=item.title,
-                            amount_usd=float(item.reward),
-                            deliverables=deliverables,
-                            delivery_package_path=package_path,
-                            submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
-                            if item.description
-                            else f"Entrega en {item.platform}",
+                    # Run the async gate request in the current event loop if available,
+                    # otherwise fall back to asyncio.run (for standalone script execution).
+                    try:
+                        loop = asyncio.get_running_loop()
+                        # We're in an async context - schedule the coroutine
+                        asyncio.run_coroutine_threadsafe(
+                            gate_system.request_delivery_approval(
+                                item_id=item.id,
+                                platform=item.platform,
+                                title=item.title,
+                                amount_usd=float(item.reward),
+                                deliverables=deliverables,
+                                delivery_package_path=package_path,
+                                submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
+                                if item.description
+                                else f"Entrega en {item.platform}",
+                            ),
+                            loop,
+                        ).result(timeout=30)
+                    except RuntimeError:
+                        # No running event loop - fall back to asyncio.run
+                        asyncio.run(
+                            gate_system.request_delivery_approval(
+                                item_id=item.id,
+                                platform=item.platform,
+                                title=item.title,
+                                amount_usd=float(item.reward),
+                                deliverables=deliverables,
+                                delivery_package_path=package_path,
+                                submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
+                                if item.description
+                                else f"Entrega en {item.platform}",
+                            )
                         )
-                    )
         except Exception:  # pragma: no cover — human gate defensivo
             pass
 
@@ -388,6 +442,8 @@ class WorkBank:
             return False
         item.status = "delivered"
         item.ready_to_deliver = False
+        if item.delivered_at is None:
+            item.delivered_at = datetime.now(UTC).isoformat()
         self._save()
         return True
 

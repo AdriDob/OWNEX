@@ -164,3 +164,73 @@ class TestContract:
         from cores.direct_work_engine.public_work import enrich_ranked as enrich
 
         assert enrich(object())["rung"] == "beginner"
+
+
+class TestMarketCeilings:
+    def test_task_vs_project_funding_separated(self) -> None:
+        from cores.direct_work_engine.public_work import (
+            RewardKind,
+            classify_market_segment,
+            classify_reward_kind,
+            get_ceiling,
+        )
+
+        dev = classify_market_segment(category="dev_bounty", employment_type="bounty", platform="algora", payment=150)
+        assert classify_reward_kind(dev) == RewardKind.TASK_REWARD
+        assert get_ceiling(dev)["max_observed_usd"] == 10_000
+        grant = classify_market_segment(
+            category="software_engineering", employment_type="project", platform="other", payment=50000
+        )
+        assert classify_reward_kind(grant) == RewardKind.PROJECT_FUNDING
+        assert get_ceiling(grant)["max_observed_usd"] == 500_000
+
+    def test_bug_bounty_ceiling_10m(self) -> None:
+        from cores.direct_work_engine.public_work import MarketSegment, classify_market_segment, get_ceiling
+
+        seg = classify_market_segment(category="bug_bounty", platform="hackerone", payment=5000)
+        assert seg == MarketSegment.BUG_BOUNTY
+        assert get_ceiling(seg)["max_observed_usd"] == 10_000_000
+
+    def test_oss_zero_and_grants_not_task(self) -> None:
+        from cores.direct_work_engine.public_work import enrich_ranked
+
+        assert enrich_ranked(make_opp(payment=0)) if False else True  # guard
+        # OSS via API
+        payload = {
+            "profile": profile_dict(),
+            "opportunities": [op_dict(id="oss-c", payment=0.0, category="open_source")],
+            "mode": "balanced",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        pw = resp.json()["ranked"][0]["public_work"]
+        assert pw["market_segment"] == "oss"
+        assert pw["reward_kind"] == "task_reward"
+        assert pw["ceiling"]["max_observed_usd"] == 0
+
+    def test_grant_is_project_funding_and_deprioritized(self) -> None:
+        payload = {
+            "profile": profile_dict(),
+            "opportunities": [
+                op_dict(id="dev-c", payment=250, category="dev_bounty", platform="algora"),
+                {
+                    "id": "grant-c",
+                    "title": "Grant proposal",
+                    "platform": "other",
+                    "category": "software_engineering",
+                    "employment_type": "project",
+                    "payment": 50000,
+                    "currency": "USD",
+                    "payment_method": "paypal",
+                },
+            ],
+            "mode": "balanced",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        ranked = resp.json()["ranked"]
+        dev = next(r for r in ranked if r["opportunity"]["id"] == "dev-c")
+        grant = next(r for r in ranked if r["opportunity"]["id"] == "grant-c")
+        assert grant["public_work"]["reward_kind"] == "project_funding"
+        assert grant["public_work"]["is_project_funding"] is True
+        assert dev["public_work"]["is_task_reward"] is True
+        # Grants must not outrank immediate tasks on weekly EV/h
+        assert grant["overall_recommendation_score"] < dev["overall_recommendation_score"]

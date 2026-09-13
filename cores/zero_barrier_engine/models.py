@@ -61,7 +61,6 @@ class OpportunitySource(StrEnum):
     DATA_ANNOTATION = "data_annotation"
     MINDRIFT = "mindrift"
     CROWDGEN = "crowdgen"
-    REMOTASKS = "remotasks"
 
     # Web3/Dev Bounties
     SUPERTEAM_DEV = "superteam_dev"

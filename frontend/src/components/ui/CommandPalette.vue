@@ -159,7 +159,7 @@ const commands: CommandItem[] = [
     icon: Radio,
     category: 'Trabajo',
     action: async () => {
-      await api.post('/hunt/scan')
+      await api.post('/hunt/restart')
       notifications.success('Escaneo iniciado')
     },
     shortcut: 'E',

@@ -890,16 +890,18 @@ class OpportunityOrchestrator:
                 opp_dict = opp
             else:
                 opp_dict = {
-                    "id": getattr(opp, 'id', ''),
-                    "title": getattr(opp, 'title', ''),
-                    "category": getattr(getattr(opp, 'category', None), 'value', '') if hasattr(opp, 'category') else '',
-                    "source": getattr(getattr(opp, 'source', None), 'value', '') if hasattr(opp, 'source') else '',
-                    "reward_min": getattr(opp, 'reward_min', 0),
-                    "reward_max": getattr(opp, 'reward_max', 0),
-                    "estimated_hours": getattr(opp, 'estimated_hours', 0),
-                    "difficulty": getattr(opp, 'difficulty', 0),
-                    "skills_required": getattr(opp, 'skills_required', []),
-                    "score": getattr(opp, 'score', 0.0),
+                    "id": getattr(opp, "id", ""),
+                    "title": getattr(opp, "title", ""),
+                    "category": getattr(getattr(opp, "category", None), "value", "")
+                    if hasattr(opp, "category")
+                    else "",
+                    "source": getattr(getattr(opp, "source", None), "value", "") if hasattr(opp, "source") else "",
+                    "reward_min": getattr(opp, "reward_min", 0),
+                    "reward_max": getattr(opp, "reward_max", 0),
+                    "estimated_hours": getattr(opp, "estimated_hours", 0),
+                    "difficulty": getattr(opp, "difficulty", 0),
+                    "skills_required": getattr(opp, "skills_required", []),
+                    "score": getattr(opp, "score", 0.0),
                 }
 
             results.append(opp_dict)

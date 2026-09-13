@@ -209,12 +209,30 @@ def test_feed_bridge_maps_cached_items_to_hypotheses() -> None:
     from cores.engine.hypothesis.threat_intel import generate_from_feed_items
 
     items = [
-        {"source": "osv", "external_id": "CVE-2024-1234", "title": "RCE in openssl",
-         "summary": "Remote code execution in openssl lib", "severity": "critical", "tags": []},
-        {"source": "epss", "external_id": "CVE-2024-9999", "title": "Unrelated thing",
-         "summary": "something else entirely epss:0.9", "severity": "high", "tags": []},
-        {"source": "unknown_feed", "external_id": "X", "title": "openssl bug",
-         "summary": "openssl", "severity": "high", "tags": []},
+        {
+            "source": "osv",
+            "external_id": "CVE-2024-1234",
+            "title": "RCE in openssl",
+            "summary": "Remote code execution in openssl lib",
+            "severity": "critical",
+            "tags": [],
+        },
+        {
+            "source": "epss",
+            "external_id": "CVE-2024-9999",
+            "title": "Unrelated thing",
+            "summary": "something else entirely epss:0.9",
+            "severity": "high",
+            "tags": [],
+        },
+        {
+            "source": "unknown_feed",
+            "external_id": "X",
+            "title": "openssl bug",
+            "summary": "openssl",
+            "severity": "high",
+            "tags": [],
+        },
     ]
     hyps = generate_from_feed_items(items, 1, "t", [{"name": "openssl"}], {"path": "/"})
     assert len(hyps) == 1
@@ -226,8 +244,9 @@ def test_feed_bridge_maps_cached_items_to_hypotheses() -> None:
 def test_feed_bridge_empty_without_overlap() -> None:
     from cores.engine.hypothesis.threat_intel import generate_from_feed_items
 
-    items = [{"source": "nvd", "external_id": "CVE-1", "title": "foo", "summary": "bar",
-              "severity": "high", "tags": []}]
+    items = [
+        {"source": "nvd", "external_id": "CVE-1", "title": "foo", "summary": "bar", "severity": "high", "tags": []}
+    ]
     assert generate_from_feed_items(items, 1, "t", [{"name": "openssl"}], None) == []
     assert generate_from_feed_items([], 1, "t", [{"name": "openssl"}], None) == []
 

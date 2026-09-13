@@ -506,15 +506,6 @@ def get_default_platform_configs() -> list[PlatformConfig]:
             tags=["ai", "data", "annotation"],
         ),
         PlatformConfig(
-            platform_id="remotasks",
-            name="Remotasks",
-            category=PlatformCategory.DATA_ANNOTATION,
-            adapter_name="remotasks",
-            cadence_seconds=1800,
-            config={"enabled": True},
-            tags=["ai", "data", "annotation"],
-        ),
-        PlatformConfig(
             platform_id="opyre_microtask",
             name="Opire Microtask",
             category=PlatformCategory.DATA_ANNOTATION,

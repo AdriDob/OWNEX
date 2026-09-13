@@ -251,7 +251,9 @@ class TestOpireDweAdapter:
         from api.routers.direct_work import get_engine
         from cores.direct_work_engine.models import WorkPlatform
 
-        assert WorkPlatform.OPIRE in get_engine().discovery.adapters
+        # Opire adapter was removed (upstream dead); live adapters are bugbounty, dework, fiverr, kaggle, github_bounty
+        assert WorkPlatform.KAGGLE in get_engine().discovery.adapters
+        assert WorkPlatform.GITHUB in get_engine().discovery.adapters
 
     def test_validate_connection_is_cheap_and_true(self) -> None:
         from api.adapters.direct_work_opire import OpireDweAdapter
@@ -290,7 +292,7 @@ class TestLegacyDweAdapter:
 
         adapters = build_default_adapters()
         names = {a.source.name for a in adapters}
-        assert {"opire", "issuehunt", "workana"} <= names
+        assert {"bugbounty", "dework", "fiverr", "kaggle", "github_bounty"} <= names
 
 
 class TestNegotiationApi:
@@ -414,10 +416,12 @@ class TestSourceTiers:
 
         adapters = build_default_adapters()
         by_name = {a.source.name: a.source for a in adapters}
-        assert by_name["opire"].tier == 1
-        assert by_name["issuehunt"].tier == 1
-        assert by_name["workana"].tier == 3
-        assert by_name["opencollective"].tier == 3
+        # Only LIVE upstreams are registered now
+        assert by_name["bugbounty"].tier == 1
+        assert by_name["dework"].tier == 1
+        assert by_name["fiverr"].tier == 1
+        assert by_name["kaggle"].tier == 1
+        assert by_name["github_bounty"].tier == 1
 
     def test_source_status_exposes_tier_and_cadence(self) -> None:
         from api.routers.direct_work import get_engine
@@ -750,6 +754,64 @@ class TestBugBountyDweAdapter:
 
         names = [a.source.name for a in build_default_adapters()]
         assert "bugbounty" in names
+
+    def test_intigriti_max_bounty_object_maps_to_payment(self) -> None:
+        """FIX 2026-09-11: Intigriti max_bounty {value,currency} must surface."""
+        from api.adapters.direct_work_bugbounty import BugBountyDweAdapter
+
+        sample = [
+            {
+                "name": "Aikido Security",
+                "handle": "aikido",
+                "url": "https://app.intigriti.com/aikido",
+                "max_bounty": {"value": 2500, "currency": "EUR"},
+                "min_bounty": {"value": 50, "currency": "EUR"},
+            }
+        ]
+        adapter = BugBountyDweAdapter()
+        with (
+            patch.object(adapter, "_load_json", new=AsyncMock(return_value=sample)),
+            patch.object(adapter, "_credentials_for", return_value={}),
+        ):
+            opps = asyncio.run(adapter._fetch_source("intigriti"))
+
+        assert len(opps) == 1
+        assert opps[0].payment == 2500.0
+        assert opps[0].currency == "EUR"
+        assert "piso EUR 50" in opps[0].description
+
+    def test_yeswehack_numeric_max_bounty_maps_to_payment(self) -> None:
+        from api.adapters.direct_work_bugbounty import BugBountyDweAdapter
+
+        sample = [{"name": "YWH Prog", "max_bounty": 3000, "min_bounty": 50}]
+        adapter = BugBountyDweAdapter()
+        with (
+            patch.object(adapter, "_load_json", new=AsyncMock(return_value=sample)),
+            patch.object(adapter, "_credentials_for", return_value={}),
+        ):
+            opps = asyncio.run(adapter._fetch_source("yeswehack"))
+
+        assert len(opps) == 1
+        assert opps[0].payment == 3000.0
+        assert "piso USD 50" in opps[0].description
+
+    def test_garbage_payout_shapes_stay_zero_never_crash(self) -> None:
+        from api.adapters.direct_work_bugbounty import BugBountyDweAdapter, _parse_money
+
+        assert _parse_money(None, None, True, {"nope": 1}, "abc") == (0.0, None)
+        assert _parse_money("$4,500") == (4500.0, None)
+        assert _parse_money({"value": 100, "currency": "usd"}) == (100.0, "USD")
+        assert _parse_money({"value": 100, "currency": "XX1"}) == (100.0, None)
+
+        adapter = BugBountyDweAdapter()
+        sample = [{"name": "Weird", "max_bounty": {"weird": True}, "min_bounty": "n/a"}]
+        with (
+            patch.object(adapter, "_load_json", new=AsyncMock(return_value=sample)),
+            patch.object(adapter, "_credentials_for", return_value={}),
+        ):
+            opps = asyncio.run(adapter._fetch_source("intigriti"))
+        assert len(opps) == 1
+        assert opps[0].payment == 0.0
 
 
 class TestCashflowRadarApi:

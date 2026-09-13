@@ -61,7 +61,6 @@ _PLATFORM_COMPETITION_BASELINE = {
     "issuehunt": 0.35,
     "algora": 0.40,
     "freelancer": 0.80,
-    "upwork": 0.85,
     "fiverr": 0.60,
     "outlier": 0.25,
     "mindrift": 0.20,

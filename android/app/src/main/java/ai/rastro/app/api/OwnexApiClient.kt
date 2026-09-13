@@ -85,23 +85,29 @@ class OwnexApiClient(private var baseUrl: String = "http://10.0.2.2:8000") {
             val map = gson.fromJson<Map<String, Any>>(
                 json, object : TypeToken<Map<String, Any>>() {}.type
             )
-            val actions = (map["top_actions"] as? List<*>)?.mapNotNull { item ->
+            val summary = map["summary"] as? Map<*, *>
+            // Backend canonical key is "actions" (daily_brief.py); "top_actions"
+            // was the legacy mobile contract. Read either, both tolerant.
+            val actions = ((map["actions"] as? List<*>) ?: (map["top_actions"] as? List<*>))?.mapNotNull { item ->
                 val m = item as? Map<*, *> ?: return@mapNotNull null
                 ActionItem(
                     id = m["id"] as? String ?: "",
                     title = m["title"] as? String ?: "",
                     platform = m["platform"] as? String ?: "",
-                    ev = (m["ev"] as? Number)?.toDouble() ?: 0.0,
+                    ev = (m["expected_value_usd"] as? Number)?.toDouble()
+                        ?: (m["ev"] as? Number)?.toDouble() ?: 0.0,
                     probability = (m["probability"] as? Number)?.toDouble() ?: 0.0,
                     estimatedHours = (m["estimated_hours"] as? Number)?.toDouble() ?: 0.0,
-                    nextStep = m["next_step"] as? String ?: "",
+                    nextStep = m["next_action"] as? String ?: (m["next_step"] as? String ?: ""),
                 )
             } ?: emptyList()
             DailyBrief(
                 greeting = map["greeting"] as? String ?: "",
                 topActions = actions,
-                totalEV = (map["total_ev"] as? Number)?.toDouble() ?: 0.0,
-                revenueToday = (map["revenue_today"] as? Number)?.toDouble() ?: 0.0,
+                totalEV = (map["total_ev"] as? Number)?.toDouble()
+                    ?: (summary?.get("total_expected_usd") as? Number)?.toDouble() ?: 0.0,
+                revenueToday = (map["revenue_today"] as? Number)?.toDouble()
+                    ?: (summary?.get("revenue_today_usd") as? Number)?.toDouble() ?: 0.0,
             )
         } catch (e: Exception) {
             DailyBrief()

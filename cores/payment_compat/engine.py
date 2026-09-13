@@ -148,6 +148,16 @@ class PaymentMatch:
     function: str
     reason: str = ""
     score: float = 0.0
+    # MONEY VALIDATION (2026-09-11): True when the user actually configured
+    # this account (rails reales). A match with configured=False is a
+    # theoretical route, never proof of collectability.
+    configured: bool = False
+
+
+# Account rail status (MONEY VALIDATION tri-state, approved 2026-09-11).
+ACCOUNT_CONFIGURED = "CONFIGURED"
+ACCOUNT_NOT_CONFIGURED = "NOT_CONFIGURED"
+ACCOUNT_UNVERIFIED = "UNVERIFIED"  # id not in the curated catalog at all
 
 
 @dataclass
@@ -159,6 +169,8 @@ class PaymentVerdict:
     score: float
     requirement: dict[str, Any]
     matches: list[PaymentMatch] = field(default_factory=list)
+    # MONEY VALIDATION: how many matches run on rails the user configured.
+    configured_matches: int = 0
     off_ramp: list[PaymentMatch] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
     honest_notes: list[str] = field(default_factory=list)
@@ -196,6 +208,22 @@ class PaymentCompatibilityEngine:
         """Get the list of configured account IDs."""
         return list(self._configured_accounts)
 
+    def account_status(self, account_id: str) -> str:
+        """Tri-state rail status for one account id (MONEY VALIDATION).
+
+        CONFIGURED = user marked it as theirs; NOT_CONFIGURED = curated but
+        not marked; UNVERIFIED = id unknown to the catalog (never assumed).
+        """
+        if account_id in self._configured_accounts:
+            return ACCOUNT_CONFIGURED
+        if get_account_or_none(account_id) is None:
+            return ACCOUNT_UNVERIFIED
+        return ACCOUNT_NOT_CONFIGURED
+
+    def list_account_statuses(self) -> list[dict[str, str]]:
+        """Status of every curated account (for UI + P_REWARD wiring)."""
+        return [{"id": a.id, "name": a.name, "status": self.account_status(a.id)} for a in self._network]
+
     def has_cvu_configured(self) -> bool:
         """Check if any configured account supports CVU withdrawals (local ARS off-ramp)."""
         cvu_account_ids = {
@@ -210,8 +238,15 @@ class PaymentCompatibilityEngine:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def evaluate(self, requirement: PaymentRequirement) -> PaymentVerdict:
-        """Evaluate a single payment requirement against the network."""
+    def evaluate(self, requirement: PaymentRequirement, require_configured: bool = False) -> PaymentVerdict:
+        """Evaluate a single payment requirement against the network.
+
+        MONEY VALIDATION (2026-09-11): with ``require_configured=True`` only
+        matches on rails the user actually configured count. ``compatible``
+        stays catalog-level (a route exists); ``viable`` and ``score`` then
+        reflect real collectability. Default False preserves the catalog
+        contract for existing callers.
+        """
         req = self._normalize_requirement(requirement)
         honest_notes: list[str] = []
         missing: list[str] = []
@@ -230,13 +265,24 @@ class PaymentCompatibilityEngine:
                 f"requiere cuenta en {method_region.upper()}, pedida para {req.region.upper()}."
             )
         matches = self._find_matches(req)
+        configured = [m for m in matches if m.configured]
+        hard_blocked = bool(documentation)
 
-        score = self._score_requirement(req, matches, bool(documentation))
-        compatible = bool(matches) and not missing and not documentation
-        viable = compatible
+        if require_configured and matches and not configured:
+            names = ", ".join(m.account_name for m in matches[:2])
+            missing.append(f"Ninguna cuenta coincidente está configurada ({names}). Configurar rails reales.")
+            honest_notes.append("Ruta teórica disponible, pero sin rail configurado no es cobrable.")
+            score = 0.0
+            compatible = bool(matches) and not hard_blocked
+            viable = False
+        else:
+            score = self._score_requirement(req, configured if require_configured else matches, bool(documentation))
+            compatible = bool(matches) and not missing and not documentation
+            viable = compatible
 
-        if compatible and req.amount > 0:
-            for m in matches:
+        if viable and req.amount > 0:
+            pool = configured if require_configured else matches
+            for m in pool:
                 if m.score < 40:
                     viable = False
                     missing.append(f"{m.account_name}: condiciones limitadas para este monto")
@@ -247,6 +293,7 @@ class PaymentCompatibilityEngine:
             score=round(score, 1),
             requirement=self._requirement_dict(req),
             matches=matches,
+            configured_matches=len(configured),
             missing=missing,
             honest_notes=honest_notes,
         )
@@ -373,6 +420,7 @@ class PaymentCompatibilityEngine:
             function=_FUNCTION_LABELS.get(account.function, account.function.value),
             reason=reason,
             score=score,
+            configured=account.id in self._configured_accounts,
         )
 
     def _match_reason(self, account: OwnAccount, req: PaymentRequirement, is_off_ramp: bool) -> str:

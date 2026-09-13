@@ -2,7 +2,8 @@
 
 This module provides the complete set of platform adapters for the Pulse work cycle
 (AI work / microtasks). It includes:
-  - dataannotation, outlier, mindrift, remotasks, freelancer_microtask, linkedin_easyapply, opyre_microtask
+  - dataannotation, outlier, mindrift, freelancer_microtask, linkedin_easyapply, opyre_microtask
+(Remotasks removed per owner, purge 2026-09-13.)
 
 All adapters use the credentials vault for API key management and follow the same
 structure as Forge adapters.
@@ -31,7 +32,6 @@ __all__ = [
     "OutlierAdapter",
     "DataAnnotationAdapter",
     "MindriftAdapter",
-    "RemotasksAdapter",
     "FreelancerMicrotaskAdapter",
     "LinkedInEasyApplyAdapter",
     "OpyreMicrotaskAdapter",
@@ -242,59 +242,6 @@ class MindriftAdapter(PulseAdapter):
             return []
 
 
-class RemotasksAdapter(PulseAdapter):
-    """Remotasks adapter — various AI data tasks (Pulse cycle)."""
-
-    platform = "remotasks"
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(config)
-
-    async def fetch_opportunities(self, personal: Any | None = None) -> list[dict]:
-        """Fetch tasks from Remotasks."""
-        try:
-            creds = get_credentials()
-            api_key = creds.remotasks_api_key
-            headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    "https://api.remotasks.com/v1/tasks",
-                    headers=headers,
-                    params={"status": "open", "limit": 20},
-                    timeout=15,
-                )
-                if resp.status_code != 200:
-                    return []
-
-                data = resp.json()
-                tasks = data.get("tasks", data.get("data", []))
-
-                raw_opps = []
-                for task in tasks[:20]:
-                    raw_opps.append(
-                        {
-                            "id": f"remotasks_{task.get('id')}",
-                            "name": task.get("name") or "Remotasks Task",
-                            "description": task.get("description") or "",
-                            "platform": "remotasks",
-                            "url": task.get("url"),
-                            "reward": float(task.get("pay", 0)),
-                            "effort_hours": float(task.get("time_estimate", 2)),
-                            "tags": task.get("categories", ["data_entry", "annotation"]),
-                            "cycle": "pulse",
-                            "source_type": "ai_work",
-                            "source_name": "remotasks",
-                            "metadata": {"original": task},
-                            "created_at": task.get("created_at") or "",
-                        }
-                    )
-                return raw_opps
-        except Exception as e:
-            logger.warning(f"RemotasksAdapter fetch failed: {e}")
-            return []
-
-
 class FreelancerMicrotaskAdapter(PulseAdapter):
     """Freelancer.com micro‑tasks / contests (Pulse cycle)."""
 
@@ -421,7 +368,6 @@ class PulseAdapterFactory:
             "outlier": OutlierAdapter,
             "dataannotation": DataAnnotationAdapter,
             "mindrift": MindriftAdapter,
-            "remotasks": RemotasksAdapter,
             "freelancer_microtask": FreelancerMicrotaskAdapter,
             "linkedin_easyapply": LinkedInEasyApplyAdapter,
             "opyre_microtask": OpyreMicrotaskAdapter,
@@ -440,7 +386,6 @@ class PulseAdapterFactory:
             "outlier",
             "dataannotation",
             "mindrift",
-            "remotasks",
             "freelancer_microtask",
             "linkedin_easyapply",
             "opyre_microtask",

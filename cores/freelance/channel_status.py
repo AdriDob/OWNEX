@@ -33,12 +33,18 @@ class ChannelStatus(StrEnum):
 
 # Freelance-family channels managed here. Primary engines
 # (AI training, dev bounties, bug bounties) are NOT governed by this registry.
-FREELANCE_CHANNELS: tuple[str, ...] = ("workana", "fiverr")
+# Workana excluded from defaults (purge 2026-09): LATAM marketplace,
+# high competition, low documented rates vs the primary engines.
+FREELANCE_CHANNELS: tuple[str, ...] = ("fiverr",)
 
 _DEFAULT_STATUS: dict[str, ChannelStatus] = {
-    "workana": ChannelStatus.ACTIVE,
     "fiverr": ChannelStatus.ACTIVE,
+    "workana": ChannelStatus.EXCLUDED,
 }
+
+# Platforms permanently excluded from recommendations (user decision,
+# purge 2026-09): low pay, extreme competition, poor time-to-money.
+_HARD_EXCLUDED: frozenset[str] = frozenset({"workana", "upwork", "utest", "clickworker", "freelancer"})
 
 
 def _store_path() -> Path:
@@ -109,13 +115,16 @@ def filter_by_channel_status(opportunities: list[Any]) -> list[Any]:
     """Drop opportunities from non-ACTIVE freelance channels.
 
     Primary engines pass through untouched; only freelance-family
-    platforms (workana/fiverr) are filtered. Never raises.
+    platforms are filtered. Also hard-drops Workana regardless of
+    store state (excluded by default, purge 2026-09). Never raises.
     """
     try:
         out = []
         for opp in opportunities:
             platform = getattr(opp, "platform", "")
             key = str(getattr(platform, "value", platform) or "").strip().lower()
+            if key in _HARD_EXCLUDED:
+                continue
             if key in FREELANCE_CHANNELS and not is_recommending(key):
                 continue
             out.append(opp)

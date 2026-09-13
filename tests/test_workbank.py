@@ -93,6 +93,8 @@ class TestWorkBank:
             skills={"python"},
             platform_success_rates={"opire": 0.2},
             category_success_rates={OpportunityCategory.DEV_BOUNTY: 0.2},
+            applications_submitted=5,
+            applications_accepted=1,
         )
         summary = bank.daily_cycle([low], target=10, profile=profile, success_floor=0.4)
         assert summary["success_floor_rejected"] == 1
@@ -110,6 +112,22 @@ class TestWorkBank:
         summary = bank.daily_cycle([low], target=10)
         assert summary["success_floor_rejected"] == 0
         assert bank.get_item("op-lp") is not None
+
+    def test_success_floor_is_noop_without_history(self, tmp_path) -> None:
+        """MONEY VALIDATION cold start: profile without submitted outcomes ->
+        floor is a no-op (no data to measure, otherwise day-1 bank is empty)."""
+        bank = WorkBank(tmp_path / "workbank.json")
+        low = make_opp(
+            id="op-cold",
+            payment=3000.0,
+            experience_required=ExperienceLevel.SENIOR,
+            portfolio_required=True,
+            interview_required=True,
+        )
+        profile = UserProfile(name="Cold", skills={"python"})
+        assert (profile.applications_submitted or 0) == 0
+        summary = bank.daily_cycle([low], target=10, profile=profile, success_floor=0.4)
+        assert summary["success_floor_rejected"] == 0
 
     def test_best_ready_orders_by_reward(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")

@@ -42,25 +42,22 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Configuración Personalizada', public: true },
   },
 
-  // ── MERLIN (Office Retro Modernized Assistant) ──
+  // ── UNIFIED CHAT (single conversation: copilot + merlin + assistant personas) ──
+  // Legacy /merlin + /chat redirect here (lucky-wizard unification).
   {
     path: '/merlin',
-    name: 'merlin',
-    component: () => import(/* webpackChunkName: "merlin" */ '@/components/merlin/MerlinJarvis.vue'),
-    meta: { title: 'MERLIN' },
+    redirect: '/ai',
   },
   {
     path: '/chat',
-    name: 'ownex-chat',
-    component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/ownex-chat/OwnexChat.vue'),
-    meta: { title: 'MERLIN Chat' },
+    redirect: '/ai',
   },
   {
     // Canonical OWNEX AI chat (single conversation, canonical-state grounding,
     // backend-authoritative FACT/INFERENCE/RECOMMENDATION/UNKNOWN semantics).
     path: '/ai',
     name: 'ownex-ai',
-    component: () => import(/* webpackChunkName: "ai-command-center" */ '@/components/ai/AiCommandCenter.vue'),
+    component: () => import(/* webpackChunkName: "unified-chat" */ '@/components/ai/UnifiedChat.vue'),
     meta: { title: 'OWNEX AI' },
   },
 
@@ -273,6 +270,30 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: 'Revenue Ledger' },
   },
   {
+    path: '/operations/ecommerce',
+    name: 'ecommerce',
+    component: () => import('@/pages/Ecommerce.vue'),
+    meta: { title: 'E-commerce' },
+  },
+  {
+    path: '/operations/clients',
+    name: 'clients',
+    component: () => import('@/pages/Clients.vue'),
+    meta: { title: 'Adriel Webs' },
+  },
+  {
+    path: '/operations/content',
+    name: 'content',
+    component: () => import('@/pages/Content.vue'),
+    meta: { title: 'Contenido' },
+  },
+  {
+    path: '/operations/local-jobs',
+    name: 'local-jobs',
+    component: () => import('@/pages/LocalJobs.vue'),
+    meta: { title: 'Trabajo local' },
+  },
+  {
     path: '/operations/work-room/:id',
     name: 'work-room',
     component: () => import('@/components/work/WorkRoom.vue'),
@@ -423,6 +444,18 @@ export const routes: RouteRecordRaw[] = [
     name: 'copilot-notifications',
     component: () => import('@/pages/NotificationsPage.vue'),
     meta: { title: 'Notificaciones' },
+  },
+  {
+    path: '/copilot/alerts',
+    name: 'copilot-alerts',
+    component: () => import('@/pages/AlertsCenter.vue'),
+    meta: { title: 'Centro de Alertas' },
+  },
+  {
+    path: '/help',
+    name: 'help-center',
+    component: () => import('@/pages/HelpCenter.vue'),
+    meta: { title: 'Centro de Ayuda' },
   },
   // Legacy redirects
   { path: '/copilot/assistant', redirect: '/copilot' },

@@ -4,6 +4,7 @@ import json
 
 from cores.reports.acceptance.scraper import (
     _extract_report_id,
+    feed_hacktivity_to_learner,
     hacktivity_to_observations,
 )
 
@@ -193,8 +194,6 @@ def test_feed_hacktivity_to_learner_empty():
 def test_feed_hacktivity_to_learner_with_records():
     from unittest.mock import patch
 
-    from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
-
     mock_records = [
         {
             "report_id": 1,
@@ -206,12 +205,11 @@ def test_feed_hacktivity_to_learner_with_records():
             "program": "test-prog",
             "has_poc": True,
             "has_evidence": True,
-            "description_length": 500,
         }
     ]
 
     with patch(
-        "core.reports.acceptance.scraper.scrape_hacktivity_pages",
+        "cores.reports.acceptance.scraper.scrape_hacktivity_pages",
         return_value=mock_records,
     ):
         count = feed_hacktivity_to_learner(max_pages=1, delay=0.0)
@@ -243,7 +241,7 @@ def test_feed_hacktivity_resets_learner_state():
     ]
 
     with patch(
-        "core.reports.acceptance.scraper.scrape_hacktivity_pages",
+        "cores.reports.acceptance.scraper.scrape_hacktivity_pages",
         return_value=mock_records,
     ):
         feed_hacktivity_to_learner(max_pages=1, delay=0.0)

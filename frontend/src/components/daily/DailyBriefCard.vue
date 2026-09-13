@@ -12,6 +12,11 @@ import {
   DollarSign,
   ExternalLink,
   Loader2,
+  Sunrise,
+  Sunset,
+  Moon,
+  Sun,
+  AlertTriangle,
   Target,
   TrendingUp,
   Zap,
@@ -38,10 +43,32 @@ interface BriefAction {
   action_type: string
 }
 
+interface PlanPhase {
+  items: BriefAction[]
+  note: string
+  total_ev_usd: number
+}
+
+interface PlanWarning {
+  level: string
+  title: string
+  hint: string
+  path: string
+}
+
+interface Plan {
+  current_phase: string
+  morning: PlanPhase
+  afternoon: PlanPhase
+  evening: PlanPhase
+}
+
 interface BriefResponse {
   actions: BriefAction[]
   blocked: Array<{ id: string; title: string; phase: string; description: string }>
   completed_today: Array<{ id: string; title: string; phase: string }>
+  plan?: Plan
+  warnings?: PlanWarning[]
   summary: {
     total_expected_usd: number
     action_count: number
@@ -53,6 +80,20 @@ interface BriefResponse {
 }
 
 const brief = ref<BriefResponse | null>(null)
+
+const plan = computed<Plan | null>(() => brief.value?.plan ?? null)
+const warnings = computed<PlanWarning[]>(() => brief.value?.warnings ?? [])
+
+const phaseIcon = { morning: Sunrise, afternoon: Sun, evening: Moon } as const
+const phaseLabel = { morning: 'MAÑANA', afternoon: 'TARDE', evening: 'NOCHE' } as const
+
+function actionKey(a: BriefAction, i: number): string {
+  return `${a.id}-${i}`
+}
+
+function actionLine(a: BriefAction): string {
+  return a.next_action || 'Review opportunity'
+}
 
 const topActions = computed(() => brief.value?.actions.slice(0, 5) ?? [])
 const blockedItems = computed(() => brief.value?.blocked ?? [])
@@ -207,6 +248,56 @@ onMounted(load)
           >
             <ArrowRight class="h-3.5 w-3.5" />
           </button>
+        </div>
+      </div>
+
+      <!-- Warnings strip: everything that needs attention today -->
+      <div v-if="warnings.length > 0" class="space-y-1">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-warning">⚠️ Advertencias de hoy</p>
+        <button
+          v-for="w in warnings"
+          :key="w.title"
+          @click="router.push(w.path)"
+          class="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left transition-colors"
+          :class="w.level === 'error' ? 'border-destructive/25 bg-destructive/5 hover:bg-destructive/10' : 'border-warning/20 bg-warning/5 hover:bg-warning/10'"
+        >
+          <AlertTriangle class="h-3.5 w-3.5 shrink-0" :class="w.level === 'error' ? 'text-destructive' : 'text-warning'" />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate font-mono text-xs font-medium">{{ w.title }}</span>
+            <span class="block truncate font-mono text-[10px] text-muted-foreground">{{ w.hint }}</span>
+          </span>
+          <ArrowRight class="h-3 w-3 shrink-0 text-muted-foreground" />
+        </button>
+      </div>
+
+      <!-- Full-day plan: morning / afternoon / evening -->
+      <div v-if="plan" class="space-y-1.5">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Plan del día</p>
+        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div
+            v-for="(phase, key) in { morning: plan.morning, afternoon: plan.afternoon, evening: plan.evening }"
+            :key="key"
+            class="rounded-lg border px-3 py-2.5 transition-colors"
+            :class="plan.current_phase === key ? 'border-primary/40 bg-primary/5' : 'border-border/20 bg-surface/20'"
+          >
+            <div class="flex items-center gap-1.5">
+              <component :is="phaseIcon[key as keyof typeof phaseIcon]" class="h-3.5 w-3.5" :class="plan.current_phase === key ? 'text-primary' : 'text-muted-foreground'" />
+              <span class="font-mono text-[10px] font-bold uppercase tracking-wider" :class="plan.current_phase === key ? 'text-primary' : 'text-muted-foreground'">
+                {{ phaseLabel[key as keyof typeof phaseLabel] }}
+              </span>
+              <span v-if="plan.current_phase === key" class="ml-auto rounded bg-primary/15 px-1 py-0.5 font-mono text-[8px] font-bold text-primary">AHORA</span>
+            </div>
+            <p class="mt-1.5 line-clamp-2 font-mono text-[10px] leading-relaxed text-muted-foreground">{{ phase.note }}</p>
+            <div class="mt-1.5 flex items-center justify-between">
+              <span class="font-mono text-[9px] text-muted-foreground">{{ phase.items.length }} tarea(s)</span>
+              <span v-if="phase.total_ev_usd > 0" class="font-mono text-[10px] font-bold text-success tabular-nums">{{ usd(phase.total_ev_usd) }} EV</span>
+            </div>
+            <ul v-if="phase.items.length" class="mt-1 space-y-0.5">
+              <li v-for="(a, i) in phase.items.slice(0, 2)" :key="actionKey(a, i)" class="truncate font-mono text-[9px] text-muted-foreground/70">
+                · {{ actionLine(a) }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 

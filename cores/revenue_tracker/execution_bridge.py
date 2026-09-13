@@ -151,6 +151,30 @@ def record_submission_outcome(record: Any, opportunity: dict[str, Any] | None = 
         tracker.update_opportunity_status(
             opp_id, PaymentStatus.ACCEPTED, {"submission_id": getattr(record, "id", ""), "platform_confirmed": True}
         )
+
+        # Record acceptance outcome for HIGH_CONFIDENCE_90 calibration
+        try:
+            from cores.direct_work_engine.reward_probability import (
+                get_personal_acceptance_probability,
+                niche_for_category,
+            )
+
+            niche = niche_for_category(opp_data.get("category"))
+            predicted_p = getattr(record, "predicted_p_accept", None) or opp_data.get("acceptance_probability", 0.0)
+            get_personal_acceptance_probability().record_outcome(
+                platform=platform_key,
+                program=opp_data.get("program", ""),
+                niche=niche,
+                vuln_class=opp_data.get("vuln_class", ""),
+                surface=opp_data.get("surface", ""),
+                result="accepted",
+                evidence_quality=opp_data.get("evidence_quality", 0.5),
+                hours_invested=opp_data.get("hours_invested", 0.0),
+                predicted_p_accept=predicted_p if predicted_p and 0 <= predicted_p <= 1 else None,
+                opportunity_id=opp_id,
+            )
+        except Exception:  # noqa: BLE001
+            pass
     elif status == "submitted":
         tracker.update_opportunity_status(
             opp_id, PaymentStatus.REVIEWING, {"submission_id": getattr(record, "id", ""), "awaiting_review": True}
@@ -161,9 +185,77 @@ def record_submission_outcome(record: Any, opportunity: dict[str, Any] | None = 
             PaymentStatus.FAILED,
             {"submission_id": getattr(record, "id", ""), "last_error": getattr(record, "last_error", "")},
         )
+
+        # Record rejection outcome for HIGH_CONFIDENCE_90 calibration
+        try:
+            from cores.direct_work_engine.reward_probability import (
+                get_personal_acceptance_probability,
+                niche_for_category,
+            )
+
+            niche = niche_for_category(opp_data.get("category"))
+            predicted_p = getattr(record, "predicted_p_accept", None) or opp_data.get("acceptance_probability", 0.0)
+            get_personal_acceptance_probability().record_outcome(
+                platform=platform_key,
+                program=opp_data.get("program", ""),
+                niche=niche,
+                vuln_class=opp_data.get("vuln_class", ""),
+                surface=opp_data.get("surface", ""),
+                result="rejected",
+                evidence_quality=opp_data.get("evidence_quality", 0.5),
+                hours_invested=opp_data.get("hours_invested", 0.0),
+                predicted_p_accept=predicted_p if predicted_p and 0 <= predicted_p <= 1 else None,
+                opportunity_id=opp_id,
+            )
+        except Exception:  # noqa: BLE001
+            pass
+    elif status == "duplicate":
+        tracker.update_opportunity_status(
+            opp_id, PaymentStatus.CANCELLED, {"submission_id": getattr(record, "id", ""), "reason": "duplicate"}
+        )
+
+        # Record duplicate outcome for HIGH_CONFIDENCE_90 calibration
+        try:
+            from cores.direct_work_engine.reward_probability import (
+                get_personal_acceptance_probability,
+                niche_for_category,
+            )
+
+            niche = niche_for_category(opp_data.get("category"))
+            predicted_p = getattr(record, "predicted_p_accept", None) or opp_data.get("acceptance_probability", 0.0)
+            get_personal_acceptance_probability().record_outcome(
+                platform=platform_key,
+                program=opp_data.get("program", ""),
+                niche=niche,
+                vuln_class=opp_data.get("vuln_class", ""),
+                surface=opp_data.get("surface", ""),
+                result="duplicate",
+                evidence_quality=opp_data.get("evidence_quality", 0.5),
+                hours_invested=opp_data.get("hours_invested", 0.0),
+                predicted_p_accept=predicted_p if predicted_p and 0 <= predicted_p <= 1 else None,
+                opportunity_id=opp_id,
+            )
+        except Exception:  # noqa: BLE001
+            pass
     else:
         # PENDING/PREPARING/READY/SUBMITTING: created as PENDING, nothing more to do.
         return opp_id
+
+    # Funnel P4 (best-effort, jamás rompe el bridge): submitted/accepted.
+    # accepted here = platform CONFIRMED receipt/review — still not a reward.
+    try:
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, niche_for_category
+
+        funnel_stage = "accepted" if status == "confirmed" else "submitted" if status == "submitted" else None
+        if funnel_stage is not None:
+            get_funnel_tracker().record(
+                str(getattr(record, "opportunity_id", opp_id)),
+                funnel_stage,
+                platform=platform_key,
+                niche=niche_for_category(opp_data.get("category")),
+            )
+    except Exception:  # noqa: BLE001
+        pass
     return opp_id
 
 
@@ -205,6 +297,30 @@ def record_pipeline_outcome(
         tracker.update_opportunity_status(
             opp_id, PaymentStatus.FAILED, {"bounty_id": bounty_id, "verdict": verdict_norm}
         )
+
+        # Record rejection outcome for HIGH_CONFIDENCE_90 calibration
+        try:
+            from cores.direct_work_engine.reward_probability import (
+                get_personal_acceptance_probability,
+                niche_for_category,
+            )
+
+            niche = niche_for_category(platform)
+            predicted_p = 0.0  # pipeline verdict implies low confidence
+            get_personal_acceptance_probability().record_outcome(
+                platform=platform,
+                program="dev_bounty_pipeline",
+                niche=niche,
+                vuln_class="",
+                surface="",
+                result="rejected",
+                evidence_quality=0.5,
+                hours_invested=0.0,
+                predicted_p_accept=predicted_p if predicted_p and 0 <= predicted_p <= 1 else None,
+                opportunity_id=opp_id,
+            )
+        except Exception:  # noqa: BLE001
+            pass
     return opp_id
 
 

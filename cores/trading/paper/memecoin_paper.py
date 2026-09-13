@@ -229,6 +229,13 @@ class MemecoinPaperLoop:
                 continue
             if price is None or price <= 0:
                 continue
+            # Record a backtest snapshot of this tracked position (offline replay).
+            try:
+                from cores.trading.backtest import save_snapshot
+
+                save_snapshot(self.store, mint, pos.symbol, price, moment)
+            except Exception:
+                pass
             age_min = (moment - pos.entered_at) / 60.0
             decision = evaluate_exit(pos.entry_price_usd, pos.peak_price_usd, price, age_min, cfg)
             pos.peak_price_usd = decision.new_high

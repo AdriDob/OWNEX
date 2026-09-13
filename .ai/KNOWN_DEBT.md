@@ -132,3 +132,12 @@
 
 - **Evidencia** (2026-09-11, rama `release/win11-stable`): el hook `ruff --fix` "arregla" 1 error que el ruff local no ve, y el restore del stash aborta el commit en loop (`Rolling back fixes...`). Workaround aplicado: verificar manual (ruff local + fast) y commitear con `--no-verify` (commit `db1bc583` y siguientes).
 - **Fix real**: pinnear la misma versión en ambos lados (rev del hook ↔ `.venv`) o quitar `--fix` del hook (solo check). Pendiente, no bloquea.
+
+## 16. 🟡 `core/` congelado (borrado gateado a prueba + MSI Windows) — FASE 1/cierre
+
+- **Evidencia** (2026-09-13, audit FINAL STABLE): `core/` 652 *.py vs `cores/` 1447 *.py (superset estricto); `api/` 100% `cores.` (0 `from core.`); 322 archivos con `from core.` son self-imports del árbol legacy, inertes en runtime (`api/lifespan.py` 0/61 `cores.`). `cores/credentials/vault.py` ya usa `type(creds).model_fields` (Pydantic V2 OK); `core/credentials/vault.py:161,224` aún deprecated pero congelado.
+- **Problema**: 480 archivos divergentes = riesgo de drift si `core/` se edita; scheduler legacy `core/scheduler/jobs.py` conserva 10 jobs muertos (no-ops desconocidos).
+- **Estado**: 🔴 CERRADO-POR-GATE — decisión owner 2026-09-13: borrar `core/` SOLO con prueba `rg "from core\." cores/` == 0 + `api/main.py` sin imports `core.` + MSI Windows 11 validado W1-W12 (lo ejecuta el owner). Hasta entonces NO tocar `core/`.
+
+- **Evidencia** (2026-09-11, rama `release/win11-stable`): el hook `ruff --fix` "arregla" 1 error que el ruff local no ve, y el restore del stash aborta el commit en loop (`Rolling back fixes...`). Workaround aplicado: verificar manual (ruff local + fast) y commitear con `--no-verify` (commit `db1bc583` y siguientes).
+- **Fix real**: pinnear la misma versión en ambos lados (rev del hook ↔ `.venv`) o quitar `--fix` del hook (solo check). Pendiente, no bloquea.

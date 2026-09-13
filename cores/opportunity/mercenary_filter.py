@@ -294,7 +294,7 @@ class MercenaryFilter:
             return OpportunityCategory.DEVELOPMENT_TASKS
 
         # AI evaluation
-        if platform_lower in {"outlier", "dataannotation", "mindrift", "remotasks", "toloka", "scale"}:
+        if platform_lower in {"outlier", "dataannotation", "mindrift", "scale"}:
             return OpportunityCategory.AI_EVALUATION
 
         # Testing/QA

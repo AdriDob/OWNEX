@@ -332,12 +332,7 @@ DEFAULT_PLATFORMS = [
         adapter_platform="linkedin",
         cadence_seconds=7200,
     ),
-    PlatformConfig(
-        name="upwork",
-        category=PlatformCategory.FREELANCE,
-        adapter_platform="upwork",
-        cadence_seconds=3600,
-    ),
+    # Upwork removed per owner (purge 2026-09-13): hiring funnel, not outcome-based.
 ]
 
 

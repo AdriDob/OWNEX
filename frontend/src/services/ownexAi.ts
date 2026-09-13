@@ -195,6 +195,64 @@ export async function executeAiTool(
   return executeCommand(action, params)
 }
 
+/** ── Unified chat (POST /api/chat): one endpoint, three personas ── */
+
+export type ChatPersona = 'copilot' | 'merlin' | 'assistant'
+
+export interface UnifiedToolCall {
+  id: string
+  name: string
+  args: Record<string, unknown>
+  icon?: string
+}
+
+export interface UnifiedChatResult {
+  persona: ChatPersona
+  status: string
+  response: string
+  semantics?: Record<'FACT' | 'INFERENCE' | 'RECOMMENDATION' | 'UNKNOWN', string[]> | null
+  provider?: string
+  model?: string
+  tool_calls?: UnifiedToolCall[]
+}
+
+/** Send through the unified endpoint (no canonical grounding; persona engines answer directly). */
+export async function sendUnifiedMessage(
+  persona: ChatPersona,
+  message: string,
+  history: ChatMessage[] = [],
+  opts: { taskType?: string; context?: Record<string, unknown> } = {},
+): Promise<UnifiedChatResult> {
+  return api.post<UnifiedChatResult>('/api/chat', {
+    persona,
+    message,
+    history,
+    task_type: opts.taskType ?? 'chat',
+    context: opts.context ?? {},
+  })
+}
+
+/** Two-phase execution through the unified endpoint (same Human Gate as copilot). */
+export async function executeUnifiedCommand(
+  action: string,
+  params: Record<string, unknown> = {},
+): Promise<{ status: string; action?: string; detail?: string; result: unknown }> {
+  return api.post('/api/chat/execute', { action, params })
+}
+
+/** One-time approval token through the unified endpoint. */
+export async function requestUnifiedApproval(): Promise<{ status: string; approval_token: string }> {
+  return api.post('/api/chat/approve', { target: 'repo' })
+}
+
+/** Approve + run a MERLIN-suggested tool call (fail-closed: approved=true explicit). */
+export async function executeMerlinTool(
+  tool: string,
+  args: Record<string, unknown> = {},
+): Promise<{ status?: string; result?: unknown }> {
+  return api.post('/api/merlin/tool/execute', { tool, args, approved: true })
+}
+
 /** Persistent single conversation (localStorage). */
 export function loadHistory(): ChatMessage[] {
   try {

@@ -169,3 +169,50 @@ class TestWiring:
         assert opp.interview_required is True
         assert opp.region == "AR"
         assert opp.category == OpportunityCategory.EMPLOYMENT
+
+
+class TestLocalJobsApi:
+    @classmethod
+    def setup_class(cls):
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.local_jobs import router
+
+        app = FastAPI()
+        app.include_router(router)
+        cls.client = TestClient(app)
+
+    def test_boards_returns_three_live_links(self):
+        resp = self.client.get("/api/local-jobs/boards", params={"query": "junior", "zone": "Zona Sur"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["boards"]) == 3
+        assert all(b["url"].startswith("https://") for b in body["boards"])
+        assert all(b["apply"] == "MANUAL" for b in body["boards"])
+
+    def test_search_never_raises_and_marks_manual(self, monkeypatch):
+        import httpx
+
+        async def _boom(*args, **kwargs):
+            raise httpx.ConnectError("no network")
+
+        monkeypatch.setattr(httpx.AsyncClient, "get", _boom)
+        resp = self.client.get("/api/local-jobs/search", params={"zone": "Zona Sur"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] >= 3
+        assert all(r["apply"] == "MANUAL" for r in body["results"])
+        assert body["errors"] == []
+
+    def test_search_single_board_filter(self, monkeypatch):
+        import httpx
+
+        async def _boom(*args, **kwargs):
+            raise httpx.ConnectError("no network")
+
+        monkeypatch.setattr(httpx.AsyncClient, "get", _boom)
+        resp = self.client.get("/api/local-jobs/search", params={"zone": "CABA", "board": "bumeran"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert all(r["board"] == "bumeran" for r in body["results"])

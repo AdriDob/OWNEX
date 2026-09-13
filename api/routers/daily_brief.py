@@ -5,6 +5,9 @@ Generates a ranked list of actions with:
 - Time estimate
 - Probability of success
 - Next concrete action (button)
+
+Plus a full-day plan (morning/afternoon/evening) and system warnings so the
+user knows everything they need to do today, not just the next action.
 """
 
 from __future__ import annotations
@@ -189,6 +192,11 @@ async def daily_brief() -> dict[str, Any]:
     # 4. Sort actions by expected value
     actions.sort(key=lambda a: a.get("expected_value_usd", 0), reverse=True)
 
+    # 4b. Full-day plan + warnings (daily guidance beyond the next action)
+    bank = _get_workbank()
+    plan = _build_plan(actions, bank)
+    warnings = _build_warnings(bank, len(blocked))
+
     # 5. Build summary
     total_ev = sum(a.get("expected_value_usd", 0) for a in actions)
     today_revenue = 0.0
@@ -204,6 +212,8 @@ async def daily_brief() -> dict[str, Any]:
         "ranked_cross_category": ranked_cross_category,
         "blocked": blocked,
         "completed_today": completed_today,
+        "plan": plan,
+        "warnings": warnings,
         "summary": {
             "total_expected_usd": round(total_ev, 2),
             "action_count": len(actions),
@@ -247,3 +257,111 @@ def _greeting() -> str:
         return "Good afternoon — time to execute and deliver"
     else:
         return "Evening wrap-up — review completed work and plan tomorrow"
+
+
+# ── Full-day plan + warnings ─────────────────────────────────────────
+
+
+def _current_phase() -> str:
+    """Local hour bucket: morning (5-12), afternoon (12-19), evening (19-24/0-5)."""
+    from datetime import datetime
+
+    h = datetime.now().hour
+    if 5 <= h < 12:
+        return "morning"
+    if 12 <= h < 19:
+        return "afternoon"
+    return "evening"
+
+
+def _build_warnings(workbank, blocked_count: int) -> list[dict[str, str]]:
+    """System warnings the user must see today (setup, access, AI, stale scans)."""
+    warnings: list[dict[str, str]] = []
+
+    if blocked_count:
+        warnings.append(
+            {
+                "level": "warning",
+                "title": f"{blocked_count} entrega(s) esperan tu aprobación",
+                "hint": "Sin tu aprobación el pipeline queda bloqueado.",
+                "path": "/operations/work-queue",
+            }
+        )
+
+    if workbank is not None:
+        try:
+            needs = list(workbank.needs_access()) if hasattr(workbank, "needs_access") else []
+            if needs:
+                warnings.append(
+                    {
+                        "level": "warning",
+                        "title": f"{len(needs)} trabajo(s) bloqueado(s) por acceso a plataforma",
+                        "hint": "Conectá la plataforma para desbloquear entregas.",
+                        "path": "/integrations/accounts",
+                    }
+                )
+        except Exception:
+            pass
+
+    try:
+        from cores.setup.checklist import get_setup_checklist
+
+        status = get_setup_checklist().status()
+        if not status.get("complete", True):
+            task = status.get("next_task") or {}
+            warnings.append(
+                {
+                    "level": "info",
+                    "title": f"Setup al {status.get('complete_pct', 0)}% — tarea de hoy pendiente",
+                    "hint": str(task.get("title", "completar checklist")),
+                    "path": "/setup/checklist",
+                }
+            )
+    except Exception:
+        pass
+
+    try:
+        from cores.ai.provider import get_registry
+
+        if not get_registry().get_provider().is_available():
+            warnings.append(
+                {
+                    "level": "error",
+                    "title": "IA no disponible",
+                    "hint": "El análisis automático está en fallback. Revisá el proveedor en Settings → IA.",
+                    "path": "/operations/settings",
+                }
+            )
+    except Exception:
+        pass
+
+    return warnings
+
+
+def _build_plan(actions: list[dict[str, Any]], workbank) -> dict[str, Any]:
+    """Structure today's actions into morning/afternoon/evening phases."""
+    current = _current_phase()
+
+    def _bucket(kind: str) -> list[dict[str, Any]]:
+        return [a for a in actions if a.get("action_type") == kind]
+
+    deliveries = _bucket("delivery")
+    opportunities = _bucket("opportunity")
+
+    morning = deliveries[:2] + opportunities[:2]
+    afternoon = opportunities[2:6]
+    evening = deliveries[2:4]
+
+    def _pack(items: list[dict[str, Any]], note: str) -> dict[str, Any]:
+        return {
+            "items": items[:4],
+            "note": note,
+            "total_ev_usd": round(sum(i.get("expected_value_usd", 0) for i in items[:4]), 2),
+        }
+
+    return {
+        "current_phase": current,
+        "morning": _pack(morning, "Enviar entregas listas + arrancar la oportunidad con mayor EV/h"),
+        "afternoon": _pack(afternoon, "Ejecutar y completar tareas de oportunidad en curso"),
+        "evening": _pack(evening, "Segundas entregas + revisar qué bloqueó el día"),
+    }

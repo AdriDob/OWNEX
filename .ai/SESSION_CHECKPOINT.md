@@ -334,3 +334,22 @@ parcialmente roto). Usuario decidió YIELD COMPLETO: ningún agente de este fluj
 core/ o cores/ hasta que el usuario confirme explícitamente que la migración ajena terminó.
 Snapshot de referencia: /tmp/rastro_pre_consolidation_20260908_205343.tar.gz
 Contexto completo: .ai/CURRENT_STATE.md → "Sesión 2026-09-08 (noche)".
+
+## Sesión 2026-09-11 — MILESTONE/AGGRESSIVE/HIGH-UPSIDE (este flujo)
+- Commit `b2921679` en `release/win11-stable` (pusheado): milestone tracker $100→$10k + plan agresivo $5k/$10k EOY + HIGH_UPSIDE_90D + fixes enum-vs-str + funnel reset. Tag `v7.1.0` (run 34611051840). Tracking: DECISIONS "2026-09-10: MILESTONE TRACKER...", CURRENT_STATE "Sesión 2026-09-10 — MILESTONE TRACKER...".
+- Archivos propios commiteados (11): first_money/tracker.py, routers/first_money.py, FirstMoney.vue, ownexData.ts, DWE recommendation.py/scoring.py/reward_probability.py, tests reward_probability + tauri_packaging, DECISIONS.md, CURRENT_STATE.md. Territorio concurrente no tocado (salvo contexto compartido verde documentado).
+
+## Sesión 2026-09-11 — LIVE HUNT LOOP (este flujo) — CERRADA
+- Commit `b6122b9a` (pusheado): probe() URL completa + probing por parámetro + `_detect_idor` endurecido + EvidenceBuilder fiel + `OffensiveEngine.hunt_endpoint()` + `tests/test_live_probe_loop.py` 10/10 (HTTP real, cero mocks). Tag `v7.1.0` (run 34619411295): Windows MSI 138MB sha `76383c5e…` verificado. Docs: commit `8b9fcce8` (solo hunk v7.1.0 en DECISIONS, sin tocar contenido concurrente).
+- No tocado: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, `test_validation_engine.py` (11 fallas preexistentes verificadas por stash).
+- Regla: probes solo contra loopback/propio/scope-verificado.
+
+## Sesión 2026-09-13 — CIERRE 3 SESIONES (glowing-pixel + jolly-wizard + lucky-wizard) — SELLADA
+- **Cierre verificado 2026-09-13** (trace ade52cd191224eb1fdc257a9321168d2, sin commits solicitados):
+  glowing-pixel 11/11 verificación sin código; jolly-wizard 9/10 ya implementadas + fix
+  `IndentationError` `cores/intelligence/__init__.py:262` (6 líneas) → 10/10 feeds verdes;
+  lucky-wizard chat unificado (`api/routers/chat.py` + `UnifiedChat.vue`, 3 chats legacy eliminados).
+- **Evidencia de sellado**: `test_chat_unified` 9/9 + `test_threat_intel_feeds` 10/10 +
+  `test_hunt_router` 3/3 (22 passed) · fast 100/1 · ruff limpio en `chat.py` + tests nuevos
+  (21 errores `cores/intelligence/__init__.py` del rewrite sin commitear ajeno, no tocados).
+- Detalle: `.ai/CURRENT_STATE.md` → "Sesión 2026-09-13 — CIERRE 3 SESIONES".

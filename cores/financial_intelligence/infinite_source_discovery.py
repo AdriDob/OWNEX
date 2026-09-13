@@ -37,9 +37,7 @@ class SourceType(StrEnum):
     WEWORKREMOTELY = "weworkremotely"
     FLEXJOBS = "flexjobs"
     GITHUB = "github"
-    UPWORK = "upwork"
     FIVERR = "fiverr"
-    REMOTASKS = "remotasks"
     LABELBOX = "labelbox"
     SCALE_AI = "scale_ai"
     GENERAL = "general"
@@ -181,7 +179,6 @@ class InfiniteSourceDiscovery:
             self._search_weworkremotely,
             self._search_flexjobs,
             self._search_github,
-            self._search_upwork,
             self._search_fiverr,
         ]
 
@@ -548,49 +545,6 @@ class InfiniteSourceDiscovery:
                 zero_barrier_score=self._calculate_zero_barrier_score(job),
                 auto_apply_available=job.get("auto_apply_available", False),
                 auto_apply_api=None,
-            )
-            opportunities.append(opp)
-
-        return opportunities
-
-    def _search_upwork(self, limit: int = 10) -> list[DiscoveredOpportunity]:
-        """Search Upwork for zero-barrier opportunities."""
-        opportunities = []
-
-        # Simulated results
-        simulated_jobs = [
-            {
-                "title": "Data Entry Specialist",
-                "company": "Upwork Client",
-                "category": "data_entry",
-                "hourly_rate": 12.0,
-                "hours": 40,
-                "description": "Enter data from PDFs to spreadsheets",
-                "url": "https://upwork.com/job/post/123",
-                "experience_required": False,
-                "interview_required": False,
-                "portfolio_required": False,
-                "instant_start": True,
-                "auto_apply_available": True,
-                "auto_apply_api": "upwork_api",
-            },
-        ]
-
-        for job in simulated_jobs[:limit]:
-            opp = DiscoveredOpportunity(
-                source="Upwork",
-                source_type=SourceType.UPWORK,
-                title=job["title"],
-                company=job["company"],
-                category=job["category"],
-                hourly_rate=job["hourly_rate"],
-                estimated_hours=job["hours"],
-                description=job["description"],
-                application_url=job["url"],
-                discovered_at=datetime.now(UTC).isoformat(),
-                zero_barrier_score=self._calculate_zero_barrier_score(job),
-                auto_apply_available=job.get("auto_apply_available", False),
-                auto_apply_api=job.get("auto_apply_api"),
             )
             opportunities.append(opp)
 

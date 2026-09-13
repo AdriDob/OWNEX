@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from cores.direct_work_engine.economics import HumanTimeAdjustedROI
+
 
 class OpportunityCategory(StrEnum):
     """All IT ecosystem categories OWNEX can discover and score.
@@ -56,6 +58,7 @@ class OpportunityCategory(StrEnum):
     GAME_DEVELOPMENT = "game_development"
     COMPETITIONS = "competitions"
     EMPLOYMENT = "employment"
+    OPEN_CALL = "open_call"
 
 
 class GameDevSpecialization(StrEnum):
@@ -241,14 +244,12 @@ PLATFORM_PRIMARY_STREAM: dict[str, WorkStream] = {
     "opire": WorkStream.DEV_BOUNTY,
     "issuehunt": WorkStream.DEV_BOUNTY,
     "algora": WorkStream.DEV_BOUNTY,
-    "freelancer": WorkStream.DEV_BOUNTY,
     "opencollective": WorkStream.OPEN_SOURCE,
     "outlier": WorkStream.AI_WORK,
     "mindrift": WorkStream.AI_WORK,
     "alignerr": WorkStream.AI_WORK,
     "mercor": WorkStream.AI_WORK,
     "dataannotation": WorkStream.AI_WORK,
-    "upwork": WorkStream.DEV_BOUNTY,
 }
 
 
@@ -261,26 +262,6 @@ def get_stream_for_platform(platform: str) -> WorkStream:
     """Get the primary work stream for a platform."""
     return PLATFORM_PRIMARY_STREAM.get(platform.lower(), WorkStream.DEV_BOUNTY)
 
-    GAMEPLAY_PROGRAMMING = "gameplay_programming"
-    UNREAL_CPP = "unreal_cpp"
-    UNITY_CSHARP = "unity_csharp"
-    GODOT = "godot"
-    MULTIPLAYER_NETWORKING = "multiplayer_networking"
-    AI_PROGRAMMING = "ai_programming"
-    ENGINE_PROGRAMMING = "engine_programming"
-    RENDERING = "rendering"
-    PHYSICS = "physics"
-    TOOLS_PROGRAMMING = "tools_programming"
-    ECS = "ecs"
-    PERFORMANCE_OPTIMIZATION = "performance_optimization"
-    GAME_BACKEND = "game_backend"
-    SDK_INTEGRATION = "sdk_integration"
-    MOBILE_GAMES = "mobile_games"
-    STEAM_INTEGRATION = "steam_integration"
-    CONSOLE_DEVELOPMENT = "console_development"
-    LIVE_SERVICE = "live_service"
-    BUILD_PIPELINES = "build_pipelines"
-
 
 class WorkPlatform(StrEnum):
     HACKERONE = "hackerone"
@@ -290,6 +271,8 @@ class WorkPlatform(StrEnum):
     SYNCACK = "synack"
     IMMUNEFI = "immunefi"
     ALGORA = "algora"
+    BOUNTYBOARD = "bountyboard"
+    POLAR = "polar"
     OPIRE = "opire"
     OPEN_COLLECTIVE = "opencollective"
     ISSUE_HUNT = "issuehunt"
@@ -306,6 +289,8 @@ class WorkPlatform(StrEnum):
     ZONAJOBS = "zonajobs"
     BUMERAN = "bumeran"
     COMPUTRABAJO = "computrabajo"
+    KAGGLE = "kaggle"
+    DEWORK = "dework"
     OTHER = "other"
 
 

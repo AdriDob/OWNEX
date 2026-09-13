@@ -1,4 +1,4 @@
-"""Pulse Cycle Adapter — AI Work platforms (Outlier, DataAnnotation, Mindrift, Remotasks, Freelancer Microtasks, LinkedIn Easy Apply, Opyre Microtasks).
+"""Pulse Cycle Adapter — AI Work platforms (Outlier, DataAnnotation, Mindrift, Freelancer Microtasks, LinkedIn Easy Apply, Opyre Microtasks).
 
 Integrated with credentials vault for API key management.
 """
@@ -179,57 +179,6 @@ class MindriftAdapter(OpportunityAdapter):
             from logging import getLogger
 
             getLogger("ownex.opportunity.adapters").warning("MindriftAdapter fetch failed: %s", e)
-            return []
-
-
-class RemotasksAdapter(OpportunityAdapter):
-    """Remotasks adapter — various AI data tasks (Pulse cycle)."""
-
-    platform: str = "remotasks"
-    cycle: str = "pulse"
-
-    def __init__(self, config: dict | None = None):
-        merged_config = load_credentials("remotasks", config)
-        super().__init__(merged_config)
-        self.api_key = get_api_key("remotasks", merged_config)
-
-    async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch tasks from Remotasks."""
-        try:
-            headers = get_auth_headers("remotasks", self.config)
-            async with httpx.AsyncClient() as client:
-                resp = await client.get("https://api.remotasks.com/v1/tasks", headers=headers, timeout=15)
-                if resp.status_code != 200:
-                    return []
-
-                data = resp.json()
-                tasks = data.get("tasks", data.get("data", []))
-
-                raw_opps: list[RawOpportunity] = []
-                for task in tasks[:15]:
-                    raw_opps.append(
-                        RawOpportunity(
-                            id=f"remotasks_{task.get('id')}",
-                            name=task.get("name") or "Remotasks Task",
-                            description=task.get("description") or "",
-                            platform="remotasks",
-                            url=task.get("url"),
-                            reward=float(task.get("pay", 0)),
-                            effort_hours=float(task.get("time_estimate", 2)),
-                            tags=task.get("categories", ["data_entry", "annotation"]),
-                            cycle="pulse",
-                            source_type="ai_work",
-                            source_name="remotasks",
-                            metadata={"original": task},
-                            created_at=task.get("created_at") or "",
-                        )
-                    )
-
-                return raw_opps
-        except Exception as e:
-            from logging import getLogger
-
-            getLogger("ownex.opportunity.adapters").warning("RemotasksAdapter fetch failed: %s", e)
             return []
 
 

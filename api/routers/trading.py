@@ -209,3 +209,132 @@ def approve_proposal(proposal_id: str) -> dict[str, Any]:
 @router.post("/reasoning/reject/{proposal_id}")
 def reject_proposal(proposal_id: str) -> dict[str, Any]:
     return AutoParamOptimizer(_get_engine()._store).reject(proposal_id)  # noqa: SLF001
+
+
+# ── Backtest (offline replay of accumulated paper snapshots) ──
+
+
+def _backtest_config_from_payload(payload: dict[str, Any]) -> Any:
+    """Build a BacktestConfig from request payload. Shallow, defensive."""
+    from cores.trading.backtest import BacktestConfig
+
+    cfg = payload.get("config") or {}
+    try:
+        return BacktestConfig(
+            position_sol=float(cfg.get("position_sol", 0.1)),
+            max_open_positions=int(cfg.get("max_open_positions", 3)),
+            daily_loss_limit_sol=float(cfg.get("daily_loss_limit_sol", 0.5)),
+            max_hold_minutes=float(cfg.get("max_hold_minutes", 120.0)),
+            min_liquidity_usd=float(cfg.get("min_liquidity_usd", 10_000.0)),
+            stop_loss_pct=float(cfg.get("stop_loss_pct", 0.25)),
+            trailing_pct=float(cfg.get("trailing_pct", 0.20)),
+        )
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"invalid backtest config: {exc}") from exc
+
+
+@router.post("/backtest/run")
+def run_backtest_endpoint(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Replay accumulated paper snapshots through filters + exits (offline).
+
+    Body optional: {"config": {...backtest knobs...}}. When no snapshots have
+    been accumulated yet the paper loop is the producer (every 15m scheduler
+    cycle records tracked prices), so this returns honest NO_DATA metrics.
+    """
+    from cores.trading.backtest import load_snapshots, result_to_dict, run_backtest
+
+    store = _get_engine()._store  # noqa: SLF001
+    snapshots = load_snapshots(store)
+    cfg = _backtest_config_from_payload(payload or {})
+    result = run_backtest(snapshots, cfg)
+    return {"success": True, **result_to_dict(result)}
+
+
+@router.post("/backtest/snapshot")
+def record_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
+    """Record one price snapshot (from a live feed or manual entry)."""
+    from cores.trading.backtest import save_snapshot
+
+    store = _get_engine()._store  # noqa: SLF001
+    mint = str(payload.get("mint", ""))
+    try:
+        price = float(payload.get("price_usd", 0))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="price_usd must be numeric") from exc
+    if not mint or price <= 0:
+        raise HTTPException(status_code=400, detail="mint + positive price_usd required")
+    save_snapshot(
+        store,
+        mint,
+        str(payload.get("symbol", "?")),
+        price,
+        pair=payload.get("pair") or {},
+        rug=payload.get("rug"),
+    )
+    return {"success": True}
+
+
+@router.get("/metrics/history")
+def trading_metrics() -> dict[str, Any]:
+    """Paper metrics, open positions and accumulated snapshot count."""
+    from cores.trading.backtest import load_snapshots
+    from cores.trading.paper.memecoin_paper import MemecoinPaperLoop, paper_metrics
+
+    store = _get_engine()._store  # noqa: SLF001
+    snapshots = load_snapshots(store)
+    trades = store.get(MemecoinPaperLoop.LEDGER_KEY) or []
+    pnls = [t["pnl_sol"] for t in trades if isinstance(t, dict)] if trades else []
+    metrics = paper_metrics([])
+    if pnls:
+        try:
+            fake = [type("T", (), {"pnl_sol": p})() for p in pnls]
+            metrics = paper_metrics(fake)
+        except Exception:
+            metrics = paper_metrics([])
+    metrics["trade_count"] = len(trades)
+    metrics["snapshots"] = len(snapshots)
+    metrics["hash"] = (
+        f"{metrics.get('trades', 0)}/{metrics.get('win_rate') or '-'}/{metrics.get('profit_factor') or '-'}"
+    )
+    return {"success": True, "metrics": metrics}
+
+
+@router.post("/advisor/propose")
+async def advisor_propose(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """OAR proposes parameter tweaks from paper metrics (Human Gate to apply).
+
+    Returns proposals already persisted as ParamAdjustment under the standard
+    `proposals` store key — the existing /reasoning/approve|reject endpoints
+    handle the actual apply/reject decision.
+    """
+    from cores.trading.advisor import TradingAdvisor
+    from cores.trading.paper.memecoin_paper import MemecoinPaperLoop, paper_metrics
+    from cores.trading.reasoning import ParamAdjustment
+
+    store = _get_engine()._store  # noqa: SLF001
+    trades = store.get(MemecoinPaperLoop.LEDGER_KEY) or []
+    metrics = paper_metrics([type("T", (), {"pnl_sol": t["pnl_sol"]})() for t in trades])
+    if metrics.get("trades", 0) < 20:
+        return {"success": True, "proposals": [], "count": 0, "reason": "insufficient sample (<20 trades)"}
+
+    cfg = _backtest_config_from_payload(payload or {})
+    advisor = TradingAdvisor(store)
+    proposals = await advisor.propose(metrics, cfg.to_dict())
+    if not proposals:
+        return {"success": True, "proposals": [], "count": 0, "reason": "no proposals (no edge or OAR unavailable)"}
+
+    persisted: list[dict[str, Any]] = []
+    for p in proposals:
+        adjustment = ParamAdjustment(
+            proposal_id=p.proposal_id,
+            strategy_id="memecoin_v1",
+            param=p.param,
+            current_value=p.current_value,
+            proposed_value=p.proposed_value,
+            reason=p.reason,
+            confidence=p.confidence,
+        )
+        store.upsert_item("proposals", adjustment.__dict__, id_key="proposal_id")
+        persisted.append(adjustment.__dict__)
+
+    return {"success": True, "proposals": persisted, "count": len(persisted)}

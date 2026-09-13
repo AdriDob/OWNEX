@@ -43,6 +43,7 @@ def _make_opp(**overrides):
         "currency": "USD",
         "payment_method": PaymentMethod.PAYPAL,
         "estimated_time_hours": 10.0,
+        "technology_tags": ["python", "go", "rust"],
     }
     defaults.update(overrides)
     return Opportunity(**defaults)
@@ -207,13 +208,13 @@ class TestAcceptanceProbability:
         e = get_personal_acceptance_probability(tmp_path / "outcomes.jsonl")
         e.record_outcome(platform="h1", niche="web3", result="duplicate")
         est = e.estimate("web3")
-        assert est.n_wins == 0
+        assert est.n_accepted == 0
         assert est.n_outcomes == 1
 
     def test_many_outcomes_converge_to_personal_rate(self, tmp_path):
         e = get_personal_acceptance_probability(tmp_path / "outcomes.jsonl")
         for _ in range(60):
-            e.record_outcome(platform="h1", niche="web3", result="accepted", reward_usd=100)
+            e.record_outcome(platform="h1", niche="web3", result="accepted")
         for _ in range(60):
             e.record_outcome(platform="h1", niche="web3", result="rejected")
         est = e.estimate("web3")
@@ -250,10 +251,10 @@ class TestEvidenceGate:
 
         gate = get_evidence_gate()
         result = gate.evaluate(opp, evidence)
-        assert result.status == "NEEDS_EVIDENCE"
+        assert result.status == "NOT_READY"
 
 
-def test_evidence_gate_passes_strong_evidence(self, tmp_path, monkeypatch):
+def test_evidence_gate_passes_strong_evidence(tmp_path, monkeypatch):
     from cores.direct_work_engine.reward_probability import get_evidence_gate
     from cores.evidence.composer import EvidenceBundle
 

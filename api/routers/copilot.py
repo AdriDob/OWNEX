@@ -254,14 +254,44 @@ async def copilot_execute(body: ExecuteRequest):
         elif body.action.startswith("opencode:"):
             subtask = body.action.replace("opencode:", "")
             bridge = get_opencode_bridge()
+            params = body.params or {}
+            model = params.get("model", "opencode/deepseek-v4-flash-free")
             if subtask == "ask":
-                result = await bridge.ask(body.params.get("question", ""))
-            elif subtask == "implement":
-                result = await bridge.implement(body.params.get("description", ""))
-            elif subtask == "fix":
-                result = await bridge.fix(body.params.get("bug", ""))
+                result = await bridge.ask(params.get("question", ""), model=model)
+            elif subtask == "propose":
+                result = await bridge.propose(params.get("description", params.get("task", "")), model=model)
+            elif subtask in ("implement", "fix", "refactor", "run"):
+                # Two-phase flow: writes need a one-time human approval token.
+                from cores.automation.safety import consume_approval
+
+                token = params.get("approval_token")
+                if not consume_approval(token, "opencode:execute", "repo"):
+                    return {
+                        "status": "denied",
+                        "action": body.action,
+                        "detail": "Missing or invalid approval_token. Call opencode:propose first, review the plan, then POST /api/copilot/approve to get a token.",
+                        "result": {"success": False},
+                    }
+                if subtask == "implement":
+                    result = await bridge.implement(params.get("description", ""), model=model)
+                elif subtask == "fix":
+                    result = await bridge.fix(params.get("bug", ""), model=model)
+                elif subtask == "refactor":
+                    result = await bridge.refactor(params.get("description", ""), model=model)
+                else:
+                    result = await bridge.run(
+                        params.get("task", subtask),
+                        model=model,
+                        timeout_s=int(params.get("timeout_s", 300)),
+                        mode="execute",
+                    )
             else:
-                result = await bridge.run(body.params.get("task", subtask))
+                return {
+                    "status": "error",
+                    "action": body.action,
+                    "detail": f"Unknown opencode subtask: {subtask} (ask|propose|implement|fix|refactor|run)",
+                    "result": {"success": False},
+                }
             return {"status": "ok" if result.get("success") else "error", "action": body.action, "result": result}
 
         else:
@@ -271,6 +301,53 @@ async def copilot_execute(body: ExecuteRequest):
     except Exception as exc:
         logger.warning("[COPILOT] Execute error: %s", exc)
         return {"status": "error", "action": body.action, "detail": str(exc)}
+
+
+class ApproveRequest(BaseModel):
+    target: str = "repo"
+    ttl_seconds: int = 600
+
+
+@router.post("/approve")
+async def copilot_approve(body: ApproveRequest):
+    """Issue a one-time human approval token for opencode writes.
+
+    Flow: opencode:propose (free) → review plan/diff → POST /approve
+    (this click IS the human confirmation) → opencode:implement|fix|run
+    with approval_token. Tokens are single-use, scope-bound, expiring.
+    """
+    from cores.automation.safety import issue_approval
+
+    if body.target != "repo":
+        raise HTTPException(status_code=400, detail="Only target 'repo' is supported")
+    token = issue_approval("opencode:execute", "repo", ttl_seconds=max(60, min(body.ttl_seconds, 3600)))
+    return {"status": "ok", "approval_token": token, "action": "opencode:execute", "target": "repo"}
+
+
+@router.get("/runs")
+async def copilot_runs(limit: int = 20):
+    """List recent opencode runs (prompt/output/diff files)."""
+    from cores.copilot.opencode_bridge import _runs_dir
+
+    try:
+        runs = sorted(
+            [p for p in _runs_dir().iterdir() if p.is_dir()],
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )[: max(1, min(limit, 50))]
+        return {
+            "status": "ok",
+            "runs": [
+                {
+                    "run_id": p.name,
+                    "files": sorted(f.name for f in p.iterdir() if f.is_file()),
+                    "mtime": p.stat().st_mtime,
+                }
+                for p in runs
+            ],
+        }
+    except Exception as exc:
+        return {"status": "error", "detail": str(exc)}
 
 
 @router.get("/connections/audit")

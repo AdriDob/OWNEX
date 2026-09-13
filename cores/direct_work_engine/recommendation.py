@@ -629,10 +629,17 @@ class IntelligentRecommender:
                     currency="USDC" if method == "crypto" else "USD",
                     region="global",
                     amount=opp.payment,
-                )
+                ),
+                # MONEY VALIDATION: P_REWARD depends on rails the user really
+                # configured, never on the theoretical catalog.
+                require_configured=True,
             )
             ranked.payment_compat_score = verdict.score
-            if verdict.compatible:
+            if verdict.configured_matches == 0 and verdict.matches:
+                ranked.payment_compat_notes.append(
+                    "Sin rail configurado para este método: " + "; ".join(verdict.missing[:1])
+                )
+            elif verdict.compatible:
                 ranked.payment_compat_notes.append("Pago cobrable con las cuentas configuradas de OWNEX.")
             elif verdict.matches:
                 ranked.payment_compat_notes.append(
@@ -923,7 +930,7 @@ class IntelligentRecommender:
         opp = ranked.opportunity
 
         # Determine income base: hourly stream or one-shot payment
-        hourly_rate = opp.hourly_rate_usd if opp.hourly_rate_usd and opp.hourly_rate_usd > 0 else None
+        hourly_rate = opp.hourly_rate_usd if opp.hourly_rate_usd and opp.hourly_rate_usd > 0 else None  # noqa: F841 - reserved for hourly_stream EV path
         human_hours = opp.estimated_time_hours if opp.estimated_time_hours and opp.estimated_time_hours > 0 else None
 
         # Confidence = acceptance probability * payment compatibility
@@ -987,6 +994,26 @@ class IntelligentRecommender:
         # Payment compatibility factor: cannot collect -> recommendation drops
         payment_factor = ranked.payment_compat_score / 100.0 if ranked.payment_compat_score > 0 else 0.3
         score *= payment_factor
+
+        # PROJECT_FUNDING is not a task — must not dominate EV/h ranking.
+        # Keep it visible but deprioritized for "qué hacer esta semana".
+        try:
+            from cores.direct_work_engine.public_work import classify_market_segment, classify_reward_kind
+
+            opp = ranked.opportunity
+            seg = classify_market_segment(
+                category=getattr(getattr(opp, "category", ""), "value", getattr(opp, "category", "")),
+                employment_type=getattr(
+                    getattr(opp, "employment_type", ""), "value", getattr(opp, "employment_type", "")
+                ),
+                platform=getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", "")),
+                payment=opp.payment,
+                title=getattr(opp, "title", "") or "",
+            )
+            if classify_reward_kind(seg).value == "project_funding":
+                score *= 0.4  # grants/retro/ecosystem ≠ tarea inmediata
+        except Exception:
+            pass
 
         return round(score * 100, 1)  # 0-100 scale
 
@@ -1058,6 +1085,29 @@ class IntelligentRecommender:
         reasons.append(f"Reputation: {ranked.reputation_score:.0%}")
         reasons.append(f"Risk: {ranked.risk_score:.0%}")
         reasons.append(f"Model: {opportunity_model(ranked.opportunity.employment_type)}")
+        # Economic ceiling honesty (TASK_REWARD vs PROJECT_FUNDING)
+        try:
+            from cores.direct_work_engine.public_work import classify_market_segment, get_ceiling
+
+            opp = ranked.opportunity
+            seg = classify_market_segment(
+                category=getattr(getattr(opp, "category", ""), "value", getattr(opp, "category", "")),
+                employment_type=getattr(
+                    getattr(opp, "employment_type", ""), "value", getattr(opp, "employment_type", "")
+                ),
+                platform=getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", "")),
+                payment=opp.payment,
+                title=getattr(opp, "title", "") or "",
+            )
+            ceiling = get_ceiling(seg)
+            if ceiling["reward_kind"] == "project_funding":
+                reasons.append(
+                    f"🏛️ {seg.value.upper()}: {ceiling['typical']} (techo ${ceiling['max_observed_usd']:,}) — proyecto, no tarea"
+                )
+            elif seg.value in ("bug_bounty", "security_oss"):
+                reasons.append(f"🎯 {seg.value}: {ceiling['typical']} (techo ${ceiling['max_observed_usd']:,})")
+        except Exception:
+            pass
         if ranked.payment_compat_notes:
             reasons.append("💳 " + ranked.payment_compat_notes[0])
 

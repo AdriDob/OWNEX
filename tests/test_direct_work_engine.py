@@ -8,6 +8,7 @@ DirectWorkEngine orchestrator. Async APIs are driven with asyncio.run().
 from __future__ import annotations
 
 import asyncio
+from contextlib import contextmanager
 
 import pytest
 
@@ -31,6 +32,22 @@ from cores.direct_work_engine.models import (
 from cores.direct_work_engine.profile_builder import IntelligentProfileBuilder
 from cores.direct_work_engine.recommendation import IntelligentRecommender, RecommenderConfig
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
+
+
+@contextmanager
+def _configured_rails(account_ids: list[str]):
+    """Temporarily set payment rails (MONEY VALIDATION: P_REWARD needs real
+    rails). Restores the user's real configuration afterwards — tests must
+    never clobber ~/.config/ownex/payment_network.json permanently."""
+    from cores.payment_compat.engine import get_payment_engine
+
+    engine = get_payment_engine()
+    saved = engine.get_configured_accounts()
+    engine.set_configured_accounts(list(account_ids))
+    try:
+        yield
+    finally:
+        get_payment_engine().set_configured_accounts(saved)
 
 
 def make_profile(**overrides) -> UserProfile:
@@ -286,14 +303,16 @@ class TestIntelligentRecommender:
         assert "concept" not in ranked[0].strategy.lower()
 
     def test_payment_compat_paypal_is_collectible(self) -> None:
-        ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
+        with _configured_rails(["paypal"]):
+            ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
         top = ranked[0]
         assert top.payment_compat_score > 50
         assert any("cobrable" in note for note in top.payment_compat_notes)
 
     def test_payment_compat_stablecoin_uses_usdc_network(self) -> None:
         opp = make_opportunity(payment_method=PaymentMethod.STABLECOIN, title="Stablecoin bounty")
-        ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
+        with _configured_rails(["binance"]):
+            ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
         top = ranked[0]
         assert top.payment_compat_score > 50
         assert any("cobrable" in note for note in top.payment_compat_notes)
@@ -310,9 +329,18 @@ class TestIntelligentRecommender:
         stable = make_opportunity(
             id="op-st", title="Stablecoin task", payment_method=PaymentMethod.STABLECOIN, payment=500.0
         )
-        ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
+        with _configured_rails(["paypal", "binance"]):
+            ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
         by_id = {r.opportunity.id: r for r in ranked}
         assert by_id["op-st"].payment_compat_score > by_id["op-pp"].payment_compat_score
+
+    def test_payment_compat_unconfigured_rail_scores_zero_with_honest_note(self) -> None:
+        """MONEY VALIDATION: no configured rail -> score 0 + honest note, never a theoretical score."""
+        with _configured_rails([]):
+            ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
+        top = ranked[0]
+        assert top.payment_compat_score == 0.0
+        assert any("Sin rail configurado" in note for note in top.payment_compat_notes)
 
 
 class TestUniversalDiscovery:

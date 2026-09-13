@@ -252,6 +252,102 @@ class PerformanceAnalyzer:
         )
 
 
+# ---------------------------------------------------------------------------
+# 3b. Channel Economy — MONEY VALIDATION: personal empirical economy per
+# channel. ACCEPTED is pipeline; only PAID records count as cash. Hours come
+# from actual_hours (measured), never from estimates.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class ChannelEconomy:
+    """Net-cash truth for one channel (platform)."""
+
+    channel: str
+    attempted: int = 0
+    accepted: int = 0
+    paid: int = 0
+    earned_gross: float = 0.0
+    net_cash: float = 0.0
+    human_hours: float = 0.0
+    net_per_hour: float | None = None
+    median_days_to_cash: float | None = None
+    acceptance_rate: float = 0.0
+    cash_rate: float = 0.0
+
+
+def _median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    mid = len(ordered) // 2
+    if len(ordered) % 2:
+        return round(ordered[mid], 2)
+    return round((ordered[mid - 1] + ordered[mid]) / 2.0, 2)
+
+
+def channel_economy(records: list[LearningRecord]) -> dict:
+    """Build the personal empirical economy table from verified outcomes.
+
+    Honesty rules: no paid records -> verdict UNKNOWN (never $0-presented-as-fact
+    for the rate table; totals stay 0.0). Hours only from actual_hours measured.
+    """
+    by_channel: dict[str, list[LearningRecord]] = defaultdict(list)
+    for record in records:
+        if record.platform:
+            by_channel[record.platform].append(record)
+
+    channels: list[dict] = []
+    total_hours = 0.0
+    total_net = 0.0
+    for channel in sorted(by_channel):
+        recs = by_channel[channel]
+        accepted = [r for r in recs if r.accepted]
+        paid = [r for r in recs if r.paid]
+        earned_gross = round(sum(r.amount for r in accepted), 2)
+        net_cash = round(sum(r.net_amount if r.net_amount is not None else 0.0 for r in paid), 2)
+        hours = round(sum(r.actual_hours for r in recs if r.actual_hours is not None), 2)
+        days = [r.time_to_payout_days for r in paid if r.time_to_payout_days is not None]
+        total_hours += hours
+        total_net += net_cash
+        channels.append(
+            {
+                "channel": channel,
+                "attempted": len(recs),
+                "accepted": len(accepted),
+                "paid": len(paid),
+                "earned_gross": earned_gross,
+                "net_cash": net_cash,
+                "human_hours": hours,
+                "net_per_hour": round(net_cash / hours, 2) if hours > 0 and net_cash > 0 else None,
+                "median_days_to_cash": _median(days),
+                "acceptance_rate": round(len(accepted) / len(recs), 3) if recs else 0.0,
+                "cash_rate": round(len(paid) / len(recs), 3) if recs else 0.0,
+            }
+        )
+
+    total_paid = sum(c["paid"] for c in channels)
+    verdict = "UNKNOWN" if total_paid == 0 else ("THIN_EVIDENCE" if total_paid < 3 else "MEASURED")
+    return {
+        "verdict": verdict,
+        "channels": channels,
+        "totals": {
+            "attempted": sum(c["attempted"] for c in channels),
+            "accepted": sum(c["accepted"] for c in channels),
+            "paid": total_paid,
+            "earned_gross": round(sum(c["earned_gross"] for c in channels), 2),
+            "net_cash": round(total_net, 2),
+            "human_hours": round(total_hours, 2),
+            "net_per_hour": round(total_net / total_hours, 2) if total_hours > 0 and total_net > 0 else None,
+        },
+        "note": (
+            "Sin pagos verificados: no hay economía medible, solo escenarios."
+            if verdict == "UNKNOWN"
+            else f"Economía personal sobre {total_paid} pagos verificados."
+        ),
+    }
+
+
 def prediction_error_report(records: list[LearningRecord]) -> dict:
     """Estimated-vs-actual calibration over records carrying prediction snapshots.
 

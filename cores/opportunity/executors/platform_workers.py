@@ -911,78 +911,8 @@ class MindriftBrowserWorker(BaseExecutor):
             return ExecutionResult(result.success, "health_check", self.base_url)
 
 
-class RemotasksWorker(BaseExecutor):
-    """Worker for Remotasks.com — login, fetch tasks, submit results."""
-
-    platform = "remotasks"
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("REMOTASKS_EMAIL")
-        self.password = self.config.get("password") or os.getenv("REMOTASKS_PASSWORD")
-        self.base_url = self.config.get("base_url", "https://remotasks.com")
-
-    async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
-        if BrowserAgent is None:
-            return ExecutionResult(False, action, "", error="playwright not installed")
-
-        if action == "login":
-            return await self.login()
-        if action == "fetch_tasks":
-            return await self.fetch_tasks()
-        if action == "submit_result":
-            return await self.submit_result(kwargs.get("task_id", ""), kwargs.get("result", {}))
-        if action == "health_check":
-            return await self.health_check()
-        return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
-
-    async def login(self) -> ExecutionResult:
-        if not self.email or not self.password:
-            return ExecutionResult(False, "login", "", error="REMOTASKS_EMAIL/PASSWORD not configured")
-
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(f"{self.base_url}/login")
-            if not result.success:
-                return ExecutionResult(False, "login", "", error=result.error)
-
-            await agent._page.fill('input[name="email"]', self.email)
-            await agent._page.fill('input[name="password"]', self.password)
-            await agent._page.click('button[type="submit"]')
-            await agent._page.wait_for_load_state("networkidle")
-
-            return ExecutionResult(True, "login", "", message="Logged in to Remotasks")
-
-    async def fetch_tasks(self) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(f"{self.base_url}/tasks")
-            if not result.success:
-                return ExecutionResult(False, "fetch_tasks", "", error=result.error)
-
-            tasks = await agent._page.query_selector_all(".task-card")
-            task_data = [{"id": i, "title": await task.text_content()} for i, task in enumerate(tasks)]
-
-            return ExecutionResult(True, "fetch_tasks", "", data={"tasks": task_data, "count": len(task_data)})
-
-    async def submit_result(self, task_id: str, result_data: dict[str, Any]) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            nav_result = await agent.goto(f"{self.base_url}/tasks/{task_id}")
-            if not nav_result.success:
-                return ExecutionResult(False, "submit_result", task_id, error=nav_result.error)
-
-            await agent._page.click('button[type="submit"]')
-            await agent._page.wait_for_load_state("networkidle")
-
-            return ExecutionResult(True, "submit_result", task_id, data={"result": result_data})
-
-    async def health_check(self) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(self.base_url)
-            return ExecutionResult(result.success, "health_check", self.base_url)
-
-
 __all__ = [
     "DataAnnotationWorker",
     "OutlierWorker",
     "MindriftBrowserWorker",
-    "RemotasksWorker",
 ]

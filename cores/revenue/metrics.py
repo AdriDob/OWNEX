@@ -403,7 +403,7 @@ class RevenueMetrics:
             target_count = 0
             scanned_recently = 0
             try:
-                from database.models import Target, Endpoint
+                from database.models import Endpoint, Target
 
                 target_count = session.query(Target).count()
                 scanned_recently = (

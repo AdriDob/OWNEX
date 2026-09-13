@@ -115,7 +115,7 @@ def test_get_category_dev_bounty(mercenary_filter):
 
 def test_get_category_ai_evaluation(mercenary_filter):
     """Test category detection for AI evaluation platforms."""
-    for platform in ["outlier", "dataannotation", "mindrift", "remotasks"]:
+    for platform in ["outlier", "dataannotation", "mindrift"]:
         category = mercenary_filter.get_category(platform, "ai_work", ["ml"])
         assert category == OpportunityCategory.AI_EVALUATION
 

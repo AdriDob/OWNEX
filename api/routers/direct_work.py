@@ -240,6 +240,10 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
         predicted_hours=_opt_float("predicted_hours"),
         predicted_probability=_opt_float("predicted_probability"),
         actual_hours=_opt_float("actual_hours"),
+        # MONEY VALIDATION: ACCEPTED != PAID. paid only with real cash received.
+        paid=bool(data.get("paid", False)),
+        net_amount=_opt_float("net_amount"),
+        fees=float(data.get("fees", 0.0) or 0.0),
     )
 
 
@@ -309,7 +313,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
 
         hours = float(getattr(ranked.opportunity, "estimated_time_hours", 0) or 0)
         proj = compute_htroi(
-            expected_income_usd=float(expected_cash["days_to_cash"] or 0) if False else float(ranked.expected_value),
+            expected_income_usd=float(ranked.expected_value),
             human_hours=hours,
         )
         htroi = {
@@ -705,6 +709,17 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     except Exception:  # el espejo jamás rompe la entrega
         pass
 
+    # Funnel P4 (best-effort, jamás rompe la entrega): prepared.
+    try:
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, niche_for_category
+
+        category = getattr(getattr(item, "category", None), "value", getattr(item, "category", ""))
+        get_funnel_tracker().record(
+            str(item.id), "prepared", platform=str(item.platform), niche=niche_for_category(category)
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
     return {
         "item_id": item.id,
         "platform": str(item.platform),
@@ -815,6 +830,17 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     # No learning folded here: delivery approval is not an outcome. Verified
     # outcomes (accepted/paid/failed) fold via build_history_from_revenue_tracker,
     # closed_loop payments, or POST /direct-work/learn — never from approval.
+
+    # Funnel P4 (best-effort): approved (human gate passed, not a reward).
+    try:
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, niche_for_category
+
+        category = getattr(getattr(item, "category", None), "value", getattr(item, "category", ""))
+        get_funnel_tracker().record(
+            str(item.id), "approved", platform=str(item.platform), niche=niche_for_category(category)
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
     return {
         "item_id": item.id,
@@ -1289,6 +1315,20 @@ async def direct_work_daily_companion(
     )
 
 
+def _platform_configured(platform_key: str, access_status: str) -> str:
+    """MONEY VALIDATION tri-state for platform availability (no secrets in output)."""
+    if access_status == "public":
+        return "CONFIGURED"
+    if access_status == "needs_api_key":
+        try:
+            from cores.credentials.adapter_helpers import get_api_key
+
+            return "CONFIGURED" if get_api_key(platform_key, {}) else "NOT_CONFIGURED"
+        except Exception:
+            return "UNVERIFIED"
+    return "UNVERIFIED"
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
@@ -1314,6 +1354,11 @@ async def direct_work_access_explain() -> dict[str, Any]:
                 "analysis_cadence_hours": TIER_CADENCE_HOURS.get(tier, 24),
                 "registered": platform_key in registered,
                 "explanation": _access_explanation(status, requirement),
+                # MONEY VALIDATION: real availability, never invented.
+                # public -> CONFIGURED (nothing to set up); key-based -> vault
+                # presence (bool only, secrets never leave the vault); manual
+                # setup -> UNVERIFIED (not verifiable programmatically).
+                "configured": _platform_configured(platform_key, status),
             }
         )
     platforms.sort(key=lambda p: (p["tier"], p["platform"]))
@@ -1498,6 +1543,7 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
         CapabilityExpansionDetector,
         PerformanceAnalyzer,
         SkillEvolutionEngine,
+        channel_economy,
         evolve_analysis,
         identify_repeatable,
         prediction_error_report,
@@ -1513,6 +1559,8 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
     report = evolve_analysis(lessons, proposals, performance)
     report["calibration"] = prediction_error_report(records)
     report["repeatable"] = identify_repeatable(records)
+    # MONEY VALIDATION: personal empirical economy (PAID-only cash, measured hours).
+    report["economy"] = channel_economy(records)
     return report
 
 

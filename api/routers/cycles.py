@@ -33,6 +33,14 @@ def list_cycles(enabled_only: bool = Query(False)):
     return cycles
 
 
+@router.get("/automation-metrics")
+def get_automation_metrics():
+    """Fábrica 1000%: Automation Ratio y métricas de autonomía (SSOT metrics.py)."""
+    from cores.cycles.metrics import CycleMetricsEngine
+
+    return CycleMetricsEngine().compute_automation_metrics()
+
+
 @router.get("/metrics", response_model=dict[str, CycleMetrics])
 def get_all_cycle_metrics():
     """Get metrics for all cycles."""

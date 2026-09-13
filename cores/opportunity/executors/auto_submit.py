@@ -66,7 +66,7 @@ def _get_freelancer_adapter():
 
 
 def _get_algora_adapter():
-    from api.adapters.direct_work_algora import AlgoraDweAdapter
+    from cores.opportunity.executors.algora_executor import AlgoraDweAdapter
 
     return AlgoraDweAdapter()
 
@@ -344,6 +344,14 @@ class AutoSubmitEngine:
 
     async def _submit_to_platform(self, platform: str, prepared: PreparedWork, api_key: str) -> dict[str, Any]:
         """Submit prepared work to specific platform."""
+        # Dev-bounty platforms route to adapters FIRST (they are not in _get_platform).
+        try:
+            adapter = self._get_adapter(platform)
+        except ValueError:
+            adapter = None
+        if adapter is not None and hasattr(adapter, "submit_work"):
+            return await adapter.submit_work(prepared, api_key)
+
         platform_impl = self._get_platform(platform)
 
         # Convert PreparedWork to platform report format
@@ -366,11 +374,6 @@ class AutoSubmitEngine:
                 "error": result.error,
                 "data": result.data,
             }
-
-        # For dev bounty platforms, use adapter
-        adapter = self._get_adapter(platform)
-        if hasattr(adapter, "submit_work"):
-            return await adapter.submit_work(prepared, api_key)
 
         return {"success": False, "error": f"Platform {platform} does not support auto-submission"}
 

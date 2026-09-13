@@ -3,10 +3,12 @@ import {
   Activity,
   BarChart3,
   Bot,
+  Briefcase,
   Cable,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clapperboard,
   Cpu,
   CheckSquare,
   Database,
@@ -15,7 +17,10 @@ import {
   GraduationCap,
   ExternalLink,
   FileText,
+  HelpCircle,
+  BellRing,
   Globe,
+  MapPin,
   Landmark,
   MessageCircle,
   Settings,
@@ -62,6 +67,7 @@ const loading = ref(true)
 
 const badgeCounts = ref<Record<string, number>>({})
 const setupIncomplete = ref(false)
+const alertBadgeCount = ref(0)
 
 async function fetchBadges() {
   try {
@@ -87,12 +93,21 @@ async function fetchBadges() {
   } catch {
     /* silent */
   }
+
+  // Live warning count for the Alerts badge (silent on failure).
+  try {
+    const sweep = await api.post<{ total_findings: number }>('/alerts/sweep', { create: false })
+    alertBadgeCount.value = sweep.total_findings || 0
+  } catch {
+    alertBadgeCount.value = 0
+  }
 }
 
 function getBadge(path: string): number | null {
   if (path === '/targets') return badgeCounts.value.targets || null
   if (path === '/operations/work-queue') return badgeCounts.value.workQueue || null
   if (path === '/intelligence/findings') return badgeCounts.value.findings || null
+  if (path === '/copilot/alerts') return alertBadgeCount.value || null
   return null
 }
 
@@ -111,6 +126,9 @@ const navSections = [
       { name: 'Mission', path: '/mission', icon: Target },
       { name: 'Public Work', path: '/public-work', icon: GraduationCap },
       { name: 'First Money', path: '/operations/first-money', icon: Banknote },
+      { name: 'Adriel Webs', path: '/operations/clients', icon: Briefcase },
+      { name: 'Trabajo local', path: '/operations/local-jobs', icon: MapPin },
+      { name: 'Contenido', path: '/operations/content', icon: Clapperboard },
       { name: 'Platform Guides', path: '/operations/platforms', icon: GraduationCap },
       { name: 'Opportunities', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
     ],
@@ -121,6 +139,7 @@ const navSections = [
     items: [
       { name: 'Capital', path: '/capital', icon: DollarSign },
       { name: 'Ledger', path: '/operations/ledger', icon: FileText },
+      { name: 'E-commerce', path: '/operations/ecommerce', icon: Globe },
       { name: 'Trading', path: '/trading', icon: TrendingUp },
     ],
   },
@@ -142,6 +161,8 @@ const navSections = [
       { name: 'Setup Checklist', path: '/setup/checklist', icon: CheckSquare },
       { name: 'Integrations', path: '/integrations/connections', icon: Cable },
       { name: 'Settings', path: '/operations/settings', icon: Settings },
+      { name: 'Centro de Ayuda', path: '/help', icon: HelpCircle },
+      { name: 'Alertas', path: '/copilot/alerts', icon: BellRing, badge: 'alerts' },
     ],
   },
   {
@@ -149,7 +170,6 @@ const navSections = [
     cycle: 'security',
     items: [
       { name: 'OWNEX AI', path: '/ai', icon: Bot },
-      { name: 'MERLIN', path: '/merlin', icon: Bot },
       { name: 'Atlas', path: '/atlas/', icon: Landmark },
       { name: 'Odyssey', path: '/odyssey/', icon: Sparkles },
       { name: 'Aegis', path: '/aegis/', icon: Shield },

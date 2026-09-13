@@ -60,6 +60,153 @@ RUNG_GOAL_ES: dict[PublicWorkRung, str] = {
     PublicWorkRung.EXPERT: "Grandes recompensas: blockchain / security / sistemas complejos",
 }
 
+
+class RewardKind(StrEnum):
+    """TASK_REWARD = pago por tarea individual; PROJECT_FUNDING = financiación de proyecto."""
+
+    TASK_REWARD = "task_reward"
+    PROJECT_FUNDING = "project_funding"
+
+
+class MarketSegment(StrEnum):
+    """Segmento económico — determina techo observado y naturaleza del pago."""
+
+    OSS = "oss"
+    DEV_BOUNTY = "dev_bounty"
+    SECURITY_OSS = "security_oss"
+    BUG_BOUNTY = "bug_bounty"
+    CHALLENGE = "challenge"
+    HACKATHON = "hackathon"
+    GRANTS = "grants"
+    RETROACTIVE = "retroactive"
+    ECOSYSTEM_FUNDING = "ecosystem_funding"
+
+
+REWARD_KIND_FOR_SEGMENT: dict[MarketSegment, RewardKind] = {
+    MarketSegment.OSS: RewardKind.TASK_REWARD,
+    MarketSegment.DEV_BOUNTY: RewardKind.TASK_REWARD,
+    MarketSegment.SECURITY_OSS: RewardKind.TASK_REWARD,
+    MarketSegment.BUG_BOUNTY: RewardKind.TASK_REWARD,
+    MarketSegment.CHALLENGE: RewardKind.TASK_REWARD,
+    MarketSegment.HACKATHON: RewardKind.TASK_REWARD,
+    MarketSegment.GRANTS: RewardKind.PROJECT_FUNDING,
+    MarketSegment.RETROACTIVE: RewardKind.PROJECT_FUNDING,
+    MarketSegment.ECOSYSTEM_FUNDING: RewardKind.PROJECT_FUNDING,
+}
+
+# Techos observados (no promesas) — del análisis del owner 2026-09-13.
+# Rango (min_usd, max_observado_usd) + nota honesta sobre tipicidad.
+MARKET_CEILINGS: dict[MarketSegment, dict[str, Any]] = {
+    MarketSegment.OSS: {
+        "min_usd": 0,
+        "max_observed_usd": 0,
+        "typical": "$0",
+        "note": "Validación pública, sin pago directo",
+    },
+    MarketSegment.DEV_BOUNTY: {
+        "min_usd": 20,
+        "max_observed_usd": 10_000,
+        "typical": "$20–$500",
+        "note": "Excepcional $5k–$10k+; mayoría $3–$245 fuera de 3 repos concentrados",
+    },
+    MarketSegment.SECURITY_OSS: {
+        "min_usd": 50,
+        "max_observed_usd": 10_000,
+        "typical": "$50–$1k",
+        "note": "Security OSS (huntr.dev etc.), no bug bounty de programa",
+    },
+    MarketSegment.BUG_BOUNTY: {
+        "min_usd": 100,
+        "max_observed_usd": 10_000_000,
+        "typical": "$100–$50k",
+        "note": "Web2 ~$50k, Web3 hasta $10M crítico excepcional; distribución salvaje",
+    },
+    MarketSegment.CHALLENGE: {
+        "min_usd": 100,
+        "max_observed_usd": 30_000,
+        "typical": "$100–$5k",
+        "note": "Coding challenges competitivos (ej. Apify $30k 1er puesto)",
+    },
+    MarketSegment.HACKATHON: {
+        "min_usd": 100,
+        "max_observed_usd": 100_000,
+        "typical": "$500–$10k",
+        "note": "Premios por equipo/proyecto, no tarea individual garantizada",
+    },
+    MarketSegment.GRANTS: {
+        "min_usd": 1_000,
+        "max_observed_usd": 500_000,
+        "typical": "$5k–$50k",
+        "note": "Financiación de proyecto/propuesta, no pago por issue",
+    },
+    MarketSegment.RETROACTIVE: {
+        "min_usd": 1_000,
+        "max_observed_usd": 500_000,
+        "typical": "$1k–$100k",
+        "note": "RetroPGF / impacto pasado, selección por jurado",
+    },
+    MarketSegment.ECOSYSTEM_FUNDING: {
+        "min_usd": 5_000,
+        "max_observed_usd": 1_000_000,
+        "typical": "$5k–$200k",
+        "note": "Ecosystem funding (Uniswap/Solana), proyecto no tarea",
+    },
+}
+
+
+def classify_market_segment(
+    category: str | None = None,
+    employment_type: str | None = None,
+    platform: str | None = None,
+    payment: float | None = None,
+    title: str | None = None,
+) -> MarketSegment:
+    """Heurística determinista category+employment_type→segment (nunca raisea)."""
+    cat = (category or "").lower()
+    emp = (employment_type or "").lower()
+    plat = (platform or "").lower()
+    ttl = (title or "").lower()
+    amt = float(payment or 0.0)
+
+    # Project funding: contract/project/retainer + grant-like platforms/titles
+    grant_platforms = {"gitcoin", "optimism", "uniswap", "solana", "base", "coinbase"}
+    if emp in ("project", "retainer") or plat in grant_platforms or "grant" in ttl or "retropgf" in ttl:
+        if "retro" in ttl:
+            return MarketSegment.RETROACTIVE
+        if "ecosystem" in ttl or plat in {"uniswap", "solana"}:
+            return MarketSegment.ECOSYSTEM_FUNDING
+        return MarketSegment.GRANTS
+
+    if cat == "open_source" and amt <= 0:
+        return MarketSegment.OSS
+    if cat == "bug_bounty":
+        return MarketSegment.BUG_BOUNTY
+    if cat in ("security_research", "smart_contracts", "reverse_engineering", "malware_analysis"):
+        # BUG_BOUNTY sólo si plataforma es programa bug bounty puro
+        if plat in {"hackerone", "bugcrowd", "intigriti", "yeswehack", "immunefi", "hackenproof", "code4rena"}:
+            return MarketSegment.BUG_BOUNTY
+        return MarketSegment.SECURITY_OSS
+    if cat == "competitions":
+        if "hackathon" in ttl or amt >= 50_000:
+            return MarketSegment.HACKATHON
+        return MarketSegment.CHALLENGE
+    if emp in ("challenge", "prize"):
+        if "hackathon" in ttl:
+            return MarketSegment.HACKATHON
+        return MarketSegment.CHALLENGE
+
+    return MarketSegment.DEV_BOUNTY
+
+
+def classify_reward_kind(segment: MarketSegment) -> RewardKind:
+    return REWARD_KIND_FOR_SEGMENT.get(segment, RewardKind.TASK_REWARD)
+
+
+def get_ceiling(segment: MarketSegment) -> dict[str, Any]:
+    base = MARKET_CEILINGS.get(segment, MARKET_CEILINGS[MarketSegment.DEV_BOUNTY])
+    return {"segment": segment.value, "reward_kind": classify_reward_kind(segment).value, **base}
+
+
 _RUNG_PROOF_ES: dict[PublicWorkRung, str] = {
     PublicWorkRung.OSS_VALIDATION: "PR MERGED",
     PublicWorkRung.BEGINNER: "PR ACEPTADO + PAGO",
@@ -150,7 +297,7 @@ def validation_block(rung: PublicWorkRung, requires_formal_experience: bool = Fa
 
 
 def enrich_ranked(ranked: Any) -> dict[str, Any]:
-    """Enriquece un RankedOpportunity con rung + validación (nunca raisea)."""
+    """Enriquece un RankedOpportunity con rung + validación + techo económico (nunca raisea)."""
     try:
         opp = ranked.opportunity
         payment = float(getattr(opp, "payment", 0.0) or 0.0)
@@ -164,6 +311,28 @@ def enrich_ranked(ranked: Any) -> dict[str, Any]:
         block = validation_block(rung)
         block["difficulty"] = difficulty
         block["difficulty_unknown_inputs"] = unknown
+        # Segmento económico + techo observado (TASK_REWARD vs PROJECT_FUNDING)
+        try:
+            cat_val = getattr(getattr(opp, "category", ""), "value", getattr(opp, "category", ""))
+            emp_val = getattr(getattr(opp, "employment_type", ""), "value", getattr(opp, "employment_type", ""))
+            plat_val = getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", ""))
+            title_val = getattr(opp, "title", "") or ""
+            seg = classify_market_segment(
+                category=str(cat_val) if cat_val else None,
+                employment_type=str(emp_val) if emp_val else None,
+                platform=str(plat_val) if plat_val else None,
+                payment=payment,
+                title=str(title_val),
+            )
+            block["market_segment"] = seg.value
+            block["reward_kind"] = classify_reward_kind(seg).value
+            block["is_task_reward"] = classify_reward_kind(seg) == RewardKind.TASK_REWARD
+            block["is_project_funding"] = classify_reward_kind(seg) == RewardKind.PROJECT_FUNDING
+            ceiling = get_ceiling(seg)
+            block["ceiling"] = ceiling
+            block["ceiling_note"] = ceiling.get("note", "")
+        except Exception:
+            pass
         return block
     except Exception as exc:  # nunca romper el ranking por presentar
         logger.warning("public_work enrich falló: %s", exc)

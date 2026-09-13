@@ -88,8 +88,8 @@ def _make_presencial(**overrides):
 
 class TestCommuteCost:
     def test_presencial_ev_subtracts_roundtrip(self):
-        from cores.direct_work_engine.recommendation import IntelligentRecommender
         from cores.direct_work_engine.models import RankedOpportunity
+        from cores.direct_work_engine.recommendation import IntelligentRecommender
 
         rec = IntelligentRecommender()
         opp = _make_presencial(commute_minutes=60.0)  # 2h round-trip @ $50/h implied = -$100
@@ -99,8 +99,8 @@ class TestCommuteCost:
         assert ev_plain < 500.0
 
     def test_unknown_hours_skips_subtraction(self):
-        from cores.direct_work_engine.recommendation import IntelligentRecommender
         from cores.direct_work_engine.models import RankedOpportunity
+        from cores.direct_work_engine.recommendation import IntelligentRecommender
 
         rec = IntelligentRecommender()
         opp = _make_presencial(commute_minutes=60.0, estimated_time_hours=0.0)
@@ -113,8 +113,8 @@ class TestCommuteCost:
         assert rec._calculate_expected_value(ranked2) == before
 
     def test_remote_untouched(self):
-        from cores.direct_work_engine.recommendation import IntelligentRecommender
         from cores.direct_work_engine.models import RankedOpportunity
+        from cores.direct_work_engine.recommendation import IntelligentRecommender
 
         rec = IntelligentRecommender()
         opp = _opp(commute_minutes=60.0)

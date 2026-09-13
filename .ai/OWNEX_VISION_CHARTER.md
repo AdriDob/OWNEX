@@ -245,6 +245,58 @@ Todo en tiempo real, con tecnologías open source.
 
 ---
 
+## Principio Rector — Fábrica Autónoma 1000%
+
+> **OWNEX automatiza al máximo todo trabajo digital automatizable. Descubre oportunidades, analiza, prepara, ejecuta, verifica, aprende y optimiza continuamente. El usuario monitorea el sistema, toma las decisiones que requieren criterio humano y recibe/cobra los resultados.**
+
+La métrica no es "¿cuántas features tiene?" sino:
+
+> **¿Cuánto trabajo que antes hacía yo ahora hace OWNEX por mí?**
+
+```
+ANTES                          OWNEX
+Usuario hace todo      →       MÁQUINA hace todo lo posible
+  buscar                          → DISCOVERY automático
+  comparar                        → scoring EV/h + P(CASH)
+  investigar                      → análisis + research
+  decidir                         → ranking top 3, usuario decide
+  programar                       → CODEGEN + tests
+  testear                         → validación automática
+  preparar PR/reporte             → evidence bundle
+  seguimiento                     → monitor + polling
+  revisar pagos                   → Ledger EXPECTED≠PAID
+  aprender                        → evolution loop
+Usuario decide              →  Solo autoridad / criterio / identidad
+```
+
+### Escalera de automatización (objetivo de diseño para cada tarea)
+
+```
+MANUAL → ASISTIDO → AUTOMÁTICO → AUTÓNOMO → AUTÓNOMO+VERIFICADO → AUTÓNOMO+APRENDE
+```
+
+Cada feature debe responder: ¿sube un peldaño o solo agrega info bonita? Si no reduce trabajo humano → no se prioriza. Si duplica → eliminar. Si requiere acción manual automatizable → candidato a automatización. Si automatizar introduce riesgo irreversible → Human Gate (99% preparación automática + 1 clic de autoridad).
+
+### Métricas corazón (SSOT en `cores/cycles/metrics.py` → `GET /api/cycles/automation-metrics`)
+
+```text
+Automation Ratio   = trabajo automático / trabajo total
+Human Time Saved   = estimado manual - tiempo humano real
+Human Interventions= aprobaciones / oportunidad / misión / $ ganado
+Money per Human Hour = NET CASH / HUMAN HOURS
+Productivity       = RESULTADO GENERADO / TIEMPO HUMANO
+```
+
+Prueba de que OWNEX funciona: *"Ayer necesitaba 8h para X. Hoy OWNEX produjo X mientras dediqué 30 min a supervisar."*
+
+### Frontera no automatizable (aunque sea técnicamente posible)
+
+Transacciones financieras importantes, trading/inversiones, envío de reportes, aceptación de contratos, acciones legales, comunicaciones críticas, publicación bajo identidad. Objetivo: **OWNEX hace el 99%, el humano hace el último clic de autoridad.** Ejemplo:
+
+```
+Bug → valida → PoC → reporte → severidad → reward → "ENVIAR $4.200 P(CASH)38% 12min review" → 👤 APROBAR → OWNEX envía
+```
+
 ## Final Vision
 
 Crear **OWNEX — Autonomous Personal Operating System**: una inteligencia personal que

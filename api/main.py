@@ -98,6 +98,7 @@ from api.routers import (
     capability_expansion,
     capital,
     career,
+    chat,
     command_center,
     commands,
     connections,
@@ -136,6 +137,7 @@ from api.routers import (
     fiverr,
     forge_app,
     forge_cycle,
+    help_center,
     hunt,
     hunter,
     hypotheses,
@@ -601,6 +603,7 @@ app.include_router(files.router)
 app.include_router(life.router)
 app.include_router(control.router)
 app.include_router(copilot.router)
+app.include_router(chat.router)
 app.include_router(execution.router)
 app.include_router(execution_queue.router)
 app.include_router(worker_core.router)
@@ -700,6 +703,7 @@ app.include_router(finance.router)  # Personal Finance Command Center
 
 # Setup router
 app.include_router(setup.router)
+app.include_router(help_center.router)
 app.include_router(supabase.router)
 app.include_router(enhanced_personalization.router)
 
@@ -746,6 +750,18 @@ app.include_router(daily_digest.router)
 app.include_router(agenda.router)
 app.include_router(knowledge_bridge.router)
 app.include_router(payment_compat.router)
+from api.routers.ecommerce import router as ecommerce_router  # noqa: E402
+
+app.include_router(ecommerce_router)
+from api.routers.client_acquisition import router as client_acquisition_router  # noqa: E402
+
+app.include_router(client_acquisition_router)
+from api.routers.content_factory import router as content_factory_router  # noqa: E402
+
+app.include_router(content_factory_router)
+from api.routers.local_jobs import router as local_jobs_router  # noqa: E402
+
+app.include_router(local_jobs_router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.

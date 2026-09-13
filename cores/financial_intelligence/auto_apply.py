@@ -51,11 +51,10 @@ class AutoApplyConfig:
     random_user_agents: list[str] = field(default_factory=list)
     rotate_ip_addresses: bool = False
 
-    # Auto-apply enabled platforms
+    # Auto-apply enabled platforms (Upwork removed per owner, purge 2026-09-13)
     enabled_platforms: list[str] = field(
         default_factory=lambda: [
             "indeed",
-            "upwork",
             "fiverr",
         ]
     )
@@ -169,8 +168,6 @@ class AutoApplySystem:
         # Platform-specific auto-apply
         if platform == "indeed":
             record = self._apply_indeed(opportunity)
-        elif platform == "upwork":
-            record = self._apply_upwork(opportunity)
         elif platform == "fiverr":
             record = self._apply_fiverr(opportunity)
         else:

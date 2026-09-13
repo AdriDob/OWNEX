@@ -4,7 +4,7 @@ Pillar 1: Bug Bounty (HackerOne, Bugcrowd, Intigriti)
 Pillar 2: AI Tasks (Outlier, Scale AI, Alignerr)
 Pillar 3: Dev Bounty (Opire, Algora, IssueHunt)
 Pillar 4: QA/Crowdtesting (Testlio, uTest, Testbirds)
-Pillar 5: Data Annotation (Scale AI, Appen, Telus)
+Pillar 5: Data Annotation (Scale AI, Appen/CrowdGen)
 
 All pillars: $0 barrier, no portfolio, no interview, optimized profile only.
 """
@@ -112,7 +112,7 @@ class FivePillarOrchestrator:
             PillarSummary(
                 name="AI Tasks",
                 pillar_id=2,
-                platforms=["Outlier", "Scale AI", "Alignerr", "Mindrift", "Remotasks"],
+                platforms=["Outlier", "Scale AI", "Alignerr", "Mindrift"],
                 avg_pay_rate=24.0,
                 pay_range="$12 - $45/hour",
                 barrier="$0",
@@ -163,7 +163,7 @@ class FivePillarOrchestrator:
             PillarSummary(
                 name="Data Annotation",
                 pillar_id=5,
-                platforms=["Scale AI", "Outlier", "Appen", "Telus", "Clickworker"],
+                platforms=["Scale AI", "Outlier", "Appen/CrowdGen"],
                 avg_pay_rate=13.0,
                 pay_range="$8 - $22/hour",
                 barrier="$0",

@@ -42,6 +42,13 @@ class LearningRecord:
     predicted_hours: float | None = None
     predicted_probability: float | None = None
     actual_hours: float | None = None
+    # MONEY VALIDATION (2026-09-11): ACCEPTED != PAID. ``paid`` is True only
+    # when cash was actually received (webhook payout_received or manual
+    # verify). ``net_amount`` is cash in hand after platform fees; None means
+    # unknown (never 0-invented for an unpaid record — unpaid stays 0.0 paid).
+    paid: bool = False
+    net_amount: float | None = None
+    fees: float = 0.0
 
 
 def apply_learning(profile: UserProfile, records: list[LearningRecord]) -> UserProfile:
@@ -110,13 +117,19 @@ def build_history_from_revenue_tracker(tracker: object) -> list[LearningRecord]:
         if source_platform and source_platform != platform:
             platform = f"{platform}:{source_platform}"
 
+        # MONEY VALIDATION: only status "paid" counts as cash received.
+        # "accepted" is earned-but-not-paid (pipeline, never cash).
+        is_paid = status_value == "paid"
+        gross = float(getattr(opp, "amount", 0) or 0)
         records.append(
             LearningRecord(
                 platform=platform,
                 category=category,
                 accepted=accepted,
-                amount=float(getattr(opp, "amount", 0) or 0),
+                amount=gross,
                 time_to_payout_days=_payout_days(opp),
+                paid=is_paid,
+                net_amount=gross if is_paid else 0.0,
             )
         )
 

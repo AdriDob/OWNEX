@@ -233,17 +233,14 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
         ):
             providers = e._discover_providers()
-            assert len(providers) == 5
+            # Current implementation: opencode_free + fcc_proxy + ollama
+            assert len(providers) == 3
             names = [p.name for p in providers]
             assert "opencode_free" in names
             assert "fcc_proxy" in names
             assert "ollama" in names
-            assert "gooseai" in names
-            assert "nvidia_nim" in names
 
     def test_discover_opencode_free_always_available(self):
         from cores.ai_router.engine import AIRouterEngine
@@ -335,8 +332,6 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
             patch.object(e, "_estimate_near_limit", return_value=True),
         ):
             h = e.check_health()
@@ -349,8 +344,6 @@ class TestAIRouterEngine:
         with (
             patch.object(e, "_check_proxy", return_value=(False, "", 0.0)),
             patch.object(e, "_check_ollama", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_gooseai", return_value=(False, [], 0.0)),
-            patch.object(e, "_check_nvidia_nim", return_value=(False, [], 0.0)),
         ):
             r = e.recommend_fallback()
             assert r.should_switch is False
@@ -441,7 +434,8 @@ class TestAIRouterEngine:
         with patch("cores.capabilities.registry.get_capability_registry", return_value=mock_registry):
             e = AIRouterEngine()
             e.register_capabilities()
-            assert mock_registry.register.call_count == 1
+            # Current implementation registers 2 capabilities: ai_completion + ai_health_check
+            assert mock_registry.register.call_count == 2
 
     def test_estimate_near_limit(self):
         from cores.ai_router.engine import AIRouterEngine

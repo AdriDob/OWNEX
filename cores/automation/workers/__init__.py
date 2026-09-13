@@ -3,20 +3,18 @@
 from cores.automation.workers.dataannotation_worker import DataAnnotationWorker
 from cores.automation.workers.mindrift_browser_worker import MindriftBrowserWorker
 from cores.automation.workers.outlier_worker import OutlierWorker
-from cores.automation.workers.remotasks_worker import RemotasksWorker
 
 __all__ = [
     "DataAnnotationWorker",
     "OutlierWorker",
-    "RemotasksWorker",
     "MindriftBrowserWorker",
 ]
 
 
 def get_browser_workers() -> dict[str, object]:
+    # Remotasks removed per owner (purge 2026-09-13).
     return {
         "dataannotation": DataAnnotationWorker(),
         "outlier": OutlierWorker(),
-        "remotasks": RemotasksWorker(),
         "mindrift_browser": MindriftBrowserWorker(),
     }

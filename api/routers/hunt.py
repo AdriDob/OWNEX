@@ -84,3 +84,16 @@ async def stop_hunt():
     _hunt_state["started_at"] = None
     logger.info("Hunt stopped")
     return {"status": "stopped"}
+
+
+@router.post("/restart")
+async def restart_hunt():
+    """Stop + start in one call (CommandPalette + hunt store contract).
+
+    Added 2026-09-12: frontend called /hunt/restart which 404'd (only
+    start/pause/resume/stop existed). Restart = fresh started_at/counters +
+    a new pipeline cycle on the LIVE scheduler instance (never a second one).
+    """
+    _hunt_state["status"] = "idle"
+    _hunt_state["started_at"] = None
+    return await start_hunt()

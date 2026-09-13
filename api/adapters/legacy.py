@@ -194,34 +194,16 @@ def _curated_entry_model(platform_key: str) -> dict[str, Any] | None:
 def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     """Build the default real discovery adapters (idempotent registration list).
 
-    Each entry is constructed lazily so an unavailable platform only logs and
-    never blocks the engine. Bounties are outcome-based; freelance (Workana)
-    is an OPTIONAL commercial channel evaluated by the same scoring engine.
+    Only LIVE upstreams are registered. Dead upstreams (Opire, IssueHunt,
+    Immunefi, Code4rena, Superteam, Workana, OpenCollective, AR job boards,
+    Pulse AI adapters) are excluded — they return [] and pollute the radar.
+    Live: bug bounty (public datasets), Dework (public API), Fiverr (internal),
+    Open Source bounties (Algora, BountyBoard, Polar), Kaggle, GitHub bounty search.
     """
     adapters: list[BaseDiscoveryAdapter] = []
 
-    try:
-        from api.adapters.direct_work_opire import OpireDweAdapter
-
-        adapters.append(OpireDweAdapter())
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build opire adapter: %s", exc)
-
-    # Web3 / Blockchain Bug Bounty Adapters
-    try:
-        from api.adapters.direct_work_immunefi import build_immunefi_adapter
-
-        adapters.append(build_immunefi_adapter())
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build immunefi adapter: %s", exc)
-
-    try:
-        from api.adapters.direct_work_code4rena import build_code4rena_adapter
-
-        adapters.append(build_code4rena_adapter())
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build code4rena adapter: %s", exc)
-
+    # Bug bounty — public datasets (HackerOne, Bugcrowd, Intigriti, YesWeHack).
+    # Alive: no auth, zero keys, public data, real payouts.
     try:
         from api.adapters.direct_work_bugbounty import build_bugbounty_adapters
 
@@ -229,50 +211,15 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build bugbounty adapters: %s", exc)
 
+    # Dework — DAO/web3 bounties. Public API alive (200 on /v1/tasks).
     try:
-        from cores.opportunity.adapters.issuehunt import IssueHuntAdapter
+        from api.adapters.direct_work_dework import build_dework_adapter
 
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                IssueHuntAdapter(),
-                name="issuehunt",
-                platform=WorkPlatform.ISSUE_HUNT,
-                category=OpportunityCategory.DEV_BOUNTY,
-                employment_type=EmploymentType.BOUNTY,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
+        adapters.append(build_dework_adapter())
     except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build issuehunt adapter: %s", exc)
+        logger.warning("Could not build dework adapter: %s", exc)
 
-    # Workana — OPTIONAL freelance channel (LATAM). Manual leads only,
-    # evaluated by the same scoring engine. Never blocks the engine.
-    try:
-        from api.adapters.direct_work_workana import WorkanaDweAdapter
-
-        adapters.append(WorkanaDweAdapter())
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build workana adapter: %s", exc)
-
-    try:
-        from cores.opportunity.adapters.opencollective import OpenCollectiveAdapter
-
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                OpenCollectiveAdapter(),
-                name="opencollective",
-                platform=WorkPlatform.OPEN_COLLECTIVE,
-                category=OpportunityCategory.DEV_BOUNTY,
-                employment_type=EmploymentType.CONTRACT,
-                tier=3,
-                analysis_cadence_hours=72,
-            )
-        )
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build opencollective adapter: %s", exc)
-
-    # Fiverr — primary revenue ecosystem (solution-based, not hours)
+    # Fiverr — internal engine (solution-based gigs, no external API).
     try:
         from api.adapters.direct_work_fiverr import FiverrDweAdapter
 
@@ -280,89 +227,44 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build fiverr adapter: %s", exc)
 
-    # AR job boards — backup income (presencial CABA/Zona Sur). Read-only
-    # discovery, manual apply; region filter keeps them out unless asked.
+    # Kaggle competitions — paid data science, outcome-based, zero barrier.
     try:
-        from cores.opportunity.adapters.ar_jobs import (
-            BumeranAdapter,
-            ComputrabajoAdapter,
-            ZonaJobsAdapter,
-        )
+        from api.adapters.direct_work_kaggle import build_kaggle_adapter
 
-        for _cls, _name, _platform in (
-            (ZonaJobsAdapter, "zonajobs", WorkPlatform.ZONAJOBS),
-            (BumeranAdapter, "bumeran", WorkPlatform.BUMERAN),
-            (ComputrabajoAdapter, "computrabajo", WorkPlatform.COMPUTRABAJO),
-        ):
-            adapters.append(
-                LegacyOpportunityDweAdapter(
-                    _cls(),
-                    name=_name,
-                    platform=_platform,
-                    category=OpportunityCategory.EMPLOYMENT,
-                    employment_type=EmploymentType.FULL_TIME,
-                    tier=3,
-                    analysis_cadence_hours=72,
-                )
-            )
+        adapters.append(build_kaggle_adapter())
     except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build AR job adapters: %s", exc)
+        logger.warning("Could not build kaggle adapter: %s", exc)
 
-    # Pulse cycle adapters (AI work — Outlier/Mindrift accept AR directly;
-    # DataAnnotation/Remotasks removed: not available from Argentina)
+    # GitHub bounty search — label:bounty issues, free, outcome-based, zero barrier.
     try:
-        from cores.opportunity.adapters.pulse import (
-            LinkedInEasyApplyAdapter,
-            MindriftAdapter,
-            OpyreMicrotaskAdapter,
-            OutlierAdapter,
-        )
+        from api.adapters.direct_work_github_bounty import build_github_bounty_adapter
 
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                OutlierAdapter(),
-                name="outlier",
-                platform=WorkPlatform.OUTLIER,
-                category=OpportunityCategory.AI_EVALUATION,
-                employment_type=EmploymentType.MICROTASK,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                MindriftAdapter(),
-                name="mindrift",
-                platform=WorkPlatform.MINDRIFT,
-                category=OpportunityCategory.AI_EVALUATION,
-                employment_type=EmploymentType.MICROTASK,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                OpyreMicrotaskAdapter(),
-                name="opyre_microtask",
-                platform=WorkPlatform.OPYRE_MICROTASK,
-                category=OpportunityCategory.DATA_ANNOTATION,
-                employment_type=EmploymentType.MICROTASK,
-                tier=1,
-                analysis_cadence_hours=6,
-            )
-        )
-        adapters.append(
-            LegacyOpportunityDweAdapter(
-                LinkedInEasyApplyAdapter(),
-                name="linkedin_easyapply",
-                platform=WorkPlatform.LINKEDIN,
-                category=OpportunityCategory.SOFTWARE_ENGINEERING,
-                employment_type=EmploymentType.FULL_TIME,
-                tier=2,
-                analysis_cadence_hours=24,
-            )
-        )
+        adapters.append(build_github_bounty_adapter())
     except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build pulse adapters: %s", exc)
+        logger.warning("Could not build github_bounty adapter: %s", exc)
+
+    # Algora.io — GitHub bounties with automatic payment, zero barrier.
+    try:
+        from api.adapters.direct_work_algora import build_algora_adapter
+
+        adapters.append(build_algora_adapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build algora adapter: %s", exc)
+
+    # BountyBoard.dev — GitHub bounties aggregator, zero barrier.
+    try:
+        from api.adapters.direct_work_bountyboard import build_bountyboard_adapter
+
+        adapters.append(build_bountyboard_adapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build bountyboard adapter: %s", exc)
+
+    # Polar.sh — GitHub funding and issue sponsorship, zero barrier.
+    try:
+        from api.adapters.direct_work_polar import build_polar_adapter
+
+        adapters.append(build_polar_adapter())
+    except Exception as exc:  # pragma: no cover
+        logger.warning("Could not build polar adapter: %s", exc)
 
     return adapters

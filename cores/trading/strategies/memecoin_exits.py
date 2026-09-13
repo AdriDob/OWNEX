@@ -10,6 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+# Floating-point epsilon so exact boundary returns (e.g. exactly +50% vs a
+# 50% take-profit tier) actually trigger instead of silently holding.
+_RET_EPS = 1e-9
+
 
 @dataclass(frozen=True, slots=True)
 class ExitConfig:
@@ -49,13 +53,13 @@ def evaluate_exit(
     new_high = max(peak, price)
     ret = (price - entry) / entry
 
-    if ret <= -abs(cfg.stop_loss_pct):
+    if ret <= -abs(cfg.stop_loss_pct) + _RET_EPS:
         return ExitDecision("stop_loss", 100.0, f"stop-loss at {ret:.1%}", new_high)
     for tier_gain, tier_pct in sorted(cfg.take_profit_tiers):
-        if ret >= tier_gain:
+        if ret + _RET_EPS >= tier_gain:
             return ExitDecision("take_profit", float(tier_pct * 100.0), f"take-profit tier +{tier_gain:.0%}", new_high)
     drawdown = (new_high - price) / new_high if new_high > 0 else 0.0
-    if drawdown >= abs(cfg.trailing_pct):
+    if drawdown >= abs(cfg.trailing_pct) - _RET_EPS:
         return ExitDecision("trailing_stop", 100.0, f"trailing stop {drawdown:.1%} off peak", new_high)
     if age >= cfg.max_hold_minutes:
         return ExitDecision("time_stop", 100.0, f"max hold {cfg.max_hold_minutes:.0f}m reached", new_high)

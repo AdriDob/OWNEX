@@ -36,6 +36,10 @@ class EvaluateRequest(BaseModel):
         default="", description="Documentation the platform demands (kyc, llc, us_residency...)"
     )
     platform: str = Field(default="", description="Platform paying the bounty")
+    require_configured: bool = Field(
+        default=False,
+        description="MONEY VALIDATION: only rails the user configured count (P_REWARD on real rails)",
+    )
 
 
 class EvaluateChainRequest(EvaluateRequest):
@@ -49,7 +53,8 @@ async def payment_network_status() -> dict[str, Any]:
     accounts = engine._network
     return {
         "summary": engine.network_summary(),
-        "accounts": [account_to_dict(a) for a in accounts],
+        "configured_accounts": engine.get_configured_accounts(),
+        "accounts": [{**account_to_dict(a), "status": engine.account_status(a.id)} for a in accounts],
     }
 
 
@@ -71,7 +76,29 @@ async def payment_account_detail(account_id: str) -> dict[str, Any]:
     account = get_account_or_none(account_id)
     if account is None:
         raise HTTPException(status_code=404, detail=f"Account {account_id} not found")
-    return account_to_dict(account)
+    return {**account_to_dict(account), "status": get_payment_engine().account_status(account_id)}
+
+
+class ConfiguredAccountsRequest(BaseModel):
+    account_ids: list[str] = Field(default_factory=list, description="Catalog account ids the user really owns")
+
+
+@router.get("/configured")
+async def payment_configured() -> dict[str, Any]:
+    """Rails the user marked as theirs (MONEY VALIDATION: P_REWARD source)."""
+    engine = get_payment_engine()
+    return {"configured_accounts": engine.get_configured_accounts(), "statuses": engine.list_account_statuses()}
+
+
+@router.post("/configured")
+async def payment_set_configured(request: ConfiguredAccountsRequest) -> dict[str, Any]:
+    """Mark catalog accounts as owned rails. Unknown ids -> 404 (never assumed)."""
+    unknown = [a for a in request.account_ids if get_account_or_none(a) is None]
+    if unknown:
+        raise HTTPException(status_code=404, detail=f"Unknown accounts (not in catalog): {', '.join(unknown)}")
+    engine = get_payment_engine()
+    engine.set_configured_accounts(list(request.account_ids))
+    return {"configured_accounts": engine.get_configured_accounts()}
 
 
 @router.post("/evaluate")
@@ -86,7 +113,8 @@ async def payment_evaluate(request: EvaluateRequest) -> dict[str, Any]:
             amount=request.amount,
             required_documentation=request.required_documentation,
             platform=request.platform,
-        )
+        ),
+        require_configured=request.require_configured,
     )
     return _verdict_dict(verdict)
 
@@ -110,33 +138,25 @@ async def payment_evaluate_chain(request: EvaluateChainRequest) -> dict[str, Any
 
 
 def _verdict_dict(verdict: Any) -> dict[str, Any]:
+    def _match_dict(m: Any) -> dict[str, Any]:
+        return {
+            "account_id": m.account_id,
+            "account_name": m.account_name,
+            "layer": m.layer,
+            "function": m.function,
+            "reason": m.reason,
+            "score": m.score,
+            "configured": bool(getattr(m, "configured", False)),
+        }
+
     return {
         "compatible": verdict.compatible,
         "viable": verdict.viable,
         "score": verdict.score,
+        "configured_matches": int(getattr(verdict, "configured_matches", 0)),
         "requirement": verdict.requirement,
-        "matches": [
-            {
-                "account_id": m.account_id,
-                "account_name": m.account_name,
-                "layer": m.layer,
-                "function": m.function,
-                "reason": m.reason,
-                "score": m.score,
-            }
-            for m in verdict.matches
-        ],
-        "off_ramp": [
-            {
-                "account_id": m.account_id,
-                "account_name": m.account_name,
-                "layer": m.layer,
-                "function": m.function,
-                "reason": m.reason,
-                "score": m.score,
-            }
-            for m in verdict.off_ramp
-        ],
+        "matches": [_match_dict(m) for m in verdict.matches],
+        "off_ramp": [_match_dict(m) for m in verdict.off_ramp],
         "missing": verdict.missing,
         "honest_notes": verdict.honest_notes,
     }

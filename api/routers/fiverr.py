@@ -14,11 +14,17 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from cores.fiverr.engine import FiverrEngine, get_fiverr_engine
+from cores.fiverr.engine import FUNNEL_STAGES, FiverrEngine, get_fiverr_engine
 
 logger = logging.getLogger("ownex.api.fiverr")
 
 router = APIRouter(prefix="/fiverr", tags=["fiverr"])
+
+
+class FunnelRecordRequest(BaseModel):
+    gig_key: str
+    stage: str
+    count: int = 1
 
 
 class EthicsRequest(BaseModel):
@@ -113,3 +119,20 @@ async def fiverr_status() -> dict[str, Any]:
         "total_assets": engine.assets()["total_assets"],
         "sample_pricing": catalog[0].pricing.to_dict() if catalog else {},
     }
+
+
+@router.post("/funnel/record")
+async def fiverr_funnel_record(req: FunnelRecordRequest) -> dict[str, Any]:
+    """Record a funnel event for a gig (MONEY VALIDATION experiment).
+
+    A published gig is not income: every stage from publication to withdrawn
+    cash is counted so OWNEX can demote non-converting gigs with evidence.
+    """
+    ok = _engine().funnel.record(req.gig_key, req.stage, req.count)
+    return {"recorded": ok, "gig_key": req.gig_key, "stage": req.stage, "stages": list(FUNNEL_STAGES)}
+
+
+@router.get("/funnel")
+async def fiverr_funnel(gig_key: str | None = None) -> dict[str, Any]:
+    """Per-gig conversion funnel with click-through and order conversion."""
+    return _engine().funnel.summary(gig_key)

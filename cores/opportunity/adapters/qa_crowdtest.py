@@ -193,10 +193,9 @@ class QACrowdtestOrchestrator:
     """Orchestrates all QA/Crowdtesting adapters."""
 
     def __init__(self) -> None:
+        # Testlio/uTest/Testbirds excluded: invite-gated crowds, low pay per
+        # cycle, slow cycles. Bugcrowd Discovery kept (public programs, real bounties).
         self.adapters = [
-            TestlioAdapter(),
-            UTestAdapter(),
-            TestbirdsAdapter(),
             BugcrowdDiscoveryAdapter(),
         ]
 

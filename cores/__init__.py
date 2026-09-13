@@ -18,3 +18,12 @@ from pathlib import Path
 __version__ = "7.1.0"
 
 OWNEX_DIR = Path.home() / ".ownex"
+
+# Workspace Registry exports
+from cores.workspaces.registry import (
+    WorkspaceRegistry,
+    WorkspaceContext,
+    WorkspaceType,
+    AutomationPolicy,
+    get_workspace_registry,
+)

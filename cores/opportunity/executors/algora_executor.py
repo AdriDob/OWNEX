@@ -1,255 +1,401 @@
-"""Algora Executor — Autonomous claim, fix, and submit for Algora.xyz OSS bounties."""
+"""Algora.io Real Executor — Claim → PR → Merge → Auto-Payout.
+
+Zero-barrier: GitHub login → claim issue → create PR → automatic payment on merge.
+No interview, no portfolio, no CV required. Merge = payment.
+"""
 
 from __future__ import annotations
 
-import base64
+import asyncio
+import logging
 import os
+import re
+import subprocess
+import uuid
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
 
-from cores.opportunity.executors import BaseExecutor, ExecutionResult
+logger = logging.getLogger("ownex.executors.algora")
 
 
-class AlgoraExecutor(BaseExecutor):
-    """Executor for Algora.xyz — claim issues, create PRs, submit for review."""
+@dataclass
+class AlgoraConfig:
+    """Algora executor configuration."""
 
-    platform = "algora"
+    github_token: str
+    algora_api_key: str | None = None
+    base_url: str = "https://api.algora.io"
+    work_dir: Path = Path("~/ownex/work/algora").expanduser()
+    claim_timeout_seconds: int = 30
+    pr_timeout_seconds: int = 300
 
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(config)
-        self.token = self.config.get("token") or os.getenv("ALGORA_TOKEN")
-        self.github_token = self.config.get("github_token") or os.getenv("GITHUB_TOKEN")
-        self.base_url = "https://api.algora.xyz/v1"
-        self.github_base = "https://api.github.com"
 
-    async def execute(self, action: str, **kwargs) -> ExecutionResult:
-        if action == "claim_issue":
-            return await self.claim_issue(kwargs.get("bounty_id"), kwargs.get("repo"), kwargs.get("issue_number"))
-        if action == "create_pr":
-            return await self.create_pr(
-                kwargs.get("repo"),
-                kwargs.get("branch"),
-                kwargs.get("base"),
-                kwargs.get("title"),
-                kwargs.get("body"),
-                kwargs.get("files"),
-            )
-        if action == "submit_pr":
-            return await self.submit_pr(kwargs.get("bounty_id"), kwargs.get("pr_url"))
-        if action == "get_bounty":
-            return await self.get_bounty(kwargs.get("bounty_id"))
-        return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
+@dataclass
+class ClaimResult:
+    """Result of claiming an issue."""
 
-    # === Algora API ===
+    success: bool
+    claim_id: str | None = None
+    issue_url: str | None = None
+    repo_url: str | None = None
+    error: str | None = None
 
-    async def claim_issue(self, bounty_id: str, repo: str, issue_number: int) -> ExecutionResult:
-        """Claim a bounty issue on Algora."""
-        if not self.token:
-            return ExecutionResult(False, "claim_issue", bounty_id, error="ALGORA_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+@dataclass
+class PRResult:
+    """Result of creating a PR."""
 
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"{self.base_url}/bounties/{bounty_id}/claim",
-                    headers=headers,
-                    json={"repository": repo, "issue_number": issue_number},
-                    timeout=30,
-                )
+    success: bool
+    pr_url: str | None = None
+    pr_number: int | None = None
+    branch_name: str | None = None
+    error: str | None = None
 
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return ExecutionResult(
-                        True,
-                        "claim_issue",
-                        bounty_id,
-                        f"Claimed bounty {bounty_id} on {repo}#{issue_number}",
-                        data={"claim_id": data.get("claim_id"), "expires_at": data.get("expires_at")},
-                    )
-                else:
-                    return ExecutionResult(
-                        False, "claim_issue", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}"
-                    )
-        except Exception as e:
-            return ExecutionResult(False, "claim_issue", bounty_id, error=str(e))
 
-    async def submit_pr(self, bounty_id: str, pr_url: str) -> ExecutionResult:
-        """Submit a PR for review on Algora."""
-        if not self.token:
-            return ExecutionResult(False, "submit_pr", bounty_id, error="ALGORA_TOKEN not configured")
+class AlgoraExecutor:
+    """Executes Algora bounties end-to-end: claim → code → PR → merge → payout."""
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+    def __init__(self, config: AlgoraConfig):
+        self.config = config
+        self.config.work_dir.mkdir(parents=True, exist_ok=True)
+        self._client: httpx.AsyncClient | None = None
 
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"{self.base_url}/bounties/{bounty_id}/submit",
-                    headers=headers,
-                    json={"pull_request_url": pr_url},
-                    timeout=30,
-                )
-
-                if resp.status_code == 200:
-                    data = resp.json()
-                    return ExecutionResult(
-                        True,
-                        "submit_pr",
-                        bounty_id,
-                        f"Submitted PR {pr_url} for bounty {bounty_id}",
-                        data={"submission_id": data.get("submission_id"), "status": data.get("status")},
-                    )
-                else:
-                    return ExecutionResult(
-                        False, "submit_pr", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}"
-                    )
-        except Exception as e:
-            return ExecutionResult(False, "submit_pr", bounty_id, error=str(e))
-
-    async def get_bounty(self, bounty_id: str) -> ExecutionResult:
-        """Get bounty details."""
-        if not self.token:
-            return ExecutionResult(False, "get_bounty", bounty_id, error="ALGORA_TOKEN not configured")
-
-        headers = {"Authorization": f"Bearer {self.token}"}
-
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(f"{self.base_url}/bounties/{bounty_id}", headers=headers, timeout=15)
-                if resp.status_code == 200:
-                    return ExecutionResult(True, "get_bounty", bounty_id, "Bounty fetched", data=resp.json())
-                return ExecutionResult(False, "get_bounty", bounty_id, error=f"API {resp.status_code}: {resp.text}")
-        except Exception as e:
-            return ExecutionResult(False, "get_bounty", bounty_id, error=str(e))
-
-    # === GitHub API (for PR creation) ===
-
-    async def create_pr(
-        self,
-        repo: str,
-        branch: str,
-        base: str,
-        title: str,
-        body: str,
-        files: dict[str, str] | None = None,
-    ) -> ExecutionResult:
-        """Create a PR on GitHub with optional file changes."""
-        if not self.github_token:
-            return ExecutionResult(False, "create_pr", repo, error="GITHUB_TOKEN not configured")
-
-        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github+json"}
-
-        try:
-            async with httpx.AsyncClient() as client:
-                # 1. Get base branch SHA
-                ref_resp = await client.get(f"{self.github_base}/repos/{repo}/git/ref/heads/{base}", headers=headers)
-                if ref_resp.status_code != 200:
-                    return ExecutionResult(False, "create_pr", repo, error=f"Base ref not found: {ref_resp.text}")
-                ref_data = ref_resp.json()
-                base_sha = ref_data.get("object", {}).get("sha")
-                if not base_sha:
-                    return ExecutionResult(False, "create_pr", repo, error=f"Base ref not found or invalid: {ref_data}")
-
-                # 2. Create new branch
-                branch_resp = await client.post(
-                    f"{self.github_base}/repos/{repo}/git/refs",
-                    headers=headers,
-                    json={"ref": f"refs/heads/{branch}", "sha": base_sha},
-                )
-                if branch_resp.status_code not in (200, 201):
-                    # Branch might exist, try to get it
-                    branch_resp = await client.get(
-                        f"{self.github_base}/repos/{repo}/git/ref/heads/{branch}", headers=headers
-                    )
-                    if branch_resp.status_code != 200:
-                        return ExecutionResult(
-                            False, "create_pr", repo, error=f"Branch creation failed: {branch_resp.text}"
-                        )
-
-                # 3. If files provided, commit them
-                if files:
-                    await self._commit_files(client, headers, repo, branch, base_sha, files, title)
-
-                # 4. Create PR
-                pr_resp = await client.post(
-                    f"{self.github_base}/repos/{repo}/pulls",
-                    headers=headers,
-                    json={"title": title, "head": branch, "base": base, "body": body, "maintainer_can_modify": True},
-                )
-
-                if pr_resp.status_code in (200, 201):
-                    pr_data = pr_resp.json()
-                    return ExecutionResult(
-                        True,
-                        "create_pr",
-                        repo,
-                        f"Created PR #{pr_data['number']}: {title}",
-                        data={"pr_number": pr_data["number"], "pr_url": pr_data["html_url"], "branch": branch},
-                    )
-                else:
-                    return ExecutionResult(False, "create_pr", repo, error=f"PR creation failed: {pr_resp.text}")
-
-        except Exception as e:
-            return ExecutionResult(False, "create_pr", repo, error=str(e))
-
-    async def _commit_files(
-        self,
-        client: httpx.AsyncClient,
-        headers: dict,
-        repo: str,
-        branch: str,
-        base_sha: str,
-        files: dict[str, str],
-        commit_message: str,
-    ) -> str:
-        """Commit multiple files to a branch. Returns new tree SHA."""
-        # Create blobs for each file
-        blob_shas = {}
-        for path, content in files.items():
-            blob_resp = await client.post(
-                f"{self.github_base}/repos/{repo}/git/blobs",
+    @property
+    def client(self) -> httpx.AsyncClient:
+        if self._client is None:
+            headers = {"Authorization": f"Bearer {self.config.github_token}"}
+            if self.config.algora_api_key:
+                headers["X-Algora-Key"] = self.config.algora_api_key
+            self._client = httpx.AsyncClient(
+                base_url=self.config.base_url,
                 headers=headers,
-                json={"content": base64.b64encode(content.encode()).decode(), "encoding": "base64"},
+                timeout=30.0,
             )
-            if blob_resp.status_code not in (200, 201):
-                raise Exception(f"Blob creation failed for {path}: {blob_resp.text}")
-            blob_shas[path] = blob_resp.json()["sha"]
+        return self._client
 
-        # Get base tree
-        tree_resp = await client.get(f"{self.github_base}/repos/{repo}/git/trees/{base_sha}", headers=headers)
-        if tree_resp.status_code != 200:
-            raise Exception(f"Base tree fetch failed: {tree_resp.text}")
-        base_tree = tree_resp.json()["sha"]
+    async def close(self) -> None:
+        if self._client:
+            await self._client.aclose()
+            self._client = None
 
-        # Create new tree with files
-        tree_items = [{"path": path, "mode": "100644", "type": "blob", "sha": sha} for path, sha in blob_shas.items()]
-        new_tree_resp = await client.post(
-            f"{self.github_base}/repos/{repo}/git/trees",
-            headers=headers,
-            json={"base_tree": base_tree, "tree": tree_items},
+    async def claim_issue(self, issue_url: str) -> ClaimResult:
+        """Claim an Algora issue via API."""
+        try:
+            # Extract owner/repo/issue from URL
+            # https://algora.io/issues/owner/repo/123
+            match = re.search(r"algora\.io/issues/([^/]+)/([^/]+)(?:/(\d+))?", issue_url)
+            if not match:
+                return ClaimResult(success=False, error="Invalid Algora issue URL format")
+
+            owner, repo, issue_num = match.groups()
+            issue_id = issue_num or "1"  # fallback
+
+            # Call Algora API to claim
+            resp = await self.client.post(
+                f"/issues/{owner}/{repo}/{issue_id}/claim",
+                json={"github_token": self.config.github_token},
+                timeout=self.config.claim_timeout_seconds,
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return ClaimResult(
+                    success=True,
+                    claim_id=data.get("claim_id"),
+                    issue_url=issue_url,
+                    repo_url=f"https://github.com/{owner}/{repo}",
+                )
+            elif resp.status_code == 409:
+                return ClaimResult(success=False, error="Issue already claimed")
+            else:
+                return ClaimResult(success=False, error=f"Claim failed: {resp.status_code} - {resp.text}")
+
+        except Exception as exc:
+            logger.exception("Algora claim failed")
+            return ClaimResult(success=False, error=str(exc))
+
+    async def clone_repo(self, repo_url: str, branch_name: str) -> Path:
+        """Clone repository and create working branch."""
+        repo_path = self.config.work_dir / f"algora-{uuid.uuid4().hex[:8]}"
+        repo_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Clone with depth=1 for speed
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", repo_url, str(repo_path)],
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
-        if new_tree_resp.status_code not in (200, 201):
-            raise Exception(f"Tree creation failed: {new_tree_resp.text}")
-        new_tree_sha = new_tree_resp.json()["sha"]
+        if result.returncode != 0:
+            raise RuntimeError(f"Git clone failed: {result.stderr}")
 
-        # Create commit
-        commit_resp = await client.post(
-            f"{self.github_base}/repos/{repo}/git/commits",
-            headers=headers,
-            json={"message": commit_message, "tree": new_tree_sha, "parents": [base_sha]},
+        # Create working branch
+        result = subprocess.run(
+            ["git", "-C", str(repo_path), "checkout", "-b", branch_name],
+            capture_output=True,
+            text=True,
         )
-        if commit_resp.status_code not in (200, 201):
-            raise Exception(f"Commit creation failed: {commit_resp.text}")
-        commit_sha = commit_resp.json()["sha"]
+        if result.returncode != 0:
+            raise RuntimeError(f"Git checkout failed: {result.stderr}")
 
-        # Update branch ref
-        ref_resp = await client.patch(
-            f"{self.github_base}/repos/{repo}/git/refs/heads/{branch}",
-            headers=headers,
-            json={"sha": commit_sha, "force": True},
+        # Configure git user
+        subprocess.run(["git", "-C", str(repo_path), "config", "user.name", "OWNEX Bot"], check=False)
+        subprocess.run(["git", "-C", str(repo_path), "config", "user.email", "ownex@bot.local"], check=False)
+
+        return repo_path
+
+    async def create_pr(self, repo_path: Path, issue_url: str, commit_message: str) -> PRResult:
+        """Create a PR for the claimed issue."""
+        try:
+            branch_res = subprocess.run(
+                ["git", "-C", str(repo_path), "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True,
+                text=True,
+            )
+            branch_name = branch_res.stdout.strip() if branch_res.returncode == 0 else ""
+            if not branch_name:
+                return PRResult(success=False, error="Could not determine current branch")
+            # Push branch
+            result = subprocess.run(
+                ["git", "-C", str(repo_path), "push", "-u", "origin", "HEAD"],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode != 0:
+                return PRResult(success=False, error=f"Git push failed: {result.stderr}")
+
+            # Create PR via GitHub API
+            # Extract owner/repo from repo_path
+            remote_result = subprocess.run(
+                ["git", "-C", str(repo_path), "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+            )
+            if remote_result.returncode != 0:
+                return PRResult(success=False, error="Could not get remote URL")
+
+            remote_url = remote_result.stdout.strip()
+            # Parse github.com/owner/repo.git
+            match = re.search(r"github\.com[:/]([^/]+)/([^/.]+)", remote_url)
+            if not match:
+                return PRResult(success=False, error="Could not parse GitHub repo from remote")
+
+            owner, repo = match.groups()
+
+            pr_data = {
+                "title": commit_message,
+                "head": branch_name,
+                "base": "main",  # default branch
+                "body": f"Fixes issue: {issue_url}\n\nSubmitted via OWNEX Algora Executor.",
+            }
+
+            resp = await self.client.post(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                json=pr_data,
+                headers={"Authorization": f"Bearer {self.config.github_token}"},
+                timeout=30.0,
+            )
+
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                return PRResult(
+                    success=True,
+                    pr_url=data.get("html_url"),
+                    pr_number=data.get("number"),
+                    branch_name=branch_name,
+                )
+            else:
+                return PRResult(success=False, error=f"PR creation failed: {resp.status_code} - {resp.text}")
+
+        except Exception as exc:
+            logger.exception("PR creation failed")
+            return PRResult(success=False, error=str(exc))
+
+    async def execute_bounty(
+        self,
+        issue_url: str,
+        code_changes: dict[str, str],  # file_path -> new_content
+        commit_message: str,
+    ) -> dict[str, Any]:
+        """Execute full bounty: claim → apply changes → PR → await merge → payout."""
+        execution_id = f"algora-{uuid.uuid4().hex[:8]}"
+        started_at = datetime.now(UTC).isoformat()
+
+        logger.info(f"[{execution_id}] Starting Algora bounty execution for {issue_url}")
+
+        # 1. Claim the issue
+        claim = await self.claim_issue(issue_url)
+        if not claim.success:
+            logger.error(f"[{execution_id}] Claim failed: {claim.error}")
+            return {"success": False, "stage": "claim", "error": claim.error}
+
+        logger.info(f"[{execution_id}] Issue claimed: {claim.claim_id}")
+
+        # 2. Clone repo
+        repo_url = claim.repo_url or issue_url.replace("/issues/", "/")
+        branch_name = f"ownex/algora-{claim.claim_id or uuid.uuid4().hex[:8]}"
+        try:
+            repo_path = await self.clone_repo(repo_url, branch_name)
+        except Exception as exc:
+            return {"success": False, "stage": "clone", "error": str(exc)}
+
+        # 3. Apply code changes
+        try:
+            for file_path, content in code_changes.items():
+                full_path = repo_path / file_path
+                full_path.parent.mkdir(parents=True, exist_ok=True)
+                full_path.write_text(content, encoding="utf-8")
+
+            # Commit changes
+            subprocess.run(["git", "-C", str(repo_path), "add", "-A"], check=True)
+            subprocess.run(
+                ["git", "-C", str(repo_path), "commit", "-m", commit_message],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except Exception as exc:
+            return {"success": False, "stage": "code", "error": str(exc)}
+
+        # 4. Create PR
+        pr = await self.create_pr(repo_path, issue_url, commit_message)
+        if not pr.success:
+            return {"success": False, "stage": "pr", "error": pr.error}
+
+        logger.info(f"[{execution_id}] PR created: {pr.pr_url}")
+
+        if not pr.pr_url:
+            return {"success": False, "stage": "pr", "error": "PR created but no URL returned"}
+
+        # 5. Poll for merge (Algora pays on merge)
+        merged = await self._poll_for_merge(pr.pr_url)
+
+        completed_at = datetime.now(UTC).isoformat()
+
+        if merged:
+            logger.info(f"[{execution_id}] PR merged! Payout triggered automatically.")
+            return {
+                "success": True,
+                "execution_id": execution_id,
+                "claim_id": claim.claim_id,
+                "issue_url": issue_url,
+                "pr_url": pr.pr_url,
+                "pr_number": pr.pr_number,
+                "merged": True,
+                "started_at": started_at,
+                "completed_at": completed_at,
+                "payout_expected": True,
+                "payout_note": "Algora pays automatically on merge",
+            }
+        else:
+            logger.warning(f"[{execution_id}] PR not merged within timeout")
+            return {
+                "success": False,
+                "execution_id": execution_id,
+                "stage": "merge",
+                "pr_url": pr.pr_url,
+                "error": "PR not merged within timeout",
+            }
+
+    async def _poll_for_merge(self, pr_url: str, max_wait_seconds: int = 3600) -> bool:
+        """Poll PR for merge status."""
+        # Extract owner/repo/pr_number from URL
+        match = re.search(r"github\.com/([^/]+)/([^/]+)/pull/(\d+)", pr_url)
+        if not match:
+            return False
+
+        owner, repo, pr_number = match.groups()
+        poll_interval = 30
+        max_polls = max_wait_seconds // poll_interval
+
+        for _ in range(max_polls):
+            await asyncio.sleep(poll_interval)
+            try:
+                resp = await self.client.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}",
+                    headers={"Authorization": f"Bearer {self.config.github_token}"},
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("merged"):
+                        return True
+                    if data.get("state") == "closed" and not data.get("merged"):
+                        return False  # Closed without merge
+            except Exception:
+                pass
+
+        return False
+
+
+async def execute_algora_bounty(
+    issue_url: str,
+    code_changes: dict[str, str],
+    commit_message: str,
+    github_token: str,
+    algora_api_key: str | None = None,
+) -> dict[str, Any]:
+    """Convenience function for single bounty execution."""
+    config = AlgoraConfig(
+        github_token=github_token,
+        algora_api_key=algora_api_key,
+    )
+    executor = AlgoraExecutor(config)
+    try:
+        return await executor.execute_bounty(issue_url, code_changes, commit_message)
+    finally:
+        await executor.close()
+
+
+# Backward compatibility with AutoSubmitEngine adapter interface
+class AlgoraDweAdapter:
+    """Adapter interface for AutoSubmitEngine."""
+
+    def __init__(self, github_token: str | None = None, algora_api_key: str | None = None):
+        self.config = AlgoraConfig(
+            github_token=github_token or os.environ.get("GITHUB_TOKEN", ""),
+            algora_api_key=algora_api_key,
         )
-        if ref_resp.status_code not in (200, 201):
-            raise Exception(f"Branch update failed: {ref_resp.text}")
+        self.executor = AlgoraExecutor(self.config)
 
-        return commit_sha
+    async def submit_work(self, prepared_work: Any, api_key: str) -> dict[str, Any]:
+        """Submit work via Algora (claim → PR → merge)."""
+        opportunity = prepared_work.metadata.get("opportunity", {})
+        issue_url = opportunity.get("url") or opportunity.get("issue_url")
+        if not issue_url:
+            return {"success": False, "error": "No issue_url in opportunity"}
+
+        code_changes = prepared_work.files or {}
+        commit_message = prepared_work.metadata.get("commit_message", "Fix: resolve issue")
+
+        result = await self.executor.execute_bounty(issue_url, code_changes, commit_message)
+        await self.executor.close()
+        return result
+
+
+def build_algora_executor(
+    github_token: str | None = None,
+    algora_api_key: str | None = None,
+) -> AlgoraExecutor:
+    """Build Algora executor with credentials from vault or env."""
+    github_token = github_token or os.environ.get("GITHUB_TOKEN")
+    if not github_token:
+        # Try IdentityVault
+        try:
+            from cores.identity_vault import IdentityVault
+
+            vault = IdentityVault()
+            creds = vault.get_credentials("platform_algora")
+            if creds and creds.get("token"):
+                github_token = creds["token"]
+        except Exception:
+            pass
+
+    if not github_token:
+        raise ValueError("GitHub token required for Algora executor")
+
+    return AlgoraExecutor(AlgoraConfig(github_token=github_token, algora_api_key=algora_api_key))
