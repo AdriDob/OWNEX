@@ -22,6 +22,7 @@ const mode = ref<string>('secure_plus_upside')
 const ranked = ref<DirectWorkRanked[]>([])
 const loading = ref(true)
 const error = ref('')
+const hideFunding = ref(true)
 
 const pct = (n: number | null | undefined): string => (n != null ? `${Math.round(n * 100)}%` : '—')
 const usd = (n: number | null | undefined): string => (n != null ? `$${Math.round(n).toLocaleString('es-AR')}` : '—')
@@ -34,9 +35,17 @@ const pcash = (r: DirectWorkRanked): string => {
   return `${pct(r.p_cash)} (${r.p_cash_band || 'UNKNOWN'})`
 }
 
+const visible = computed(() =>
+  hideFunding.value ? ranked.value.filter((r) => r.public_work?.is_project_funding !== true) : ranked.value,
+)
+
+const hiddenFundingCount = computed(
+  () => ranked.value.filter((r) => r.public_work?.is_project_funding === true).length,
+)
+
 const grouped = computed(() => {
   const by: Record<string, DirectWorkRanked[]> = {}
-  for (const r of ranked.value) {
+  for (const r of visible.value) {
     const key = r.public_work?.rung || 'beginner'
     ;(by[key] ||= []).push(r)
   }
@@ -80,7 +89,7 @@ onMounted(() => {
           Mismo ranking de siempre, agrupado en rampa.
         </p>
       </div>
-      <div class="flex flex-wrap gap-1.5">
+      <div class="flex flex-wrap items-center gap-1.5">
         <button
           v-for="m in MODES"
           :key="m"
@@ -90,6 +99,15 @@ onMounted(() => {
           @click="reload(m)"
         >
           {{ m }}
+        </button>
+        <button
+          :aria-pressed="hideFunding"
+          class="rounded-md border px-2.5 py-1 font-mono text-[11px]"
+          :class="hideFunding ? 'border-primary bg-primary/10 text-primary' : 'border-border/40 text-muted-foreground'"
+          @click="hideFunding = !hideFunding"
+          :title="hiddenFundingCount ? `${hiddenFundingCount} proyecto(s) de funding ocultos (grants/retro/ecosystem)` : 'Sin funding en la lista'"
+        >
+          {{ hideFunding ? `tareas (${hiddenFundingCount} funding ocultos)` : 'todo incl. funding' }}
         </button>
       </div>
     </header>
@@ -131,6 +149,9 @@ onMounted(() => {
               <div><p class="font-mono text-[9px] uppercase text-muted-foreground">P(CASH)</p><p class="font-mono text-sm font-semibold">{{ pcash(r) }}</p></div>
               <div><p class="font-mono text-[9px] uppercase text-muted-foreground">Acept.</p><p class="font-mono text-sm font-semibold">{{ pct(r.acceptance_probability) }}</p></div>
             </div>
+            <p v-if="r.public_work?.ceiling" class="mt-1 font-mono text-[10px] text-muted-foreground">
+              {{ r.public_work.market_segment }} · techo obs. {{ usd(r.public_work.ceiling.max_observed_usd) }} (típico {{ r.public_work.ceiling.typical }})
+            </p>
 
             <div v-if="r.public_work" class="mt-2 rounded-md border border-border/30 bg-surface/30 p-2">
               <p class="font-mono text-[10px] font-semibold uppercase text-muted-foreground">Validación pública</p>

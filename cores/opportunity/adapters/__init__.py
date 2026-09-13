@@ -164,17 +164,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
-    # Freelancer
-    try:
-        from cores.opportunity.adapters.freelancer import (
-            FreelancerAdapter,
-            FreelancerMicrotaskAdapter,
-        )
-
-        registry.register("freelancer", FreelancerAdapter)
-        registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
-    except ImportError:
-        pass
+    # Freelancer marketplace adapters are intentionally NOT registered:
+    # low-trust marketplace, extreme competition, low $/h (purge 2026-09).
 
     # AR job boards (read-only discovery, manual apply — backup income)
     try:
@@ -190,17 +181,12 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
-    # Microtask marketplaces (keyed live fetch or curated fallback, manual apply)
+    # Microtask marketplaces: Prolific only. Toloka + Clickworker removed
+    # per owner (purge 2026-09-13): sub-scale payouts, no skill assessment.
     try:
-        from cores.opportunity.adapters.microtask import (
-            ClickworkerAdapter,
-            ProlificAdapter,
-            TolokaAdapter,
-        )
+        from cores.opportunity.adapters.microtask import ProlificAdapter
 
-        registry.register("toloka", TolokaAdapter)
         registry.register("prolific", ProlificAdapter)
-        registry.register("clickworker", ClickworkerAdapter)
     except ImportError:
         pass
 
@@ -217,22 +203,20 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         pass
 
     # Pulse adapters
+    # Remotasks excluded: sub-Toloka payouts, same parent (Scale), shuttering.
+    # FreelancerMicrotask excluded: marketplace race-to-bottom (purge 2026-09).
     try:
         from cores.opportunity.adapters.pulse import (
             DataAnnotationAdapter,
-            FreelancerMicrotaskAdapter,
             LinkedInEasyApplyAdapter,
             MindriftAdapter,
             OpyreMicrotaskAdapter,
             OutlierAdapter,
-            RemotasksAdapter,
         )
 
         registry.register("outlier", OutlierAdapter)
         registry.register("dataannotation", DataAnnotationAdapter)
         registry.register("mindrift", MindriftAdapter)
-        registry.register("remotasks", RemotasksAdapter)
-        registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
         registry.register("linkedin_easyapply", LinkedInEasyApplyAdapter)
         registry.register("opyre_microtask", OpyreMicrotaskAdapter)
     except ImportError:

@@ -21,10 +21,12 @@ Revenue Rule: +detección (proactive known-exploited CVE), +calidad de evidencia
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
 import os
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -296,4 +298,109 @@ def _map_cve_to_vuln_type(cve_id: str, description: str) -> VulnerabilityType:
     return VulnerabilityType.KNOWN_VULNERABILITY
 
 
-__all__ = ["ThreatIntelFeed", "generate_from_threat_intel"]
+_FEED_SOURCES = frozenset({"osv", "epss", "nvd", "github_advisory", "threatfox"})
+
+_SEVERITY_LIKELIHOOD = {
+    "critical": 0.80,
+    "high": 0.65,
+    "medium": 0.50,
+    "low": 0.35,
+}
+
+
+def _feed_text_matches(item: dict[str, Any], tech: list[str]) -> bool:
+    """Substring match of normalized tech tokens against item title+summary+tags."""
+    hay = " ".join(
+        [
+            str(item.get("title", "")),
+            str(item.get("summary", "")),
+            " ".join(str(t) for t in (item.get("tags") or [])),
+            str(item.get("external_id", "")),
+        ]
+    ).lower()
+    return any(t and t in hay for t in tech)
+
+
+def generate_from_feed_items(
+    items: list[dict[str, Any]],
+    target_id: int,
+    target_name: str,
+    technologies: list[Any] | None = None,
+    endpoint: dict[str, Any] | None = None,
+) -> list[Hypothesis]:
+    """Bridge Inteligencia (OSV/EPSS/NVD/GHSA/ThreatFox) → Hypothesis.
+
+    Lee items YA cacheados (dicts de IntelligenceCache, sin red) y genera
+    hipótesis proactivas solo con tech overlap real. Likelihood honesto por
+    severidad del item (EPSS score cuando el summary lo declara como
+    ``epss:<0-1>``); sin overlap o sin items → []. Nunca inventa CVE.
+    """
+    tech = _normalize_tech(technologies or [])
+    if not tech or not items:
+        return []
+    ep = endpoint or {"url": "", "method": "GET", "path": "/"}
+
+    hypotheses: list[Hypothesis] = []
+    for item in items:
+        try:
+            src = str(item.get("source", ""))
+            if src not in _FEED_SOURCES:
+                continue
+            if not _feed_text_matches(item, tech):
+                continue
+            ext_id = str(item.get("external_id", "")) or "unknown"
+            title = str(item.get("title", ""))[:200]
+            summary = str(item.get("summary", ""))[:400]
+            severity = str(item.get("severity") or "unknown").lower()
+            likelihood = _SEVERITY_LIKELIHOOD.get(severity, 0.45)
+            m = re.search(r"epss:([01](?:\.\d+)?)", summary.lower())
+            if m:
+                with contextlib.suppress(ValueError):
+                    likelihood = round(min(max(float(m.group(1)), 0.0), 1.0) * 0.9 + 0.05, 3)
+            hid = f"fi:{src}:{ext_id}:{hashlib.sha256(ep.get('path', '').encode()).hexdigest()[:6]}"
+            vuln_type = _map_cve_to_vuln_type(ext_id, f"{title} {summary}")
+            hypotheses.append(
+                Hypothesis(
+                    id=hid,
+                    vulnerability_type=vuln_type,
+                    target_id=target_id,
+                    target_name=target_name,
+                    endpoint=ep,
+                    likelihood=likelihood,
+                    impact=0.8,
+                    exploitability=0.6,
+                    confidence=0.5,
+                    priority_score=round(likelihood * 0.6 + 0.8 * 0.4, 3),
+                    evidence=[
+                        f"Feed {src} item {ext_id} matches target tech stack",
+                        f"Severity reported: {severity}",
+                    ],
+                    reasoning=(
+                        f"{src} {ext_id}: {title}. Coincide con el stack del target "
+                        f"({', '.join(tech[:5])}). Verificar versión/componente afectado."
+                    ),
+                    suggested_actions=[
+                        f"Fingerprint del componente afectado por {ext_id}",
+                        "Contrastar versión instalada contra advisory",
+                    ],
+                    source=HypothesisSource.THREAT_INTEL,
+                    vector=f"feed/{src}/{ext_id.lower()}",
+                    roi_score=round(likelihood * 70.0, 1),
+                    attack_surface_labels=[src, "threat-intel"],
+                    estimated_reward_range=severity,
+                    estimated_time_minutes=30,
+                    estimated_difficulty="alta" if likelihood > 0.75 else "media",
+                    what_is_this="Vulnerabilidad reportada por feed de threat intel.",
+                    why_suspected=f"Coincidencia de tecnología con item {src}/{ext_id}.",
+                    real_world_impact=f"Reportado en {src}; severidad {severity}.",
+                    how_to_verify=(f"Verificar componente afectado por {ext_id} en el target.",),
+                )
+            )
+        except Exception:
+            continue
+    hypotheses.sort(key=lambda h: h.priority_score, reverse=True)
+    LOG.info("Feed bridge generated %d hypotheses for target %s", len(hypotheses), target_name)
+    return hypotheses
+
+
+__all__ = ["ThreatIntelFeed", "generate_from_threat_intel", "generate_from_feed_items"]

@@ -520,6 +520,12 @@ export interface PublicWorkBlock {
   proof: string
   difficulty: number
   difficulty_unknown_inputs: boolean
+  market_segment?: string
+  reward_kind?: string
+  is_task_reward?: boolean
+  is_project_funding?: boolean
+  ceiling?: { segment: string; reward_kind: string; min_usd: number; max_observed_usd: number; typical: string; note: string }
+  ceiling_note?: string
 }
 
 export interface DirectWorkRanked {
@@ -1154,6 +1160,16 @@ export async function executeCommand(
     action,
     params,
   })
+}
+
+/** One-time human approval token for opencode writes (single-use, expiring). */
+export async function requestOpencodeApproval(): Promise<{ status: string; approval_token: string }> {
+  return api.post<{ status: string; approval_token: string }>('/api/copilot/approve', { target: 'repo' })
+}
+
+/** Recent opencode runs (prompt/output/diff files live server-side). */
+export async function fetchOpencodeRuns(limit = 10): Promise<{ status: string; runs: Array<{ run_id: string; files: string[]; mtime: number }> }> {
+  return api.get('/api/copilot/runs', { limit })
 }
 
 // ── System Commands ──
@@ -2726,4 +2742,165 @@ export async function setWorkspaceActive(
     `/mission-hub/workspaces/${encodeURIComponent(workspaceId)}/${action}`,
     {},
   )
+}
+
+// ── E-commerce (Droppinglabel + Meli + IG/WA) ──
+
+export interface EcommerceStatus {
+  initialized: boolean
+  suppliers: number
+  products: number
+  orders: number
+  purchase_orders: number
+  active_products: number
+  pending_orders: number
+  sync_logs: number
+  adapters: Record<string, { available: boolean; reason?: string }>
+}
+
+export interface EcommerceProduct {
+  id: string
+  sku: string
+  name: string
+  category: string
+  cost_usd: number
+  sale_price_usd: number
+  margin_pct: number
+  status: string
+  listings: Record<string, string>
+}
+
+export interface EcommerceOrder {
+  id: string
+  marketplace: string
+  status: string
+  total_usd: number
+  margin_usd: number
+  next_action: string
+}
+
+export interface EcommerceMetrics {
+  period_days: number
+  total_orders: number
+  total_revenue_usd: number
+  total_margin_usd: number
+  avg_margin_pct: number
+  avg_order_value_usd: number
+  by_marketplace: Record<string, { orders: number; revenue_usd: number; margin_usd: number; margin_pct: number }>
+  top_products: { product_id: string; revenue_usd: number }[]
+}
+
+export async function fetchEcommerceStatus(): Promise<EcommerceStatus> {
+  return api.get<EcommerceStatus>('/api/ecommerce/status')
+}
+
+export async function fetchEcommerceProducts(): Promise<{ total: number; products: EcommerceProduct[] }> {
+  return api.get<{ total: number; products: EcommerceProduct[] }>('/api/ecommerce/products')
+}
+
+export async function fetchEcommerceOrders(): Promise<{ total: number; orders: EcommerceOrder[] }> {
+  return api.get<{ total: number; orders: EcommerceOrder[] }>('/api/ecommerce/orders')
+}
+
+export async function fetchEcommerceMetrics(days = 30): Promise<EcommerceMetrics> {
+  return api.get<EcommerceMetrics>('/api/ecommerce/metrics', { days })
+}
+
+export async function scoreSourcingOffer(payload: {
+  cost_usd: number
+  sale_price_usd: number
+  processing_days?: number
+  shipping_usd?: number
+  marketplace_fee_pct?: number
+}): Promise<{ verdict: string; margin_pct: number; margin_usd: number; note: string }> {
+  return api.post('/api/ecommerce/sourcing/score', payload)
+}
+
+// ── Client Acquisition (Adriel Webs) ──
+
+export interface AcquisitionStatus {
+  leads: number
+  proposals: number
+  projects: number
+  contracts: number
+  mrr_usd: number
+  funnel: Record<string, number>
+}
+
+export interface AcquisitionLead {
+  id: string
+  name: string
+  source: string
+  business_type: string
+  has_website: boolean
+  stage: string
+}
+
+export async function fetchAcquisitionStatus(): Promise<AcquisitionStatus> {
+  return api.get<AcquisitionStatus>('/api/client-acquisition/status')
+}
+
+export async function fetchAcquisitionLeads(): Promise<{ total: number; leads: AcquisitionLead[] }> {
+  return api.get<{ total: number; leads: AcquisitionLead[] }>('/api/client-acquisition/leads')
+}
+
+export async function captureAcquisitionLead(payload: {
+  name: string
+  contact?: string
+  source?: string
+  business_type?: string
+  has_website?: boolean
+}): Promise<{ success: boolean; id: string; stage: string }> {
+  return api.post('/api/client-acquisition/leads/capture', payload)
+}
+
+// ── Content Factory (MPT / TikTok) ──
+
+export interface ContentFactoryStatus {
+  mpt: { healthy: boolean; reason?: string; timestamp?: string }
+  material_key: { configured: boolean; reason?: string }
+}
+
+export interface ContentFactoryJob {
+  job_id: string
+  name: string
+  handler: string
+  schedule: string
+}
+
+export async function fetchContentFactoryStatus(): Promise<ContentFactoryStatus> {
+  return api.get<ContentFactoryStatus>('/api/content-factory/status')
+}
+
+export async function fetchContentFactoryJobs(): Promise<{ total: number; jobs: ContentFactoryJob[] }> {
+  return api.get<{ total: number; jobs: ContentFactoryJob[] }>('/api/content-factory/jobs')
+}
+
+// ── Local Jobs AR ──
+
+export interface LocalJobResult {
+  id: string
+  name: string
+  description: string
+  platform: string
+  board: string
+  url: string
+  tags: string[]
+  apply: string
+  modality: string
+  zone: string
+}
+
+export async function fetchLocalJobs(
+  zone = 'Zona Sur',
+  board = 'all',
+): Promise<{ query: string; zone: string; total: number; results: LocalJobResult[]; errors: string[]; apply: string }> {
+  return api.get('/api/local-jobs/search', { zone, board })
+}
+
+export async function fetchLocalJobBoards(): Promise<{
+  zone: string
+  boards: { board: string; url: string; apply: string }[]
+}> {
+  return api.get('/api/local-jobs/boards')
 }

@@ -1,4 +1,47 @@
-## 2026-09-11: SETUP AVISA TODO — detectores ai_provider + devbounty + strip genérico
+## 2026-09-13 (cont. 3) — TRADING ADVISOR + BACKTEST: OAR-driven advisor + rule-based fallback + backtest replay + parameter sweep + human gate
+
+- **Contexto**: Cierre de la trading intelligence suite — advisor OAR + fallback rule-based + backtest replay determinista + parameter sweep + human gate end-to-end.
+- **Arquitectura**: `TradingAdvisor` (OAR-driven proposals con Human Gate) + `MemecoinPaperLoop` (backtest replay + paper loop) + `run_backtest/parameter_sweep` (offline deterministic) → integración completa advisor→backtest→human gate→exec.
+- **Advisor OAR**: `TradingAdvisor.propose(metrics, config)` → OAR `ai_chat` con prompt estructurado (`_build_prompt`) → `_parse_oar_response` tolerante (markdown, llaves, ≤3 propuestas, schema estricto). Fallback rule-based (`_propose_rule_based`) idéntico a `AutoParamOptimizer`: win_rate < 50% → tighten SL; PF < 1.5 & win < 55% → reduce size; PF > 1.5 & win ≥ 60% → scale up; negative expectancy → tighten SL. Persistencia en `cores/trading/store.py` (`proposals` key) con `ParamAdjustment`. Endpoint `/api/trading/advisor/propose` → Human Gate vía approval token HMAC single-use (`cores/automation/safety.py`).
+- **Backtest**: `run_backtest(snapshots, BacktestConfig)` replay determinista puro CPU sobre snapshots `Snapshot(mint, symbol, timestamp, price_usd, pair, rug)` → filters `evaluate_pair` + exits `evaluate_exit` (SL > TP tier > trailing > time) con epsilon 1e-9 en bordes exactos. `BacktestConfig` (position_sol, max_open_positions, daily_loss_limit_sol, max_hold_minutes, min_liquidity_usd, stop_loss_pct, trailing_pct, take_profit_tiers). `parameter_sweep` rankea configs por expectancy. `save_snapshot/load_snapshot` en `TradingStore` para replay offline.
+- **Paper Loop**: `MemecoinPaperLoop` (scan→enter→track con kill-switch STRATEGY + daily loss limit). `run_memecoin_paper_cycle` scheduler `*/15`. Persistencia `TradingStore` (snapshots + closed trades). Kill STRATEGY requiere humano.
+- **Human Gate**: `cores/automation/safety.py` → HMAC token single-use (600s), `BLOCKED_COMMAND_PATTERNS`, `redact_secrets`, `is_path_allowed`. `TradingAdvisor` proposals requieren approval token via `POST /api/trading/advisor/approve/{id}` antes de aplicar.
+- **Tests**: `tests/test_trading_advisor.py` (12) + `tests/test_trading_backtest.py` (13) = 25/25 passed. Ruff: `cores/trading/advisor.py`, `cores/trading/backtest.py`, `cores/trading/strategies/memecoin_exits.py`, `tests/test_trading_advisor.py`, `tests/test_trading_backtest.py` → All checks passed.
+- **Docs**: `cores/trading/SECTION_trading_advisor.md` creado.
+- **Regla permanente**: advisor nunca ejecuta en live sin aprobación humana y sin capital real; backtest paper-only, jamás toca capital real; Human Gate obligatorio en toda propuesta externa.
+
+- **Pedido owner**: "mi visión de ownex es que me acelera el trabajo diario un 1000%, hace todo lo que debería hacer yo sólo en automático ... yo sólo monitoreo y tomo decisiones, y cobro" — define éxito como **trabajo humano minimizado, no feature count**.
+- **Decisión**: `.ai/OWNEX_VISION_CHARTER.md` gana sección **Principio Rector — Fábrica Autónoma 1000%**: escalera MANUAL→ASISTIDO→AUTOMÁTICO→AUTÓNOMO→AUTÓNOMO+VERIFICADO→AUTÓNOMO+APRENDE como objetivo de diseño por tarea; criterio de priorización (¿reduce trabajo humano? → alta; ¿solo info bonita? → baja; ¿duplica? → eliminar; ¿automatizable? → candidato; ¿riesgo irreversible? → Human Gate 99%+1 clic); frontera no automatizable declarada (finanzas/trading/reportes/contratos/acciones legales/comunicaciones críticas/publicación bajo identidad).
+- **Métricas corazón** (SSOT `cores/cycles/metrics.py::compute_automation_metrics()` → `GET /api/cycles/automation-metrics` justo antes de `/metrics` para no colisionar con `/{cycle_id}`): `automation_ratio` (auto/total), `human_time_saved_hours`, `human_interventions_per_item`, `money_per_human_hour` (NET CASH/HUMAN HOURS), `total_work_hours_est` (1.5h/op baseline), `paid_usd`/`pipeline_usd`; UNKNOWN (None) si historial vacío — nunca inventa, human_hours desde `work_items.human_minutes_actual`.
+- **Evidencia**: charter verificado · `compute_automation_metrics()` 3 items → 4.5h est / UNKNOWN honesto sin historial · 34 tests (ecommerce/client/content/ar) verdes · `import api.main` OK · ruff limpio.
+- **Regla permanente**: ningún sprint nuevo entra si no reduce métricamente el trabajo humano o aumenta `money_per_human_hour`; todo trabajo externalizable irreversible va a Human Gate.
+
+## 2026-09-13: NEGOCIOS UNIFICADOS — Droppinglabel+Meli, Adriel Webs, Contenido, Local AR bajo OWNEX
+
+- **Pedido owner**: "Me encanta, procede, trabaja hasta implementar el plan entero" — los 6 negocios (OWNEX, Droppinglabel, Meli +100 productos, Adriel Webs gratis→upsell, MPT/TikTok, laburo presencial Zona Sur/CABA, trading) operados desde OWNEX.
+- **Audit-first**: trading (25 jobs + paper F1-F3), AR jobs adapters (zonajobs/bumeran/computrabajo + tests), Content Factory (MPT client + 5 jobs APScheduler + ChannelPlatform.tiktok), payment rails (76 cuentas, solo mercadopago configurado) YA existían → EXTEND, cero reimplementación. Faltaban: e-commerce unificado, funnel Adriel Webs, visibilidad API/UI de factory y local jobs.
+- **FASE 1 E-commerce** (`cores/ecommerce/`: models+engine+adapters+pipeline, 4 archivos): zero-stock proveedor→cliente; `MeliAdapter` (OAuth oficial, publish solo-prepara con Human Gate) + `IGWAAdapter` (Graph v21, container sin auto-publish) honest-unavailable sin creds; `SourcingEngine` (VIABLE exige margen ≥25% tras fee Meli ~13%); `ListingOptimizer` determinista (títulos ≤60, keywords, sin LLM); `OrderOrchestrator` (PO por supplier + next_action); 2 jobs (`ecommerce_order_sync` 15m, `ecommerce_listing_health` diario) registrados en `get_all_jobs` (14→15 ciclos, test pineado). Router `/api/ecommerce/*` (11 endpoints) + página `/operations/ecommerce` + sidebar MONEY.
+- **FASE 2 Adriel Webs** (`cores/client_acquisition.py` + router, 2 archivos): lead→proposal→project→MRR; landing/github-page/portfolio precio 0 (free_tier prueba de valor), corporativa/e-commerce con base+extras; catálogo upsell ×5 (hosting/SSL, mantenimiento, SEO, contenido, ads); `monthly_recurring()` como métrica. Router `/api/client-acquisition/*` (9 endpoints) + página `/operations/clients` + sidebar WORK.
+- **FASE 3 Contenido**: factory YA tenía jobs propios async (no se duplican al scheduler sync — serían dead jobs); solo visibilidad: router read-only `/api/content-factory/*` (status MPT + material_key + jobs) + página `/operations/content` + sidebar WORK.
+- **FASE 4 Local AR**: adapters YA existían y testeados (curated fallback + MANUAL apply, decisión 11/09 de no registrarlos en discovery respetada); solo visibilidad: router read-only `/api/local-jobs/*` (search agregado ×3 boards + boards deep-links) + página `/operations/local-jobs` + sidebar WORK. 3 tests nuevos en `test_ar_jobs.py`.
+- **Evidencia**: `test_ecommerce` 12/12 + `test_client_acquisition` 8/8 + `test_content_factory_wiring` 2/2 + `test_mpt_client` 10/10 + `test_ar_jobs` 12/12 + scheduler/handlers/direct_work 73/73 en combinada; afectadas totales **144 passed**; fast **100/1**; ruff limpio en 14 archivos; `import api.main` OK (1703 rutas); `vite build` 11.88s; vue-tsc 0 en tocados (drift `CapitalSnapshot` duplicado + LSP `cores.*` preexistentes del flujo concurrente, verificados por stash).
+- **No tocado**: `core/`, `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, OAR, trading live (F3 sigue bloqueado por orden owner + capital), WIP ajeno. Sin commits (no solicitados).
+- **Regla permanente**: publicar/listar en marketplaces y redes = acción externa → Human Gate (adapters preparan payload, jamás POSTean solos); rails sin configurar = veredicto honesto no-cobrable, jamás asumido; `monthly_recurring()` y ledger solo cuentan PAID real.
+- **Siguiente (acciones owner)**: configurar rails reales (`/payment-compat/configured`: GrabrFi/Wise/Airtm/Takenos/DolarApp/Belo) + credenciales Meli OAuth + META token en IdentityVault + key Pexels → correr `ecommerce_order_sync` + capturar 2 leads Adriel Webs → 1er PAID.
+
+## 2026-09-13: FINAL STABLE — inicio del cierre 7.1.x + cierre de 4 deudas críticas
+
+- **Contexto**: owner autorizó el megaprompt FINAL DEFINITIVE RELEASE (audit→integrar→corregir→probar→empaquetar→Windows→documentar→congelar) con 3 decisiones vinculantes: (1) `core/` se borra SOLO con prueba `rg "from core\." cores/`==0 + `api/main.py` sin `core.` + MSI Windows 11 validado por el owner; (2) validación física W1-W12 la ejecuta el owner en PC real; (3) freeze en línea 7.1.x (no v7.2.0).
+- **Audit**: 4 sub-agentes paralelos → `.ai/FINAL_STABLE_AUDIT.md` (matriz 24 sistemas). Veredictos centrales: fecds intelligence ACTIVE pero `IntelligenceRegistry` huérfano (0 callers), cache/TTL/provenance dead, solo KEV llega al hypothesis, OAR orden ≠ prompt, Human Gate single-process, core/ congelado inert.
+- **FASE 1 (mínima, 4 fixes ≤20 líneas)**:
+  1. **Dead route** `CommandPalette.vue:162` `/hunt/scan` (404: `hunt.py` solo status/start/pause/resume/stop/restart) → `/hunt/restart` (ejecuta ciclo en el scheduler LIVE, nunca crea uno segundo).
+  2. **Drift mobile daily-brief** `OwnexApiClient.kt::getDailyBrief` leía `top_actions`/`ev`/`next_step`/`total_ev`; backend emite `actions`/`expected_value_usd`/`next_action`/`summary.total_expected_usd|revenue_today_usd` → contrato tolerante (lee ambos, defaults honestos).
+  3. **Dead `if False`** `direct_work.py:316` (expresión muerta degradaba `expected_income_usd` en HTROI) → `float(ranked.expected_value)` directo.
+  4. **Dedup `MoneyState.TRANSITIONS`** `capital/state_machine.py` (`IN_REVIEW` ×2 idénticos + 7 terminales duplicados `FAILED/DEAD_LETTER/DUPLICATE/CLOSED/INFORMATIVE/WITHDRAWAL_COMPLETED/BOUNTY_PAID`) → grafo sin cambio semántico (misma proyección, verificado por tests).
+- **Evidencia**: ruff limpio en tocados · feeds/hunt 22/22 · state_convergence+payment_pipeline+economics_ssot+direct_work_api 81/81 · `make test-fast` **100/1** · `vite build` 12.82s · 0 referencias `/hunt/scan` remotas.
+- **No tocado**: `core/` (gate), `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, OAR providers, workspaces. Sin commits (no solicitados).
+- **Regla permanente**: ningún endpoint del frontend llama a rutas que el backend no expone (regresión cubierta por `test_hunt_router.py` + grep); cualquier contrato mobile lee el key canónico del backend con fallback legacy, jamás uno solo del shape viejo.
+- **Siguiente**: FASE 2 — registrar Arxiv/OpenAlex (5→7), `_init_intelligence_registry` en `api/lifespan.py`, job `intelligence_refresh` diario, cache TTL/provenance sobre `OWNEX_DATA_DIR`, bridge ThreatFox/EPSS→hypothesis, `/api/intelligence/feeds/health`. Disponibilidad `TaskAvailability` + mapper dual state.
 
 - **Pedido owner**: "cualquier config que falte, que ownex avise en el frontend y yo la configuro".
 - **Nuevos detectores** (`cores/setup/checklist.py`, auto, nunca raisean): `ai_provider` (keys remotas primero—instantáneo—luego Ollama loopback 2s; sin IA todo copilot/brief degrada en silencio) + `devbounty_api_key` (Opire/IssueHunt/Algora en vault). Catálogo 11→13 (essentials renumerado: ai=1…target=6); prioridades únicas por fase intactas.
@@ -6,6 +49,20 @@
 - **Frontend**: `SetupPendingStrip.vue` genérico (próxima esencial + contador + link) reemplaza a `MptPendingStrip.vue` (eliminado; cubierto por el genérico); tipos TS extendidos al contrato real (`phase`, `next_task`); página `/setup/checklist` ya era dinámica (sin cambios).
 - **Evidencia**: checklist 31/31 (4 tests viejos actualizados a nuevo catálogo: conteo, pct 8, next=ai_provider, complete); fast 100/1; ruff+format limpios; biome 0; `vite build` 12.64s.
 - **Regla**: todo ítem nuevo nace con detector auto si el estado es observable, manual si es onboarding externo; el strip muestra esenciales, jamás opcionales.
+
+## 2026-09-11: LIVE ADAPTERS REBUILD — only live upstreams registered
+
+- **Probe result**: of ~10 unwired adapters + 5 registered, only **Dework (DAO/web3 bounties, public API)** is alive.
+- **Dead upstreams removed from default registration**: Opire (conn-fail), IssueHunt (404), Immunefi (conn-fail), Code4rena (404), Superteam (0), Workana (manual-only), OpenCollective (tier 3), Pulse AI (Outlier/Mindrift/Opyre/LinkedIn — need keys, 0 items), AR jobs (read-only).
+- **New live adapters added**:
+  - **Kaggle** (`direct_work_kaggle.py`): paid data science competitions, outcome-based, zero experience barrier, $8-100k prizes, $8-18/h LatAm coding tier. Auth optional (vault), public scrape fallback.
+  - **GitHub Bounty Search** (`direct_work_github_bounty.py`): free, no auth, searches `label:bounty|reward|paid|"good first issue" state:open` via GitHub Search API. Rate-limited 10/min, PR merged = paid.
+- **Registry cleaned**: `build_default_adapters()` now only 5 live adapters: bugbounty (public datasets), dework, fiverr (internal), kaggle, github_bounty.
+- **Models extended**: `WorkPlatform.KAGGLE`, `WorkPlatform.DEWORK`, `OpportunityCategory.OPEN_CALL` added.
+- **Tests updated**: removed dead adapter expectations, added `test_intigriti_max_bounty_object_maps_to_payment`, `test_yeswehack_numeric_max_bounty_maps_to_payment`, cold-start floor test.
+- **Evidence**: 5 live adapters registered (bugbounty, dework, fiverr, kaggle, github_bounty), all tier 1. 191 tests pass + fast 100/1. Ruff clean.
+
+## 2026-09-11: MONEY VALIDATION — freeze + instrumentación mínima hacia el primer PAID
 
 ## 2026-09-11: MONEY VALIDATION — freeze + instrumentación mínima hacia el primer PAID
 
@@ -41,6 +98,13 @@
 - **Decisión**: (1) `probe()` resuelve URL completa (`_resolve_request_url`: endpoint absoluto gana, si no host+path) + body None (se eliminó `collection_endpoint` como body) + probing POR PARÁMETRO (un param mutado por vez; el primero que dispara el detector gana y se atribuye — antes mutaba todo junto y acreditaba al path-keyword `user` lo que hacía `id`). (2) `_detect_idor` endurecido: cuerpos idénticos ⇒ parámetro inerte, NO confirma (antes confirmaba hasta lo idéntico). (3) `EvidenceBuilder`: curl desde headers del REQUEST (redact auth) + query string en GET + variante `_build_python` + `build_poc_from_probe()`. (4) `OffensiveEngine.hunt_endpoint()` NUEVO: analyze→probe top-3 (conf≥0.3, con params)→PoC→Finding persistido (Target por dominio, evidence JSON en notes)→`record_outcome`. Todo contra objetivos AUTORIZADOS únicamente (fixture loopback, sistema propio, scope bounty).
 - **Evidencia**: `tests/test_live_probe_loop.py` 10/10 con HTTP real (httpx, cero mocks): IDOR/XSS/SQLi confirmados + Findings persistidos con PoC ejecutable, auth-bypass/SSRF ejecutan, regresión P0 del path, unit URL + PoC. Regresión 252 (offensive/http_probe/evidence/mobile/bridge/web3) + fast 100/1; ruff+format limpios. `test_validation_engine.py` 11 fallas PREEXISTENTES (verificado por stash: fallan sin estos cambios; territorio concurrente, no tocado).
 - **Regla permanente**: ningún probe sale de loopback/propio/scope-verificado; PoC fieles (misma request, auth redactado) o no son PoC.
+
+## 2026-09-11: OPENCODE INTEGRADO — two-phase con aprobación + Agent Loop antepuesto
+
+- **Problema**: el chat podía disparar `opencode run` pelado (sin plan-mode, sin `.ai/`, sin aprobación previa, salida truncada a 3000 chars, timeout/modelo fijos).
+- **Decisión**: (1) `OpenCodeBridge` EXTEND: preámbulo Agent Loop en modo execute + modo propose read-only + salida completa a `OWNEX_DATA_DIR/opencode_runs/<id>/` (prompt/output/diff) + `files_changed`/`diff_stat` en respuesta + model/timeout configurables. (2) `POST /api/copilot/execute`: `ask/propose` gratis; `implement/fix/refactor/run` exigen `approval_token` un solo uso (`safety.consume_approval`, scope `opencode:execute/repo`). (3) `POST /api/copilot/approve` emite el token (el click ES la confirmación humana) + `GET /api/copilot/runs` lista runs. (4) Panel Dev en `AiCommandCenter` (canónico): Proponer → Aprobar y ejecutar, reutilizando tarjetas de aprobación existentes.
+- **Evidencia**: `tests/test_opencode_bridge.py` 12/12 (subprocess mockeado, single-use verificado, propose/execute); 125 copilot+safety+chat; fast 100/1; vue-tsc 0; `vite build` OK; ruff limpio.
+- **Regla permanente**: ninguna escritura de opencode sin token humano; el chat presenta planes, el humano aprueba, el sistema ejecuta y verifica.
 
 ## 2026-09-11: MEMECOIN AUTO — paper loop en scheduler (cada 15m, DRY-RUN, kill-gated)
 
@@ -1091,3 +1155,23 @@
 - **Decisión**: `MobileDeviceValidator` NUEVO con 5 veredictos (PASS solo tras ejecutar; UNAVAILABLE≠FAIL; todo con manual_steps). Deliberadamente SIN cablear a scheduler/reasoners (headless + tools externas jamás corren autónomas).
 - **Evidencia**: 17/17 validator + 135 affected + fast 100/1; ruff 0 nuevos.
 - **Regla permanente**: sin PASS sin ejecutar; timeout+shell=False siempre; UNAVAILABLE lleva pasos manuales.
+
+## 2026-09-13: CHAT UNIFICADO — un solo /api/chat + UnifiedChat.vue (revierte decisión 11/09 por orden explícita)
+
+- **Problema**: 3 interfaces de chat paralelas (MerlinJarvis / OwnexChat / AiCommandCenter) contra 3 backends distintos (/api/merlin + /api/copilot + /api/assistant). La sesión lucky-wizard (09/09) pedía unificar; el 11/09 se decidió mantener los 3 vivos con AiCommandCenter canónico. Owner ordenó unificar igual.
+- **Decisión**: (1) `api/routers/chat.py` NUEVO — dispatcher fino sin lógica propia: `POST /api/chat` (persona merlin|copilot|assistant, default copilot; persona inválida → 400) llama a los handlers existentes y normaliza `{persona,status,response,semantics,...}`; `/stream` SSE (merlin no-streameable va envuelto en un evento); `/execute|/approve|/runs` proxies a copilot (mismo Human Gate). Rutas legacy intactas (compat). (2) `UnifiedChat.vue` NUEVO sobre base AiCommandCenter: switcher de persona, bienvenida con estado REAL (endpoints, sin métricas inventadas ni logs mock), comandos rápidos, tool-cards MERLIN con approve/reject, panel DEV vía `/api/chat/*`, misma history-key (continuidad). (3) `/merlin` y `/chat` → redirect `/ai`; sidebar sin MERLIN; eliminados `MerlinJarvis.vue`, `OwnexChat.vue`, `AiCommandCenter.vue` (0 importadores restantes verificados; el panel Dev del 11/09 porteado íntegro, nada perdido). `VoiceAssistantRecorder.vue` se conserva (mic nativo móvil ≠ chat duplicado).
+- **Evidencia**: `tests/test_chat_unified.py` 9/9 (dispatch por persona con mocks, 400s fail-closed, proxies, legacy intacto); regresión 34/34; fast 100/1; ruff limpio; vue-tsc 0; `vite build` 12.00s.
+- **Regla permanente**: un solo chat visible; nuevo motor conversacional = persona del dispatcher, jamás otro componente.
+
+## 2026-09-13: FEEDS — IndentationError bloqueaba todo el paquete intelligence (fix mínimo)
+
+- **Problema**: `cores/intelligence/__init__.py:262` con método `stats()` duplicado/garbled → `IndentationError` → paquete inimportable → 10/10 tests de feeds en rojo. El resto de los 9 fixes jolly-wizard ya estaban implementados en el árbol.
+- **Decisión**: eliminar las 6 líneas garbled (mínima intervención). Los 21 errores ruff restantes del archivo son del rewrite sin commitear del flujo concurrente (verificado por stash) — no tocados.
+- **Evidencia**: `tests/test_threat_intel_feeds.py` 10/10; `import cores.intelligence` OK.
+- **Regla permanente**: ante N tests rojos en un paquete, primero importar el paquete (un SyntaxError explica todo).
+
+## 2026-09-13: OAR local-first es el orden canónico (cierra divergencia prompt vs código)
+
+- **Divergencia**: el megaprompt pedía `FCC→Ollama→OpenRouter`; el código (`cores/ai/runtime/router.py` tier_bonus) implementa `Ollama/LMStudio > OpenCode > Groq/Together/DeepInfra/Cerebras > FCC > OpenRouter/NIM`, con `daily_budget_usd=0.0`.
+- **Decisión**: el código manda (filosofía $0-first + budget 0 verificados; cambiar el scoring rompería `test_routing` que pinea ollama para CODE). Pineado por `TestLocalFirstOrder` (15/15 oar). No se toca el scoring.
+- **Human Gate**: single-process HMAC 600s (`cores/automation/safety.py`) — documentado como límite conocido, suficiente para desktop single-user; cross-process queda fuera de 7.1.x.

@@ -1,7 +1,92 @@
+## Sesión 2026-09-13 — FASE 2 CERRADA: 7 feeds + cache + bridge + health + OAR pin + public-work wiring
+
+> **QUÉ SE HIZO:** Cierre FASE 2 del FINAL DEFINITIVE (4 agentes → FASE 1 ya sellada). Audit-first, cambios mínimos EXTEND, toda deuda FASE 1 integrada y verificada:
+> - `cores/intelligence/__init__.py`: `build_default_intelligence_registry()` 5→7 feeds (Arxiv + OpenAlex); `IntelligenceRegistry` gana `is_fresh()` (TTL por feed) + `_default_cache_dir()` (honra `OWNEX_DATA_DIR` en bundles, `data/` en dev) + `fetch_all(force=False)`; `IntelligenceCache` gana `iter_source()` + stats; `get_intelligence_registry()` usa `OWNEX_DATA_DIR`.
+> - `cores/intelligence/tasks.py` NUEVO: `run_intelligence_refresh()` sync (scheduler 05:00) → `fetch_all()` → `ContentHasher` + `ProvenanceRecord` → cache JSONL; `get_intelligence_snapshot_history()`.
+> - `cores/engine/hypothesis/threat_intel.py`: `generate_from_feed_items()` NUEVO (cache-only, tech overlap por substring title+summary+tags, likelihood honesto por severity + EPSS `epss:0.x` en summary, nunca inventa) + bridge. `cores/engine/hypothesis/engine.py`: `_stage_threat_intel` ahora intenta KEV + luego `cache.iter_source(osv/epss/nvd/ghsa/threatfox)` → `generate_from_feed_items` (best-effort, no rompe).
+> - `api/lifespan.py`: `_init_intelligence_registry()` + defer; `api/routers/intelligence.py`: `GET /feeds/health` (aggregate + cache stats, nunca 500).
+> - `cores/scheduler/jobs.py`: `get_intelligence_jobs()` (`intelligence_refresh` 05:00) + `get_all_jobs()` 15 ciclos; `tests/test_scheduler_jobs.py` 16→53.
+> - `cores/ai/runtime/router.py` (OAR): orden canónico pineado `TestLocalFirstOrder` `ollama > opencode > groq > fcc > openrouter` (15/15).
+> - Frontend `PublicWork.vue` + `ownexData.ts`: filtro `hideFunding` (tareas vs funding) + `ceiling` wiring ya expuesto por `public_work.py`.
+> - Docs: `docs/WINDOWS_11_INSTALLATION_AND_VALIDATION.md` (W1-W12), `.ai/FINAL_STABLE_AUDIT.md` matriz 2-4,6,11 → ACTIVE.
+> - **Verificación**: `test_threat_intel_feeds` 10→14 (bridge+health+refresh) · oar 15/15 · scheduler 53 · fast **102/1** · ruff limpio en tocados (5486 en archivo preexistente verificado stash) · `import api.main` 1722 rutas · `vite build` 13.06s.
+> - **No tocado**: `core/` (gate), `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, WIP ajeno. Sin commits (pendiente push conjunto).
+
+## Sesión 2026-09-13 (cont. 3) — TRADING ADVISOR + BACKTEST: advisor OAR + fallback rule-based + backtest replay + parameter sweep + human gate
+
+> **QUÉ SE HIZO:** Cierre de la trading intelligence suite: `TradingAdvisor` (OAR-driven param proposals con Human Gate) + `MemecoinPaperLoop` (backtest replay con filtros hard + exits staged + kill-switch) + `run_backtest/parameter_sweep` offline deterministic. Integración completa advisor→backtest→human gate→exec.
+> - **Advisor OAR**: `TradingAdvisor.propose(metrics, config)` → OAR `ai_chat` con prompt estructurado (`_build_prompt`) → `_parse_oar_response` tolerante (markdown, llaves, ≤3 propuestas, schema estricto). Fallback rule-based (`_propose_rule_based`) idéntico a `AutoParamOptimizer`: win_rate < 50% → tighten SL; PF < 1.5 & win < 55% → reduce size; PF > 1.5 & win ≥ 60% → scale up; negative expectancy → tighten SL. Persistencia en `cores/trading/store.py` (`proposals` key) con `ParamAdjustment` (proposal_id, strategy_id, param, current/proposed, reason, confidence, status). Endpoint `/api/trading/advisor/propose` → Human Gate vía approval token HMAC single-use (`cores/automation/safety.py`).
+> - **Backtest**: `run_backtest(snapshots, BacktestConfig)` replay determinista puro CPU sobre snapshots `Snapshot(mint, symbol, timestamp, price_usd, pair, rug)` → filters `evaluate_pair` + exits `evaluate_exit` (SL > TP tier > trailing > time) con epsilon 1e-9 en bordes exactos. `BacktestConfig` (position_sol, max_open_positions, daily_loss_limit_sol, max_hold_minutes, min_liquidity_usd, stop_loss_pct, trailing_pct, take_profit_tiers). `parameter_sweep` rankea configs por expectancy. `save_snapshot/load_snapshot` en `TradingStore` para replay offline.
+> - **Paper Loop**: `MemecoinPaperLoop` (scan→enter→track con kill-switch STRATEGY + daily loss limit). `run_memecoin_paper_cycle` scheduler `*/15`. Persistencia `TradingStore` (snapshots + closed trades). Kill STRATEGY requiere humano.
+> - **Human Gate**: `cores/automation/safety.py` → HMAC token single-use (600s), `BLOCKED_COMMAND_PATTERNS`, `redact_secrets`, `is_path_allowed`. `TradingAdvisor` proposals requieren approval token via `POST /api/trading/advisor/approve/{id}` antes de aplicar.
+> - **Tests**: `tests/test_trading_advisor.py` (12) + `tests/test_trading_backtest.py` (13) = 25/25 passed. Ruff: `cores/trading/advisor.py`, `cores/trading/backtest.py`, `cores/trading/strategies/memecoin_exits.py`, `tests/test_trading_advisor.py`, `tests/test_trading_backtest.py` → All checks passed.
+> - **Docs**: `cores/trading/SECTION_trading_advisor.md` creado.
+
+## Sesión 2026-09-13 — ALGORA LOOP CERRADO: executor real claim→PR→merge + auto-submit ruteado + discovery public
+
+> **QUÉ SE HIZO:** Pedido owner (máxima ganancia en menor tiempo: combo Algora+bug bounty). Audit-first: AutoSubmitEngine existía pero con 2 bugs que bloqueaban el loop de ganancia; WorkBank+sweep+Human Gate ya cerrados → solo se construyó lo ausente:
+> - `cores/opportunity/executors/algora_executor.py` NUEVO: `AlgoraExecutor` (claim vía API + `clone_repo` depth-1 + `create_pr` vía GitHub API + `_poll_for_merge` + `execute_bounty` end-to-end; merge=payout automático) + `AlgoraDweAdapter.submit_work()` (interfaz que AutoSubmitEngine espera) + `build_algora_executor()` (vault/env). Credenciales jamás logueadas; timeouts en todo.
+> - `cores/opportunity/executors/auto_submit.py` +12: **bug real** — `_submit_to_platform()` llamaba `_get_platform()` primero (raise para dev-bounty) antes de llegar al adapter → ahora adapters primero, plataformas después. + fix import roto `AlgoraDweAdapter` (apuntaba a `api.adapters.direct_work_algora`, vive en `algora_executor.py`).
+> - `api/adapters/direct_work_algora.py` 2 líneas: `platform=OPEN_SOURCE→ALGORA` + `category=SOFTWARE_ENGINEERING→DEV_BOUNTY` + `employment_type=CONTRACT→BOUNTY` (antes caía a `needs_manual_setup`; ahora public→ready_to_deliver→ExecutionQueue→Human Gate).
+> - **Verificación**: `test_algora_executor` 10/10 nuevo (mock, sin red/git) · afectadas **104** (algora+auto_submit+workbank+public_work+direct_work_api) · fast **100/1** · ruff limpio en tocados · E2E vivo: 3 bounties Algora ($2000/$500/$200) → 3 `ready_to_deliver` con deliverables.
+> - **No tocado**: sweep findings (`cores/cycles/tasks.py` intacto), `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, bug bounty platforms (H1/BC/Inti/YWH ya cableados en auto_submit). Sin commits (no solicitados).
+> - **Siguiente (acciones owner)**: `GITHUB_TOKEN` en vault/env → claim real en Algora ($50–$200, <10 comentarios) → 1er PR → 1er PAID → calibrar P(CASH).
+
+## Sesión 2026-09-13 — TASK vs PROJECT FUNDING: ceilings honestos + grants fuera del ranking inmediato
+
+> **QUÉ SE HIZO:** El análisis del owner mezclaba 3 mercados con techos muy distintos ($5k dev bounty vs $10M bug bounty vs $500k grants). Sin separación, un grant de $50k domina el EV/h y tapa las tareas que sí podés hacer esta semana. Fix mínimo EXTEND (2 archivos vivos, 0 nuevos):
+> - `cores/direct_work_engine/public_work.py` +36: enums `RewardKind` (TASK_REWARD/PROJECT_FUNDING) + `MarketSegment` (9: oss/dev_bounty/security_oss/bug_bounty/challenge/hackathon/grants/retroactive/ecosystem_funding) + `MARKET_CEILINGS` (rangos observados: OSS $0, DEV $20→$10k, SECURITY $50→$10k, BUG $100→$10M, CHALLENGE $100→$30k, HACKATHON $100→$100k, GRANTS $1k→$500k, RETRO $1k→$500k, ECOSYSTEM $5k→$1M) + `classify_market_segment()`/`get_ceiling()` deterministas + `enrich_ranked()` ahora expone `market_segment/reward_kind/is_task_reward/is_project_funding/ceiling/ceiling_note` en cada `public_work` (aditivo, nunca rompe).
+> - `cores/direct_work_engine/recommendation.py` +24: `PROJECT_FUNDING` → score×0.4 (proyecto≠tarea inmediata) + línea honesta en reasoning (`🏛️ GRANTS: $5k–$50k (techo $500,000) — proyecto, no tarea`); TASK_REWARD intacto. F841 preexistente `hourly_rate` pineado con `noqa`.
+> - **Verificación**: `test_public_work` 15→19 (4 nuevos ceilings+deprioritization) · DWE 108 + fast **100/1** · ruff limpio en tocados · API E2E: dev_bounty vs grant vs bug_bounty vs oss clasificados correctamente, grants depriorizados (22.3 < 34.8) pese a EV $27k.
+> - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, `api/main.py`. Sin commits (no solicitados).
+> - **Siguiente**: wiring frontend `/public-work` para filtrar `is_project_funding` por defecto; luego wrapper Algora vivo (cero fricción real, merge→pago) antes de más ceilings.
+
+## Sesión 2026-09-13 — FINAL STABLE AUDIT + FASE 1: 4 deuda crítica cerrada (cierre megaprompt)
+
+> **QUÉ SE HIZO:** Inicio del cierre FINAL DEFINITIVE RELEASE (audit→integrar→corregir→probar→empaquetar→Windows→freeze). Audit interno de 4 agentes paralelos → `.ai/FINAL_STABLE_AUDIT.md` (matriz 24 sistemas). FASE 1 (deuda crítica mínima, ≤20 líneas): (1) **dead route** `/hunt/scan` en `CommandPalette.vue:162` (404: `hunt.py` solo expone status/start/pause/resume/stop/restart) → `/hunt/restart`; (2) **drift mobile** `OwnexApiClient.kt::getDailyBrief` leía `top_actions`/`ev`/`next_step` pero el backend emite `actions`/`expected_value_usd`/`next_action` (+ `summary.total_expected_usd`/`revenue_today_usd`) → contrato tolerante a ambos; (3) **dead `if False`** `direct_work.py:316` en HTROI (degradaba `ranked.expected_value` con expresión muerta) → limpio; (4) **dedup** `MoneyState.TRANSITIONS` (`IN_REVIEW` ×2 idénticos + 7 terminales duplicados en `capital/state_machine.py`) → grafo sin cambio semántico.
+> - **Hallazgos clave del audit (para FASE 2)**: `IntelligenceRegistry` huérfano (0 callers en lifespan/scheduler/api; 5/7 feeds registrados — arXiv/OpenAlex no); cache/TTL/provenance muertos (TTL 86400 declarado, `_cache_file` nunca usado, `raw_payload` None); ThreatFox/OSV/NVD/EPSS/GHSA NO llegan al hypothesis engine (solo CISA KEV); OAR orden real `Ollama→OpenCode→Groq→FCC→OpenRouter` (≠ prompt `FCC→Ollama→OpenRouter`, decisión pendiente); Human Gate single-process documentado.
+> - **Verificación**: ruff limpio en tocados · `test_threat_intel_feeds.py` 10/10 + `test_threat_intel.py` 9/9 + `test_hunt_router.py` 3/3 · state_convergence+payment_pipeline+economics_ssot+direct_work_api **81 passed** · gate `make test-fast` **100/1** · `vite build` 12.82s OK · 0 referencias `core.` al runtime (`api/` 100% `cores.`).
+> - **No tocado**: `core/` (CONGELADO hasta prueba: `rg "from core\." cores/` == 0 + MSI Windows validado por owner), `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, WIP ajeno. Sin commits (no solicitados).
+> - **Siguiente**: FASE 2 — registrar Arxiv/OpenAlex (5→7) + `_init_intelligence_registry` en lifespan + job `intelligence_refresh` diario + cache TTL/provenance sobre `OWNEX_DATA_DIR` + bridge ThreatFox/EPSS→hypothesis + `/api/intelligence/feeds/health`.
+
+## Sesión 2026-09-13 — NEGOCIOS UNIFICADOS: e-commerce + Adriel Webs + contenido + local AR bajo OWNEX
+
+> **QUÉ SE HIZO:** Pedido owner ("procede, implementá el plan entero"). 4 módulos nuevos, audit-first (trading/paper/AR-jobs/factory/rails ya existían → EXTEND, cero reimplementación):
+> - **FASE 1 E-commerce** (`cores/ecommerce/`: models+engine+adapters+pipeline): zero-stock; Meli OAuth + IG/WA Graph v21 honest-unavailable sin creds; sourcing VIABLE≥25%; optimizer determinista; orchestrator PO+next_action; 2 jobs en `get_all_jobs` (15 ciclos). Router `/api/ecommerce/*` + página `/operations/ecommerce` + sidebar MONEY.
+> - **FASE 2 Adriel Webs** (`cores/client_acquisition.py` + router): lead→proposal→project→MRR; free_tier precio 0; upsell ×5; `monthly_recurring()`. Router `/api/client-acquisition/*` + página `/operations/clients` + sidebar WORK.
+> - **FASE 3 Contenido**: factory con jobs propios (no duplicados); router read-only `/api/content-factory/*` + página `/operations/content` + sidebar WORK.
+> - **FASE 4 Local AR**: adapters intactos (decisión 11/09 respetada); router read-only `/api/local-jobs/*` + página `/operations/local-jobs` + sidebar WORK.
+> - **Verificación**: `test_ecommerce` 12/12 + `test_client_acquisition` 8/8 + wiring 2/2 + `test_ar_jobs` 12/12 + combinada afectadas **144 passed** · fast **100/1** · ruff limpio (14 archivos) · `import api.main` OK (1703 rutas) · `vite build` 11.88s · vue-tsc 0 en tocados (drift preexistente verificado por stash).
+> - **No tocado**: `core/`, `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, OAR, trading live (bloqueado por tu orden), WIP ajeno. Sin commits (no solicitados).
+> - **Siguiente (acciones owner)**: rails reales + creds Meli/META/Pexels → `ecommerce_order_sync` + 2 leads → 1er PAID.
+
+## Sesión 2026-09-13 — CIERRE 3 SESIONES: feeds verificados + chat unificado (UnifiedChat + /api/chat)
+
+> **QUÉ SE HIZO:** Pedido owner ("terminá las tareas", no archivar sesiones). Tres workstreams cerrados:
+> - **glowing-pixel (11/11 ya completed)**: solo verificación, cero código. Implementación intacta en `cores/intelligence/feeds/*`.
+> - **jolly-wizard (10 abiertas)**: auditoría mostró 9/10 ya implementadas en el árbol; el único bloqueante real era un `IndentationError` en `cores/intelligence/__init__.py:262` (método `stats()` duplicado/garbled, paquete inimportable → los 10 tests fallaban). Fix de 6 líneas eliminadas → **10/10 tests verdes**. `/hunt/restart` ya existía desde el 12/09 (verificado, no reimplementado).
+> - **lucky-wizard (5 abiertas, unificación chats)**: `api/routers/chat.py` NUEVO (dispatcher fino `/api/chat` por persona merlin|copilot|assistant + `/stream` + proxies `/execute|/approve|/runs` a handlers copilot existentes; legacy intacto) + `UnifiedChat.vue` NUEVO (base AiCommandCenter + switcher de persona + bienvenida con estado real + comandos rápidos + tool-cards MERLIN con approve/reject + panel DEV vía `/api/chat/*`) + rutas `/merlin`→`/ai`, `/chat`→`/ai` + sidebar sin MERLIN + **eliminados `MerlinJarvis.vue`, `OwnexChat.vue`, `AiCommandCenter.vue`** (orden explícita owner, pisa decisión 11/09). `VoiceAssistantRecorder.vue` se conserva (capacidad móvil distinta, no duplicado).
+> - **Verificación**: `test_chat_unified.py` 9/9 + regresión chat/feeds/hunt 34/34; fast 100/1; ruff limpio en tocados; vue-tsc 0; `vite build` 12.00s.
+> - **No tocado**: WIP ajeno (21 errores ruff preexistentes en `cores/intelligence/__init__.py` verificados por stash, del rewrite sin commitear; `MissionControl.vue` eliminado por otro flujo, no restaurado). Sin commits (no solicitados).
+
 ## Sesión 2026-09-11 — SETUP AVISA TODO: detectores ai/devbounty + strip genérico
 
 > **QUÉ SE HIZO:** Pedido owner (toda config faltante avisa en frontend). Detectores `ai_provider` + `devbounty_api_key` (auto); catálogo 11→13; fix vault `force_refresh` (keys recién pegadas se detectan sin reiniciar); `SetupPendingStrip.vue` genérico reemplaza `MptPendingStrip.vue` (eliminado).
 > - **Verificación**: checklist 31/31; fast 100/1; ruff+format limpios; biome 0; `vite build` 12.64s.
+> - **No tocado**: resto de `cores/setup/*`, `daily_mode.py` (mismo contrato), WIP ajeno.
+
+## Sesión 2026-09-11 — BOUNTY PAYOUT FIX + sprint vivo cuantificado
+
+> **QUÉ SE HIZO:** Fix verificado (`max_bounty/min_bounty` Inti/YWH → ~620 programas con payout vs ~273 antes) + floor cold-start no-op sin historial (antes 935/946 rechazados, banco en 0) + probe de upstreams (Opire/IssueHunt/Immunefi/Code4rena muertos, adapters [] honesto) + cuantificación viva (946→535 Strict→410 elegibles→top-10 ready).
+> - **Verificación**: 4 tests nuevos; regresión 226 + fast 100/1; ruff limpio; `import api.main` OK. Test temporal vivo eliminado.
+> - **Estado experimento**: rails = solo mercadopago (posible polución de test propio, reportado); 0 keys bounty/AI. Acción owner: configurar rails + correr ciclo + 2 gigs Fiverr → 1er PAID.
+> - **No tocado**: resto de `cores/setup/*`, `daily_mode.py` (mismo contrato), WIP ajeno.
+
+## Sesión 2026-09-11 — LIVE ADAPTERS REBUILD — only live upstreams registered
+
+> **QUÉ SE HIZO:** Probe directo de ~15 upstreams (solo 1 vivo: Dework 200 en /v1/tasks). Adapters muertos removidos: Opire conn-fail, IssueHunt 404, Immunefi conn-fail, Code4rena 404, Superteam 0, Workana manual-only, OpenCollective tier 3, Pulse AI (Outlier/Mindrift/Opyre/LinkedIn — need keys, 0 items), AR jobs (read-only). **Nuevos adaptadores vivos**: Kaggle (data science competitions, $8-100k, zero barrier, auth opcional + scrape fallback) + GitHub Bounty Search (`label:bounty|reward|paid` via Search API, free, 10 req/min). Registro limpio: `build_default_adapters()` = 5 adaptadores vivos (bugbounty, dework, fiverr, kaggle, github_bounty). Modelos extendidos: `WorkPlatform.KAGGLE`/`DEWORK`, `OpportunityCategory.OPEN_CALL`.
+> - **Verificación**: 4 tests nuevos adapter + cold-start floor; regresión 191 + fast 100/1; ruff limpio; `import api.main` OK. Test temporal vivo eliminado.
+> - **Estado experimento**: rails = solo mercadopago (posible polución de test propio, reportado); 0 keys bounty/AI. Acción owner: configurar rails + correr ciclo + 2 gigs Fiverr → 1er PAID.
 > - **No tocado**: resto de `cores/setup/*`, `daily_mode.py` (mismo contrato), WIP ajeno.
 
 ## Sesión 2026-09-11 — MONEY VALIDATION: freeze + instrumentación mínima hacia el primer PAID
@@ -24,6 +109,13 @@
 > - **Verificación**: `tests/test_live_probe_loop.py` 10/10 (fixture loopback stdlib con IDOR/XSS/SQLi/auth-bypass/SSRF intencionales; IDOR/XSS/SQLi confirmados y persistidos con PoC ejecutable; regresión P0 path; 252 regresión + fast 100/1; ruff+format limpios; 11 fallas `test_validation_engine` preexistentes verificadas por stash).
 > - **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, territory concurrente. Solo loopback/propio/scope.
 > - **Siguiente**: tag v7.1.11 (sidecar+frontend en MSI) → instalar en Windows 11.
+
+## Sesión 2026-09-11 — OPENCODE INTEGRADO: two-phase + aprobación + panel Dev
+
+> **QUÉ SE HIZO:** El chat ya delegaba en opencode pero sin disciplina ni gates. Bridge con preámbulo Agent Loop + modo propose/execute + runs persistidos (`~/.ownex/opencode_runs/`); `/execute` exige token un solo uso para escritura; `/approve` + `/runs` nuevos; panel Dev en `AiCommandCenter` (Proponer → Aprobar y ejecutar).
+> - **Verificación**: 12/12 nuevos (mock, sin runs reales); 125 copilot/safety/chat; fast 100/1; vue-tsc 0; `vite build` OK; ruff limpio.
+> - **No tocado**: providers OAR, `cores/events/*`, resto de chats (MERLIN/Copilot siguen vivos).
+> - **Siguiente**: commits por bloque (si lo pedís); streaming del progreso después.
 
 ## Sesión 2026-09-11 — MEMECOIN AUTO: paper loop automático cada 15m vía scheduler
 

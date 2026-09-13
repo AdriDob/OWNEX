@@ -61,6 +61,7 @@ async def run_background_init(app: Any, bus: Any) -> None:
     _defer("copilot", _init_copilot)
     _defer("evidence_graph", _init_evidence_graph)
     _defer("knowledge_graph", _init_knowledge_graph)
+    _defer("intelligence_registry", _init_intelligence_registry)
 
     # ── Phase 4: Schedulers and agents ──
     scheduler = await _async_defer("scheduler", _init_scheduler)
@@ -268,6 +269,13 @@ def _init_knowledge_graph() -> None:
     from cores.knowledge.graph import get_knowledge_graph
 
     get_knowledge_graph()
+
+
+def _init_intelligence_registry() -> None:
+    from cores.intelligence import build_default_intelligence_registry
+    from cores.intelligence.tasks import _default_cache_dir
+
+    build_default_intelligence_registry(_default_cache_dir())
 
 
 async def _init_scheduler() -> Any:

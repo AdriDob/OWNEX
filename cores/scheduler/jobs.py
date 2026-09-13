@@ -151,7 +151,6 @@ def get_pulse_jobs() -> list[JobDefinition]:
         ("pulse_outlier_discover", "outlier", 0),
         ("pulse_mindrift_discover", "mindrift", 5),
         ("pulse_dataannotation_discover", "dataannotation", 10),
-        ("pulse_remotasks_discover", "remotasks", 15),
         ("pulse_freelancer_micro_discover", "freelancer_microtask", 20),
         ("pulse_linkedin_discover", "linkedin_easyapply", 25),
         ("pulse_opyre_discover", "opyre_microtask", 30),
@@ -552,6 +551,24 @@ def get_knowledge_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_intelligence_jobs() -> list[JobDefinition]:
+    """INTELLIGENCE jobs — feeds refresh (threat intel + science).
+
+    Jobs:
+    - intelligence_refresh: fetch 7 feeds → cache w/ provenance (05:00 daily)
+    """
+    return [
+        _cron_job(
+            job_id="intelligence_refresh",
+            app_id="intelligence",
+            handler="cores.intelligence.tasks:run_intelligence_refresh",
+            cron="0 5 * * *",
+            args=[],
+            metadata={"cycle": "intelligence", "type": "sync", "desc": "refresh diario de feeds de inteligencia"},
+        ),
+    ]
+
+
 def get_trading_jobs() -> list[JobDefinition]:
     """TRADING jobs — autonomous trading pipeline with copy trading + OWNEX reasoning loop.
 
@@ -898,6 +915,13 @@ def get_worker_core_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_ecommerce_jobs() -> list[JobDefinition]:
+    """E-commerce cycle jobs (lazy import: pipeline owns the handlers)."""
+    from cores.ecommerce.pipeline import get_ecommerce_jobs as _get_jobs
+
+    return _get_jobs()
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -911,8 +935,10 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "qa": get_qa_jobs(),
         "evolution": get_evolution_jobs(),
         "knowledge": get_knowledge_jobs(),
+        "intelligence": get_intelligence_jobs(),
         "trading": get_trading_jobs(),
         "integrations": get_integration_jobs(),
         "execution": get_execution_queue_jobs(),
         "worker_core": get_worker_core_jobs(),
+        "ecommerce": get_ecommerce_jobs(),
     }

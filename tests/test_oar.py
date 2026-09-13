@@ -276,3 +276,41 @@ class TestRecentRouting:
         assert row["provider_id"] == "fcc"
         assert row["task_type"] == "code"
         assert "messages" not in row and "prompt" not in row
+
+
+class TestLocalFirstOrder:
+    """Pin canonical OAR order: local > free-remote > fcc > openrouter (SSOT router.py tier_bonus)."""
+
+    def _router(self):
+        from types import SimpleNamespace
+
+        from cores.ai.runtime.router import SmartRouter
+
+        class FakeReg:
+            def get_provider(self, pid):
+                return SimpleNamespace(provider_id=pid)
+
+            def get_model_capabilities(self, mid):
+                return SimpleNamespace(max_context_tokens=32000, supports=set())
+
+        class FakeHealth:
+            def get_health(self, pid):
+                return SimpleNamespace(status=SimpleNamespace(value="healthy"), latency_ms=100)
+
+        return SmartRouter(FakeReg(), FakeHealth(), config=None)
+
+    async def test_local_beats_fcc_beats_openrouter(self):
+
+        from cores.ai.runtime.interfaces import RoutingContext, TaskType
+
+        router = self._router()
+        ctx = RoutingContext(
+            task_type=TaskType.CHAT,
+            messages=[{"role": "user", "content": "hi"}],
+            max_tokens=100,
+        )
+        scores = {}
+        for pid in ("ollama", "opencode", "groq", "fcc", "openrouter"):
+            scores[pid] = await router._score_candidate(pid, "m", ctx)
+        assert scores["ollama"] > scores["fcc"] > scores["openrouter"]
+        assert scores["ollama"] >= scores["opencode"] >= scores["groq"] >= scores["fcc"]

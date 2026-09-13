@@ -226,10 +226,12 @@ class TestGetAllJobs:
             "qa",
             "evolution",
             "knowledge",
+            "intelligence",
             "trading",
             "integrations",
             "execution",
             "worker_core",
+            "ecommerce",
         }
 
     def test_all_cycles_have_lists(self):
@@ -313,3 +315,22 @@ class TestIntegrationJobs:
 
         assert callable(run_calendar_sync)
         assert inspect.iscoroutinefunction(run_calendar_sync)
+
+
+class TestIntelligenceJobs:
+    def test_intelligence_refresh_registered(self):
+        from cores.scheduler.jobs import get_all_jobs, get_intelligence_jobs
+
+        ids = [j.job_id for j in get_intelligence_jobs()]
+        assert "intelligence_refresh" in ids
+        assert "intelligence" in get_all_jobs()
+
+    def test_intelligence_refresh_handler_resolves(self):
+        import importlib
+
+        from cores.scheduler.jobs import get_intelligence_jobs
+
+        job = next(j for j in get_intelligence_jobs() if j.job_id == "intelligence_refresh")
+        assert job.handler == "cores.intelligence.tasks:run_intelligence_refresh"
+        mod_name, attr = job.handler.split(":")
+        assert callable(getattr(importlib.import_module(mod_name), attr))
