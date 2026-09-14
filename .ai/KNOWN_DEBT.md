@@ -141,3 +141,9 @@
 
 - **Evidencia** (2026-09-11, rama `release/win11-stable`): el hook `ruff --fix` "arregla" 1 error que el ruff local no ve, y el restore del stash aborta el commit en loop (`Rolling back fixes...`). Workaround aplicado: verificar manual (ruff local + fast) y commitear con `--no-verify` (commit `db1bc583` y siguientes).
 - **Fix real**: pinnear la misma versión en ambos lados (rev del hook ↔ `.venv`) o quitar `--fix` del hook (solo check). Pendiente, no bloquea.
+
+## 17. ✅ core/ eliminado (2026-09-14) — cierra §16
+
+- Owner ordenó cierre definitivo (megaprompt §24). Verificación completa previa: `from core.` == 0 en runtime, tests, strings dinámicos, packaging y Makefile (fixes aplicados ANTES del borrado: Makefile version_engine → `cores.system.version_engine`; string-imports `cores/orion/priority.py` → `cores.orion.*`). `git rm -rf core/` (656 archivos). Regresión verde: api.main OK, fast 102/1, suites afectadas 220+ passed.
+- **Regla permanente**: `cores/` único árbol; cualquier `core.` nuevo (import, string, Makefile, spec) = bug.
+- **Nota de sesión**: un flujo paralelo comiteó el árbol con `core/` restaurado + tests revertidos; re-aplicado y re-verificado el 2026-09-14. La validación física Windows W1-W12 sigue siendo requisito owner para "Windows Stable".

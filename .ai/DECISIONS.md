@@ -1175,3 +1175,9 @@
 - **Divergencia**: el megaprompt pedía `FCC→Ollama→OpenRouter`; el código (`cores/ai/runtime/router.py` tier_bonus) implementa `Ollama/LMStudio > OpenCode > Groq/Together/DeepInfra/Cerebras > FCC > OpenRouter/NIM`, con `daily_budget_usd=0.0`.
 - **Decisión**: el código manda (filosofía $0-first + budget 0 verificados; cambiar el scoring rompería `test_routing` que pinea ollama para CODE). Pineado por `TestLocalFirstOrder` (15/15 oar). No se toca el scoring.
 - **Human Gate**: single-process HMAC 600s (`cores/automation/safety.py`) — documentado como límite conocido, suficiente para desktop single-user; cross-process queda fuera de 7.1.x.
+
+## 2026-09-14 (re-aplicado): CORE/ ELIMINADO — cores/ único árbol canónico
+
+- **Orden del owner**: megaprompt de cierre final (§24). **Verificación antes del borrado**: `from core.` == 0 en runtime/tests/strings/packaging/Makefile; breakages latentes corregidos primero (Makefile version_engine, handler-strings dinámicos de `cores/orion/priority.py` con firmas equivalentes verificadas).
+- **Ejecución**: `git rm -rf core/` (656 archivos). Regresión: `import cores, api.main` OK, fast 102/1, suites afectadas verdes.
+- **Regla permanente**: `cores/` es el único árbol; cualquier referencia nueva a `core.` es un bug. W1-W12 Windows sigue siendo requisito owner para Windows Stable.

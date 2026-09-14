@@ -1,5 +1,7 @@
 # Session Checkpoint — Agosto 2026
 
+> v7.1.0 — SESIÓN 2026-09-14 (re-aplicada): **CONSOLIDACIÓN FINAL — `core/` ELIMINADO** (656 archivos; verificación completa 0 refs `core.`; Makefile+orion/priority migrados antes del borrado; un flujo paralelo lo revirtió al comitear y fue re-aplicado + re-verificado). Deuda barrida: test_orion_core (`event_type`), test_daily_brief fixture + `save_brief` acepta dict (bug real del job scheduler), dead code eliminado en brief.py. Features de sesión ya commiteadas por el flujo paralelo: HelpCenter+AlertsCenter+/api/help/*+/api/alerts/sweep+plan diario, purga de plataformas low-value. Verificación: fast 102/1, api.main OK, suites afectadas verdes, ruff limpio. Detalles: `.ai/DECISIONS.md`/`CURRENT_STATE.md`/`KNOWN_DEBT.md` 2026-09-14. **Pendiente owner**: commit+push, validación física Windows W1–W12 → veredicto STABLE.
+
 > v7.1.0 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) + MOBILE GAP (3 reasoners) + MOBILE ON-DEVICE (validador) cerrados + pusheados. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesiones "MOBILE ON-DEVICE", "MOBILE GAP" y "UNIVERSAL FUNNEL WIRING".
 
 ## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)

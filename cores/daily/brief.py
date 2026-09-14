@@ -211,14 +211,6 @@ class DailyBriefEngine:
             finally:
                 session.close()
 
-            # Jobs that failed > 3 retries
-
-            try:
-                # Check for jobs with high failure rates
-                pass
-            except Exception:
-                pass
-
         except Exception as e:
             logger.warning(f"[DAILY_BRIEF] Error getting critical actions: {e}")
 
@@ -492,11 +484,12 @@ class DailyBriefEngine:
 
     # ── Persistence ────────────────────────────────────────────
 
-    def save_brief(self, brief: DailyBrief) -> None:
-        """Save brief to database for history."""
+    def save_brief(self, brief: DailyBrief | dict[str, Any]) -> None:
+        """Save brief to database for history. Accepts the dataclass or its dict form (as returned by ``generate()``)."""
         from cores.daily.brief_store import save_brief
 
-        save_brief(asdict(brief))
+        payload = brief if isinstance(brief, dict) else asdict(brief)
+        save_brief(payload)
 
 
 # ── Scheduler Job ───────────────────────────────────────────────

@@ -26,6 +26,7 @@ class TestCuratedFallback:
 
         reg = get_adapter_registry()
         assert reg.get("clickworker") is None
+        # microtask registry fully retired (purge 2026-09-13); toloka/prolific live in global_sources
         assert reg.get("toloka") is None
 
 

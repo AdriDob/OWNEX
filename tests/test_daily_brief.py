@@ -15,11 +15,11 @@ def clean_brief():
     from sqlalchemy import Column, DateTime, Integer, String, Text, func
     from sqlalchemy.orm import declarative_base
 
-    from database.db import engine
+    from database.db import engine as database_engine
 
-    TestBase = declarative_base()
+    test_base = declarative_base()
 
-    class TempDailyBriefModel(TestBase):
+    class TempDailyBriefModel(test_base):
         __tablename__ = "daily_briefs"
         id = Column(Integer, primary_key=True, index=True)
         brief_id = Column(String(64), unique=True, nullable=False, index=True)
@@ -27,13 +27,13 @@ def clean_brief():
         brief_json = Column(Text, nullable=False)
         created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    TestBase.metadata.drop_all(bind=engine)
-    TestBase.metadata.create_all(bind=engine)
+    test_base.metadata.drop_all(bind=database_engine)
+    test_base.metadata.create_all(bind=database_engine)
 
     engine = get_daily_brief_engine()
     yield engine
 
-    TestBase.metadata.drop_all(bind=engine)
+    test_base.metadata.drop_all(bind=database_engine)
 
 
 class TestDailyBriefEngine:

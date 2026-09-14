@@ -154,7 +154,7 @@ class TestCoreEventBus:
         bus.publish("test:event", key="value")
         assert len(received) == 1
         assert received[0]["key"] == "value"
-        assert received[0]["event"] == "test:event"
+        assert received[0]["event_type"] == "test:event"
 
 
 @pytest.mark.asyncio

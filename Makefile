@@ -137,13 +137,13 @@ work: ## Run agent startup protocol ("Ponte a trabajar")
 	$(PY) scripts/agent-startup.py
 
 version-info: ## Show version sync status
-	$(PY) -m core.system.version_engine info
+	$(PY) -m cores.system.version_engine info
 
 version-sync: ## Sync VERSION.txt to all project files
-	$(PY) -m core.system.version_engine sync
+	$(PY) -m cores.system.version_engine sync
 
 version-bump: ## Bump patch version, sync all files, add changelog entry
-	$(PY) -m core.system.version_engine bump patch --auto-sync --changelog -m "Auto-bump from agent work session"
+	$(PY) -m cores.system.version_engine bump patch --auto-sync --changelog -m "Auto-bump from agent work session"
 
 checkpoint: ## Generate summary of changes since last commit
 	@git diff --stat HEAD

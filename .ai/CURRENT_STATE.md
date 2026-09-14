@@ -3766,3 +3766,10 @@ Características del Sistema Completo:
 > core/ ni cores/ (ni código, ni imports, ni shims) hasta que el usuario confirme que la
 > migración del proceso concurrente terminó. Recién entonces: audit de resultado + reparación
 > de lo que quede roto, con snapshot fresco previo.
+
+---
+
+## 2026-09-14 (re-aplicado) — CONSOLIDACIÓN CORE/ COMPLETADA
+
+- Owner ordenó cierre definitivo (§24). Verificación exhaustiva previa (runtime/tests/Makefile/spec == 0 refs), fixes latentes aplicados antes del borrado, `core/` eliminado (656 archivos), regresión verde (fast 102/1, api.main OK, 220+ tests).
+- Un flujo paralelo comiteó el árbol con `core/` restaurado y tests revertidos; re-aplicado y re-verificado. Las reglas de yield 2026-09-08 quedan cerradas por orden del owner. `cores/` único árbol canónico.

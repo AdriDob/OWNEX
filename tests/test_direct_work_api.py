@@ -462,7 +462,7 @@ class TestAnalysisCardApi:
 
     def test_analysis_card_includes_access_requirement(self) -> None:
         payload = {
-            "opportunity": op_dict(id="card-2", platform="workana"),
+            "opportunity": op_dict(id="card-2", platform="opencollective"),
             "profile": profile_dict(),
         }
         resp = client.post("/direct-work/analysis-card", json=payload)
@@ -479,7 +479,7 @@ class TestAccessExplainApi:
         assert "tiers" in body
         assert body["platforms"]
         platforms = {p["platform"] for p in body["platforms"]}
-        assert {"opire", "workana", "opencollective"} <= platforms
+        assert {"opire", "algora", "opencollective"} <= platforms
         for p in body["platforms"]:
             assert p["access_status"] in {"public", "needs_api_key", "needs_manual_setup"}
             assert p["explanation"]
@@ -600,12 +600,12 @@ class TestMaxSuccessMode:
 
     def _success_max_profile(self, full_history: bool = True) -> dict:
         rates = {
-            "platform_success_rates": {"workana": 0.95, "opire": 0.95},
+            "platform_success_rates": {"opire": 0.95, "opencollective": 0.95},
             "category_success_rates": {"data_annotation": 0.95, "dev_bounty": 0.95},
         }
         if not full_history:
             rates = {
-                "platform_success_rates": {"workana": 0.95},
+                "platform_success_rates": {"opire": 0.95},
                 "category_success_rates": {"data_annotation": 0.95},
             }
         return profile_dict(skills=["data", "python"], experience_level="junior", **rates)
@@ -617,7 +617,7 @@ class TestMaxSuccessMode:
                 op_dict(
                     id="ms-high",
                     payment=500.0,
-                    platform="workana",
+                    platform="opire",
                     category="data_annotation",
                     specialization=None,
                     technology_tags=["data"],
@@ -666,7 +666,7 @@ class TestMaxSuccessMode:
                 op_dict(
                     id="high-accept",
                     payment=200.0,
-                    platform="workana",
+                    platform="opencollective",
                     category="data_annotation",
                     specialization=None,
                     technology_tags=["data"],
