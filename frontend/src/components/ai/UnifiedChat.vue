@@ -21,6 +21,7 @@ import {
   saveHistory,
   clearHistory,
   sendUnifiedMessage,
+  solveAnyRequest,
   executeUnifiedCommand,
   requestUnifiedApproval,
   executeMerlinTool,
@@ -47,6 +48,7 @@ interface UnifiedMessage extends AiMessage {
 }
 
 const PERSONAS: { id: ChatPersona; label: string; hint: string }[] = [
+  { id: 'solver', label: 'Resolver', hint: 'Cualquier duda/problema/tarea → next action' },
   { id: 'copilot', label: 'OWNEX AI', hint: 'Estado canónico + router OAR' },
   { id: 'merlin', label: 'MERLIN', hint: 'Personalidad + herramientas' },
   { id: 'assistant', label: 'Ayuda', hint: 'Datos del sistema' },
@@ -197,6 +199,24 @@ async function sendMessage(prefill?: string): Promise<void> {
   scrollBottom()
 
   try {
+    if (persona.value === 'solver') {
+      const res = await solveAnyRequest(text, history.value.slice(0, -1))
+      messages.value = messages.value.filter((m) => m.id !== typingId)
+      const base = res.answer || 'No pude resolverlo; consultá el estado local directamente.'
+      const gate = res.needs_human_gate ? '\n\n⚠️ Esta acción requiere tu aprobación (Human Gate).' : ''
+      const next = res.next_action ? `\n\nNEXT ACTION: ${res.next_action.what}\nSuperficie: ${res.next_action.surface}` : ''
+      pushMessage({
+        id: msgSeq++,
+        role: 'assistant',
+        content: `[${res.intent.toUpperCase()}] ${base}${gate}${next}`,
+        timestamp: new Date(),
+        status: 'completed',
+        persona: 'solver',
+        semantics: [{ tag: 'INFERENCE', text: 'Resuelto con contexto real del sistema' }],
+      })
+      if (autoSpeak.value) speak(stripHtml(base))
+      return
+    }
     if (persona.value === 'copilot') {
       const { response }: AiSendResult = await sendAiMessage(text, history.value.slice(0, -1))
       messages.value = messages.value.filter((m) => m.id !== typingId)

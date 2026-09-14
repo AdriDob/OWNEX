@@ -197,7 +197,7 @@ export async function executeAiTool(
 
 /** ── Unified chat (POST /api/chat): one endpoint, three personas ── */
 
-export type ChatPersona = 'copilot' | 'merlin' | 'assistant'
+export type ChatPersona = 'copilot' | 'merlin' | 'assistant' | 'solver'
 
 export interface UnifiedToolCall {
   id: string
@@ -230,6 +230,21 @@ export async function sendUnifiedMessage(
     task_type: opts.taskType ?? 'chat',
     context: opts.context ?? {},
   })
+}
+
+/** Solve any question/problem/task — OWNEX universal solver with real context. */
+export async function solveAnyRequest(
+  message: string,
+  history: ChatMessage[] = [],
+): Promise<{
+  intent: string
+  answer: string
+  context: Record<string, unknown>
+  next_action: { what: string; why: string; surface: string; needs_human: boolean } | null
+  surfaces: string[]
+  needs_human_gate: boolean
+}> {
+  return api.post('/api/solve', { message, history })
 }
 
 /** Two-phase execution through the unified endpoint (same Human Gate as copilot). */
