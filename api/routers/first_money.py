@@ -150,6 +150,13 @@ async def get_aggressive_plan(target_usd: int = 5000) -> dict[str, Any]:
     return tracker.get_aggressive_plan(target_usd)
 
 
+@router.get("/march2027-plan")
+async def get_march2027_plan() -> dict[str, Any]:
+    """Plan escalonado a marzo 2027 — objetivo $50k, ataque $100k."""
+    tracker = get_first_money_tracker()
+    return tracker.get_march2027_plan()
+
+
 @router.post("/reset")
 async def reset_first_money() -> dict[str, Any]:
     """Reset First Money progress (start fresh)."""

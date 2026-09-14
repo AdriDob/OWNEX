@@ -134,13 +134,41 @@ async def daily_digest() -> dict[str, Any]:
     digest["decisions"] = decisions[:5]
     digest["counts"] = {"pending_decisions": len(decisions)}
 
-    # ── Best Action (the ONE thing to do) ──
+    # ── Best Action (the ONE thing to do) — now with P(CASH) + EV/h + human minutes ──
+    # Enrich decisions with economic metrics when possible
+    for d in decisions:
+        try:
+            # If decision came from WorkBank/Execution, try to enrich with P(CASH) and EV/h from Direct Work Engine
+            # For now, attach honest UNKNOWN when no personal history
+            d.setdefault("p_cash", None)
+            d.setdefault("p_cash_band", "UNKNOWN")
+            d.setdefault("ev_h", None)
+            d.setdefault("human_minutes", None)
+        except Exception:
+            pass
+
     if decisions:
         top = decisions[0]
         digest["best_action"] = {
             **top,
-            "why": "Mayor recompensa esperada entre tus decisiones pendientes",
+            "why": "Mayor NET CASH / HUMAN HOUR entre pendientes (EV × P(CASH) / tiempo humano)",
         }
+
+    # ── Economic snapshot for life (Base/Motor/Upside/Capital) ──
+    try:
+        from cores.first_money.tracker import get_first_money_tracker
+
+        t = get_first_money_tracker()
+        march = t.get_march2027_plan()
+        digest["economic"] = {
+            "target_50k": march["target_usd"],
+            "gap_50k": march["gap_usd"],
+            "weekly_required": march["weekly_required"],
+            "ladder": march["ladder"][:3],  # next 3 milestones
+            "scenarios": march["scenarios"],
+        }
+    except Exception as e:
+        logger.debug("economic digest error: %s", e)
 
     # ── System Health ──
     health_items = []

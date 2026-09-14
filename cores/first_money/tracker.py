@@ -31,7 +31,7 @@ class IncomeEngine(StrEnum):
 
 
 class Milestone(StrEnum):
-    """Hitos de ingreso acumulado."""
+    """Hitos de ingreso acumulado — extendido a marzo 2027 (objetivo $50k)."""
 
     M100 = "100"
     M500 = "500"
@@ -39,7 +39,14 @@ class Milestone(StrEnum):
     M2_5K = "2.5k"
     M5K = "5k"
     M10K = "10k"
-    # Aggressive mode: end-of-year stretch targets
+    # Marzo 2027 — escalera $1k → $70k (objetivo agresivo razonable $50k)
+    M15K = "15k"
+    M25K = "25k"
+    M40K = "40k"
+    M50K = "50k"  # objetivo agresivo razonable marzo 2027
+    M70K = "70k"  # techo rango fuerte
+    M100K = "100k"  # objetivo de ataque
+    # Legacy aggressive EOY (mantener compat)
     M5K_EOY = "5k_eoy"
     M10K_EOY = "10k_eoy"
 
@@ -52,6 +59,12 @@ class Milestone(StrEnum):
             Milestone.M2_5K: 2500,
             Milestone.M5K: 5000,
             Milestone.M10K: 10000,
+            Milestone.M15K: 15000,
+            Milestone.M25K: 25000,
+            Milestone.M40K: 40000,
+            Milestone.M50K: 50000,
+            Milestone.M70K: 70000,
+            Milestone.M100K: 100000,
             Milestone.M5K_EOY: 5000,
             Milestone.M10K_EOY: 10000,
         }
@@ -708,6 +721,63 @@ class FirstMoneyTracker:
                 if m.usd <= target_usd
             ],
             "probability_note": self._estimate_probability(target_usd, weeks_left, weekly_required),
+        }
+
+    def get_march2027_plan(self) -> dict[str, Any]:
+        """Plan escalonado realista a marzo 2027 — objetivo $50k, ataque $100k.
+
+        Escalera del owner: Sep-Oct $1k → Nov $3k → Dic $7-10k → Ene $15-25k → Feb $25-40k → Mar $40-70k.
+        Calcula brecha y ritmo semanal hasta 2027-03-31, con nota honesta.
+        Estructura: Base (B2B predecible) + Motor (OWNEX automatización) + Upside (bounties) + Capital (ahorro).
+        """
+        if not self.progress:
+            return {"error": "No progress"}
+        from datetime import UTC, datetime
+
+        target_usd = 50000
+        total_earned = self.progress.first_revenue_amount
+        gap = max(0, target_usd - total_earned)
+        # Semanas hasta 2027-03-31
+        target_date = datetime(2027, 3, 31, tzinfo=UTC)
+        now = datetime.now(UTC)
+        days_left = max(1, (target_date - now).days)
+        weeks_left = max(1, days_left // 7)
+        weekly_required = gap / weeks_left if weeks_left else gap
+        # Ladder mensual del owner
+        ladder = [
+            {"month": "Sep-Oct", "target": 1000, "label": "Primeros $1k — validar que alguien paga"},
+            {"month": "Nov", "target": 3000, "label": "$3k — canal ganador identificado"},
+            {"month": "Dic", "target": 10000, "label": "$7-10k — repetibilidad"},
+            {"month": "Ene", "target": 25000, "label": "$15-25k — escalamiento"},
+            {"month": "Feb", "target": 40000, "label": "$25-40k — más ticket + recurring"},
+            {"month": "Mar", "target": 70000, "label": "$40-70k — objetivo central ($50k agresivo razonable)"},
+        ]
+        for item in ladder:
+            item["achieved"] = total_earned >= item["target"]
+            item["remaining"] = max(0, item["target"] - total_earned)
+        # Reusar engine_plan del plan agresivo
+        base_plan = self.get_aggressive_plan(target_usd)
+        return {
+            "target_usd": target_usd,
+            "attack_target_usd": 100000,
+            "current_earned": total_earned,
+            "gap_usd": gap,
+            "days_left": days_left,
+            "weeks_left": weeks_left,
+            "weekly_required": round(weekly_required, 2),
+            "monthly_required": round(weekly_required * 4.33, 2),
+            "ladder": ladder,
+            "engine_plan": base_plan.get("engine_plan", []),
+            "weekly_checklist": base_plan.get("weekly_checklist", []),
+            "structure": "Base (B2B predecible) + Motor (OWNEX) + Upside (bounties) + Capital (ahorro) — no apostar futuro solo a bounties",
+            "note": f"Objetivo agresivo razonable $50k en {weeks_left} sem → ${weekly_required:.0f}/sem. Ataque $100k requiere alto ticket + volumen + recurrencia + automatización.",
+            "scenarios": {
+                "flojo": "2k–8k",
+                "conservador_bueno": "10k–25k",
+                "fuerte_objetivo": "30k–70k",
+                "muy_fuerte": "70k–150k",
+                "excepcional": "150k+",
+            },
         }
 
     def _estimate_probability(self, target_usd: int, weeks_left: int, weekly_required: float) -> str:
