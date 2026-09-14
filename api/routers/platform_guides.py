@@ -13,6 +13,7 @@ from fastapi import APIRouter, HTTPException, Query
 from cores.opportunity.guides.platform_guides import (
     format_guide_for_user,
     get_platform_guide,
+    get_zero_to_hundred_guide,
     list_all_platforms,
 )
 
@@ -27,6 +28,17 @@ async def list_platform_guides() -> dict[str, Any]:
         "platforms": platforms,
         "count": len(platforms),
     }
+
+@router.get("/guide/zero-to-hundred")
+async def get_zero_to_hundred() -> dict[str, Any]:
+    """Master 0→100 guide — every phase from new user to first PAID and beyond."""
+    return get_zero_to_hundred_guide()
+
+
+@router.get("/zero-to-hundred")
+async def get_zero_to_hundred_legacy() -> dict[str, Any]:
+    """Legacy alias — also 0→100."""
+    return get_zero_to_hundred_guide()
 
 
 @router.get("/{platform}")
@@ -210,7 +222,7 @@ async def get_platform_first_opportunity(platform: str) -> dict[str, Any]:
             "title": "First Workana proposal",
             "description": "Send one tailored proposal for a Python/API/automation project with clear scope",
             "url": "https://www.workana.com/jobs",
-            "why": "LATAM marketplace with less global competition than Upwork; Spanish/English projects",
+            "why": "LATAM marketplace with less global competition; Spanish/English projects",
             "difficulty": "beginner",
             "estimated_time": "1-2 hours (profile + first proposal)",
             "skills_practiced": ["proposal_writing", "scoping", "client_communication"],
@@ -260,3 +272,5 @@ async def get_workplatform_mapping() -> dict[str, Any]:
         "platforms_with_guides": len(platforms_with_guides),
         "mapping": mapping,
     }
+
+# already has zero-to-hundred above — no dup

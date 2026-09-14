@@ -2570,6 +2570,16 @@ export interface PlatformFirstOpportunity {
   guide_available: boolean
 }
 
+export async function fetchZeroToHundredGuide(): Promise<{
+  title: string
+  total_phases: number
+  steps: Array<{ phase: string; title: string; why: string; actions: string; check: string; next: string }>
+  principle: string
+  new_user_note: string
+}> {
+  return api.get('/platform-guides/guide/zero-to-hundred')
+}
+
 export async function fetchPlatformGuides(): Promise<{ platforms: string[]; count: number }> {
   return api.get('/platform-guides/')
 }

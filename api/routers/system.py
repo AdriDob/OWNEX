@@ -8,6 +8,45 @@ from cores.timeline import build_timeline
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 
+@router.get("/pc-health")
+def pc_health():
+    """PC health granular + Brave + elevation (spec §6, least-privilege)."""
+    try:
+        from cores.health.system_health import collect_pc_health
+
+        return collect_pc_health()
+    except Exception as exc:  # noqa: BLE001 — health never 500s
+        return {"level": "DEGRADED", "error": str(exc)}
+
+
+@router.get("/brave")
+def brave_status():
+    """Brave detection + context (spec §5). Never extracts secrets."""
+    try:
+        from cores.browsing.brave import browser_context, detect_brave
+        from cores.platform.elevated import elevation_status
+
+        return {"brave": detect_brave(), "context": browser_context(), "elevation": elevation_status()}
+    except Exception as exc:  # noqa: BLE001
+        return {"brave": {"installed": False}, "error": str(exc)}
+
+
+@router.post("/brave/open")
+def brave_open(payload: dict):
+    """Open URL in Brave (prefer) or default browser. Body: {url: str}."""
+    url = (payload or {}).get("url") or ""
+    if not url or not str(url).startswith(("http://", "https://")):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="url must be http(s)")
+    try:
+        from cores.browsing.brave import open_in_brave
+
+        return open_in_brave(str(url))
+    except Exception as exc:  # noqa: BLE001
+        return {"opened": False, "error": str(exc)}
+
+
 @router.get("/timeline")
 def get_timeline(
     target_id: int | None = Query(None),

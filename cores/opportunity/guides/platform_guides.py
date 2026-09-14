@@ -1446,6 +1446,516 @@ PLATFORM_GUIDES: dict[str, PlatformGuide] = {
             },
         ],
     ),
+    "bountyboard": PlatformGuide(
+        platform="bountyboard",
+        name="BountyBoard",
+        url="https://bountyboard.dev",
+        account_creation=[
+            Step(
+                title="Login con GitHub",
+                description="BountyBoard usa GitHub OAuth. No email/password.",
+                action="click",
+                element="button:contains('Sign in with GitHub')",
+                url="https://bountyboard.dev",
+            ),
+            Step(
+                title="Autorizar GitHub",
+                description="Autorizar acceso a repos. Solo lectura.",
+                action="click",
+                element="button:contains('Authorize')",
+            ),
+            Step(
+                title="Configurar payout",
+                description="Settings > Payouts: PayPal / crypto wallet.",
+                action="navigate",
+                element="https://bountyboard.dev/settings/payouts",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Explorar bounties",
+                description="Filtrar por lenguaje, monto $10–$5k, <10 comentarios.",
+                action="click",
+                element="a:contains('Bounties')",
+            ),
+            Step(
+                title="Claim issue",
+                description="Click 'Claim' en issue. Te asigna el issue.",
+                action="click",
+                element="button:contains('Claim')",
+            ),
+            Step(
+                title="Resolver local",
+                description="Clone repo, crear branch, fix + tests.",
+                action="type",
+                element="terminal",
+                value="git clone ... && git checkout -b fix/...",
+            ),
+            Step(
+                title="Crear PR",
+                description="Push branch y abrir PR que cierre el issue. Incluir tests y README del truco.",
+                action="click",
+                element="button:contains('Create pull request')",
+            ),
+            Step(
+                title="Esperar merge",
+                description="Maintainer revisa. Merge = pago automático. 1-7 días.",
+                action="copy",
+                element="PR status",
+            ),
+        ],
+        file_formats={"md": "README del PR", "py": "Código + tests"},
+        tips=[
+            "Fricción cero real. Elige issues <10 comentarios, scope claro 'Fix X', $50–$200 para empezar.",
+            "PR con tests + README corto triplica merge rate.",
+        ],
+        common_errors=[
+            {
+                "error": "Competencia 50+ comentarios",
+                "solution": "Filtrar por <10 comentarios, issue >1 mes, sin assignee",
+            },
+            {"error": "PR sin tests", "solution": "Agregar test que reproduzca el bug y demuestre el fix"},
+        ],
+    ),
+    "polar": PlatformGuide(
+        platform="polar",
+        name="Polar.sh",
+        url="https://polar.sh",
+        account_creation=[
+            Step(
+                title="Login con GitHub",
+                description="Polar se integra directo a GitHub. Solo GitHub OAuth.",
+                action="click",
+                element="button:contains('Sign in with GitHub')",
+                url="https://polar.sh",
+            ),
+            Step(
+                title="Conectar Stripe/payout",
+                description="Polar paga vía Stripe Connect o GitHub Sponsors. Configurar en dashboard.",
+                action="navigate",
+                element="https://polar.sh/settings",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Ver funded issues",
+                description="Buscar issues con badge Polar (badge $ en GitHub issue).",
+                action="click",
+                element="GitHub issue con polar badge",
+            ),
+            Step(
+                title="Claim y resolver",
+                description="Igual que Algora/BountyBoard: claim → branch → PR. Polar libera al merge.",
+                action="type",
+                element="terminal",
+            ),
+            Step(
+                title="Cobro automático",
+                description="Polar libera USDC/USD al merge. Sin acción manual.",
+                action="copy",
+                element="Polar dashboard > Payouts",
+            ),
+        ],
+        file_formats={"md": "PR description"},
+        tips=[
+            "Funding por issue + suscripciones. Bueno para monetizar tu propio repo también.",
+            "Variable payout: filtrar por $50+ para que valga la hora.",
+        ],
+        common_errors=[
+            {
+                "error": "Buscar sin filtro de funded",
+                "solution": "En GitHub search: polar:funded o mirar polar.sh/discover",
+            }
+        ],
+    ),
+    "gitpay": PlatformGuide(
+        platform="gitpay",
+        name="Gitpay.me",
+        url="https://gitpay.me",
+        account_creation=[
+            Step(
+                title="Login GitHub",
+                description="Sign in with GitHub.",
+                action="click",
+                element="button:contains('Sign in')",
+                url="https://gitpay.me",
+            ),
+            Step(
+                title="Configurar payout",
+                description="Settings > Payout: PayPal / Payoneer. 8-16% fee.",
+                action="navigate",
+                element="https://gitpay.me/settings",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Browse bounties",
+                description="Lista de issues con monto. Filtrar por lenguaje.",
+                action="click",
+                element="a:contains('Bounties')",
+            ),
+            Step(
+                title="Asignación",
+                description="Click 'Start work' — Gitpay te asigna. Tienes deadline.",
+                action="click",
+                element="button:contains('Start work')",
+            ),
+            Step(
+                title="PR + Tests",
+                description="Resolver, push PR, linkear issue. Mantainer aprueba → Gitpay libera pago.",
+                action="type",
+                element="terminal",
+            ),
+        ],
+        file_formats={"md": "PR"},
+        tips=[
+            "Workflow asignación + pago integrado. 8-16% fee ya descontado.",
+            "No dejar la asignación expirar: solo tomar 1 bounty a la vez.",
+        ],
+        common_errors=[
+            {"error": "Asignación expira", "solution": "Solo tomar 1 bounty a la vez. Leer deadline antes de claim"}
+        ],
+    ),
+    "kaggle": PlatformGuide(
+        platform="kaggle",
+        name="Kaggle",
+        url="https://www.kaggle.com",
+        account_creation=[
+            Step(
+                title="Crear cuenta",
+                description="kaggle.com > Sign Up (email o Google). Verificar email.",
+                action="navigate",
+                element="https://www.kaggle.com/account/login",
+                url="https://www.kaggle.com/account/login",
+            ),
+            Step(
+                title="Verificar teléfono",
+                description="Profile > Phone verification para competir.",
+                action="type",
+                element="input[type='tel']",
+            ),
+            Step(
+                title="Conectar GitHub (opcional)",
+                description="Para notebooks públicos y portafolio.",
+                action="click",
+                element="button:contains('Connect GitHub')",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Competitions > Active",
+                description="Filtrar por 'Getting Started' o prize $8k–$100k. Para nuevo: 'Titanic', 'House Prices'.",
+                action="click",
+                element="a:contains('Competitions')",
+            ),
+            Step(
+                title="Join Competition",
+                description="Click 'Join Competition' > Accept rules.",
+                action="click",
+                element="button:contains('Join Competition')",
+            ),
+            Step(
+                title="Notebook",
+                description="Crear notebook Python, entrenar modelo, generar submission.csv.",
+                action="type",
+                element="Kaggle Notebook editor",
+            ),
+            Step(
+                title="Submit",
+                description="Click 'Submit' en competition. Leaderboard te posiciona. Top % cobra.",
+                action="click",
+                element="button:contains('Submit')",
+            ),
+        ],
+        file_formats={"csv": "submission.csv", "py": "notebook .py", "ipynb": "notebook"},
+        tips=[
+            "Zero barrier real, $8-100k prize. LatAm coding tier $8-18/h también disponible.",
+            "Empieza por Getting Started (0 riesgo) y luego prize $10k+.",
+        ],
+        common_errors=[
+            {
+                "error": "Submit sin validar formato",
+                "solution": "Validar submission.csv columnas vs sample_submission.csv antes de submit",
+            }
+        ],
+    ),
+    "dework": PlatformGuide(
+        platform="dework",
+        name="Dework",
+        url="https://app.dework.xyz",
+        account_creation=[
+            Step(
+                title="Login con wallet o GitHub",
+                description="Connect wallet (MetaMask) o GitHub. Dework es DAO/web3 bounties.",
+                action="click",
+                element="button:contains('Connect')",
+                url="https://app.dework.xyz",
+            ),
+            Step(
+                title="Completar perfil",
+                description="Skills tags, wallet para payout en tokens.",
+                action="type",
+                element="input[name='skills']",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Discover > Bounties",
+                description="500+ DAOs publican bounties. Filtrar por 'Open' y skill.",
+                action="click",
+                element="a:contains('Discover')",
+            ),
+            Step(
+                title="Apply / Claim",
+                description="Click 'Apply' en bounty, mensaje corto por qué puedes resolverlo.",
+                action="click",
+                element="button:contains('Apply')",
+            ),
+            Step(
+                title="Entregar",
+                description="Según bounty: PR, Figma, doc. Subir evidencia en Dework task.",
+                action="type",
+                element="Dework task comment",
+            ),
+            Step(
+                title="Review y pago",
+                description="DAO revisa → aprueba → pago en tokens a wallet.",
+                action="copy",
+                element="Dework > My Tasks > Done",
+            ),
+        ],
+        file_formats={"md": "Evidencia", "zip": "Entrega"},
+        tips=[
+            "Variable tokens. Bueno para Web3. Estilo Trello: backlog > doing > review > done.",
+            "Filtra por DAOs con historial de payouts.",
+        ],
+        common_errors=[
+            {
+                "error": "Payout en token ilíquido",
+                "solution": "Preferir USDC/USDT bounties al inicio. Ver token en bounty details",
+            }
+        ],
+    ),
+    "github_bounty": PlatformGuide(
+        platform="github_bounty",
+        name="GitHub Bounty Search",
+        url="https://github.com/search?q=label%3Abounty+state%3Aopen",
+        account_creation=[
+            Step(
+                title="Cuenta GitHub",
+                description="Ya la tienes. Verificar que perfil tenga README y 1-2 repos.",
+                action="navigate",
+                element="https://github.com/settings/profile",
+            ),
+            Step(
+                title="Configurar Sponsors (opcional)",
+                description="Para monetizar tu propio repo: Settings > Sponsors.",
+                action="navigate",
+                element="https://github.com/sponsors",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Search: label:bounty",
+                description="En GitHub search: label:bounty state:open language:typescript. Sin plataforma intermedia.",
+                action="type",
+                element="GitHub search bar",
+                value="label:bounty state:open language:python",
+            ),
+            Step(
+                title="Filtrar <10 comentarios, >1 mes",
+                description="Señal buena = pocos competidores, scope claro.",
+                action="click",
+                element="Issue > Comments",
+            ),
+            Step(
+                title="Resolver y PR",
+                description="Fork → branch → fix + tests → PR con README corto. Link issue.",
+                action="type",
+                element="terminal",
+            ),
+        ],
+        file_formats={"md": "PR description", "py": "tests"},
+        tips=[
+            "Gratis, sin auth, 10 req/min. Funciona sin plataforma intermedia.",
+            "Más rápido que navegar Algora/Opire si ya sabes qué repo te interesa.",
+        ],
+        common_errors=[
+            {
+                "error": "Buscar sin filtro de lenguaje",
+                "solution": "Añadir language:python/typescript/rust según tu stack",
+            }
+        ],
+    ),
+    "superteam": PlatformGuide(
+        platform="superteam",
+        name="Superteam",
+        url="https://superteam.fun",
+        account_creation=[
+            Step(
+                title="Join Superteam",
+                description="Aplicar en superteam.fun > Join. Perfil + skills + wallet Solana.",
+                action="navigate",
+                element="https://superteam.fun",
+                url="https://superteam.fun",
+            ),
+            Step(
+                title="Verificar",
+                description="Esperar aprobación. Unirte a Discord/Telegram regional.",
+                action="copy",
+                element="Discord invite",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Bounties",
+                description="Ver bounties activos (design, dev, writing). Filtrar por skill.",
+                action="click",
+                element="a:contains('Bounties')",
+            ),
+            Step(
+                title="Submit",
+                description="Según bounty: repo PR, Figma link, form. Seguir instrucciones exactas.",
+                action="type",
+                element="Submission form",
+            ),
+        ],
+        file_formats={"md": "Entrega"},
+        tips=["Bounties $100–$5k, mayoría no-code también. Bueno si tienes skill design/content además de código."],
+        common_errors=[
+            {
+                "error": "Aplicar sin perfil completo",
+                "solution": "Perfil con portfolio + wallet verificado antes de aplicar",
+            }
+        ],
+    ),
+    "gitcoin": PlatformGuide(
+        platform="gitcoin",
+        name="Gitcoin Grants",
+        url="https://explorer.gitcoin.co",
+        account_creation=[
+            Step(
+                title="Crear cuenta",
+                description="Login con GitHub o wallet. Gitcoin Passport para sybil resistance.",
+                action="navigate",
+                element="https://explorer.gitcoin.co",
+                url="https://explorer.gitcoin.co",
+            ),
+            Step(
+                title="Passport",
+                description="Verificar identidad (GitHub, Twitter, etc.) para aumentar matching.",
+                action="click",
+                element="button:contains('Passport')",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Grants Stack",
+                description="Crear proyecto: descripción, GitHub, demo, presupuesto. No es 'claim issue' sino propuesta.",
+                action="click",
+                element="button:contains('Create Project')",
+            ),
+            Step(
+                title="Aplicar a ronda",
+                description="Buscar ronda activa (matching pool $100k+), aplicar proyecto.",
+                action="click",
+                element="button:contains('Apply')",
+            ),
+            Step(
+                title="Quadratic funding",
+                description="Recaudas de donantes + matching. No es pago por PR, es proyecto.",
+                action="copy",
+                element="Grants Stack dashboard",
+            ),
+        ],
+        file_formats={"md": "Project README", "json": "Proposal"},
+        tips=[
+            "No es tarea individual: es PROJECT_FUNDING $100–$50k+. Requiere propuesta, no PR.",
+            "Mejor después de tener reputación OSS (PRs merged) como evidencia.",
+        ],
+        common_errors=[
+            {
+                "error": "Confundir grant con bounty",
+                "solution": "Grant = proyecto largo con propuesta. Bounty = issue puntual. No mezclar en EV/h",
+            }
+        ],
+    ),
+    "huntr": PlatformGuide(
+        platform="huntr",
+        name="huntr.dev (Security OSS)",
+        url="https://huntr.dev",
+        account_creation=[
+            Step(
+                title="Sign up",
+                description="huntr.dev > Sign Up con GitHub. Verificar email.",
+                action="navigate",
+                element="https://huntr.dev",
+                url="https://huntr.dev",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Find vulnerable OSS",
+                description="Buscar repos con bounty huntr. No es 'resolver issue' sino 'reportar vuln en OSS'.",
+                action="click",
+                element="a:contains('Bounties')",
+            ),
+            Step(
+                title="Reportar",
+                description="Encontrar vuln (ej. XSS, SSRF), crear PoC y reportar vía huntr form. No PR.",
+                action="type",
+                element="huntr report form",
+            ),
+            Step(
+                title="Triaging",
+                description="huntr valida, contacta maintainer, paga $50–$10k+ si es válida.",
+                action="copy",
+                element="huntr dashboard",
+            ),
+        ],
+        file_formats={"md": "PoC report"},
+        tips=[
+            "Security OSS, $50–$10k. No es dev bounty: es bug hunting en OSS.",
+            "Buen puente entre dev bounty y bug bounty con techo mayor que dev puro.",
+        ],
+        common_errors=[{"error": "Reportar sin PoC", "solution": "PoC reproducible obligatorio. Sin PoC = reject"}],
+    ),
+    "hackenproof": PlatformGuide(
+        platform="hackenproof",
+        name="HackenProof",
+        url="https://hackenproof.com",
+        account_creation=[
+            Step(
+                title="Crear cuenta",
+                description="hackenproof.com > Sign Up. Perfil hacker, verificar email.",
+                action="navigate",
+                element="https://hackenproof.com",
+                url="https://hackenproof.com",
+            ),
+        ],
+        work_submission=[
+            Step(
+                title="Programs",
+                description="Ver programas mixtos Crypto+Web2. Filtrar por scope amplio.",
+                action="click",
+                element="a:contains('Programs')",
+            ),
+            Step(
+                title="Reportar",
+                description="Encontrar vuln, crear reporte con PoC, submit vía plataforma.",
+                action="click",
+                element="button:contains('Submit Report')",
+            ),
+        ],
+        file_formats={"md": "Reporte + PoC"},
+        tips=["$500–$50k, beginner-intermedio. Crypto + Web2 mixto. Buen scope para nuevo usuario con base security."],
+        common_errors=[
+            {
+                "error": "Scope mal entendido",
+                "solution": "Leer scope completo antes de testar. Out-of-scope = no pagado",
+            }
+        ],
+    ),
 }
 
 
@@ -1499,3 +2009,76 @@ def format_guide_for_user(guide: PlatformGuide, guide_type: str = "account") -> 
         lines.append(f"- **{error['error']}**: {error['solution']}")
 
     return "\n".join(lines)
+
+
+# ── Zero-to-Hundred Master Guide — 0→100 para nuevo usuario en todas las webs ──
+
+ZERO_TO_HUNDRED_STEPS: list[dict[str, str]] = [
+    {
+        "phase": "0 — Config base (30 min)",
+        "title": "Perfil + Pagos + IA listos",
+        "why": "Sin esto nada cobra. Es el 0% sin el cual todo lo demás es humo.",
+        "actions": "Completar ProfileKit (nombre, país Argentina, skills), configurar 1 rail de cobro (Wise/Airtm), verificar IA (Ollama o key remota).",
+        "check": "SetupChecklist: profile_kit ✓, payment_accounts ✓, ai_provider ✓",
+        "next": "Si falta algo, /setup/checklist te dice exactamente qué y dónde pegarlo.",
+    },
+    {
+        "phase": "10 — Algora/BountyBoard/Polar (1h, fricción cero)",
+        "title": "Primer PR pagado más rápido",
+        "why": "Login con GitHub → claim issue → PR → merge = pago. Sin entrevista ni portfolio. Es tu primer PAID más rápido.",
+        "actions": "Elegir 1 issue: $50–$200, <10 comentarios, scope 'Fix X' claro, stack que dominas. Leer codebase 30 min, escribir PR con tests + README corto, esperar 1-7 días.",
+        "check": "Guía: /platform-guides/algora, /bountyboard, /polar — WorkBank pasa a ready_to_deliver → Human Gate antes de push.",
+        "next": "No tomar 5 a la vez. Uno bueno con tests > 5 mediocres.",
+    },
+    {
+        "phase": "30 — Kaggle + GitHub Search (2h, sin auth)",
+        "title": "Volumen sin fricción",
+        "why": "Kaggle ($8-100k) y GitHub label:bounty funcionan sin API key, sin entrevista. Para practicar flujo y sumar intentos.",
+        "actions": "Kaggle: un 'Getting Started' (Titanic) para entender submit; luego prize $10k+. GitHub: label:bounty state:open language:python filtrar <10 comentarios.",
+        "check": "Kaggle notebook submit + PR en repo chico con 2 competidores = 5x más chance que PR en repo grande con 50.",
+        "next": "Cuando tengas 1 PAID, tu P(CASH) deja de ser UNKNOWN y OWNEW aprende para vos.",
+    },
+    {
+        "phase": "50 — Dework / Superteam (si tienes wallet/arte)",
+        "title": "Web3 bounties con pago en tokens",
+        "why": "500+ DAOs, estilo Trello. Bueno si ya usas wallet Solana/Metamask. Pago en USDC/USDT al inicio.",
+        "actions": "Dework: Apply con mensaje corto por qué puedes resolverlo. Superteam: completar perfil portfolio + wallet antes de aplicar.",
+        "check": "Filtrar DAOs con historial de payouts; preferir USDC.",
+        "next": "No mezclar con grants: Dework = tarea; Gitcoin = proyecto largo.",
+    },
+    {
+        "phase": "70 — Bug Bounty (recurrente, techo $5k–$10k por hallazgo)",
+        "title": "Un solo bug crítico = $5k",
+        "why": "Critical $3k-5k (HackerOne/Bugcrowd), $10k-31k (Google VRP). Pero requiere 6-12 meses de estudio (PortSwigger Academy + Burp).",
+        "actions": "Meses 1-3: PortSwigger gratis, 1 clase de vuln (IDOR). Meses 4-6: programas públicos scope amplio, 1-2 lows $200-500. Meses 7-12: 1-2 highs/mes $1k-3k.",
+        "check": "Guías: /platform-guides/hackerone, /bugcrowd, /intigriti, /hackenproof — OWNEX prepara PoC+reporte, tú apruebas envío (Human Gate).",
+        "next": "Elige 3-5 programas donde entiendes el stack. Especializarte en 1 tipo de bug dispara tu tasa.",
+    },
+    {
+        "phase": "85 — Grants largos (no para EV/h de esta semana)",
+        "title": "Gitcoin / Optimism — PROJECT_FUNDING",
+        "why": "No es tarea: es propuesta de proyecto, $1k-500k, selección por jurado. No lo rankeamos como $/h inmediato.",
+        "actions": "Solo después de tener PRs merged como evidencia. Crear proyecto en Grants Stack, aplicar a ronda.",
+        "check": "En OWNEX se ven como is_project_funding=true, ceiling $500k, score×0.4 — visibles pero no tapan lo ejecutable.",
+        "next": "Usa tus PRs merged como prueba de capacidad en la propuesta.",
+    },
+    {
+        "phase": "100 — Loop cerrado",
+        "title": "De 1 PAID a 30-50 outcomes",
+        "why": "1 PAID valida el loop. 3-5 PAIDs = primer prior creíble. 10+ = estadísticas por canal. 30-50 = planificación real.",
+        "actions": "Cada PAID alimenta: P(CASH) real, channel_economy() por plataforma, XP levels, WorkBank human_minutes_actual, Ledger EXPECTED≠PAID. OWNEX re-rankea por EV/h real.",
+        "check": "Dashboard: /evolution (economy), /first-money/milestone-tracker, /mission, /operations/ledger — todo desde ledger PAID, nunca inventado.",
+        "next": "No declarar ingresos asegurados antes de evidencia propia. UNKNOWN es respuesta válida.",
+    },
+]
+
+
+def get_zero_to_hundred_guide() -> dict:
+    """Master guide 0→100 — todos los pasos, sin saltos, para nuevo usuario."""
+    return {
+        "title": "OWNEX 0→100 — De nuevo usuario a cobros con acompañamiento",
+        "total_phases": len(ZERO_TO_HUNDRED_STEPS),
+        "steps": ZERO_TO_HUNDRED_STEPS,
+        "principle": "Si OWNEX puede automatizar, lo hace. Si requiere identidad/juicio/pago, te guía paso a paso con link, selector CSS y checklist, y espera tu aprobación (Human Gate).",
+        "new_user_note": "Casi todas las webs las usarás como nuevo usuario: el sistema asume 0 reputación/historial y filtra por <10 comentarios, scope claro, stack que dominas, $50-200 al inicio.",
+    }

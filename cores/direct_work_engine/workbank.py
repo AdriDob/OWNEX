@@ -72,17 +72,31 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "opire": ("public", ""),
     "issuehunt": ("public", ""),
     "algora": ("public", ""),
+    "bountyboard": ("public", ""),
+    "polar": ("public", ""),
+    "gitpay": ("public", ""),
+    "kaggle": ("public", ""),
+    "dework": ("public", ""),
+    "github": ("public", ""),
+    "github_bounty": ("public", ""),
     "hackerone": ("needs_api_key", "Configurar HACKERONE_API_KEY en opportunity.env para envío y sync de earnings."),
     "bugcrowd": ("needs_api_key", "Configurar BUGGROWD_API_KEY en opportunity.env para envío y sync de earnings."),
     "intigriti": ("needs_api_key", "Configurar INTIGRITI_API_KEY en opportunity.env para envío y sync de earnings."),
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
     "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
+    "hackenproof": (
+        "needs_api_key",
+        "Configurar HACKENPROOF_API_KEY en opportunity.env para envío y sync de earnings.",
+    ),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
     # workana removed (purge 2026-09): unknown platforms fall through to the
     # generic needs_manual_setup message; the hard-exclude in
     # cores/freelance/channel_status.py keeps them out of recommendations.
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
+    "superteam": ("needs_manual_setup", "Aplicar a Superteam y esperar aprobación en superteam.fun."),
+    "gitcoin": ("needs_manual_setup", "Crear proyecto en Gitcoin Grants Stack y aplicar a ronda."),
+    "huntr": ("needs_manual_setup", "Crear cuenta en huntr.dev para reportar vuln en OSS."),
 }
 
 # Bug bounty platforms require only free registration (open programs). The
