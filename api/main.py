@@ -224,6 +224,7 @@ from api.routers import (
     settings_unified,
     setup,
     solver,
+    projects,
     stability,
     supabase,
     sync,
@@ -606,6 +607,7 @@ app.include_router(control.router)
 app.include_router(copilot.router)
 app.include_router(chat.router)
 app.include_router(solver.router)
+app.include_router(projects.router)
 app.include_router(execution.router)
 app.include_router(execution_queue.router)
 app.include_router(worker_core.router)

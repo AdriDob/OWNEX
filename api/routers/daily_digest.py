@@ -129,6 +129,29 @@ async def daily_digest() -> dict[str, Any]:
     except Exception:
         pass
 
+    # ── Project TOP-3 (Project OS: next_actions across ALL projects) ──
+    try:
+        from cores.projects.registry import ProjectStore, next_actions
+
+        for a in next_actions(ProjectStore(), limit=3):
+            decisions.append(
+                {
+                    "type": "project_task",
+                    "title": f"[{a['project']}] {a['title']}",
+                    "platform": a["project"],
+                    "reward": a.get("score", 0),
+                    "action": "Abrir proyecto y ejecutar tarea",
+                    "url": f"/projects/{a['project']}",
+                    "priority": float(a.get("score", 0)),
+                    "project": a["project"],
+                    "task_id": a["task_id"],
+                    "phase": a.get("phase", ""),
+                    "ladder_rung": a.get("ladder_rung", ""),
+                }
+            )
+    except Exception:
+        pass
+
     # Sort by priority desc, take top 5
     decisions.sort(key=lambda d: -float(d.get("priority", 0)))
     digest["decisions"] = decisions[:5]
