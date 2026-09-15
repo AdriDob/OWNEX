@@ -98,6 +98,24 @@ class Supplier:
     is_active: bool = True
     rating: float = 0.0
     notes: str = ""
+    # ── Scorecard auto (Fase 3, $0: recalculado desde historial local) ──
+    fulfillment_rate: float = 0.0  # % POs shipped/delivered sobre total
+    avg_shipping_days: float = 0.0  # promedio real observado (0 = sin datos)
+    return_rate: float = 0.0  # % orders returned/refunded atribuidas
+    quality_score: float = 0.0  # 0-100 composite honesto
+    total_pos: int = 0
+    last_score_at: datetime | None = None
+    # ── Modelo $0 (ranking proveedores: "$0 stock" ≠ "$0 total") ──
+    capital_required_usd: Decimal = Decimal("0")  # stock inicial exigido (0 = puro)
+    monthly_cost_usd: Decimal = Decimal("0")  # abono/suscripción (>0 ≠ $0 total)
+    ml_integrated: bool = False  # integración Mercado Libre publicada
+    fulfillment: str = "provider"  # provider | own | mixed
+    fee_model: str = "none"  # none | per_sale_pct | monthly | hybrid
+    fee_pct: float = 0.0  # % por venta (ej. Dropsheable 3%)
+    stock_sync: bool = False  # stock sincronizado automático
+    verified: bool = False  # acuerdo comercial verificado (checklist 5 preguntas)
+    verified_at: datetime | None = None
+    fulfillment_model: str = ""  # comision | dropshipping | mayorista (C = reject $0)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
@@ -130,6 +148,7 @@ class Product:
     seo_keywords: list[str] = field(default_factory=list)
     margin_pct: float = 0.0
     roi_pct: float = 0.0
+    suggested_price_usd: Decimal = Decimal("0")  # auto-pricing Fase 1 (humano aprueba)
     is_dropship: bool = True
     requires_customs: bool = False
     hs_code: str = ""  # Harmonized System code for customs
@@ -137,13 +156,17 @@ class Product:
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def calculate_margin(self) -> float:
-        if self.cost_usd > 0:
+        if self.cost_usd > 0 and self.sale_price_usd > 0:
             self.margin_pct = float((self.sale_price_usd - self.cost_usd) / self.sale_price_usd * 100)
+        else:
+            self.margin_pct = 0.0
         return self.margin_pct
 
     def calculate_roi(self) -> float:
-        if self.cost_usd > 0:
+        if self.cost_usd > 0 and self.sale_price_usd > 0:
             self.roi_pct = float((self.sale_price_usd - self.cost_usd) / self.cost_usd * 100)
+        else:
+            self.roi_pct = 0.0
         return self.roi_pct
 
 
@@ -278,6 +301,50 @@ class SyncLog:
     details: dict[str, Any] = field(default_factory=dict)
     error_message: str = ""
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+
+@dataclass(slots=True)
+class CompetitorSnapshot:
+    """Observed competitor prices for one product (public data, honest timestamp)."""
+
+    id: str
+    product_id: str
+    observed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    competitor_prices: list[float] = field(default_factory=list)
+    min_price: float = 0.0
+    avg_price: float = 0.0
+    signal: str = "UNKNOWN"  # UNKNOWN/COMPETITIVE/OVERPRICED/OPPORTUNITY
+    action: str = "sin_datos_suficientes"
+    source: str = "manual"  # manual | meli_search | job
+    note: str = ""
+
+
+@dataclass(slots=True)
+class ReviewRequest:
+    """Post-sale review ask (WhatsApp/Email template, $0 Cloud API free tier)."""
+
+    id: str
+    order_id: str
+    channel: str = "whatsapp"  # whatsapp | email
+    template: str = "review_default"
+    message: str = ""
+    sent_at: datetime | None = None
+    status: str = "pending"  # pending | prepared | sent | failed
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+
+@dataclass(slots=True)
+class AbandonedCart:
+    """Lightweight cart-intent tracking for organic recovery ($0, frontend pixel)."""
+
+    id: str
+    visitor_id: str = ""
+    product_id: str = ""
+    marketplace: str = "mercadolibre"
+    viewed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    recovered: bool = False
+    recovery_sent_at: datetime | None = None
+    note: str = ""
 
 
 @dataclass(slots=True)

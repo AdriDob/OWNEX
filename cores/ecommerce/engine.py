@@ -8,6 +8,8 @@ from decimal import Decimal
 from typing import Any
 
 from cores.ecommerce.models import (
+    AbandonedCart,
+    CompetitorSnapshot,
     EcommerceMetrics,
     Marketplace,
     Order,
@@ -15,11 +17,100 @@ from cores.ecommerce.models import (
     Product,
     ProductStatus,
     PurchaseOrder,
+    ReviewRequest,
     Supplier,
+    SupplierType,
     SyncLog,
 )
 
 logger = logging.getLogger("ownex.ecommerce.engine")
+
+
+def seed_ranked_suppliers() -> list[Supplier]:
+    """Proveedores rankeados para modelo $0 + Mercado Libre (verificado 2026-09-15).
+
+    Orden: Dropsheable (principal, $0 total) → Unidrop (excelente, abono ML) →
+    Ventaz (simple, verificar margen) → Dropdeal (backup, suscripción) →
+    Caufy (complementario, sin ML publicado). Datos declarados por cada
+    plataforma; verificar acuerdo comercial antes de publicar (verified=False).
+    """
+    return [
+        Supplier(
+            id="dropsheable",
+            name="Dropsheable",
+            type=SupplierType.LOCAL_AR,
+            website="https://www.dropsheable.com.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("0"),
+            ml_integrated=True,
+            fulfillment="provider",
+            fee_model="per_sale_pct",
+            fee_pct=3.0,
+            stock_sync=True,
+            verified=False,
+            notes="+500 proveedores, importación/publicación ML, pedido automático. Principal.",
+        ),
+        Supplier(
+            id="unidrop",
+            name="Unidrop",
+            type=SupplierType.LOCAL_AR,
+            website="https://www.unidrop.com.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("22"),
+            ml_integrated=True,
+            fulfillment="provider",
+            fee_model="monthly",
+            fee_pct=0.0,
+            stock_sync=True,
+            verified=False,
+            notes="Depósito propio Unistore, 1200+ productos, Flex/Colecta. $0 stock pero abono ML ~USD22 → alternativa, no $0 total.",
+        ),
+        Supplier(
+            id="ventaz",
+            name="Ventaz",
+            type=SupplierType.LOCAL_AR,
+            website="https://ventaz.com.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("0"),
+            ml_integrated=True,
+            fulfillment="provider",
+            fee_model="none",
+            fee_pct=0.0,
+            stock_sync=True,
+            verified=False,
+            notes="Ellos compran/almacenan/preparan/envían. Verificar margen efectivo y flujo de pago antes de primaria.",
+        ),
+        Supplier(
+            id="dropdeal",
+            name="Dropdeal",
+            type=SupplierType.LOCAL_AR,
+            website="https://dropdeal.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("0"),
+            ml_integrated=True,
+            fulfillment="provider",
+            fee_model="hybrid",
+            fee_pct=0.0,
+            stock_sync=True,
+            verified=False,
+            notes="Miles de productos + automatización. Suscripción tras período gratis → backup.",
+        ),
+        Supplier(
+            id="caufy",
+            name="Caufy",
+            type=SupplierType.LOCAL_AR,
+            website="https://caufy.com.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("0"),
+            ml_integrated=False,
+            fulfillment="provider",
+            fee_model="none",
+            fee_pct=0.0,
+            stock_sync=True,
+            verified=False,
+            notes="Paga al vender+cobrar. Sin ML publicado (Tiendanube/Shopify/Woo) → complementario + CaufyPrint POD.",
+        ),
+    ]
 
 
 class EcommerceEngine:
@@ -31,6 +122,9 @@ class EcommerceEngine:
         self._orders: dict[str, Order] = {}
         self._purchase_orders: dict[str, PurchaseOrder] = {}
         self._sync_logs: list[SyncLog] = []
+        self._competitor_snaps: list[CompetitorSnapshot] = []
+        self._reviews: dict[str, ReviewRequest] = {}
+        self._carts: dict[str, AbandonedCart] = {}
         self._initialized = False
 
     def initialize(self) -> None:
@@ -80,6 +174,54 @@ class EcommerceEngine:
                 setattr(supplier, key, value)
         supplier.updated_at = datetime.now(UTC)
         return supplier
+
+    async def sync_supplier_catalog(self, supplier_id: str, limit: int = 50) -> dict[str, Any]:
+        """Mirror a supplier website catalog into DRAFT products (review before sell).
+
+        New/updated items enter as DRAFT: nothing auto-publishes to Meli.
+        Human promotes to ACTIVE + sets price (via /sourcing/score) + approves
+        the Meli payload. Never raises; failures are reported, not hidden.
+        """
+        supplier = self.get_supplier(supplier_id)
+        if supplier is None:
+            return {"success": False, "error": "unknown_supplier", "synced": 0, "updated": 0}
+        if not supplier.is_active:
+            return {"success": False, "error": "supplier_inactive", "synced": 0, "updated": 0}
+        from cores.ecommerce.adapters import SupplierCatalogAdapter
+
+        result = await SupplierCatalogAdapter(supplier).fetch_catalog(limit=limit)
+        if not result.get("success"):
+            self.log_sync("product", supplier_id, Marketplace.OTHER, "catalog_sync", "failed", result)
+            return {**result, "synced": 0, "updated": 0}
+        synced, updated = 0, 0
+        for item in result.get("items", []):
+            pid = f"{supplier_id}:{item['sku'] or item['name'][:40]}"
+            existing = self._products.get(pid)
+            cost = Decimal(str(item["price"]))
+            if existing is not None:
+                existing.cost_usd = cost
+                existing.calculate_margin()
+                existing.calculate_roi()
+                existing.updated_at = datetime.now(UTC)
+                updated += 1
+                continue
+            self.add_product(
+                Product(
+                    id=pid,
+                    sku=item["sku"],
+                    name=item["name"],
+                    description=item["description"],
+                    supplier_id=supplier_id,
+                    cost_usd=cost,
+                    currency=item["currency"],
+                    images=item["images"],
+                    status=ProductStatus.DRAFT,
+                )
+            )
+            synced += 1
+        summary = {"success": True, "synced": synced, "updated": updated, "skipped": result.get("skipped", 0)}
+        self.log_sync("product", supplier_id, Marketplace.OTHER, "catalog_sync", "success", summary)
+        return summary
 
     # --- Product Management ---
 
@@ -297,6 +439,148 @@ class EcommerceEngine:
 
         return metrics
 
+    # ── Competitor snapshots (Fase 1, public data, human/job fed) ──
+
+    def record_competitor_snapshot(
+        self,
+        product_id: str,
+        competitor_prices: list[float],
+        source: str = "manual",
+        competitor_stock: dict[str, bool] | None = None,
+    ) -> CompetitorSnapshot:
+        from cores.ecommerce.pipeline import get_competitor_watch
+
+        product = self._products.get(product_id)
+        ours = float(product.sale_price_usd) if product else 0.0
+        verdict = get_competitor_watch().evaluate(
+            our_price_usd=ours,
+            competitor_prices=competitor_prices,
+            competitor_stock=competitor_stock,
+        )
+        comps = [float(p) for p in (competitor_prices or []) if isinstance(p, (int, float)) and p > 0]
+        snap = CompetitorSnapshot(
+            id=f"comp_{product_id}_{int(datetime.now(UTC).timestamp())}",
+            product_id=product_id,
+            competitor_prices=comps,
+            min_price=min(comps) if comps else 0.0,
+            avg_price=(sum(comps) / len(comps)) if comps else 0.0,
+            signal=str(verdict.get("signal", "UNKNOWN")),
+            action=str(verdict.get("action", "sin_datos_suficientes")),
+            source=source,
+            note=str(verdict.get("note", "")),
+        )
+        self._competitor_snaps.append(snap)
+        self._competitor_snaps = self._competitor_snaps[-500:]
+        return snap
+
+    def list_competitor_snapshots(self, product_id: str | None = None, limit: int = 100) -> list[CompetitorSnapshot]:
+        snaps = list(self._competitor_snaps)
+        if product_id:
+            snaps = [s for s in snaps if s.product_id == product_id]
+        return sorted(snaps, key=lambda s: s.observed_at, reverse=True)[: max(1, min(limit, 500))]
+
+    # ── Supplier scorecards (Fase 3, $0 desde historial local) ──
+
+    def update_supplier_scorecards(self) -> int:
+        updated = 0
+        for supplier in self._suppliers.values():
+            pos = [po for po in self._purchase_orders.values() if po.supplier_id == supplier.id]
+            if not pos:
+                continue
+            shipped = sum(1 for po in pos if po.status in (OrderStatus.SHIPPED, OrderStatus.DELIVERED))
+            supplier.total_pos = len(pos)
+            supplier.fulfillment_rate = round(shipped / len(pos) * 100, 1) if pos else 0.0
+            # return_rate desde orders ligadas a este supplier vía product.supplier_id
+            supplier_orders = [
+                o
+                for o in self._orders.values()
+                if any(
+                    (self._products.get(it.product_id) or Product(id="", sku="", name="")).supplier_id == supplier.id
+                    for it in o.items
+                )
+            ]
+            if supplier_orders:
+                bad = sum(1 for o in supplier_orders if o.status in (OrderStatus.RETURNED, OrderStatus.REFUNDED))
+                supplier.return_rate = round(bad / len(supplier_orders) * 100, 1)
+            # quality composite honesto: fulfillment - returns + rating normalizado
+            try:
+                rating_part = max(0.0, min(100.0, float(supplier.rating or 0.0) * 20.0))
+            except (TypeError, ValueError):
+                rating_part = 0.0
+            supplier.quality_score = round(
+                max(0.0, min(100.0, supplier.fulfillment_rate * 0.6 + rating_part * 0.3 - supplier.return_rate * 0.5)),
+                1,
+            )
+            supplier.avg_shipping_days = float(supplier.processing_time_days or 0)
+            supplier.last_score_at = datetime.now(UTC)
+            supplier.updated_at = datetime.now(UTC)
+            updated += 1
+        return updated
+
+    # ── Reviews + carts (Fase 6, prepara, nunca envía solo) ──
+
+    def prepare_review_requests(self, days_after_delivery: int = 10) -> int:
+        from datetime import timedelta
+
+        cutoff = datetime.now(UTC) - timedelta(days=max(1, days_after_delivery))
+        prepared = 0
+        for order in self._orders.values():
+            if order.status != OrderStatus.DELIVERED or not order.delivered_at:
+                continue
+            if order.delivered_at > cutoff:
+                continue
+            if any(r.order_id == order.id for r in self._reviews.values()):
+                continue
+            msg = (
+                f"¡Hola! Gracias por tu compra ({order.id}) 🙏 "
+                "¿Qué tal tu producto? Tu opinión + foto ayuda a otros compradores. "
+                "Respondé este mensaje con tu review y te damos 10% OFF en la próxima 🎁"
+            )
+            rr = ReviewRequest(
+                id=f"rev_{order.id}",
+                order_id=order.id,
+                channel="whatsapp",
+                template="review_default",
+                message=msg,
+                status="prepared",
+            )
+            self._reviews[rr.id] = rr
+            prepared += 1
+        return prepared
+
+    def list_review_requests(self, status: str | None = None) -> list[ReviewRequest]:
+        rows = list(self._reviews.values())
+        if status:
+            rows = [r for r in rows if r.status == status]
+        return sorted(rows, key=lambda r: r.created_at, reverse=True)[:200]
+
+    def track_cart_view(self, visitor_id: str, product_id: str, marketplace: str = "mercadolibre") -> AbandonedCart:
+        cart = AbandonedCart(
+            id=f"cart_{(visitor_id or 'anon')[:24]}_{product_id}_{int(datetime.now(UTC).timestamp())}",
+            visitor_id=(visitor_id or "")[:64],
+            product_id=product_id,
+            marketplace=marketplace,
+        )
+        self._carts[cart.id] = cart
+        return cart
+
+    def list_abandoned_carts(self, minutes_idle: int = 30) -> list[AbandonedCart]:
+        from datetime import timedelta
+
+        cutoff = datetime.now(UTC) - timedelta(minutes=max(1, minutes_idle))
+        return sorted(
+            [c for c in self._carts.values() if not c.recovered and c.viewed_at <= cutoff],
+            key=lambda c: c.viewed_at,
+        )[:200]
+
+    def mark_cart_recovered(self, cart_id: str) -> AbandonedCart | None:
+        cart = self._carts.get(cart_id)
+        if not cart:
+            return None
+        cart.recovered = True
+        cart.recovery_sent_at = datetime.now(UTC)
+        return cart
+
     def get_status(self) -> dict[str, Any]:
         return {
             "initialized": self._initialized,
@@ -307,6 +591,9 @@ class EcommerceEngine:
             "active_products": len([p for p in self._products.values() if p.status == ProductStatus.ACTIVE]),
             "pending_orders": len([o for o in self._orders.values() if o.status == OrderStatus.PENDING]),
             "sync_logs": len(self._sync_logs),
+            "competitor_snapshots": len(self._competitor_snaps),
+            "review_requests": len(self._reviews),
+            "abandoned_carts": len(self._carts),
         }
 
 
