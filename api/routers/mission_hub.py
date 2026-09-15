@@ -167,3 +167,41 @@ async def deactivate_workspace(workspace_id: str) -> dict[str, Any]:
     except OSError as exc:
         raise HTTPException(status_code=500, detail=f"cannot persist: {exc}") from exc
     return {"success": True, "workspace_id": workspace_id, "active": False}
+
+
+@router.get("/economics")
+async def workspace_economics() -> dict[str, Any]:
+    """Per-workspace economics from ledger PAID (UNKNOWN until outcomes)."""
+    from cores.workspaces.economics import rank_workspaces
+
+    state = _load_state()
+    overrides = state.get("workspace_active", {})
+    ranked = rank_workspaces(active={k: bool(v) for k, v in overrides.items()} or None)
+    return {"workspaces": [e.to_dict() for e in ranked]}
+
+
+@router.get("/allocation/daily")
+async def daily_allocation(total_minutes: int = 240) -> dict[str, Any]:
+    """Today's hour allocation across workspaces (measured or cold-start)."""
+    from cores.workspaces.allocation import allocate_daily_hours
+
+    state = _load_state()
+    overrides = state.get("workspace_active", {})
+    alloc = allocate_daily_hours(max(30, min(total_minutes, 960)), active={k: bool(v) for k, v in overrides.items()} or None)
+    return alloc.to_dict()
+
+
+@router.post("/daily-loop/run")
+async def run_daily_loop_endpoint(total_minutes: int = 240) -> dict[str, Any]:
+    """Run one daily loop pass (auto rungs execute, gated park with evidence)."""
+    from cores.automation.daily_loop import run_daily_loop
+
+    return run_daily_loop(max(30, min(total_minutes, 960))).to_dict()
+
+
+@router.get("/economic-loop")
+async def economic_loop_state() -> dict[str, Any]:
+    """Current economic phase from ledger + plan (read-only)."""
+    from cores.automation.economic_loop import current_phase
+
+    return current_phase().to_dict()

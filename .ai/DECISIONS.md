@@ -1181,3 +1181,17 @@
 - **Orden del owner**: megaprompt de cierre final (§24). **Verificación antes del borrado**: `from core.` == 0 en runtime/tests/strings/packaging/Makefile; breakages latentes corregidos primero (Makefile version_engine, handler-strings dinámicos de `cores/orion/priority.py` con firmas equivalentes verificadas).
 - **Ejecución**: `git rm -rf core/` (656 archivos). Regresión: `import cores, api.main` OK, fast 102/1, suites afectadas verdes.
 - **Regla permanente**: `cores/` es el único árbol; cualquier referencia nueva a `core.` es un bug. W1-W12 Windows sigue siendo requisito owner para Windows Stable.
+
+## 2026-09-14: ECONOMIC OS — ladder A1-A12 + workspace economics + daily/economic loops (cierra megaprompt sin reescritura)
+
+- **Pedido owner**: último megaprompt — convertir lo existente en sistema operativo diario de ingresos, cero arquitectura paralela.
+- **Audit-first**: daily-digest, workbank+mirror+Human Gate, ledger PAID-only, channel_economy, mission_hub toggles, OAR degraded YA existían → solo se construyó lo ausente:
+  - `cores/automation/ladder.py` NUEVO: A0-A11+A6_unsupported con `_NEXT` happy-path, `advance/fail/mark_unsupported`, `needs_human`/`is_terminal`, `automation_ratio()`.
+  - `cores/workspaces/economics.py` NUEVO: `economics_for/rank_workspaces` desde Revenue Ledger PAID (plataforma→workspace por substring honesto); EV/h y P(CASH) por workspace = UNKNOWN hasta horas/calibración por workspace (no se inventa).
+  - `cores/workspaces/allocation.py` NUEVO: `allocate_daily_hours()` — modo measured (por outcomes) o cold-start (PRIMARY parejo + 5% admin); puro, sin DB.
+  - `cores/automation/daily_loop.py` NUEVO: `run_daily_loop()` — SELECT workbank → A1→A2→A3 park con evidencia → payment check ledger → learning → tomorrow seed.
+  - `cores/automation/economic_loop.py` NUEVO: `current_phase()` DISCOVER→…→SCALE desde ledger+plan (read-only).
+  - `api/routers/mission_hub.py`: `GET /economics`, `GET /allocation/daily`, `POST /daily-loop/run`, `GET /economic-loop`.
+  - `.ai/DEFINITION_OF_DONE.md` NUEVO: 23 DONE con evidencia + 5 NO DONE honestos.
+- **No tocado**: scheduler handlers (territorio concurrente), `core/`, events/engine/validation, cognee, OAR scoring, WIP ajeno.
+- **Evidencia**: `tests/test_economic_os.py` 17/17 (ladder/economics/allocation/loops/endpoints) · fast 102/1 · ruff limpio · `import api.main` 1734 rutas.
