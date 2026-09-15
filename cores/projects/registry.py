@@ -427,14 +427,296 @@ def _seed_rastro() -> Project:
     return p
 
 
-_SEEDS = (_seed_ownex, _seed_droppinglabel, _seed_mercadolibre, _seed_adriel_webs, _seed_rastro)
+def _seed_content_factory() -> Project:
+    p = Project(
+        id="content_factory",
+        workspace_id="content_factory",
+        name="Content Factory",
+        description="YouTube MPT 100% gratis + POD @estampalo.ig promocional Nova Store",
+        category="content",
+        business_model="audience_recurring",
+        state=ProjectState.PREPARACION,
+        priority=5,
+        goals=["Canal YouTube MPT con 1 video/día 14 días", "POD @estampalo.ig como promoción MeLi"],
+        financial_goal_usd=300.0,
+        phases=_phases(["preparacion", "construccion", "lanzamiento", "operacion", "optimizacion", "mantenimiento"]),
+    )
+    tasks = [
+        _t(
+            "content_factory",
+            "preparacion",
+            "Pexels API key gratis en MPT",
+            "pexels.com/api → MPT config",
+            state=TaskState.READY,
+            effort_min=15,
+            automation=AutomationLevel.MANUAL,
+            expected="MPT genera video sin error",
+            urgency=7,
+        ),
+        _t(
+            "content_factory",
+            "preparacion",
+            "Definir nombre canal YouTube (separado de POD)",
+            "Branding Canva gratis, no usar @estampalo.ig",
+            state=TaskState.BACKLOG,
+            effort_min=30,
+            automation=AutomationLevel.MANUAL,
+            expected="nombre + logo",
+            urgency=6,
+        ),
+        _t(
+            "content_factory",
+            "operacion",
+            "1 Short/día 14 días (MPT → Human Gate → subir)",
+            "Guion Ollama + voz Edge + video Pexels",
+            state=TaskState.BACKLOG,
+            effort_min=30,
+            automation=AutomationLevel.SEMIAUTOMATICA,
+            expected="14 videos publicados",
+            urgency=7,
+            recurring="daily",
+        ),
+        _t(
+            "content_factory",
+            "operacion",
+            "POD @estampalo.ig: 3 posts/sem promocionales MeLi",
+            "Diseños en Canva, DM/WhatsApp → pedido → proveedor",
+            state=TaskState.BACKLOG,
+            effort_min=20,
+            automation=AutomationLevel.MANUAL,
+            expected="engagement + DM → venta MeLi",
+            urgency=6,
+            recurring="weekly",
+        ),
+    ]
+    for t in tasks:
+        p.tasks[t.id] = t
+    return p
+
+
+def _seed_trading() -> Project:
+    p = Project(
+        id="trading",
+        workspace_id="trading",
+        name="Trading",
+        description="Memecoins + acciones, PAPER default, jamás renta base",
+        category="capital",
+        business_model="capital_only",
+        state=ProjectState.PREPARACION,
+        priority=4,
+        goals=["Paper loop 2 semanas validado", "Kill switch humano probado"],
+        phases=_phases(["preparacion", "operacion", "optimizacion", "mantenimiento"]),
+    )
+    tasks = [
+        _t(
+            "trading",
+            "preparacion",
+            "Paper memecoins DRY_RUN verificado",
+            "DexScreener + RugCheck + Jupiter",
+            state=TaskState.READY,
+            effort_min=20,
+            automation=AutomationLevel.AUTOMATICA,
+            expected="fills simulados ok",
+            urgency=6,
+        ),
+        _t(
+            "trading",
+            "operacion",
+            "Paper loop cada 15m ≥2 semanas",
+            "run_paper_cycle_once + job trading_memecoin_paper",
+            state=TaskState.BACKLOG,
+            effort_min=5,
+            automation=AutomationLevel.AUTOMATICA,
+            expected="win-rate/profit-factor/drawdown",
+            urgency=6,
+            recurring="daily",
+        ),
+        _t(
+            "trading",
+            "optimizacion",
+            "Revisar métricas paper con owner → live solo con orden",
+            "Human Gate + IdentityVault + capital declarado",
+            state=TaskState.BACKLOG,
+            effort_min=30,
+            automation=AutomationLevel.MANUAL,
+            expected="decisión live/paper",
+            urgency=5,
+        ),
+    ]
+    for t in tasks:
+        p.tasks[t.id] = t
+    return p
+
+
+def _seed_backup_income() -> Project:
+    p = Project(
+        id="backup_income",
+        workspace_id="backup_income",
+        name="Laburo Presencial",
+        description="Trabajo presencial Zona Sur/CABA, LAST_RESORT, neto/hora con traslado",
+        category="local_jobs",
+        business_model="safety_net",
+        state=ProjectState.PREPARACION,
+        priority=3,
+        goals=["Zonas + neto/hora mínimo definidos", "CV ATS + perfiles bolsas listos"],
+        phases=_phases(["preparacion", "operacion", "mantenimiento"]),
+    )
+    tasks = [
+        _t(
+            "backup_income",
+            "preparacion",
+            "CV ATS 1 página + perfiles Zonajobs/Bumeran",
+            "Skills reales Profile Kit",
+            state=TaskState.READY,
+            effort_min=60,
+            automation=AutomationLevel.MANUAL,
+            expected="CV + 3 perfiles completos",
+            urgency=6,
+        ),
+        _t(
+            "backup_income",
+            "operacion",
+            "Búsqueda 30 min/día solo si se activa (LAST_RESORT)",
+            "5 postulaciones/día max, carta adaptada",
+            state=TaskState.BACKLOG,
+            effort_min=30,
+            automation=AutomationLevel.MANUAL,
+            expected="0 postulaciones sin follow-up",
+            urgency=5,
+            recurring="daily",
+        ),
+        _t(
+            "backup_income",
+            "operacion",
+            "Seguimiento 48h + comparar vs neto/hora mínimo",
+            "Rechazo automático bajo mínimo",
+            state=TaskState.BACKLOG,
+            effort_min=20,
+            automation=AutomationLevel.MANUAL,
+            expected="oferta vs mínimo comparada",
+            urgency=5,
+        ),
+    ]
+    for t in tasks:
+        p.tasks[t.id] = t
+    return p
+
+
+def _seed_dev_bounty() -> Project:
+    p = Project(
+        id="dev_bounty",
+        workspace_id="dev_bounty",
+        name="Dev Bounty",
+        description="Algora/Opire/IssueHunt/GitHub — outcome-based, 1 claim activo hasta merge",
+        category="dev_bounty",
+        business_model="outcome_based",
+        state=ProjectState.PREPARACION,
+        priority=8,
+        goals=["1 claim activo $50-200 <10 comentarios", "PR con tests + README → merge → PAID"],
+        phases=_phases(["preparacion", "operacion", "optimizacion", "mantenimiento"]),
+    )
+    tasks = [
+        _t(
+            "dev_bounty",
+            "preparacion",
+            "GITHUB_TOKEN en vault",
+            "github.com/settings/tokens",
+            state=TaskState.READY,
+            effort_min=10,
+            automation=AutomationLevel.MANUAL,
+            expected="token verificado",
+            urgency=9,
+        ),
+        _t(
+            "dev_bounty",
+            "operacion",
+            "Filtrar bounties $50-200 <10 comentarios",
+            "workbank cycle + /decision/evaluate",
+            state=TaskState.BACKLOG,
+            effort_min=30,
+            automation=AutomationLevel.SEMIAUTOMATICA,
+            expected="top-3 elegidos",
+            urgency=8,
+        ),
+        _t(
+            "dev_bounty",
+            "operacion",
+            "1 claim activo hasta merge (no 5 paralelos)",
+            "Comentar + fork + branch",
+            state=TaskState.BACKLOG,
+            effort_min=20,
+            automation=AutomationLevel.MANUAL,
+            expected="claim activo",
+            urgency=8,
+        ),
+    ]
+    for t in tasks:
+        p.tasks[t.id] = t
+    return p
+
+
+def _seed_ai_training() -> Project:
+    p = Project(
+        id="ai_training",
+        workspace_id="ai_training",
+        name="AI Training",
+        description="Mercor/Outlier/Alignerr — assessments primero, luego tareas $15-55/h",
+        category="ai_work",
+        business_model="hourly_tasks",
+        state=ProjectState.PREPARACION,
+        priority=7,
+        goals=["3 assessments submitted", "1er task pagado $8-55/h"],
+        phases=_phases(["preparacion", "operacion", "optimizacion", "mantenimiento"]),
+    )
+    tasks = [
+        _t(
+            "ai_training",
+            "preparacion",
+            "Assessments Mercor/Outlier/Alignerr en paralelo",
+            "Profile Kit para respuestas",
+            state=TaskState.READY,
+            effort_min=120,
+            automation=AutomationLevel.MANUAL,
+            expected="3 submitted",
+            urgency=9,
+        ),
+        _t(
+            "ai_training",
+            "operacion",
+            "Daily 1h Outlier/Alignerr si aprobado",
+            "quality > speed, guidelines 2x",
+            state=TaskState.BACKLOG,
+            effort_min=60,
+            automation=AutomationLevel.MANUAL,
+            expected="streak 10/14 días",
+            urgency=7,
+            recurring="daily",
+        ),
+    ]
+    for t in tasks:
+        p.tasks[t.id] = t
+    return p
+
+
+_SEEDS = (
+    _seed_ownex,
+    _seed_droppinglabel,
+    _seed_mercadolibre,
+    _seed_adriel_webs,
+    _seed_rastro,
+    _seed_content_factory,
+    _seed_trading,
+    _seed_backup_income,
+    _seed_dev_bounty,
+    _seed_ai_training,
+)
 
 
 class ProjectStore:
     """Persisted project registry (atomic JSON). Seeds on first run."""
 
     def __init__(self, path=None) -> None:
-        self._path = path or _store_path()
+        self._path = Path(path) if path else _store_path()
         self._projects: dict[str, Project] = {}
         self._load_or_seed()
 
