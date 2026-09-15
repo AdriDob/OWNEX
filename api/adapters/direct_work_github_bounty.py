@@ -115,12 +115,19 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
         return unique
 
     async def _search_query(self, query: str) -> list[dict]:
-        """Execute a single GitHub search query."""
+        """Execute a single GitHub search query.
+
+        Uses GITHUB_TOKEN when configured (30 req/min) else anonymous (10/min).
+        """
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        token = os.environ.get("GITHUB_TOKEN", "")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.get(
                 f"{GITHUB_API_BASE}/search/issues",
                 params={"q": query, "sort": "updated", "order": "desc", "per_page": 30},
-                headers={"Accept": "application/vnd.github.v3+json"},
+                headers=headers,
             )
             if resp.status_code == 403:
                 logger.warning("GitHub API rate limited (403)")

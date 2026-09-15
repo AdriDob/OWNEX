@@ -379,6 +379,7 @@ class LearnRequest(BaseModel):
 
 class DiscoverRequest(BaseModel):
     limit: int = 20
+    languages: list[str] | None = None  # e.g. ["rust", "go", "solidity"] — solo GitHub bounty
 
 
 class OpportunityOnlyRequest(BaseModel):
@@ -552,9 +553,27 @@ async def direct_work_discover(request: DiscoverRequest) -> dict[str, Any]:
 
     Implements the "morning scan" flow: discover real opportunities from the
     registered adapters, score them by Zero Barrier, and return the top N.
+
+    ``languages`` (e.g. ["rust", "go", "solidity"]) restricts the GitHub
+    bounty scan server-side via ``language:`` qualifiers; other sources
+    scan unchanged (None = current behavior).
     """
     engine = get_engine()
-    opportunities = await engine.discovery.discover_all()
+    if request.languages:
+        others = [p for p in engine.discovery.get_registered_platforms() if p != WorkPlatform.GITHUB]
+        opportunities = await engine.discovery.discover_all(platforms=others)
+        gh = engine.discovery.adapters.get(WorkPlatform.GITHUB)
+        if gh is not None:
+            try:
+                try:
+                    opportunities += await gh.fetch_opportunities(languages=request.languages)
+                except TypeError:
+                    # Adapter registrado sin soporte de idiomas: scan estándar.
+                    opportunities += await gh.fetch_opportunities()
+            except Exception as exc:
+                logger.warning("GitHub language scan failed: %s", exc)
+    else:
+        opportunities = await engine.discovery.discover_all()
     try:
         from cores.freelance.channel_status import filter_by_channel_status
 
