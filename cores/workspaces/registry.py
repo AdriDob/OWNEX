@@ -1,6 +1,7 @@
 """Workspace Registry — minimal abstraction for OWNEX workspaces.
 
-Registers 10 workspace types, manages context isolation, and links tasks/opportunities/revenue to workspaces.
+Registers 15 canonical workspace types ($0, ingenious, OSS/free tiers),
+manages context isolation, and links tasks/opportunities/revenue to workspaces.
 """
 
 from __future__ import annotations
@@ -21,6 +22,11 @@ class WorkspaceType(StrEnum):
     MERCADO_LIBRE = "mercado_libre"  # Marketplace/dropshipping (OPTIONAL)
     ADRIEL_WEBS = "adriel_webs"  # Web sales via WhatsApp (OPTIONAL)
     CONTENT_FACTORY = "content_factory"  # Shorts/content automation (OPTIONAL)
+    ASSET_FACTORY = "asset_factory"  # Digital assets: SaaS/APIs/tools/templates/datasets (BUILD→SELL MANY)
+    PARTNERSHIP = "partnership"  # Revenue share / afiliación legítima (future, requires negotiation)
+    AFFILIATE = "affiliate"  # Reviews con links afiliados (Amazon/Meli/Hotmart, $0 sin stock)
+    LEAD_SERVICES = "lead_services"  # LeadGen + arbitrage + automation service ($0, setup+MRR)
+    KNOWLEDGE_ASSETS = "knowledge_assets"  # Report factory + datasets curados + security packs ($0, margen 100%)
     TRADING = "trading"  # Stocks + memecoins (CAPITAL only, never base income; PAPER by default)
     BACKUP_INCOME = "backup_income"  # In-person work CABA/Zona Sur (LAST RESORT safety net)
 
@@ -65,7 +71,7 @@ class WorkspaceRegistry:
         self._register_defaults()
 
     def _register_defaults(self) -> None:
-        """Register the 10 canonical workspace types."""
+        """Register the 15 canonical workspace types ($0, portfolio cerrado)."""
         defaults = [
             ("ownex", WorkspaceType.OWNEX, "OWNEX Core", "Desarrollo, mantenimiento, QA, arquitectura", 10),
             ("bug_bounty", WorkspaceType.BUG_BOUNTY, "Bug Bounty", "Operaciones de bug bounty", 9),
@@ -86,6 +92,41 @@ class WorkspaceRegistry:
                 "Content Factory",
                 "Shorts y automatización de contenido",
                 5,
+            ),
+            (
+                "asset_factory",
+                WorkspaceType.ASSET_FACTORY,
+                "Asset Factory",
+                "Activos digitales: SaaS/APIs/tools/templates/datasets (construir 1 vez → vender N)",
+                6,
+            ),
+            (
+                "partnership",
+                WorkspaceType.PARTNERSHIP,
+                "Partnership",
+                "Revenue share / afiliación legítima (requiere negociación, techo alto)",
+                3,
+            ),
+            (
+                "affiliate",
+                WorkspaceType.AFFILIATE,
+                "Affiliate",
+                "Reviews con links afiliados multi-red (costo 0, sin stock, clicks≠plata)",
+                5,
+            ),
+            (
+                "lead_services",
+                WorkspaceType.LEAD_SERVICES,
+                "Lead Services",
+                "LeadGen + arbitrage servicios + automation (setup+MRR, margen ≥50%)",
+                5,
+            ),
+            (
+                "knowledge_assets",
+                WorkspaceType.KNOWLEDGE_ASSETS,
+                "Knowledge Assets",
+                "Report factory + datasets curados + security packs (margen 100%)",
+                6,
             ),
             (
                 "trading",
@@ -179,6 +220,81 @@ class WorkspaceRegistry:
                     "costo": 0,
                 },
             },
+            "asset_factory": {
+                "goals": ["Primer activo publicado con demanda observable", "Primera venta/monetización recurrente"],
+                "settings": {
+                    "pipeline": ["BUILD", "PUBLISH", "ACQUIRE", "MONETIZE", "SUPPORT", "IMPROVE"],
+                    "tipos": [
+                        "micro_saas",
+                        "api",
+                        "dev_tool",
+                        "plugin",
+                        "extension",
+                        "template",
+                        "automation_kit",
+                        "digital_product",
+                        "dataset",
+                        "licensing",
+                    ],
+                    "costo_inicial": 0,
+                    "distribucion": "organica_gratuita",
+                    "margen_objetivo": "alto",
+                    "potencial_recurrente": True,
+                    "criterios_gate": [
+                        "demanda_observable",
+                        "capacidad_tecnica",
+                        "distribucion_gratis",
+                        "margen_alto",
+                        "recurrente",
+                        "automatizable",
+                        "tiempo_razonable",
+                        "riesgo_aceptable",
+                    ],
+                },
+            },
+            "partnership": {
+                "goals": ["Primer acuerdo revenue share firmado", "Primer ingreso por participación medido"],
+                "settings": {
+                    "tipos": ["revenue_share", "afiliacion_legitima", "distribucion"],
+                    "modelo": "1_sistema → participacion_resultados",
+                    "techo": "alto",
+                    "riesgo": "medio_alto",
+                    "nota": "Futuro. No canal principal hasta calibrar P(CASH) en otros motores",
+                },
+                "active": False,
+            },
+            "affiliate": {
+                "goals": ["Primer link con clicks medidos", "Primera conversión confirmada por la red"],
+                "settings": {
+                    "redes": ["amazon", "mercadolibre", "hotmart", "clickbank"],
+                    "contenido": "reviews_honestas_MPT",
+                    "costo": 0,
+                    "stock": False,
+                    "regla": "clicks_no_son_plata_solo_confirmadas",
+                    "publish": "human_gate",
+                },
+            },
+            "lead_services": {
+                "goals": ["Primera lista calificada exportada", "Primer arbitrage con margen ≥50% cobrado"],
+                "settings": {
+                    "fuentes": ["directory_scrape", "instagram", "whatsapp"],
+                    "enriquecimiento": "hunter_apollo_free_tier",
+                    "ofertas": ["scrape_to_sheets", "form_filler", "report_bot", "lead_bot", "catalog_sync"],
+                    "costo": 0,
+                    "regla": "subcontratar_solo_tras_sena_50pct",
+                },
+            },
+            "knowledge_assets": {
+                "goals": ["Primer pack/reporte vendido", "Primer dataset empaquetado con datasheet"],
+                "settings": {
+                    "tipos": ["report_factory", "dataset_curado", "security_pack"],
+                    "tiers_reporte": ["basic_50", "standard_90", "premium_150"],
+                    "packs": ["owasp_top10_29", "api_audit_49", "mobile_39", "cloud_79"],
+                    "costo": 0,
+                    "margen": 100,
+                    "distribucion": "gumroad_notion_hf_organica",
+                },
+            },
         }
         for ws_id, seed in seeds.items():
             ctx = self._workspaces.get(ws_id)
@@ -186,6 +302,8 @@ class WorkspaceRegistry:
                 continue
             ctx.goals = seed["goals"]
             ctx.settings.update(seed["settings"])
+            if "active" in seed:
+                ctx.active = bool(seed["active"])
 
     def register(self, context: WorkspaceContext) -> None:
         """Register a workspace context."""

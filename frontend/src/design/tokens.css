@@ -15,10 +15,11 @@
   --ownex-bg-glass:     rgba(10, 10, 10, 0.75);
   --ownex-bg-glass-border: rgba(255, 255, 255, 0.08);
 
-  /* ── Colores de Identidad (TESLA — monocromo + rojo como único acento) ── */
+  /* ── Colores de Identidad (cero rojo — directiva owner 2026-08-25) ── */
   --ownex-blue:         #FFFFFF;  /* Acciones, selección, navegación (blanco) */
   --ownex-white:        #FFFFFF;  /* Información importante, títulos, resultados */
   --ownex-gold:         #B45309;  /* Recompensas, oportunidades premium (ámbar desaturado) */
+  --ownex-accent:       #00D5FF;  /* Único acento: cian (SSOT; revoca auto-refs y dangling) */
 
   /* ── Estados (SOLO 3, desaturados) ── */
   --ownex-green:        #16A34A;  /* ✅ Activo / Éxito */
@@ -41,13 +42,13 @@
   --ownex-synack:     #5B7D9E;
   --ownex-yeswehack:  #3B82F6;
 
-  /* ── Cycle Colors (monocromo, rojo = odyssey) ── */
+  /* ── Cycle Colors (monocromo + cian; odyssey sigue al acento) ── */
   --ownex-cycle-security: #F5F5F5;
   --ownex-cycle-forge:    #9CA3AF;
   --ownex-cycle-pulse:    #16A34A;
   --ownex-cycle-vault:    #D97706;
   --ownex-cycle-atlas:    #D4D4D8;
-   --ownex-cycle-odyssey:  #E82127;
+   --ownex-cycle-odyssey:  var(--ownex-accent);
 
   /* ═══════════════════════════════════════════════════════════════════
      TYPOGRAPHY

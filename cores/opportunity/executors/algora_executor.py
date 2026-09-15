@@ -381,8 +381,24 @@ def build_algora_executor(
     github_token: str | None = None,
     algora_api_key: str | None = None,
 ) -> AlgoraExecutor:
-    """Build Algora executor with credentials from vault or env."""
+    """Build Algora executor with credentials from vault or env.
+
+    Resolution order (first hit wins):
+    1. explicit ``github_token`` param
+    2. ``GITHUB_TOKEN`` env var
+    3. credentials vault (``~/.config/ownex/opportunity.env`` via ``get_credentials``)
+    4. IdentityVault ``platform_algora`` token
+    """
     github_token = github_token or os.environ.get("GITHUB_TOKEN")
+    if not github_token:
+        # Credentials vault (~/.config/ownex/opportunity.env) — same source
+        # the setup checklist detector reads, so a configured token always works.
+        try:
+            from cores.credentials import vault as _creds_vault
+
+            github_token = _creds_vault.get_credentials(force_refresh=True).github_token or None
+        except Exception:
+            pass
     if not github_token:
         # Try IdentityVault
         try:

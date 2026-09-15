@@ -1,6 +1,6 @@
 """Platform Browser Workers — Browser automation for platforms without write APIs.
 
-Supports DataAnnotation, Outlier, Mindrift, Remotasks via Playwright.
+Supports DataAnnotation, Outlier, Mindrift via Playwright.
 """
 
 from __future__ import annotations
@@ -74,8 +74,15 @@ class DataAnnotationWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("DATAANNOTATION_EMAIL")
-        self.password = self.config.get("password") or os.getenv("DATAANNOTATION_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        # Explicit config wins, else IdentityVault, else env (never logged).
+        self.email = resolve_credential(str(self.config.get("email") or ""), "dataannotation", "email") or os.getenv(
+            "DATAANNOTATION_EMAIL"
+        )
+        self.password = resolve_credential(
+            str(self.config.get("password") or ""), "dataannotation", "password"
+        ) or os.getenv("DATAANNOTATION_PASSWORD")
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -479,8 +486,14 @@ class OutlierWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("OUTLIER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("OUTLIER_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        self.email = resolve_credential(str(self.config.get("email") or ""), "outlier", "email") or os.getenv(
+            "OUTLIER_EMAIL"
+        )
+        self.password = resolve_credential(str(self.config.get("password") or ""), "outlier", "password") or os.getenv(
+            "OUTLIER_PASSWORD"
+        )
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -847,8 +860,14 @@ class MindriftBrowserWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("MINDRIFT_BROWSER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("MINDRIFT_BROWSER_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        self.email = resolve_credential(str(self.config.get("email") or ""), "mindrift", "email") or os.getenv(
+            "MINDRIFT_BROWSER_EMAIL"
+        )
+        self.password = resolve_credential(str(self.config.get("password") or ""), "mindrift", "password") or os.getenv(
+            "MINDRIFT_BROWSER_PASSWORD"
+        )
         self.base_url = self.config.get("base_url", "https://mindrift.com")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:

@@ -58,6 +58,15 @@
             <div class="font-semibold text-foreground">Tarea de hoy</div>
             <div class="text-sm text-muted-foreground">{{ status.next_task.title }}</div>
             <div class="mt-1 text-xs text-muted-foreground">{{ status.next_task.how_to }}</div>
+            <a
+              v-if="status.next_task.url"
+              :href="status.next_task.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 inline-block rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              {{ status.next_task.url_label || 'Abrir →' }}
+            </a>
           </div>
         </div>
       </div>
@@ -108,6 +117,15 @@
                   <div class="mt-1 text-[10px] text-muted-foreground/70 sm:text-xs">
                     ⏱ ~{{ item.est_minutes }} minutos
                   </div>
+                  <a
+                    v-if="!item.done && item.url"
+                    :href="item.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-2 inline-block rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    {{ item.url_label || 'Abrir →' }}
+                  </a>
                 </div>
               </div>
               <div class="flex-shrink-0">
@@ -133,14 +151,22 @@
         </div>
       </div>
 
-      <!-- All done -->
+      <!-- All done — never a dead end: guide to money -->
       <div
         v-if="status.complete"
-        class="rounded-lg border border-green-500/30 bg-green-500/5 p-6 text-center"
+        class="rounded-lg border border-green-500/30 bg-green-500/5 p-6 text-center space-y-3"
       >
         <div class="text-4xl">🎉</div>
-        <div class="mt-2 text-lg font-semibold text-foreground">¡Configuración completa!</div>
-        <div class="mt-1 text-sm text-muted-foreground">Tu sistema está listo para operar.</div>
+        <div class="text-lg font-semibold text-foreground">¡Configuración completa!</div>
+        <div class="text-sm text-muted-foreground">Tu sistema está listo para operar. Próximo paso: cobrar.</div>
+        <div class="flex flex-wrap justify-center gap-2">
+          <a href="/" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Income Home → ¿Qué hago ahora?</a>
+          <a href="/operations/first-money" class="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted">First Money → Siguiente etapa</a>
+          <a href="/operations/work-queue" class="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted">Cola de trabajo → Deliver</a>
+        </div>
+        <div v-if="status.next_task" class="text-xs text-muted-foreground">
+          Siguiente: {{ status.next_task.title }} — <a :href="status.next_task.url" target="_blank" class="text-primary underline">{{ status.next_task.url_label || 'Abrir →' }}</a>
+        </div>
       </div>
     </template>
   </div>
@@ -159,6 +185,8 @@ interface ChecklistItem {
   est_minutes: number
   how_to: string
   auto: boolean
+  url?: string
+  url_label?: string
 }
 
 interface ChecklistStatus {

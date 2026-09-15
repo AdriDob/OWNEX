@@ -322,3 +322,50 @@ def test_cvu_boost_off_ramp() -> None:
     paysend_offramp = next((m for m in verdict.off_ramp if m.account_id == "paysend"), None)
     if paysend_offramp:
         assert paysend_offramp.score > 90  # base ~85 + 8 CVU + meta
+
+
+def test_bitwage_in_network_catalog() -> None:
+    """Bitwage existe como rail PAYOUT con ACH/wire/cripto y cobertura AR."""
+    acc = get_account("bitwage")
+    assert acc is not None
+    assert acc.layer == PaymentLayer.PROCESSORS
+    assert acc.function == PaymentFunction.PAYOUT
+    assert Region.ARGENTINA in acc.regions
+    assert Region.USA in acc.regions
+    methods_lower = {m.lower() for m in acc.methods}
+    assert {"ach", "wire", "crypto"} <= methods_lower
+    assert acc.payout_ref == "bitwage"
+    assert acc.monthly_fee_usd == 0.0
+
+
+def test_bitwage_in_argentina_methods_db() -> None:
+    """Bitwage existe en ARGENTINA_PAYOUT_METHODS con estructura de fees válida."""
+    from cores.financial_intelligence.argentina_payout_methods import ARGENTINA_PAYOUT_METHODS
+
+    entry = next((m for m in ARGENTINA_PAYOUT_METHODS if m.id == "bitwage"), None)
+    assert entry is not None
+    assert entry.argentina_compatible is True
+    assert set(entry.fees) >= {"fixed", "percentage", "withdrawal"}
+    assert any("VERIFICAR" in c for c in entry.cons), "cifras sin verificar deben advertirlo"
+
+
+def test_argentina_ranked_sorted_by_commission() -> None:
+    """El ranking argentino viene ordenado por % de comisión ascendente."""
+    ranked = get_payment_engine().ranked_argentina_methods()
+    assert ranked["total"] > 0
+    assert ranked["ordered_by"] == ["fee_percentage ASC", "reliability_score DESC"]
+    assert "disclaimer" in ranked
+    methods = ranked["methods"]
+    assert any(m["id"] == "bitwage" for m in methods)
+    keys = [(m["fee_percentage"], -m["reliability_score"]) for m in methods]
+    assert keys == sorted(keys)
+
+
+def test_argentina_ranked_endpoint() -> None:
+    """GET /api/payment-compat/argentina-ranked expone el ranking (solo lectura)."""
+    client = _authed_client()
+    resp = client.get("/api/payment-compat/argentina-ranked")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] > 0
+    assert body["methods"][0]["fee_percentage"] <= body["methods"][-1]["fee_percentage"]

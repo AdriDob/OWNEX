@@ -71,8 +71,6 @@ fun WearOSApp(
                         onAction = { action ->
                             when (action) {
                                 "refresh" -> viewModel.syncAll()
-                                "merlin" -> { /* navigate to merlin */ }
-                                "dashboard" -> { /* navigate to dashboard */ }
                                 "notifications" -> navController.navigate("notifications")
                             }
                         },

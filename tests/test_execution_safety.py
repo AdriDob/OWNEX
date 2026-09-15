@@ -42,6 +42,42 @@ def test_approval_rejects_wrong_target_and_garbage():
     assert consume_approval(None, "browser:easy_apply_linkedin", "https://x.test/job/1") is False
 
 
+def test_approval_rejects_wrong_action():
+    token = issue_approval("browser:easy_apply_linkedin", "https://x.test/job/1")
+    assert consume_approval(token, "browser:claim_algora_issue", "https://x.test/job/1") is False
+
+
+def test_approval_rejects_wrong_workspace():
+    token = issue_approval("browser:easy_apply_linkedin", "https://x.test/job/1", workspace="PUBLIC_WORK")
+    assert consume_approval(token, "browser:easy_apply_linkedin", "https://x.test/job/1", workspace="CAPITAL") is False
+    assert consume_approval(token, "browser:easy_apply_linkedin", "https://x.test/job/1", workspace="") is False
+    # Correct workspace consumes exactly once.
+    assert (
+        consume_approval(token, "browser:easy_apply_linkedin", "https://x.test/job/1", workspace="PUBLIC_WORK") is True
+    )
+    assert (
+        consume_approval(token, "browser:easy_apply_linkedin", "https://x.test/job/1", workspace="PUBLIC_WORK") is False
+    )
+
+
+def test_approval_rejects_tampered_workspace_and_legacy_format():
+    token = issue_approval("browser:x", "y", workspace="A")
+    # Flip workspace segment: signature must fail.
+    parts = token.split(":")
+    tampered = ":".join([parts[0], parts[1], parts[2], "B", parts[4]])
+    assert consume_approval(tampered, "browser:x", "y", workspace="B") is False
+    # Legacy v1 format (no workspace segment) is rejected, never grandfathered.
+    assert consume_approval("123:abcdef:deadbeef", "browser:x", "y") is False
+
+
+def test_scoped_browser_gate_requires_matching_workspace():
+    from cores.automation.safety import require_browser_approval
+
+    token = issue_approval("browser:dataannotation_claim_task", "https://x.test/t/1", workspace="PUBLIC_WORK")
+    ok, _ = require_browser_approval("dataannotation_claim_task", "https://x.test/t/1", token, workspace="CAPITAL")
+    assert ok is False
+
+
 def test_approval_rejects_expired(monkeypatch):
     import hashlib
     import hmac

@@ -72,6 +72,9 @@ class SourcingScoreIn(BaseModel):
     processing_days: int = 3
     shipping_usd: float = 0.0
     marketplace_fee_pct: float = 13.0
+    platform_fee_pct: float = 0.0
+    tax_pct: float = 0.0
+    other_costs_usd: float = 0.0
 
 
 @router.get("/status")
@@ -105,10 +108,80 @@ async def ecommerce_add_supplier(payload: SupplierIn) -> dict[str, Any]:
 async def ecommerce_list_suppliers() -> dict[str, Any]:
     engine = get_ecommerce_engine()
     suppliers = engine.list_suppliers(active_only=False)
+    # Enrich with outreach status so front needs 1 call, not N
+    try:
+        from cores.ecommerce.outreach import get_outreach_store
+
+        outreach = get_outreach_store().list_all()
+    except Exception:
+        outreach = {}
     return {
         "total": len(suppliers),
-        "suppliers": [{"id": s.id, "name": s.name, "type": s.type.value, "active": s.is_active} for s in suppliers],
+        "suppliers": [
+            {
+                "id": s.id,
+                "name": s.name,
+                "type": s.type.value,
+                "active": s.is_active,
+                "website": s.website,
+                "commission_rate": float(s.commission_rate) if s.commission_rate else None,
+                "processing_time_days": s.processing_time_days,
+                "notes": s.notes,
+                "outreach": outreach.get(s.id).to_dict() if s.id in outreach else {"status": "pending"},
+            }
+            for s in sorted(suppliers, key=lambda x: x.id)
+        ],
     }
+
+
+@router.get("/suppliers/outreach/summary")
+async def ecommerce_outreach_summary() -> dict[str, Any]:
+    from cores.ecommerce.outreach import build_message, get_outreach_store
+
+    store = get_outreach_store()
+    return {"summary": store.summary(), "templates": list(build_message("x", "Demo").keys())}
+
+
+@router.get("/suppliers/{supplier_id}/outreach")
+async def ecommerce_supplier_outreach(supplier_id: str) -> dict[str, Any]:
+    from cores.ecommerce.outreach import build_message, get_outreach_store
+
+    engine = get_ecommerce_engine()
+    sup = engine.get_supplier(supplier_id)
+    if not sup:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    msg = build_message(sup.id, sup.name)
+    rec = get_outreach_store().get(supplier_id)
+    return {
+        "supplier": {"id": sup.id, "name": sup.name, "website": sup.website},
+        "message": msg,
+        "record": rec.to_dict() if rec else None,
+    }
+
+
+@router.post("/suppliers/{supplier_id}/outreach/contact")
+async def ecommerce_supplier_mark_contacted(supplier_id: str, notes: str = "") -> dict[str, Any]:
+    from cores.ecommerce.outreach import build_message, get_outreach_store
+
+    engine = get_ecommerce_engine()
+    sup = engine.get_supplier(supplier_id)
+    if not sup:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    msg = build_message(sup.id, sup.name)
+    rec = get_outreach_store().mark_contacted(supplier_id, wa_url=msg["wa_url"], message=msg["body"], notes=notes)
+    return {"success": True, "record": rec.to_dict(), "wa_url": msg["wa_url"]}
+
+
+@router.post("/suppliers/{supplier_id}/outreach/status")
+async def ecommerce_supplier_set_status(supplier_id: str, status: str, notes: str = "") -> dict[str, Any]:
+    from cores.ecommerce.outreach import get_outreach_store
+
+    if status not in ("pending", "contacted", "replied", "verified", "rejected"):
+        raise HTTPException(status_code=422, detail="status must be pending|contacted|replied|verified|rejected")
+    rec = get_outreach_store().mark(supplier_id, status=status, notes=notes)
+    if not rec:
+        raise HTTPException(status_code=404, detail="No outreach yet — use /contact first")
+    return {"success": True, "record": rec.to_dict()}
 
 
 @router.post("/suppliers/{supplier_id}/sync-catalog")
@@ -204,6 +277,9 @@ async def ecommerce_sourcing_score(payload: SourcingScoreIn) -> dict[str, Any]:
         processing_days=payload.processing_days,
         shipping_usd=payload.shipping_usd,
         marketplace_fee_pct=payload.marketplace_fee_pct,
+        platform_fee_pct=payload.platform_fee_pct,
+        tax_pct=payload.tax_pct,
+        other_costs_usd=payload.other_costs_usd,
     )
 
 
@@ -213,6 +289,9 @@ class PricingSuggestIn(BaseModel):
     target_margin_pct: float = 35.0
     shipping_usd: float = 0.0
     marketplace_fee_pct: float = 13.0
+    platform_fee_pct: float = 0.0
+    tax_pct: float = 0.0
+    other_costs_usd: float = 0.0
 
 
 @router.post("/sourcing/suggest-price")
@@ -224,6 +303,28 @@ async def ecommerce_suggest_price(payload: PricingSuggestIn) -> dict[str, Any]:
         target_margin_pct=payload.target_margin_pct,
         shipping_usd=payload.shipping_usd,
         marketplace_fee_pct=payload.marketplace_fee_pct,
+        platform_fee_pct=payload.platform_fee_pct,
+        tax_pct=payload.tax_pct,
+        other_costs_usd=payload.other_costs_usd,
+    )
+
+
+@router.post("/sourcing/net-real")
+async def ecommerce_net_real(payload: SourcingScoreIn) -> dict[str, Any]:
+    """NETO REAL: venta − proveedor − Meli − plataforma − impuestos − otros.
+
+    Misma matemática que /sourcing/score con otro nombre: el número que
+    importa (ganancia neta por venta). platform_fee_pct=3.0 para Dropsheable.
+    """
+    return get_sourcing_engine().score_supplier_offer(
+        cost_usd=payload.cost_usd,
+        sale_price_usd=payload.sale_price_usd,
+        processing_days=payload.processing_days,
+        shipping_usd=payload.shipping_usd,
+        marketplace_fee_pct=payload.marketplace_fee_pct,
+        platform_fee_pct=payload.platform_fee_pct,
+        tax_pct=payload.tax_pct,
+        other_costs_usd=payload.other_costs_usd,
     )
 
 
@@ -337,6 +438,21 @@ async def ecommerce_list_competitors(product_id: str) -> dict[str, Any]:
 @router.get("/intel/competitors")
 async def ecommerce_competitor_watch() -> dict[str, Any]:
     return run_ecommerce_competitor_watch()
+
+
+@router.get("/intel/winners")
+async def ecommerce_intel_winners(platform_fee_pct: float = 0.0) -> dict[str, Any]:
+    """MATAR o ESCALAR por datos: neto/venta × ventas por producto + funnel."""
+    engine = get_ecommerce_engine()
+    perf = engine.product_performance(platform_fee_pct=platform_fee_pct)
+    funnel = engine.portfolio_funnel(platform_fee_pct=platform_fee_pct)
+    return {"total": len(perf), "products": perf[:100], "funnel": funnel}
+
+
+@router.get("/intel/objectives")
+async def ecommerce_intel_objectives(human_hours: float = 0.0, platform_fee_pct: float = 0.0) -> dict[str, Any]:
+    """Objetivos O1-O6 del experimento + netos por hora humana."""
+    return get_ecommerce_engine().experiment_objectives(human_hours=human_hours, platform_fee_pct=platform_fee_pct)
 
 
 class RouteIn(BaseModel):

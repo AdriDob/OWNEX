@@ -217,13 +217,14 @@ class TestOpportunityEngineE2E:
         from cores.opportunity.executors import get_executors
 
         ex = get_executors()
-        assert "algora" in ex
-        assert "freelancer" in ex
-        assert "opire" in ex
-        assert "issuehunt" in ex
+        assert {"freelancer", "opire", "issuehunt", "mindrift"} <= set(ex)
         for _name, executor in ex.items():
             assert hasattr(executor, "execute")
             assert hasattr(executor, "is_enabled")
+        # Algora integrates via adapter (claim→PR→merge), never the registry.
+        from cores.opportunity.executors.algora_executor import AlgoraDweAdapter
+
+        assert hasattr(AlgoraDweAdapter, "submit_work")
 
     def test_3_opportunity_orchestrator(self):
         from cores.opportunity.engine import OpportunityOrchestrator
@@ -322,7 +323,7 @@ class TestExecutionLayerE2E:
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
-        assert names[0] == "omniroute"
+        assert names[0] == "fcc"
 
 
 # ── 5. BROWSER WORKERS E2E ───────────────────────────────────────────
@@ -336,12 +337,10 @@ class TestBrowserWorkersE2E:
             DataAnnotationWorker,
             MindriftBrowserWorker,
             OutlierWorker,
-            RemotasksWorker,
         )
 
         assert DataAnnotationWorker().platform == "dataannotation"
         assert OutlierWorker().platform == "outlier"
-        assert RemotasksWorker().platform == "remotasks"
         assert MindriftBrowserWorker().platform == "mindrift_browser"
 
     @pytest.mark.asyncio
@@ -353,14 +352,14 @@ class TestBrowserWorkersE2E:
         assert result["success"] is False
         assert "Unknown action" in result.get("error", "")
 
-    def test_3_get_browser_workers_returns_4(self):
+    def test_3_get_browser_workers_returns_3(self):
         from cores.automation.workers import get_browser_workers
 
         workers = get_browser_workers()
-        assert len(workers) == 4
+        assert len(workers) == 3
         assert "dataannotation" in workers
         assert "outlier" in workers
-        assert "remotasks" in workers
+        assert "remotasks" not in workers
         assert "mindrift_browser" in workers
 
 
@@ -392,7 +391,7 @@ class TestCopilotModelRoutingE2E:
 
         pr = get_provider_router()
         names = [p.name for p in pr.providers]
-        assert names[0] == "omniroute"
+        assert names[0] == "fcc"
         assert "ollama" in names
 
     @pytest.mark.asyncio

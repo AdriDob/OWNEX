@@ -17,6 +17,12 @@ class MindriftBrowserWorker:
         self.browser = BrowserAgent(config)
 
     async def login(self, email: str = "", password: str = "") -> dict[str, Any]:
+        from cores.automation.browser_agent import resolve_credential
+
+        email = resolve_credential(email, "mindrift", "email")
+        password = resolve_credential(password, "mindrift", "password")
+        if not email or not password:
+            return {"success": False, "error": "Mindrift not configured"}
         result = await self.browser.goto("https://mindrift.io/login")
         if not result.success:
             return {"success": False, "error": result.error}

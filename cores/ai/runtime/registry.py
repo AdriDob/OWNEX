@@ -14,6 +14,8 @@ from .adapters import (
     create_groq_adapter,
     create_lmstudio_adapter,
     create_nvidia_adapter,
+    create_ollama_cloud_adapter,
+    create_omniroute_adapter,
     create_opencode_adapter,
     create_openrouter_adapter,
     create_together_adapter,
@@ -41,17 +43,19 @@ class ProviderRegistry:
         self._capabilities_cache: dict[str, ModelCapabilities] = {}
         self._initialized = False
 
-        # Register built-in provider factories
+        # Register built-in provider factories (los no-free se registran bajo demanda)
         self._provider_factories = {
             "ollama": lambda: OllamaAdapter(),
+            "opencode": lambda: create_opencode_adapter(),
+            "ollama_cloud": lambda: create_ollama_cloud_adapter(),
+            "fcc": lambda: create_fcc_adapter(),
+            "nvidia_nim": lambda: create_nvidia_adapter(),
+            "omniroute": lambda: create_omniroute_adapter(),
             "openrouter": lambda: create_openrouter_adapter(),
             "groq": lambda: create_groq_adapter(),
             "together": lambda: create_together_adapter(),
             "deepinfra": lambda: create_deepinfra_adapter(),
             "cerebras": lambda: create_cerebras_adapter(),
-            "nvidia_nim": lambda: create_nvidia_adapter(),
-            "fcc": lambda: create_fcc_adapter(),
-            "opencode": lambda: create_opencode_adapter(),
             "lmstudio": lambda: create_lmstudio_adapter(),
         }
 

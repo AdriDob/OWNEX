@@ -33,6 +33,11 @@ class TestIncomeRoles:
             WorkspaceType.MERCADO_LIBRE,
             WorkspaceType.ADRIEL_WEBS,
             WorkspaceType.CONTENT_FACTORY,
+            WorkspaceType.ASSET_FACTORY,
+            WorkspaceType.PARTNERSHIP,
+            WorkspaceType.AFFILIATE,
+            WorkspaceType.LEAD_SERVICES,
+            WorkspaceType.KNOWLEDGE_ASSETS,
         ):
             assert income_role(ws) == IncomeRole.UPSIDE
 

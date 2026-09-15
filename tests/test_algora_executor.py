@@ -97,9 +97,49 @@ class TestPollMerge:
 
 class TestAdapterCompat:
     def test_adapter_builds_and_build_fn_requires_token(self, monkeypatch) -> None:
+        # Aislado de secretos locales: sin env, sin opportunity.env, sin vault.
         monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+        monkeypatch.setattr(
+            "cores.credentials.vault.get_credentials",
+            lambda force_refresh=False: SimpleNamespace(github_token=""),
+        )
+
+        class _EmptyVault:
+            def get_credentials(self, _key):
+                return {}
+
+        monkeypatch.setattr("cores.identity_vault.IdentityVault", lambda: _EmptyVault())
         with pytest.raises(ValueError, match="GitHub token"):
             build_algora_executor()
+
+    def test_build_fn_reads_opportunity_env_vault(self, monkeypatch) -> None:
+        # Token guardado vía opportunity.env (el path que detecta el checklist)
+        # debe construir el executor aunque no haya env var.
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+        monkeypatch.setattr(
+            "cores.credentials.vault.get_credentials",
+            lambda force_refresh=False: SimpleNamespace(github_token="ghp_from_file"),
+        )
+        ex = build_algora_executor()
+        assert ex.config.github_token == "ghp_from_file"
+
+    def test_build_fn_explicit_param_wins(self, monkeypatch) -> None:
+        monkeypatch.setenv("GITHUB_TOKEN", "ghp_from_env")
+        monkeypatch.setattr(
+            "cores.credentials.vault.get_credentials",
+            lambda force_refresh=False: SimpleNamespace(github_token="ghp_from_file"),
+        )
+        ex = build_algora_executor(github_token="ghp_explicit")
+        assert ex.config.github_token == "ghp_explicit"
+
+    def test_build_fn_env_beats_vault_file(self, monkeypatch) -> None:
+        monkeypatch.setenv("GITHUB_TOKEN", "ghp_from_env")
+        monkeypatch.setattr(
+            "cores.credentials.vault.get_credentials",
+            lambda force_refresh=False: SimpleNamespace(github_token="ghp_from_file"),
+        )
+        ex = build_algora_executor()
+        assert ex.config.github_token == "ghp_from_env"
 
     async def test_submit_work_no_url_fails(self) -> None:
         ad = AlgoraDweAdapter(github_token="gh_test")

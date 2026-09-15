@@ -92,3 +92,73 @@ def browser_context() -> dict[str, Any]:
         },
         "security_note": "Never extracts passwords/cookies/tokens. Use Identity Vault + Human Gate for auth.",
     }
+
+
+# Browser context states (§8). Real causes, never generic "Browser error".
+BROWSER_STATES = (
+    "NOT_DETECTED",
+    "DETECTED",
+    "READY",
+    "LOGIN_REQUIRED",
+    "VERIFICATION_REQUIRED",
+    "HUMAN_ACTION_REQUIRED",
+    "AUTOMATING",
+    "BLOCKED",
+    "ERROR",
+)
+
+
+def browser_state(evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Honest browser state machine.
+
+    Without a live session only NOT_DETECTED/DETECTED can be claimed —
+    READY and beyond require caller evidence (never invented).
+    Returns {state, cause, next_action}.
+    """
+    ev = evidence or {}
+    if ev.get("error"):
+        return {"state": "ERROR", "cause": str(ev["error"])[:200], "next_action": "Revisar el error y reintentar."}
+    if ev.get("blocked_reason"):
+        return {
+            "state": "BLOCKED",
+            "cause": str(ev["blocked_reason"])[:200],
+            "next_action": "Resolver el bloqueo (CAPTCHA/MFA/KYC = acción humana, nunca bypass).",
+        }
+    if ev.get("human_action_required"):
+        return {
+            "state": "HUMAN_ACTION_REQUIRED",
+            "cause": str(ev.get("detail") or "La página requiere intervención humana."),
+            "next_action": "Completar la acción indicada y avisar a OWNEX para continuar.",
+        }
+    if ev.get("verification_required"):
+        return {
+            "state": "VERIFICATION_REQUIRED",
+            "cause": "El sitio pide verificación (MFA/KYC/código).",
+            "next_action": "Completar la verificación manualmente; OWNEX espera.",
+        }
+    if ev.get("login_required"):
+        return {
+            "state": "LOGIN_REQUIRED",
+            "cause": "Sin sesión activa en el sitio de trabajo.",
+            "next_action": "Iniciar sesión manualmente o configurar credenciales en Identity Vault.",
+        }
+    if ev.get("automation_active"):
+        return {
+            "state": "AUTOMATING",
+            "cause": "Automatización legítima en curso (Playwright, acción permitida).",
+            "next_action": "Ninguna — monitorear.",
+        }
+    if ev.get("session_ready"):
+        return {"state": "READY", "cause": "Sesión verificada por el caller.", "next_action": "Ninguna."}
+    brave = detect_brave()
+    if not brave["installed"]:
+        return {
+            "state": "NOT_DETECTED",
+            "cause": "Brave no encontrado (ni rutas estándar ni PATH).",
+            "next_action": "Instalar Brave o usar el navegador por defecto.",
+        }
+    return {
+        "state": "DETECTED",
+        "cause": f"Brave detectado en {brave['path']}; sin sesión viva verificada.",
+        "next_action": "Abrir la página de trabajo; OWNEX acompaña desde ahí.",
+    }

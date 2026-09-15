@@ -177,6 +177,52 @@ class TestRestoreBackup:
         assert (restore_dir / "config.json").exists()
 
 
+class TestSecurityHardening:
+    def test_backup_never_contains_raw_secrets(self, _backup_env: Path) -> None:
+        """SECURITY: vault key / private keys must never land in a plaintext zip."""
+        import zipfile
+
+        from cores.backup import create_backup
+
+        (_backup_env / "id_ed25519").write_text("fake-private-key")
+        (_backup_env / "cert.pem").write_text("fake-pem")
+        (_backup_env / "wallet_key.p12").write_text("fake-p12")
+        (_backup_env / "identity_vault.json").write_text('{"encrypted": true}')
+
+        result = create_backup()
+        assert result["status"] == "ok"
+        with zipfile.ZipFile(result["backup_path"]) as zf:
+            names = zf.namelist()
+            assert "identity_vault.key" not in names
+            assert "identity_vault.key.bak" not in names
+            assert "id_ed25519" not in names
+            assert "cert.pem" not in names
+            assert "wallet_key.p12" not in names
+
+        # Encrypted vault + DBs still backed up (recovery works).
+        with zipfile.ZipFile(result["backup_path"]) as zf:
+            manifest = json.loads(zf.read("manifest.json"))
+            assert "identity_vault.json" in {f["path"] for f in manifest["files"]}
+            assert any("database/ownex.db" == f["path"] for f in manifest["files"])
+
+    def test_restore_preserves_existing_vault_key(self, _backup_env: Path) -> None:
+        """Restoring with an existing vault key never clobbers it (preserves .key.bak)."""
+        from cores.backup import create_backup, restore_backup
+
+        # Put a fake identity_vault.json in the tree so restore has something.
+        (_backup_env / "identity_vault.json").write_text('{"x": 1}')
+        result = create_backup()
+
+        restore_dir = Path(tempfile.mkdtemp())
+        (restore_dir / "identity_vault.key").write_text("precious-existing-key")
+        r = restore_backup(result["backup_path"], target_dir=str(restore_dir))
+        assert r["status"] == "ok"
+        # The archive contains no key, so the existing one is untouched.
+        assert (restore_dir / "identity_vault.key").read_text() == "precious-existing-key"
+        # Restored data landed.
+        assert (restore_dir / "identity_vault.json").exists()
+
+
 class TestAPIEndpoints:
     def test_backup_create_endpoint(self, _backup_env: Path) -> None:
         from fastapi import FastAPI

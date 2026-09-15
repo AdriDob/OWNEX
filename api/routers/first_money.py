@@ -143,11 +143,26 @@ async def get_aggressive_plan(target_usd: int = 5000) -> dict[str, Any]:
     """Get aggressive plan to reach target_usd by end of year.
 
     Calculates weekly output required per engine, hours needed, and probability.
+    Accepts 5000/10000 (legacy) + 50000 (marzo 2027 vigente) + cualquier múltiplo de 1000.
     """
-    if target_usd not in (5000, 10000):
-        raise HTTPException(status_code=400, detail="target_usd must be 5000 or 10000")
+    allowed = (5000, 10000, 50000, 25000, 15000, 30000, 40000)
+    if target_usd not in allowed:
+        # Compat: cualquier múltiplo de 5000 dentro de rango razonable
+        if target_usd < 1000 or target_usd > 100000 or target_usd % 1000 != 0:
+            raise HTTPException(
+                status_code=400, detail="target_usd must be 5000, 10000 or 50000 (o múltiplo de 1000 entre 1k y 100k)"
+            )
     tracker = get_first_money_tracker()
-    return tracker.get_aggressive_plan(target_usd)
+    # 50000 del plan vigente usa march2027_plan que tiene escalera detallada
+    if target_usd == 50000 and hasattr(tracker, "get_march2027_plan"):
+        return tracker.get_march2027_plan()
+    try:
+        return tracker.get_aggressive_plan(target_usd)
+    except Exception:
+        # Fallback al plan marzo si aggressive no soporta ese target
+        if hasattr(tracker, "get_march2027_plan"):
+            return tracker.get_march2027_plan()
+        raise
 
 
 @router.get("/march2027-plan")

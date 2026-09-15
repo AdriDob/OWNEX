@@ -135,26 +135,35 @@ OWNEX must optimize for expected value, probability of success, time efficiency,
 
 **The system must never fabricate opportunities, earnings, platform availability, acceptance probability or revenue. Unknown information must remain explicitly unknown.**
 
-Estructura económica:
+Estructura económica — 6 motores (definitivo 2026-09-15):
 
 ```text
-             OWNEX
-               │
-       OPPORTUNITY ENGINE
-               │
-     ┌─────────┼─────────┐
-     ▼         ▼         ▼
-    DEV       BUG       AI
-  BOUNTY    BOUNTY    TRAINING
-     │         │         │
-     └─────────┼─────────┘
-               ▼
-          WORK ENGINE (Human Gate obligatorio)
-               ▼
-        REVENUE ENGINE (EXPECTED ≠ PENDING ≠ PAID)
-               ▼
-         CAPITAL ENGINE
+                         OWNEX
+                           │
+             ┌─────────────┼──────────────┐
+             │             │              │
+          CASH NOW     SKILL→CASH    ASSET→CASH      ← 3 motores de ingreso directo
+             │             │              │
+       Droppinglabel    Bounties        SaaS  APIs  Tools  Templates  Datasets
+       Mercado Libre    AI Work         Plugins  Extensions  Automation Kits
+       Adriel Webs      Challenges      Digital Products · Licensing
+             │             │              │
+             └─────────────┼──────────────┘
+                           │
+                    AUDIENCE→CASH        ← distribución (Content Factory / social)
+                           │
+                    PARTNERSHIP→CASH     ← revenue share / afiliación (futuro, UPSIDE)
+                           │
+                    CAPITAL→CAPITAL      ← ahorro → inversión → trading (PAPER, nunca renta base)
+                           │
+                    WORK ENGINE (Human Gate obligatorio)
+                           │
+                    REVENUE ENGINE (EXPECTED ≠ PENDING ≠ PAID)
 ```
+
+12 workspaces canónicos (6 motores): OWNEX(core) + BUG_BOUNTY/DEV_BOUNTY/AI_TRAINING(SKILL→CASH) + DROPPINGLABEL/MERCADO_LIBRE/ADRIEL_WEBS(CASH NOW) + CONTENT_FACTORY(AUDIENCE) + ASSET_FACTORY(ASSET→CASH) + PARTNERSHIP(futuro) + TRADING(CAPITAL) + BACKUP_INCOME(safety net).
+
+Regla permanente: < $15/h, requiere entrevista/empleo, o datos simulados → fuera. ASSET_FACTORY solo produce si pasa 9 gates con demanda observable; PARTNERSHIP solo con acuerdo firmado.
 
 Fiverr es canal comercial (no motor): adquisición de clientes/servicios. Upwork y uTest quedan fuera. Revenue tiers visibles: SURVIVAL (¿hay ingreso?) / TARGET $5K / STRETCH $15K, con pace, proyección y gap calculados solo desde ledger PAID.
 

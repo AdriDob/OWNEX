@@ -8,8 +8,10 @@ Two sides of the same rule (owner = final authority):
   commands are blocked, secrets never enter prompts/logs, and pushing
   branches / opening PRs / submitting work requires approval.
 
-Approval tokens are HMAC-signed (action + target + expiry), single-use,
-and single-process by design. They are a human gate, not cross-machine auth.
+Approval tokens are HMAC-signed (action + target + workspace + expiry),
+single-use, and single-process by design. They are a human gate, not
+cross-machine auth. A token issued for one workspace/action/target never
+authorizes another (HMAC binds all four fields).
 """
 
 from __future__ import annotations
@@ -74,23 +76,28 @@ def _approval_key() -> bytes:
 _USED_TOKENS: set[str] = set()
 
 
-def issue_approval(action: str, target: str, ttl_seconds: int = APPROVAL_TTL_SECONDS) -> str:
-    """Issue a one-time approval token for (action, target). Human-facing."""
+def issue_approval(action: str, target: str, ttl_seconds: int = APPROVAL_TTL_SECONDS, workspace: str = "") -> str:
+    """Issue a one-time approval token for (action, target, workspace). Human-facing."""
     expires = int(time.time()) + max(1, ttl_seconds)
     nonce = secrets.token_hex(8)
-    payload = f"{action}\n{target}\n{expires}\n{nonce}"
+    ws = (workspace or "").strip()
+    payload = f"v2\n{action}\n{target}\n{ws}\n{expires}\n{nonce}"
     sig = hmac.new(_approval_key(), payload.encode(), hashlib.sha256).hexdigest()
-    return f"{expires}:{nonce}:{sig}"
+    return f"v2:{expires}:{nonce}:{ws}:{sig}"
 
 
-def consume_approval(token: str | None, action: str, target: str) -> bool:
-    """Validate and burn a one-time approval token. False = deny."""
+def consume_approval(token: str | None, action: str, target: str, workspace: str = "") -> bool:
+    """Validate and burn a one-time approval token. False = deny.
+
+    Rejects: missing/malformed, expired, wrong action, wrong target, wrong
+    workspace, tampered signature, reused token.
+    """
     if not token:
         return False
     parts = token.split(":")
-    if len(parts) != 3:
+    if len(parts) != 5 or parts[0] != "v2":
         return False
-    expires_raw, nonce, sig = parts
+    _, expires_raw, nonce, token_ws, sig = parts
     if not nonce:
         return False
     try:
@@ -98,7 +105,10 @@ def consume_approval(token: str | None, action: str, target: str) -> bool:
             return False
     except ValueError:
         return False
-    payload = f"{action}\n{target}\n{expires_raw}\n{nonce}"
+    ws = (workspace or "").strip()
+    if token_ws != ws:
+        return False
+    payload = f"v2\n{action}\n{target}\n{ws}\n{expires_raw}\n{nonce}"
     expected = hmac.new(_approval_key(), payload.encode(), hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected, sig):
         return False
@@ -111,12 +121,14 @@ def consume_approval(token: str | None, action: str, target: str) -> bool:
     return True
 
 
-def require_browser_approval(method_name: str, target: str, approval_token: str | None) -> tuple[bool, str]:
+def require_browser_approval(
+    method_name: str, target: str, approval_token: str | None, workspace: str = ""
+) -> tuple[bool, str]:
     """Gate for BrowserAgent consequential methods. Returns (ok, message)."""
     if classify_browser_action(method_name) != ActionClass.CONSEQUENTIAL:
         return True, ""
     action = f"browser:{method_name}"
-    if consume_approval(approval_token, action, target):
+    if consume_approval(approval_token, action, target, workspace):
         return True, ""
     return False, (
         f"Requires human approval: {method_name} on {target} sends data outward. "

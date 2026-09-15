@@ -28,7 +28,7 @@ class OllamaAdapter(AIProviderProtocol):
 
     def __init__(self, host: str | None = None, model: str | None = None):
         self._host = (host or os.getenv("OLLAMA_HOST", "http://localhost:11434")).rstrip("/")
-        self._model = model or os.getenv("OLLAMA_MODEL", "qwen3-coder:8b")
+        self._model = model or os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
         self._available: bool | None = None
         self._start_time = time.monotonic()
 
@@ -42,10 +42,17 @@ class OllamaAdapter(AIProviderProtocol):
 
     @property
     def supported_models(self) -> list[str]:
-        return [self._model, "qwen3-coder:8b", "llama3.1:8b", "codellama:7b", "mistral:7b"]
+        return [self._model]
 
     def get_model_capabilities(self, model_id: str) -> ModelCapabilities | None:
         caps = {
+            "qwen2.5:3b-instruct": ModelCapabilities(
+                model_id=model_id,
+                supports={Capability.CHAT, Capability.CODE, Capability.REASONING, Capability.TOOL_CALLING},
+                max_context_tokens=32768,
+                max_output_tokens=8192,
+                tool_call_format="openai",
+            ),
             "qwen3-coder:8b": ModelCapabilities(
                 model_id=model_id,
                 supports={Capability.CHAT, Capability.CODE, Capability.REASONING, Capability.TOOL_CALLING},
@@ -563,7 +570,7 @@ def create_cerebras_adapter(api_key: str | None = None, model: str = "llama3.1-7
 
 
 def create_nvidia_adapter(
-    api_key: str | None = None, model: str = "meta/llama-3.1-70b-instruct"
+    api_key: str | None = None, model: str = "deepseek-ai/deepseek-v4-flash-0731"
 ) -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="nvidia_nim",
@@ -572,7 +579,7 @@ def create_nvidia_adapter(
         base_url="https://integrate.api.nvidia.com/v1",
         model=model,
         env_key="NVIDIA_API_KEY",
-        pricing=(0.0009, 0.0009),
+        pricing=(0.0, 0.0),  # free personal key; modelo verificado 2026-09-15
         capabilities={
             Capability.CHAT,
             Capability.CODE,
@@ -585,7 +592,9 @@ def create_nvidia_adapter(
     )
 
 
-def create_fcc_adapter(api_key: str | None = None, model: str = "claude-sonnet-4-5") -> OpenAICompatibleAdapter:
+def create_fcc_adapter(
+    api_key: str | None = None, model: str = "claude-3-5-sonnet-20241022"
+) -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="fcc",
         name="FCC Proxy",
@@ -638,7 +647,7 @@ def create_lmstudio_adapter(
 def create_ollama_cloud_adapter(
     api_key: str | None = None,
     host: str = "https://ollama.com/v1",
-    model: str = "qwen3-coder",
+    model: str = "qwen2.5:7b-instruct",
 ) -> OpenAICompatibleAdapter:
     """Ollama Cloud — API OpenAI-compatible hosted por Ollama.
 
@@ -654,6 +663,36 @@ def create_ollama_cloud_adapter(
         env_key="OLLAMA_CLOUD_API_KEY",
         pricing=(0.0, 0.0),  # free tier asumido; cost tracker registra 0 hasta evidencia
         capabilities={Capability.CHAT, Capability.STREAMING, Capability.TOOL_CALLING, Capability.LONG_CONTEXT},
+        max_context=128000,
+    )
+
+
+def create_omniroute_adapter(
+    api_key: str | None = None,
+    host: str = "http://localhost:20128/v1",
+    model: str = "auto/best-free",
+) -> OpenAICompatibleAdapter:
+    """OmniRoute — orquestador local free 24/7 (localhost:20128, 576 modelos).
+
+    auto/* elige el mejor modelo free por familia; nunca un ID fijo. Free por
+    diseño; QuotaTracker trata los límites como UNKNOWN, jamás ilimitados.
+    """
+    return OpenAICompatibleAdapter(
+        provider_id="omniroute",
+        name="OmniRoute",
+        api_key=api_key,
+        base_url=os.getenv("OMNIROUTE_BASE_URL", host),
+        model=os.getenv("OMNIROUTE_MODEL", model),
+        env_key="OMNIROUTE_API_KEY",
+        pricing=(0.0, 0.0),
+        capabilities={
+            Capability.CHAT,
+            Capability.CODE,
+            Capability.REASONING,
+            Capability.TOOL_CALLING,
+            Capability.JSON_MODE,
+            Capability.LONG_CONTEXT,
+        },
         max_context=128000,
     )
 

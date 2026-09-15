@@ -65,11 +65,17 @@ def _detect_profile_kit() -> bool:
         return False
 
 
-def _detect_payment_accounts() -> bool:
+def _detect_payment_accounts(min_rails: int = 3) -> bool:
+    """True when ≥``min_rails`` payment accounts are configured.
+
+    MONEY VALIDATION + SETUP_BLOCKERS: con 1 solo rail la cobrabilidad real
+    sigue siendo dudosa y P(CASH) no se puede afirmar. El mínimo honesto para
+    'podés cobrar' son 3 rails (US/wire + internacional + local ARS).
+    """
     try:
         from cores.payment_compat.engine import PaymentCompatibilityEngine
 
-        return len(PaymentCompatibilityEngine().get_configured_accounts()) > 0
+        return len(PaymentCompatibilityEngine().get_configured_accounts()) >= min_rails
     except Exception as exc:  # pragma: no cover - defensivo
         logger.warning("detector payment_accounts falló: %s", exc)
         return False
@@ -168,6 +174,23 @@ def _detect_ai_provider() -> bool:
         return False
 
 
+def _detect_github_token() -> bool:
+    """True when a GitHub token exists (vault github_token o env GITHUB_TOKEN).
+
+    GITHUB_TOKEN es el bloqueador #1 del pipeline de dev bounty: sin él no hay
+    claim → clone → PR en Algora/Opire/IssueHunt ni CoderAgent con write de PR.
+    """
+    try:
+        if os.environ.get("GITHUB_TOKEN"):
+            return True
+        from cores.credentials.vault import get_credentials
+
+        return bool(getattr(get_credentials(force_refresh=True), "github_token", ""))
+    except Exception as exc:  # pragma: no cover - defensivo
+        logger.warning("detector github_token falló: %s", exc)
+        return False
+
+
 def _detect_devbounty_api_key() -> bool:
     """True when at least one dev-bounty platform key exists (Opire/IssueHunt/Algora)."""
     try:
@@ -237,6 +260,8 @@ def _catalog() -> list[dict[str, Any]]:
             "why": "Sin esto, copilot, briefs y chat degradan en silencio. Ollama local o una key remota.",
             "est_minutes": 10,
             "how_to": "Settings → AI: usar Ollama local (:11434) o pegar key (Anthropic/OpenAI/Gemini/OpenRouter).",
+            "url": "/operations/settings",
+            "url_label": "Configurar IA",
             "auto": _AUTO,
         },
         {
@@ -247,16 +272,20 @@ def _catalog() -> list[dict[str, Any]]:
             "why": "Alimenta el autofill de TODAS las postulaciones y propuestas.",
             "est_minutes": 10,
             "how_to": "Panel Profile Kit → guardar nombre, skills, experiencia y links.",
+            "url": "/operations/profile-kit",
+            "url_label": "Completar perfil",
             "auto": _AUTO,
         },
         {
             "id": "payment_accounts",
             "phase": PHASE_ESSENTIALS,
             "priority": 3,
-            "title": "Marcar tus cuentas de cobro",
-            "why": "El Payment Compatibility Engine verifica cobrabilidad ANTES de invertir tiempo.",
+            "title": "Marcar tus cuentas de cobro (mínimo 3 rails)",
+            "why": "El Payment Compatibility Engine verifica cobrabilidad ANTES de invertir tiempo. Con solo 1 rail, P(CASH) queda UNKNOWN y el scorer dice 'sin rail configurado no es cobrable'.",
             "est_minutes": 15,
-            "how_to": "Payment Network → marcar cuáles de las cuentas curadas ya tenés activas.",
+            "how_to": "POST /api/payment-compat/configured con [grabrfi,wise,airtm,mercadopago] o UI → Payment Network",
+            "url": "/operations/payment-compat",
+            "url_label": "Configurar rails",
             "auto": _AUTO,
         },
         {
@@ -267,6 +296,8 @@ def _catalog() -> list[dict[str, Any]]:
             "why": "Habilita envío de reportes y sync de earnings (HackerOne/Bugcrowd/Intigriti/YesWeHack/Immunefi).",
             "est_minutes": 5,
             "how_to": "~/.config/ownex/opportunity.env → HACKERONE_API_KEY=<token> (Settings → API de la plataforma).",
+            "url": "/operations/settings",
+            "url_label": "Configurar keys",
             "auto": _AUTO,
         },
         {
@@ -277,16 +308,32 @@ def _catalog() -> list[dict[str, Any]]:
             "why": "Sin esto no hay submit ni tracking en Opire/IssueHunt/Algora.",
             "est_minutes": 5,
             "how_to": "~/.config/ownex/opportunity.env → OPIRE_API_KEY / ISSUEHUNT_API_KEY / ALGORA_API_KEY.",
+            "url": "/operations/settings",
+            "url_label": "Configurar keys",
+            "auto": _AUTO,
+        },
+        {
+            "id": "github_token",
+            "phase": PHASE_ESSENTIALS,
+            "priority": 6,
+            "title": "Configurar GITHUB_TOKEN (bloqueador #1 de dev bounty)",
+            "why": "Sin esto NO hay claim→clone→PR en Algora/Opire/IssueHunt ni CoderAgent con write de PR. Es el token que desbloquea los $2,700 de Algora en el WorkBank ahora mismo.",
+            "est_minutes": 3,
+            "how_to": "github.com/settings/tokens → Generate new token (classic) con scope `repo` → agregá la línea GITHUB_TOKEN=ghp_XXX en ~/.config/ownex/opportunity.env (o export GITHUB_TOKEN=ghp_XXX en ~/.bashrc). El detector y el executor de Algora lo leen de ahí.",
+            "url": "https://github.com/settings/tokens",
+            "url_label": "Abrir GitHub Tokens",
             "auto": _AUTO,
         },
         {
             "id": "first_target",
             "phase": PHASE_ESSENTIALS,
-            "priority": 6,
+            "priority": 7,
             "title": "Agregar tu primer target",
             "why": "Sin target no hay pipeline: recon → hipótesis → finding → reporte.",
             "est_minutes": 3,
-            "how_to": "Botón 'Add Target' o `python run.py --add-target <nombre> --domain <dominio>`.",
+            "how_to": "Botón 'Add Target' en /operations/surface o POST /api/targets",
+            "url": "/operations/surface",
+            "url_label": "Agregar target",
             "auto": _AUTO,
         },
         {
@@ -297,37 +344,129 @@ def _catalog() -> list[dict[str, Any]]:
             "why": "Plataforma AI-training #1 acepta Argentina directo; coding tier paga $8–18/h.",
             "est_minutes": 45,
             "how_to": "outlier.ai → registrarte con email real + completar prueba técnica. Argentina sin VPN.",
+            "url": "https://outlier.ai",
+            "url_label": "Abrir Outlier",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "mercor_onboarding",
+            "phase": PHASE_PLATFORMS,
+            "priority": 2,
+            "title": "Assessment de Mercor (mejor paga: $20–55/h)",
+            "why": "Assessment puro, sin entrevista. Coding/reasoning paga $20–55/h (expert hasta $250/h). Es el canal con mejor $/hora humana del sistema.",
+            "est_minutes": 120,
+            "how_to": "work.mercor.com → registrarte + completar assessment de coding/reasoning (2-3h, es el más largo).",
+            "url": "https://work.mercor.com",
+            "url_label": "Abrir Mercor",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "alignerr_onboarding",
+            "phase": PHASE_PLATFORMS,
+            "priority": 3,
+            "title": "Assessment de Alignerr (especialidad)",
+            "why": "Tareas expertas $15–30/h. Sin experiencia profesional previa — solo assessment por especialidad.",
+            "est_minutes": 60,
+            "how_to": "alignerr.com → registrarte + assessment de tu especialidad (coding/math).",
+            "url": "https://alignerr.com",
+            "url_label": "Abrir Alignerr",
             "auto": _MANUAL,
         },
         {
             "id": "mindrift_onboarding",
             "phase": PHASE_PLATFORMS,
-            "priority": 2,
+            "priority": 4,
             "title": "Crear cuenta y onboarding de Mindrift",
             "why": "Tareas de español nativo pagan mejor ($15–40/h); tu inglés técnico es un activo acá.",
             "est_minutes": 30,
             "how_to": "mindrift.ai → registro + perfil de escritura técnica es/en.",
+            "url": "https://mindrift.ai",
+            "url_label": "Abrir Mindrift",
             "auto": _MANUAL,
         },
         {
             "id": "freelance_profile",
             "phase": PHASE_PLATFORMS,
-            "priority": 3,
+            "priority": 5,
             "title": "Perfil freelance verificado (Fiverr)",
             "why": "Los textos ya los genera tu Profile Kit — solo pegarlos y verificar método de pago.",
             "est_minutes": 40,
             "how_to": "Copiar textos del Profile Kit → crear perfil → verificar payout (Payoneer/Airtm).",
+            "url": "https://www.fiverr.com",
+            "url_label": "Abrir Fiverr",
             "auto": _MANUAL,
         },
         {
             "id": "mpt_material_key",
             "phase": PHASE_PLATFORMS,
-            "priority": 4,
+            "priority": 6,
             "title": "Key gratis de materiales para Shorts (Pexels o Coverr)",
             "why": "Sin esto el pipeline MPT muere en materiales (verificado: guion + voz + subs OK, solo falta la key). Desbloquea el primer Short EN.",
             "est_minutes": 2,
             "how_to": 'pexels.com/api (o coverr.co/developers) → crear key gratis → pegarla en ~/projects/MoneyPrinterTurbo/config.toml → pexels_api_keys = ["tu-key"].',
+            "url": "https://www.pexels.com/api/",
+            "url_label": "Abrir Pexels API",
             "auto": _AUTO,
+        },
+        {
+            "id": "mercor_marketplace",
+            "phase": PHASE_PLATFORMS,
+            "priority": 7,
+            "title": "Activar Mercor (post-assessment)",
+            "why": "Tras el assessment aprobado: entrar al pool y aceptar proyectos $20–55/h recurrentes.",
+            "est_minutes": 15,
+            "how_to": "work.mercor.com → completar perfil + disponibilidad → aceptar primer proyecto cuando llegue.",
+            "url": "https://work.mercor.com",
+            "url_label": "Abrir Mercor",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "supplier_football",
+            "phase": PHASE_PLATFORMS,
+            "priority": 8,
+            "title": "Conseguir proveedores fútbol (camisetas/indumentaria)",
+            "why": "Categoría principal. 3-5 proveedores a comisión/dropshipping con logística propia.",
+            "est_minutes": 120,
+            "how_to": "Contactar 5+ proveedores (Nebbux, ShopTrend, RM, MK10, Flex Sport) → completar ficha → POST /api/ecommerce/suppliers → sync-catalog.",
+            "url": "/operations/ecommerce",
+            "url_label": "Cargar proveedor",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "supplier_streetwear",
+            "phase": PHASE_PLATFORMS,
+            "priority": 9,
+            "title": "Conseguir proveedores streetwear/urbana",
+            "why": "Complemento natural a fútbol. 3-5 proveedores comisión/dropshipping.",
+            "est_minutes": 120,
+            "how_to": "Contactar mayoristas (SAMPLES, CMMNTY) → ficha completa → POST /api/ecommerce/suppliers → sync-catalog.",
+            "url": "/operations/ecommerce",
+            "url_label": "Cargar proveedor",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "supplier_perfumes",
+            "phase": PHASE_PLATFORMS,
+            "priority": 10,
+            "title": "Conseguir proveedores perfumes/decants",
+            "why": "Alto margen (100-200%), sin talles, recompra. 2-3 proveedores decants nicho.",
+            "est_minutes": 90,
+            "how_to": "Contactar Fábrica de Aromas, Aromas de Lujo, Once Mayorista → POST /api/ecommerce/suppliers → validar dropshipping.",
+            "url": "/operations/ecommerce",
+            "url_label": "Cargar proveedor",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "supplier_accessories",
+            "phase": PHASE_PLATFORMS,
+            "priority": 11,
+            "title": "Conseguir proveedores accesorios/relojes",
+            "why": "Ticket bajo, sin talles, complemento ideal. Gorras, relojes, accesorios.",
+            "est_minutes": 60,
+            "how_to": "Contactar mayoristas accesorios/relojes → POST /api/ecommerce/suppliers → sync-catalog.",
+            "url": "/operations/ecommerce",
+            "url_label": "Cargar proveedor",
+            "auto": _MANUAL,
         },
         {
             "id": "obsidian_vault",
@@ -424,10 +563,39 @@ class SetupChecklist:
 
     def next_daily_task(self, pending: list[dict[str, Any]] | None = None) -> dict[str, Any] | None:
         """UNA tarea de config por día: fase esencial > plataformas > opcional,
-        luego menor número de prioridad y menor esfuerzo."""
+        luego menor número de prioridad y menor esfuerzo. Al 100% guía a First Money."""
         pending = _catalog() if pending is None else pending
         if not pending:
-            return None
+            # Post-setup: never leave the user without a next step
+            try:
+                from cores.first_money.tracker import get_first_money_tracker
+
+                fm = get_first_money_tracker().get_next_action()
+                if fm:
+                    return {
+                        "id": "first_money_next",
+                        "phase": PHASE_ESSENTIALS,
+                        "phase_label": "Próximo dinero",
+                        "title": fm.get("title", "Siguiente paso de dinero"),
+                        "why": fm.get("description", "Seguir el funnel de First Money"),
+                        "est_minutes": fm.get("est_minutes", 15),
+                        "how_to": f"{fm.get('description', '')} → {fm.get('endpoint', '')} en {fm.get('url', '')}",
+                        "url": fm.get("url", "/operations/first-money"),
+                        "url_label": "Ir a First Money",
+                    }
+            except Exception:
+                pass
+            return {
+                "id": "all_done",
+                "phase": PHASE_ESSENTIALS,
+                "phase_label": "¡Listo!",
+                "title": "¡Configuración completa! Pasar a ganar",
+                "why": "Sistema al 100% — ahora el foco es ejecutar y cobrar",
+                "est_minutes": 10,
+                "how_to": "Income Home → ¿Qué hago ahora? → Work Queue (cola) → Deliver pending",
+                "url": "/",
+                "url_label": "Ir a Income Home",
+            }
         phase_rank = {PHASE_ESSENTIALS: 0, PHASE_PLATFORMS: 1, PHASE_OPTIONAL: 2}
         ordered = sorted(pending, key=lambda i: (phase_rank.get(i["phase"], 9), i["priority"], i["est_minutes"]))
         task = ordered[0]
@@ -439,6 +607,8 @@ class SetupChecklist:
             "why": task["why"],
             "est_minutes": task["est_minutes"],
             "how_to": task["how_to"],
+            "url": task.get("url", ""),
+            "url_label": task.get("url_label", ""),
         }
 
     # ── Mutaciones ──
@@ -472,6 +642,7 @@ _DETECTORS: dict[str, Callable[[], bool]] = {
     "payment_accounts": _detect_payment_accounts,
     "bounty_api_key": _detect_bounty_api_key,
     "devbounty_api_key": _detect_devbounty_api_key,
+    "github_token": _detect_github_token,
     "first_target": _detect_first_target,
     "mpt_material_key": _detect_mpt_material_key,
     "obsidian_vault": _detect_obsidian_vault,

@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from cores.ecommerce.models import Marketplace, MarketplaceListing
+from cores.ecommerce.models import Marketplace, MarketplaceListing, Supplier
 
 logger = logging.getLogger("ownex.ecommerce.adapters")
 
@@ -197,6 +197,120 @@ class IGWAAdapter:
         except Exception as exc:
             logger.warning("WA send failed: %s", exc)
             return {"success": False, "error": "connection_failed"}
+
+
+class SupplierCatalogAdapter:
+    """Generic supplier-website catalog fetch (config-driven, honest).
+
+    Connects ANY supplier website exposing an HTTP JSON catalog endpoint.
+    No hardcoded supplier URLs: the endpoint comes from
+    ``Supplier.api_endpoint`` (registered by the user with their real
+    supplier), auth from IdentityVault ``supplier_{id}`` or the in-memory
+    ``Supplier.api_credentials``. Explicit states; never raises, never
+    invents products. Publishing to Meli stays behind the Human Gate
+    (``MeliAdapter.publish_item`` only prepares).
+    """
+
+    def __init__(self, supplier: Supplier) -> None:
+        self.supplier = supplier
+
+    def status(self) -> dict[str, Any]:
+        endpoint = (self.supplier.api_endpoint or "").strip()
+        if not endpoint:
+            return {
+                "available": False,
+                "reason": "Supplier sin api_endpoint: registrar la URL real del catálogo "
+                "(POST /api/ecommerce/suppliers). Sin endpoint no hay nada que conectar.",
+                "supplier_id": self.supplier.id,
+            }
+        if not endpoint.startswith(("http://", "https://")):
+            return {
+                "available": False,
+                "reason": "api_endpoint debe ser URL http(s) pública del catálogo.",
+                "supplier_id": self.supplier.id,
+            }
+        return {"available": True, "supplier_id": self.supplier.id, "endpoint": endpoint}
+
+    def _auth_headers(self) -> dict[str, str]:
+        """Bearer/Token desde vault `supplier_{id}` o credenciales en memoria. Sin secretos en logs."""
+        try:
+            from cores.credentials.vault import get_platform_credentials
+
+            vault_creds = get_platform_credentials(f"supplier_{self.supplier.id}") or {}
+        except Exception:
+            vault_creds = {}
+        merged = {**(self.supplier.api_credentials or {}), **{k: v for k, v in vault_creds.items() if v}}
+        api_key = str(merged.get("api_key", "") or "").strip()
+        if api_key:
+            return {"Authorization": f"Bearer {api_key}"}
+        token = str(merged.get("token", "") or "").strip()
+        if token:
+            return {"Authorization": f"Token {token}"}
+        return {}
+
+    @staticmethod
+    def _normalize_item(raw: Any) -> dict[str, Any] | None:
+        """Map tolerant supplier fields -> canonical product dict. None = skip (honest)."""
+        if not isinstance(raw, dict):
+            return None
+        name = str(raw.get("name") or raw.get("title") or raw.get("product") or "").strip()
+        if not name:
+            return None
+        price_raw = raw.get("price", raw.get("cost", raw.get("wholesale_price", raw.get("mayorista"))))
+        try:
+            price = float(price_raw) if price_raw is not None else 0.0
+        except (TypeError, ValueError):
+            return None
+        if price <= 0:
+            return None
+        sku = str(raw.get("sku") or raw.get("id") or raw.get("code") or raw.get("reference") or "").strip()
+        images = raw.get("images") or raw.get("image") or raw.get("picture") or raw.get("fotos") or []
+        if isinstance(images, str):
+            images = [images]
+        return {
+            "sku": sku,
+            "name": name[:120],
+            "price": price,
+            "currency": str(raw.get("currency") or raw.get("moneda") or "USD").strip() or "USD",
+            "description": str(raw.get("description") or raw.get("descripcion") or "")[:2000],
+            "images": [str(u) for u in images][:6],
+            "stock": raw.get("stock", raw.get("quantity", raw.get("disponibilidad"))),
+            "url": str(raw.get("url") or raw.get("link") or ""),
+        }
+
+    async def fetch_catalog(self, limit: int = 50) -> dict[str, Any]:
+        """GET the supplier catalog endpoint. Bounded, tolerant, never raises."""
+        state = self.status()
+        if not state["available"]:
+            return {"success": False, "error": "no_endpoint", "items": [], "reason": state["reason"]}
+        try:
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.get(
+                    state["endpoint"],
+                    headers=self._auth_headers(),
+                    params={"limit": max(1, min(limit, 200))},
+                )
+                if resp.status_code == 401 or resp.status_code == 403:
+                    return {"success": False, "error": "unauthorized", "items": []}
+                if resp.status_code != 200:
+                    return {"success": False, "error": f"http_{resp.status_code}", "items": []}
+                payload = resp.json()
+        except Exception as exc:
+            logger.warning("Supplier catalog fetch failed: %s", type(exc).__name__)
+            return {"success": False, "error": "connection_failed", "items": []}
+        if isinstance(payload, dict):
+            for key in ("items", "products", "data", "catalogo", "catalog"):
+                if isinstance(payload.get(key), list):
+                    payload = payload[key]
+                    break
+        if not isinstance(payload, list):
+            return {"success": False, "error": "unsupported_catalog_shape", "items": []}
+        items = []
+        for raw in payload[: max(1, min(limit, 200))]:
+            norm = self._normalize_item(raw)
+            if norm is not None:
+                items.append(norm)
+        return {"success": True, "items": items, "skipped": max(0, len(payload) - len(items))}
 
 
 _meli: MeliAdapter | None = None

@@ -121,6 +121,12 @@ class TestAutoSubmitSweep:
         assert result["scanned"] >= 1
         called_ids = [c.args[0] for c in fake_pipeline.on_finding_confirmed.call_args_list]
         assert fid in called_ids
+        # SAFETY: the scheduler sweep must never self-approve (no elite_bypass /
+        # manual_approval payload) — external submission stays behind Human Gate.
+        for c in fake_pipeline.on_finding_confirmed.call_args_list:
+            payload = c.args[1] if len(c.args) > 1 else (c.kwargs.get("payload") or {})
+            assert not (payload or {}).get("elite_bypass", False)
+            assert not (payload or {}).get("manual_approval", False)
 
     def test_sweep_skips_already_submitted(self):
         from cores.cycles.tasks import auto_submit_pending_findings

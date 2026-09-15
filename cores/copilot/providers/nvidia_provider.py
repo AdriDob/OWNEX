@@ -13,7 +13,7 @@ logger = logging.getLogger("orion.copilot.providers.nvidia")
 
 
 class NvidiaProvider(BaseProvider):
-    """NVIDIA NIM Provider."""
+    """NVIDIA NIM Provider — free personal key (model ids vivos 2026-09-15)."""
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
         super().__init__(
@@ -21,7 +21,7 @@ class NvidiaProvider(BaseProvider):
             or ProviderConfig(
                 name="nvidia",
                 priority=30,
-                models=["nv-ai-foundation-541280:mistral-8x7b-instruct-v0.2"],
+                models=["deepseek-ai/deepseek-v4-flash-0731"],
                 timeout_s=120,
             )
         )
@@ -31,13 +31,13 @@ class NvidiaProvider(BaseProvider):
         )
         self._api_key = self._config.extra.get("api_key", os.getenv("NVIDIA_API_KEY", ""))
         self._default_model = self._config.models[0]
-        # Supported models list for routing
+        # Supported models list for routing — solo ids vivos (verificados 2026-09-15)
         self._supported_models = [
-            "nv-ai-foundation-541280:mistral-8x7b-instruct-v0.2",
-            "nv-ai-foundation-541280:llama-3.1-70b-instruct",
-            "nv-ai-foundation-541280:nemotron-3-ultra",
-            "nvidia/nemotron-3-ultra",
-            "meta/llama-3.1-70b-instruct",
+            "deepseek-ai/deepseek-v4-flash-0731",
+            "google/gemma-4-31b-it",
+            "openai/gpt-oss-20b",
+            "mistralai/codestral-22b-instruct-v0.1",
+            "nvidia/llama-3.1-nemotron-70b-instruct",
         ]
 
     async def check(self) -> bool:

@@ -677,6 +677,12 @@ app.include_router(ai_security.router)
 from api.routers.trading_dashboard import router as trading_dashboard_router
 
 app.include_router(trading_dashboard_router)
+# Trading accionable (copy/masters/ingest/advisor/approve) — 2026-09-15:
+# el router vivía sin montar (el front consumía un contrato inexistente y el
+# dashboard siempre mostraba 0). Lo montamos: /api/trading/* real.
+from api.routers.trading import router as trading_router
+
+app.include_router(trading_router)
 
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
@@ -766,6 +772,18 @@ app.include_router(content_factory_router)
 from api.routers.local_jobs import router as local_jobs_router  # noqa: E402
 
 app.include_router(local_jobs_router)
+from api.routers.affiliate import router as affiliate_router  # noqa: E402
+
+app.include_router(affiliate_router)
+from api.routers.zero_invest import router as zero_invest_router  # noqa: E402
+
+app.include_router(zero_invest_router)
+from api.routers.business_tools import router as business_tools_router  # noqa: E402
+
+app.include_router(business_tools_router)
+from api.routers.economic_feedback import router as economic_feedback_router  # noqa: E402
+
+app.include_router(economic_feedback_router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.

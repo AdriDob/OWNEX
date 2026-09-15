@@ -43,12 +43,45 @@ def needs_elevation(action: str) -> tuple[bool, str]:
     return False, "No requiere privilegios elevados"
 
 
+def _audit_path() -> Any:
+    import os
+    from pathlib import Path
+
+    base = os.environ.get("OWNEX_DATA_DIR", "data")
+    return Path(base) / "elevation_audit.jsonl"
+
+
+def _audit_event(action: str, reason: str, what: str, result: str, workspace: str = "") -> None:
+    """Append-only audit trail for elevation requests (best-effort, never raises)."""
+    import contextlib
+    import json
+    from datetime import UTC, datetime
+
+    try:
+        path = _audit_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "ts": datetime.now(UTC).isoformat(),
+            "action": action,
+            "reason": reason,
+            "what": what,
+            "workspace": workspace,
+            "result": result,
+        }
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+    except Exception:
+        with contextlib.suppress(Exception):
+            logger.warning("elevation audit write failed", exc_info=False)
+
+
 def request_elevation(
-    reason: str, what: str, scope: str = "single operation", duration: str = "once"
+    reason: str, what: str, scope: str = "single operation", duration: str = "once", workspace: str = ""
 ) -> dict[str, Any]:
     """Request elevation in a controlled way. Returns {requested, is_admin, how}."""
     already = is_admin()
     if already:
+        _audit_event("request", reason, what, "already_elevated", workspace)
         return {"requested": False, "is_admin": True, "how": "already elevated", "reason": reason}
 
     system = platform.system().lower()
@@ -58,6 +91,7 @@ def request_elevation(
         else "sudo prompt — aprobar solo esta operación"
     )
     logger.info("Elevation requested: reason=%s what=%s scope=%s duration=%s", reason, what, scope, duration)
+    _audit_event("request", reason, what, "requested", workspace)
     return {
         "requested": True,
         "is_admin": False,

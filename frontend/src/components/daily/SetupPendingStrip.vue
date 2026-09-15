@@ -18,6 +18,8 @@ const pendingCount = ref(0)
 const title = ref('')
 const howTo = ref('')
 const estMinutes = ref<number | null>(null)
+const url = ref('')
+const urlLabel = ref('')
 
 async function load(): Promise<void> {
   try {
@@ -33,10 +35,14 @@ async function load(): Promise<void> {
       title.value = next.title
       howTo.value = next.how_to
       estMinutes.value = next.est_minutes ?? null
+      url.value = next.url ?? ''
+      urlLabel.value = next.url_label ?? ''
     } else {
       title.value = essentials[0].title
       howTo.value = essentials[0].how_to ?? ''
       estMinutes.value = null
+      url.value = essentials[0].url ?? ''
+      urlLabel.value = essentials[0].url_label ?? ''
     }
     visible.value = true
   } catch {
@@ -68,6 +74,15 @@ onMounted(() => {
         {{ howTo }}<span v-if="estMinutes != null"> · ~{{ estMinutes }} min</span>
       </div>
     </div>
+    <a
+      v-if="url"
+      :href="url"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+    >
+      {{ urlLabel || 'Abrir →' }}
+    </a>
     <OwnexButton size="sm" variant="outline" @click="open">Configurar</OwnexButton>
   </div>
 </template>

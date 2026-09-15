@@ -26,6 +26,7 @@ class Marketplace(StrEnum):
 class SupplierType(StrEnum):
     ALIEXPRESS = "aliexpress"
     LOCAL_AR = "local_argentina"
+    DROPSHEABLE = "dropsheable"
     CHINA_WHOLESALE = "china_wholesale"
     DOMESTIC_DISTRIBUTOR = "domestic_distributor"
     PRINT_ON_DEMAND = "print_on_demand"

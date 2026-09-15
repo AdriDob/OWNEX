@@ -72,31 +72,64 @@ def allocate_daily_hours(
     if not ranked:
         return DailyAllocation(total_minutes=total_minutes, mode="cold_start", note="Sin workspaces elegibles")
 
+    # Feedback-aware measured: weight by REALIZED net/h when available, else by outcomes
     measured = [e for e in ranked if e.outcomes > 0]
     alloc = DailyAllocation(total_minutes=total_minutes)
     productive = int(total_minutes * (1.0 - _ADMIN_RESERVE))
 
     if measured:
-        total_out = sum(e.outcomes for e in measured)
-        alloc.mode = "measured"
-        alloc.note = f"{len(measured)} workspace(s) con PAID medidos; resto en pausa hasta evidencia"
-        assigned = 0
-        for i, e in enumerate(measured):
-            share = e.outcomes / total_out if total_out else 1.0 / len(measured)
-            mins = productive // len(measured) if i == len(measured) - 1 else int(productive * share)
-            assigned += mins
-            alloc.slices.append(
-                WorkspaceSlice(
-                    workspace=e.workspace,
-                    minutes=mins,
-                    share=share,
-                    why=f"{e.outcomes} PAID medidos (EV/h aún UNKNOWN sin horas medidas)",
-                    ev_per_hour=e.ev_per_hour,
+        # Use ev_per_hour (net/h realizado) if any workspace has it; else fallback to outcomes
+        has_ev = any(e.ev_per_hour is not None and e.ev_per_hour > 0 for e in measured)
+        if has_ev:
+            # Weight by ev_per_hour (normalized); floor 10% to keep diversity, PAUSE logic handled in economics feedback
+            weights = []
+            for e in measured:
+                w = float(e.ev_per_hour) if e.ev_per_hour and e.ev_per_hour > 0 else 0.5  # minimal weight if UNKNOWN
+                weights.append(max(w, 0.5))
+            total_w = sum(weights) or 1.0
+            alloc.mode = "measured"
+            alloc.note = f"{len(measured)} workspace(s) con PAID medidos; reparto por $/h realizado (net/h)"
+            assigned = 0
+            for i, e in enumerate(measured):
+                share = weights[i] / total_w
+                mins = productive // len(measured) if i == len(measured) - 1 else int(productive * share)
+                assigned += mins
+                why = (
+                    f"{e.outcomes} PAID · ${e.ev_per_hour}/h realizado"
+                    if e.ev_per_hour is not None
+                    else f"{e.outcomes} PAID (sin horas → peso por outcomes)"
                 )
-            )
-        # Fix rounding remainder on last slice
-        if alloc.slices:
-            alloc.slices[-1].minutes += productive - assigned
+                alloc.slices.append(
+                    WorkspaceSlice(
+                        workspace=e.workspace,
+                        minutes=mins,
+                        share=share,
+                        why=why,
+                        ev_per_hour=e.ev_per_hour,
+                    )
+                )
+            if alloc.slices:
+                alloc.slices[-1].minutes += productive - assigned
+        else:
+            total_out = sum(e.outcomes for e in measured)
+            alloc.mode = "measured"
+            alloc.note = f"{len(measured)} workspace(s) con PAID medidos; resto en pausa hasta evidencia"
+            assigned = 0
+            for i, e in enumerate(measured):
+                share = e.outcomes / total_out if total_out else 1.0 / len(measured)
+                mins = productive // len(measured) if i == len(measured) - 1 else int(productive * share)
+                assigned += mins
+                alloc.slices.append(
+                    WorkspaceSlice(
+                        workspace=e.workspace,
+                        minutes=mins,
+                        share=share,
+                        why=f"{e.outcomes} PAID medidos (registrá horas para $/h real)",
+                        ev_per_hour=e.ev_per_hour,
+                    )
+                )
+            if alloc.slices:
+                alloc.slices[-1].minutes += productive - assigned
     else:
         primaries = [e for e in ranked if e.role == "primary"]
         if not primaries:

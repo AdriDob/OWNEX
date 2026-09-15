@@ -29,6 +29,28 @@ class BrowserResult:
     error: str | None = None
 
 
+def resolve_credential(explicit: str, platform: str, field: str = "password", workspace: str = "") -> str:
+    """Resolve a login secret: explicit arg wins, else IdentityVault, else "".
+
+    Never logs or raises — callers return an honest "not configured" error.
+    ``field`` is "password" or "email" (vault stores both + token).
+    ``workspace`` enforces vault workspace isolation ("" = unscoped entries).
+    """
+    if explicit:
+        return explicit
+    try:
+        from cores.identity_vault import get_identity_vault
+
+        creds = get_identity_vault().get_credentials(platform, workspace) or {}
+        if field == "email":
+            return str(creds.get("email") or creds.get("username") or "")
+        if field == "token":
+            return str(creds.get("token") or "")
+        return str(creds.get("password") or "")
+    except Exception:
+        return ""
+
+
 class BrowserAgent:
     """Playwright-based browser automation with session persistence."""
 
@@ -168,8 +190,12 @@ class BrowserAgent:
 
     # === Platform-Specific Actions ===
 
-    async def login_linkedin(self, email: str, password: str) -> BrowserResult:
-        """Login to LinkedIn."""
+    async def login_linkedin(self, email: str = "", password: str = "") -> BrowserResult:
+        """Login to LinkedIn (creds: explicit args, else IdentityVault 'linkedin')."""
+        email = resolve_credential(email, "linkedin", "email")
+        password = resolve_credential(password, "linkedin", "password")
+        if not email or not password:
+            return BrowserResult(False, "login_linkedin", "linkedin.com", error="LinkedIn not configured")
         result = await self.goto("https://www.linkedin.com/login")
         if not result.success:
             return result
@@ -181,6 +207,26 @@ class BrowserAgent:
         if result.success and self._page is not None and "feed" in self._page.url:
             return BrowserResult(True, "login_linkedin", "linkedin.com", "Logged in successfully")
         return BrowserResult(False, "login_linkedin", "linkedin.com", error="Login failed")
+
+    async def login_dataannotation(self, email: str = "", password: str = "") -> BrowserResult:
+        """Login to DataAnnotation.tech (creds: explicit args, else IdentityVault)."""
+        email = resolve_credential(email, "dataannotation", "email")
+        password = resolve_credential(password, "dataannotation", "password")
+        if not email or not password:
+            return BrowserResult(
+                False, "login_dataannotation", "app.dataannotation.tech", error="DataAnnotation not configured"
+            )
+        result = await self.goto("https://app.dataannotation.tech/login")
+        if not result.success:
+            return result
+
+        await self.fill('input[name="email"], input[type="email"]', email)
+        await self.fill('input[name="password"], input[type="password"]', password)
+        result = await self.click('button[type="submit"]', wait_for_navigation=True)
+
+        if result.success:
+            return BrowserResult(True, "login_dataannotation", "app.dataannotation.tech", "Logged in successfully")
+        return BrowserResult(False, "login_dataannotation", "app.dataannotation.tech", error="Login failed")
 
     async def easy_apply_linkedin(self, job_url: str, approval_token: str | None = None) -> BrowserResult:
         """Apply to LinkedIn job via Easy Apply (REQUIRES human approval: sends an application)."""

@@ -174,3 +174,45 @@ async def acquisition_create_contract(project_id: str, payload: ContractIn) -> d
     if not contract:
         raise HTTPException(status_code=404, detail="Project not found")
     return {"success": True, "id": contract.id, "monthly_usd": contract.monthly_usd}
+
+
+class EnrichIn(BaseModel):
+    email: str = ""
+    phone: str = ""
+    city: str = ""
+
+
+@router.post("/leads/{lead_id}/enrich")
+async def acquisition_enrich_lead(lead_id: str, payload: EnrichIn) -> dict[str, Any]:
+    lead = get_client_acquisition_engine().enrich_lead(
+        lead_id, email=payload.email, phone=payload.phone, city=payload.city
+    )
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    engine = get_client_acquisition_engine()
+    return {"success": True, "id": lead.id, "enriched": lead.enriched, "score": engine.score_lead(lead)}
+
+
+@router.get("/leads/export/qualified")
+async def acquisition_export_qualified(min_score: int = 60) -> dict[str, Any]:
+    rows = get_client_acquisition_engine().export_qualified(min_score=max(0, min(min_score, 100)))
+    return {"total": len(rows), "leads": rows[:500]}
+
+
+class ArbitrageIn(BaseModel):
+    freelancer_cost_usd: float = 0.0
+    client_price_usd: float = 0.0
+
+
+@router.post("/projects/{project_id}/arbitrage/plan")
+async def acquisition_plan_arbitrage(project_id: str, payload: ArbitrageIn) -> dict[str, Any]:
+    result = get_client_acquisition_engine().plan_arbitrage(
+        project_id,
+        freelancer_cost_usd=payload.freelancer_cost_usd,
+        client_price_usd=payload.client_price_usd,
+    )
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=404 if result.get("error") == "project_not_found" else 422, detail=str(result.get("error"))
+        )
+    return result

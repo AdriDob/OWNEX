@@ -302,9 +302,10 @@ class PaymentCompatibilityEngine:
         self,
         requirement: PaymentRequirement,
         final_currency: str = "ARS",
+        require_configured: bool = True,
     ) -> PaymentVerdict:
         """Evaluate receive + off-ramp: can OWNEX receive AND convert to the final currency."""
-        verdict = self.evaluate(requirement)
+        verdict = self.evaluate(requirement, require_configured=require_configured)
         if not verdict.compatible:
             return verdict
 
@@ -346,6 +347,48 @@ class PaymentCompatibilityEngine:
             "by_layer": by_layer,
             "by_function": by_function,
             "by_region": by_region,
+        }
+
+    def ranked_argentina_methods(self) -> dict[str, Any]:
+        """Proveedores usables desde Argentina, ordenados por comisión.
+
+        Fuente: ``ARGENTINA_PAYOUT_METHODS`` (solo ``argentina_compatible``).
+        Orden: ``fees.percentage`` ascendente, desempate por
+        ``reliability_score`` descendente. Las patas de comisión (fixed /
+        percentage / withdrawal) tienen semánticas mixtas según el método,
+        así que se exponen crudas: el orden es orientativo, no una verdad
+        contable. Entradas nuevas (ej. bitwage) llevan su advertencia de
+        verificación en ``notes``/``cons``.
+        """
+        rows: list[dict[str, Any]] = []
+        for method in ARGENTINA_PAYOUT_METHODS:
+            if not method.argentina_compatible:
+                continue
+            fees = method.fees or {}
+            rows.append(
+                {
+                    "id": method.id,
+                    "name": method.name,
+                    "type": method.type.value,
+                    "fee_fixed": float(fees.get("fixed", 0.0) or 0.0),
+                    "fee_percentage": float(fees.get("percentage", 0.0) or 0.0),
+                    "fee_withdrawal": float(fees.get("withdrawal", 0.0) or 0.0),
+                    "reliability_score": method.reliability_score,
+                    "minimum_withdrawal": method.minimum_withdrawal,
+                    "timing_days": method.timing,
+                    "routes": list(method.routes),
+                    "pros": list(method.pros),
+                    "cons": list(method.cons),
+                    "notes": method.notes,
+                    "kyc_level": method.kyc_level.value,
+                }
+            )
+        rows.sort(key=lambda r: (r["fee_percentage"], -r["reliability_score"]))
+        return {
+            "total": len(rows),
+            "ordered_by": ["fee_percentage ASC", "reliability_score DESC"],
+            "disclaimer": "Comisiones con semánticas mixtas por método (fijo vs %); orden orientativo. Verificar términos vigentes con cada proveedor antes de mover dinero.",
+            "methods": rows,
         }
 
     # ------------------------------------------------------------------

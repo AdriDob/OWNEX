@@ -102,7 +102,79 @@ async def hunter_overview(target_usd: float | None = None) -> dict[str, Any]:
     workspaces.sort(key=lambda w: (not w["active"], -w["priority"]))
 
     active_mix = [w["id"] for w in workspaces if w["active"] and w["role"] in ("primary", "upside")]
-    next_action = "Define tu primer workspace activo" if not active_mix else f"Próxima hora: {active_mix[0]}"
+
+    # Actionable next_action: SSOT via one_best_action + allocation + feedback (never generic string)
+    try:
+        from cores.direct_work_engine.one_best_action import get_one_best_action
+
+        oba = get_one_best_action()
+        if oba and oba.get("action"):
+            next_action = oba["action"]
+        else:
+            raise ValueError("no oba")
+    except Exception:
+        # Fallback: actionable dict from allocation's top slice + checklist
+        try:
+            from cores.setup.checklist import get_setup_checklist
+            from cores.workspaces.allocation import allocate_daily_hours
+
+            chk = get_setup_checklist().status()
+            if not chk.get("complete", True) and chk.get("next_task"):
+                nt = chk["next_task"]
+                next_action = {
+                    "title": nt.get("title", "Completar setup"),
+                    "why": nt.get("why", ""),
+                    "est_minutes": nt.get("est_minutes", 10),
+                    "url": nt.get("url") or "/setup/checklist",
+                    "endpoint": "GET /setup/checklist",
+                    "command": f"Open {nt.get('url') or '/setup/checklist'}",
+                }
+            else:
+                alloc = allocate_daily_hours(60, active={k: bool(v) for k, v in overrides.items()} or None)
+                top = alloc.slices[0] if alloc.slices and alloc.slices[0].workspace != "admin" else None
+                if top:
+                    next_action = {
+                        "title": f"Próxima hora: {top.workspace}",
+                        "why": top.why,
+                        "est_minutes": top.minutes,
+                        "url": "/operations/work-queue",
+                        "endpoint": "GET /api/mission-hub/allocation/daily",
+                        "command": f"Work {top.workspace} {top.minutes}min",
+                    }
+                else:
+                    next_action = {
+                        "title": "Define tu primer workspace activo",
+                        "why": "Activá un workspace para que OWNEX reparta tu hora",
+                        "est_minutes": 5,
+                        "url": "/mission",
+                        "endpoint": "POST /mission-hub/workspaces/{id}/activate",
+                        "command": "POST /mission-hub/workspaces/{id}/activate",
+                    }
+        except Exception:
+            fallback = "Define tu primer workspace activo"
+            try:
+                fallback = f"Próxima hora: {active_mix[0]}" if active_mix else fallback
+            except Exception:
+                pass
+            next_action = {
+                "title": fallback,
+                "why": "",
+                "url": "/mission",
+                "endpoint": "GET /mission-hub/overview",
+                "command": "GET /mission-hub/overview",
+            }
+
+    # Enrich with feedback reallocation hint when available
+    try:
+        from cores.economic_feedback.engine import build_snapshot
+
+        snap = build_snapshot()
+        if snap.reallocation.get("next_hour"):
+            # Attach as hint without overriding primary next_action
+            if isinstance(next_action, dict):
+                next_action["reallocation_hint"] = snap.reallocation
+    except Exception:
+        pass
 
     return {
         "mission": mission.to_dict(),
@@ -187,7 +259,9 @@ async def daily_allocation(total_minutes: int = 240) -> dict[str, Any]:
 
     state = _load_state()
     overrides = state.get("workspace_active", {})
-    alloc = allocate_daily_hours(max(30, min(total_minutes, 960)), active={k: bool(v) for k, v in overrides.items()} or None)
+    alloc = allocate_daily_hours(
+        max(30, min(total_minutes, 960)), active={k: bool(v) for k, v in overrides.items()} or None
+    )
     return alloc.to_dict()
 
 

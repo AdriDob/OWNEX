@@ -20,10 +20,10 @@ def checklist(tmp_path, monkeypatch, all_detectors_false):
 
 
 class TestCatalog:
-    def test_catalog_has_eleven_items_with_required_keys(self) -> None:
+    def test_catalog_has_all_items_with_required_keys(self) -> None:
         required = {"id", "phase", "priority", "title", "why", "est_minutes", "how_to", "auto"}
         items = cl._catalog()
-        assert len(items) == 13
+        assert len(items) == 21
         for item in items:
             assert required <= set(item), item["id"]
 
@@ -37,13 +37,18 @@ class TestCatalog:
         for priorities in by_phase.values():
             assert len(priorities) == len(set(priorities))
 
+    def test_github_token_item_is_auto_essential(self) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "github_token")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_ESSENTIALS
+
 
 class TestStatus:
     def test_fresh_status_all_pending_zero_pct(self, checklist: SetupChecklist) -> None:
         status = checklist.status()
         assert status["complete_pct"] == 0
         assert status["done_items"] == 0
-        assert len(status["pending"]) == 13
+        assert len(status["pending"]) == 21
         assert status["complete"] is False
         assert status["next_task"] is not None
 
@@ -52,7 +57,7 @@ class TestStatus:
         status = checklist.status()
         assert "profile_kit" in status["done"]
         assert status["done_items"] == 1
-        assert status["complete_pct"] == 8
+        assert status["complete_pct"] == 5
         assert all(p["id"] != "profile_kit" for p in status["pending"])
 
     def test_status_shape_has_phases_labels(self, checklist: SetupChecklist) -> None:
@@ -82,7 +87,10 @@ class TestNextDailyTask:
         assert task["id"] == "obsidian_vault"
 
     def test_complete_checklist_returns_none(self, checklist: SetupChecklist) -> None:
-        assert checklist.next_daily_task(pending=[]) is None
+        # Post-setup guidance: never a dead end — returns next money action, not None
+        result = checklist.next_daily_task(pending=[])
+        assert result is not None
+        assert result["id"] in ("all_done", "first_money_next")
 
 
 class TestManualItems:
@@ -125,18 +133,32 @@ class TestComplete:
             "payment_accounts",
             "bounty_api_key",
             "devbounty_api_key",
+            "github_token",
             "first_target",
             "mpt_material_key",
             "obsidian_vault",
             "smtp_mail",
         ):
             monkeypatch.setitem(cl._DETECTORS, name, lambda: True)
-        for manual in ("outlier_onboarding", "mindrift_onboarding", "freelance_profile", "trading_live"):
+        for manual in (
+            "outlier_onboarding",
+            "mercor_onboarding",
+            "alignerr_onboarding",
+            "mindrift_onboarding",
+            "freelance_profile",
+            "mercor_marketplace",
+            "supplier_football",
+            "supplier_streetwear",
+            "supplier_perfumes",
+            "supplier_accessories",
+            "trading_live",
+        ):
             checklist.mark_done(manual)
         status = checklist.status()
         assert status["complete"] is True
         assert status["complete_pct"] == 100
-        assert status["next_task"] is None
+        assert status["next_task"] is not None
+        assert status["next_task"]["id"] in ("all_done", "first_money_next")
 
 
 class TestMptMaterialKey:
@@ -235,3 +257,39 @@ class TestApiEndpoints:
 
     def test_undone_unknown_returns_404(self, client) -> None:
         assert client.post("/api/setup/checklist/nope/undone").status_code == 404
+
+
+class TestExternalUrls:
+    EXPECTED_URLS = {
+        "github_token": "https://github.com/settings/tokens",
+        "outlier_onboarding": "https://outlier.ai",
+        "mercor_onboarding": "https://work.mercor.com",
+        "alignerr_onboarding": "https://alignerr.com",
+        "mindrift_onboarding": "https://mindrift.ai",
+        "freelance_profile": "https://www.fiverr.com",
+        "mpt_material_key": "https://www.pexels.com/api/",
+        "mercor_marketplace": "https://work.mercor.com",
+    }
+
+    def test_external_items_expose_https_url_and_label(self) -> None:
+        items = {i["id"]: i for i in cl._catalog()}
+        for item_id, url in self.EXPECTED_URLS.items():
+            item = items[item_id]
+            assert item.get("url") == url, item_id
+            assert item.get("url_label"), item_id
+
+    def test_all_urls_are_https(self) -> None:
+        for item in cl._catalog():
+            if item.get("url"):
+                assert item["url"].startswith("https://") or item["url"].startswith("/"), item["id"]
+
+    def test_next_task_carries_url(self, checklist: SetupChecklist) -> None:
+        task = checklist.next_daily_task(pending=[i for i in cl._catalog() if i["id"] == "github_token"])
+        assert task is not None
+        assert task["url"] == "https://github.com/settings/tokens"
+        assert task["url_label"] == "Abrir GitHub Tokens"
+
+    def test_status_pending_carries_url(self, checklist: SetupChecklist) -> None:
+        status = checklist.status()
+        by_id = {p["id"]: p for p in status["pending"]}
+        assert by_id["github_token"]["url"] == "https://github.com/settings/tokens"

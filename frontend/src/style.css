@@ -15,8 +15,8 @@
 
 @theme {
   /* ════════════════════════════════════════════════════════════
-     COLOR SYSTEM — TESLA STYLE
-     Pure black · Neutral grays · White primary · Tesla red accent
+     COLOR SYSTEM — BLUE-FAMILY STYLE (directiva owner 2026-08-25: cero rojo)
+     Pure black · Neutral grays · White primary · Cyan accent · Blue danger
      Minimal. No glows. No gradients of color. Function over decoration.
      ══════════════════════════════════════════════════════════ */
 
@@ -30,12 +30,12 @@
   --color-muted-foreground: var(--ownex-text-secondary);
   --color-foreground: var(--ownex-text-primary);
 
-  /* ── Identity ── */
+  /* ── Identity (cero rojo — directiva owner 2026-08-25) ── */
   --color-primary: var(--ownex-text-primary);
   --color-primary-foreground: var(--ownex-bg-deep);
   --color-accent: var(--ownex-accent);
   --color-accent-foreground: var(--ownex-text-primary);
-  --color-destructive: var(--ownex-accent);
+  --color-destructive: var(--ownex-danger);
   --color-warning: var(--ownex-yellow);
   --color-success: var(--ownex-green);
   --color-gold: var(--ownex-gold);
@@ -47,7 +47,7 @@
   --color-synack: var(--ownex-text-primary);
   --color-yeswehack: var(--ownex-text-secondary);
 
-  /* ── Cycle Colors (monochrome hierarchy, red = odyssey) ── */
+  /* ── Cycle Colors (monochrome hierarchy, odyssey = accent) ── */
   --color-cycle-security: var(--ownex-text-primary);
   --color-cycle-forge: var(--ownex-text-secondary);
   --color-cycle-pulse: var(--ownex-green);

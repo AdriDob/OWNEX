@@ -30,10 +30,18 @@
               </span>
             </div>
           </div>
-          <div class="mt-3">
+          <div class="mt-3 flex flex-wrap gap-2">
+            <a
+              v-if="goodMorning.setup_progress.next_task?.url"
+              :href="goodMorning.setup_progress.next_task.url"
+              target="_blank"
+              class="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              {{ goodMorning.setup_progress.next_task.url_label || 'Abrir →' }}
+            </a>
             <a
               href="/setup/checklist"
-              class="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              class="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted transition-colors"
             >
               Ver checklist completo →
             </a>
@@ -42,17 +50,22 @@
       </div>
     </div>
 
-    <!-- Complete badge -->
+    <!-- Complete badge — never dead end -->
     <div
       v-else-if="goodMorning.setup_progress && goodMorning.setup_progress.complete"
-      class="rounded-lg border border-green-500/30 bg-green-500/5 p-4"
+      class="rounded-lg border border-green-500/30 bg-green-500/5 p-4 space-y-3"
     >
       <div class="flex items-center gap-3">
         <span class="text-lg">🎉</span>
         <div>
           <div class="font-semibold text-foreground">Configuración completa</div>
-          <div class="text-sm text-muted-foreground">Tu sistema está listo para operar al 100%</div>
+          <div class="text-sm text-muted-foreground">Tu sistema está listo para operar al 100% — próximo paso: cobrar.</div>
         </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="/" class="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">Income Home → ¿Qué hago ahora?</a>
+        <a href="/operations/first-money" class="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted">First Money → Siguiente etapa</a>
+        <a href="/operations/work-queue" class="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted">Cola → Deliver</a>
       </div>
     </div>
 

@@ -1,3 +1,253 @@
+## Sesión 2026-09-15 (build) — ULTIMATE FINAL PROMPT FASE 0-2: audit contract drift + dead code + guard
+
+> **QUÉ SE HIZO:** Fase 0 (freeze baseline) + Fase 1-2 del master prompt definitivo (AUDIT→CONSOLIDATE, no features). 120 archivos sin commitear raftados. Baseline: fast **102/1** en verde tras corregir el test `test_scheduler_jobs.py` (el set de ciclos esperaba 16 but `get_all_jobs()` tiene 17 con `economic_feedback` — fix de contrato, no de código). Audit §17 completo (222 llamadas `api.*` del frontend vs `app.routes` runtime; fuente de verdad, no openapi lazy):
+> - **Cluster A (P0, 11 rutas → 404)**: `first-money` / `result-based` / `platform-guides` se montan en RAÍZ en `api/main.py` pero `resolveApiUrl` los mandaba bajo `/api/*` → FirstMoney, ResultBased y PlatformGuides **nunca funcionaron desde el frontend**. Fix: `ROOT_MOUNTED_PREFIXES` en `frontend/src/lib/backend.ts` = `['/direct-work','/mobile','/wear-os','/first-money','/result-based','/platform-guides']`.
+> - **Cluster E (405)**: `updateFinding` migrado de `PUT` a `PATCH /api/findings/{id}` (contrato real `findings.py`).
+> - **§12 dead code verificado y eliminado**: `cores/intelligence/next_best_action.py` (219L, 0 callers/imports/tests/exports/packaging — duplicado de `one_best_action.py` SSOT vivo) + `frontend/src/services/capitalApi.ts` (274L, 29 llamadas a rutas inexistentes, 0 imports).
+> - **Audit del Economic Feedback Loop (§3/§5/§50/§51)**: CONFIRMADO completo e integrado (`cores/economic_feedback/engine.py` ChannelEconomics + FeedbackSnapshot: collect LearningRecords+WorkBank hours → learn p_cash_real/net_per_hour/prediction_error/verdict SCALE/KEEP/PAUSE → recalibrate P(CASH) → reallocate; UNKNOWN honesto si 0 PAID, nunca inventa).
+> - **GUARD nuevo `tests/test_frontend_api_contract.py` (3/3)**: pin que cada router root-mounted del backend tiene contraparte en `ROOT_MOUNTED_PREFIXES`, que cada call root del frontend tiene ruta backend (por prefijo dinámico), y que NO hay doble prefijo `/api/{root-mounted}`. **Regresión del drift**: si alguien agrega/router a raíz o un caller root sin contraparte → rojo.
+> - **Deuda documentada (no expandir, §74)**: Clusters B (WorkRoom `workbank/{id}` files/evidence/deliverables ficticios), D (CommandPalette `/memory/query`, GET `/hypotheses`, `/direct-work/queue`, `/scheduler/jobs`), E resto (connections sync, wallets PUT) → `.ai/KNOWN_DEBT.md` entrada 18.
+> - **Verificación**: 112 passed (scheduler+contract+trading+business_tools+ecommerce+zero_invest) · fast **102/1** · rufflimpio en tocados · `vite build` 11.71s import api.main 1806 rutas.
+> - **No tocado**: Cluster B/D/E (diferidos, no bloquean daily flow), `cores/trading/*`, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15 — SISTEMA PERFECTO PARA GANAR TIEMPO: Economic Feedback Loop CERRADO + aristas de guía pulidas
+
+> **PEDIDO OWNER:** "lleva de la mano a la perfección, cierra aristas que me hacen perder tiempo" + "esa única cosa que faltaba" (Economic Feedback Loop). Auditoría 4 dimensiones con evidencia archivo:línea → 12 gaps P0-P4.
+> **ECONOMIC FEEDBACK LOOP (única cosa que faltaba, ahora cerrada):**
+> - `cores/economic_feedback/engine.py` NUEVO: `ChannelEconomics` + `FeedbackSnapshot` — coleta `LearningRecord` (paid/net/fees/horas) + `WorkBank.human_minutes_actual` por plataforma → calcula `p_cash_real=paid/attempted`, `net_per_hour=net_cash/human_hours`, `prediction_error`, `verdict` SCALE/KEEP/PAUSE (UNKNOWN si 0 PAID), lección honesta. Job diario `economic_feedback_daily` 06:40 + endpoint `GET /api/economic-feedback/snapshot` + `POST /record-outcome` + `POST /recalibrate`. Persiste `data/economic_feedback/snapshot.json` + `history.jsonl`.
+> - **Cierre:** `cores/workspaces/economics.py` ahora usa feedback (net/h realizado, P(CASH) recalibrado) → `rank_workspaces` por $/h real; `cores/workspaces/allocation.py` reparte por ev_per_hour cuando existe (floor 10% diversidad), fallback por outcomes; `api/routers/mission_hub.py` overview `next_action` actionable dict (title/why/est_minutes/url/endpoint/command) vía `one_best_action` SSOT + `reallocation_hint`; `cores/automation/daily_loop.py` respeta `total_minutes` + allocation-weighted + fallback a first_money/setup + A4 payload (url/selector/checklist); scheduler 17 ciclos.
+> **ARISTAS CERRADAS (P0/P1/P2/P4):** IncomeHome `useRouter` fix (10 CTA muertos) · `daily_brief` best_ready con fallback + next_action dict con url/command · `first_money` aggressive-plan acepta 50000 + next_action con url/endpoint/mins · `MASTER plan` curls 404 corregidos (/first-money y /direct-work sin /api) · `agenda` capital ForecastResult + tier mensual 5000 + best_action balance score · `checklist` payment_accounts url + suppliers url 8-11 + post-setup guía a First Money · `payment_compat` default require_configured=True · SetupChecklist/GoodMorning dead-end → CTAs a Income Home/First Money/WorkQueue · `mission_hub` test actualizado a dict.
+> **Verificación:** 73 passed (setup+mission+agenda+economic) · feedback OK (0 PAID → UNKNOWN honesto) · `import api.main` 1813 rutas (+1 feedback) · vite build 11.62s · ruff feedback limpio.
+> **Regla:** LEARN→RECALIBRATE→REALLOCATE es el último feature antes de freeze; próxima intervención solo mide dinero real.
+
+## Sesión 2026-09-15 — PROYECCIÓN 30H/SEMANA → MAR 2027 (auditoría + escenarios + plan operativo)
+
+> **AUDITORÍA 2026-09-15 (evidencia, no opinión):** PAID $0 (ledger 0, payouts 0), findings 0/reports 0 (DB 77 MB, 719 targets, 373 scans 290 completed), WorkBank 3 ítems (1 real: opire-1 $50 ready), rails 1/76 (solo mercadopago), historial solo fixtures tests, servidor apagado al auditar, sistema construido completo (22 guías, adapters Algora/Opire/Kaggle/GitHub/Dework, claim→PR, Human Gate, ladder A1-A12, economics).
+> **Lectura:** fábrica terminada y vacía — P(CASH) UNKNOWN en todos los canales hasta 1er PAID.
+> **PROYECCIÓN 30h/sem ×28 sem =840h hasta 31/03/2027** (piso $25/h → ~$21k mecánico; upside separa escenarios):
+> - 🔴 Flojo $5-12k · 🟠 Conservador $18-35k (1er PAID mes 2, 2 canales) · 🟢 **Objetivo $40-80k** (1er PAID S3-4, 3 canales, 1 upside $3-8k) · 🔵 Muy fuerte $80-160k (+1 Critical) · 🟣 Excep. $160k+ (múltiples Criticals/asset tracción)
+> **Veredicto:** $50k es agresivo pero razonable con 30h si se cumple 🟢. Sin upside techo $30-35k.
+> **Asignación 30h:** AI work 10h (assessments $15-55/h) · Dev bounties 8h (1 claim Algora $50-200) · B2B 6h (2 propuestas) · MeLi 3h (5 SKUs, conv>2.5% o pivot) · Bug bounty 2h (upside) · Admin 1h. Hitos: S3-4 1er PAID → Mes2 2 canales → Mes4 3 canales MEASURED → Mes6-9 upside → Mes12-18 repetir/matar. Regla: 40h/$0 a día 60 → pausa canal, horas al mejor $/h. Bloqueos: GITHUB_TOKEN, 3 rails (Wise/Airtm/GrabrFi), 3 assessments.
+
+## Sesión 2026-09-15: GITHUB_TOKEN END-TO-END — executor lee opportunity.env + how_to sin endpoint fantasma
+
+> **QUÉ SE HIZO:** Pedido owner (apuro económico, $0 inversión: dejar sistema listo para bug bounty + cualquier proyecto). Hallazgo: `build_algora_executor()` NO leía `get_credentials().github_token` (opportunity.env) — el checklist marcaba ✅ pero el executor fallaba. Fix + doc falsa corregida:
+> - **Fix**: fallback `get_credentials(force_refresh=True).github_token` en `build_algora_executor` (param → env → opportunity.env → IdentityVault → ValueError limpio).
+> - **Doc**: `how_to` citaba `POST /api/credentials/github` inexistente → reescrito a `GITHUB_TOKEN=ghp_XXX` en `~/.config/ownex/opportunity.env`.
+> - **Tests**: +3 en `test_algora_executor` (lee archivo sin env; precedencias) + existente aislado de secretos locales. 13/13 + checklist 36/36 · ruff limpio · fast **102/1**.
+> - **Readiness**: AI gratis ✅ (`fcc→claude→"OK"`) · WorkBank 3 items $2,700 ✅ · checklist 19%, next `payment_accounts` · `GITHUB_TOKEN` vacío (bloqueo #1 real, acción owner).
+> - **No tocado**: resto executors, routers, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15: FREE MODELS 24/7 — selección curada (FCC/NVIDIA/OmniRoute/OpenCode/Ollama)
+
+> **QUÉ SE HIZO:** Pedido owner ("solo lo que puedo usar gratis sin límites/mejores límites... el resto quitalos de la selección en opencode y hermes; investigá keys si hace falta"). Evidencia en vivo (probe HTTP 200 + contenido, no catálogo):
+> - **FCC** (8082): `claude-3-5-sonnet/haiku-20241022` (no-thinking) ✅ contenido real; los alias `anthropic/nvidia_nim/*`, `open_router/*:free`, `groq/*` devuelven vacío → fuera.
+> - **NVIDIA NIM**: llama-3.1-70b EOL 410 (2026-08-26) → muerto; vivos `deepseek-ai/deepseek-v4-flash-0731` ✅, `openai/gpt-oss-20b`, `google/gemma-4-31b-it`, `mistralai/codestral-22b`.
+> - **OmniRoute** (20128): 576 modelos, `auto/best-free|coding|fast|reasoning` válidos (chat degradado en sandbox → queda como fallback).
+> - **Ollama local**: `qwen2.5:3b-instruct` (único real; en este sandbox sin RAM para chat — 500). **Ollama Cloud**: `qwen2.5:7b-instruct`, `qwen3.5:cloud`. **OpenCode free**: nemotron-3-ultra-free / deepseek-v4-flash-free / mimo-v2.5-free.
+> - **Bug real**: `FCCProvider` ruteaba a OpenRouter/NVIDIA por env keys (404/pago) → ahora siempre al proxy local `/v1` con `ANTHROPIC_API_KEY` (orion-dev-local) primero. Enable: `route(chat) → fcc → claude-3-5-sonnet → "OK"`.
+> - **Repo**: cadena copilot `[fcc, nvidia, omniroute, opencode, ollama, devin, freebuff]` (Devin/Freebuff conservados al final); `FREE_MODELS`/nvidia/omniroute/defaults OAR acotados a los verificados; OAR default = 6 free + ligero; `.env` OLLAMA_MODEL glm-5.1 (basura) → qwen2.5:3b-instruct.
+> - **Externas** (backup .bak.20260915_043405): opencode config.json + opencode.jsonc (models pineados por provider + disabled_providers pagos); hermes config.yaml (default `claude-3-5-sonnet @ fcc`, fallback 6 capas, models curados).
+> - **Verificación**: `test_free_providers.py` 8/8 · test_oar 15/15 · copilot+chat+ai_router+mobile **193** · fast **102/1** · ruff limpio. e2e_copilot: 2 asserts de cadena actualizados a fcc (10 fallos restantes = drift commander/execution/workflow preexistente).
+> - **No tocado**: Devin/Freebuff (conservados por decisión owner), Gemini (conservado), `cores/ai/router.py` (separado, ya free), cognee, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15: 6 MOTORES COMPLETOS — PARTNERSHIP + visión 12 workspaces + sponsorship integrado
+
+> **QUÉ SE HIZO:** “Mandale” tras ASSET_FACTORY: únicos 5 huecos del doc → 4 ya cubiertos sin código nuevo, 1 como workspace futuro:
+> - **Sponsorship OSS** → NO workspace: es `asset_factory` con `revenue_model=sponsorship|licensing` (ej. dev_tool en GitHub, tiers $15/$49/$149 en `GITHUB_SPONSORS_STRATEGY.md`; gracias.dev alternativo) → track como `mrr_usd`+`sales_count`, repeatability por MRR.
+> - **Competición técnica** → NO workspace: ya es `MarketSegment.CHALLENGE/HACKATHON` en `public_work.py` (techo $30k/$100k) → visible en `PUBLIC WORK → CHALLENGES`.
+> - **Productos digitales** → YA es `ASSET_FACTORY` (10 tipos incluyen templates/datasets/kits). No separar.
+> - **PARTNERSHIP** → SÍ workspace `partnership` prio 3, `UPSIDE`, `active=False` (futuro: revenue share/afiliación legítima; techo alto, riesgo medio_alto; requiere acuerdo humano firmado).
+> - **Implementación**: `cores/workspaces/registry.py` +`WorkspaceType.PARTNERSHIP` + registro 12º (`active=False`); `policies.py` `PARTNERSHIP=UPSIDE`; `OWNEX_VISION_CHARTER.md` 3→6 motores con diagrama completo (12 workspaces); `cores/asset_factory/models.py` `revenue_model` incluye `revenue_share`.
+> - **Verificación**: registry 7/7 (12 totales) · mission_hub 8/8 (12 workspaces asset+partnership UPSIDE) · asset_factory 8/8 · ruff limpio.
+
+## Sesión 2026-09-15 (build) — TRADING FRONT REAL: router accionable montado + /overview honesto
+
+> **QUÉ SE HIZO:** Pedido owner ("el trading quedó automático y accionable? así se refleja en front"). Audit-first con evidencia runtime: `api/routers/trading.py` (copy/masters/ingest/emergency-stop/advisor/approve) vivía **SIN montar en api/main** — el front consumía un contrato inexistente (`total_value/pnl/positions` de un dashboard viejo) → TradingConsolidated siempre en 0 + widgets TradingLab huérfanos (contrato ficticio, no importados). El trading automático backend YA existía (18 jobs, paper loop */15, kill-gated) pero invisible.
+> - **Backend**: montado `api/routers/trading.py` en main (rutas accionables reales) + `GET /api/trading/overview` NUEVO consolidado honesto: `mode/mode_label/is_simulation/is_live/emergency_stop/copy/masters/metrics(net_real paper)/jobs(del registry)/reasoning/proposals/pending_config(via Setup Checklist trading_live + env keys)`. Nada de `total_value` inventado — `NO_DATA` honesto sin trades, `pending_config` lista trading_live manual.
+> - **Frontend** (`TradingConsolidated.vue` reescrito al contrato real vía `api` autenticado): badge DRY RUN/PAPER/LIVE + Emergency Stop en vivo, banner `Config pendiente` (de `/setup/checklist/status`), cards jobs automáticos / trades paper / win-rate+PF / masters, tabla masters con toggle Pausar/Activar (POST `/copy/masters/{id}/toggle`), botón emergency-stop/release, propuestas Advisor con Aprobar/Rechazar (POST `/reasoning/approve|reject`). Los widgets TradingLab* NO se importan (contrato ficticio: capital/leverage/liquidity que el backend no emite — si son visibles es false-report).
+> - **Tests** `test_trading_front_contract.py` 4/4 (router montado, contrato `/overview` honesto, acciones montadas, metrics/history 200) · fast **102/1** · trading+backtest+advisor+scheduler+mount **85** · vue-tsc 0 · biome limpio · vite build 13.15s · ruff limpio.
+> - **Hallazgo**: 4 fallos `test_trading_intelligence` PREEXISTENTES (baseline con stash idéntico; `TypeError: datetime not callable` en `Order(...)` del propio test) — no relacionados con el mount.
+> - **No tocado**: `cores/trading/*`, scheduler jobs (18 intactos), widgets TradingLab, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15 (build) — FREE BUSINESS TOOLS: 18 herramientas $0 mapeadas a tareas especiales
+
+> **QUÉ SE HIZO:** Pedido owner ("termina de agregar todas las herramientas gratis que consideres necesarias para la ejecución de tareas especiales... ingenio y productividad"). Agent Loop: el `cores/tools/` existía pero solo cubría la capa **security** (TOOL_REGISTRY con 19 wrappers recon/pentest, `ecosystem.py` inventario keep/remove). Las herramientas de la capa **negocio** (catálogos, contenido, leadgen, automatización, OSS bounty, packs, firmas, DB) no tenían registro → NUEVO mínimo:
+> - **`cores/tools/business.py`** NUEVO: `FreeTool` spec + `REGISTRY` 18 herramientas 100% gratis (playwright, ffmpeg, yt-dlp, whisper, piper, edge-tts, ollama, hunter_env, apollo_free, n8n, jq, pandas, git, gh, pandoc, gpg, openssl, sqlite3) + `TASKS` 13 tareas especiales canónicas + detección **pura** (`_is_available`: shutil.which / importlib.find_spec / env-vault para services, nunca miente, sin subprocess/red) + `inventory`/`by_task`/`recommended_installs` (solo faltantes) /`summary`. `used_by` = módulo OWNEX real (SupplierCatalogAdapter, MPT, voice, dev_bounty_pipeline, automation_service...).
+> - **`api/routers/business_tools.py`** NUEVO (3 endpoints read-only): `GET /api/business-tools` (inventario + summary) · `GET /tasks` (tarea → herramientas $0 que la resuelven + available_count) · `GET /installs` (qué instalar y por qué). Montado en main.
+> - **Verificación**: `tests/test_business_tools.py` 13/13 (catálogo canónico, todo tool→task válido, sort, agrupación completa, detección bin/module/env pura via monkeypatch, recommended solo faltantes, summary consistente, servicios jamás exponen la key — `test_service_key_never_leaked`; 3 endpoints 200). fast **102/1** · `import api.main` 1784 rutas (+3) · ruff limpio en los 3 nuevos (I001 api/main.py:64 preexistente).
+> - **No tocado**: `cores/tools/extra.py`/`ecosystem.py` (capa security intacta), adapters, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15 (build) — NETO REAL + MATAR/ESCALAR: loop Dropsheable×Meli sin fantasía
+
+> **QUÉ SE HIZO:** Pedido owner (análisis Dropsheable+Meli: ganancia neta/venta × ventas/mes, portfolio 20→2 ganadores, objetivos O1-O6). Agent Loop: `score_supplier_offer` EXISTÍA incompleto (sin fee plataforma ni impuestos) → EXTEND compatible; performance MATAR/ESCALAR + objetivos NO existían → NEW mínimo:
+> - **NETO REAL** (`SourcingEngine.score_supplier_offer` + `platform_fee_pct/tax_pct/other_costs_usd` opcionales, defaults 0 = histórico intacto): desglose venta−proveedor−Meli−plataforma−impuestos−otros + `net_usd` explícito. `suggest_price` descuenta los 3 en el floor. Constantes `DROPSHEABLE_FEE_PCT=3.0`/`VIABLE_MARGIN_PCT`/`WINNER_MIN_SALES_30D=8`/`KILL_MIN_DAYS_LIVE=60`. + `POST /sourcing/net-real` (alias con el nombre que importa).
+> - **MATAR/ESCALAR** (`ProductPerformance` puro + `engine.product_performance/portfolio_funnel`): ESCALAR ≥8 ventas/30d con neto>0 · REVISAR_PRECIO vende-sin-neto · OBSERVAR ocasional · TESTING <30d vivo · MATAR 0 ventas ≥60d. CANCELLED jamás cuenta como venta. + `GET /intel/winners`.
+> - **O1-O6** (`engine.experiment_objectives(human_hours, platform_fee_pct)`): O1 primera venta · O2 cumplida+cobrada (DELIVERED+PAID) · O3 5 · O4 10 · O5 neto/hora conocida · O6 lista escalar. `net_per_human_hour` None si horas=0 (UNKNOWN honesto). + `GET /intel/objectives`.
+> - **SupplierType.DROPSHEABLE** aditivo (seeds intactos en LOCAL_AR; `parse_supplier_type` con fallback OTHER no rompe).
+> - **Verificación**: `test_zero_invest_ecommerce` 12→18 (6 nuevos) · afectadas eco+zero **39/39** · ampliada client+scheduler+mission+workspaces+asset+economic **121** · fast **102/1** · `import api.main` 1781 rutas (+3) · ruff limpio.
+> - **No tocado**: adapters/red, fees Meli por categoría (los confirma el humano vía simulador), resto del árbol. Sin commits.
+
+## Sesión 2026-09-15: 15 WORKSPACES CANÓNICOS $0 — AFFILIATE + LEAD_SERVICES + KNOWLEDGE_ASSETS
+
+> **QUÉ SE HIZO:** Pedido owner (15 negocios, todo 100% $0, ingenioso, OSS/free). Portfolio cerrado en 15 canónicos: 12 existentes + 3 nuevos UPSIDE (`AFFILIATE` reviews con links multi-red sin stock · `LEAD_SERVICES` leadgen+arbitrage+automation setup+MRR · `KNOWLEDGE_ASSETS` report factory+datasets+security packs margen 100%). Todos `DRAFT_ONLY`, `active=True`, `costo=0` pineado.
+> - **Implementación mínima (EXTEND)**: `cores/workspaces/registry.py` (+3 tipos + defaults prio 5/5/6 + seeds con reglas honestas) · `cores/workspaces/policies.py` (+3 UPSIDE explícitos) · tests 12→15 (`registry` 6/6 + `policies` 13/13 + `mission_hub` 8/8 con roles upside).
+> - **Verificación**: registry+policies+mission+asset **37/37** · economic_os+ssot+asset **31/31** · fast **102/1** · ruff limpio.
+> - **No tocado**: trading PAPER, partnership `active=False`, backup LAST_RESORT, resto del árbol. Sin commits.
+
+## Sesión 2026-09-15: ASSET_FACTORY — 11º workspace, 6 motores económicos, activo reutilizable 1→N
+
+> **QUÉ SE HIZO:** Pedido owner (estrategia definitiva): cartera ya tiene 13 modelos (OWNEX, social commerce, Meli, Adriel Webs, AI work, bug/dev bounties, challenges, OSS, grants, content, capital, backup). No más marketplaces de migajas (<$15/h, entrevista, datos simulados → fuera por regla permanente). Única expansión que falta: **ASSET_FACTORY** — crear activos de software que se venden repetidamente (BUILD→PUBLISH→ACQUIRE→MONETIZE→SUPPORT→IMPROVE), cada trabajo sigue produciendo valor.
+> - **Arquitectura 6 motores** (visión owner, ahora codificada): CASH NOW (Droppinglabel, Meli, Adriel Webs) — UPSIDE; SKILL→CASH (Bug/Dev/AI) — PRIMARY; **ASSET→CASH (micro-SaaS, APIs, dev tools, plugins, extensions, templates, automation kits, digital products, datasets, licensing) — NUEVO UPSIDE prio 6**; AUDIENCE→CASH (Content Factory); PARTNERSHIP→CASH (futuro); CAPITAL→CAPITAL (Trading PAPER). Fórmula: `P(CASH) × gate_score × (1+repeatability) × ownex_boost / human_hours` — repeatability solo >0 con ventas reales.
+> - **Implementación mínima (Agent Loop: NEW, 0 existe → EXTEND)**:
+>   - `cores/workspaces/registry.py` EXTEND: `WorkspaceType.ASSET_FACTORY` + registro `asset_factory` prio 6, 11 totales, settings pipeline 6 fases/10 tipos/costo 0/distribución orgánica/9 criterios gate.
+>   - `cores/workspaces/policies.py` EXTEND: `ASSET_FACTORY=UPSIDE` (opt-in, no renta base).
+>   - `cores/asset_factory/` NUEVO (2 archivos, budget 2/1): `models.py` (AssetType×10, AssetStatus 8 estados, GATE_CRITERIA 9, Asset con gate_passed/repeatability/mrr) + `engine.py` (create/list/get/update/set_gate/advance con guards — BUILDING exige gate_passed, MONETIZING exige ventas — + score/ranked/pipeline_stats/next_action, JSON en data-dir).
+>   - Tests: `test_asset_factory.py` 8/8 + `test_workspaces_registry.py` 6/6 + `test_workspace_policies.py` 13/13.
+> - **Verificación**: asset_factory 8/8 · workspaces 19/19 · economics 44/44 · ruff limpio.
+> - **No tocado**: PARTNERSHIP futuro (no se inventa sin demanda); content/audience separados; `core/` congelado.
+> - **Regla permanente**: nuevo producto solo si pasa 9 gates con evidencia observable; sin ventas repeatability=0; `builds_on_ownex` por defecto.
+
+## Sesión 2026-09-15 (build) — PLAN $0 COMPLETO: ecommerce ingenioso + 7 negocios nuevos sin inversión
+
+> **QUÉ SE HIZO:** Pedido owner ("me gusta todo tu plan, implementa todo"). Agent Loop: audit-first (templates report EXISTÍAN → reuse; affiliate/lead-enrich/curation/packs/automation NO existían → build mínimo EXTEND):
+> - **F1 Auto-Pricing** (`pipeline.SourcingEngine.suggest_price` puro): floor por margen objetivo vs 95% mín competidor, nunca bajo VIABLE 25%. + `POST /sourcing/suggest-price`.
+> - **F1 CompetitorWatch** (puro, UNKNOWN sin datos): OVERPRICED/COMPETITIVE/OPPORTUNITY + `record/list_competitor_snapshots` en engine + job `ecommerce_competitor_watch` 06:00 + `POST+GET /products/{id}/competitors` + `GET /intel/competitors`.
+> - **F2 Multi-supplier routing** (`OrderOrchestrator.route_to_best_supplier` puro): costo landed → processing → rating; sin oferta → unrouted honesto + `POST /orders/route`.
+> - **F3 Scorecards** (`Supplier.fulfillment_rate/return_rate/quality_score/total_pos/last_score_at` + `engine.update_supplier_scorecards` desde historial local + job 06:30 + `POST /suppliers/scorecards/refresh` + `GET /suppliers/scorecards`).
+> - **F4 Cross-listing** (`ListingOptimizer.optimize_for_all_channels`: Meli técnico + IG caption/hashtags + WA catálogo corto + TikTok hook/CTA + `POST /products/{id}/cross-list`).
+> - **F5 Contenido orgánico** (`ProductContentPlanner.plan_product_content` determinista hook/problema/demo/prueba/CTA + hashtags + slot afiliado + `POST /products/{id}/content-plan`; publicar = Human Gate).
+> - **F6 Reviews+Carts** (`ReviewRequest`/`AbandonedCart` + `prepare_review_requests` 10d post-delivered + `track/list_abandoned` + job `ecommerce_review_request` 10:00 + endpoints `/reviews*` `/carts/*`; envía solo humano vía WA Cloud free-tier).
+> - **F7 Affiliate** (`cores/affiliate.py` NUEVO: links multi-red + clicks/conversiones solo-confirmadas + plan/review/publish + funnel honesto clicks≠plata + `api/routers/affiliate.py` 7 endpoints + montado en main).
+> - **F8 LeadGen+Arbitrage** (`client_acquisition` EXTEND: `LeadSource.DIRECTORY_SCRAPE`, `email/phone/city/enriched/score`, `enrich_lead/score_lead/export_qualified`, `plan_arbitrage` margen≥50% + 3 endpoints).
+> - **F8 Report Factory** (`cores/reports/factory.py` NUEVO sobre `templates.render_report` SSOT: package + checklist + gig tiers $50/90/150).
+> - **F8 Data Curation** (`cores/data_curation.py` NUEVO: normalize→dedupe sha256→quality→annotate→package JSONL+datasheet).
+> - **F8 Security Packs** (`cores/security_packs.py` NUEVO: 4 packs $29-79 + render MD).
+> - **F8 Automation Service** (`cores/automation_service.py` NUEVO: 5 ofertas setup+MRR + quote ×complejidad).
+> - **F8 Router** (`api/routers/zero_invest.py` NUEVO: 9 endpoints finos + montado en main).
+> - **Verificación**: `test_zero_invest_ecommerce` 12/12 nuevo · afectadas 41/41 (eco+client+new) · scheduler 53/53 · fast **102/1** · `import api.main` 1776 rutas · ruff limpio en 11 archivos.
+> - **No tocado**: events/engine/validation, cognee, trading live, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15 — "TODAS" pendientes: Agenda COMPLETA + AUDIT BACKEND ALPHA + runner arbitrage 1c
+
+> **QUÉ SE HIZO:** Pedido owner ("todas" las pendientes). Agent Loop aplicado a las 3:
+> - **Agenda (COMPLETA, 0 líneas)**: `cores/agenda/` + `api/routers/agenda.py` + `AgendaView.vue` + `tests/test_agenda.py` YA existían. Mi rewrite inicial (nueva API incompatible) rompía el contrato → **revertido** (`git checkout` + rm). Verificado: `test_agenda.py` 12/12.
+> - **AUDIT BACKEND ALPHA 1.0** (`.ai/AUDIT_BACKEND_ALPHA_1.0.md` nuevo): matriz 13 piezas con evidencia. Veredicto: ~85% ya construido bajo otros nombres (Orchestrator, EV engines, Zero-Barrier, SourceIntel, Availability, Ledger, scheduler idempotente, sidecar, LOCALAPPDATA). Gaps de frontera, no de sistemas: V1/V2 economic engines (decisión vs contabilidad, ambos reclaman SSOT → aclarar, no reescribir); niveles 0-4 (existe ladder A0-A11 → el spec adopta esa taxonomía); observabilidad (techo declarado, sin trace global).
+> - **1c arbitrage runner** (único gap real de código): `cores/investment/tasks.py` NUEVO (`run_arbitrage_scan_once` inyectable + `run_investment_arbitrage_scan` thread-safe, snapshot en data-dir) + job `investment_arbitrage_scan` cada 4h en `get_investment_jobs()` + `tests/test_investment_arbitrage_scan.py` 5/5. Solo lectura: jamás `execute_trade` (pineado por test); respeta bloqueo trading-live. Restantes 1c NO construidos deliberadamente: coder batch (requiere diseño discovery→queue) y 8 fns trading (live bloqueado por owner) → deuda explícita, no jobs fantasmas.
+> - **Verificación**: arbitrage 5/5 · ruff limpio en tocados · fast **102/1** · `test_total_jobs_count >= 54` intacto.
+> - **No tocado**: `core/` (no existe), events/engine/validation, cognee, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-14 (build) — SUPPLIER RESEARCH FRAMEWORK: framework completo para conseguir proveedores a comisión
+
+> **QUÉ SE HIZO:** Pedido owner ("quiero el plan completo con los mejores proveedores... conectados a IG+WA+FB"). Auditoría honesta: no hay afiliados físicos con comisiones altas en AR (2-7%); el modelo viable es **dropshipping local con margen propio** (comprás al vender, ellos despachan). El nicho ganador: **Perfumes/decants nicho** (sin talles, margen 100-200%, sin logística, repetición alta).
+> - **Research framework** (docs/PROVEEDORES_RESEARCH_TEMPLATE.md): ficha completa 15-20 proveedores (producto, stock, comisión, logística, devoluciones, material, financiero) + checklist validación antes de publicar.
+> - **Tracking CSV** (docs/PROVEEDORES_TRACKING_TEMPLATE.csv): hoja lista para Google Sheets con columnas: proveedor, categoría, comisión, dropshipping, stock, catálogo, envío, devoluciones, material, confiabilidad, estado.
+> - **Script WhatsApp** (docs/WHATSAPP_OUTREACH_SCRIPT.md): mensaje inicial + seguimiento 48h + cuestionario mínimo (producto, stock, comisión, dropshipping, devoluciones, material) + hoja de cálculo con confianza 🟢/🟡/🔴.
+> - **Checklist OWNEX actualizado** (cores/setup/checklist.py): 4 items nuevos en fase PLATFORMS — `supplier_football` (p1), `supplier_streetwear` (p2), `supplier_perfumes` (p3), `supplier_accessories` (p4). Prioridades únicas, auto=_MANUAL.
+> - **Script importación** (scripts/supplier_import.py): valida CSV, crea/actualiza proveedores en OWNEX (`POST /suppliers` + `sync-catalog`), dry-run/apply, dry-run por defecto.
+> - **Verificación**: `tests/test_ecommerce.py` 21/21 (9 nuevos tests sync_catalog) · fast **102/1** · ruff limpio.
+> - **Próximo (acciones owner)**: contactar 5 fútbol → completar fichas → 🟢/🟡/🔴 → `POST /suppliers` + `sync-catalog` → 2–3 viables → publicar.
+
+## Sesión 2026-09-14 (build) — SUPPLIER CATALOG SYNC: conexión genérica webs de proveedores → Meli (DRAFT-first)
+
+> **QUÉ SE HIZO:** Pedido owner ("conecta las mejores webs de proveedores para ecommerce/dropshipping directo en Meli"). Clasificación: EXTEND (Supplier.api_endpoint/api_credentials existían sin consumir; MeliAdapter.publish_item solo prepara). Cero URLs hardcodeadas de proveedores (sin contrato API verificado no se inventa integración):
+> - `cores/ecommerce/adapters.py` +~110: `SupplierCatalogAdapter` genérico (endpoint de `Supplier.api_endpoint`, auth vault `supplier_{id}` o credenciales en memoria, valida scheme http(s), timeout 20, mapea tolerante ES/EN sku/name/price/images/stock/url, salta items sin nombre/precio, estados explícitos no_endpoint/unauthorized/http_XXX/connection_failed/unsupported_catalog_shape, nunca raisea ni loguea secretos).
+> - `cores/ecommerce/engine.py` +~45: `sync_supplier_catalog()` — espeja catálogo a productos DRAFT (nada auto-publica; precio lo pone el humano vía /sourcing/score; update si existe).
+> - `cores/ecommerce/models.py` FIX real: `calculate_margin/roi` crasheaban (ZeroDivisionError) con costo>0 y precio 0 — ahora devuelven 0.0 (el sync crea costo-conocido/precio-pendiente).
+> - `api/routers/ecommerce.py`: `SupplierIn` +website/api_endpoint; `POST /suppliers/{id}/sync-catalog`; FIX real `payload.processing_days` → `payload.processing_time_days` (AttributeError en POST /suppliers).
+> - **Verificación**: `tests/test_ecommerce.py` 12→21 (9 nuevos, httpx mockeado, cero red) · fast **102/1** · ruff limpio.
+> - **No tocado**: resto del módulo, `core/`, frontend (endpoints ya consumibles). Sin commits.
+> - **Siguiente (acción owner)**: registrar proveedor real con su URL de catálogo → sync → revisar DRAFTs → precio → ACTIVE → approve payload Meli.
+
+## Sesión 2026-09-14 (build) — LINKS EXTERNOS EN CHECKLIST: cada tarea con URL abre su web con 1 clic
+
+> **QUÉ SE HIZO:** Pedido owner ("¿no considerás necesario que proporcione links?"). Verificado: `how_to` era texto plano en todos lados; cero auto-apertura en backend (sin `webbrowser.open`/`RedirectResponse`); el strip solo navegaba interno. Cambio mínimo aditivo:
+> - `cores/setup/checklist.py` EXTEND: campos opcionales `url` + `url_label` en 8 items con entry-point oficial estable (github_token→github.com/settings/tokens, outlier/mercor/alignerr/mindrift→sus dominios, freelance→fiverr.com, mpt→pexels.com/api, mercor_marketplace→work.mercor.com); `next_daily_task()` los propaga con `.get()` (compat). Sin URL inventada: ai_provider/keys múltiples/target/vault/smtp/trading quedan sin link.
+> - `frontend`: `SetupChecklist.vue` (tipos + botón "Abrir →" por item y en banner Tarea de hoy) + `SetupPendingStrip.vue` (botón junto a "Configurar") + tipos en `ownexData.ts`. Todo `target="_blank" rel="noopener noreferrer"`, solo con tu clic — el sistema sigue sin abrir nada solo.
+> - **Verificación**: `tests/test_setup_checklist.py` 32→36 (4 nuevos: URLs esperadas, https-only, passthrough en next_task/status) · fast **102/1** · ruff + biome limpios · vue-tsc 0 en tocados.
+> - **No tocado**: `core/`, resto del catálogo, lógica de detectores, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-14 (build) — CHECKLIST DE BLOQUEOS CABLEADO: GITHUB_TOKEN/rails/assessments visibles al arranque
+
+> **QUÉ SE HIZO:** Pedido owner ("continua") — los bloqueadores ya no están en un doc invisible, el sistema los dicta al arrancar:
+> - `.ai/SETUP_BLOCKERS.md` nuevo: checklist de las 3 acciones que bloquean TODO el ingreso (GITHUB_TOKEN → $2,700 Algora; assessments Mercor/Outlier/Alignerr → canal $15-55/h; rails ≥3 → cobrar). Cada uno con "Done cuando" verificable por comando, pasos copy-paste, y el flujo completo post-desbloqueo.
+> - `cores/setup/checklist.py` EXTEND (mínimo, patrón existente): detector `_detect_github_token()` (vault `github_token` o env `GITHUB_TOKEN`) + item `github_token` (essentials p6, auto); `_detect_payment_accounts(min_rails=3)` ahora exige ≥3 (antes ≥1 — un solo rail no permite afirmar cobrabilidad, alineado a MONEY VALIDATION); items manuales `mercor_onboarding` (p2), `alignerr_onboarding` (p3), `mercor_marketplace` (p7 post-assessment). Catálogo 11→17. Prioridades únicas por fase.
+> - **Verificación**: `tests/test_setup_checklist.py` 32/32 (conteos 17, prioridades únicas, complete con los 4 nuevos items, github_token auto) · fast **102/1** · ruff limpio.
+> - **Comportamiento esperado**: el `SetupPendingStrip` (IncomeHome) muestra como siguiente tarea `payment_accounts` (mínimo 3 rails) hasta que el owner configure; `github_token` aparece pendiente mientras `GITHUB_TOKEN` siga ausente, y desaparece solo al detectarlo (FORCE refresh por `force_refresh=True`).
+> - **No tocado**: `core/` (gate), assess Febrero, `frontend` (el strip ya consume el contrato — solo backend+doc). Sin commits.
+
+## Sesión 2026-09-14 (build) — PLAN MAESTRO EJECUTADO: fixtures purgados + paquetes Algora preparados
+
+> **QUÉ SE HIZO:** Pedido owner ("el sistema dicte el paso a paso diario", "procede"). Verificación honesta del estado real + ejecución de lo ejecutable sin credenciales:
+> - **Auditoría real**: de los 6 items del WorkBank, solo 3 eran reales (`algora_rudderstack_go` $2,000, `algora_appflowy_flutter` $500, `algora_trigger_dev` $200 — URLs Algora.io reales, del E2E vivo 13/09). Los otros 3 (`bounty-1`, `freelance-1`, `opire-1` con URLs `/program/1`, `/p/1`, `/op/1`) eran **fixtures de test contaminando el store** → eliminados y persistido (`data/workbank.json` ahora solo 3 items reales).
+> - **Nuevo plan SSOT**: `.ai/MASTER_DAILY_EXECUTION_PLAN.md` — loop diario 06:00-17:00, review semanal, review mensual (mes 1-6 con targets), 5 decision gates duros, 8 revenue levers priorizados, anti-patterns, endpoints de uso diario.
+> - **Paquetes de entrega generados** para los 3 Algora reales (AssistedExecutor → `~/ownex/submissions/algora/*`: README.md + work.md). No se subió nada (submit = Human Gate + GITHUB_TOKEN).
+> - **Handlers verificados**: 0 muertos reales (el único señalado `vault_backup_2h` resuelve y corre OK — falso positivo de mi harness de prueba).
+> - **Credenciales auditadas**: 0 configuradas (GITHUB_TOKEN, H1/BC/Inti/YWH keys, MELI, META — todos missing). Rails de pago: solo `mercadopago`.
+> - **Verificación**: workbank+direct_work **68 passed** · fast **102/1** · `backup_vault` corre OK.
+> - **Siguiente (acciones owner, bloquean todo el plan)**: `GITHUB_TOKEN` en vault → claim real en los 3 Algora (PR) → 1er PAID. Luego BountyHub/Gitpay/CodeBounty/Zama quedan en backlog post-PAID; Mercor/Outlier/Alignerr assessments en paralelo.
+
+## Sesión 2026-09-14 (build) — FASE 3 (FRONTEND/MOBILE/WATCH): consolidación sin reescritura
+
+> **QUÉ SE HIZO:** Audit-first: chat ya unificado (`UnifiedChat.vue` en `/ai`, legacy redirige), voz ya consolidada (App.vue Listener+CommandPanel), OpportunityRadar/Planner/PublicWork son superficies distintas de la MISMA API (no duplicados), mobile usa contratos canónicos verificados (7 endpoints OK). Solo se corrigió lo genuinamente roto/dead:
+> - **Fix color real**: `--ownex-accent` referenciado en todo el UI pero NUNCA definido (dangling → accent transparente en runtime). Ahora SSOT en `tokens.css` como `#00D5FF` (cian). `style.css` destruktive ahora usa `--ownex-danger` (#3B82F6). Directiva owner 2026-08-25 (cero rojo) respetada.
+> - **Muertos eliminados**: `styles/ownex-theme.css` (660L, 0 importers), `styles/special-effects.css` (0 importers), `VoiceAssistantRecorder.vue` (324L, 0 referencias).
+> - **Watch mínimo**: QuickActionsScreen stub buttons (`merlin`/`dashboard` no-op) → solo Sync/Alerts.
+> - **Tests**: `test_frontend_theme_consistency.py` 4→8 (accent definido-no-rojo, odyssey sin rojo, dead ausentes).
+> - **Verificación**: fast 102/1 · vite 11.75s · vue-tsc 0 · biome limpio · guards 8/8.
+> - **Siguiente**: FASE 4 (Windows W1-W12 física — owner ejecuta; docs ya listas).
+
+## Sesión 2026-09-14 — FASE 2.4 + CIERRE FASE 2 (BACKUP/RECOVERY/RESILIENCIA)
+
+> **QUÉ SE HIZO:** Sprint 2.4 (offline/degraded) + cierre Fase 2. Verificación honesta: AI-degraded/offline/fallback YA cubierto (54 tests `test_ai_resilience` + `test_llm_fault_injection`), autobadge degraded global existe, circuito cerrado en `/api/recovery` (2.3). NO se construyó un módulo offline-queue nuevo (duplicaría execution-queue retry/DLQ + WorkBank persist + RecoveryStore; §38 no-infra).
+> - `tests/test_offline_degraded.py` NUEVO (6): con AI en OFFLINE_AI — workbank state determinista, backup crea zip, redaction intacta, endpoints sistema/recovery nunca 500 (sin fake success).
+> - **Fase 2 total**: 2.1 migration engine (`cores/backup/migrate.py` + 11 tests) · 2.2 backup secrets-hardening (`_default_exclude` keys/pem/p12 + `.key.bak` en restore; 17 tests) · 2.3 recovery hardening (UNKNOWN heal rule + `/api/recovery` real; 7 tests) · 2.4 offline/degraded pin (6 tests).
+> - **Verificación**: ruff limpio · resilience+recovery+backup+migrate+version+offline **119** · fast **102/1** · `api.main` 1600 rutas · `vite build` 11.36s · vue-tsc 0 en tocados.
+> - **No tocado**: `cores/events/*`, `cores/validation/*`, `cognee`, `core/` (flujo paralelo), WIP ajeno. Sin commits.
+> - **Siguiente**: FASE 3 (frontend/mobile/watch) cuando se ordene.
+
+## Sesión 2026-09-14 — FASE 2.3: Recovery hardening (tests dedicados + UNKNOWN rule + API real)
+
+> **QUÉ SE HIZO:** Sprint 2.3. RecoveryStore/healing_rules/engine existían (integrados con version rollback) pero con CERO tests dedicados y `/api/recovery` estabatico.
+> - `tests/test_recovery.py` NUEVO (7): healing rules (version_rollback prio 0 sin CB para critical/corruption, UNKNOWN, DB reopen), engine status shape, version rollback honesto (False sin backup system — nunca fake), RecoveryStore persistencia/reload (SQLite tmp), endpoint nunca 500.
+> - **Fix real**: no existía healing rule para `FailureType.UNKNOWN` (`get_rule` → None) — agregada `log_and_observe` prio 100 sin CB (`cores/recovery/healing_rules.py`).
+> - `api/routers/observation.py::/recovery`: ahora sirve el engine real (`status()` + `get_version_recovery_status()` + features), best-effort nunca 500.
+> - **Verificación**: ruff limpio · recovery+backup+migrate+version **59** (7+17+11+24) · fast **102/1** · `api.main` 1600 rutas.
+> - **No tocado**: `cores/events/*`, `cores/validation/*`, `cognee`, WIP ajeno. Sin commits.
+> - **Siguiente**: Sprint 2.4 (offline/degraded: fallback explícito + persistencia) o FASE 3 si se ordena.
+
+## Sesión 2026-09-14 — FASE 2.2: Backup hardening (secrets nunca en zip + vault key preservada)
+
+> **QUÉ SE HIZO:** Sprint 2.2 del plan Fase 2. Sobre el engine existente (39 tests ya verdes) se endureció la seguridad de los archivos de backup:
+> - `cores/backup/engine.py::_default_exclude`: ahora excluye SIEMPRE `identity_vault.key`/`.key.bak` + `*.pem`/`*.key`/`*.jks`/`*.keystore`/`*.p12` + `id_rsa`/`id_ed25519` (keys sin extensión). La vault cifrada (`identity_vault.json`) y las DBs SÍ se respaldan (recovery posible). Nada en texto plano.
+> - `restore_backup()`: si un archivo `identity_vault.key` existiera en el archive (fallback de seguridad), la clave existente se preserva como `.key.bak` ANTES de escribir — espejo del flujo `import_migration`.
+> - **Tests** (`tests/test_backup.py` +2 → 17): zip jamás contiene key/private material pero sí vault cifrado + DBs; restore con clave existente la preserva intacta.
+> - **Verificación**: ruff limpio · backup+migrate+version **52** (17+11+24) · fast **102/1** · `api.main` 1599 rutas.
+> - **No tocado**: `cores/events/*`, `cores/validation/*`, `cognee`, WIP ajeno. Sin commits.
+> - **Siguiente**: Sprint 2.3 (recovery hardening: RecoveryStore unificado + heal rule + API) o FASE 3 si se ordena.
+
+## Sesión 2026-09-14 — FASE 2.1: Migration Engine implementado (PC→PC real)
+
+> **QUÉ SE HIZO:** Sprint 2.1 del plan Fase 2. El CLI `run.py --migrate-export/--migrate` importaba `cores.backup.migrate` inexistente (la implementación 2026-08-16 vivía en `core/` borrado; solo quedaba el spec en `graft/`). Implementado `cores/backup/migrate.py` en el árbol canónico: `export_migration()` (6 secciones, manifest sha256, WAL checkpoint, exclusiones, `--no-targets`), `verify_migration()` (schema + checksums, rechaza legacy con mensaje `--restore`), `import_migration()` (destinos inyectables, guard anti-sobrescritura sin `--force`, preservación `.key.bak`, chmod 0600).
+> - **Tests**: `tests/test_migrate.py` 11/11 (export, manifest, exclusiones, verify OK/corrupt/legacy, guard overwrite, restore completo, key.bak). Fixture tmp: JAMÁS toca el home real (lección incidente 2026-08-16).
+> - **Verificación**: ruff limpio · backup suite **50** (39+11) · fast **102/1** · `import api.main` 1599 rutas · CLI import OK.
+> - **No tocado**: `cores/events/*`, `cores/validation/*`, `cognee`, WIP ajeno. Sin commits.
+> - **Siguiente**: Sprint 2.2 (backup hardening: secret exclusion, restore validation, rotation).
+
+## Sesión 2026-09-14 — FASE 1 (SEGURIDAD+PC+BRAVE) EJECUTADA sobre HEAD 0→100
+
+> **QUÉ SE HIZO:** Orden owner ("procede" = ejecutar Fase 1, sin reconfirmar). Baseline: rama `release/win11-stable`, HEAD `71999968` (0→100: brave/elevated/health/guides), fast 102/1. Incidente: reset concurrente borró ~40 archivos de la sesión anterior (trackeados) — se re-aplicó solo lo Fase-1 + fixes de corrección, resto diferido a su fase (ver DECISIONS).
+> - **Human Gate endurecido**: tokens HMAC v2 con workspace binding (`v2:exp:nonce:ws:sig`, v1 rechazado) + 4 tests nuevos (wrong workspace/action, tamper, legacy) — `tests/test_execution_safety.py` 16/16. Sweep scheduler pineado sin self-approve.
+> - **Vault con scopes**: entries `ws::provider`, lookup estricto, resto de API scope-aware, AES-GCM intacta — `tests/test_identity_vault_scopes.py` 7/7.
+> - **Credenciales browser**: `resolve_credential()` (+workspace) + `login_dataannotation` + vault en 4 workers; registry `get_executors` honesto (4 headless, Algora vía adapter).
+> - **Brave**: `browser_state()` (9 estados, causas reales, READY solo con evidencia) + endpoint `/brave/open` valida http(s).
+> - **PC Health**: `collect_pc_health()` verificado (nunca raisea/500, sin secretos) + endpoints testeados.
+> - **Elevated**: `request_elevation` + audit JSONL + tests; onboarding facets `get_platform_status()` + endpoint `/phase-status`.
+> - **Verificación**: ruff 0 nuevos · Phase-1 **67 tests** (20 brave/elevated/health + 16 safety + 7 vault + 14 workers + 10 sweep) · fast **102/1** · `import api.main` 1598 rutas · degraded 30/30.
+> - **Docs**: `docs/SECURITY_AUDIT_FINAL.md` (RC, explícitamente NO Stable).
+> - **No tocado**: `core/` (flujo paralelo lo borra — su scope §24, verificado runtime OK), `cores/events/*`, `cores/validation/*`, `cognee`, WIP ajeno (Makefile/first_money/brief/daily/priority/.ai). Sin commits.
+> - **Siguiente**: FASE 2 (backup/recovery/resiliencia) cuando se ordene.
+
 ## Sesión 2026-09-13 — FASE 2 CERRADA: 7 feeds + cache + bridge + health + OAR pin + public-work wiring
 
 > **QUÉ SE HIZO:** Cierre FASE 2 del FINAL DEFINITIVE (4 agentes → FASE 1 ya sellada). Audit-first, cambios mínimos EXTEND, toda deuda FASE 1 integrada y verificada:

@@ -8,6 +8,7 @@ outcome-based: PR merged = paid.
 from __future__ import annotations
 
 import logging
+import os
 import re
 from typing import Any
 
@@ -29,6 +30,25 @@ GITHUB_API_BASE = "https://api.github.com"
 class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
     """Discovers bounty-labeled GitHub issues via GitHub Search API."""
 
+    # Base bounty labels. With languages: 3 queries × language (budget-bounded).
+    # Without languages: current 5-query behavior (unchanged contract).
+    _BASE_LABEL_QUERIES = [
+        "label:bounty state:open",
+        "label:reward state:open",
+        "label:paid state:open",
+    ]
+    _BOUNTY_QUERIES = [
+        "label:bounty state:open",
+        "label:reward state:open",
+        "label:paid state:open",
+        'label:"good first issue" state:open',  # often have rewards
+        "label:hacktoberfest state:open",  # some have rewards
+    ]
+
+    # Cap idiomas por request: GitHub search cobra 1 request por query.
+    # Con token: 30/min; anónimo: 10/min. 3 queries × 5 idiomas = 15 max.
+    MAX_LANGUAGES_PER_SCAN = 5
+
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         self._config = config or {}
         source = DiscoverySource(
@@ -44,20 +64,36 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
         )
         super().__init__(source)
 
-    # Search queries for different bounty label patterns
-    _BOUNTY_QUERIES = [
-        "label:bounty state:open",
-        "label:reward state:open",
-        "label:paid state:open",
-        'label:"good first issue" state:open',  # often have rewards
-        "label:hacktoberfest state:open",  # some have rewards
-    ]
+    @staticmethod
+    def _normalize_languages(languages: list[str] | None) -> list[str]:
+        """Lowercase + dedupe + cap. Server-side qualifier needs exact names."""
+        seen: list[str] = []
+        for lang in languages or []:
+            name = (lang or "").strip().lower().replace(" ", "-")
+            if name and name not in seen:
+                seen.append(name)
+        return seen[: GitHubBountyDweAdapter.MAX_LANGUAGES_PER_SCAN]
 
-    async def fetch_opportunities(self) -> list:
-        """Search GitHub for bounty issues via Search API."""
+    def _build_queries(self, languages: list[str] | None = None) -> list[str]:
+        """Bounty queries, optionally restricted with `language:` qualifiers.
+
+        GitHub ANDs qualifiers, so each language needs its own queries.
+        """
+        langs = self._normalize_languages(languages)
+        if not langs:
+            return list(self._BOUNTY_QUERIES)
+        return [f"{base} language:{lang}" for lang in langs for base in self._BASE_LABEL_QUERIES]
+
+    async def fetch_opportunities(self, languages: list[str] | None = None) -> list:
+        """Search GitHub for bounty issues via Search API.
+
+        ``languages`` (e.g. ["rust", "go", "solidity"]) restricts server-side
+        via ``language:`` qualifiers. ``None`` = current behavior (unchanged).
+        """
+        queries = self._build_queries(languages if languages is not None else self._config.get("languages"))
         opportunities: list = []
 
-        for query in self._BOUNTY_QUERIES:
+        for query in queries:
             try:
                 items = await self._search_query(query)
                 for item in items[:15]:  # limit per query

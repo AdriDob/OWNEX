@@ -48,3 +48,45 @@ def test_legacy_jarvis_theme_not_imported_into_global_layers() -> None:
     stylesheet for its remaining page-local consumers only."""
     bg = (FRONTEND / "src" / "components" / "JarvisBackground.vue").read_text(encoding="utf-8")
     assert "--gradient-primary" not in bg and ".btn-primary" not in bg
+
+
+RED_HEXES = ("#E82127", "#E31937", "#D01E23", "#FF4D6A")
+
+
+def _strip_comments(css: str) -> str:
+    import re
+
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+
+
+def test_accent_token_is_defined_and_not_red() -> None:
+    """--ownex-accent must resolve (no dangling/self-ref) and contain zero red.
+
+    Regression: the token was once referenced but never defined (dead accent
+    across the UI), then briefly set to Tesla red against the zero-red rule.
+    """
+    tokens = _strip_comments((FRONTEND / "src" / "design" / "tokens.css").read_text(encoding="utf-8"))
+    line = next(ln for ln in tokens.splitlines() if "--ownex-accent:" in ln)
+    value = line.split(":", 1)[1]
+    assert "var(--ownex-accent)" not in value, f"self-referential accent: {line.strip()}"
+    for hx in RED_HEXES:
+        assert hx not in value.upper(), f"rojo prohibido en accent: {line.strip()}"
+
+
+def test_cycle_odyssey_has_no_red() -> None:
+    """Odyssey follows the accent (blue family), never Tesla red."""
+    tokens = _strip_comments((FRONTEND / "src" / "design" / "tokens.css").read_text(encoding="utf-8"))
+    line = next(ln for ln in tokens.splitlines() if "--ownex-cycle-odyssey:" in ln)
+    for hx in RED_HEXES:
+        assert hx not in line.upper(), f"rojo prohibido en odyssey: {line.strip()}"
+
+
+def test_no_dead_stylesheets_shipped() -> None:
+    """Stylesheets with zero importers must not linger (dead gradients/glows)."""
+    for dead in ("styles/ownex-theme.css", "styles/special-effects.css"):
+        assert not (FRONTEND / "src" / dead).exists(), f"dead stylesheet still present: {dead}"
+
+
+def test_no_dead_voice_component() -> None:
+    """VoiceAssistantRecorder was unmounted with zero importers (Listener+Panel live)."""
+    assert not (FRONTEND / "src" / "components" / "voice" / "VoiceAssistantRecorder.vue").exists()

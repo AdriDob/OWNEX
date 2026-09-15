@@ -25,12 +25,20 @@ class TestOverview:
         data = r.json()
         assert data["mission"]["target_usd"] == 5000.0
         assert data["levels"]["level"] == 1
-        assert len(data["workspaces"]) == 10
+        assert len(data["workspaces"]) == 15
         roles = {w["id"]: w["role"] for w in data["workspaces"]}
         assert roles["trading"] == "capital_only"
         assert roles["backup_income"] == "last_resort"
         assert roles["bug_bounty"] == "primary"
-        assert isinstance(data["next_action"], str)
+        assert roles["asset_factory"] == "upside"
+        assert roles["partnership"] == "upside"
+        assert roles["affiliate"] == "upside"
+        assert roles["lead_services"] == "upside"
+        assert roles["knowledge_assets"] == "upside"
+        # Actionable next_action: dict with title/url/endpoint, never generic string
+        assert isinstance(data["next_action"], dict)
+        assert "title" in data["next_action"]
+        assert "url" in data["next_action"] or "endpoint" in data["next_action"]
 
     def test_overview_target_override(self, client):
         r = client.get("/mission-hub/overview?target_usd=10000")

@@ -500,6 +500,94 @@ class ApplicationAssistant:
         "UNKNOWN",
     )
 
+    # §4/§9 facet checklist: facet -> step-id keywords. A facet is done when any
+    # completed step id contains a keyword; unknown when no step covers it
+    # (never invented). FIRST_PAYMENT stays unknown without revenue evidence
+    # (accepted != paid, Rule §39).
+    PLATFORM_FACETS: dict[str, tuple[str, ...]] = {
+        "account": ("create_account",),
+        "email": ("email_verify", "verify_email"),
+        "profile": ("expertise_profile", "resume_linkedin", "generate_gigs"),
+        "identity": ("identity_verification", "verify_identity"),
+        "kyc": ("kyc",),
+        "payment": ("payment_setup", "configure_payment", "configure_payout"),
+        "wallet": ("wallet",),
+        "api": ("api_key",),
+        "oauth": ("connect_github", "oauth"),
+        "skills": ("coding_assessment", "domain_assessment", "writing_tests", "ai_interview", "technical_screening"),
+        "reputation": ("reputation",),
+        "first_opportunity": (
+            "project_onboarding",
+            "project_matching",
+            "project_wait",
+            "publish_3_gigs",
+            "first_program",
+            "first_bid",
+        ),
+        "first_submission": ("first_submission", "submit_work"),
+        "first_acceptance": ("first_acceptance",),
+        "first_payment": (),
+    }
+
+    GLOBAL_STATES = (
+        "NOT_CONNECTED",
+        "ONBOARDING",
+        "CONFIGURING",
+        "BLOCKED",
+        "READY",
+        "OPERATIONAL",
+        "EARNING",
+        "OPTIMIZING",
+    )
+
+    def get_platform_status(self, platform_key: str, allow_interview_paths: bool = False) -> dict[str, Any]:
+        """§4/§9 facet checklist + global state for one platform (derived, never invented)."""
+        ob = self.get_onboarding(platform_key, allow_interview_paths=allow_interview_paths)
+        done_ids = {c["id"] for c in ob["checklist"] if c["done"]}
+        all_ids = {c["id"] for c in ob["checklist"]}
+
+        facets: dict[str, str] = {}
+        for facet, keywords in self.PLATFORM_FACETS.items():
+            if not keywords or not any(k in " ".join(all_ids) for k in keywords):
+                facets[facet] = "unknown"
+            elif any(any(k in sid for k in keywords) for sid in done_ids):
+                facets[facet] = "done"
+            else:
+                facets[facet] = "pending"
+
+        status = ob["status"]
+        readiness = ob["readiness_pct"]
+        if status in (STATUS_REJECTED,):
+            global_state = "BLOCKED"
+        elif status == STATUS_ACCEPTED and facets["first_opportunity"] == "done":
+            global_state = "EARNING"
+        elif readiness >= 80:
+            global_state = "OPERATIONAL"
+        elif facets["payment"] == "done" or readiness >= 50:
+            global_state = "READY"
+        elif status in (STATUS_APPLIED, STATUS_IN_REVIEW):
+            global_state = "ONBOARDING"
+        elif done_ids:
+            global_state = "CONFIGURING"
+        else:
+            global_state = "NOT_CONNECTED"
+
+        missing = [f for f, v in facets.items() if v == "pending"]
+        nxt = ob["next_action"]
+        return {
+            "platform": platform_key,
+            "facets": facets,
+            "global_state": global_state,
+            "missing": missing,
+            "unknown_facets": [f for f, v in facets.items() if v == "unknown"],
+            "next_action": nxt,
+            "what_unlocks": (
+                f"Completar '{nxt['title']}' (~{nxt['est_minutes']} min) desbloquea el siguiente facet."
+                if nxt
+                else "Onboarding completo en lo medible; el cobro se confirma con revenue real."
+            ),
+        }
+
     def get_onboarding(self, platform_key: str, allow_interview_paths: bool = False) -> dict[str, Any]:
         """Onboarding state for a platform: what's done, what's missing, readiness %."""
         if platform_key not in {m["key"] for m in _platform_catalog()}:

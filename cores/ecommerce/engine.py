@@ -14,6 +14,7 @@ from cores.ecommerce.models import (
     Marketplace,
     Order,
     OrderStatus,
+    PaymentStatus,
     Product,
     ProductStatus,
     PurchaseOrder,
@@ -24,6 +25,14 @@ from cores.ecommerce.models import (
 )
 
 logger = logging.getLogger("ownex.ecommerce.engine")
+
+
+def _suppliers_store_path():
+    import os as _os
+    from pathlib import Path as _Path
+
+    base = _Path(_os.environ.get("OWNEX_DATA_DIR", "data"))
+    return base / "ecommerce_suppliers.json"
 
 
 def seed_ranked_suppliers() -> list[Supplier]:
@@ -126,6 +135,71 @@ class EcommerceEngine:
         self._reviews: dict[str, ReviewRequest] = {}
         self._carts: dict[str, AbandonedCart] = {}
         self._initialized = False
+        # Load persisted suppliers if any (100 AR Meli-only)
+        try:
+            self._load_suppliers()
+        except Exception:
+            pass
+
+    def _load_suppliers(self):
+        import json as _json
+
+        p = _suppliers_store_path()
+        if not p.exists():
+            return
+        try:
+            data = _json.loads(p.read_text(encoding="utf-8"))
+            for raw in data.get("suppliers", []):
+                try:
+                    raw["type"] = SupplierType(raw.get("type", "other"))
+                except Exception:
+                    raw["type"] = SupplierType.OTHER
+                try:
+                    raw["minimum_order_usd"] = __import__("decimal").Decimal(str(raw.get("minimum_order_usd", "0")))
+                except Exception:
+                    raw["minimum_order_usd"] = __import__("decimal").Decimal("0")
+                try:
+                    raw["commission_rate"] = __import__("decimal").Decimal(str(raw.get("commission_rate", "0")))
+                except Exception:
+                    raw["commission_rate"] = __import__("decimal").Decimal("0")
+                try:
+                    raw["capital_required_usd"] = __import__("decimal").Decimal(
+                        str(raw.get("capital_required_usd", "0"))
+                    )
+                except Exception:
+                    pass
+                try:
+                    raw["monthly_cost_usd"] = __import__("decimal").Decimal(str(raw.get("monthly_cost_usd", "0")))
+                except Exception:
+                    pass
+                s = Supplier(**{k: v for k, v in raw.items() if k in Supplier.__dataclass_fields__})
+                self._suppliers[s.id] = s
+        except Exception as exc:
+            logger.warning("Could not load suppliers: %s", exc)
+
+    def _save_suppliers(self):
+        import json as _json
+
+        p = _suppliers_store_path()
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            payload = {"suppliers": [self._supplier_to_dict(s) for s in self._suppliers.values()]}
+            p.write_text(_json.dumps(payload, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+        except Exception as exc:
+            logger.warning("Could not save suppliers: %s", exc)
+
+    def _supplier_to_dict(self, s: Supplier):
+        return {
+            "id": s.id,
+            "name": s.name,
+            "type": s.type.value if hasattr(s.type, "value") else str(s.type),
+            "website": s.website,
+            "api_endpoint": s.api_endpoint,
+            "commission_rate": str(s.commission_rate),
+            "processing_time_days": s.processing_time_days,
+            "is_active": s.is_active,
+            "notes": s.notes,
+        }
 
     def initialize(self) -> None:
         """Initialize adapters and load persisted data."""
@@ -154,6 +228,10 @@ class EcommerceEngine:
     def add_supplier(self, supplier: Supplier) -> Supplier:
         self._suppliers[supplier.id] = supplier
         logger.info("Added supplier: %s (%s)", supplier.name, supplier.id)
+        try:
+            self._save_suppliers()
+        except Exception:
+            pass
         return supplier
 
     def get_supplier(self, supplier_id: str) -> Supplier | None:
@@ -173,6 +251,10 @@ class EcommerceEngine:
             if hasattr(supplier, key):
                 setattr(supplier, key, value)
         supplier.updated_at = datetime.now(UTC)
+        try:
+            self._save_suppliers()
+        except Exception:
+            pass
         return supplier
 
     async def sync_supplier_catalog(self, supplier_id: str, limit: int = 50) -> dict[str, Any]:
@@ -580,6 +662,132 @@ class EcommerceEngine:
         cart.recovered = True
         cart.recovery_sent_at = datetime.now(UTC)
         return cart
+
+    # ── Performance MATAR/ESCALAR + objetivos O1-O6 (datos reales, $0) ──
+
+    def _sold_orders(self) -> list[Order]:
+        """Orders that count as sales (CANCELLED never sold anything)."""
+        return [o for o in self._orders.values() if o.status != OrderStatus.CANCELLED]
+
+    def product_performance(self, platform_fee_pct: float = 0.0) -> list[dict[str, Any]]:
+        """Net per sale × sales per product → verdict MATAR/ESCALAR.
+
+        Ventanas fijas 30/60 días (contrato del clasificador).
+        platform_fee_pct: fee plataforma no registrado en la orden
+        (Dropsheable declara 3%). 0.0 = neto observado sin asumir nada.
+        """
+        from datetime import timedelta
+
+        from cores.ecommerce.pipeline import get_product_performance
+
+        now = datetime.now(UTC)
+        cutoff_30 = now - timedelta(days=30)
+        cutoff_60 = now - timedelta(days=60)
+        try:
+            fee_rate = max(0.0, float(platform_fee_pct or 0.0)) / 100.0
+        except (TypeError, ValueError):
+            fee_rate = 0.0
+        classifier = get_product_performance()
+        rows: list[dict[str, Any]] = []
+        for product in self._products.values():
+            if product.status == ProductStatus.DISCONTINUED:
+                continue
+            items = [it for o in self._sold_orders() for it in o.items if it.product_id == product.id]
+            s30 = sum(
+                it.quantity
+                for o in self._sold_orders()
+                for it in o.items
+                if it.product_id == product.id and o.created_at >= cutoff_30
+            )
+            s60 = sum(
+                it.quantity
+                for o in self._sold_orders()
+                for it in o.items
+                if it.product_id == product.id and o.created_at >= cutoff_60
+            )
+            revenue = sum((float(it.total_price_usd) for it in items), 0.0)
+            gross = sum((float(it.margin_usd) for it in items), 0.0)
+            net = round(gross - revenue * fee_rate, 2)
+            sales_total = sum(it.quantity for it in items)
+            net_per_sale = round(net / sales_total, 2) if sales_total else 0.0
+            days_live = max(0, (now - product.created_at).days) if product.created_at else 0
+            verdict = classifier.classify(sales_30d=s30, sales_60d=s60, net_per_sale=net_per_sale, days_live=days_live)
+            rows.append(
+                {
+                    "product_id": product.id,
+                    "name": product.name,
+                    "status": product.status.value,
+                    "sales_30d": s30,
+                    "sales_60d": s60,
+                    "sales_total": sales_total,
+                    "net_total": net,
+                    "net_per_sale": net_per_sale,
+                    "days_live": days_live,
+                    "verdict": verdict["verdict"],
+                    "action": verdict["action"],
+                    "note": verdict["note"],
+                }
+            )
+        rows.sort(key=lambda r: (r["net_total"], r["sales_30d"]), reverse=True)
+        return rows[:500]
+
+    def portfolio_funnel(self, platform_fee_pct: float = 0.0) -> dict[str, Any]:
+        """100 pubs → cuántas venden / son ganadoras / hay que matar."""
+        perf = self.product_performance(platform_fee_pct=platform_fee_pct)
+        by_verdict: dict[str, int] = {}
+        for row in perf:
+            by_verdict[row["verdict"]] = by_verdict.get(row["verdict"], 0) + 1
+        winners = [r for r in perf if r["verdict"] == "ESCALAR"]
+        return {
+            "publications": len(perf),
+            "by_verdict": by_verdict,
+            "winners": len(winners),
+            "winners_monthly_net": round(sum(r["net_total"] for r in winners), 2),
+            "to_kill": by_verdict.get("MATAR", 0),
+            "in_testing": by_verdict.get("TESTING", 0),
+            "note": "Estructura que escala: pocos ganadores con rotación, no miles de pubs.",
+        }
+
+    def experiment_objectives(self, human_hours: float = 0.0, platform_fee_pct: float = 0.0) -> dict[str, Any]:
+        """Objetivos O1-O6 del experimento + ganancia neta por hora humana.
+
+        human_hours = horas humanas invertidas (las informa el humano, nunca
+        se inventan). 0 → net_per_human_hour None (UNKNOWN honesto).
+        """
+        sold = self._sold_orders()
+        sales_total = sum(it.quantity for o in sold for it in o.items)
+        collected = [o for o in sold if o.status == OrderStatus.DELIVERED and o.payment_status == PaymentStatus.PAID]
+        collected_units = sum(it.quantity for o in collected for it in o.items)
+        try:
+            fee_rate = max(0.0, float(platform_fee_pct or 0.0)) / 100.0
+        except (TypeError, ValueError):
+            fee_rate = 0.0
+        revenue = sum((float(o.total_usd) for o in sold), 0.0)
+        gross = sum((float(o.margin_usd) for o in sold), 0.0)
+        net_total = round(gross - revenue * fee_rate, 2)
+        try:
+            hours = max(0.0, float(human_hours or 0.0))
+        except (TypeError, ValueError):
+            hours = 0.0
+        winners = [
+            r["product_id"]
+            for r in self.product_performance(platform_fee_pct=platform_fee_pct)
+            if r["verdict"] == "ESCALAR"
+        ]
+        return {
+            "o1_first_sale": sales_total >= 1,
+            "o2_first_fulfilled_collected": collected_units >= 1,
+            "o3_five_sales": sales_total >= 5,
+            "o4_ten_sales": sales_total >= 10,
+            "o5_net_per_human_hour_known": hours > 0 and sales_total > 0,
+            "o6_scale_winners": winners,
+            "sales_total": sales_total,
+            "collected_units": collected_units,
+            "net_total": net_total,
+            "net_per_human_hour": round(net_total / hours, 2) if hours > 0 else None,
+            "human_hours": hours,
+            "note": "Con tus ventas, tus proveedores y tus precios: este canal produce X netos por hora humana.",
+        }
 
     def get_status(self) -> dict[str, Any]:
         return {

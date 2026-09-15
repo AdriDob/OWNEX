@@ -21,13 +21,22 @@ DEFAULT_KEEP = 10
 
 
 def _default_exclude(name: str) -> bool:
-    """Exclude temp files, caches, and node_modules from backup."""
+    """Exclude temp files, caches, node_modules, and RAW SECRETS from backup.
+
+    SECURITY: the vault key and any private-key material are NEVER persisted
+    in plaintext inside an archive. The encrypted identity_vault.json IS
+    backed up (needed for recovery); the raw symmetric key travels only via
+    the migrate flow (.key.bak, outside the zip).
+    """
     return (
         name.startswith("__pycache__")
         or name == "node_modules"
         or name.endswith(".pyc")
         or name == "backups"
         or name.startswith(".")
+        or name in {"identity_vault.key", "identity_vault.key.bak"}
+        or name.endswith((".pem", ".key", ".jks", ".keystore", ".p12"))
+        or name.startswith("id_")  # id_rsa / id_ed25519 (sin extensión)
     )
 
 
@@ -241,7 +250,12 @@ def prune_backups(keep: int = DEFAULT_KEEP) -> dict[str, Any]:
 
 
 def restore_backup(archive_path: str, target_dir: str | None = None) -> dict[str, Any]:
-    """Restore ORION from a backup archive."""
+    """Restore ORION from a backup archive.
+
+    SECURITY: the vault key is excluded from archives (never plaintext), so a
+    restore never overwrites an existing identity_vault.key. If the archive
+    somehow contains one, the existing key is preserved as .key.bak first.
+    """
     path = Path(archive_path)
     if not path.exists():
         return {"status": "error", "reason": f"Backup not found: {archive_path}"}
@@ -253,6 +267,16 @@ def restore_backup(archive_path: str, target_dir: str | None = None) -> dict[str
         with zipfile.ZipFile(path, "r") as zf:
             # Skip manifest.json during extraction
             names = [n for n in zf.namelist() if n != "manifest.json"]
+            # Never write a raw vault key over an existing one.
+            for name in names:
+                if not name.endswith("identity_vault.key"):
+                    continue
+                out = dest / name
+                if out.exists():
+                    bak = out.with_name("identity_vault.key.bak")
+                    import shutil
+
+                    shutil.copy2(out, bak)
             for name in names:
                 try:
                     zf.extract(name, dest)

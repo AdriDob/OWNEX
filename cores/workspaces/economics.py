@@ -90,6 +90,50 @@ def _workspace_for_platform(platform: str) -> str | None:
     return None
 
 
+def _feedback_map() -> dict[str, Any]:
+    """Workspace → ChannelEconomics from the feedback engine (best-effort)."""
+    try:
+        from cores.economic_feedback.engine import compute_channel_economics
+
+        # ChannelEconomics is keyed by platform; map to workspace via _workspace_for_platform aggregate
+        # Build workspace aggregate from channel economics
+        chans = compute_channel_economics()
+        # Aggregate per workspace
+        ws_agg: dict[str, dict[str, Any]] = {}
+        for ch in chans:
+            ws = _workspace_for_platform(ch.channel)
+            if not ws:
+                continue
+            a = ws_agg.setdefault(ws, {"paid": 0, "net": 0.0, "hours": 0.0, "p_list": [], "nph_list": []})
+            a["paid"] += ch.paid
+            a["net"] = round(a["net"] + ch.net_cash, 2)
+            if ch.human_hours is not None:
+                a["hours"] += ch.human_hours
+            if ch.p_cash_real is not None:
+                a["p_list"].append(ch.p_cash_real)
+            if ch.net_per_hour is not None:
+                a["nph_list"].append(ch.net_per_hour)
+        # Reduce
+        out: dict[str, Any] = {}
+        for ws, a in ws_agg.items():
+            p_cash = round(sum(a["p_list"]) / len(a["p_list"]), 3) if a["p_list"] else None
+            ev_h = (
+                round(a["net"] / a["hours"], 2)
+                if a["hours"] and a["hours"] > 0
+                else (round(sum(a["nph_list"]) / len(a["nph_list"]), 2) if a["nph_list"] else None)
+            )
+            out[ws] = {
+                "paid": a["paid"],
+                "net": a["net"],
+                "hours": round(a["hours"], 2) if a["hours"] else None,
+                "p_cash": p_cash,
+                "ev_per_hour": ev_h,
+            }
+        return out
+    except Exception:
+        return {}
+
+
 def economics_for(
     workspace: WorkspaceType | str,
     *,
@@ -97,7 +141,10 @@ def economics_for(
     include_optional: bool = False,
     allow_last_resort: bool = False,
 ) -> WorkspaceEconomics:
-    """Economics for one workspace from measured outcomes (UNKNOWN when none)."""
+    """Economics for one workspace from measured outcomes (UNKNOWN when none).
+
+    Now closed-loop: uses economic_feedback (REALIZED NET/H + P(CASH) recalibrado).
+    """
     ws = workspace if isinstance(workspace, WorkspaceType) else WorkspaceType(str(workspace))
     role = income_role(ws).value
     eligible = allowed_in_income_mix(
@@ -106,17 +153,48 @@ def economics_for(
     if not eligible:
         return WorkspaceEconomics(workspace=ws.value, role=role, eligible=False, note="Fuera del mix por política")
 
+    # Closed-loop map from feedback engine
+    fb_map = _feedback_map()
+    fb = fb_map.get(ws.value)
+
     table = _channel_table()
     row = table.get(ws.value, {})
 
     outcomes = int(row.get("outcomes", 0) or 0)
+    # Prefer feedback aggregate; fallback to ledger
+    if fb and fb.get("paid", 0) > 0:
+        outcomes = int(fb["paid"])
+        net = fb.get("net")
+        p_cash = fb.get("p_cash")
+        ev_h = fb.get("ev_per_hour")
+        hours = fb.get("hours")
+        # Repeatability from real outcomes count
+        repeat = "MEASURED" if outcomes >= 3 else "THIN" if outcomes > 0 else "UNKNOWN"
+        note = f"{outcomes} PAID medidos · ${net} neto"
+        if ev_h is not None:
+            note += f" · ${ev_h}/h realizado"
+        if hours is not None:
+            note += f" · {hours}h humanas"
+        if p_cash is not None:
+            note += f" · P(CASH) real {p_cash:.0%}"
+        return WorkspaceEconomics(
+            workspace=ws.value,
+            role=role,
+            eligible=True,
+            expected_net_usd=float(net) if net is not None else None,
+            p_cash=p_cash,
+            ev_per_hour=ev_h,
+            repeatability=repeat,
+            outcomes=outcomes,
+            note=note,
+        )
     if not row or outcomes <= 0:
         return WorkspaceEconomics(
             workspace=ws.value,
             role=role,
             eligible=True,
             outcomes=0,
-            note="Sin PAID medidos — UNKNOWN, no se inventa",
+            note="Sin PAID medidos — UNKNOWN, no se inventa (primer PAID desbloquea tu P(CASH) real)",
         )
     net = row.get("net_cash_usd")
     return WorkspaceEconomics(
@@ -124,11 +202,11 @@ def economics_for(
         role=role,
         eligible=True,
         expected_net_usd=float(net) if net is not None else None,
-        p_cash=None,  # UNKNOWN until per-workspace acceptance calibration exists
-        ev_per_hour=None,  # UNKNOWN until per-workspace human hours are tracked
+        p_cash=None,
+        ev_per_hour=None,
         repeatability="UNKNOWN" if outcomes < 3 else "MEASURED",
         outcomes=outcomes,
-        note=f"{outcomes} PAID medidos en ledger",
+        note=f"{outcomes} PAID medidos en ledger (sin horas → net/h aún UNKNOWN, registrá human_minutes)",
     )
 
 

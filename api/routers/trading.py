@@ -6,6 +6,7 @@ in a single call for the simple UX mandate.
 
 from __future__ import annotations
 
+import os
 from decimal import Decimal
 from typing import Any
 
@@ -44,6 +45,78 @@ def _safe(fn: Any, default: Any) -> Any:
         return fn()
     except Exception:
         return default
+
+
+@router.get("/overview")
+def overview() -> dict[str, Any]:
+    """One honest call for the front: mode + jobs + paper metrics + copy + pending config.
+
+    Nothing here invents data: DRY_RUN/PAPER metrics come from TradingStore,
+    config-mode from TradingConfig, jobs from the scheduler registry, and the
+    pending trading config from the Setup Checklist (trading_live manual item).
+    """
+    from cores.scheduler.jobs import get_trading_jobs
+    from cores.setup.checklist import get_setup_checklist
+    from cores.trading.paper.memecoin_paper import MemecoinPaperLoop, paper_metrics
+
+    engine = _get_engine()
+    store = engine._store  # noqa: SLF001
+    config = TradingConfig()
+    ask = TradingConfig.from_env()
+
+    trades = store.get(MemecoinPaperLoop.LEDGER_KEY) or []
+    pnls = [t["pnl_sol"] for t in trades if isinstance(t, dict)] if trades else []
+    metrics = paper_metrics([type("T", (), {"pnl_sol": p})() for p in pnls])
+    metrics["trade_count"] = len(trades)
+
+    jobs = get_trading_jobs()
+    running = [j for j in jobs if (j.metadata or {}).get("enabled", True) is True]
+
+    # Pending config: paper mode is the safe default and needs nothing; live asks
+    # for exchange keys (vault/env). trading_live (manual) gates the decision.
+    checklist = _safe(lambda: get_setup_checklist().status(), {})
+    pending: list[dict[str, str]] = []
+    live_enabled = False
+    for item in checklist.get("pending") or []:
+        if item.get("id") == "trading_live":
+            live_enabled = False
+            pending.append(
+                {
+                    "id": "trading_live",
+                    "title": item.get("title", "Habilitar trading LIVE"),
+                    "why": item.get("why", ""),
+                    "how_to": item.get("how_to", ""),
+                }
+            )
+    if not pending and not live_enabled:
+        for env_key in ("EXCHANGE_API_KEY", "HELIUS_API_KEY"):
+            if not os.environ.get(env_key) and not getattr(ask, env_key.lower(), ""):
+                pending.append(
+                    {
+                        "id": env_key.lower(),
+                        "title": f"Configurar {env_key}",
+                        "why": "Necesario para trading LIVE.",
+                        "how_to": "IdentityVault / env.",
+                    }
+                )
+
+    return {
+        "mode": config.mode.value,
+        "mode_label": config.mode_label,
+        "is_simulation": config.is_simulation,
+        "is_live": config.is_live,
+        "emergency_stop": bool(engine.status().get("emergency_stop", False)),
+        "copy": _safe(engine.status, {}),
+        "masters": _safe(lambda: [m.to_dict() for m in engine.list_masters()], []),
+        "metrics": metrics,
+        "jobs": {"total": len(jobs), "enabled": len(running)},
+        "reasoning": {
+            "dna": _safe(lambda: store.get("dna", []), []),
+            "proposals": _safe(lambda: store.get("proposals", []), []),
+        },
+        "pending_config": pending,
+        "generated_at": store.now_iso(),
+    }
 
 
 @router.get("/dashboard/summary")

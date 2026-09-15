@@ -466,10 +466,19 @@ def get_investment_jobs() -> list[JobDefinition]:
     - risk_guardian_check: auto-pause strategies in drawdown every 15min.
     - startup_checks: detect missing credentials, stalled pipelines every 1h.
     """
-    # NOTE (2026-09-09): investment_arbitrage_scan removed — module
-    # cores.investment.tasks was never created (dead silent no-op).
-    # Re-add with a real scan runner (see DECISIONS.md).
     return [
+        _cron_job(
+            job_id="investment_arbitrage_scan",
+            app_id="investment",
+            handler="cores.investment.tasks:run_investment_arbitrage_scan",
+            cron="0 */4 * * *",
+            args=[],
+            metadata={
+                "cycle": "investment",
+                "type": "scan",
+                "desc": "escaneo de brechas de precio cross-exchange cada 4h (solo lectura, sin ordenes)",
+            },
+        ),
         _cron_job(
             job_id="risk_guardian_check",
             app_id="investment",
@@ -915,6 +924,23 @@ def get_worker_core_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_economic_feedback_jobs() -> list[JobDefinition]:
+    """Economic Feedback — LEARN→RECALIBRATE→REALLOCATE daily."""
+    return [
+        _cron_job(
+            job_id="economic_feedback_daily",
+            app_id="economic_feedback",
+            handler="cores.economic_feedback.tasks:run_economic_feedback",
+            cron="40 6 * * *",
+            metadata={
+                "cycle": "economic_feedback",
+                "type": "recalibrate",
+                "desc": "recalcula net/h realizado, P(CASH) real y reasignación diaria",
+            },
+        ),
+    ]
+
+
 def get_ecommerce_jobs() -> list[JobDefinition]:
     """E-commerce cycle jobs (lazy import: pipeline owns the handlers)."""
     from cores.ecommerce.pipeline import get_ecommerce_jobs as _get_jobs
@@ -941,4 +967,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "execution": get_execution_queue_jobs(),
         "worker_core": get_worker_core_jobs(),
         "ecommerce": get_ecommerce_jobs(),
+        "economic_feedback": get_economic_feedback_jobs(),
     }

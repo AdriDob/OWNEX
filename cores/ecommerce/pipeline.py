@@ -26,6 +26,12 @@ from cores.ecommerce.models import (
 
 logger = logging.getLogger("ownex.ecommerce.pipeline")
 
+# ── Fee constants (platform-declared, verify before publishing) ──
+DROPSHEABLE_FEE_PCT = 3.0  # Dropsheable declara 3% por venta, sin stock ni mensualidad
+VIABLE_MARGIN_PCT = 25.0  # piso VIABLE tras todos los costos
+WINNER_MIN_SALES_30D = 8  # ganador: vende ~8+/mes con neto > 0 → escalar
+KILL_MIN_DAYS_LIVE = 60  # 0 ventas en 60 días vivo → matar/pausar
+
 _STOPWORDS = {
     "el",
     "la",
@@ -59,25 +65,42 @@ class SourcingEngine:
         processing_days: int = 3,
         shipping_usd: float = 0.0,
         marketplace_fee_pct: float = 13.0,
+        platform_fee_pct: float = 0.0,
+        tax_pct: float = 0.0,
+        other_costs_usd: float = 0.0,
     ) -> dict[str, Any]:
+        """NETO REAL: venta − proveedor − Meli − plataforma − impuestos − otros.
+
+        platform_fee_pct: fee del proveedor-plataforma (Dropsheable declara 3%).
+        tax_pct: impuestos aplicables (IIBB etc., los confirma el humano vía
+        simulador Meli). other_costs_usd: montos fijos extra. Defaults 0 = el
+        comportamiento histórico queda intacto (compat hacia atrás).
+        """
         cost = Decimal(str(cost_usd))
         shipping = Decimal(str(shipping_usd))
         price = Decimal(str(sale_price_usd))
         fee = price * Decimal(str(marketplace_fee_pct)) / Decimal("100")
-        total_cost = cost + shipping + fee
+        platform_fee = price * Decimal(str(platform_fee_pct)) / Decimal("100")
+        tax = price * Decimal(str(tax_pct)) / Decimal("100")
+        other = Decimal(str(other_costs_usd))
+        total_cost = cost + shipping + fee + platform_fee + tax + other
         margin = price - total_cost
         margin_pct = float(margin / price * 100) if price > 0 else 0.0
-        verdict = "VIABLE" if margin_pct >= 25 and margin > 0 else "THIN" if margin > 0 else "REJECT"
+        verdict = "VIABLE" if margin_pct >= VIABLE_MARGIN_PCT and margin > 0 else "THIN" if margin > 0 else "REJECT"
         return {
             "cost_usd": float(cost),
             "shipping_usd": float(shipping),
             "fee_usd": float(fee),
+            "platform_fee_usd": float(platform_fee),
+            "tax_usd": float(tax),
+            "other_costs_usd": float(other),
             "total_cost_usd": float(total_cost),
             "margin_usd": float(margin),
+            "net_usd": float(margin),
             "margin_pct": round(margin_pct, 1),
             "processing_days": processing_days,
             "verdict": verdict,
-            "note": "VIABLE exige margen ≥25% tras fees Meli (~13%) + envío.",
+            "note": "VIABLE exige margen ≥25% tras Meli + plataforma + impuestos + envío.",
         }
 
     def suggest_price(
@@ -87,11 +110,15 @@ class SourcingEngine:
         target_margin_pct: float = 35.0,
         shipping_usd: float = 0.0,
         marketplace_fee_pct: float = 13.0,
+        platform_fee_pct: float = 0.0,
+        tax_pct: float = 0.0,
+        other_costs_usd: float = 0.0,
     ) -> dict[str, Any]:
         """Suggest a sale price: max(floor by target margin, 95% of min competitor).
 
         Pure math, no network. Never below VIABLE (25% margin floor).
         competitor_prices: public prices observed (Meli search, honest input).
+        El floor descuenta Meli + plataforma + impuestos + fijos extra.
         """
         try:
             cost = float(cost_usd)
@@ -104,15 +131,21 @@ class SourcingEngine:
                 "suggested_price_usd": 0.0,
                 "verdict": "REJECT",
             }
-        target = max(25.0, float(target_margin_pct or 35.0))
-        # Floor: price s.t. margin after fee+shipping >= target%.
-        # margin = price - cost - ship - price*fee% >= target% * price
-        # => price * (1 - fee% - target%) >= cost + ship
+        target = max(VIABLE_MARGIN_PCT, float(target_margin_pct or 35.0))
+        # Floor: price s.t. margin after all % fees + fixed costs >= target%.
+        # price * (1 - meli% - plat% - tax% - target%) >= cost + ship + other
         fee_rate = float(marketplace_fee_pct or 13.0) / 100.0
-        denom = 1.0 - fee_rate - (target / 100.0)
+        plat_rate = float(platform_fee_pct or 0.0) / 100.0
+        tax_rate = float(tax_pct or 0.0) / 100.0
+        try:
+            other = max(0.0, float(other_costs_usd or 0.0))
+        except (TypeError, ValueError):
+            other = 0.0
+        denom = 1.0 - fee_rate - plat_rate - tax_rate - (target / 100.0)
         if denom <= 0:
-            denom = 1.0 - fee_rate - 0.25
-        floor = (cost + float(shipping_usd or 0.0)) / denom if denom > 0 else cost * 1.35
+            denom = 1.0 - fee_rate - plat_rate - tax_rate - (VIABLE_MARGIN_PCT / 100.0)
+        fixed = cost + float(shipping_usd or 0.0) + other
+        floor = fixed / denom if denom > 0 else fixed * 1.35
         comps = [float(p) for p in (competitor_prices or []) if isinstance(p, (int, float)) and p > 0]
         if comps:
             suggested = max(floor, min(comps) * 0.95)
@@ -126,6 +159,9 @@ class SourcingEngine:
             sale_price_usd=suggested,
             shipping_usd=float(shipping_usd or 0.0),
             marketplace_fee_pct=float(marketplace_fee_pct or 13.0),
+            platform_fee_pct=float(platform_fee_pct or 0.0),
+            tax_pct=float(tax_pct or 0.0),
+            other_costs_usd=other,
         )
         return {
             "success": True,
@@ -138,6 +174,9 @@ class SourcingEngine:
             "verdict": scored["verdict"],
             "margin_pct": scored["margin_pct"],
             "margin_usd": scored["margin_usd"],
+            "net_usd": scored["net_usd"],
+            "platform_fee_usd": scored["platform_fee_usd"],
+            "tax_usd": scored["tax_usd"],
         }
 
     def product_score(
@@ -269,6 +308,73 @@ class CompetitorWatch:
             "avg_competitor_usd": round(avg_comp, 2),
             "competitors_observed": len(comps),
             "note": "Precio dentro de rango competitivo.",
+        }
+
+
+class ProductPerformance:
+    """MATAR o ESCALAR por datos reales, nunca por especulación (puro, $0).
+
+    Loop: BUSCAR → CALCULAR → PUBLICAR → ESPERAR → MEDIR → MATAR o ESCALAR.
+    - ESCALAR: vende ≥8/mes con neto > 0 → empujar visibilidad/stock.
+    - REVISAR_PRECIO: vende pero sin neto → no escalar, recalcular NETO REAL.
+    - OBSERVAR: vende ocasional → seguir midiendo.
+    - TESTING: <30 días vivo → muy pronto para matar, esperar→medir.
+    - MATAR: 0 ventas en ≥60 días vivo → pausar/matar, libera tiempo humano.
+    El riesgo no es stock ($0) sino tiempo en productos que no venden.
+    """
+
+    def classify(
+        self,
+        sales_30d: int = 0,
+        sales_60d: int = 0,
+        net_per_sale: float = 0.0,
+        days_live: int = 0,
+    ) -> dict[str, Any]:
+        try:
+            s30 = max(0, int(sales_30d or 0))
+            s60 = max(0, int(sales_60d or 0))
+            live = max(0, int(days_live or 0))
+            net = float(net_per_sale or 0.0)
+        except (TypeError, ValueError):
+            return {
+                "verdict": "UNKNOWN",
+                "action": "sin_datos_suficientes",
+                "note": "Entradas inválidas: no se clasifica.",
+            }
+        if s60 == 0 and live >= KILL_MIN_DAYS_LIVE:
+            return {
+                "verdict": "MATAR",
+                "action": "pausar_publicacion",
+                "note": f"0 ventas en {live} días vivo: pausar, libera tiempo humano.",
+            }
+        if s60 == 0 and live < 30:
+            return {
+                "verdict": "TESTING",
+                "action": "esperar_medir",
+                "note": f"Solo {live} días vivo sin ventas: esperar→medir, muy pronto para matar.",
+            }
+        if s30 == 0 and s60 == 0:
+            return {
+                "verdict": "TESTING",
+                "action": "esperar_medir",
+                "note": "Sin ventas aún en ventana corta: esperar→medir.",
+            }
+        if net <= 0 and (s30 + s60) > 0:
+            return {
+                "verdict": "REVISAR_PRECIO",
+                "action": "recalcular_neto_real",
+                "note": "Vende pero sin neto: recalcular NETO REAL antes de escalar.",
+            }
+        if s30 >= WINNER_MIN_SALES_30D and net > 0:
+            return {
+                "verdict": "ESCALAR",
+                "action": "empujar_visibilidad",
+                "note": f"Ganador: {s30} ventas/30d con neto {round(net, 2)} → escalar.",
+            }
+        return {
+            "verdict": "OBSERVAR",
+            "action": "seguir_midiendo",
+            "note": "Vende ocasional: seguir midiendo antes de decidir.",
         }
 
 
@@ -541,6 +647,16 @@ def get_competitor_watch() -> CompetitorWatch:
     if _competitor is None:
         _competitor = CompetitorWatch()
     return _competitor
+
+
+_performance: ProductPerformance | None = None
+
+
+def get_product_performance() -> ProductPerformance:
+    global _performance
+    if _performance is None:
+        _performance = ProductPerformance()
+    return _performance
 
 
 def get_content_planner() -> ProductContentPlanner:

@@ -27,6 +27,7 @@ import {
   RotateCcw,
 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
 import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import FirstMoneyStrip from '@/components/daily/FirstMoneyStrip.vue'
@@ -128,6 +129,7 @@ const system = ref<{ health: number; status: string } | null>(null)
 const realized = ref<RealizedRevenue | null>(null)
 
 const hunt = useHuntStore()
+const router = useRouter()
 const workBankReady = ref(0)
 
 interface IncomeGoalPlan {

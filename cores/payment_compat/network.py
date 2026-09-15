@@ -492,6 +492,17 @@ PAYMENT_NETWORK: list[OwnAccount] = [
         notes="Pagos de nómina freelance internacional.",
     ),
     _ac(
+        "bitwage",
+        "Bitwage",
+        PaymentLayer.PROCESSORS,
+        PaymentFunction.PAYOUT,
+        [Region.USA, Region.GLOBAL, Region.ARGENTINA],
+        ["USD"],
+        ["ach", "wire", "crypto", "local_transfer"],
+        notes="Nómina cripto/fiat: el cliente paga ACH/wire USA. Comisiones y tiempos: VERIFICAR vigente en bitwage.com (sin historial OWNEX).",
+        payout_ref="bitwage",
+    ),
+    _ac(
         "worldfirst",
         "WorldFirst",
         PaymentLayer.PROCESSORS,

@@ -69,7 +69,7 @@ class TestProviderRegistry:
         registry = ProviderRegistry(config)
         await registry.initialize()
 
-        caps = registry.get_model_capabilities("qwen3-coder:8b")
+        caps = registry.get_model_capabilities("qwen2.5:3b-instruct")
         assert caps is not None
         assert Capability.CHAT in caps.supports
         assert Capability.CODE in caps.supports
@@ -171,7 +171,7 @@ class TestSmartRouter:
         decision = await router.route(context)
 
         assert decision.provider_id == "ollama"
-        assert decision.model_id == "qwen3-coder:8b"
+        assert decision.model_id == "qwen2.5:3b-instruct"
         assert decision.confidence > 0
 
         await monitor.stop()

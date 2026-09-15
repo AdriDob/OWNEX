@@ -53,6 +53,10 @@ class WorkspacePick:
     time_hours: float | None = None
     time_to_cash_days: float | None = None
     detail: dict[str, Any] = field(default_factory=dict)
+    # §14: expected net (ev/h × hours, arithmetic — never a fresh estimate)
+    # and repeatability (quote-provided or UNKNOWN; per-opp verdicts don't exist yet).
+    expected_net_usd: float | None = None
+    repeatability: str = "UNKNOWN"
 
     def sort_key(self) -> tuple:
         known = self.p_cash is not None
@@ -92,15 +96,17 @@ def orchestrate(
                 if ranked:
                     top = ranked[0]
                     o = top.opportunity if hasattr(top, "opportunity") else top
+                    _ev_h, _hrs = _ev_hour(o), _hours(o)
                     picks.append(
                         WorkspacePick(
                             workspace_id=ws_id,
                             title=str(getattr(o, "title", ws_id)),
                             p_cash=getattr(top, "p_cash", None),
-                            ev_per_hour=_ev_hour(o),
-                            time_hours=_hours(o),
+                            ev_per_hour=_ev_h,
+                            time_hours=_hrs,
                             time_to_cash_days=_days(getattr(o, "time_to_payout_days", None)),
                             detail={"ranked_id": str(getattr(o, "id", ""))},
+                            expected_net_usd=round(_ev_h * _hrs, 2) if _ev_h is not None and _hrs is not None else None,
                         )
                     )
                     continue
@@ -115,6 +121,10 @@ def orchestrate(
                         time_hours=quote.time_hours,
                         time_to_cash_days=quote.time_to_cash_days,
                         detail={"repeatability": quote.repeatability, "risk": quote.risk},
+                        expected_net_usd=round(quote.ev_per_hour * quote.time_hours, 2)
+                        if quote.ev_per_hour is not None and quote.time_hours is not None
+                        else None,
+                        repeatability=quote.repeatability,
                     )
                 )
         except Exception as exc:
@@ -131,6 +141,8 @@ def orchestrate(
                 "ev_per_hour": p.ev_per_hour,
                 "time_hours": p.time_hours,
                 "time_to_cash_days": p.time_to_cash_days,
+                "expected_net_usd": p.expected_net_usd,
+                "repeatability": p.repeatability,
                 "detail": p.detail,
             }
             for p in picks

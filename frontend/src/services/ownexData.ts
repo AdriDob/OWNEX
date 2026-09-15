@@ -2148,7 +2148,8 @@ export async function createFinding(data: { target_id: number; endpoint_id?: num
 }
 
 export async function updateFinding(findingId: number, data: { notes?: string; status?: string }): Promise<{ id: number }> {
-  return api.put(`/api/findings/${findingId}`, data)
+  // Contract real (findings.py): PATCH /{finding_id} acepta notes/status.
+  return api.patch(`/api/findings/${findingId}`, data)
 }
 
 export async function updateFindingStatus(findingId: number, status: string): Promise<{ id: number; status: string }> {
@@ -2441,6 +2442,8 @@ export interface SetupChecklistPendingItem {
   why: string
   est_minutes: number
   how_to: string
+  url?: string
+  url_label?: string
 }
 
 export interface SetupChecklistNextTask {
@@ -2451,6 +2454,8 @@ export interface SetupChecklistNextTask {
   why: string
   est_minutes: number
   how_to: string
+  url?: string
+  url_label?: string
 }
 
 export interface SetupChecklistStatus {
@@ -2824,6 +2829,34 @@ export async function scoreSourcingOffer(payload: {
   marketplace_fee_pct?: number
 }): Promise<{ verdict: string; margin_pct: number; margin_usd: number; note: string }> {
   return api.post('/api/ecommerce/sourcing/score', payload)
+}
+
+export interface EcommerceSupplier {
+  id: string
+  name: string
+  type: string
+  active: boolean
+  website: string
+  commission_rate: number | null
+  processing_time_days: number
+  notes: string
+  outreach: { status: string; last_contact_at?: string | null }
+}
+
+export async function fetchEcommerceSuppliers(): Promise<{ total: number; suppliers: EcommerceSupplier[] }> {
+  return api.get('/api/ecommerce/suppliers')
+}
+
+export async function fetchSupplierOutreach(supplierId: string): Promise<{ supplier: { id: string; name: string; website: string }; message: { body: string; wa_url: string; category_key: string }; record: any }> {
+  return api.get(`/api/ecommerce/suppliers/${supplierId}/outreach`)
+}
+
+export async function markSupplierContacted(supplierId: string): Promise<{ success: boolean; wa_url: string; record: any }> {
+  return api.post(`/api/ecommerce/suppliers/${supplierId}/outreach/contact`)
+}
+
+export async function setSupplierOutreachStatus(supplierId: string, status: string, notes = ''): Promise<{ success: boolean; record: any }> {
+  return api.post(`/api/ecommerce/suppliers/${supplierId}/outreach/status`, { status, notes } as any)
 }
 
 // ── Client Acquisition (Adriel Webs) ──

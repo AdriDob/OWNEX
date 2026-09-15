@@ -213,7 +213,7 @@ class TestTradingJobs:
 
 
 class TestGetAllJobs:
-    def test_returns_dict_with_fourteen_cycles(self):
+    def test_returns_dict_with_sixteen_cycles(self):
         all_jobs = get_all_jobs()
         assert set(all_jobs.keys()) == {
             "security",
@@ -232,6 +232,7 @@ class TestGetAllJobs:
             "execution",
             "worker_core",
             "ecommerce",
+            "economic_feedback",
         }
 
     def test_all_cycles_have_lists(self):

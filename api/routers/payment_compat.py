@@ -37,13 +37,14 @@ class EvaluateRequest(BaseModel):
     )
     platform: str = Field(default="", description="Platform paying the bounty")
     require_configured: bool = Field(
-        default=False,
-        description="MONEY VALIDATION: only rails the user configured count (P_REWARD on real rails)",
+        default=True,
+        description="MONEY VALIDATION: only rails the user configured count (P_REWARD on real rails). Default True para no inventar cobrabilidad.",
     )
 
 
 class EvaluateChainRequest(EvaluateRequest):
     final_currency: str = Field(default="ARS", description="Currency OWNEX needs to end with")
+    require_configured: bool = Field(default=True, description="Only configured rails count")
 
 
 @router.get("")
@@ -68,6 +69,12 @@ async def payment_network_grouped() -> dict[str, Any]:
         function = account.function.value
         grouped.setdefault(layer, {}).setdefault(function, []).append(account_to_dict(account))
     return {"grouped": grouped}
+
+
+@router.get("/argentina-ranked")
+async def payment_argentina_ranked() -> dict[str, Any]:
+    """Proveedores usables desde Argentina, ordenados por comisión (solo lectura)."""
+    return get_payment_engine().ranked_argentina_methods()
 
 
 @router.get("/account/{account_id}")
@@ -133,6 +140,7 @@ async def payment_evaluate_chain(request: EvaluateChainRequest) -> dict[str, Any
             platform=request.platform,
         ),
         final_currency=request.final_currency,
+        require_configured=request.require_configured,
     )
     return _verdict_dict(verdict)
 

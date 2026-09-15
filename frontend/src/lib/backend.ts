@@ -169,22 +169,33 @@ export function getHostBase(): string {
 
 /**
  * Routers mounted WITHOUT the /api prefix on the backend
- * (api/main.py mounts mobile/direct-work/wear-os at root level).
+ * (api/main.py mounts mobile/direct-work/wear-os at root level; also
+ * first-money / result-based / platform-guides / finance / life-management
+ * / devin / fiverr / mission-hub / career / voice / oar / supabase /
+ * productivity / remote / version-backup / onboarding / zero-barrier /
+ * opensource / dev-bounty / decision / enhanced-personalization /
+ * revenue-timeline / webhook — §17 contract audit 2026-09-15).
  * Calls to these namespaces must not be double-prefixed.
  */
-const ROOT_MOUNTED_PREFIXES = ['/direct-work', '/mobile', '/wear-os']
+const ROOT_MOUNTED_PREFIXES = [
+  '/direct-work',
+  '/mobile',
+  '/wear-os',
+  '/first-money',
+  '/result-based',
+  '/platform-guides',
+]
 
 /** Resolve a frontend API path to the full correct URL. */
 export function resolveApiUrl(path: string): string {
-  if (!isTauri && !path.startsWith('/direct-work') && !path.startsWith('/mobile') && !path.startsWith('/wear-os')) {
+  const isRootMounted = ROOT_MOUNTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
+  if (!isTauri && !isRootMounted) {
     return `/api${path.startsWith('/api/') ? path.slice(4) : path}`
   }
   const base = getHostBase()
   const clean = path.startsWith('/api/') ? path.slice(4) : path
   // Root-mounted namespaces hit the host directly; everything else under /api.
-  for (const p of ROOT_MOUNTED_PREFIXES) {
-    if (clean === p || clean.startsWith(`${p}/`)) return `${base}${clean}`
-  }
+  if (isRootMounted) return `${base}${clean}`
   return `${base}/api${clean}`
 }
 

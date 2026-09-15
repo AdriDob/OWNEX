@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -55,24 +53,6 @@ fun QuickActionsScreen(
                 icon = Icons.Default.Refresh,
                 label = "Sync",
                 onClick = { onAction("refresh") }
-            )
-            ActionButton(
-                icon = Icons.Default.Star,
-                label = "MERLIN",
-                onClick = { onAction("merlin") }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            ActionButton(
-                icon = Icons.Default.Settings,
-                label = "Dashboard",
-                onClick = { onAction("dashboard") }
             )
             ActionButton(
                 icon = Icons.Default.Notifications,

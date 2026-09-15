@@ -145,7 +145,16 @@ async def daily_brief() -> dict[str, Any]:
     try:
         bank = _get_workbank()
         if bank:
-            items = bank.get_items_by_status("ready") if hasattr(bank, "get_items_by_status") else []
+            if hasattr(bank, "best_ready"):
+                items = bank.best_ready(5)
+            elif hasattr(bank, "get_items_by_status"):
+                items = bank.get_items_by_status("ready_to_deliver")
+            else:
+                items = [
+                    i
+                    for i in getattr(bank, "_items", {}).values()
+                    if getattr(i, "ready_to_deliver", False) or getattr(i, "status", "") == "ready_to_deliver"
+                ][:5]
             for item in (items or [])[:5]:
                 actions.append(
                     {
@@ -225,23 +234,54 @@ async def daily_brief() -> dict[str, Any]:
     }
 
 
-def _determine_next_action(opp: Any) -> str:
-    """Determine the next concrete action for an opportunity."""
+def _determine_next_action(opp: Any) -> dict[str, str]:
+    """Determine the next concrete action for an opportunity — always actionable."""
     platform = getattr(opp, "platform", "").lower()
     category = getattr(opp, "category", "").lower()
+    url = getattr(opp, "url", "") or ""
+
+    platform_urls: dict[str, str] = {
+        "outlier": "https://outlier.ai",
+        "mindrift": "https://mindrift.ai",
+        "dataannotation": "https://dataannotation.tech",
+        "alignerr": "https://alignerr.com",
+        "mercor": "https://work.mercor.com",
+        "fiverr": "https://www.fiverr.com",
+        "algora": "https://algora.io",
+        "opire": "https://opire.dev",
+        "kaggle": "https://www.kaggle.com/competitions",
+        "dework": "https://app.dework.xyz",
+        "github_bounty": "https://github.com/search?q=label%3Abounty",
+        "hackerone": "https://hackerone.com/opportunities",
+        "bugcrowd": "https://bugcrowd.com/programs",
+    }
+    p_url = platform_urls.get(platform, url)
 
     if "bug_bounty" in category or "security" in category:
-        return "Start reconnaissance"
-    elif "software_engineering" in category or "backend" in category or "frontend" in category:
-        return "Analyze issue and generate fix"
-    elif platform in ("outlier", "mindrift", "dataannotation"):
-        return "Open platform and start task"
+        return {"label": "Start reconnaissance", "url": p_url, "command": "POST /api/direct-work/workbank/cycle"}
+    elif (
+        "software_engineering" in category
+        or "backend" in category
+        or "frontend" in category
+        or "dev_bounty" in category
+    ):
+        return {
+            "label": "Analyze issue and generate fix",
+            "url": url or p_url,
+            "command": "POST /direct-work/workbank/{id}/deliver/prepare",
+        }
+    elif platform in ("outlier", "mindrift", "dataannotation", "alignerr", "mercor"):
+        return {"label": "Open platform and start task", "url": p_url, "command": f"Open {p_url}"}
     elif platform in ("fiverr", "workana"):
-        return "Review requirements and prepare proposal"
+        return {
+            "label": "Review requirements and prepare proposal",
+            "url": p_url,
+            "command": "GET /api/client-acquisition/leads",
+        }
     elif "ai_training" in category or "ai_evaluation" in category:
-        return "Open platform and begin evaluation"
+        return {"label": "Open platform and begin evaluation", "url": p_url, "command": f"Open {p_url}"}
     else:
-        return "Review opportunity details"
+        return {"label": "Review opportunity details", "url": url or p_url, "command": "GET /api/direct-work/recommend"}
 
 
 def _greeting() -> str:

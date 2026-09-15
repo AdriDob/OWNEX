@@ -104,6 +104,75 @@ class TestOverview:
         assert overview["progress_pct"] == round(1 / total * 100)
 
 
+class TestPlatformStatus:
+    def test_fresh_platform_is_not_connected_with_unknown_facets(self, tmp_path) -> None:
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        st = assistant.get_platform_status("outlier")
+        assert st["global_state"] == "NOT_CONNECTED"
+        assert st["facets"]["account"] == "pending"
+        assert st["facets"]["email"] == "unknown"
+        assert st["facets"]["first_payment"] == "unknown"
+        assert st["next_action"] is not None
+        assert "missing" in st and "account" in st["missing"]
+
+    def test_completed_steps_move_facets_and_global_state(self, tmp_path) -> None:
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        assistant.complete_step("alignerr", "create_account")
+        assistant.complete_step("alignerr", "domain_assessment")
+        assistant.complete_step("alignerr", "payment_setup")
+        st = assistant.get_platform_status("alignerr", allow_interview_paths=True)
+        assert st["facets"]["account"] == "done"
+        assert st["facets"]["skills"] == "done"
+        assert st["facets"]["payment"] == "done"
+        assert st["global_state"] in ("READY", "OPERATIONAL")
+        assert "account" not in st["missing"]
+
+    def test_accepted_without_payment_evidence_never_claims_first_payment(self, tmp_path) -> None:
+        from cores.application_assistant import STATUS_ACCEPTED
+
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        assistant.set_status("outlier", STATUS_ACCEPTED)
+        st = assistant.get_platform_status("outlier")
+        assert st["facets"]["first_payment"] == "unknown"
+
+    def test_unknown_platform_raises(self, tmp_path) -> None:
+        import pytest
+
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        with pytest.raises(KeyError):
+            assistant.get_platform_status("nope")
+
+
+class TestPhaseStatusEndpoint:
+    def test_phase_status_endpoint_shape(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.control import router
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        resp = client.get("/api/applications/outlier/phase-status")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["platform"] == "outlier"
+        assert body["global_state"] == "NOT_CONNECTED"
+        assert body["facets"]["first_payment"] == "unknown"
+        assert "missing" in body and "what_unlocks" in body
+
+    def test_phase_status_unknown_platform_404(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.control import router
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        assert client.get("/api/applications/nope/phase-status").status_code == 404
+
+
 class TestSingleton:
     def test_get_application_assistant_returns_same_instance(self) -> None:
         assert get_application_assistant() is get_application_assistant()

@@ -86,17 +86,26 @@ async def get_health():
 
 @router.get("/recovery")
 async def get_recovery_status():
-    """Get recovery engine status."""
-    return {
-        "status": "active",
-        "features": [
+    """Get recovery engine status (real engine, best-effort, never raises)."""
+    try:
+        from cores.recovery import get_recovery_engine
+
+        engine = get_recovery_engine()
+        status = engine.status()
+        try:
+            status["version_recovery"] = engine.get_version_recovery_status()
+        except Exception:
+            status["version_recovery"] = {"available": False}
+        status["features"] = [
             "stale_scan_recovery",
             "crash_recovery",
             "retry_with_backoff",
             "dead_letter_queue",
-        ],
-        "last_recovery": datetime.now(UTC).isoformat(),
-    }
+            "version_rollback",
+        ]
+        return status
+    except Exception as exc:  # noqa: BLE001 — status never 500s
+        return {"status": "unavailable", "error": str(exc)}
 
 
 @router.get("/backup")
@@ -108,10 +117,10 @@ async def get_backup_status():
     has_backup = os.path.exists(backup_path)
     backup_count = 0
     if has_backup:
-        try:
+        import contextlib
+
+        with contextlib.suppress(Exception):
             backup_count = len([f for f in os.listdir(backup_path) if f.endswith(".db")])
-        except Exception:
-            pass
 
     return {
         "database_path": db_path,

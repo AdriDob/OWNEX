@@ -17,11 +17,16 @@ import {
   fetchEcommerceOrders,
   fetchEcommerceProducts,
   fetchEcommerceStatus,
+  fetchEcommerceSuppliers,
+  fetchSupplierOutreach,
+  markSupplierContacted,
+  setSupplierOutreachStatus,
   scoreSourcingOffer,
   type EcommerceMetrics,
   type EcommerceOrder,
   type EcommerceProduct,
   type EcommerceStatus,
+  type EcommerceSupplier,
 } from '@/services/ownexData'
 
 const loading = ref(true)
@@ -30,6 +35,11 @@ const status = ref<EcommerceStatus | null>(null)
 const products = ref<EcommerceProduct[]>([])
 const orders = ref<EcommerceOrder[]>([])
 const metrics = ref<EcommerceMetrics | null>(null)
+const suppliers = ref<EcommerceSupplier[]>([])
+const supplierSearch = ref('')
+const supplierFilter = ref<'all' | 'pending' | 'contacted' | 'verified'>('all')
+const outreachBusy = ref<string | null>(null)
+const outreachMsg = ref<Record<string, { body: string; wa_url: string }>>({})
 
 const costInput = ref('20')
 const priceInput = ref('60')
@@ -42,21 +52,65 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const [s, p, o, m] = await Promise.all([
+    const [s, p, o, m, sup] = await Promise.all([
       fetchEcommerceStatus(),
       fetchEcommerceProducts().catch(() => ({ total: 0, products: [] })),
       fetchEcommerceOrders().catch(() => ({ total: 0, orders: [] })),
       fetchEcommerceMetrics(30).catch(() => null),
+      fetchEcommerceSuppliers().catch(() => ({ total: 0, suppliers: [] })),
     ])
     status.value = s
     products.value = p.products ?? []
     orders.value = o.orders ?? []
     metrics.value = m
+    suppliers.value = sup.suppliers ?? []
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Error cargando E-commerce'
   } finally {
     loading.value = false
   }
+}
+
+async function openContact(s: EcommerceSupplier): Promise<void> {
+  outreachBusy.value = s.id
+  try {
+    const data = await fetchSupplierOutreach(s.id)
+    outreachMsg.value[s.id] = { body: data.message.body, wa_url: data.message.wa_url }
+    await markSupplierContacted(s.id)
+    window.open(data.message.wa_url, '_blank')
+    // refresh suppliers to show contacted
+    const sup = await fetchEcommerceSuppliers().catch(() => ({ total: 0, suppliers: [] as EcommerceSupplier[] }))
+    suppliers.value = sup.suppliers ?? []
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'No se pudo abrir WhatsApp'
+  } finally {
+    outreachBusy.value = null
+  }
+}
+
+async function copyMsg(s: EcommerceSupplier): Promise<void> {
+  try {
+    const data = await fetchSupplierOutreach(s.id)
+    await navigator.clipboard.writeText(data.message.body)
+  } catch {}
+}
+
+async function markVerified(s: EcommerceSupplier): Promise<void> {
+  try {
+    await setSupplierOutreachStatus(s.id, 'verified', 'Validado por usuario')
+    const sup = await fetchEcommerceSuppliers().catch(() => ({ total: 0, suppliers: [] as EcommerceSupplier[] }))
+    suppliers.value = sup.suppliers ?? []
+  } catch {}
+}
+
+const filteredSuppliers = () => {
+  let list = suppliers.value
+  if (supplierFilter.value !== 'all') list = list.filter(x => x.outreach.status === supplierFilter.value)
+  if (supplierSearch.value.trim()) {
+    const q = supplierSearch.value.toLowerCase()
+    list = list.filter(x => x.name.toLowerCase().includes(q) || x.id.toLowerCase().includes(q))
+  }
+  return list.slice(0, 50)
 }
 
 async function doScore(): Promise<void> {
@@ -99,7 +153,7 @@ onMounted(() => {
           <div><span class="opacity-60">Activos:</span> <strong>{{ status.active_products }}</strong></div>
           <div><span class="opacity-60">Órdenes:</span> <strong>{{ status.orders }}</strong></div>
           <div><span class="opacity-60">Pendientes:</span> <strong>{{ status.pending_orders }}</strong></div>
-          <div><span class="opacity-60">Proveedores:</span> <strong>{{ status.suppliers }}</strong></div>
+          <div><span class="opacity-60">Proveedores:</span> <strong>{{ status.suppliers }}</strong> · <span class="opacity-60">Outreach:</span> <strong>{{ suppliers.filter(s=>s.outreach.status==='contacted').length }} contactados / {{ suppliers.filter(s=>s.outreach.status==='verified').length }} verificados</strong></div>
         </div>
         <div class="mt-2 flex flex-wrap gap-1">
           <OwnexBadge
@@ -110,6 +164,54 @@ onMounted(() => {
           >
             {{ key }}: {{ info.available ? 'conectado' : 'sin configurar' }}
           </OwnexBadge>
+        </div>
+      </OwnexCard>
+
+      <!-- 100 Proveedores — outreach 1-click WhatsApp -->
+      <OwnexCard class="mb-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="text-base font-semibold">Proveedores (100) — Meli solo, comisión, $0 stock, sin redes</h2>
+          <OwnexBadge size="xs" variant="success">{{ suppliers.length }} cargados</OwnexBadge>
+          <div class="ml-auto flex flex-wrap items-center gap-2">
+            <input v-model="supplierSearch" placeholder="Buscar: Nebbux, perfumes, fútbol..." class="rounded border border-border bg-background px-2 py-1 text-sm w-56" />
+            <select v-model="supplierFilter" class="rounded border border-border bg-background px-2 py-1 text-sm">
+              <option value="all">Todos</option>
+              <option value="pending">Pendientes</option>
+              <option value="contacted">Contactados</option>
+              <option value="verified">Verificados 🟢</option>
+            </select>
+          </div>
+        </div>
+        <p class="mt-1 text-xs opacity-60">1 click = mensaje personalizado por categoría + WhatsApp pre-llenado + tracking automático. Sin razonar: el sistema propone, vos solo enviás. Validá 5 por tanda → sync-catalog → DRAFT → precio VIABLE → Meli.</p>
+        <div v-if="suppliers.length===0" class="mt-3 text-sm opacity-60">Sin proveedores. Importá: <code>python scripts/supplier_import.py --csv docs/PROVEEDORES_TRACKING_100.csv --apply</code></div>
+        <div v-else class="mt-3 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border opacity-50">
+                <th class="pb-1 text-left">Proveedor</th>
+                <th class="pb-1 text-left">Tipo</th>
+                <th class="pb-1 text-left">Comisión</th>
+                <th class="pb-1 text-left">Estado</th>
+                <th class="pb-1 text-left">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="s in filteredSuppliers()" :key="s.id" class="border-b border-border/40">
+                <td class="py-2"><div class="font-medium">{{ s.name }}</div><div class="font-mono text-xs opacity-60">{{ s.id }} · <a :href="s.website" target="_blank" class="underline">{{ s.website.replace('https://','') }}</a></div></td>
+                <td class="py-2 font-mono text-xs">{{ s.type }}</td>
+                <td class="py-2 font-mono">{{ s.commission_rate!=null ? (s.commission_rate*100).toFixed(0)+'%' : '—' }}</td>
+                <td class="py-2"><OwnexBadge size="xs" :variant="s.outreach.status==='verified' ? 'success' : s.outreach.status==='contacted' ? 'warning' : 'default'">{{ s.outreach.status }}</OwnexBadge></td>
+                <td class="py-2">
+                  <div class="flex flex-wrap gap-1">
+                    <OwnexButton size="xs" variant="primary" :loading="outreachBusy===s.id" @click="openContact(s)">WhatsApp →</OwnexButton>
+                    <OwnexButton size="xs" variant="secondary" @click="copyMsg(s)">Copiar</OwnexButton>
+                    <OwnexButton v-if="s.outreach.status==='contacted'" size="xs" variant="secondary" @click="markVerified(s)">✓ Verificado</OwnexButton>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="mt-2 text-xs opacity-60">Mostrando 50 de {{ suppliers.length }}. Usá el buscador para filtrar por categoría (urban, fut, watch, perf, acc).</div>
         </div>
       </OwnexCard>
 

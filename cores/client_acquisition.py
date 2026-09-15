@@ -23,6 +23,7 @@ class LeadSource(StrEnum):
     WEBSITE_FORM = "website_form"
     REFERRAL = "referral"
     WALK_IN = "walk_in"
+    DIRECTORY_SCRAPE = "directory_scrape"
     OTHER = "other"
 
 
@@ -64,6 +65,11 @@ class Lead:
     has_website: bool = False
     stage: LeadStage = LeadStage.NEW
     notes: str = ""
+    email: str = ""
+    phone: str = ""
+    city: str = ""
+    enriched: bool = False
+    score: int = 0  # 0-100: sin web + rubro digitalizable = alto
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
@@ -306,6 +312,89 @@ class ClientAcquisitionEngine:
             "contracts": len(self._contracts),
             "mrr_usd": self.monthly_recurring(),
             "funnel": self.funnel(),
+        }
+
+    # ── LeadGen Micro-SaaS ($0: scrape propio + enriquecimiento free-tier) ──
+
+    def enrich_lead(self, lead_id: str, email: str = "", phone: str = "", city: str = "") -> Lead | None:
+        """Enrich a lead with contact data (Hunter/Apollo free-tier fed by human/job)."""
+        lead = self._leads.get(lead_id)
+        if not lead:
+            return None
+        if email.strip():
+            lead.email = email.strip()[:120]
+        if phone.strip():
+            lead.phone = phone.strip()[:40]
+        if city.strip():
+            lead.city = city.strip()[:80]
+        lead.enriched = bool(lead.email or lead.phone)
+        lead.score = self.score_lead(lead)
+        lead.updated_at = datetime.now(UTC)
+        return lead
+
+    @staticmethod
+    def score_lead(lead: Lead) -> int:
+        """0-100 deterministic: sin web + contacto + rubro digitalizable = alto."""
+        score = 20
+        if not lead.has_website:
+            score += 35
+        if lead.email or lead.phone:
+            score += 20
+        hot = ("gastronom", "taller", "peluquer", "kiosco", "panader", "verduler", "gimnasio", "estetica")
+        if any(h in (lead.business_type or "").lower() for h in hot):
+            score += 15
+        if lead.source == LeadSource.DIRECTORY_SCRAPE:
+            score += 10
+        return max(0, min(100, score))
+
+    def export_qualified(self, min_score: int = 60) -> list[dict[str, object]]:
+        """Export qualified leads as sellable list ($50-200 per 100-500)."""
+        rows = [lead for lead in self._leads.values() if self.score_lead(lead) >= min_score]
+        rows.sort(key=self.score_lead, reverse=True)
+        return [
+            {
+                "name": lead.name,
+                "business_type": lead.business_type,
+                "city": lead.city,
+                "email": lead.email,
+                "phone": lead.phone or lead.contact,
+                "has_website": lead.has_website,
+                "score": self.score_lead(lead),
+                "source": lead.source.value,
+            }
+            for lead in rows[:500]
+        ]
+
+    # ── Service Arbitrage ($0: cliente local -> freelancer junior, margen 50-70%) ──
+
+    def plan_arbitrage(
+        self,
+        project_id: str,
+        freelancer_cost_usd: float = 0.0,
+        client_price_usd: float = 0.0,
+    ) -> dict[str, object]:
+        """Margin check for subcontracted service work. Honest: no margin invented."""
+        project = self._projects.get(project_id)
+        if not project:
+            return {"success": False, "error": "project_not_found"}
+        try:
+            cost = max(0.0, float(freelancer_cost_usd or 0.0))
+            price = max(0.0, float(client_price_usd or 0.0))
+        except (TypeError, ValueError):
+            return {"success": False, "error": "invalid_amounts"}
+        if price <= 0:
+            return {"success": False, "error": "client_price_required"}
+        margin = round(price - cost, 2)
+        margin_pct = round(margin / price * 100, 1) if price else 0.0
+        return {
+            "success": True,
+            "project_id": project_id,
+            "client_price_usd": price,
+            "freelancer_cost_usd": cost,
+            "margin_usd": margin,
+            "margin_pct": margin_pct,
+            "verdict": "VIABLE" if margin_pct >= 50 and margin > 0 else "THIN" if margin > 0 else "REJECT",
+            "note": "Arbitrage viable exige margen ≥50%. Subcontratar solo tras seña del cliente.",
         }
 
 

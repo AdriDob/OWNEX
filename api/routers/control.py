@@ -258,6 +258,19 @@ async def application_onboarding(platform: str, allow_interview_paths: bool = Fa
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
+@router.get("/applications/{platform}/phase-status")
+async def application_phase_status(platform: str, allow_interview_paths: bool = False) -> dict[str, Any]:
+    """§4/§9 facet checklist + global state (NOT_CONNECTED→…→EARNING) por plataforma."""
+    try:
+        from cores.application_assistant import get_application_assistant
+
+        return get_application_assistant().get_platform_status(platform, allow_interview_paths=allow_interview_paths)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
 @router.get("/applications/onboarding/all")
 async def all_onboarding(allow_interview_paths: bool = False) -> dict[str, Any]:
     """Onboarding summary para todas las plataformas."""
