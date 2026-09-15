@@ -194,6 +194,17 @@ async def applications_overview(allow_interview_paths: bool = False) -> dict[str
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
+@router.get("/applications/study-tracks")
+async def applications_study_tracks() -> dict[str, Any]:
+    """Tracks web3/cybersec/AI 100% gratis + rutina búsqueda empleo + estudio."""
+    try:
+        from cores.application_assistant import get_study_tracks
+
+        return get_study_tracks()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
 @router.get("/applications/income-plan")
 async def applications_income_plan() -> dict[str, Any]:
     """Plan combinado: vía activa (first-day + work bank) + pasiva (postulaciones)."""

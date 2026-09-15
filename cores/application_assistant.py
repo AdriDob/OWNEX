@@ -641,6 +641,62 @@ class ApplicationAssistant:
         }
 
 
+def get_study_tracks() -> dict[str, Any]:
+    """Tracks de estudio web3/cybersec/AI — 100% gratis, $0. Feed del sistema de empleo+estudio."""
+    return {
+        "tracks": [
+            {
+                "key": "web3_solidity",
+                "name": "Web3 / Solidity",
+                "goal": "Leer y auditar contratos básicos; base para Sherlock/Cantina/Code4rena",
+                "resources": [
+                    {"title": "CryptoZombies (gratis, interactivo)", "url": "https://cryptozombies.io"},
+                    {"title": "Solidity docs + Foundry book (gratis)", "url": "https://book.getfoundry.sh"},
+                    {"title": "Solodit checklist auditoría (gratis)", "url": "https://solodit.xyz"},
+                ],
+                "milestone": "Completar CryptoZombies + deploy local con Foundry",
+                "est_hours": 20,
+            },
+            {
+                "key": "cybersec_web",
+                "name": "Ciberseguridad Web",
+                "goal": "IDOR/XSS/SQLi/SSRF practicados; base para huntr + bug bounty",
+                "resources": [
+                    {
+                        "title": "PortSwigger Web Security Academy (gratis)",
+                        "url": "https://portswigger.net/web-security",
+                    },
+                    {
+                        "title": "OWASP Juice Shop (open source, local)",
+                        "url": "https://owasp.org/www-project-juice-shop",
+                    },
+                    {"title": "HackTricks (gratis)", "url": "https://book.hacktricks.xyz"},
+                ],
+                "milestone": "Completar labs SQLi + XSS + IDOR de PortSwigger",
+                "est_hours": 30,
+            },
+            {
+                "key": "ai_engineering",
+                "name": "AI Engineering",
+                "goal": "RAG/agents/evals; base para Outlier/Alignerr specialist + gigs API/AI",
+                "resources": [
+                    {"title": "Hugging Face NLP course (gratis)", "url": "https://huggingface.co/learn/nlp-course"},
+                    {"title": "LangChain docs + Cookbook (gratis)", "url": "https://python.langchain.com"},
+                    {"title": "Ollama local + qwen2.5 (gratis, offline)", "url": "https://ollama.com"},
+                ],
+                "milestone": "RAG local funcionando con Ollama + 1 eval propio",
+                "est_hours": 25,
+            },
+        ],
+        "routine": "30-45 min/día, 1 track a la vez; milestone antes de cambiar. Job search: /api/local-jobs/search + /api/applications/plan en paralelo.",
+        "job_search": {
+            "local": "GET /api/local-jobs/search?query=junior&zone=Zona+Sur (Zonajobs/Bumeran/Computrabajo read-only)",
+            "platforms": "GET /api/applications/plan (Outlier/Mercor/Alignerr/Mindrift/Fiverr)",
+            "rule": "30 min búsqueda + 30 min estudio/día; registrar todo en Project OS",
+        },
+    }
+
+
 _singleton: ApplicationAssistant | None = None
 
 
