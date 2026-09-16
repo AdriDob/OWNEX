@@ -153,6 +153,9 @@ def _opportunity_to_dict(op: Opportunity) -> dict[str, Any]:
 def _profile_from_dict(data: dict[str, Any]) -> UserProfile:
     allowed = {f.name for f in fields(UserProfile)}
     kwargs: dict[str, Any] = {k: v for k, v in data.items() if k in allowed}
+    # El nombre es obligatorio en el dataclass pero no afecta el ranking;
+    # default "me" para que un profile sin name no rompa el recommend diario.
+    kwargs.setdefault("name", "me")
     if "languages" in kwargs and isinstance(kwargs["languages"], list):
         kwargs["languages"] = set(kwargs["languages"])
     if "skills" in kwargs and isinstance(kwargs["skills"], list):
@@ -1606,6 +1609,87 @@ async def direct_work_source_intel(request: SourceIntelRequest) -> dict[str, Any
         query=request.query,
         min_trust=request.min_trust,
     )
+
+
+class SourceOptRequest(BaseModel):
+    name: str
+    enabled: bool
+
+
+@router.get("/sources")
+async def direct_work_sources() -> dict[str, Any]:
+    """Las 100+ webs curadas con gates + liveness + opt-in. La superficie "optar".
+
+    `enabled=false` = opt-out del usuario o quarantine automático (3 probes
+    muertos). Nada acá inventa disponibilidad: ver `liveness.status`.
+    """
+    from cores.direct_work_engine.source_registry import sources_overview
+
+    return sources_overview()
+
+
+@router.post("/sources/opt")
+async def direct_work_sources_opt(request: SourceOptRequest) -> dict[str, Any]:
+    """Opt-in/out persistente de una fuente curada. 404 si el nombre no existe."""
+    from cores.direct_work_engine.source_registry import set_source_enabled
+
+    if not request.name.strip():
+        raise HTTPException(status_code=422, detail="name vacío")
+    ok = set_source_enabled(request.name.strip(), bool(request.enabled))
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"fuente desconocida: {request.name}")
+    return {"name": request.name.strip(), "enabled": bool(request.enabled)}
+
+
+@router.post("/sources/probe")
+async def direct_work_sources_probe() -> dict[str, Any]:
+    """Corre el ciclo de liveness sobre las 119 fuentes (puede tardar minutos).
+
+    Nunca 500 por probes individuales: cada fuente falla por separado y el
+    resumen reporta live/dead/unknown + quarantined_now.
+    """
+    from cores.direct_work_engine.source_registry import run_source_probe_cycle
+
+    try:
+        return run_source_probe_cycle()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"probe falló: {exc}") from exc
+
+
+class PrepRequest(BaseModel):
+    name: str
+    use_ai: bool = True
+
+
+@router.post("/sources/prep")
+async def direct_work_sources_prep(request: PrepRequest) -> dict[str, Any]:
+    """Preparación para quedarte DENTRO de una web desde 0 (guía + IA opcional).
+
+    Determinista siempre (qué revisar + checklist + límites reales); si
+    ``use_ai``, genera el plan con IA free 24/7 (best-effort: cae al guía).
+    """
+    from cores.direct_work_engine.source_prep import build_prep_guide, generate_ai_prep
+    from cores.opportunity.global_sources import source_onboarding
+
+    src = None
+    key = (request.name or "").strip().lower()
+    if src is None:
+        from cores.opportunity.global_sources import get_sources
+
+        for s in get_sources():
+            if key and key in s.name.strip().lower():
+                src = s
+                break
+    if src is None:
+        found = source_onboarding(request.name)
+        raise HTTPException(status_code=404, detail=f"fuente no encontrada: {request.name}")
+    guide = build_prep_guide(src)
+    if request.use_ai:
+        try:
+            return await generate_ai_prep(src)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"IA falló: {exc}") from exc
+    return guide
 
 
 class SuccessPlanRequest(BaseModel):

@@ -102,6 +102,17 @@ async def update_goal(goal_id: str, request: UpdateGoalRequest):
     return {"status": "ok", "goal": goal.to_dict()}
 
 
+@router.delete("/goals/{goal_id}")
+async def delete_goal(goal_id: str):
+    """Delete a financial goal."""
+    from cores.capital.engine import get_capital_engine
+
+    engine = get_capital_engine()
+    if not engine.delete_goal(goal_id):
+        return {"error": f"Goal {goal_id} not found"}
+    return {"status": "ok"}
+
+
 @router.get("/goals/{goal_id}/projection")
 async def get_goal_projection(goal_id: str, months: int = 120):
     """Get projection for a specific goal."""

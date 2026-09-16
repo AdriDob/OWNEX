@@ -271,6 +271,7 @@ class WorkPlatform(StrEnum):
     SYNCACK = "synack"
     IMMUNEFI = "immunefi"
     ALGORA = "algora"
+    OPEN_SOURCE = "open_source"  # bounties OSS genéricos (bountyboard/polar/gitwork)
     BOUNTYBOARD = "bountyboard"
     POLAR = "polar"
     OPIRE = "opire"
@@ -291,6 +292,13 @@ class WorkPlatform(StrEnum):
     COMPUTRABAJO = "computrabajo"
     KAGGLE = "kaggle"
     DEWORK = "dework"
+    CANTINA = "cantina"
+    CODEHAWKS = "codehawks"
+    GITCOIN = "gitcoin"
+    GITWORK = "gitwork"
+    HACKENPROOF = "hackenproof"
+    HATS_FINANCE = "hats_finance"
+    ONLYDUST = "onlydust"
     OTHER = "other"
 
 

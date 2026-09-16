@@ -34,7 +34,7 @@ class OnlyDustDweAdapter(BaseDiscoveryAdapter):
     def __init__(self) -> None:
         source = DiscoverySource(
             name="onlydust",
-            platform=WorkPlatform.ONLY_DUST,
+            platform=WorkPlatform.ONLYDUST,
             categories=[
                 OpportunityCategory.OPEN_SOURCE,
                 OpportunityCategory.OSS_BOUNTIES,
@@ -163,7 +163,7 @@ class OnlyDustDweAdapter(BaseDiscoveryAdapter):
     def _extract_tags(self, opp_data: dict[str, Any]) -> list[str]:
         tags = ["web3", "oss", "onlydust", "open_source", "funding"]
         if opp_data.get("labels"):
-            tags.extend([l.lower() for l in opp_data["labels"][:5]])
+            tags.extend([lbl.lower() for lbl in opp_data["labels"][:5]])
         if opp_data.get("repository"):
             tags.append(opp_data["repository"].split("/")[-1].lower())
         return tags

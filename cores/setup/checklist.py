@@ -225,6 +225,64 @@ def _mpt_config_path() -> Path | None:
     return None
 
 
+# ── Detectores por dominio económico (avisan CADA plataforma pendiente) ──
+
+
+def _platform_env_has(*keys: str) -> bool:
+    """True si ALGUNA de las env keys está configurada (no vacía)."""
+    return any(bool(os.environ.get(k, "").strip()) for k in keys)
+
+
+def _detect_trading_exchange() -> bool:
+    """Trading CEX (DRY_RUN→LIVE): exchange_api_key + secret."""
+    return _platform_env_has("EXCHANGE_API_KEY", "EXCHANGE_SECRET")
+
+
+def _detect_memecoin_wallet() -> bool:
+    """Memecoins (Solana on-chain): helius key o solver/wallet key."""
+    return _platform_env_has("HELIUS_API_KEY", "SOLANA_PRIVATE_KEY", "SOLANA_WALLET_PATH")
+
+
+def _detect_betfair() -> bool:
+    """Apuestas deportivas (Betfair): app key + credenciales de login."""
+    return _platform_env_has("BETFAIR_APP_KEY", "BETFAIR_USERNAME", "BETFAIR_PASSWORD")
+
+
+def _detect_outlook() -> bool:
+    """Calendario/agenda externa (Outlook/Microsoft Graph)."""
+    return _platform_env_has("OUTLOOK_CLIENT_ID", "OUTLOOK_CLIENT_SECRET", "MICROSOFT_CLIENT_ID")
+
+
+def _detect_ccxt_exchange() -> bool:
+    """Inversión/ahorro vía CCXT (Binance/Kraken/etc): keys de exchange."""
+    return _platform_env_has("CCXT_API_KEY", "CCXT_SECRET", "BINANCE_API_KEY", "KRAKEN_API_KEY")
+
+
+def _detect_aux_bounty_keys() -> bool:
+    """Keys auxiliares de bug bounty (Cantina/Sherlock/CodeHawks) — upside."""
+    return _platform_env_has("CANTINA_API_KEY", "SHERLOCK_API_KEY", "CODEHAWKS_API_KEY", "SYNACK_API_KEY")
+
+
+def _detect_ai_work_keys() -> bool:
+    """Plataformas AI-work/data (Outlier/Mindrift/DataAnnotation) — canal $15-40/h."""
+    return _platform_env_has("OUTLIER_API_KEY", "MINDRIFT_API_KEY", "DATAANNOTATION_API_KEY")
+
+
+def _detect_meta_account() -> bool:
+    """Cuenta Meta (Instagram/WhatsApp para ecommerce/social)."""
+    return _platform_env_has("META_ACCESS_TOKEN", "IG_USER_ID", "WHATSAPP_PHONE_ID")
+
+
+def _detect_meli_account() -> bool:
+    """Cuenta MercadoLibre (ecommerce: catálogo + ventas + sync)."""
+    return _platform_env_has("MELI_ACCESS_TOKEN", "MELI_REFRESH_TOKEN")
+
+
+def _detect_affiliate_networks() -> bool:
+    """Redes de afiliación (Amazon/Hotmart/ClickBank): keys si el workspace está activo."""
+    return _platform_env_has("AMAZON_ASSOCIATES_TAG", "HOTMART_TOKEN", "CLICKBANK_DEV_KEY")
+
+
 def _detect_mpt_material_key() -> bool:
     """True when the MPT sidecar has a free stock-material key (Pexels/Coverr).
 
@@ -469,6 +527,30 @@ def _catalog() -> list[dict[str, Any]]:
             "auto": _MANUAL,
         },
         {
+            "id": "exchange_binance",
+            "phase": PHASE_PLATFORMS,
+            "priority": 12,
+            "title": "Conectar exchange crypto (Binance vía CCXT)",
+            "why": "Balances reales, escaneo de arbitraje y paper con tus fondos. Sin esto, inversión trabaja ciega o solo-paper.",
+            "est_minutes": 10,
+            "how_to": "Binance → API Management → crear key (solo lectura + spot, sin retiros) → POST /api/investment/ccxt/connect {exchange,api_key,api_secret}. Las keys son por-request y NUNCA se guardan.",
+            "url": "/trading",
+            "url_label": "Ver Trading",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "exchange_alpaca",
+            "phase": PHASE_PLATFORMS,
+            "priority": 13,
+            "title": "Conectar broker de acciones (Alpaca paper)",
+            "why": "Paper trading de acciones con datos reales y $0. Puerta a stocks sin capital.",
+            "est_minutes": 10,
+            "how_to": "alpaca.markets → paper keys gratis → POST /api/investment/stocks/algopaca/connect {api_key,secret_key}. Por-request, no se guardan.",
+            "url": "/trading",
+            "url_label": "Ver Trading",
+            "auto": _MANUAL,
+        },
+        {
             "id": "obsidian_vault",
             "phase": PHASE_OPTIONAL,
             "priority": 1,
@@ -497,6 +579,126 @@ def _catalog() -> list[dict[str, Any]]:
             "est_minutes": 30,
             "how_to": "API key de exchange + modo live explícito en TradingStore. Revisar drawdown settings primero.",
             "auto": _MANUAL,
+        },
+        {
+            "id": "trading_exchange",
+            "phase": PHASE_OPTIONAL,
+            "priority": 4,
+            "title": "Configurar exchange de trading (CEX)",
+            "why": "Sin keys de exchange el copy-trading queda en DRY_RUN siempre. Config para LIVE cuando lo decidas.",
+            "est_minutes": 10,
+            "how_to": "IdentityVault/env → EXCHANGE_API_KEY + EXCHANGE_SECRET (Binance/Kraken).",
+            "url": "/operations/settings",
+            "url_label": "Configurar exchange",
+            "auto": _AUTO,
+        },
+        {
+            "id": "memecoin_wallet",
+            "phase": PHASE_OPTIONAL,
+            "priority": 5,
+            "title": "Configurar wallet Solana para memecoins",
+            "why": "El paper loop de memecoins corre solo, pero live requiere wallet + Helius API.",
+            "est_minutes": 10,
+            "how_to": "env → HELIUS_API_KEY o SOLANA_PRIVATE_KEY (vault). Nunca en logs.",
+            "url": "/operations/settings",
+            "url_label": "Configurar wallet",
+            "auto": _AUTO,
+        },
+        {
+            "id": "betfair",
+            "phase": PHASE_OPTIONAL,
+            "priority": 6,
+            "title": "Configurar apuestas deportivas (Betfair)",
+            "why": "Activa el conector de apuestas (apps/odyssey). Sin credenciales queda deshabilitado.",
+            "est_minutes": 15,
+            "how_to": "IdentityVault/env → BETFAIR_APP_KEY + BETFAIR_USERNAME + BETFAIR_PASSWORD.",
+            "url": "https://developer.betfair.com",
+            "url_label": "Abrir Betfair Dev",
+            "auto": _AUTO,
+        },
+        {
+            "id": "ccxt_exchange",
+            "phase": PHASE_OPTIONAL,
+            "priority": 7,
+            "title": "Configurar exchange para capital/inversión (CCXT)",
+            "why": "El motor de capital usa CCXT para ahorro+inversión. Sin keys queda read-only.",
+            "est_minutes": 10,
+            "how_to": "IdentityVault/env → CCXT_API_KEY + CCXT_SECRET (o BINANCE/KRAKEN).",
+            "url": "/operations/capital",
+            "url_label": "Configurar capital",
+            "auto": _AUTO,
+        },
+        {
+            "id": "outlook",
+            "phase": PHASE_OPTIONAL,
+            "priority": 8,
+            "title": "Conectar Outlook / calendario",
+            "why": "Integración agenda: calendario externo + sync. Sin esto la agenda es solo local.",
+            "est_minutes": 10,
+            "how_to": "IdentityVault/env → OUTLOOK_CLIENT_ID/SECRET (Microsoft app).",
+            "url": "/operations/agenda",
+            "url_label": "Configurar agenda",
+            "auto": _AUTO,
+        },
+        {
+            "id": "aux_bounty_keys",
+            "phase": PHASE_OPTIONAL,
+            "priority": 9,
+            "title": "Keys auxiliares de bug bounty (upside)",
+            "why": "Cantina/Sherlock/CodeHawks/Synack son upside extra — sin key quedan en el radar como unknown.",
+            "est_minutes": 10,
+            "how_to": "opportunity.env → CANTINA_API_KEY / SHERLOCK_API_KEY / CODEHAWKS_API_KEY / SYNACK_API_KEY.",
+            "url": "/operations/settings",
+            "url_label": "Configurar keys",
+            "auto": _AUTO,
+        },
+        {
+            "id": "ai_work_keys",
+            "phase": PHASE_OPTIONAL,
+            "priority": 10,
+            "title": "Plataformas AI-work/data (Outlier/Mindrift/DAN)",
+            "why": "Canal $15-40/h. Con los assessments hechos, las keys completan el sync de earnings.",
+            "est_minutes": 10,
+            "how_to": "opportunity.env → OUTLIER_API_KEY / MINDRIFT_API_KEY / DATAANNOTATION_API_KEY.",
+            "url": "/operations/settings",
+            "url_label": "Configurar keys",
+            "auto": _AUTO,
+        },
+        {
+            "id": "meta_account",
+            "phase": PHASE_OPTIONAL,
+            "priority": 11,
+            "title": "Conectar cuenta Meta (IG/WhatsApp)",
+            "why": "El ecommerce social (Droppinglabel) publica a IG/WA vía Graph API. Sin token, prepara pero no publica.",
+            "est_minutes": 10,
+            "how_to": "IdentityVault → META_ACCESS_TOKEN + IG_USER_ID + WHATSAPP_PHONE_ID.",
+            "url": "/operations/ecommerce",
+            "url_label": "Configurar Meta",
+            "auto": _AUTO,
+        },
+        {
+            "id": "meli_account",
+            "phase": PHASE_OPTIONAL,
+            "priority": 12,
+            "title": "Conectar cuenta MercadoLibre",
+            "why": "Marketplace: catálogo, ventas y sync de órdenes. Sin token, publicar queda en preparación.",
+            "est_minutes": 15,
+            "how_to": "IdentityVault → MELI_ACCESS_TOKEN (+ refresh). developers.mercadolibre.com → OAuth.",
+            "url": "/operations/ecommerce",
+            "url_label": "Conectar Meli",
+            "auto": _AUTO,
+        },
+        {
+            "id": "affiliate_networks",
+            "phase": PHASE_OPTIONAL,
+            "priority": 13,
+            "title": "Redes de afiliación (Amazon/Hotmart/ClickBank)",
+            "why": "Monetiza el contenido affiliate. Sin tags/keys, los links quedan sin tracking.",
+            "est_minutes": 10,
+            "how_to": "IdentityVault/env → AMAZON_ASSOCIATES_TAG / HOTMART_TOKEN / CLICKBANK_DEV_KEY.",
+            "url": "/operations/affiliate",
+            "url_label": "Configurar affiliate",
+            "auto": _AUTO,
         },
     ]
 
@@ -647,6 +849,16 @@ _DETECTORS: dict[str, Callable[[], bool]] = {
     "mpt_material_key": _detect_mpt_material_key,
     "obsidian_vault": _detect_obsidian_vault,
     "smtp_mail": _detect_smtp_mail,
+    "trading_exchange": _detect_trading_exchange,
+    "memecoin_wallet": _detect_memecoin_wallet,
+    "betfair": _detect_betfair,
+    "ccxt_exchange": _detect_ccxt_exchange,
+    "outlook": _detect_outlook,
+    "aux_bounty_keys": _detect_aux_bounty_keys,
+    "ai_work_keys": _detect_ai_work_keys,
+    "meta_account": _detect_meta_account,
+    "meli_account": _detect_meli_account,
+    "affiliate_networks": _detect_affiliate_networks,
 }
 
 _singleton: SetupChecklist | None = None

@@ -25,6 +25,13 @@ autónoma capaz de ayudar al usuario a:
 - aumentar productividad
 - construir independencia digital
 
+> **El objetivo final no es OWNEX. Es la vida que OWNEX debe ayudar a construir.**
+> Ver `.ai/PERSONAL_CONTEXT.md` (SSOT personal del usuario: independencia, $125k de
+> colchón, vivienda, Chevy Tracker azul, familia, viajes, fe, pintura). La IA debe
+> explicar cada "hacé X" en términos del objetivo de vida que mueve, no de la checklist
+> que marca (jerarquía VIDa → Independencia/Carrera/Negocios/Tecnología/Familia/
+> Viajes/Entretenimiento/Fe/Creatividad).
+
 OWNEX debe sentirse como tener una **organización tecnológica completa dentro de un
 único sistema**. No es una aplicación. No es un chatbot. Es un ecosistema personal
 inteligente.

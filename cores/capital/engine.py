@@ -234,19 +234,19 @@ class CapitalEngine:
             ),
             FinancialGoal(
                 id="car",
-                name="Car (Economic)",
-                target_amount=15_000,
-                category="auto",
+                name="Buen Auto",
+                target_amount=20_000,
+                category="transporte",
                 priority=2,
-                notes="Economic vehicle + insurance + transfer",
+                notes="0km/seminuevo confiable (USD 15-30k). Misión del owner: en algún momento un buen auto.",
             ),
             FinancialGoal(
                 id="apartment_buenos_aires",
-                name="Apartment Buenos Aires",
-                target_amount=80_000,
+                name="Departamento Zona Sur",
+                target_amount=60_000,
                 category="vivienda",
                 priority=3,
-                notes="Departamento amueblado con cochera",
+                notes="2 ambientes Zona Sur Buenos Aires (Avellaneda/Lanús/Lomas/Quilmes, USD 50-70k) para 2 personas. Meta operativa 60k.",
             ),
             FinancialGoal(
                 id="million",
@@ -322,6 +322,7 @@ class CapitalEngine:
             notes=notes,
         )
         self.goals.append(goal)
+        self._persist_state()
         return goal
 
     def update_goal(
@@ -330,15 +331,25 @@ class CapitalEngine:
         current_amount: float | None = None,
         monthly_contribution: float | None = None,
     ) -> FinancialGoal | None:
-        """Update a financial goal."""
+        """Update a financial goal (persiste en DB junto al cambio)."""
         for goal in self.goals:
             if goal.id == goal_id:
                 if current_amount is not None:
                     goal.current_amount = current_amount
                 if monthly_contribution is not None:
                     goal.monthly_contribution = monthly_contribution
+                self._persist_state()
                 return goal
         return None
+
+    def delete_goal(self, goal_id: str) -> bool:
+        """Delete a financial goal (persiste el cambio)."""
+        before = len(self.goals)
+        self.goals = [g for g in self.goals if g.id != goal_id]
+        removed = len(self.goals) != before
+        if removed:
+            self._persist_state()
+        return removed
 
     def get_goal_projections(self, goal_id: str, months: int = 120) -> dict[str, Any]:
         """Get projection for a specific goal."""
@@ -455,8 +466,9 @@ _capital_engine: CapitalEngine | None = None
 
 
 def get_capital_engine() -> CapitalEngine:
-    """Get or create the global capital engine."""
+    """Get or create the global capital engine (goals persisted → reloaded)."""
     global _capital_engine
     if _capital_engine is None:
         _capital_engine = CapitalEngine()
+        _capital_engine._load_from_db()
     return _capital_engine

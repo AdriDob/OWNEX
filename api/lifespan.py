@@ -111,6 +111,20 @@ async def run_background_init(app: Any, bus: Any) -> None:
 # ── Async helpers ─────────────────────────────────────────────────────
 
 
+def _emit_job_failed(job_id: str, exc: BaseException) -> None:
+    """Notify a dead scheduler job. Never raises (heartbeat must survive)."""
+    try:
+        from cores.notifications.emit import emit as _emit
+
+        _emit(
+            "scheduler:job_failed",
+            id=job_id,
+            message=f"Job {job_id} falló: {str(exc)[:200]}",
+        )
+    except Exception:
+        pass
+
+
 async def _async_defer(label: str, fn: Callable[..., Any], *args: Any) -> Any:
     """Run an async init function with timeout protection."""
     try:
@@ -433,9 +447,50 @@ async def _init_orion_platform(app: Any, bus: Any) -> Any:
                     bound = getattr(instance, method_name, None)
                     if callable(bound):
                         handler = bound
-            return handler(*args)
-        except Exception:
+            result = handler(*args)
+            if asyncio.iscoroutine(result):
+                # Handler async: aguardala. El scheduler de jobs es síncrono
+                # (ScanScheduler legacy) y puede o no estar dentro de un loop;
+                # para nunca romper ni dejar "coroutine never awaited", creamos
+                # un loop propio en un thread daemon cuando no hay loop activo.
+                try:
+                    asyncio.get_running_loop()
+                    in_loop = True
+                except RuntimeError:
+                    in_loop = False
+                if in_loop:
+                    # Si estamos dentro del loop de FastAPI, programar en vez de bloquear.
+                    import threading
+
+                    result = None
+                    threading.Thread(target=_await_in_new_loop, args=(handler, args), daemon=True).start()
+                    return result
+                return _await_in_new_loop(handler, args)
+            return result
+        except Exception as exc:
+            _emit_job_failed(job.job_id, exc)
             return None
+
+    def _await_in_new_loop(handler: Any, args: list[Any]) -> Any:
+        """Run an async job handler to completion in a private event loop.
+
+        Timeout fijo conservador (5 min) — los jobs de discovery/execution
+        pueden ser lentos; nunca rompe el heartbeat del scheduler.
+        """
+        result: dict = {}
+        import threading
+
+        def _target() -> None:
+            try:
+                result.update(asyncio.run(handler(*args)) or {})
+            except Exception as exc:  # never break the scheduler heartbeat
+                logger.warning("[ORION] job async handler failed: %s", exc)
+                result.update({"error": str(exc)})
+
+        worker = threading.Thread(target=_target, daemon=True)
+        worker.start()
+        worker.join(timeout=300)
+        return result
 
     def _on_job_due(job: JobDefinition) -> Any:
         core_bus.publish("scheduler:job_due", job_id=job.job_id, app_id=job.app_id)
@@ -558,6 +613,7 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
         register_event_bridge,
         register_mobile_channel,
         register_watch_channel,
+        register_ws_forwarder,
     )
 
     register_db_bridge()
@@ -565,6 +621,11 @@ def _init_notification_bridges(bus: Any, app: Any) -> None:
 
     with contextlib.suppress(Exception):
         register_event_bridge()
+
+    # Hub → WebSocket: las notificaciones llegan al frontend en vivo
+    # como eventos `notification:new` (ver stores/notifications.ts).
+    with contextlib.suppress(Exception):
+        register_ws_forwarder()
 
     # Email is ONLY for monthly report — NOT for operational notifications.
     # Monthly report uses its own send_monthly_report() call.

@@ -1,3 +1,23 @@
+## Sesión 2026-09-16: CONFIG POR DOMINIO COMPLETA + MISIÓN DEPARTAMENTO/AUTO en capital
+
+> **QUÉ SE HIZO:** Pedido owner (sistema para dev/bug/data/trading/apuestas/capital/memecoin/proyectos/vida — todas las plataformas pendientes que avise, sistema "perfectamente preparado"). Audit del checklist (23 ítems, agrupaba "al menos una key") → extendido a **33 ítems con detector por dominio**:
+> - **10 detectores nuevos** (`cores/setup/checklist.py`): `trading_exchange` (EXCHANGE_API_KEY/SECRET), `memecoin_wallet` (HELIUS/SOLANA_PRIVATE_KEY), `betfair` (BETFAIR_APP_KEY/USER/PASS — apuestas deportivas conector real en `apps/odyssey/connectors/betfair/`), `ccxt_exchange` (capital/inversión), `outlook` (agenda), `aux_bounty_keys` (Cantina/Sherlock/CodeHawks/Synack), `ai_work_keys` (Outlier/Mindrift/DAN), `meta_account` (IG/WA Graph), `meli_account` (MercadoLibre), `affiliate_networks` (Amazon/Hotmart/ClickBank). Todos AUTO con detector de env, how_to + url. Fases: optional prio 4-13.
+> - **MISIÓN OWNER en capital** (`cores/capital/engine.py`): goals defaults reemplazados por la misión real → `Buen Auto` $20k (transporte) + `Departamento Zona Sur` $60k (vivienda, 2 pers zona sur AR). **Fixes reales de persistencia**: `add_goal` ahora llama `_persist_state()`; `update_goal` también (antes mutaba solo memoria → proyección siempre "no alcanza" y la misión no sobrevivía reinicio); `delete_goal()` + endpoint `DELETE /api/capital/goals/{id}`; `get_capital_engine()` carga DB. Tests `test_capital_mission.py` 4/4.
+> - **Respuesta honesta "¿cuánto tiempo?"** (proyección $60k depto / $20k auto): auto $20k → ~2a a $800/mes · depto $60k → ~3a a $1500/mes, ~4.3a a $1000/mes, ~7.6a a $500/mes. Con ingreso OWNEX $25-50k/año y ahorro 40-60%: depto en **2.5-4 años**.
+> - **Verificación**: 105 passed (misión+checklist+phase3+async+trading+scheduler) · fast **102/1** · ruff limpio en 5 tocados · `import api.main` 1823 rutas · DB real limpia tras tests (solo misión canónica, sin temporales).
+> - **No tocado**: resto del árbol, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-16 (build) — ULTIMATE FINAL FASE 3/6/9/10: P0 async-await + P1 platform/profile + smoke 7/7 + changelog
+
+> **QUÉ SE HIZO:** Continuación del master prompt (Fase 3 production bug fix con evidencia runtime + Fase 6 workspace integration + Fase 9 release + Fase 10 docs). Tres bugs REALES encontrados por smoke/audit, no por opinión:
+> - **P0 (21 jobs muertos)**: `lifespan._run_job` llamaba `handler(*args)` sin aguardar coroutines → Pulse/Forge discovery, OpportunityOrchestrator, execution_queue, worker_core heartbeat se registraban pero NUNCA ejecutaban (coroutine never awaited). Fix: `_await_in_new_loop` (thread daemon + loop propio, timeout 5 min, nunca rompe heartbeat) + `tests/test_scheduler_async_handlers.py` (2/2: ejecuta fake async a completitud + todos los async handlers resuelven).
+> - **P1 (discovery roto)**: `WorkPlatform` sin `OPEN_SOURCE` pero bountyboard/polar lo usaban → AttributeError en runtime ("Fetched 0" silencioso). Fix: `OPEN_SOURCE` en enum + 7 plataformas inexistentes en adapters huérfanos (CANTINA/CODEHAWKS/GITCOIN/GITWORK/HACKENPROOF/HATS_FINANCE/ONLYDUST — detectadas por el propio guard nuevo) + `ONLY_DUST`→`ONLYDUST` + E741. `tests/test_phase3_production_fixes.py` (3/3: enum, guard anti-futuros, recommend sin name).
+> - **P1 (recommend 500)**: `_profile_from_dict` sin `name` rompía `/direct-work/recommend` → default `"me"` (el nombre no afecta ranking). Smoke post-fix: 1017 oportunidades descubiertas, polar "Fetched 1" (antes error).
+> - **Fase 6**: verificado sin código — workspaces usan infra compartida (scheduler central, OAR, data-dir común, mission_hub consume registry+one_best_action+allocation+feedback; ecommerce persiste suppliers en `OWNEX_DATA_DIR`, no DB separada). Sin backends/DBs/schedulers/AI por workspace.
+> - **Fase 9**: versión única 7.1.0 en 5 superficies (sin drift) · CHANGELOG entrada Unreleased · smoke release **7/7** (digest, mission-hub, economic-feedback, checklist, recommend, trading/overview, health).
+> - **Verificación**: ruff limpio en 9 tocados · 114 passed (phase3+async+contract+trading+scheduler+direct_work_api) · 120 passed (direct_work+scoring+workbank) · fast **102/1** · `import api.main` 1820 rutas.
+> - **No tocado**: LifeScheduler del flujo paralelo (su enum propio, no conecta con get_all_jobs — WIP ajeno), resto del árbol. Sin commits (esta sesión; el raft anterior ya está en `cd2315ff`+`f5374c18`).
+
 ## Sesión 2026-09-15 (build) — ULTIMATE FINAL PROMPT FASE 0-2: audit contract drift + dead code + guard
 
 > **QUÉ SE HIZO:** Fase 0 (freeze baseline) + Fase 1-2 del master prompt definitivo (AUDIT→CONSOLIDATE, no features). 120 archivos sin commitear raftados. Baseline: fast **102/1** en verde tras corregir el test `test_scheduler_jobs.py` (el set de ciclos esperaba 16 but `get_all_jobs()` tiene 17 con `economic_feedback` — fix de contrato, no de código). Audit §17 completo (222 llamadas `api.*` del frontend vs `app.routes` runtime; fuente de verdad, no openapi lazy):
@@ -29,6 +49,22 @@
 > **Veredicto:** $50k es agresivo pero razonable con 30h si se cumple 🟢. Sin upside techo $30-35k.
 > **Asignación 30h:** AI work 10h (assessments $15-55/h) · Dev bounties 8h (1 claim Algora $50-200) · B2B 6h (2 propuestas) · MeLi 3h (5 SKUs, conv>2.5% o pivot) · Bug bounty 2h (upside) · Admin 1h. Hitos: S3-4 1er PAID → Mes2 2 canales → Mes4 3 canales MEASURED → Mes6-9 upside → Mes12-18 repetir/matar. Regla: 40h/$0 a día 60 → pausa canal, horas al mejor $/h. Bloqueos: GITHUB_TOKEN, 3 rails (Wise/Airtm/GrabrFi), 3 assessments.
 
+## Sesión 2026-09-16: INVESTMENT CONFIG VISIBLE — exchanges en checklist + IOL no existe (honesto)
+
+> **QUÉ SE HIZO:** Pedido owner (¿inversión pide config Binance/IOL? ¿avisa cada módulo?). Auditoría: adapters CCXT/Alpaca/IBKR/DeFi existen (`POST /investment/ccxt/connect`, `/stocks/algopaca/connect`) pero creds por-request nunca persistidas → sin estado observable. **IOL sin conector** (solo mención en payout-methods).
+> - **Colisión**: el flujo concurrente agregó 10 ítems (env-keys, capas trading/discovery). Mis 2 (`exchange_binance` p12, `exchange_alpaca` p13, MANUAL) cubren la capa API que los suyos no tocan. Complementarios.
+> - **Tests**: conteos→33, pct→3, listas `complete` extendidas. 37 passed · fast **102/1** · ruff limpio.
+> - **Efecto**: 33 items (29 pending, 7 inversión) → `pending-config` + strip + campana automáticos.
+> - **Regla**: config efímera = MANUAL; IOL = propuesta futura, no ítem sin conector. Sin commits.
+
+## Sesión 2026-09-16: NOTIFY-EVERYTHING — las tuberías tenían mapa pero no agua + bug Target sin description
+
+> **QUÉ SE HIZO:** Pedido owner (avisen trading/dev-bounty/bug-bounty + todo lo pendiente de config). Auditoría: infra existe y cableada (EventBus→hub→DB/desktop/mobile/watch, PUSH_MAP, WS+store+panel), pero (a) los eventos priorizados **nunca se emitían**, (b) `register_ws_forwarder()` existía sin llamar + store ignoraba `notification:new` → campana muerta en vivo, (c) sin endpoint de pendientes juntos.
+> - **Emits** (7 puntos, 1 línea c/u, `emit()` nunca raisea): auto-submit SUBMITTED/CONFIRMED/DLQ · algora claim/claim_failed/PR/merged(payout)/merge_pending · killswitch on/off (transiciones, sin spam del loop) · finding al persistir · report al guardar · job muerto · payout PAID. PUSH_MAP +13 (dinero=critical).
+> - **Bug real del test**: `Target(description=...)` inexistente → findings de targets nuevos se perdían en silencio. Fix 1 línea.
+> - **Config**: `GET /api/notifications/pending-config` (17 con cómo/url) + forwarder en lifespan + store `notification:new` + `startPolling()` 60s en App.vue (mergea pending-actions+pending-config con dedupe).
+> - **Verificación**: 16/16 nuevo · 169 afectadas · fast **102/1** · vue-tsc 0 · biome 0 · ruff limpio. Sin commits.
+
 ## Sesión 2026-09-15: GITHUB_TOKEN END-TO-END — executor lee opportunity.env + how_to sin endpoint fantasma
 
 > **QUÉ SE HIZO:** Pedido owner (apuro económico, $0 inversión: dejar sistema listo para bug bounty + cualquier proyecto). Hallazgo: `build_algora_executor()` NO leía `get_credentials().github_token` (opportunity.env) — el checklist marcaba ✅ pero el executor fallaba. Fix + doc falsa corregida:
@@ -37,6 +73,16 @@
 > - **Tests**: +3 en `test_algora_executor` (lee archivo sin env; precedencias) + existente aislado de secretos locales. 13/13 + checklist 36/36 · ruff limpio · fast **102/1**.
 > - **Readiness**: AI gratis ✅ (`fcc→claude→"OK"`) · WorkBank 3 items $2,700 ✅ · checklist 19%, next `payment_accounts` · `GITHUB_TOKEN` vacío (bloqueo #1 real, acción owner).
 > - **No tocado**: resto executors, routers, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-15: 100+ WEBS OPTABLES — filtro por lenguaje + registry curado + prober con quarantine
+
+> **QUÉ SE HIZO:** Pedido owner (optar entre 100+ webs dev bounty rust/go/solidity). Hallazgo: las webs YA existen como datos (119 `SourceDefinition`, radar las analiza); el gap era FETCH (8 fuentes) + filtro idioma + liveness. Probes: OpenBugBounty 403, HackenProof/CodeHawks 404, Huntr 302 → cero fetches inventados.
+> - **F1**: `direct_work_github_bounty.py` EXTEND — `languages` → qualifiers `language:` server-side (3 queries×idioma, cap 5, default intacto) + auth `GITHUB_TOKEN` si existe (30/min) + `POST /discover {languages}` (sin doble-fetch, fallback si el adapter no acepta el param).
+> - **F2**: `cores/direct_work_engine/source_registry.py` NUEVO — gates owner como código (interview→fuera, <$15/h→fuera, UNKNOWN pasa), opt store (`OWNEX_DATA_DIR/curated_sources.json`), `GET /direct-work/sources` (118 con gate+liveness+enabled), `POST /sources/opt` (404/422), `source_intel.analyze()` respeta opt-out/quarantine (`hidden_by_optout/hidden_quarantined`). Duplicado Lionbridge=TELUS eliminado (118 únicas).
+> - **F3**: `probe_all_sources()` tri-estado (403→unknown, sin URL→unknown) + quarantine auto ×3 muertos (reversible) + `run_source_probe_cycle()` nunca raisea + job `curated_sources_probe` dom 05:00 + `POST /sources/probe`.
+> - **Verificación**: `test_curated_sources.py` 19/19 · afectadas 142 · fast **102/1** · `import api.main` 1820 rutas · ruff limpio.
+> - **No tocado**: fetchers vivos, scoring, OAR/copilot, WIP ajeno. Sin commits.
+> - **Regla**: web nueva = 1 `SourceDefinition` + probe → auto-wired; lo no-verificable vive con `unknown`, jamás como oportunidad.
 
 ## Sesión 2026-09-15: FREE MODELS 24/7 — selección curada (FCC/NVIDIA/OmniRoute/OpenCode/Ollama)
 
