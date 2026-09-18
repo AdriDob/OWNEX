@@ -129,6 +129,29 @@ def tier_cadence_hours(tier: int) -> int:
     return TIER_CADENCE_HOURS.get(tier, 24)
 
 
+# URLs de test que contaminaron el store real (bounty-1/freelance-1/opire-1
+# con /program/1, /p/1, /op/1): placeholders de un dígito, jamás una URL real
+# de bounty (esas llevan /issues/, /pull/, slugs). Puro y testeable.
+def is_fixture_url(url: str) -> bool:
+    """True si la URL es un placeholder de test, no una oportunidad real."""
+    import re
+
+    text = (url or "").strip()
+    if not text:
+        return False
+    lowered = text.lower()
+    for marker in ("example.com", "example.org", "localhost", "127.0.0.1"):
+        if marker in lowered:
+            return True
+    return re.search(r"/(program|p|op)/1(?:[/?#]|$)", text) is not None
+
+
+def fixture_item_ids(items: dict[str, WorkItem] | list[WorkItem]) -> list[str]:
+    """IDs con URL fixture (para revalidar antes del próximo daily_cycle)."""
+    values = items.values() if isinstance(items, dict) else items
+    return sorted([i.id for i in values if is_fixture_url(getattr(i, "url", ""))])
+
+
 # Production targets: how many delivery-ready jobs to accumulate.
 # These are floors, not caps — the bank keeps as many as it can produce.
 TARGETS: dict[str, int] = {"daily": 10, "weekly": 100, "monthly": 1000}
@@ -465,9 +488,22 @@ class WorkBank:
         return self._items.get(item_id)
 
     def _rank_ready(self, limit: int) -> list[WorkItem]:
-        ready = [i for i in self._items.values() if i.ready_to_deliver]
+        ready = [i for i in self._items.values() if i.ready_to_deliver and not is_fixture_url(getattr(i, "url", ""))]
         ready.sort(key=lambda i: i.reward, reverse=True)
         return ready[:limit]
+
+    def purge_fixtures(self) -> list[str]:
+        """Elimina del store los items con URL fixture (placeholders de test).
+
+        No borra evidencia real (URLs con /issues/, slugs). Devuelve IDs purgados.
+        Operación reversible solo vía re-discover.
+        """
+        doomed = fixture_item_ids(self._items)
+        for fid in doomed:
+            self._items.pop(fid, None)
+        if doomed:
+            self._save()
+        return doomed
 
     # ── Internals ──
     @staticmethod
@@ -495,6 +531,7 @@ class WorkBank:
         delivered = [i for i in self._items.values() if i.status == "delivered"]
         rejected = rejected or {}
         success_floor_rejected = success_floor_rejected or {}
+        needs_revalidation = fixture_item_ids(self._items)
         return {
             "scanned": scanned,
             "eligible_zero_barrier": eligible,
@@ -505,6 +542,8 @@ class WorkBank:
             "ready_to_deliver": len(ready),
             "needs_access": len(needs_access),
             "delivered": len(delivered),
+            "fixture_urls": len(needs_revalidation),
+            "needs_revalidation": needs_revalidation,
             "rejected": rejected,
             "rejected_reasons": sorted(
                 {reason for reasons in rejected.values() for reason in reasons}

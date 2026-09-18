@@ -627,6 +627,18 @@ def generate_report() -> dict[str, Any]:
 def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
+        # Higiene de escaneo (2026-09-18): dominio inválido = scan condenado
+        # a 0 findings. Fail-closed acá, no en el scheduler.
+        from cores.recon.hostname import scannable_domain
+
+        effective = (domain or "").strip()
+        if effective and not scannable_domain(name, effective):
+            return {
+                "name": (name or "").strip(),
+                "domain": effective,
+                "invalid": True,
+                "reason": "hostname DNS inválido (¿slug con '_' + '.com'?). Corregí el dominio.",
+            }
         existing = session.query(models.Target).filter(models.Target.name == name).first()
         if existing:
             return {

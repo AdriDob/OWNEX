@@ -29,6 +29,17 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     if mode not in {"FAST", "DEEP", "API"}:
         raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}. Use FAST, DEEP, or API")
 
+    # Higiene de escaneo (2026-09-18): dominio inválido = DNS imposible =
+    # scan condenado a 0 findings. Fail-closed antes de verificar tools.
+    from cores.recon.hostname import scannable_domain
+
+    effective = scannable_domain(target_name, target_domain)
+    if not effective:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Dominio no escaneable ({target_domain or target_name!r}): hostname DNS inválido. Corregí el target.",
+        )
+
     # Verify recon tools are available
     logger.info(f"Verifying recon tools for mode {mode}...")
     tool_status = await verify_recon_tools(mode)

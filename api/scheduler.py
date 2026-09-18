@@ -30,6 +30,7 @@ from cores.agents.types import EventType  # AÑADIR PipelineState
 from cores.env.config import get_config
 from cores.events.event_bus import get_event_bus  # AÑADIR
 from cores.intelligence.reward_learning import RewardLearner
+from cores.recon.hostname import scannable_domain
 from cores.target_intelligence import TargetPrioritizer
 from cores.targets.models import TargetIntel
 from database import db, models
@@ -550,6 +551,22 @@ class ScanScheduler:
                 logger.debug("[RECON] No targets to scan")
                 return
 
+            # Higiene de escaneo (2026-09-18): los dominios inválidos (ej.
+            # slugs con "_" + ".com") jamás resuelven DNS — escanearlos quema
+            # timeouts y jamás produce findings. Se saltean sin mutar la DB;
+            # el owner los corrige o elimina cuando quiera.
+            scannable = [t for t in targets if scannable_domain(t.name, getattr(t, "domain", None))]
+            skipped = len(targets) - len(scannable)
+            if skipped:
+                logger.warning(
+                    "[RECON] Skipping %d target(s) with invalid DNS domain (no-op scans avoided)",
+                    skipped,
+                )
+            targets = scannable
+            if not targets:
+                logger.debug("[RECON] No scannable targets (all invalid domain)")
+                return
+
             mode = get_config().scan_mode
 
             # Use TargetPrioritizer for EV-based ranking + attack plans
@@ -765,11 +782,19 @@ class ScanScheduler:
 
                     pipeline_id = self._target_pipelines.get(target.id)  # OBTENER pipeline_id
                     if not pipeline_id:
-                        logger.warning(
-                            "[HYPOTHESIS] No pipeline_id found for target %d, skipping hypothesis generation.",
+                        # Resumen tras restart (2026-09-18): _target_pipelines vive
+                        # solo en RAM; sin fallback, todo endpoint escaneado antes
+                        # del restart (o vía API) se salteaba PARA SIEMPRE y jamás
+                        # llegaba a hypothesis → validation → finding (0 findings
+                        # con 9k+ endpoints). El pipeline_id es observabilidad,
+                        # no lógica: se sintetiza uno estable y se registra.
+                        pipeline_id = f"resume-t{target.id}"
+                        self._target_pipelines[target.id] = pipeline_id
+                        logger.info(
+                            "[HYPOTHESIS] Resumed pipeline %s for target %d (no live pipeline_id).",
+                            pipeline_id,
                             target.id,
                         )
-                        continue
 
                     ep_dict = {
                         "id": ep.id,

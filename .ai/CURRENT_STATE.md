@@ -1,3 +1,150 @@
+## Sesión 2026-09-18 — FINAL SHIP AUDIT (Phase 0, sin código): version drift + arquitectura + validación física
+
+> **MANDATO:** megaprompt FINAL SHIP (Production Stabilization → Full Integration → Real Validation → Packaging → Installation → Release → Freeze). Sin feature creep.
+> **AUDIT (evidencia runtime, 0 código nuevo salvo fixes mínimos):**
+> - **Version SSOT 7.7.7**: `.VERSION.txt` OK pero `cores/__init__.py` y `apps/hermes/__init__.py` en 7.1.0 + `android/versionName` en 1.0 + tests pineados a 7.1.0 → **drift 5 superficies**. Fix: sync a 7.7.7 (commit `2e71058a`, 5 files, 6 inserts). Verificado `sync_version.py` verde, `api.main` 1812 rutas, `.VERSION.txt` SSOT.
+> - **Arquitectura**: `core/` no existe (único árbol `cores/`, 280 módulos, 0 imports `from core.`), Tauri 7.7.7 + Cargo 7.7.7 + pyproject 7.7.7 + frontend 7.7.7 + MSI 7.7.7 → SSOT OK tras fix. Android `versionCode 777` alineado.
+> - **UX P0 ya FIXED**: CommandPalette duplicado + Drawer muerto (P0) + Drawer (P1) + paginación suppliers (P2) → vite 13.03s·vue-tsc 0.
+> - **Kit diseño**: flyer-brief + job semanal + 5 tools gratis registrados → completo.
+> - **Backend**: 1812 rutas, 64 páginas, 97 router paths, 22 adapters (Algora/BountyBoard/Polar vaciados honesto, Dework DEGRADED sin GraphQL inventado).
+> - **Tests**: `test_frontend_api_contract` 3/3 · `test_ecommerce` 71/71 · `test_backup` 24/24 · `test_offline_degraded` 6/6 · `test_business_tools` 13/13. Ruff: 38 F-errors (32 F841 preexistentes), frontend `test_ecommerce` limpio salvo SIM105 engine.py histórico.
+> - **Desktop/Android/WearOS**: Tauri `lib.rs` existe, WebView2 `productName OWNEX Alpha`, APK 1.0→7.7.7, WearOS no verificado físico.
+> - **Security/Backup/Degraded**: vault present, backup `create/verify` existe, degraded 6 tests verdes, secrets no en repo (grep 0 hardcodeos).
+> - **Decisión**: NO feature creep. P0-P2 UX ya cerró. El resto es integración/validación física, no código nuevo.
+> **Verificación**: `make test-fast` 102/1 · `vite build` 11.44s · `api.main` 1812 rutas · ruff scoped limpio. Physical Windows/Android pendiente.
+
+## Sesión 2026-09-18 — UX P1+P2 (owner: "como sea mejor"): Drawer muerto + paginación + veredicto IncomeHome
+
+> **AUDIT HONESTO (cambió el plan):** `Button/Card/Badge` ya son re-exports de `Ownex*` (canónico sano, no duplicación real) → P1 se redujo a borrar `ui/Drawer.vue` (0 usos en todo `src`). IncomeHome (730L) ya está componentizado (9 hijos + 3 funciones) → NO se parte (churn sin ganancia medible).
+> **CAMBIOS:** `Drawer.vue` fuera (git rm, barrel `ui/` no lo exportaba) · tabla suppliers con `visibleCount` (50→+50, botón Mostrar más, conteo honesto filtrados/cargados, reset al cambiar filtros).
+> **Verificación**: vite 13.03s · vue-tsc 0 · 0 tests frontend tocados (sin spec de Drawer/Ecommerce). Sin commits.
+
+## Sesión 2026-09-18 — UX P0: CommandPalette duplicado + muertos fuera
+
+> **PEDIDO OWNER:** qué onda el UX/UI, ¿mejorarías algo? Audit con evidencia → P0 elegido.
+> **BUG REAL:** `CommandPalette` montado 2 veces (`App.vue:175` + `AppLayout.vue:72`), cada uno con listener global Ctrl+K propio → doble toggle/panel. Fix: queda solo el de `AppLayout` (1 import + 1 mount eliminados).
+> **MUERTOS:** `layout/CommandPalette.vue` (588L, 0 importers) + `layout/Sidebar.vue` (solo barrel sin consumidores) eliminados; barrel sin la línea Sidebar.
+> **Verificación**: vite 15.33s · vue-tsc 0 · 0 referencias restantes. Sin commits.
+
+## Sesión 2026-09-18 — KIT DISEÑO AUTOMATIZADO: flyer-brief auto + job semanal
+
+> **PEDIDO OWNER:** mejores herramientas de diseño/edición gratis automatizables + automatizarlas.
+> **CAMBIOS:** `product_flyer_brief()` (precio ARS real → banda OBJETIVO sugerida → tag authenticity → bloqueadores) + `GET /design/products/{id}/flyer-brief` (200/404/422) · job `ecommerce_design_pack` lun 07:00 (seguro: sin ACTIVE no toca nada) + `get_design_queue_items()` SSOT · fix `publish_blockers()` acepta ARS.
+> **Límite honesto**: foto (permiso) + publicar (sin token Meta) siguen humanos; video sin ffmpeg local → CapCut.
+> **Verificación**: 8 tests nuevos · ruff limpio · fast 102/1. Sin commits.
+
+## Sesión 2026-09-17 — INSTAGRAM CASERO QUE VENDE: flyer prolijo + cola de publicación + WA automático
+
+> **PEDIDO OWNER:** instagram bien casero, piola, que venda en automático + kit diseño gratis (flyers, destacadas, posts, bot imágenes ChatGPT, open source, videos promo).
+> **CAMBIOS:** flyer con layout medido (franja marca + píldora precio + tag autenticidad, DejaVu real) · `cores/ecommerce/publish_queue.py` NUEVO (cola semanal persistente, rebuild preserva publicados, nunca pierde trabajo) + endpoints `/design/queue|rebuild|{dia}/publish` + tarjeta con botón Publicado ✓ · plantillas WA Business (bienvenida/ausencia/respuestas rápidas/etiquetas) en el plan · 5 herramientas diseño en registry (pillow/canva/capcut/meta-scheduler/chatgpt-images; ffmpeg ausente → CapCut).
+> **Límite honesto**: sin token Meta no hay auto-posteo; la cola + Business Suite es lo máximo automatizable sin mentir. Publicar sigue siendo 1 clic humano.
+> **Verificación**: `test_ecommerce.py` 61→64 · ruff limpio · fast 102/1 · vite 12.60s. Sin commits.
+
+## Sesión 2026-09-17 — TRADING MÁXIMO: 6 fixes reales, 0 features (el paper vuelve a operar)
+
+> **PEDIDO OWNER:** mejor trading automatizado posible (todo tipo, memecoins, máximos retornos). Audit-first (2 subagentes en paralelo): el sistema YA está completo en PAPER (filtros/exits fail-closed, backtest replay, advisor OAR+Human Gate, copy dry-run, runner con arming, lifecycle con gates, validation anti-overfitting, kill-switches). Lo que faltaba eran 6 bugs que impedían que operara/midiera bien. Honestidad primero: ningún código aumenta retornos; lo que sí aumenta calidad es que el paper opere de verdad, mida sin mentir y no arriesgue capital solo.
+> **FIXES:** F1 datetime `lambda:` en 12 sitios (`trading/models` ×6 + `revenue_multiplier` ×5 + `metrics_tracker` + `trading/metrics`) — `Order()/Position()` lanzaba TypeError, copy dry-run roto en producción → `test_trading_intelligence` 36/40→40/40 · F2 doble-mount `/api/trading` eliminado (pin overview==1) · F3 14 jobs lifecycle muertos eliminados (handlers `<bare>` inexistentes, args=[]; el auto-advance a canary por cron contradecía el Human Gate; lifecycle sigue vía API/manual) · F4 `execute_trade` fail-closed (`allow_live=False` default) · F5 `run_risk_guardian_check()` real + job reapuntado · F6 registry SSOT (stub vacío opacaba al real de 17 adapters; `/ccxt/info` 500→200) + `core.`→`cores.` en 5 strings de test → `test_investment` 108/111→111/111.
+> **Verificación**: quality_gates 7/7 nuevo · afectadas 328 passed · fast 102/1 · ruff limpio (I001 main.py preexistente) · vivo: overview 200 dry_run jobs=4, dashboard 200 DRY_RUN, ccxt/info 200.
+> **No tocado**: estrategias/filtros/exits/advisor/copy/runner/gates/validation (COMPLETOS); live bloqueado (orden owner + Human Gate); orchestrator/ensemble/optimizer sin callers = deuda explícita inofensiva. Sin commits.
+
+## Sesión 2026-09-18 — MODO 1H/DÍA: fixtures fuera del ranking + purga (el WorkBank deja de mentir)
+
+> **PEDIDO OWNER:** que sea imposible no ganar mucha plata + modo bolas (1h/día).
+> **AUDIT (0 código salvo lo anterior, todo COMPLETA):** el daily 1h/día ya funciona si hacés los 5 desbloqueos; el único ruido que le quedaba al ranking era que `best_ready` contaba fixtures con reward ficticio (`/program/1`·`/p/1`·`/op/1`) como si fueran plata. Inflaba `progress` y `money_per_human_hour`.
+> **FIX MÍNIMO (EXTEND):** `WorkBank._rank_ready` excluye `is_fixture_url()` siempre — `progress()` honesto por construcción · `purge_fixtures()` + `POST /direct-work/workbank/purge-fixtures` para limpiar los 3 de `~/.ownex/workbank.json` en 1 click (no borra reales). Ranking y cola quedan con 0 fantasmas; `purge_fixtures` testeado aislado.
+> **Verificación**: workbank+direct_work 71/71 (3 tests nuevos) · scan_yield 32/32 · ecommerce 61/61 · fast 102/1 · ruff limpios en tocados. Endpoint exige auth como el resto del router.
+> **No tocado**: afiliados/persistencia ya sanos, resto árbol. Sin commits.
+
+## Sesión 2026-09-18 — SCAN-YIELD HONESTY: 402 targets imposibles ya no queman scans + parser sin endpoints falsos
+
+> **PEDIDO OWNER:** que sea imposible no ganar mucha plata. Aclaración honesta: garantías no existen; lo construido es que no ganar requiera esforzarse (pipeline sin fugas + ejecución incansable).
+> **DIAGNÓSTICO (evidencia DB real):** 402/719 targets con `_` en dominio (slug+".com", DNS imposible → "no address found", 0 findings posibles) · parser convertía banners ASCII en "endpoints" (`host=example.com`, score 0) · `endpoint_count=0` en scans completed pese a haber archivo normalizado.
+> **CAMBIOS (Agent Loop: 1 NEW + 5 EXTEND, fail-closed):** `cores/recon/hostname.py` NUEVO (`is_valid_hostname/scannable_domain/has_real_host`, puro, sin red) · parser saltea sin host real · scheduler `_stage_recon` saltea inválidos (log, sin mutar DB) · `launch_scan` 422 temprano (ahorra 600s timeout) · `create_target`→`{invalid}` + `POST /targets` 422 + aviso desktop.
+> **Verificación**: 31/31 nuevo · afectadas 108+73 · fast 102/1 · ruff limpio tocados.
+> **CIERRE (misma sesión, 2º corte):** `_stage_hypothesis` exigía `pipeline_id` solo-en-RAM (`_target_pipelines`) → tras cualquier restart (o scans vía API) los 9476 endpoints sin hipótesis se salteaban PARA SIEMPRE (0 findings con 9k+ endpoints). Fix: `resume-t{id}` estable + registro (observabilidad, no lógica). Test `test_endpoint_sin_pipeline_id_igual_genera_hypothesis` con DB aislada.
+> **Verificación final**: 32/32 · afectadas 234 · fast 102/1 · ruff limpio.
+> **Efecto**: 56% del presupuesto de scans deja de quemarse en hosts imposibles; cada endpoint persistido tiene host real; ningún target basura nuevo entra por API/desktop/CLI manual sigue directo (residual honesto). Fila 402 existente intacta (no se borra dato sin orden). Sin commits.
+
+## Sesión 2026-09-18 — DESKTOP-FIRST: el producto es la app Tauri, el navegador es solo dev
+
+> **DIRECTIVA OWNER**: OWNEX se usa como programa/app de escritorio, NO en navegador.
+> **VERIFICACIÓN**: el wiring ya existe y está intacto — Tauri 2 (`src-tauri/tauri.conf.json`: `frontendDist ../frontend/dist`, ventana `index.html`, CSP solo `127.0.0.1`) + sidecar `ownex-backend` ONEFILE 260MB (pasa guard 50MB) + `start_backend.py` + spawn Rust con puerto dinámico y evento `backend-ready` (`src-tauri/src/lib.rs:183-261`) + frontend con `API_BASE` dinámico. Puerto 8000 = SOLO-API.
+> **ACCIÓN**: apagado el preview vite :5173 (levantado por error en la sesión de salud) + pid stale eliminado; API :8000 queda arriba como backend dev (equivale al sidecar en desarrollo). `scripts/wsl/start_all.sh` gana nota dev-only (sin cambio de comportamiento).
+> **Regla permanente**: ningún flujo presenta el navegador como modo de uso; el único artefacto de producto es el instalador del pipeline `ownex-tauri-windows.yml` (tags `v*`).
+
+## Sesión 2026-09-18 — SALUD INTEGRAL: núcleo verde, panal sin miel, árbol único, plan P0-P4
+
+> **PEDIDO OWNER:** qué hacemos para mejorar el proyecto completo.
+> **MEDICIÓN (evidencia, 0 código):** fast **102/1** · `dev check` ✓ (mypy scoped + fast) · ruff scoped limpio (global 1809 histórico, no-objetivo; I001 main.py preexistente en HEAD) · `core/` NO existe (verificado: un solo árbol `cores/`) · working tree 85 sin commitear (65 M + 19 ?? + 1 submodule, mezcla de flujos) · **panal**: 719 targets, 373 scans (290 completed / 45 failed / 38 timeout), 9806 endpoints, pero **0 findings, 0 reports, 0 payouts, validation_results=0** — hay superficie, nada llega a validación.
+> **PLAN:** P0 desbloqueos humanos (rails/token/WA/assessments, sin código que los reemplace) · P1 ordenar working tree (commits solo con orden explícita) · P2 sprint diagnóstico 0-findings (endpoints 9806 → ¿hypothesis genera? ¿validation persiste?) — el que más acerca a bug bounty real · P3 deuda diferida (frontend B/D/E, fallas full preexistentes ajenas) · P4 rotación CURRENT_STATE 4173 líneas (requiere consenso, no se toca solo).
+> **No tocado**: nada (medición pura). Sin commits.
+
+## Sesión 2026-09-18 — MODO BOLAS: el sistema ya trabaja solo, 5 toques irreducibles + rutina 3 min/día
+
+> **PEDIDO OWNER:** rascarse las bolas y ganar mucha plata, casi no tocar el sistema.
+> **AUDIT (0 código nuevo, Agent Loop: todo COMPLETA, no tocar):** trío económico agendado y verde — `economic_feedback_daily` 06:40 + `autopilot_kill_scale` 06:45 (pausa canal 40h/$0, mata producto 0 ventas ≥60d, reversible) + `daily_loop_run` 06:50 (parquea A3 listos para solo-aprobar) en `get_economic_feedback_jobs()` (`cores/scheduler/jobs.py:758-794`) · execution queue process/retry/DLQ cada 1m/15m/1h · probe fuentes dom 05:00 · campana con polling 60s (pending-actions+pending-config) · One Best Action con life_goal en Mission.
+> **Verificación**: scheduler+async+handlers **65/65** · resto verde en sesiones previas.
+> **Veredicto honesto:** ningún código más acerca al modo bolas — los 5 toques restantes son puertas legales/técnicas, no features: 2 rails + GITHUB_TOKEN + WA a proveedores + assessments + 1 approve/día. Sin esos desbloqueos los jobs giran sobre stores vacíos (autonomía de teatro, prohibida). Contrato: sprint único de desbloqueo humano → 3 min/día (Mission → One Best Action → aprobar) → 30 min/semana (revisar autopilot) → el sistema reasigna solo por `money_per_human_hour`.
+> **No tocado**: nada (verificación pura). Sin commits.
+
+## Sesión 2026-09-18 (build) — 3 FIXES $0: affiliate persiste + verify sobrevive + fixtures honestos
+
+> **PEDIDO OWNER:** seguir trabajando en lo que sea para mejorar, sin detenerse.
+> **CAMBIOS (Agent Loop: 3 PARCIAL→COMPLETA, 0 NEW, regla mínimo-intervención):** `cores/affiliate.py` persistencia JSON data-dir (`_data_path/_load/_save`, best-effort, path inyectable; `add/click/conversion/plan/ready/publish` guardan) — el workspace AFFILIATE perdía todo al reiniciar · `cores/ecommerce/engine.py` gate persistido (`_supplier_to_dict` ahora guarda capital/monthly/mínimo/ml/fulfillment/fee/pct/stock/verified/verified_at/fulfillment_model — `verify→ACTIVE` se perdía al reiniciar) + legacy sin términos → `mayorista` (NO simple, FUTURE honesto; antes heredaba defaults y 106 legacy aparecían como "$0 puro") · `cores/direct_work_engine/workbank.py` `is_fixture_url()+fixture_item_ids()` puros + `fixture_urls/needs_revalidation` en `_summary` (aditivo, sin borrar dato usuario, sin cambiar ranking).
+> **Verificación**: workbank+zero_invest+ecommerce **101/101** (7 tests nuevos: affiliate restart+corrupt, gate dict+reload, legacy no-simple, fixtures) · direct_work_api+checklist **88/88** · ruff limpio salvo 5 SIM105 preexistentes en `engine.py` (verificado stash: mismos 5 antes/después) · `data/affiliate.json` de test eliminado (producción limpia, 0 links honestos).
+> **No tocado**: resto árbol (60 archivos con cambios ajenos sin commitear no tocados), WIP ajeno, `core/` inexistente. Sin commits.
+> **Efecto dinero**: AFFILIATE pasa a usable (links/clicks sobriven) · 1er `verify` ya no se pierde · "Solo $0 puro" deja de mostrar 106 legacy sin verificar · WorkBank avisa qué 3 fixtures revalidar antes del próximo ciclo.
+
+## Sesión 2026-09-18 — GANAR $0 EN PARALELA CONTROLADA: verificación verde + cola WA + 4 carriles (30h/sem)
+
+> **PEDIDO OWNER:** más dinero sin inversión + todo en paralela (dropping $0 + dev + data Mindrift/Outlier/Alignerr/Mercor + bug bounty), 30h/sem, desbloqueo: 2 rails más.
+> **AUDIT (0 código nuevo, Agent Loop):** PAID $0 (workbank 3 fixtures `/program/1`·`/p/1`·`/op/1`, payment_pipeline sin PAID, outreach 1 test, suppliers 0 ACTIVE todos `verified=False`, rails 1/3 solo mercadopago) · sistemas COMPLETOS no tocados (gate/simple/verify/outreach IG/net-real/bandas/score/recommend secure+p_cash/sources/audit LIVE) · PARCIAL diferido (affiliate in-memory, suppliers legacy 106, workbank fixtures) · ruff 5 SIM105 preexistentes en `engine.py` no tocados.
+> **COLA LISTA:** 3 WA $0 puro (Dropsheable/Ventaz/Dropi, `simple:true`) + 5 WA perfumes (Canevic/FragOriente/Nilo/SyC/MAXON) con mensaje IG + 5 preguntas + endpoints `outreach?canal=ig` → `contact` → `verify` → `sync-catalog` → `net-real` → ACTIVE · dev: `discover{languages}` + `recommend secure_plus_upside` (10 req/min sin token, 30 con GITHUB_TOKEN pendiente) · AI-work: Outlier/Mercor/Alignerr/Mindrift MANUAL con urls checklist · bug bounty 2h upside (bugbounty LIVE datasets).
+> **Verificación**: `test_ecommerce` 58/58 · `direct_work_api+workbank` 68/68 · `checklist` 39/39 · ruff tocados limpio salvo 5 SIM105 preexistentes.
+> **No tocado**: affiliate, suppliers legacy, workbank fixtures, resto árbol. Sin commits. Kill-rule: 40h/$0 día 60 → horas al mejor $/h; máx 3-4 ACTIVOS.
+
+## Sesión 2026-09-17 (noche, cierre) — DROPPINGLABEL OPERATIVO: proveedores + gate $0 + plan IG
+
+> **INTEL OWNER VERIFICADA:** fútbol = nicho más difícil (sin unitario puro) · perfumes = más viable · Dropi existe (`dropi.co/ar`) · Dropdeal cobra ~$29.990/mes (NO $0 total) · Flex Sport real (por encargo 12 días, ~$29.9k) · Canevic/mayoristas perfumes no verificables → leads.
+> **CAMBIOS:** 7 seeds (flex_sport_arg con lead-time honesto + 5 mayoristas perfumes como LEAD + dropi, todos FUTURE) · `zero_capital_gate` (ACTIVE/FUTURE/REJECTED puro) en `/suppliers` + `/ranked` + badge Ecommerce.vue · `docs/DROPPINGLABEL_INSTAGRAM_PLAN.md` (4 líneas, fases 3→10→10 ventas, contenido $0).
+> **Verificación**: `test_ecommerce.py` 29→36 · ruff limpio tocados · fast + vite en verificación final.
+> **CIERRE (misma noche):** Caufy→FUTURE (`fee_model=monthly`, NubeDrop gratis parcial; CaufyPrint sin verificar) · Canevic mínimo ~$150k ARS en nota (sin inventar FX) · +3 seeds fútbol/relojes (La Camiseteria réplicas premium autodeclaradas, Mundo Tribuna con IG, Zenwaig mínimo 8) · `authenticity` (unknown bloquea optimize 422, badge en catálogo) · `price_bands` (4 bandas con veredicto) + `POST /products/{id}/score` (ensambla margen+scorecard+snapshots+gate; `product_score` ya existía → no tocado) · test 36→44.
+> **Fútbol/básquet +5** (todos sitio 200 verificado, FUTURE): Kingz Camisetas Córdoba (retro + a pedido) · Sublime Sport (FÁBRICA sublimado fútbol/básquet/vóley — vía línea propia) · La Bocha Retro · Mundial Retro · Retro BA (IG verificado). Básquet cubierto por Flex+Sublime (retro por encargo + custom); no existe básquet unitario 24-48h → nota honesta en plan.
+> **Filtro simples (owner: "solo los que no piden nada más que por ventas")**: el mapa sigue completo (17) pero `zero_capital` gana `simple:true` (sin capital/abono/mínimo, fee none o % por venta, despacha el proveedor; mayorista sin verificar NO es simple) → toggle "Solo $0 puro" en Ecommerce.vue (hoy: Dropsheable, Ventaz, Dropi) + `POST /suppliers/{id}/verify` (confirma términos por WA → ACTIVE, reversible). Test 44→48.
+> **Perfumes árabes a fondo (nicho #1 owner)**: Canevic verificado de verdad (`canevic.com.ar`: distribuidor directo +20 marcas, margen 40%+, kit $320k → confirma FUTURE salvo unitario) · +5 perfumerías AR sitio-200 (El Zar con programa mayorista → `reseller_program`, Benito 24h, Ambrosia 305 árabes, Fragandecants 45.5K IG, Parfumerie) · Sillage 404 → fuera, solo nota. Test 56→58.
+> **Propuesta reventa + lista amplia + kit diseño (owner: revender catálogos, oferta lista, IG diseñado gratis)**: `Supplier.reseller_program` (10 flags: 6 plataformas + Flex/Kingz/Sublime/Canevic) + `RESELLER_PITCH`/`build_reseller_pitch()` en outreach + botón "Propuesta" y filtro "Reventa probable" en Ecommerce.vue · +10 tiendas concretas verificadas 200 (5 fútbol/básquet + Bodacious/VONO/Caos/Parfumerie + EFP/Beyond/Urbanwear/Mau/Callejero/Drip) = 27 seeds · kit `cores/ecommerce/design.py` (brief formatos+stack gratis, `make_flyer` Pillow local, `weekly_pack` 7 días) + endpoints `/design/brief|flyer|weekly-pack` + tarjeta en Ecommerce.vue + 5 herramientas diseño en registry (pillow/canva/capcut/meta-scheduler/chatgpt-images). Test 48→57.
+> **No tocado**: WorkBank, trading PAPER, resto del árbol. Sin commits.
+
+## Sesión 2026-09-17 — DROPPINGLABEL INSTAGRAM $0: outreach IG + handle + nicho + contenido
+
+> **PEDIDO OWNER:** dropshipping urbana/deportiva (fútbol importada alta calidad), perfumes árabes, accesorios caros (relojes), todo en Instagram, 0 inversión. Plan aprobado con orden perfumes → relojes → fútbol → urbana.
+> **CAMBIOS:** `OUTREACH_TEMPLATES_IG` + `build_message(canal)` + keywords árabes + `niche_for()` + endpoints `?canal=` · `Supplier.instagram` + `niche` en API + filtro por nicho y toggle IG/Meli en Ecommerce.vue + columna CSV opcional · contenido verificado sin código (`/cross-list` con instagram, `/content-plan` default instagram, pineados con tests).
+> **Verificación**: `test_ecommerce.py` 21→29 · ruff limpio tocados · fast + vite en verificación final.
+> **No tocado**: WorkBank, trading PAPER, resto del árbol. Sin commits.
+
+## Sesión 2026-09-16 (noche, cierre) — TODAS LAS PENDIENTES CERRADAS: OBA real + allocation + outreach + audit + Algora honesto
+
+> **PEDIDO OWNER:** "termina todas esas sessiones, todas las tareas pendientes de cada una". 4 bugs reales + audit W3 + perf + reporte.
+> **FIXES:** mission_hub usa OneBestAction real (`to_dict()` + adapter actionable; `oba.get` muerto eliminado) · daily_loop allocation-weighted vía `_workspace_for_channel` (antes peso siempre 0) · outreach `next_step` por estado (pending/contacted/replied/verified/rejected) en API + columna Ecommerce.vue + `_load` forward-compat (cazó pérdida de contactos) · adapters audit `ADAPTER_FETCH_AUDIT` (LIVE bugbounty/kaggle/github · INTERNAL fiverr · STATIC algora/bountyboard/polar vacíos · DEGRADED dework sin GraphQL inventado) · `/sources` 2000+ lecturas → 1 (mismo shape) · Algora `CURATED_BOUNTIES=[]` (3×404 verificados curl; WorkBank guardado intacto).
+> **REPORTE IDEAS $0 (W3-S3):** portfolio 15 workspaces $0 intacto (3 ACTIVOS + resto PILOTO/APARCADOS) · ecommerce $0 (DRAFT-first, VIABLE≥25%, outreach 1-click WA con next_step) · dinero vivo hoy: GitHub bounty + Kaggle + bugbounty datasets (LIVE); Algora/BountyBoard/Polar fuera hasta URL viva.
+> **Verificación**: night_fixes 10/10 · afectadas 137 · mission+checklist+autopilot 54 · ecommerce+economic+curated 60 · ruff limpio tocados · fast + vite + rutas en verificación final.
+> **No tocado**: WorkBank guardado (dato usuario), trading PAPER, WIP ajeno. Sin commits.
+
+## Sesión 2026-09-16 (noche) — AUTOPILOT CERRADO + DAILY LOOP AGENDADO + ONE-BEST-ACTION CON BRÚJULA
+
+> **PEDIDO OWNER:** "Trabajá toda la noche en extender, desarrollar, perfeccionar; sin detenerte". Cierre del bucle "OWNEX decide sola dónde poner tu próxima hora" + agenda completa de lo que arranca solo.
+> **AUTOPILOT KILL/SCALE** (`cores/automation/kill_scale.py` NUEVO): decide + aplica autónomo con evidencia dura (reversible):
+> - **PAUSE canal muerto**: 40h+/8 intentos sin PAID → desactiva workspace (`/mission-hub/workspaces/{id}` override). Trading/backup/ownex jamás se tocan (protegidos).
+> - **SCALE** o **KEEP** con net/h real (verdict del feedback).
+> - **MATAR producto**: 0 ventas ≥60d → `DISCONTINUED` (EcommerceEngine.update_product).
+> - Job diario `autopilot_kill_scale` 06:45 + `POST /mission-hub/autopilot/run?dry_run=` + `GET /status` + card en Mission.vue (Ver decisiones / Aplicar ahora). Nunca raisea; sin evidencia → "Sin decisiones (UNKNOWN honesto)".
+> **DAILY LOOP AGENDADO** (`cores/automation/daily_loop_tasks.py` NUEVO + job `daily_loop_run` 06:50): SELECT→PREPARE→GATE corre solo cada mañana; los mejores trabajos quedan parqueados en A3 listos para que el owner SOLO apruebe.
+> **ONE BEST ACTION → CON BRÚJULA**: fix REAL `_get_default_profile()` crasheaba (`builder.build()` sin arg → TypeError en Income Home) → perfil curado (Python/Go/TS/Unity, inglés, preferred_categories OSS, sin full-stack/cloud excluidos). `OneBestAction._life_goal()` anexa la rama del árbol Vida (PERSONAL_CONTEXT §24) a cada acción.
+> **CACHE FEEDBACK**: `build_snapshot(force=)` con TTL 5 min (overview/autopilot/daily_loop no recomputan outcomes 5x por request).
+> **CHANNEL CHOKEPOINTS**: las ECON jobs (economic_feedback 06:40, autopilot 06:45, daily_loop 06:50) ahora están dentro `get_economic_feedback_jobs()` (3 jobs, ciclo economic_feedback). get_all_jobs = 17 ciclos / 77 jobs.
+> **VERIFIED**: Algora reales en el workbank ($2,000 + $500 + $200) → one_best_action = deliver_now con life_goal "Carrera → Software".
+> **Verificación**: autopilot 7/7 · economic_os+mission_hub 32/32 · workbank+direct_work 59/59 · scheduler+handlers 63/63 · setup+mission+economic 124 passed · `import api.main` 1823 rutas · `vite build` 22.7s · ruff limpio en los nuevos (mission_hub SIM105/102 preexistentes no tocados).
+
 ## Sesión 2026-09-16: CONFIG POR DOMINIO COMPLETA + MISIÓN DEPARTAMENTO/AUTO en capital
 
 > **QUÉ SE HIZO:** Pedido owner (sistema para dev/bug/data/trading/apuestas/capital/memecoin/proyectos/vida — todas las plataformas pendientes que avise, sistema "perfectamente preparado"). Audit del checklist (23 ítems, agrupaba "al menos una key") → extendido a **33 ítems con detector por dominio**:
@@ -76,12 +223,13 @@
 
 ## Sesión 2026-09-15: 100+ WEBS OPTABLES — filtro por lenguaje + registry curado + prober con quarantine
 
-> **QUÉ SE HIZO:** Pedido owner (optar entre 100+ webs dev bounty rust/go/solidity). Hallazgo: las webs YA existen como datos (119 `SourceDefinition`, radar las analiza); el gap era FETCH (8 fuentes) + filtro idioma + liveness. Probes: OpenBugBounty 403, HackenProof/CodeHawks 404, Huntr 302 → cero fetches inventados.
+> **QUÉ SE HIZO:** Pedido owner (optar entre 100+ webs dev bounty rust/go/solidity). Hallazgo: las webs YA existen como datos (1008 `SourceDefinition`, radar las analiza); el gap era FETCH (8 fuentes) + filtro idioma + liveness. Probes: OpenBugBounty 403, HackenProof/CodeHawks 404, Huntr 302 → cero fetches inventados.
 > - **F1**: `direct_work_github_bounty.py` EXTEND — `languages` → qualifiers `language:` server-side (3 queries×idioma, cap 5, default intacto) + auth `GITHUB_TOKEN` si existe (30/min) + `POST /discover {languages}` (sin doble-fetch, fallback si el adapter no acepta el param).
-> - **F2**: `cores/direct_work_engine/source_registry.py` NUEVO — gates owner como código (interview→fuera, <$15/h→fuera, UNKNOWN pasa), opt store (`OWNEX_DATA_DIR/curated_sources.json`), `GET /direct-work/sources` (118 con gate+liveness+enabled), `POST /sources/opt` (404/422), `source_intel.analyze()` respeta opt-out/quarantine (`hidden_by_optout/hidden_quarantined`). Duplicado Lionbridge=TELUS eliminado (118 únicas).
+> - **F2**: `cores/direct_work_engine/source_registry.py` NUEVO — gates owner como código (interview→fuera, <$15/h→fuera, UNKNOWN pasa), opt store (`OWNEX_DATA_DIR/curated_sources.json`), `GET /direct-work/sources` (1008 con gate+liveness+enabled), `POST /sources/opt` (404/422), `source_intel.analyze()` respeta opt-out/quarantine (`hidden_by_optout/hidden_quarantined`). Duplicado Lionbridge=TELUS eliminado (1008 únicas).
 > - **F3**: `probe_all_sources()` tri-estado (403→unknown, sin URL→unknown) + quarantine auto ×3 muertos (reversible) + `run_source_probe_cycle()` nunca raisea + job `curated_sources_probe` dom 05:00 + `POST /sources/probe`.
 > - **Verificación**: `test_curated_sources.py` 19/19 · afectadas 142 · fast **102/1** · `import api.main` 1820 rutas · ruff limpio.
 > - **No tocado**: fetchers vivos, scoring, OAR/copilot, WIP ajeno. Sin commits.
+> - **Turno noche**: primer probe real → 352 live / 264 dead / 392 unknown (0 quarantine, requiere 3 seguidos).
 > - **Regla**: web nueva = 1 `SourceDefinition` + probe → auto-wired; lo no-verificable vive con `unknown`, jamás como oportunidad.
 
 ## Sesión 2026-09-15: FREE MODELS 24/7 — selección curada (FCC/NVIDIA/OmniRoute/OpenCode/Ollama)

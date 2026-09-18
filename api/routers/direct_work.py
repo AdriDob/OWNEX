@@ -635,6 +635,18 @@ async def direct_work_workbank() -> dict[str, Any]:
     return get_workbank().to_dict()
 
 
+@router.post("/workbank/purge-fixtures")
+async def direct_work_purge_fixtures() -> dict[str, Any]:
+    """Purga placeholders de test del WorkBank (`/program/1`, `/p/1`, `/op/1`).
+
+    No toca oportunidades reales (esas llevan /issues/, /pull/, slugs). Usar
+    una vez tras el fix de honestidad; el próximo daily_cycle repone con
+    oportunidades LIVE reales si hay credenciales.
+    """
+    purged = get_workbank().purge_fixtures()
+    return {"purged": purged, "count": len(purged)}
+
+
 @router.get("/workbank/{item_id}/file/{filename}")
 async def direct_work_get_delivery_file(item_id: str, filename: str) -> PlainTextResponse:
     """Get the content of a file in a delivery package."""
@@ -1669,7 +1681,6 @@ async def direct_work_sources_prep(request: PrepRequest) -> dict[str, Any]:
     ``use_ai``, genera el plan con IA free 24/7 (best-effort: cae al guía).
     """
     from cores.direct_work_engine.source_prep import build_prep_guide, generate_ai_prep
-    from cores.opportunity.global_sources import source_onboarding
 
     src = None
     key = (request.name or "").strip().lower()
@@ -1681,7 +1692,6 @@ async def direct_work_sources_prep(request: PrepRequest) -> dict[str, Any]:
                 src = s
                 break
     if src is None:
-        found = source_onboarding(request.name)
         raise HTTPException(status_code=404, detail=f"fuente no encontrada: {request.name}")
     guide = build_prep_guide(src)
     if request.use_ai:

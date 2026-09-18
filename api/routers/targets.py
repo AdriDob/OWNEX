@@ -74,6 +74,8 @@ class TargetUpdate(BaseModel):
 @router.post("")
 def create_target(body: TargetCreate):
     result = svc_create_target(name=body.name, domain=body.domain)
+    if result.get("invalid"):
+        raise HTTPException(status_code=422, detail=result.get("reason", "Dominio inválido"))
     # Notify COPILOT for engagement plan
     try:
         from cores.events.event_bus import get_event_bus

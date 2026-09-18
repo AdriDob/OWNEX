@@ -154,6 +154,46 @@ class TestWorkBank:
         assert item.status == "delivered"
         assert item.ready_to_deliver is False
 
+    def test_fixture_urls_flagged_for_revalidation(self, tmp_path) -> None:
+        from cores.direct_work_engine.workbank import fixture_item_ids, is_fixture_url
+
+        assert is_fixture_url("https://hackerone.com/program/1") is True
+        assert is_fixture_url("https://www.workana.com/p/1") is True
+        assert is_fixture_url("https://opire.com/op/1") is True
+        assert is_fixture_url("https://algora.io/org/repo/issues/123") is False
+        assert is_fixture_url("https://github.com/o/r/issues/42") is False
+        assert is_fixture_url("") is False
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp()], target=10)
+        item = bank.get_item("op-1")
+        assert item is not None
+        item.url = "https://hackerone.com/program/1"
+        assert fixture_item_ids(bank._items) == ["op-1"]
+        summary = bank._summary()
+        assert summary["fixture_urls"] == 1
+        assert summary["needs_revalidation"] == ["op-1"]
+
+    def test_fixtures_excluidos_del_ranking(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp(id="op-real", payment=200.0)], target=10)
+        real_item = bank.get_item("op-real")
+        assert real_item is not None
+        # URL real conserva ranking
+        assert bank.best_ready(limit=10)[0].id == "op-real"
+        # Fixture contamina pero no rankea
+        real_item.url = "https://hackerone.com/program/1"
+        assert bank.best_ready(limit=10) == []
+        assert bank.progress()["daily"]["achieved"] == 0
+
+    def test_purge_fixtures(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp()], target=10)
+        assert bank.get_item("op-1") is not None
+        bank.get_item("op-1").url = "https://opire.com/op/1"
+        purged = bank.purge_fixtures()
+        assert purged == ["op-1"]
+        assert bank.get_item("op-1") is None
+
     def test_daily_cycle_defaults_to_daily_goal(self, tmp_path) -> None:
         from cores.direct_work_engine.workbank import TARGETS
 

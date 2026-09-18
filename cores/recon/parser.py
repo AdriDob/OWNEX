@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from cores.engine.unified_scoring import score as unified_score
+from cores.recon.hostname import has_real_host
 
 logger = logging.getLogger("ownex.recon.parser")
 
@@ -273,6 +274,12 @@ class EndpointParser:
 
             try:
                 metadata = self.parse_endpoint(raw)
+
+                # Sin host real no hay evidencia: banners ASCII y líneas de
+                # error JSON caen acá con host placeholder (example.com).
+                # Persistirlos crea endpoints falsos que contaminan el scoring.
+                if not has_real_host(metadata.host):
+                    continue
 
                 dedupe_key = (
                     metadata.normalized,
