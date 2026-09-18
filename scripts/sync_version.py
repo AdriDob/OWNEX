@@ -37,9 +37,9 @@ sync(
     f'"version": "{VERSION}"',
 )
 
-# 3. core/__init__.py  —  __version__ = "7.0.0"
+# 3. cores/__init__.py  —  __version__ = "7.0.0"
 sync(
-    "core/__init__.py",
+    "cores/__init__.py",
     r'__version__ = ["\']\d+\.\d+\.\d+["\']',
     f'__version__ = "{VERSION}"',
 )
@@ -65,9 +65,9 @@ sync(
     VERSION,
 )
 
-# 5c. core/version.py — legacy core twin re-export
+# 5c. cores/version.py — legacy core twin re-export
 sync(
-    "core/version.py",
+    "cores/version.py",
     r'__version__ = ["\']\d+\.\d+\.\d+["\']',
     f'__version__ = "{VERSION}"',
 )

@@ -1,8 +1,8 @@
 # Session Checkpoint — Agosto 2026
 
-> v7.1.0 — SESIÓN 2026-09-14 (re-aplicada): **CONSOLIDACIÓN FINAL — `core/` ELIMINADO** (656 archivos; verificación completa 0 refs `core.`; Makefile+orion/priority migrados antes del borrado; un flujo paralelo lo revirtió al comitear y fue re-aplicado + re-verificado). Deuda barrida: test_orion_core (`event_type`), test_daily_brief fixture + `save_brief` acepta dict (bug real del job scheduler), dead code eliminado en brief.py. Features de sesión ya commiteadas por el flujo paralelo: HelpCenter+AlertsCenter+/api/help/*+/api/alerts/sweep+plan diario, purga de plataformas low-value. Verificación: fast 102/1, api.main OK, suites afectadas verdes, ruff limpio. Detalles: `.ai/DECISIONS.md`/`CURRENT_STATE.md`/`KNOWN_DEBT.md` 2026-09-14. **Pendiente owner**: commit+push, validación física Windows W1–W12 → veredicto STABLE.
+> v7.7.7 — SESIÓN 2026-09-14 (re-aplicada): **CONSOLIDACIÓN FINAL — `core/` ELIMINADO** (656 archivos; verificación completa 0 refs `core.`; Makefile+orion/priority migrados antes del borrado; un flujo paralelo lo revirtió al comitear y fue re-aplicado + re-verificado). Deuda barrida: test_orion_core (`event_type`), test_daily_brief fixture + `save_brief` acepta dict (bug real del job scheduler), dead code eliminado en brief.py. Features de sesión ya commiteadas por el flujo paralelo: HelpCenter+AlertsCenter+/api/help/*+/api/alerts/sweep+plan diario, purga de plataformas low-value. Verificación: fast 102/1, api.main OK, suites afectadas verdes, ruff limpio. Detalles: `.ai/DECISIONS.md`/`CURRENT_STATE.md`/`KNOWN_DEBT.md` 2026-09-14. **Pendiente owner**: commit+push, validación física Windows W1–W12 → veredicto STABLE.
 
-> v7.1.0 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) + MOBILE GAP (3 reasoners) + MOBILE ON-DEVICE (validador) cerrados + pusheados. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesiones "MOBILE ON-DEVICE", "MOBILE GAP" y "UNIVERSAL FUNNEL WIRING".
+> v7.7.7 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) + MOBILE GAP (3 reasoners) + MOBILE ON-DEVICE (validador) cerrados + pusheados. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesiones "MOBILE ON-DEVICE", "MOBILE GAP" y "UNIVERSAL FUNNEL WIRING".
 
 ## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)
 
@@ -338,11 +338,11 @@ Snapshot de referencia: /tmp/rastro_pre_consolidation_20260908_205343.tar.gz
 Contexto completo: .ai/CURRENT_STATE.md → "Sesión 2026-09-08 (noche)".
 
 ## Sesión 2026-09-11 — MILESTONE/AGGRESSIVE/HIGH-UPSIDE (este flujo)
-- Commit `b2921679` en `release/win11-stable` (pusheado): milestone tracker $100→$10k + plan agresivo $5k/$10k EOY + HIGH_UPSIDE_90D + fixes enum-vs-str + funnel reset. Tag `v7.1.0` (run 34611051840). Tracking: DECISIONS "2026-09-10: MILESTONE TRACKER...", CURRENT_STATE "Sesión 2026-09-10 — MILESTONE TRACKER...".
+- Commit `b2921679` en `release/win11-stable` (pusheado): milestone tracker $100→$10k + plan agresivo $5k/$10k EOY + HIGH_UPSIDE_90D + fixes enum-vs-str + funnel reset. Tag `v7.7.7` (run 34611051840). Tracking: DECISIONS "2026-09-10: MILESTONE TRACKER...", CURRENT_STATE "Sesión 2026-09-10 — MILESTONE TRACKER...".
 - Archivos propios commiteados (11): first_money/tracker.py, routers/first_money.py, FirstMoney.vue, ownexData.ts, DWE recommendation.py/scoring.py/reward_probability.py, tests reward_probability + tauri_packaging, DECISIONS.md, CURRENT_STATE.md. Territorio concurrente no tocado (salvo contexto compartido verde documentado).
 
 ## Sesión 2026-09-11 — LIVE HUNT LOOP (este flujo) — CERRADA
-- Commit `b6122b9a` (pusheado): probe() URL completa + probing por parámetro + `_detect_idor` endurecido + EvidenceBuilder fiel + `OffensiveEngine.hunt_endpoint()` + `tests/test_live_probe_loop.py` 10/10 (HTTP real, cero mocks). Tag `v7.1.0` (run 34619411295): Windows MSI 138MB sha `76383c5e…` verificado. Docs: commit `8b9fcce8` (solo hunk v7.1.0 en DECISIONS, sin tocar contenido concurrente).
+- Commit `b6122b9a` (pusheado): probe() URL completa + probing por parámetro + `_detect_idor` endurecido + EvidenceBuilder fiel + `OffensiveEngine.hunt_endpoint()` + `tests/test_live_probe_loop.py` 10/10 (HTTP real, cero mocks). Tag `v7.7.7` (run 34619411295): Windows MSI 138MB sha `76383c5e…` verificado. Docs: commit `8b9fcce8` (solo hunk v7.7.7 en DECISIONS, sin tocar contenido concurrente).
 - No tocado: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, `test_validation_engine.py` (11 fallas preexistentes verificadas por stash).
 - Regla: probes solo contra loopback/propio/scope-verificado.
 

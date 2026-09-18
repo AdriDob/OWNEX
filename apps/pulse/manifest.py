@@ -26,7 +26,7 @@ pulse_router = APIRouter(prefix="/pulse", tags=["pulse"])
 manifest = IAppPlugin(
     id="pulse",
     name="PULSE",
-    version="7.1.0",
+    version="7.7.7",
     description="AI Work & Microtask Platforms — Outlier, Mindrift, DataAnnotation, Remotasks, Freelancer Microtasks, LinkedIn Easy Apply, Opyre Microtasks",
     icon="Zap",
     order=11,

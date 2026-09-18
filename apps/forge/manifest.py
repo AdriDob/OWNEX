@@ -27,7 +27,7 @@ forge_router = APIRouter(prefix="/forge", tags=["forge"])
 manifest = IAppPlugin(
     id="forge",
     name="FORGE",
-    version="7.1.0",
+    version="7.7.7",
     description="Open Source Funding & Issue Bounty Platforms — Algora, OpenCollective, GitHub Sponsors, Superteam, Freelancer, IssueHunt, IssueHand, Opire",
     icon="Hammer",
     order=10,

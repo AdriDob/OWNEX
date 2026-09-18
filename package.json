@@ -1,6 +1,6 @@
 {
   "name": "ownex-omega",
-  "version": "7.1.0",
+  "version": "7.7.7",
   "private": true,
   "workspaces": [
     "frontend",
