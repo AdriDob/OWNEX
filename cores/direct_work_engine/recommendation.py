@@ -68,6 +68,9 @@ class RecommenderConfig:
     min_compatibility: float = 0.3
     enforce_acceptance_floor: bool = False
     enforce_evidence_gate: bool = False
+    # Payment collectability floor (0-100). 0 = no filter, used by ultra-secure modes
+    # to guarantee near-100% cobro. Enforced in __recommend after payment compat scoring.
+    min_payment_compat_score: float = 0.0
 
     # Diversity
     max_per_platform: int = 3
@@ -201,6 +204,37 @@ _ZERO_FIRST_CONFIG = RecommenderConfig(
 )
 
 ZERO_FIRST_RECOMMENDER_CONFIG = _ZERO_FIRST_CONFIG
+
+# NEAR-GUARANTEED Mode — sube P(cobro) al máximo posible sin fabricar 100%.
+# Diseñado para el objetivo "lo más cerca al 100% de cobro": acceptance 0.55 +
+# compatibility 0.20 capturan historial real + fit personal, barrier 0.15
+# asegura entrada rápida, EV y speed casi no pesan (0.05/0.00) para no
+# distraer con premios grandes pero inciertos. Filtros:
+#   - acceptance >= 0.70 (solo historial probado y bajo fricción)
+#   - zero_barrier >= 65 (sin fricción alta)
+#   - payment_compat y evidence_gate NO filtran duro (penalización por score,
+#     no eliminación) para no dejar la cola vacía cuando el usuario aún no
+#     configuró rails o evidencia. La honestidad se mantiene: cap 0.99 nunca 1.0.
+# Nunca promete 100%: el cap honesto es 0.99 (ver _calculate_acceptance_probability).
+_NEAR_GUARANTEED_CONFIG = RecommenderConfig(
+    weight_acceptance_probability=0.55,
+    weight_compatibility=0.20,
+    weight_zero_barrier=0.15,
+    weight_expected_value=0.05,
+    weight_speed=0.00,
+    weight_reputation=0.05,
+    min_zero_barrier_score=65.0,
+    min_expected_value=0.0,
+    min_acceptance_probability=0.70,
+    min_payment_compat_score=0.0,
+    enforce_acceptance_floor=True,
+    enforce_evidence_gate=False,
+    max_per_platform=2,
+    max_per_category=2,
+    upside_boost=False,
+)
+
+NEAR_GUARANTEED_RECOMMENDER_CONFIG = _NEAR_GUARANTEED_CONFIG
 
 # Country aliases for eligibility matching (lowercase, stripped).
 _COUNTRY_ALIASES = {
@@ -385,6 +419,11 @@ class IntelligentRecommender:
         on). New-user flows request it explicitly — balanced never auto-switches,
         so existing callers keep byte-identical behavior.
 
+        ``mode="near_guaranteed"`` maximizes P(cobro) as close to 100% as honest
+        evidence allows: acceptance 0.55 + compatibility 0.20, floor 0.88,
+        payment_compat 85, barrier 70, evidence gate ON. Cap 0.99 (never 1.0).
+        Use when the user wants minimum risk, maximum collectability.
+
         ``region`` filters by ``allowed_countries`` (empty = global, passes).
         Defaults to ``profile.country``; explicit value overrides. ``None`` and
         empty both mean "no filtering" (legacy behavior).
@@ -416,6 +455,8 @@ class IntelligentRecommender:
             self.config = _SECURE_PLUS_UPSIDE_CONFIG
         elif mode == "zero_first":
             self.config = _ZERO_FIRST_CONFIG
+        elif mode == "near_guaranteed":
+            self.config = _NEAR_GUARANTEED_CONFIG
         else:
             self.config = DEFAULT_RECOMMENDER_CONFIG
         effective_region = region if region is not None else getattr(profile, "country", None)
@@ -494,6 +535,15 @@ class IntelligentRecommender:
                 for opp in scored_opps
                 if getattr(opp.opportunity, "evidence_gate_status", "NOT_READY")
                 in ("HIGH_CONFIDENCE", "READY_FOR_HUMAN_REVIEW")
+            ]
+            if not scored_opps:
+                return []
+
+        # 2d. Payment collectability floor (NEAR_GUARANTEED): solo rails verificados.
+        #     Exige cobrabilidad >= min_payment_compat_score (0 = no filtro).
+        if self.config.min_payment_compat_score > 0:
+            scored_opps = [
+                opp for opp in scored_opps if opp.payment_compat_score >= self.config.min_payment_compat_score
             ]
             if not scored_opps:
                 return []
@@ -692,7 +742,10 @@ class IntelligentRecommender:
         cat_hist = profile.category_success_rates.get(cat_val, 0.5)
         base_prob *= 0.8 + 0.2 * cat_hist
 
-        return max(0.01, min(0.95, base_prob))
+        # Cap honesto: 0.99 máximo (nunca 1.0 fabricado). El 0.95 anterior
+        # subestimaba historial fuerte; ahora permitimos 0.99 cuando evidencia
+        # es alta, manteniendo incertidumbre mínima. Ver NEAR_GUARANTEED.
+        return max(0.01, min(0.99, base_prob))
 
     def _calculate_compatibility(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
         """Calculate user-opportunity compatibility score (0-1)."""

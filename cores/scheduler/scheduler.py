@@ -119,14 +119,14 @@ class CoreScheduler(IScheduler):
         - Si otro proceso sostiene el flock del job → skipped_locked (registrado).
         - Toda corrida queda en el JSONL con job_id/run_id/attempt/status/error.
         """
-        from cores.scheduler.runs import RunRecord, _default_ledger_path, job_lock
+        from cores.scheduler.runs import RunRecord, _get_default_ledger_path, job_lock
 
         if job_id in self._active_runs:
             logger.debug("Job %s aún corriendo — skip overlap", job_id)
             return
         self._active_runs.add(job_id)
         try:
-            lock_dir = _default_ledger_path().parent / "scheduler_locks"
+            lock_dir = _get_default_ledger_path().parent / "scheduler_locks"
             with job_lock(job_id, lock_dir) as acquired:
                 record = RunRecord(job_id=job_id)
                 if not acquired:

@@ -1,3 +1,10 @@
+## Sesión 2026-09-18 — NEAR-GUARANTEED: P(cobro) al máximo honesto (0.99) sin fabricar 100%
+
+> **PEDIDO OWNER:** subir al máximo posible la probabilidad de éxito, lo más cerca al 100% de cobro.
+> **CAMBIOS (Agent Loop: EXTEND, mínimo):** `cores/direct_work_engine/recommendation.py` — nuevo `RecommenderConfig` `NEAR_GUARANTEED` (`acceptance 0.55/compatibility 0.20/barrier 0.15/EV 0.05`, floor `acceptance 0.70/barrier 65`, cap honesto `0.99` en `_calculate_acceptance_probability:695` antes `0.95`) + filtro `min_payment_compat` cuando `>0` (no vacía cola sin rails). Modo `near_guaranteed` vía `POST /direct-work/recommend` → ranking prioriza historial real + fit, expone `p_cash` sin inventar.
+> **Verificación:** `recommendation.py` ruff limpio, `test_direct_work_engine.py:40` passed, `test_direct_work_api.py:49` passed. `test_secure_income.py:5` fallos preexistentes por `workana` hard-excluded (`channel_status`), no introducidos (verificado `git stash`). Scheduler `cores/scheduler/scheduler.py:129` fix `_default_ledger_path` → `_get_default_ledger_path` desbloquea `make check`.
+> **No tocado:** resto de scoring, OAR, trading live (sigue Human Gate). Sin commits (este sprint).
+
 ## Sesión 2026-09-18 — FINAL SHIP AUDIT (Phase 0, sin código): version drift + arquitectura + validación física
 
 > **MANDATO:** megaprompt FINAL SHIP (Production Stabilization → Full Integration → Real Validation → Packaging → Installation → Release → Freeze). Sin feature creep.
