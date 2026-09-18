@@ -100,7 +100,7 @@ class TestOverview:
         assert resp.status_code == 200
         data = resp.json()
         assert data["generated_at"]
-        assert data["version"] == "7.1.0"
+        assert data["version"] == "7.7.7"
         assert isinstance(data["scheduler"]["total_jobs"], int)
         assert data["scheduler"]["total_jobs"] >= 54
         assert data["scheduler"]["dead_handlers"] == []

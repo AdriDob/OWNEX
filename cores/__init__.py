@@ -15,7 +15,7 @@ from pathlib import Path
 # Public constants — consolidated from the former core/__init__.py during
 # CORE-CORES consolidation (see .ai/DECISIONS.md). The legacy `core/` tree was
 # removed; `cores/` is the single canonical tree: `from cores import OWNEX_DIR`.
-__version__ = "7.1.0"
+__version__ = "7.7.7"
 
 OWNEX_DIR = Path.home() / ".ownex"
 
