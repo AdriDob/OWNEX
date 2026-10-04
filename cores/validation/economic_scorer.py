@@ -48,6 +48,11 @@ VULN_PAYOUT_MULTIPLIER: dict[VulnType, float] = {
     VulnType.DEEPLINK_HIJACK: 1.1,  # Account takeover vía deep link paga bien
     VulnType.MOBILE_DATA_EXPOSURE: 0.9,  # PII/tokens expuestos, payout medio-alto
     VulnType.MOBILE_TRANSPORT: 0.7,  # MiTM/Pinning bypass, payout medio
+    VulnType.PROMPT_INJECTION: 1.2,  # IA en scope paga fuerte (+540% reportes YoY)
+    VulnType.BACL: 1.3,  # IDOR masivo/BACL paga High con pocos duplicados
+    VulnType.GRAPHQL: 1.4,  # introspección/costo/authz pagan High/Critical
+    VulnType.OAUTH: 1.5,  # ATO paga $3-15k en públicos
+    VulnType.DESERIALIZATION: 2.0,  # RCE directo, franja $10-30k
     VulnType.GENERIC: 0.5,
 }
 
@@ -62,9 +67,17 @@ BASE_ACCEPTANCE: dict[VulnType, float] = {
     VulnType.CSRF: 0.35,
     VulnType.LFI: 0.50,
     VulnType.CMDI: 0.60,
+    VulnType.RACE_CONDITION: 0.40,  # Programs often exclude; hard to prove
+    VulnType.CORS: 0.30,  # Low impact, often accepted as P2/P3
+    VulnType.OPEN_REDIRECT: 0.35,  # Common, but often considered low risk
     VulnType.DEEPLINK_HIJACK: 0.55,
     VulnType.MOBILE_DATA_EXPOSURE: 0.50,
     VulnType.MOBILE_TRANSPORT: 0.45,
+    VulnType.PROMPT_INJECTION: 0.50,  # Nicho caliente pero triage exigente
+    VulnType.BACL: 0.55,  # Metodología de 2 cuentas, triage favorable
+    VulnType.GRAPHQL: 0.50,  # Nicho técnico, triage exigente pero paga
+    VulnType.OAUTH: 0.50,  # Metodología de 2 cuentas propias, triage favorable
+    VulnType.DESERIALIZATION: 0.45,  # Raro pero ruidoso; triage exige PoC limpio
     VulnType.GENERIC: 0.30,
 }
 
@@ -78,9 +91,17 @@ VALIDATION_EFFORT_MINUTES: dict[VulnType, float] = {
     VulnType.CSRF: 4.0,
     VulnType.LFI: 7.0,
     VulnType.CMDI: 12.0,
+    VulnType.RACE_CONDITION: 8.0,  # Turbo Intruder + analysis
+    VulnType.CORS: 3.0,  # OPTIONS + few origin tests
+    VulnType.OPEN_REDIRECT: 4.0,  # few redirect tests
     VulnType.DEEPLINK_HIJACK: 8.0,
     VulnType.MOBILE_DATA_EXPOSURE: 6.0,
     VulnType.MOBILE_TRANSPORT: 6.0,
+    VulnType.PROMPT_INJECTION: 8.0,  # Transcripts + PoC multi-turno
+    VulnType.BACL: 10.0,  # Dos cuentas + diff de respuestas
+    VulnType.GRAPHQL: 12.0,  # Schema + costo + batch + authz por campo
+    VulnType.OAUTH: 10.0,  # Dos cuentas propias + replay controlado
+    VulnType.DESERIALIZATION: 12.0,  # Payload benigno + escalada por pasos
     VulnType.GENERIC: 5.0,
 }
 

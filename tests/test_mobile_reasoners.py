@@ -99,7 +99,7 @@ class TestMobileReasonersWired:
         engine = OffensiveEngine()
         types = {r.vulnerability_type for r in engine._reasoners}
         assert {"deeplink_hijack", "mobile_data_exposure", "mobile_transport"} <= types
-        assert len(engine._reasoners) == 8
+        assert len(engine._reasoners) == 21
 
     def test_get_reasoner_by_type(self):
         engine = OffensiveEngine()

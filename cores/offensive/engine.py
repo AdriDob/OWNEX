@@ -24,11 +24,23 @@ from cores.offensive.models import EndpointInfo, ReasonerResult
 from cores.offensive.planner import InvestigationPlanner
 from cores.offensive.publisher import publish_offensive_event
 from cores.offensive.reasoners.auth_bypass import AuthBypassReasoner
+from cores.offensive.reasoners.bacl import BaclMatrixReasoner, BusinessFlowReasoner
 from cores.offensive.reasoners.base import BaseReasoner
+from cores.offensive.reasoners.cmdi import CMDIReasoner
+from cores.offensive.reasoners.cors import CORSReasoner
+from cores.offensive.reasoners.csrf import CSRFReasoner
 from cores.offensive.reasoners.deeplink import DeepLinkReasoner
+from cores.offensive.reasoners.deserialization import DeserializationReasoner
+from cores.offensive.reasoners.generic import GenericReasoner
+from cores.offensive.reasoners.graphql import GraphQLReasoner
 from cores.offensive.reasoners.idor import IDORReasoner
+from cores.offensive.reasoners.lfi import LFIReasoner
 from cores.offensive.reasoners.mobile_data import MobileDataExposureReasoner
 from cores.offensive.reasoners.mobile_transport import MobileTransportReasoner
+from cores.offensive.reasoners.oauth import OAuthReasoner
+from cores.offensive.reasoners.open_redirect import OpenRedirectReasoner
+from cores.offensive.reasoners.prompt_injection import PromptInjectionReasoner
+from cores.offensive.reasoners.race_condition import RaceConditionReasoner
 from cores.offensive.reasoners.sqli import SQLiReasoner
 from cores.offensive.reasoners.ssrf import SSRFReasoner
 from cores.offensive.reasoners.xss import XSSReasoner
@@ -118,6 +130,19 @@ class OffensiveEngine:
             DeepLinkReasoner(),
             MobileDataExposureReasoner(),
             MobileTransportReasoner(),
+            PromptInjectionReasoner(),
+            BaclMatrixReasoner(),
+            BusinessFlowReasoner(),
+            GraphQLReasoner(),
+            OAuthReasoner(),
+            DeserializationReasoner(),
+            CMDIReasoner(),
+            LFIReasoner(),
+            RaceConditionReasoner(),
+            CORSReasoner(),
+            CSRFReasoner(),
+            OpenRedirectReasoner(),
+            GenericReasoner(),
         ]
 
     # ── Feedback ───────────────────────────────────────────────────

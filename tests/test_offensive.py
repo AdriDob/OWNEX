@@ -261,7 +261,9 @@ class TestOffensiveEngineV2:
             }
         )
         if result.hypotheses:
-            assert len(result.hypotheses[0].contradictions) > 0
+            # Verify ContradictionEngine produces contradictions for at least one hypothesis
+            # (CSRF/CORS have alternative_explanations so no contradiction; IDOR/BACL do)
+            assert any(len(h.contradictions) > 0 for h in result.hypotheses)
 
     def test_evidence_score_in_result(self):
         result = self.engine.analyze_endpoint(
@@ -891,8 +893,8 @@ class TestEngineV3ReasonerRegistration:
 
         self.engine = OffensiveEngine()
 
-    def test_eight_reasoners_registered(self):
-        assert len(self.engine._reasoners) == 8
+    def test_reasoners_registered(self):
+        assert len(self.engine._reasoners) == 21
 
     def test_reasoner_types(self):
         types = [r.vulnerability_type for r in self.engine._reasoners]
@@ -903,6 +905,12 @@ class TestEngineV3ReasonerRegistration:
         assert "sqli" in types
         assert "deeplink_hijack" in types
         assert "mobile_data_exposure" in types
+        assert "prompt_injection" in types
+        assert "bacl" in types
+        assert "business_logic" in types
+        assert "graphql" in types
+        assert "oauth" in types
+        assert "deserialization" in types
         assert "mobile_transport" in types
 
     def test_each_reasoner_generates_hypotheses(self):
