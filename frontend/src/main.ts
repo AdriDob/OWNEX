@@ -8,6 +8,10 @@ import { isPublicRoute, routes } from './router'
 import './style.css'
 import './styles/tesla-jarvis-theme.css'
 import './styles/responsive.css'
+// 2026-10-04: este fichero llevaba 0 importadores desde 2026-09-05, con
+// .skip-nav usándose en AgentFleet.vue. Se importa DESPUÉS de style.css para
+// que sus reglas de foco ganen al .focus-glow (ver el guard de a11y).
+import './styles/accessibility.css'
 import 'xterm/css/xterm.css'
 
 if ('serviceWorker' in navigator) {

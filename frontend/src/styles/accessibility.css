@@ -25,13 +25,13 @@
   --color-muted: var(--ownex-text-secondary);
   --color-muted-foreground: var(--ownex-text-secondary)aaa;
   --color-foreground: var(--ownex-text-primary);
-  --color-primary: #4d8fff;
+  --color-primary: var(--ownex-accent);
   --color-primary-foreground: var(--ownex-text-primary);
-  --color-accent: #80b3ff;
+  --color-accent: var(--ownex-accent);
   --color-accent-foreground: var(--ownex-bg-deep);
   --color-destructive: var(--ownex-danger);
   --color-warning: var(--ownex-yellow);
-  --color-success: #44ff44;
+  --color-success: var(--ownex-green);
 }
 
 [data-a11y-mode="high-contrast"] .glass-panel,
@@ -127,7 +127,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--color-primary, #4d8fff);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -152,7 +152,7 @@ textarea:focus-visible,
 
 /* ── Visible focus for dark mode ── */
 .dark *:focus-visible {
-  outline-color: #60a5fa;
+  outline-color: var(--ownex-accent);
 }
 
 /* ── Skip Navigation Link ── */
@@ -162,7 +162,7 @@ textarea:focus-visible,
   left: 16px;
   z-index: 9999;
   padding: 12px 24px;
-  background: var(--color-primary, #4d8fff);
+  background: var(--color-primary);
   color: white;
   border-radius: 8px;
   font-size: 14px;
@@ -192,13 +192,13 @@ textarea:focus-visible,
 
 /* ── Focus visible for interactive cards ── */
 .card-interactive:focus-visible {
-  outline: 2px solid var(--color-primary, #4d8fff);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 /* ── Keyboard navigation indicator ── */
 .keyboard-nav *:focus-visible {
-  outline: 2px solid var(--color-primary, #4d8fff);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 

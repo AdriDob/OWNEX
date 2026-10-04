@@ -12,6 +12,7 @@ rojo Tesla #E82127 para error; (c) HOY: rojo eliminado por completo.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
@@ -151,3 +152,57 @@ def test_no_arbitrary_hex_in_vue_components() -> None:
         if stray:
             offenders[str(path.relative_to(FRONTEND))] = sorted(stray)
     assert not offenders, f"hex fuera de tokens.css en {len(offenders)} .vue (usar var(--ownex-*)): {offenders}"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# KNOWN_DEBT #47 cerrado: accessibility.css tenía 0 importadores
+#
+# El fichero nunca estuvo muerto: `.skip-nav` se usa en AgentFleet.vue y sólo
+# ese fichero lo define. Estaba NO IMPORTADO, que es peor que código muerto —
+# la navegación de teclado y el modo alto contraste no existían en la app.
+#
+# Además traía 4 hex fuera del SSOT y su `:focus-visible` perdía contra
+# `.focus-glow` de style.css (especificidad 0,1,0 vs 0,2,0), que ademásponía
+# `outline: none` — es decir: el glow decorativo anulaba el foco visible.
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def test_accessibility_stylesheet_is_imported() -> None:
+    """`styles/accessibility.css` debe importarse desde main.ts.
+
+    0 importadores = `.skip-nav` se renderiza sin estilo y el modo alto
+    contraste / forced-colors nunca se aplican (KNOWN_DEBT #47).
+    """
+    main = (FRONTEND / "src" / "main.ts").read_text(encoding="utf-8")
+    assert "styles/accessibility.css" in main, (
+        "accessibility.css no está importado — .skip-nav y el modo alto contraste están muertos"
+    )
+
+
+def test_accessibility_stylesheet_has_no_off_ssot_hex() -> None:
+    """Sus overrides de high-contrast deben derivar de tokens, no de hex sueltos."""
+    css = _strip_comments((FRONTEND / "src" / "styles" / "accessibility.css").read_text(encoding="utf-8"))
+    stray = _hexes(css)
+    assert not stray, (
+        f"accessibility.css tiene {len(stray)} hex fuera de tokens.css: {sorted(stray)} — usar var(--ownex-*)"
+    )
+
+
+def test_focus_glow_does_not_kill_the_focus_outline() -> None:
+    """`.focus-glow:focus-visible` no puede poner `outline: none`.
+
+    El glow es adorno. Si anula el outline, la navegación de teclado pierde su
+    indicador — y por mayor especificidad (0,2,0 vs 0,1,0) ganaba siempre.
+    """
+    css = (FRONTEND / "src" / "style.css").read_text(encoding="utf-8")
+    block = re.search(r"\.focus-glow:focus-visible\s*\{([^}]*)\}", css)
+    assert block, "no se encontró la regla .focus-glow:focus-visible en style.css"
+    body = _strip_comments(block.group(1))
+    declarations = [ln.strip().rstrip(";") for ln in body.splitlines() if ":" in ln]
+    outline = next((d for d in declarations if d.startswith("outline:")), None)
+    assert outline is not None, "`.focus-glow:focus-visible` no declara outline — sin él no hay indicador de foco"
+    assert outline != "outline: none", (
+        "`.focus-glow:focus-visible` vuelve a anular el foco visible — "
+        "el adorno no puede ganarle a la navegación de teclado (KNOWN_DEBT #47)"
+    )
+    assert "outline-offset" in body, "sin outline-offset el anillo se solapa al elemento"

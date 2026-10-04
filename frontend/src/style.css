@@ -309,8 +309,12 @@
     transform: scale(0.97);
   }
 
+  /* El glow es adorno; el outline es navegación de teclado. Antes `outline: none`
+     mataba el foco visible de accessibility.css (mayor especificidad). Ahora el
+     outline se conserva y el glow se suma. Ver KNOWN_DEBT #47. */
   .focus-glow:focus-visible {
-    outline: none;
+    outline: 2px solid var(--ownex-accent);
+    outline-offset: 2px;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12), 0 0 12px rgba(255, 255, 255, 0.05);
   }
 
