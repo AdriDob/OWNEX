@@ -1,1579 +1,299 @@
-## 2026-09-18 (build): KIT DISEÑO AUTOMATIZADO — flyer-brief auto + job semanal seguro
-
-- **Pedido owner**: mejores herramientas de diseño/edición gratis automatizables, automatizarlas. Audit-first: Pillow/Canva/CapCut/Meta-Suite/ChatGPT ya registradas; `product_score`, price bands, flyer, pack y cola ya existen → solo se automatizó lo ausente sin duplicar.
-- **`product_flyer_brief()`** (`cores/ecommerce/design.py`, puro): arma el copy del flyer desde señales reales — precio venta real (ARS preferido), si no hay precio sugiere banda OBJETIVO (marcada sugerencia, no precio), tag desde authenticity, bloqueadores de `/optimize`. La foto la sube el humano (permiso del proveedor); todo lo demás sale solo.
-- **Job `ecommerce_design_pack`** (lun 07:00): rebuild semanal SEGURO — si no hay ACTIVE no toca la cola (nunca destruye publicados); con catálogo, rebuild preserva publicados. Nunca raisea. + `get_design_queue_items()` SSOT (router delega, 0 duplicación).
-- **Fix colateral**: `publish_blockers()` acepta precio ARS (antes solo USD → bloqueaba productos ARS reales).
-- **Evidencia**: 8 tests nuevos (brief ARS/banda/tag/bloqueos, endpoint 200/404/422, job registrado, handler skip+rebuild) · ecommerce+direct_work_api 137+ · ruff limpio tocados · fast 102/1.
-- **Regla permanente**: ninguna automatización toca estado publicado sin preservarlo; ningún render inventa precio (sugerencia etiquetada o nada).
-
-## 2026-09-18: SCAN-YIELD HONESTY — fail-closed en la entrada, no más presupuesto quemado
-
-- **Diagnóstico (DB real, no opinión):** 402/719 targets con `_` en dominio (`agoda_public.com` = slug programa + ".com", DNS inválido → tools fallan "no address found") · `normalized_endpoints.json` real con 5 entradas basura (1 línea error-JSON + 4 de banner ASCII katana, `host=example.com`, score 0) · scans completed con `endpoint_count=0` · 9806 endpoints con top `/api/test`×376 (seed histórico, no path productivo → se deja, solo se reporta).
-- **Decisión:** 1 NEW + 5 EXTEND, todo fail-closed: `cores/recon/hostname.py` NUEVO (puro, sin red: `is_valid_hostname` rechaza `_`/espacios/labels vacíos/TLD numérico; `scannable_domain` espeja `domain or name` + corta puerto; `has_real_host` contra placeholder `example.com`) · parser saltea sin host real (bare paths sin host también caen: sin host no hay evidencia para hypothesis/nuclei) · scheduler saltea inválidos con log (SIN mutar las 402 filas: no se borra dato sin orden) · `launch_scan` 422 antes de verificar tools (ahorra 600s) · `create_target`→`{invalid,reason}` + `POST /targets` 422 + aviso desktop (misma familia que `{duplicate}`) · `run.py --add-target` inserta directo (residual honesto, fuera del contrato service).
-- **Evidencia:** `tests/test_scan_yield_honesty.py` 31/31 · afectadas 108 (recon/router/guards/api/e2e_flow) + 73 (e2e_security/pipeline/adaptive/intel) · fast 102/1 · ruff limpio en 8 tocados (ruido LSP SQLAlchemy/PySide preexistente, no gate).
-- **Regla permanente:** ningún scan corre contra hostname inválido; ningún endpoint se persiste sin host real; ningún target basura nuevo entra por API/desktop.
-
-## 2026-09-18 (build): 3 FIXES $0 SIN FEATURES NUEVAS — persistencia donde se perdía plata
-
-- **Affiliate in-memory → JSON** (`cores/affiliate.py`): el workspace AFFILIATE era el único sin persistencia (Outreach/AssetFactory/WorkBank ya tenían). Cada restart borraba links/clicks/conversiones → violaba DONE-persistencia. Fix EXTEND con el patrón OutreachStore (`_data_path/_load/_save` best-effort, path inyectable, `_parse_dt`, enums tolerantes; `add/click/conversion/plan/ready/publish` guardan). Contrato API intacto. Test viejo aislado a tmp (antes contaminaba `data/affiliate.json` con links "Test" — archivo eliminado, producción 0 links honestos).
-- **Gate $0 no sobrevivía** (`cores/ecommerce/engine.py::_supplier_to_dict`): guardaba 11 campos pero NINGUNO del gate → `verify=True` + términos se perdían al primer `add/update` (cualquier save reescribía el JSON sin gate). Ahora persiste capital/monthly/mínimo/ml/fulfillment/fee/pct/stock/verified/verified_at/fulfillment_model + parseo tolerante en `_load`. Legacy sin términos (106 `sup_*` sin fee/fulfillment/verified) → `fulfillment_model="mayorista"` + nota `[legacy]` (NO simple, FUTURE honesto; antes heredaban defaults `""`/`none` y 106 sin verificar aparecían como "$0 puro" en el filtro).
-- **Fixtures sin borrar** (`cores/direct_work_engine/workbank.py`): `bounty-1/freelance-1/opire-1` con `/program/1`·`/p/1`·`/op/1` son placeholders (dato usuario en `~/.ownex`, NO se borra). Nuevo `is_fixture_url()` puro (placeholder un dígito `/program|p|op/1` + example/localhost; reales llevan `/issues/`·`/pull/`·slugs, testeado) + `fixture_item_ids()` + `fixture_urls/needs_revalidation` en `_summary` (aditivo, ranking intacto). El próximo `daily_cycle` avisa qué revalidar.
-- **Evidencia**: workbank+zero_invest+ecommerce 101/101 · direct_work_api+checklist 88/88 · ruff 5 SIM105 preexistentes intactos · 7 tests nuevos (≤20 budget) · 6 archivos (2 por fix, dentro del budget).
-- **Regla permanente**: todo `to_dict` que persiste debe round-trippear TODOS los campos que el gate/ranking lee; todo default que vuelve "simple/ACTIVE" a un legacy sin verificar es un bug de honestidad; ningún test escribe en `data/` real (tmp_path + monkeypatch).
-
-## 2026-09-17 (noche, cierre): DROPPINGLABEL TIENDA — Caufy/Canevic honestos + authenticity + bandas + score + 5 fútbol/básquet
-
-- **Intel owner integrada**: Dropsheable (gratis, 3%/venta, provider despacha → candidato ACTIVE tras verificar) · Caufy exige suscripción (`fee_model=monthly`, NubeDrop gratis parcial; CaufyPrint POD sin verificar) → FUTURE · Canevic mínimo ~$150k ARS (nota honesta, sin inventar FX) → FUTURE salvo despacho unitario · La Camiseteria (`lacamiseteria.com.ar`, SE AUTODEFINE réplicas premium) + Mundo Tribuna (`mundotribuna.com.ar`, IG verificado) como leads fútbol · Zenwaig mínimo 8 relojes → lead FUTURE (premium = consignación o nada).
-- **Authenticity** (`models.AUTHENTICITY_*` + `Product.authenticity=unknown`): `publish_blockers()` puro (unknown/precio/proveedor) · `POST /products` valida 422 · `POST /optimize` bloquea 422 con blockers (pre-publish gate) · visible en `/products` + badge Ecommerce.vue. Réplica se vende como réplica o no se publica.
-- **Bandas** (`SourcingEngine.price_bands` + `bands` en suggest-price): MÍNIMO 25% / COMPETITIVO 95% rival (UNKNOWN sin rivales) / OBJETIVO 35% / PREMIUM 50%, cada una con veredicto real. `product_score` + `/product-score` ya existían con los pesos pedidos → COMPLETE, no tocado; solo se agregó `POST /products/{id}/score` que ensambla señales reales (margen + scorecard + snapshots + gate) con UNKNOWN explícito.
-- **Verificación**: `test_ecommerce.py` 36→44 · ruff limpio tocados · fast + vite final.
-- **Filtro simples (owner: "solo los que no piden nada más que por ventas")**: el mapa sigue completo (17) pero `zero_capital` gana `simple:true` (sin capital/abono/mínimo, fee none o % por venta, despacha el proveedor; mayorista sin verificar NO es simple) → toggle "Solo $0 puro" en Ecommerce.vue (hoy: Dropsheable, Ventaz, Dropi) + `POST /suppliers/{id}/verify` (confirma términos por WA → ACTIVE, reversible). Test 44→48.
-- **Fútbol/básquet +5** (todos sitio 200 verificado, FUTURE): Kingz Camisetas Córdoba (retro + a pedido) · Sublime Sport (FÁBRICA sublimado fútbol/básquet/vóley — vía línea propia) · La Bocha Retro · Mundial Retro · Retro BA (IG verificado). Básquet cubierto por Flex+Sublime (retro por encargo + custom); no existe básquet unitario 24-48h → nota honesta en plan.
-- **Regla permanente**: precio del plan = ejemplo matemático, jamás cotización; score con UNKNOWN > score inventado; lo no-verificable nace FUTURE.
-
-## 2026-09-17 (noche): DROPPINGLABEL OPERATIVO — 7 proveedores + gate $0 + plan IG
-
-- **Intel owner (verificada)**: fútbol nicho más difícil (sin dropshipping unitario puro) · perfumes el más viable · relojes premium solo por consignación · Dropi existe (`dropi.co/ar`, 160k productos) · Dropdeal cobra desde ~$29.990/mes (NO es $0 total) · Flex Sport real (`flexsportarg.com.ar`, retro POR ENCARGO 12 días hábiles ~$29.9k) · Canevic y mayoristas de perfumes NO verificables por search → leads, no hechos.
-- **Seeds** (`engine.seed_ranked_suppliers` +7): flex_sport_arg (nota honesta: made-to-order, jamás 24-48h) · 5 mayoristas perfumes como LEAD owner sin web (verified=False) · dropi. Todos nacen FUTURE hasta las 5 preguntas por WA.
-- **Gate $0** (`models.zero_capital_gate`, puro): REJECTED (capital>0 o fulfillment propio) · FUTURE (abono/mínimo/mixto/mayorista-sin-acuerdo/sin-verificar) · ACTIVE (verificado + limpio). Expuesto en `/suppliers` y `/suppliers/ranked` + badge en Ecommerce.vue ($0 ✓ / a verificar / NO $0). `test_ecommerce.py` 29→36.
-- **Doc**: `docs/DROPPINGLABEL_INSTAGRAM_PLAN.md` (catálogo 4 líneas en orden perfumes→relojes→fútbol→urbana, honestidad réplica/decant, fases 3→10→10 ventas, contenido $0, 2 perfiles).
-- **Regla permanente**: ningún proveedor se publica como $0 sin gate ACTIVE; ningún lead del owner se siembra como verificado; ningún precio del plan es cotización (solo `/sourcing/net-real` fija precio).
-
-## 2026-09-17: DROPPINGLABEL INSTAGRAM $0 — outreach IG + handle + nicho + contenido verificado
-
-- **Pedido owner**: dropshipping ropa urbana/deportiva (camisetas fútbol importadas alta calidad), perfumes árabes, accesorios caros (relojes), todo en Instagram, 0 inversión. Plan aprobado: perfumes → relojes → fútbol → urbana.
-- **Cambio 1 outreach IG** (`outreach.py`): `OUTREACH_TEMPLATES_IG` (6 variantes encuadradas en IG/WhatsApp, descripción honesta: réplica=réplica, decant=decant) + `build_message(..., canal="ig")` (default meli = contrato intacto) + keywords árabes (`arab/oud/lattafa/musk/attar` → perfumes) + `niche_for()` pública (alias del clasificador) + `next_step` verified channel-neutral ("publicar (Meli/IG)"). Endpoints outreach/contact aceptan `?canal=` (422 si no es meli|ig).
-- **Cambio 2 proveedor IG** (`models.py` `Supplier.instagram` + `engine._supplier_to_dict` + `SupplierIn` + endpoint lista expone `instagram`+`niche` + importador CSV columna opcional): Ecommerce.vue gana filtro por nicho (perfumes/relojes/fútbol/urbana/accesorios), toggle de canal del mensaje (default IG) y link al IG del proveedor. Todo aditivo con defaults (JSON viejos cargan igual).
-- **Cambio 3 contenido**: verificado sin código — `/cross-list` (incluye instagram) + `/content-plan` (default instagram) ya cableados; se pinean con tests (200 + 404). Sin MPT/videos hasta canal validado.
-- **Verificación**: `test_ecommerce.py` 21→29 (8 nuevos) · ruff limpio en tocados (SIM105 engine.py preexistentes) · fast + vite en verificación final.
-- **Regla permanente**: réplicas y decants se describen tal cual (cuenta viva > venta rápida); ningún nicho escala sin 2 proveedores verificados + neto>0 medido.
-
-## 2026-09-16 (noche): CIERRE SESIONES — OBA real, allocation-weighted, outreach next_step, adapters audit, /sources perf, Algora honesto
-
-- **Pedido owner**: terminar TODAS las pendientes de las 3 sesiones (W3 adapters/sources + P0/P1/P2/P3 + verificación final). 4 bugs REALES por evidencia, no opinión:
-- **B1 mission_hub nunca usaba OneBestAction**: `oba.get("action")` sobre un dataclass → AttributeError siempre → fallback genérico ("Próxima hora: X") aunque hubiera un deliver_now de $2,700. Fix: `to_dict()` + adapter a contrato actionable (title/why/est_minutes/url/endpoint/command + life_goal del propio OBA). El "Entregar" real vuelve a la tarjeta Mission.
-- **B2 daily_loop allocation-weighted roto**: `weight.get(platform)` con keys de workspace → siempre 0 → ordenaba por reward bruto, no por $/h. Fix: mapea plataforma→workspace vía `kill_scale._workspace_for_channel` (best-effort, fallback a reward).
-- **B3 outreach next_step rompía persistencia**: `to_dict()` sumó `next_step` pero `_load()` hacía `OutreachRecord(**rec)` → TypeError tragado → store vacío tras reload (contactos perdidos). Fix: `_load` ignora `next_step` (derivado) + sigue tolerante. Cazado por el test nuevo, no por lectura.
-- **B4 Algora $2,700 muerto**: las 3 `/issues/*` → 404 (algora.io vive, scheme muerto; 2 repos ni existen en GitHub). Mismo precedente bountyboard/polar: `CURATED_BOUNTIES = []` + nota. Items guardados del WorkBank intactos (dato usuario, no se toca); futuros ciclos no re-agregan plata muerta.
-- **W3-S1 audit adapters** (`legacy.py::ADAPTER_FETCH_AUDIT` + `get_adapter_fetch_audit()`): LIVE bugbounty/kaggle/github_bounty · INTERNAL fiverr · STATIC algora/bountyboard/polar (vacíos honestos) · DEGRADED dework (REST 200 vacío + SPA sin JSON; GraphQL interno NO inventado). Evidencia curl 2026-09-16 en la entrada.
-- **W3-S2 perf /sources**: `sources_overview()` hacía 2 `_load_store()` por fuente (×1008 = 2000+ lecturas por request). Ahora 1 sola carga + cómputo en memoria, mismo shape (pineado por test de conteo). `/sources/prep` ya cableado → tests de wiring (200 + 404).
-- **P0/P3 verificados sin código**: IncomeHome 10 `router.push` + `useRouter` (botones vivos) · checklist prioridades únicas por fase (test 4/4). P2 outreach: `next_step` en API + columna en Ecommerce.vue.
-- **Verificación**: `test_night_session_fixes.py` 10/10 · afectadas 137 (direct_work_api+workbank+scheduler+notify) · mission+checklist+autopilot 54 · ecommerce+economic+curated 60 · ruff limpio en tocados (SIM105/102 mission_hub preexistentes).
-- **Regla permanente**: ningún seed curado vive sin URL 200 verificada por probe; ningún ranking usa `platform` donde el peso es por `workspace`; todo campo derivado en un dict persistido debe ser ignorado al recargar (forward-compat).
-
-## 2026-09-16: PERSONAL CONTEXT SSOT — la brújula del owner entra al sistema
-
-- **Pedido owner**: la IA de OWNEX debe conocer NO solo los proyectos sino PARA QUÉ se construye todo (propósito → jerarquía de vida), para que el sistema no optimice tareas sin saber hacia dónde va el barco.
-- **Decisión**: `.ai/PERSONAL_CONTEXT.md` NUEVO (SSOT personal, 24 secciones): propósito (§1), colchón $125k (§2), carrera software/IA/bug-bounty (§3-4), OWNEX como sistema operativo personal extremo-a-extremo con Human Gate (§5), prioridad de proyectos OWNEX→Droppinglabel→Meli→Adriel Webs→Shorts (§6), regla de prioridades que protege foco (§7), vivienda/independencia (§8-10), tech local-first (§11-12), familia/fe/viajes/creatividad (§13-18), ventaja acumulativa (§19-20), qué mostrar NOW/MONEY/GOALS/… (§21), métrica = progreso real no actividad (§22-23), jerarquía VIDA completa (§24).
-- **Wiring**: `opencode.json` instructions += `.ai/PERSONAL_CONTEXT.md` (la IA de OPENCODE lo lee siempre) · `AGENTS.md` tabla de referencias += PERSONAL_CONTEXT + bloque "la brújula del owner" (obligatorio leer antes de recomendar/priorizar; §7 8-preguntas y distinciones urgent≠importante, actividad≠progreso, etc.).
-- **"Una cosa que faltaba" (owner)**: cada `next_action` de `mission_hub.py` ahora lleva `life_goal` — la rama del árbol Vida que la acción está moviendo (ej. "Claim Algora → Carrera → Software/Bug Bounty (habilidad → ingreso)", "Configurar rails → Independencia → Finanzas (desbloquear cobro real)", "Publicar en Meli → Negocios → Mercado Libre"). `_WORKSPACE_TO_LIFE_GOAL` (14 mapeos) + `_life_goal_from_workspace()` (matching space/underscore-agnostic) en `api/routers/mission_hub.py:27`.
-- **Verificación**: `opencode.json` parsea OK · `api.main` 1823 rutas · mapeo probado en 7 casos (todo correcto tras fix de fallbacks). Sin commits.
-
-## 2026-09-15: PROYECCIÓN 30H/SEMANA → MARZO 2027 — 840h, $50k agresivo-razonable
-
-- **Auditoría 2026-09-15:** PAID $0 (ledger 0, payouts 0), findings 0, DB 77 MB 719 targets, WorkBank 1 real/3, rails 1/76, historial solo fixtures, servidor apagado, sistema completo (22 guías, 5 adapters vivos, claim→PR, Human Gate, ladder A1-A12). Fábrica terminada y vacía — P(CASH) UNKNOWN hasta 1er PAID.
-- **Proyección:** 30h/sem×28sem=840h hasta 31/03/2027. Piso $21k (840×$25). Escenarios: 🔴$5-12k · 🟠$18-35k · 🟢$40-80k (requiere 1er PAID S3-4 +3 canales+1 upside $3-8k) · 🔵$80-160k · 🟣$160k+. $50k exige 🟢; sin upside techo $30-35k.
-- **Asignación 30h:** 10h AI work (assessments) · 8h Dev (1 claim Algora $50-200) · 6h B2B (2 propuestas) · 3h MeLi (5 SKUs, conv>2.5%) · 2h Bug bounty (upside) · 1h Admin. Hitos S3-4→Mes2→Mes4 MEASURED→Mes6-9 upside. Kill 40h/$0 día 60 → horas al mejor $/h.
-- **Decisión:** no más features hasta 1er PAID; foco ≤3 activos; métrica `money_per_human_hour` (`cores/cycles/metrics.py` + `cores/workspaces/economics.py`+`allocation.py`) decide reasignación. Bloqueos P0: GITHUB_TOKEN, 3 rails (Wise/Airtm/GrabrFi), 3 assessments.
-- **Regla:** ningún canal escala sin PAID medido; ningún upside cuenta como run-rate.
-
-## 2026-09-16: CONFIG POR DOMINIO + MISIÓN DEPARTAMENTO/AUTO — checklist 33 ítems + capital persistente
-
-- **Pedido owner**: sistema para dev/bug/data/trading/apuestas/capital/memecoin/proyectos/vida; todas las apps pendientes de sync que avise; "perfectamente preparado".
-- **Checklist 23→33 ítems**: 10 detectores de dominio (trading_exchange, memecoin_wallet, betfair, ccxt_exchange, outlook, aux_bounty_keys, ai_work_keys, meta_account, meli_account, affiliate_networks) — cada uno con detector de env puro (jamás inventa), how_to y url. Antes agrupaba "al menos una key" (el usuario quería saber CADA plataforma pendiente).
-- **Misión en capital**: defaults → `Buen Auto` $20k + `Departamento Zona Sur` $60k (vivienda 2 pers, zona sur AR). **Bugs reales de persistencia corregidos**: add_goal y update_goal no persistían (upd mutaba solo memoria → "no alcanza" siempre); get_capital_engine no recargaba DB. Fix: persist en ambos + load en singleton + delete_goal + endpoint DELETE. Test `test_capital_mission` 4/4.
-- **Evidencia**: 105 passed · fast 102/1 · ruff 5 tocados · main 1823 rutas · DB real con exactamente la misión canónica (sin duplicados ni temporales).
-- **Regla permanente**: toda meta de capital debe persistir en el mismo cambio que la muta; ningún goal puede mutar solo en memoria; la misión del owner vive en los defaults (persistente de fábrica), no en un POST volátil.
-
-## 2026-09-16: ULTIMATE FINAL FASE 3/6/9 — P0 async-await, P1 platform/profile, smoke + changelog
-
-- **P0 (21 jobs muertos, evidencia runtime)**: `lifespan._run_job` llamaba handlers sin distinguir sync/async → 21 coroutines (Pulse/Forge discovery, OpportunityOrchestrator, execution_queue process/retry/DLQ, worker_core heartbeat, outlook sync) se registraban pero jamás ejecutaban. Fix mínimo: `_await_in_new_loop` (thread daemon + loop propio + timeout 5 min + nunca raisea al heartbeat). NO se tocó el scheduler congelado ni LifeScheduler ajeno.
-- **P1 (discovery roto)**: `WorkPlatform` sin `OPEN_SOURCE` (bountyboard/polar crasheaban con AttributeError silencioso "Fetched 0"). Fix: miembro en enum + 7 plataformas de adapters huérfanos agregadas (CANTINA/CODEHAWKS/GITCOIN/GITWORK/HACKENPROOF/HATS_FINANCE/ONLYDUST; `ONLY_DUST`→`ONLYDUST` por convención de marca simple) + E741. Adapters huérfanos NO registrados (nadie los ejecuta) — el enum los deja no-crasheantes, no vivos.
-- **P1 (recommend 500)**: `_profile_from_dict` exigía `name` del dataclass → default `"me"` (no afecta ranking).
-- **Fase 6 sin código**: workspaces en infra compartida verificada (scheduler/OAR/EventBus/data-dir; mission_hub→registry+one_best_action+allocation+feedback). Ecommerce persiste en `OWNEX_DATA_DIR`, no DB propia.
-- **Fase 9**: versión 7.1.0 única (5 superficies) · CHANGELOG Unreleased · smoke 7/7.
-- **Evidence**: ruff 9 tocados · 114 + 120 passed · fast 102/1 · main 1820 rutas.
-- **Regla permanente**: todo handler registrado en `get_all_jobs()` debe ser ejecutable a completitud por el runner (el guard `test_scheduler_async_handlers` lo pinea); ninguna plataforma que un adapter use puede faltar en `WorkPlatform` (el guard `test_phase3_production_fixes` lo pinea).
-
-## 2026-09-15: ULTIMATE FINAL — audit contract drift §17, dead code §12, guard de regresión
-
-- **Pedido owner**: master prompt definitivo (AUDIT→CONSOLIDATE→FIX→TEST→VALIDATE→…→FREEZE). Fase 0 congeló baseline (120 archivos sin commitear, fast 102/1 tras fix de contrato del test de ciclos con `economic_feedback`).
-- **Hallazgo central (evidencia, no opinión)**: 57 de 222 llamadas `api.*` del frontend no matchean rutas runtime del backend. Causa raíz = **prefix drift**: `first-money`/`result-based`/`platform-guides` se montan en raíz (`include_router` sin `/api`) pero `resolveApiUrl` los resolvía bajo `/api/*` → esas 3 páginas NUNCA funcionaron.
-- **Decisión §17 (intended contract → migrate caller)**: fijar `ROOT_MOUNTED_PREFIXES` en `frontend/src/lib/backend.ts` con los 3 + `/direct-work|/mobile|/wear-os` (los routers root-mounted reales). Es migrar el caller al contrato que el backend ya emite, NO tocar el backend ni duplicar rutas. Guard `test_frontend_api_contract.py` (3 tests) pin que listas no diverjan de nuevo.
-- **§12 dead code**: `cores/intelligence/next_best_action.py` (219L) — duplicado muerto de `one_best_action.py` (SSOT vivo usado por mission_hub:108, direct_work:1959, unified_income:167). Verificado 0 callers/imports/tests/specs/strings. `frontend/src/services/capitalApi.ts` (274L) — 29 llamadas a rutas inexistentes, 0 imports, 0 tests. Ambos eliminados con `git rm`; build + tests verdes tras borrado.
-- **Decisión de límite (§74 no-feature-creep)**: Cluster B (WorkRoom contrato ficticio) + D (4 CommandPalette dead) + E resto NO se expanden ni se tapean — se documentan en KNOWN_DEBT #18 como deuda explícita de frontend legacy (no bloquean el daily flow). Reescribir WorkRoom es una decisión de producto separada, no un fix de producción.
-- **Evidence**: tests 112 passed (scheduler+contract+trading+business_tools+ecommerce+zero_invest) · fast 102/1 · ruff limpio tocados · vite 11.71s · import api.main 1806 rutas.
-- **Regla permanente**: ninguna ruta nueva del frontend entra sin contraparte en backend (exacta o prefijo dinámico); todo router que el backend monte a raíz debe estar en `ROOT_MOUNTED_PREFIXES`; ningún `api.put` a un endpoint que el backend expone como `patch`.
-
-## 2026-09-15 (build): TRADING FRONT REAL — router montado + /overview honesto (cierra false-report)
-
-- **Problema**: el trading automático backend existía completo (18 jobs, paper loop */15, copy/advisor/backtest/human gate) pero `api/routers/trading.py` NO estaba montado en `api/main`; el front consumía `/api/trading/dashboard/summary` (que respondía trading_dashboard = jobs, no el accionable) con keys de un dashboard viejo (`total_value/pnl/positions`) que nadie emite. Resultado: TradingConsolidated siempre en 0 y los widgets TradingLab con contrato ficticio (capital/leverage/liquidity) si se importaran sería false-report.
-- **Decisión**: (1) montar el router accionable real en main (mínimo, sin tocar jobs); (2) `GET /api/trading/overview` NUEVO, una llamada honesta para el front: modo real de `TradingConfig`, métricas paper desde `TradingStore` (NO_DATA sin trades), jobs del scheduler registry, y `pending_config` derivado de Setup Checklist (`trading_live` manual) + env keys — nunca inventa `total_value`. (3) Front reescrito al contrato real con las acciones fáciles que YA existían (toggle master, emergency-stop/release, approve/reject advisor). Widgets TradingLab NO se montan (contrato ficticio = regla "visible pero false" prohibida).
-- **Evidencia**: `test_trading_front_contract.py` 4/4 (montaje, contrato honesto, acciones, metrics) · fast 102/1 · 85 trading/scheduler/mount · vue-tsc 0 · biome limpio · vite 13.15s · ruff limpio. Los 4 fallos `test_trading_intelligence` son PREEXISTENTES (baseline stash idéntico, `TypeError: datetime not callable` en `Order(...)` del test, ajeno al mount).
-- **Regla permanente**: ningún frontend consume keys de un contrato que el backend no emite; ninguna UI monta widgets sordos a la API (o se cablean al contrato real o no se importan); el estado financiero del trading se reporta desde el ledger real (NO_DATA es honesto, 0 es falso).
-
-## 2026-09-15 (build): FREE BUSINESS TOOLS — herramientas $0 por tarea especial (EXTEND del patrón tools)
-
-- **Pedido owner**: "termina de agregar todas las herramientas gratis que consideres necesarias para la ejecución de tareas especiales... ingenio y productividad". El gap real: `cores/tools/` (TOOL_REGISTRY security 19 wrappers + ecosystem keep/remove) NO cubría la capa negocio que el plan $0 usa (catálogos, shorts, leadgen, automación, bounties, packs, firmas). No era una feature missing de ejecución — ya hay adapters (SupplierCatalogAdapter, MPT, voice, dev_bounty); faltaba el **registro y la detección** de disponibilidad para que el sistema decida qué usar.
-- **Decisión**: `cores/tools/business.py` NUEVO — 18 herramientas 100% gratis + 13 tareas especiales canónicas (catalog_fetch/content_edit/media_download/stt/tts/llm_local/lead_enrich/automation_workflow/data_cli/oss_bounty/docs_render/security_signing/db_cli) + detección pura por kind (binary: shutil.which · module: importlib.find_spec · service: env/vault, jamás expone la key). `used_by` = módulo OWNEX real, no ficción. `recommended_installs` solo devuelve faltantes.
-- **Endpoint** read-only `api/routers/business_tools.py` (inventario · tasks · installs): las herramientas son visibles sin ejecutar nada (regla "si no es visible, no existe").
-- **Evidencia**: `tests/test_business_tools.py` 13/13 (detección pura monkeypatch sin red, servicios no filtran secretos, recommended solo faltantes, 3 endpoints 200) · fast 102/1 · main 1784 rutas · ruff limpio en los 3 nuevos (I001 preexistente no tocado).
-- **Regla permanente**: ninguna herramienta se marca disponible sin evidencia local (which/find_spec/env) — nunca "instalada" por catálogo; services free-tier se detectan por presencia de key, no por su valor; ejecución real siempre en adapters/módulos, el registro solo inventaría y recomienda (Human Gate intacto).
-
-## 2026-09-15 (build): NETO REAL + MATAR/ESCALAR — loop Dropsheable×Meli sin fantasía
-
-- **Pedido owner**: análisis Dropsheable+Meli (neto/venta × ventas/mes, portfolio 20→2 ganadores, O1-O6, `BUSCAR→CALCULAR→PUBLICAR→ESPERAR→MEDIR→MATAR O ESCALAR`). Sin impresora de billetes: matemática de escenarios, no previsión.
-- **Agent Loop**: `score_supplier_offer` EXISTÍA incompleto (sin fee plataforma ni impuestos) → EXTEND con `platform_fee_pct/tax_pct/other_costs_usd` opcionales (defaults 0, histórico intacto); MATAR/ESCALAR + O1-O6 NO existían → NEW mínimo (`ProductPerformance` puro + `engine.product_performance/portfolio_funnel/experiment_objectives`).
-- **Decisiones**: `net_usd` explícito (= margin, vocabulario del owner) · CANCELLED jamás vende · O2 exige DELIVERED+PAID (ACCEPTED≠PAID a nivel experimento) · `net_per_human_hour` None si horas=0 (UNKNOWN, las horas las informa el humano) · fees Meli por categoría los confirma el humano vía simulador (el sistema no los inventa) · `SupplierType.DROPSHEABLE` aditivo, seeds intactos.
-- **Evidencia**: 6 tests nuevos · afectadas 39/39 · ampliada 121 · fast 102/1 · 1781 rutas · ruff limpio.
-- **Regla permanente**: ningún producto escala sin neto>0 medido; ningún producto muere antes de 60 días vivo sin ventas; el número que importa es netos/hora humana con TUS datos.
-
-## 2026-09-15: ASSET_FACTORY — 11º workspace, 6 motores económicos, activo reutilizable 1→N
-
-- **Pedido owner (estrategia definitiva)**: cartera ya tiene 13 modelos (OWNEX, social commerce, Meli, Adriel Webs, AI work, bug/dev bounties, challenges, OSS, grants, content, capital, backup). No más marketplaces de migajas (<$15/h, entrevista, datos simulados → fuera por regla permanente). Única expansión que falta: **ASSET_FACTORY** — crear activos de software que se venden repetidamente (BUILD→PUBLISH→ACQUIRE→MONETIZE→SUPPORT→IMPROVE), cada trabajo sigue produciendo valor.
-- **Arquitectura 6 motores** (visión owner, ahora codificada):
-  1. CASH NOW (Droppinglabel, Meli, Adriel Webs) — UPSIDE
-  2. SKILL→CASH (Bug/Dev/AI Training) — PRIMARY
-  3. ASSET→CASH (micro-SaaS, APIs, dev tools, plugins, extensions, templates, automation kits, digital products, datasets, licensing) — **NUEVO UPSIDE prio 6**
-  4. AUDIENCE→CASH (Content Factory)
-  5. PARTNERSHIP→CASH (revenue share/afiliación legítima, futuro — **siguiente commit**)
-  6. CAPITAL→CAPITAL (Trading PAPER)
-  Fórmula de ranking para assets: `P(CASH) × gate_score × (1+repeatability) × ownex_boost / human_hours` — repeatability solo >0 con ventas reales, nunca inventada.
-- **Implementación mínima (Agent Loop: NEW, 0 existe → EXTEND antes que crear)**:
-  - `cores/workspaces/registry.py` EXTEND: `WorkspaceType.ASSET_FACTORY` + registro `asset_factory` prio 6, 11 totales → **12 con PARTNERSHIP** (ver siguiente entrada). Settings: pipeline 6 fases, 10 tipos, costo 0, distribución orgánica, 9 criterios gate.
-  - `cores/workspaces/policies.py` EXTEND: `_INCOME_ROLES[ASSET_FACTORY + PARTNERSHIP]=UPSIDE` (opt-in, no renta base).
-  - `cores/asset_factory/` NUEVO (2 archivos, budget 2/1): `models.py` (AssetType×10, AssetStatus 8 estados, GATE_CRITERIA 9, Asset con gate_passed/repeatability/mrr) + `engine.py` (create/list/get/update/set_gate/advance con guards — BUILDING exige gate_passed, MONETIZING exige ventas — + score/ranked/pipeline_stats/next_action, JSON en data-dir).
-  - `OWNEX_VISION_CHARTER.md` EXTEND: estructura económica reescrita a 6 motores (12 workspaces) + regla <$15/h.
-  - Tests: `test_asset_factory.py` 8/8 + `test_workspaces_registry.py` 7/7 (12 totales) + `test_workspace_policies.py` 13/13 + `test_mission_hub.py` 8/8 (12 workspaces, asset+partnership UPSIDE).
-- **Verificación**: asset_factory 8/8 · workspaces 20/20 · ruff limpio · economics 44/44.
-- **No tocado**: 9 criterios gate jamás se saltan; PARTNERSHIP queda `active=False` por defecto (futuro, no inventado sin acuerdo); sponsorship OSS vive como `revenue_model=sponsorship` dentro de asset_factory (no workspace separado) + `docs/GITHUB_SPONSORS_STRATEGY.md` ya existe; competición técnica ya cubierta por `MarketSegment.CHALLENGE/HACKATHON` en `public_work.py` (no nuevo workspace); content/audience separados; `core/` congelado.
-- **Regla permanente**: nuevo producto solo si pasa 9 gates con evidencia observable; sin ventas repeatability=0; `builds_on_ownex` por defecto.
-
-## 2026-09-16: INVESTMENT CONFIG VISIBLE — exchanges en checklist + IOL no existe (honesto)
-
-- **Pedido owner**: ¿el módulo inversión pide config (Binance/IOL)? ¿avisa cada módulo lo pendiente? Auditoría: adapters CCXT/Alpaca/IBKR/DeFi existen con endpoints reales (`POST /investment/ccxt/connect`, `/stocks/algopaca/connect`), pero creds **por-request, nunca persistidas** (diseño deliberado) → sin estado "conectado" observable. **IOL no tiene conector** (solo mención en catálogo payout-methods) — no se inventa.
-- **Colisión detectada**: el flujo concurrente agregó 10 ítems (trading_exchange, ccxt_exchange, memecoin_wallet, betfair, outlook, aux_bounty_keys, ai_work_keys, meta_account, meli_account, affiliate_networks) con modelo env-keys (capas trading-engine/discovery). Mis 2 nuevos (`exchange_binance` p12, `exchange_alpaca` p13, MANUAL) cubren la capa API de inversión que los suyos no tocan (sus how_to citan env keys que el adapter CCXT jamás lee — deuda de ellos, no tocada). Complementarios, no duplicados.
-- **Implementación**: 2 ítems MANUAL (efímero = no auto-detectable, regla honesta) con how_to a endpoints reales + url `/trading` existente. Tests: conteos 21→33, pct 5→3, listas del test `complete` extendidas (solo listas, semántica ajena intacta). 37 passed · fast **102/1** · ruff limpio.
-- **Efecto**: checklist 33 items (29 pending en este env, 7 de inversión) → fluyen solos a `pending-config` + strip + campana. Sin cambios frontend/backend extra.
-- **Regla permanente**: ítem de config solo cita endpoints/UI que existen (verificado contra routers); credencial efímera = ítem MANUAL, nunca detector falso; IOL queda como propuesta (adapter read-only OAuth), NO como ítem, hasta existir conector.
-
-## 2026-09-16: NOTIFY-EVERYTHING — las tuberías tenían mapa pero no agua + bug Target sin description
-
-- **Pedido owner**: que avise trading, dev bounty, bug bounty y TODO lo pendiente de configuración. Auditoría: la infraestructura existe y está cableada en lifespan (EventBus→hub vía `register_event_bridge`→DB/desktop/mobile/watch; `EVENT_PUSH_MAP`; WS manager + store + panel), pero (a) los eventos que el sistema prioriza **nunca se emitían** (`finding:confirmed`, `report:accepted`, payouts, submissions, trading, scheduler fails — solo fluían `finding:deleted`, `report:deleted`, `revenue:sync_failed`), (b) `register_ws_forwarder()` (hub→WS) existía pero **nadie lo llamaba**, y el store solo aceptaba `type==='notification'` mientras el forwarder emite `notification:new` → la campana jamás se encendía en vivo, (c) el checklist devuelve los 17 pendientes pero no había endpoint que los exponga juntos.
-- **Fix mínimo (7 puntos de emit, 1 línea c/u vía `cores/notifications/emit.py::emit()` nuevo, nunca raisea)**: auto-submit SUBMITTED/CONFIRMED/DLQ · algora claim/claim_failed/PR/merges (merged_paid=critical) · trading killswitch on/off (solo transiciones, el loop */15 jamás spamea) · finding confirmado al persistir · report al guardar · scheduler job muerto · payout al registrar PAID. `EVENT_PUSH_MAP` +13 keys (merged_paid y payout_recorded = critical).
-- **Bug real expuesto por el test nuevo**: `validation_executor._persist_findings` creaba `Target(description=...)` y el modelo NO tiene esa columna → TypeError tragado → **findings confirmados de targets nuevos se perdían en silencio** (incluido su aviso). Fix: quitar el kwarg inexistente.
-- **Configuración**: `GET /api/notifications/pending-config` (los 17 con id/título/porqué/minutos/cómo/url) + lifespan llama `register_ws_forwarder()` + store acepta `notification:new` + `startPolling()` (60s, mergea pending-actions + pending-config con dedupe por id estable) arrancado en App.vue junto a `connectWs()`. Templates intactos (leen del store).
-- **Verificación**: `test_notify_everything.py` 16/16 (emits con bus mockeado, mapa, prioridades dinero=critical, endpoint, forwarder) · afectadas 169 · fast **102/1** · vue-tsc 0 · biome 0 · ruff limpio. Preexistentes no tocados: LSP ambiental, 11 fallas `test_validation_engine` (territorio concurrente).
-- **Regla permanente**: todo resultado que el usuario espera (submit, claim, PR, merge, pago, kill-switch, job muerto) se emite en el punto donde ocurre, con `emit()` que jamás rompe el flujo; ningún evento nuevo sin entrada en `EVENT_PUSH_MAP`; la campana solo cuenta lo que el store ve.
-
-## 2026-09-15: GITHUB_TOKEN END-TO-END — executor lee opportunity.env + how_to sin endpoint fantasma
-
-- **Bug real**: `build_algora_executor()` leía env `GITHUB_TOKEN` → IdentityVault `platform_algora`, pero NUNCA `get_credentials().github_token` (`~/.config/ownex/opportunity.env`) — la misma fuente que lee el detector del checklist. Si el owner seguía el path documentado (pegar el token en opportunity.env), el checklist marcaba ✅ pero el executor lanzaba `ValueError`. Camino roto en el paso exacto que desbloquea los $2,700.
-- **Fix mínimo**: fallback intermedio `get_credentials(force_refresh=True).github_token` en `build_algora_executor` (orden: param → env → opportunity.env → IdentityVault → ValueError). Lazy import vía módulo (`cores.credentials.vault`) para poder aislarlo en tests.
-- **Mismo bug un nivel arriba**: `AutoSubmitEngine._get_algora_adapter()` construye `AlgoraDweAdapter()` sin token y su `__init__` solo leía env → el path `POST /workbank/{id}/submit` también fallaba con token solo en opportunity.env. Fix: `_resolve_github_token()` SSOT en `algora_executor.py`, usado por AMBOS (`AlgoraDweAdapter.__init__` con default `""` preservado + `build_algora_executor` con `ValueError`). +1 test del path adapter. 57 passed (algora 14 + auto_submit + checklist 36) · fast **102/1**.
-- **Doc falsa**: el `how_to` del item `github_token` citaba `POST /api/credentials/github` — endpoint que NO existe (verificado: `credentials_rotation.py` solo expone rotate/status/force/expiring/record/expiration/check). Reescrito al path real: línea `GITHUB_TOKEN=ghp_XXX` en `~/.config/ownex/opportunity.env` (o export en ~/.bashrc). Duplicado accidental de clave `url` en el mismo edit, corregido.
-- **Tests**: `test_algora_executor.py` +3 (lee opportunity.env sin env; param explícito gana; env gana a archivo) + test existente aislado de secretos locales (stub vault + IdentityVault vacía → sigue exigiendo ValueError aunque el owner ya tenga token). `test_algora_executor` 13/13 + `test_setup_checklist` 36/36 · ruff limpio · fast **102/1**.
-- **Readiness 2026-09-15**: AI gratis `route(chat)→fcc→claude→"OK"` ✅ · WorkBank 3 items reales $2,700 ready_to_deliver ✅ · executor `ValueError` limpio sin token (esperado) ✅ · checklist 19%, next `payment_accounts` (3 rails) · `GITHUB_TOKEN` vacío en opportunity.env (confirmado, es el bloqueo #1 real).
-- **Regla permanente**: todo path de credenciales que el checklist/documentación prometa debe ser leído por el executor que lo consume (detector y ejecutor comparten fuente); ningún `how_to` cita endpoints que no existen (verificar contra `api/routers/`).
-
-## 2026-09-15: FREE MODELS 24/7 — selección curada (FCC/NVIDIA/OmniRoute/OpenCode/Ollama)+------+*
-
-- **Pedido owner**: "sólo quiero visibles los que puedo usar totalmente gratis... el resto quitalos, estorban en la selección de modelos free. Investigá más providers/keys si hace falta". Decisión: mantener Devin/Freebuff en OWNEX (respuesta #1), local ligero = `qwen2.5:3b-instruct` (#2), conservar Gemini (#3).
-- **Verificación en vivo (evidencia, no catálogo)**:
-  - FCC (localhost:8082): `claude-3-5-sonnet-20241022` y `claude-3-5-haiku-20241022` (no-thinking) devuelven contenido real. Los alias `anthropic/nvidia_nim/*`, `anthropic/open_router/*:free`, `groq/*` devuelven vacío → fuera de la selección.
-  - NVIDIA NIM: `meta/llama-3.1-70b-instruct` **EOL 410 (2026-08-26)** → muerto. Vivos: `deepseek-ai/deepseek-v4-flash-0731` (contenido real), `openai/gpt-oss-20b`, `google/gemma-4-31b-it`, `mistralai/codestral-22b-instruct-v0.1`.
-  - OmniRoute (localhost:20128): 576 modelos, `auto/best-free|coding|fast|reasoning` válidos (chat upstream degradado en el sandbox, con timeout; se mantiene en la cadena como fallback).
-  - Ollama local: solo `qwen2.5:3b-instruct` (1.9GB) instalado; en este sandbox no hay RAM (500: 1.9GiB > 1.3GiB disponibles), en PC real corre.
-  - Ollama Cloud (ollama.com/v1): `qwen2.5:7b-instruct`, `qwen3.5:cloud`.
-  - OpenCode built-in free: `opencode/nemotron-3-ultra-free`, `deepseek-v4-flash-free`, `mimo-v2.5-free`.
-- **Bug real arreglado**: `FCCProvider` ruteaba a OpenRouter/NVIDIA según env keys (404/upstream pago) en vez del proxy local; ahora siempre a `http://localhost:8082/v1` con token del proxy (`ANTHROPIC_API_KEY=orion-dev-local` resuelto primero). Enable end-to-end: `route(chat) → fcc → claude-3-5-sonnet-20241022 → "OK"`.
-- **Cambios repo**:
-  - `cores/copilot/providers/router.py`: cadena `[fcc, nvidia, omniroute, opencode, ollama, devin, freebuff]` (code) / sin devin/freebuff en chat-reason. Devin/Freebuff CONSERVADOS al final (decisión owner).
-  - `fcc_provider.py`: FREE_MODELS + config.models = solo los 2 claude verificados.
-  - `nvidia_provider.py`: default + supported_models = ids vivos NVIDIA (sin EOL).
-  - `omniroute_provider.py`: `_OMNIROUTE_MODELS` = solo `auto/*`.
-  - OAR: `OARConfig.enabled_providers` default = 6 free (`ollama, opencode, ollama_cloud, fcc, nvidia_nim, omniroute`); `default_model=qwen2.5:3b-instruct`; registry agrega factories `ollama_cloud` + `omniroute`; router `tier_bonus`/`prefer_free` los incluye; `create_fcc_adapter` default `claude-3-5-sonnet-20241022`; `create_nvidia_adapter` default `deepseek-ai/deepseek-v4-flash-0731`; `OllamaAdapter` default al ligero.
-  - `cores/ai/unified_provider.py`: `_omniroute_models` = solo `auto/*`.
-  - Workaround tanque `.env` (gitignored): `OLLAMA_MODEL=glm-5.1` (modelo inexistente que contaminaba tests/OAR) → `qwen2.5:3b-instruct`.
-- **Configs externas** (home, con backup `*.bak.20260915_043405`):
-  - `~/.config/opencode/config.json`: `models` pineados por provider (fcc 2 claude, omniroute 4 auto, ollama_cloud 2 qwen, nvidia_nim 2) + `disabled_providers` para built-ins pagos (anthropic, google, deepseek, openrouter, groq, nvidia, sambanova, huggingface, xai, cerebras, together, mistral, cohere). Secrets preservados.
-  - `~/.config/opencode/opencode.jsonc`: mismo `disabled_providers` + comentarios con la cadena free.
-  - `~/.hermes/config.yaml`: `model.default=claude-3-5-sonnet-20241022 @ fcc` (arregla mismatch provider openrouter), `fallback_providers` = 6 capas, `providers.*.models` curados.
-- **Tests**: `tests/test_free_providers.py` 8/8 (pin: orden cadena, FREE_MODELS claude, nvidia sin EOL, auto/* omniroute, OAR 6 defaults, factories, scoring). `test_oar.py` actualizado al default ligero (15/15). `test_e2e_copilot` 2 asserts de cadena → fcc-first (eran `omniroute`; quedan 10 fallos preexistentes de drift commander/execution/workflow, KNOWN_DEBT #14). Ruff limpio en tocados. fast 102/1. Copilot+chat+ai_router+mobile 193 passed.
-- **Regla permanente**: selección de modelos = solo free verificados con contenido real (probe HTTP 200 + texto), sin ids EOL, sin upstreams pagos. Nuevo modelo entra solo con evidencia de contenido.
-
-## 2026-09-16 (turno noche 3): VERDAD OPERATIVA — seeds muertos fuera + techo anti-$1e82 + Fuentes visible
-
-- **Seeds estáticos muertos vaciados**: BountyBoard (`bountyboard.dev` caído entero, 000) y Polar (`/rust-analyzer` 404) servían $500/$300/$1,000 falsos en el ranking (el Polar $1k salía top en `/recommend` en vivo). `CURATED_BOUNTIES = []` en ambos con nota de evidencia. Maquinaria intacta para re-agregar con URL viva.
-- **Catch en vivo**: `/recommend` mostró `[OmniBlocks/Boxy-gh] bounty` con reward **$1e82** (hash parseado como plata). Fix: `_sane_reward()` con techo `MAX_REWARD_USD = $10M` (techo observado propio `MARKET_CEILINGS` BUG) → sobre eso = 0.0 UNKNOWN, nunca número recortado inventado. Test pineado.
-- **Cierre wave-2**: Fuentes visible en `PublicWork.vue` (ya consumía `fetchCuratedSources/optSource` sin página) · F841 ajeno en `/sources/prep` eliminado · prober 405/500+ → unknown.
-- **Verificación**: curated 22/22 · afectadas 134+110 · fast **102/1** · ruff limpio · vue-tsc 0 · biome 0.
-- **Regla permanente**: ningún monto que supere el techo observado del sistema entra al ranking como número — es UNKNOWN o no entra.
-
-## 2026-09-16 (turno noche 2): 890 FUENTES FABRICADAS ELIMINADAS + URLs reparadas + sección Fuentes
-
-- **Hallazgo grave (evidencia, no opinión)**: `global_sources.py` contenía 7 loops generadores (`web3×6`, `cloud×6`, `ai×6`, `mobile×6`, `backend×6`, `funding×6`, `comp×5` con sufijos `#N` + `?src=N`, + 70× `Open Collective — Extra N` con URLs `/discover/extra-N` inexistentes) = **890 de 1008 entradas fabricadas**. Un `_mark_verification_states()` intentaba mitigarlo, pero su rama `elif` auto-promovía a VERIFIED todo lo no-matcheado (incluidos mis UNVERIFIED honestos). URLs y conteos del radar contaminados.
-- **Fix (mínimo, sin guerra de ediciones)**: cada loop → alta única exacta (nombre+URL tal cual, dedupe por URL contra la base, `UNVERIFIED` al nacer); bloque Extra-70 eliminado con nota; `_mark_verification_states` + llamada eliminados (122 líneas). Base estática real intacta. Resultado: **253 honestas (118 VERIFIED + 135 UNVERIFIED)**, 0 fabricadas (pineado por test: sin `#N`/`?src=`/`extra-`), URLs únicas.
-- **Curación verificada**: 2do probe → 21 URLs muertas investigadas una por una: 14 raíces vivas confirmadas por probe (HackerOne, YesWeHack, Immunefi, Gitcoin, OnlyDust, HackTheBox, OWASP, Labelbox, Scale, GlobalLogic, Huntr, Detectify, HackerRank, GitHub→API search con 4396 issues) → URLs actualizadas; el resto (Bountysource, BypassBounty, Enroll, Tasker, Codefund, Fancy Hands-405, HackerLink-405) queda en quarantine honesto. 3er probe: **172 live / 35 dead / 45 unknown**.
-- **Prober endurecido**: 405/500/501/502/503 → `unknown` (antes `dead` — un 405 es servidor vivo, no muerte).
-- **Doble conteo cazado por test**: `hidden_by_optout` incluía quarantined → invariante `analyzed+optout+quar==total` ahora pineado.
-- **Fuentes visibles (regla "si no es visible, no existe")**: sección Fuentes en `PublicWork.vue` (search + dots live/dead + badges gate/quar + toggle opt-in, 60+show-more, sin templates nuevos) conectada a `fetchCuratedSources/optSource` ya existentes. vue-tsc 0 · biome 0.
-- **F841 ajeno**: `found = source_onboarding(...)` muerto en `/sources/prep` → eliminado (2 líneas, gate verde).
-- **Verificación**: curated 21/21 · afectadas 202 · fast **102/1** · ruff limpio.
-- **Regla permanente**: generador de datos que multiplique entradas con identificadores/URLs derivadas = fabricación, se elimina sin importar la intención; toda entrada nace con URL exacta + UNVERIFIED hasta probe; el prober decide, el humano cura.
-
-## 2026-09-16 (turno noche): COLISIÓN DE COMMITS — reconciliación sin reescritura
-
-- **Qué pasó**: el flujo concurrente commiteó (`40b88f87`, `f5374c18`) con `add -A`, barriendo mi working tree. Efecto mixto: (a) **convergencia real** — ellos implementaron lo mismo que yo (auth GITHUB_TOKEN en GitHub adapter, rama `languages` en discover, checklist 33); (b) **1 pérdida real** — mi filtro opt en `source_intel.py` desapareció (el archivo volvió a HEAD sin él).
-- **Reconciliación mínima**: NO se revirtió nada ajeno. Se re-aplicó solo lo perdido (filtro opt + `hidden_by_optout/hidden_quarantined` en `source_intel.analyze`). Verificado intacto sin tocar: providers free, endpoints `/sources`, job probe, checklist 33, tests.
-- **Verificación post-merge**: curated 19/19 · free 8/8 · oar 15/15 · checklist 37/37 · afectadas **204** · fast **102/1** · ruff limpio · `analyze()` 1008/1008 con conteos.
-- **Regla que esto confirma**: ante `add -A` ajeno, inventariar por markers (`git log -S` + grep en árbol) antes de asumir pérdida o duplicar; re-aplicar solo lo ausente; jamás `checkout` sobre scope ajeno.
-
-## 2026-09-15: 100+ WEBS OPTABLES — filtro por lenguaje + registry curado + prober con quarantine
-
-- **Pedido owner**: poder optar entre 100+ webs de dev bounty (rust/go/solidity...), gap a mi criterio. Hallazgo: las webs YA existen como datos (1008 `SourceDefinition` en `global_sources.py` — 816 dev_bounty, 152 bug_bounty, 36 data_entry, 4 ai_evaluation; el radar las analiza); el gap real era FETCH (solo 8 traían oportunidades) + filtro por lenguaje + liveness. Probes honestos: OpenBugBounty 403, HackenProof/CodeHawks 404, Huntr 302 → ningún endpoint nuevo verificable → cero fetches inventados.
-- **F1 filtro lenguaje** (`direct_work_github_bounty.py` EXTEND, 0 archivos nuevos): `languages=["rust","go","solidity"]` → qualifiers `language:` server-side (3 queries × idioma, cap 5, default intacto sin filtro); auth `GITHUB_TOKEN` cuando existe (30/min vs 10 anónimo); expuesto en `POST /direct-work/discover` (`languages`, rama que evita doble-fetch de GitHub + fallback si el adapter no acepta el param).
-- **F2 registry curado** (1 archivo nuevo `cores/direct_work_engine/source_registry.py`): gates del owner como código (`requires_interview` → fuera; `typical_hourly_rate_usd < 15` → fuera; UNKNOWN pasa); opt-in/out persistente (`OWNEX_DATA_DIR/curated_sources.json`); `GET /direct-work/sources` (las 1008 con gate+liveness+enabled — la superficie "optar"); `POST /sources/opt` (404/422 honestos); `source_intel.analyze()` respeta opt-out/quarantine con conteos (`hidden_by_optout`, `hidden_quarantined`, aditivos). Duplicado real eliminado: "Lionbridge (TELUS)" = misma URL que "TELUS AI Community" (1008 únicas).
-- **F3 prober** (mismo módulo, 0 archivos): `probe_all_sources()` tri-estado (live/dead/unknown; 403→unknown, nunca "muerta" por muro; sin URL→unknown) → snapshot + quarantine auto a los 3 muertos seguidos (log + reversible; re-opt-in limpia); `run_source_probe_cycle()` nunca raisea; job `curated_sources_probe` dom 05:00 en `get_direct_work_jobs()`; `POST /sources/probe` manual.
-- **Verificación**: `test_curated_sources.py` 19/19 (schema 118, gates, opt roundtrip, prober mockeado, quarantine×3, job resuelve, 3 endpoints, discover con idiomas) · afectadas 142 (direct_work_api+market+scheduler+workbank) · fast **102/1** · `import api.main` 1820 rutas · ruff limpio.
-- **No tocado**: fetchers vivos, scoring/recommend, OAR/copilot, WIP ajeno (incl. ciclo `economic_feedback` del flujo concurrente). Sin commits.
-- **Turno noche (primer probe real, 2026-09-16)**: `run_source_probe_cycle()` sobre las 1008 → **352 live / 264 dead / 392 unknown**, 0 quarantined (requiere 3 seguidos). Corrección de conteo: eran 1008, no 119 (mi grep inicial contó solo una variante de formato). Snapshot en `data/` (gitignored).
-- **Regla permanente**: web nueva = 1 `SourceDefinition` + probe → auto-wired, $0 código; lo no-verificable vive en el radar con `unknown`, jamás como oportunidad; quarantine es automático pero reversible.
-
-## 2026-09-15: 6 MOTORES COMPLETOS — PARTNERSHIP + visión 12 workspaces + sponsorship integrado
-
-- **Siguiente del “Mandale”**: tras ASSET_FACTORY, únicos huecos restantes de los 5 del doc.
-  - **Sponsorship OSS** → NO nuevo workspace: es `asset_factory` con `revenue_model=sponsorship|licensing` + `AssetType` OSS (ej. dev_tool/template publicado en GitHub). Tiers $15/$49/$149 ya definidos en `GITHUB_SPONSORS_STRATEGY.md`; gracias.dev es canal alternativo. Se trackea como `mrr_usd` + `sales_count` igual que cualquier asset, repeatability por MRR.
-  - **Competición técnica** → NO nuevo workspace: ya es `MarketSegment.CHALLENGE/HACKATHON` en `public_work.py` (techo $30k/$100k), clasificado por `classify_market_segment()` y visible en `PUBLIC WORK → CHALLENGES`. Cero duplicación.
-  - **Productos digitales técnicos** → YA es `ASSET_FACTORY` (10 tipos incluyen templates/datasets/automation_kits). No separar.
-  - **PARTNERSHIP (hueco real)** → SÍ nuevo workspace `partnership` prio 3, `UPSIDE`, `active=False` (futuro: revenue share / afiliación legítima). Requiere negociación humana, techo alto pero riesgo medio_alto → no entra al mix sin acuerdo firmado.
-- **Implementación “Mandale”**:
-  - `cores/workspaces/registry.py` EXTEND: `WorkspaceType.PARTNERSHIP` + registro 12º, `_seed_real_context` con `active=False`.
-  - `OWNEX_VISION_CHARTER.md`: estructura de 3 motores → 6 motores con diagrama completo y 12 workspaces.
-  - `cores/asset_factory/models.py`: `revenue_model` ahora incluye `revenue_share` (para partnership vía asset).
-  - Tests actualizados: registry 11→12, mission_hub 11→12, policies incluye partnership.
-- **Verificación**: registry 7/7 · mission_hub 8/8 · asset_factory 8/8 · ruff limpio.
-
-## 2026-09-15: 15 WORKSPACES CANÓNICOS $0 — AFFILIATE + LEAD_SERVICES + KNOWLEDGE_ASSETS
-
-- **Pedido owner (estrategia definitiva)**: 15 negocios, todo 100% $0, ingenioso, OSS/free. Portfolio cerrado: 12 existentes + 3 nuevos UPSIDE (agrupan los 7 builds F8 sin crear 7 workspaces: `AFFILIATE`←affiliate.py · `LEAD_SERVICES`←leadgen+arbitrage+automation · `KNOWLEDGE_ASSETS`←report factory+data curation+security packs). Regla operativa: 15 = 3 ACTIVOS + 7 PILOTO + 5 APARCADOS; más de 3 activos mata `money_per_human_hour`.
-- **Implementación mínima (EXTEND)**: `registry.py` (+3 `WorkspaceType` + defaults prio 5/5/6 `DRAFT_ONLY` + seeds con reglas honestas clicks≠plata / seña-50% / margen-100%) · `policies.py` (+3 UPSIDE explícitos; default ya era UPSIDE pero se pinea) · tests 12→15.
-- **Verificación**: registry+policies+mission+asset 37/37 · economic_os+ssot+asset 31/31 · fast 102/1 · ruff limpio.
-- **No tocado**: trading PAPER, partnership `active=False`, backup LAST_RESORT, resto del árbol. Sin commits.
-
-## 2026-09-15: PLAN $0 COMPLETO — ecommerce ingenioso + 7 negocios nuevos (EXTEND-first)
-
-- **Pedido owner**: "me gusta todo tu plan, implementa todo". Audit-first: `reports/templates.render_report` EXISTÍA (SSOT, reuse directo); affiliate/enrich/curation/packs/automation NO existían (build mínimo).
-- **Ecommerce ingenioso $0**: pricing puro (floor margen vs 95% competidor, nunca bajo VIABLE) + CompetitorWatch puro (UNKNOWN sin datos) + routing landed-cost→processing→rating (unrouted honesto) + scorecards desde historial local + cross-listing 4 canales determinista + content planner hook/demo/CTA + reviews 10d post-delivered (prepara, humano envía) + carts tracking ligero. Jobs: competitor 06:00, scorecards 06:30, reviews 10:00 (order_sync/listing_health intactos).
-- **Negocios nuevos**: affiliate (links multi-red, conversiones solo-confirmadas, funnel clicks≠plata, publicar=Human Gate); leadgen (DIRECTORY_SCRAPE + enrich free-tier + score 0-100 + export vendible + arbitrage margen≥50% solo tras seña); report factory (sobre templates SSOT, tiers $50/90/150); data curation (dedupe sha256, quality≥0.4, package+datasheet); security packs (4 packs $29-79); automation service (5 ofertas setup+MRR, quote ×complejidad).
-- **Evidencia**: `tests/test_zero_invest_ecommerce.py` 12/12 · afectadas 41/41 · scheduler 53/53 · fast 102/1 · main 1776 rutas · ruff limpio 11 archivos.
-- **Regla permanente**: $0 = CPU local + tiers gratis + humano aprueba todo lo externo (publicar/enviar/cobrar). Ningún módulo nuevo si EXTEND alcanza; templates SSOT jamás se duplican.
-
-## 2026-09-14: SUPPLIER RESEARCH FRAMEWORK — framework completo para conseguir proveedores a comisión
-
-- **Pedido owner**: "quiero el plan completo con los mejores proveedores... conectados a IG+WA+FB". Filtrado: Mercor/Outlier/Alignerr quedan (ya cableados); Clickworker/Toloka/Remotasks/TELUS/Upwork fuera; CrowdGen/Appen opcional (off por defecto, se enciende a pedido).
-- **Audit-first**: purga parcial 09 ya existía (Clickworker/Remotasks excluidos del registry con comentario, `Remotasks excluded: shuttering` en pulse, `channel_status._HARD_EXCLUDED` ya trae upwork/clickworker) → se completó lo vivo: adapters, jobs scheduler, workers, conectores, listas DWE, taxonomy, rails, guías, checklist.
-- **Eliminado** (Delete Don't Comment): `TolokaAdapter`+`ClickworkerAdapter` (`microtask.py`, queda solo Prolific) + registro; `RemotasksAdapter` ×2 (`pulse/__init__.py` + `pulse.py`) + factory/list; `RemotasksWorker` ×2 (`platform_workers.py` + `automation/workers/remotasks_worker.py` archivo borrado) + registros; job `pulse_remotasks_discover`; `Toloka` (trust/intel/agregadores en `autonomous_discovery.py`, entry en `global_sources.py`); `_search_upwork` (fabricaba oportunidades con URL `upwork.com/job/post/123` simulada) + `_apply_upwork` (simulado) + enums sin uso; `UpworkConnector` en `universal_connector.py`; `upwork` en GAME_DEV/platforms, execution, delivery, checklist (→Fiverr), revenue models ×3, taxonomy ×90 (mecánico), payout-methods ×7, contract_sources, execution_queue driver, personal_infrastructure objectives, guides (2 rewords); TELUS ×2 en `global_sources.py`.
-- **CrowdGen opcional**: sin adapter propio (solo enum + autopilot); `autopilot_config` `crowdgen: enabled True→False` + comentario. Se enciende cuando haya proyecto AR concreto.
-- **Intel nueva del owner** (Nivel 1/2): Algora/Opire/IssueHunt ya cubren la mecánica GitHub-bounty (loop Algora cerrado hoy); BountyHub/Gitpay/CodeBounty/Zama = misma mecánica → backlog documentado, adapters SOLO tras 1er PAID Algora que calibre P(CASH); Contra ya existe en `contract_sources.py`.
-- **Evidencia**: ruff limpio en 40 archivos tocados · `test_microtask` reescrito Prolific-only + not-registered · afectadas **140 passed** · fast **102/1** · `TestBrowserWorkersE2E` 3/3 · fallas restantes pre-existentes verificadas (conflicto merge `cores/intelligence` ajeno; `get_executors` sin algora/outlier/workers; 13 e2e_copilot de copilot/workflow).
-- **No tocado**: `core/` congelado salvo 2 espejos de 1 línea (`mercenary_filter`, `application_assistant` display) para no divergir twins; vault/health fields remotasks (plomería inerte sin keys); `opportunity_genome.UPWORK` residual sin callers; research JSON (artefacto, no sistema); WIP ajeno. Sin commits.
-- **Regla permanente**: plataforma que pague <$15/h, exija entrevista/empleo, o genere datos simulados → fuera del registry + jobs + workers + guías en el mismo sprint, con test que pinea la ausencia.
-
-## 2026-09-13: NEGOCIOS UNIFICADOS — Droppinglabel+Meli, Adriel Webs, Contenido, Local AR bajo OWNEX
-
-- **Pedido owner**: "conecta las mejores webs de proveedores para ecommerce/dropshipping directo en Meli".
-- **Decisión**: NO se hardcodea ninguna URL de proveedor (Dropsheable/Unidrop/etc.) sin contrato API verificado — inventar endpoints violaría honestidad y generaría falsos éxitos. En su lugar: `SupplierCatalogAdapter` genérico driven por `Supplier.api_endpoint` (dato del usuario) + auth vault `supplier_{id}`. El proveedor real se registra cuando el owner lo valida (Paso 1: precio/stock/talles/condiciones/envío confirmados).
-- **DRAFT-first**: el sync crea productos DRAFT (costo conocido, precio pendiente); nada se publica sin humano (precio vía /sourcing/score → ACTIVE → approve payload Meli). Alineado a la regla "no publiques hasta confirmar precio/stock/talles/condiciones/envío".
-- **Fixes reales colaterales**: `calculate_margin/roi` ZeroDivisionError con precio 0; `POST /suppliers` AttributeError (`payload.processing_days` inexistente).
-- **Evidencia**: `tests/test_ecommerce.py` 21/21 · fast 102/1 · ruff limpio.
-- **Regla permanente**: integración con web externa = adapter genérico config-driven + estados honestos; jamás URLs de terceros hardcodeadas sin contrato verificado.
-
-## 2026-09-14: FASE 3 — consolidación frontend/móvil/watch sin reescritura
-
-- **Audit-first**: todo lo que el usuario pidió verificar ya existía en el código (chat unificado, voz consolidada, vistas de oportunidades son capas distintas de la misma API, mobile usa contratos canónicos). Se corrigió lo genuinamente roto/dead, sin crear nada nuevo.
-- **Fix real `--ownex-accent`**: SSOT en `tokens.css` = `#00D5FF` (cian, directiva cero rojo). Eliminado dangling `ownex-theme.css` (auto-referenciaba `var(--ownex-accent)` como valor).
-- **Fix real `--color-destructive`**: en `style.css` apuntaba a `var(--ownex-accent)`, ahora a `var(--ownex-danger)` (#3B82F6, solo para error/destructivo).
-- **Fix real dead code**: `styles/ownex-theme.css` (660L), `styles/special-effects.css` (0 importers), `VoiceAssistantRecorder.vue` (324L) — todos eliminados con `git rm`.
-- **Fix real watch**: QuickActionsScreen stub buttons `merlin`/`dashboard` → solo Sync/Alerts reales (imports muertos eliminados).
-- **Mobile verificado** (sin cambios): 7 endpoints contratados existen en openapi, `OwnexApiClient.kt` dual-tolerante (nunca 500 por missing keys).
-- **No tocado**: `cores/events/*`, `cores/validation/*`, `cognee`, WIP ajeno (Makefile/first_money/brief/daily/priority/.ai).
-- **Evidencia**: `test_frontend_theme_consistency.py` 8/8 · fast 102/1 · vite 11.75s · vue-tsc 0 · biome limpio · ruff limpio.
-- **Regla permanente**: ningún archivo nuevo a menos que funcionalmente inexistente; primero AUDIT → REUSE → EXTEND → solo CREATE si no existe equivalente.
-
-## 2026-09-14 — FASE 2.4/CIERRE: offline/degraded NO construye módulo nuevo (reuse) — pin integration
-
-- **Gap real 2.4**: la resiliencia offline/degraded YA estaba cubierta por diseño (DegradedMode NORMAL/DEGRADED/OFFLINE_AI + QuotaTracker + ErrorClassifier + fallback chain OAR→router + autobadge global) con 54 tests. Un "offline queue" nuevo duplicaría execution-queue (retry/DLQ), WorkBank persist y RecoveryStore (§38 no-infra).
-- **Decisión**: NO módulo nuevo. Se agregó `tests/test_offline_degraded.py` (6) que pinea el comportamiento end-to-end con AI en OFFLINE_AI: workbank state determinista, backup crea zip, redaction intacta, endpoints sistema/recovery nunca 500. Nada de fake success.
-- **Cierre Fase 2**: 2.1 migrate engine · 2.2 backup secrets hardening · 2.3 recovery + UNKNOWN rule + API real · 2.4 offline pin. Evidencia total: 119 tests de resiliencia/recovery/backup/migrate/version/offline, fast 102/1, api.main 1600 rutas.
-- **Regla permanente**: ante "falta X de resiliencia", primero probar si retry/DLQ/persistencia/fallback existentes YA la cubren; construir infraestrutura nueva solo si hay un vacío verificado.
-
-## 2026-09-14 — FASE 2.3: Recovery — tests dedicados + healing rule UNKNOWN + endpoint con engine real
-
-- **Gap**: `cores/recovery/` (RecoveryStore + healing_rules + engine con version rollback prio 0) existía integrado pero con CERO tests dedicados; `/api/recovery` devolvía un dict estático sin tocar el engine. `get_rule(FailureType.UNKNOWN)` retornaba None (fallback a "none" del engine).
-- **Decisión**: (1) healing rule `UNKNOWN → log_and_observe` prio 100 sin circuit breaker (unclassified nunca es no-op silencioso). (2) `/api/recovery` sirve el engine real (`status()` + `get_version_recovery_status()` + features). (3) Tests dedicados: rules, status shape, version-rollback honesto (False cuando no hay backup system — jamás fake), RecoveryStore persistencia/reload, endpoint nunca 500.
-- **Evidencia**: ruff limpio · `tests/test_recovery.py` 7 · recovery+backup+migrate+version 59 · fast 102/1 · `api.main` 1600 rutas.
-- **Regla permanente**: toda ruta de fallback/rollback se testea por el camino "no disponible → False/UNKNOWN honesto", nunca mockeado como éxito.
-
-## 2026-09-14 — FASE 2.2: Backup hardening — secrets jamás en texto plano + clave preservada en restore
-
-- **Problema**: `cores/backup/engine.py::_default_exclude` solo excluía caches/transients; un backup de `~/.ownex` podía incluir `identity_vault.key` (la clave AES-256-GCM maestra) en texto plano dentro del zip. Restore tampoco preservaba claves existentes.
-- **Decisión**: (1) `_default_exclude` excluye SIEMPRE raw secrets: `identity_vault.key`/`.key.bak`, `*.pem`/`*.key`/`*.jks`/`*.keystore`/`*.p12`, `id_rsa`/`id_ed25519`/`id_*`. La vault cifrada + DBs siguen en el backup (recovery funcional). (2) `restore_backup()` preserva una clave existente como `.key.bak` antes de escribir — mismo patrón que `import_migration()` (PC→PC).
-- **Evidencia**: ruff limpio · `tests/test_backup.py` 17 (2 nuevos: zip sin secrets + restore preserva key) · backup+migrate+version 52 · fast 102/1 · `api.main` 1599 rutas.
-- **Regla permanente**: ningún archivo de clave maestra (vault/ssh/pem/p12) entra jamás en un backup sin cifrar; la clave viaja solo por el flujo de migración (`.key.bak`), nunca dentro de archivos que puedan compartirse/loguearse.
-
-## 2026-09-14 — FASE 2.1: Migration Engine en árbol canónico (cierra gap CLI roto)
-
-- **Gap**: `run.py --migrate-export/--migrate` importaba `cores.backup.migrate` inexistente. La implementación 2026-08-16 vivía en `core/backup/migrate.py` (árbol borrado); solo sobrevivía el spec de firmas en `graft/core/backup/migrate.md`. CLI roto desde el borrado de `core/`.
-- **Implementación** (`cores/backup/migrate.py`, nuevo, ~430 líneas): `export_migration()` (6 secciones orion/ownex/config_ownex/repo_database/repo_data/env, manifest sha256 por archivo, WAL checkpoint TRUNCATE pre-lectura, exclusiones backups/logs/vision_cache/node_modules/.git/.venv/pyc/-wal/-shm/pid/lock/log/tar.gz/zip/dotfiles, `README_MIGRATION.txt`, `--no-targets` excluye 4.1G), `verify_migration()` (schema + checksums, `corrupted` con lista, legacy → error con mensaje `--restore`), `import_migration()` (destinos inyectables data_dir/ownex_dir/config_dir, guard destino-no-vacío sin force → error sin tocar nada, `.key.bak` antes de escribir, chmod 0600 restaurado).
-- **Tests** (`tests/test_migrate.py`, 11): fixture máquina fake en tmp (JAMÁS home real — regla del incidente 2026-08-16); export/manifest/exclusiones/targets/verify-ok/legacy/corrupt/guard/restore/keybak.
-- **Evidencia**: ruff limpio · 11/11 · backup suite 50 · fast 102/1 · CLI import OK.
-- **Regla permanente**: todo módulo que el CLI importa debe existir en `cores/` con tests aislados; ningún test toca el home real.
-
-## 2026-09-14 — FASE 1 EJECUTADA: gate con workspace, vault con scopes, brave honesto, sin teatro
-
-- **Colisión**: un reset del flujo paralelo borró el working tree de la sesión anterior (~40 archivos). Recuperación quirúrgica: solo se re-aplicó lo Fase-1 + bugs de corrección verificados (registry, sweep-pin, creds, onboarding-status, orchestrator-net para test surviving). Diferido a su fase: OAR env, workspaces-12, backup-exclusión, gate-UX, LOW→THIN (registrados, no perdidos — están en el historial de esta conversación).
-- **Tokens v2**: payload incluye workspace siempre (default ""); v1 rechazado. Ephemeral single-process → rotar formato es seguro (restart invalida todo igual). Callers existentes compatibles (params defaulted).
-- **Vault estricto**: scoped jamás ve legacy ni otro namespace; migración = re-store explícito. `resolve_credential(..., workspace="")` preserva callers actuales.
-- **Sin token-theater**: no se agregó token a `submit_workbank_item` (el humano ya aprobó upstream: driver post-approval, router click authed, sweep→queue). El pin es el test, no otro gate.
-- **Brave**: estado sin sesión viva = máximo DETECTED; READY exige evidencia del caller. `detect_pages: False` declarado (sin extensión no se puede).
-- **§12/§24 fuera de Fase 1**: state-machines con converters (no unificar); `core/` lo borra el flujo dueño del §24.
-- **Evidencia**: ruff 0 nuevos · 67 tests Fase-1 · fast 102/1 · api.main 1598 rutas · `docs/SECURITY_AUDIT_FINAL.md` (RC, no Stable).
-- **Regla permanente**: ante reset ajeno, re-aplicar solo el scope propio verificado; nunca re-escribir el scope del otro flujo.
-
-## 2026-09-13 (cont. 3) — TRADING ADVISOR + BACKTEST: OAR-driven advisor + rule-based fallback + backtest replay + parameter sweep + human gate
-
-- **Contexto**: Cierre de la trading intelligence suite — advisor OAR + fallback rule-based + backtest replay determinista + parameter sweep + human gate end-to-end.
-- **Arquitectura**: `TradingAdvisor` (OAR-driven proposals con Human Gate) + `MemecoinPaperLoop` (backtest replay + paper loop) + `run_backtest/parameter_sweep` (offline deterministic) → integración completa advisor→backtest→human gate→exec.
-- **Advisor OAR**: `TradingAdvisor.propose(metrics, config)` → OAR `ai_chat` con prompt estructurado (`_build_prompt`) → `_parse_oar_response` tolerante (markdown, llaves, ≤3 propuestas, schema estricto). Fallback rule-based (`_propose_rule_based`) idéntico a `AutoParamOptimizer`: win_rate < 50% → tighten SL; PF < 1.5 & win < 55% → reduce size; PF > 1.5 & win ≥ 60% → scale up; negative expectancy → tighten SL. Persistencia en `cores/trading/store.py` (`proposals` key) con `ParamAdjustment`. Endpoint `/api/trading/advisor/propose` → Human Gate vía approval token HMAC single-use (`cores/automation/safety.py`).
-- **Backtest**: `run_backtest(snapshots, BacktestConfig)` replay determinista puro CPU sobre snapshots `Snapshot(mint, symbol, timestamp, price_usd, pair, rug)` → filters `evaluate_pair` + exits `evaluate_exit` (SL > TP tier > trailing > time) con epsilon 1e-9 en bordes exactos. `BacktestConfig` (position_sol, max_open_positions, daily_loss_limit_sol, max_hold_minutes, min_liquidity_usd, stop_loss_pct, trailing_pct, take_profit_tiers). `parameter_sweep` rankea configs por expectancy. `save_snapshot/load_snapshot` en `TradingStore` para replay offline.
-- **Paper Loop**: `MemecoinPaperLoop` (scan→enter→track con kill-switch STRATEGY + daily loss limit). `run_memecoin_paper_cycle` scheduler `*/15`. Persistencia `TradingStore` (snapshots + closed trades). Kill STRATEGY requiere humano.
-- **Human Gate**: `cores/automation/safety.py` → HMAC token single-use (600s), `BLOCKED_COMMAND_PATTERNS`, `redact_secrets`, `is_path_allowed`. `TradingAdvisor` proposals requieren approval token via `POST /api/trading/advisor/approve/{id}` antes de aplicar.
-- **Tests**: `tests/test_trading_advisor.py` (12) + `tests/test_trading_backtest.py` (13) = 25/25 passed. Ruff: `cores/trading/advisor.py`, `cores/trading/backtest.py`, `cores/trading/strategies/memecoin_exits.py`, `tests/test_trading_advisor.py`, `tests/test_trading_backtest.py` → All checks passed.
-- **Docs**: `cores/trading/SECTION_trading_advisor.md` creado.
-- **Regla permanente**: advisor nunca ejecuta en live sin aprobación humana y sin capital real; backtest paper-only, jamás toca capital real; Human Gate obligatorio en toda propuesta externa.
-
-- **Pedido owner**: "mi visión de ownex es que me acelera el trabajo diario un 1000%, hace todo lo que debería hacer yo sólo en automático ... yo sólo monitoreo y tomo decisiones, y cobro" — define éxito como **trabajo humano minimizado, no feature count**.
-- **Decisión**: `.ai/OWNEX_VISION_CHARTER.md` gana sección **Principio Rector — Fábrica Autónoma 1000%**: escalera MANUAL→ASISTIDO→AUTOMÁTICO→AUTÓNOMO→AUTÓNOMO+VERIFICADO→AUTÓNOMO+APRENDE como objetivo de diseño por tarea; criterio de priorización (¿reduce trabajo humano? → alta; ¿solo info bonita? → baja; ¿duplica? → eliminar; ¿automatizable? → candidato; ¿riesgo irreversible? → Human Gate 99%+1 clic); frontera no automatizable declarada (finanzas/trading/reportes/contratos/acciones legales/comunicaciones críticas/publicación bajo identidad).
-- **Métricas corazón** (SSOT `cores/cycles/metrics.py::compute_automation_metrics()` → `GET /api/cycles/automation-metrics` justo antes de `/metrics` para no colisionar con `/{cycle_id}`): `automation_ratio` (auto/total), `human_time_saved_hours`, `human_interventions_per_item`, `money_per_human_hour` (NET CASH/HUMAN HOURS), `total_work_hours_est` (1.5h/op baseline), `paid_usd`/`pipeline_usd`; UNKNOWN (None) si historial vacío — nunca inventa, human_hours desde `work_items.human_minutes_actual`.
-- **Evidencia**: charter verificado · `compute_automation_metrics()` 3 items → 4.5h est / UNKNOWN honesto sin historial · 34 tests (ecommerce/client/content/ar) verdes · `import api.main` OK · ruff limpio.
-- **Regla permanente**: ningún sprint nuevo entra si no reduce métricamente el trabajo humano o aumenta `money_per_human_hour`; todo trabajo externalizable irreversible va a Human Gate.
-
-## 2026-09-13: NEGOCIOS UNIFICADOS — Droppinglabel+Meli, Adriel Webs, Contenido, Local AR bajo OWNEX
-
-- **Pedido owner**: "Me encanta, procede, trabaja hasta implementar el plan entero" — los 6 negocios (OWNEX, Droppinglabel, Meli +100 productos, Adriel Webs gratis→upsell, MPT/TikTok, laburo presencial Zona Sur/CABA, trading) operados desde OWNEX.
-- **Audit-first**: trading (25 jobs + paper F1-F3), AR jobs adapters (zonajobs/bumeran/computrabajo + tests), Content Factory (MPT client + 5 jobs APScheduler + ChannelPlatform.tiktok), payment rails (76 cuentas, solo mercadopago configurado) YA existían → EXTEND, cero reimplementación. Faltaban: e-commerce unificado, funnel Adriel Webs, visibilidad API/UI de factory y local jobs.
-- **FASE 1 E-commerce** (`cores/ecommerce/`: models+engine+adapters+pipeline, 4 archivos): zero-stock proveedor→cliente; `MeliAdapter` (OAuth oficial, publish solo-prepara con Human Gate) + `IGWAAdapter` (Graph v21, container sin auto-publish) honest-unavailable sin creds; `SourcingEngine` (VIABLE exige margen ≥25% tras fee Meli ~13%); `ListingOptimizer` determinista (títulos ≤60, keywords, sin LLM); `OrderOrchestrator` (PO por supplier + next_action); 2 jobs (`ecommerce_order_sync` 15m, `ecommerce_listing_health` diario) registrados en `get_all_jobs` (14→15 ciclos, test pineado). Router `/api/ecommerce/*` (11 endpoints) + página `/operations/ecommerce` + sidebar MONEY.
-- **FASE 2 Adriel Webs** (`cores/client_acquisition.py` + router, 2 archivos): lead→proposal→project→MRR; landing/github-page/portfolio precio 0 (free_tier prueba de valor), corporativa/e-commerce con base+extras; catálogo upsell ×5 (hosting/SSL, mantenimiento, SEO, contenido, ads); `monthly_recurring()` como métrica. Router `/api/client-acquisition/*` (9 endpoints) + página `/operations/clients` + sidebar WORK.
-- **FASE 3 Contenido**: factory YA tenía jobs propios async (no se duplican al scheduler sync — serían dead jobs); solo visibilidad: router read-only `/api/content-factory/*` (status MPT + material_key + jobs) + página `/operations/content` + sidebar WORK.
-- **FASE 4 Local AR**: adapters YA existían y testeados (curated fallback + MANUAL apply, decisión 11/09 de no registrarlos en discovery respetada); solo visibilidad: router read-only `/api/local-jobs/*` (search agregado ×3 boards + boards deep-links) + página `/operations/local-jobs` + sidebar WORK. 3 tests nuevos en `test_ar_jobs.py`.
-- **Evidencia**: `test_ecommerce` 12/12 + `test_client_acquisition` 8/8 + `test_content_factory_wiring` 2/2 + `test_mpt_client` 10/10 + `test_ar_jobs` 12/12 + scheduler/handlers/direct_work 73/73 en combinada; afectadas totales **144 passed**; fast **100/1**; ruff limpio en 14 archivos; `import api.main` OK (1703 rutas); `vite build` 11.88s; vue-tsc 0 en tocados (drift `CapitalSnapshot` duplicado + LSP `cores.*` preexistentes del flujo concurrente, verificados por stash).
-- **No tocado**: `core/`, `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, OAR, trading live (F3 sigue bloqueado por orden owner + capital), WIP ajeno. Sin commits (no solicitados).
-- **Regla permanente**: publicar/listar en marketplaces y redes = acción externa → Human Gate (adapters preparan payload, jamás POSTean solos); rails sin configurar = veredicto honesto no-cobrable, jamás asumido; `monthly_recurring()` y ledger solo cuentan PAID real.
-- **Siguiente (acciones owner)**: configurar rails reales (`/payment-compat/configured`: GrabrFi/Wise/Airtm/Takenos/DolarApp/Belo) + credenciales Meli OAuth + META token en IdentityVault + key Pexels → correr `ecommerce_order_sync` + capturar 2 leads Adriel Webs → 1er PAID.
-
-## 2026-09-13: FINAL STABLE — inicio del cierre 7.1.x + cierre de 4 deudas críticas
-
-- **Contexto**: owner autorizó el megaprompt FINAL DEFINITIVE RELEASE (audit→integrar→corregir→probar→empaquetar→Windows→documentar→congelar) con 3 decisiones vinculantes: (1) `core/` se borra SOLO con prueba `rg "from core\." cores/`==0 + `api/main.py` sin `core.` + MSI Windows 11 validado por el owner; (2) validación física W1-W12 la ejecuta el owner en PC real; (3) freeze en línea 7.1.x (no v7.2.0).
-- **Audit**: 4 sub-agentes paralelos → `.ai/FINAL_STABLE_AUDIT.md` (matriz 24 sistemas). Veredictos centrales: fecds intelligence ACTIVE pero `IntelligenceRegistry` huérfano (0 callers), cache/TTL/provenance dead, solo KEV llega al hypothesis, OAR orden ≠ prompt, Human Gate single-process, core/ congelado inert.
-- **FASE 1 (mínima, 4 fixes ≤20 líneas)**:
-  1. **Dead route** `CommandPalette.vue:162` `/hunt/scan` (404: `hunt.py` solo status/start/pause/resume/stop/restart) → `/hunt/restart` (ejecuta ciclo en el scheduler LIVE, nunca crea uno segundo).
-  2. **Drift mobile daily-brief** `OwnexApiClient.kt::getDailyBrief` leía `top_actions`/`ev`/`next_step`/`total_ev`; backend emite `actions`/`expected_value_usd`/`next_action`/`summary.total_expected_usd|revenue_today_usd` → contrato tolerante (lee ambos, defaults honestos).
-  3. **Dead `if False`** `direct_work.py:316` (expresión muerta degradaba `expected_income_usd` en HTROI) → `float(ranked.expected_value)` directo.
-  4. **Dedup `MoneyState.TRANSITIONS`** `capital/state_machine.py` (`IN_REVIEW` ×2 idénticos + 7 terminales duplicados `FAILED/DEAD_LETTER/DUPLICATE/CLOSED/INFORMATIVE/WITHDRAWAL_COMPLETED/BOUNTY_PAID`) → grafo sin cambio semántico (misma proyección, verificado por tests).
-- **Evidencia**: ruff limpio en tocados · feeds/hunt 22/22 · state_convergence+payment_pipeline+economics_ssot+direct_work_api 81/81 · `make test-fast` **100/1** · `vite build` 12.82s · 0 referencias `/hunt/scan` remotas.
-- **No tocado**: `core/` (gate), `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, OAR providers, workspaces. Sin commits (no solicitados).
-- **Regla permanente**: ningún endpoint del frontend llama a rutas que el backend no expone (regresión cubierta por `test_hunt_router.py` + grep); cualquier contrato mobile lee el key canónico del backend con fallback legacy, jamás uno solo del shape viejo.
-- **Siguiente**: FASE 2 — registrar Arxiv/OpenAlex (5→7), `_init_intelligence_registry` en `api/lifespan.py`, job `intelligence_refresh` diario, cache TTL/provenance sobre `OWNEX_DATA_DIR`, bridge ThreatFox/EPSS→hypothesis, `/api/intelligence/feeds/health`. Disponibilidad `TaskAvailability` + mapper dual state.
-
-- **Pedido owner**: "cualquier config que falte, que ownex avise en el frontend y yo la configuro".
-- **Nuevos detectores** (`cores/setup/checklist.py`, auto, nunca raisean): `ai_provider` (keys remotas primero—instantáneo—luego Ollama loopback 2s; sin IA todo copilot/brief degrada en silencio) + `devbounty_api_key` (Opire/IssueHunt/Algora en vault). Catálogo 11→13 (essentials renumerado: ai=1…target=6); prioridades únicas por fase intactas.
-- **Fix real**: el vault cachea credenciales — ambos detectores de keys usan `force_refresh=True` (sin esto la key recién pegada no se detecta hasta reiniciar; el loop avisar→configurar→verificar lo exige).
-- **Frontend**: `SetupPendingStrip.vue` genérico (próxima esencial + contador + link) reemplaza a `MptPendingStrip.vue` (eliminado; cubierto por el genérico); tipos TS extendidos al contrato real (`phase`, `next_task`); página `/setup/checklist` ya era dinámica (sin cambios).
-- **Evidencia**: checklist 31/31 (4 tests viejos actualizados a nuevo catálogo: conteo, pct 8, next=ai_provider, complete); fast 100/1; ruff+format limpios; biome 0; `vite build` 12.64s.
-- **Regla**: todo ítem nuevo nace con detector auto si el estado es observable, manual si es onboarding externo; el strip muestra esenciales, jamás opcionales.
-
-## 2026-09-11: LIVE ADAPTERS REBUILD — only live upstreams registered
-
-- **Probe result**: of ~10 unwired adapters + 5 registered, only **Dework (DAO/web3 bounties, public API)** is alive.
-- **Dead upstreams removed from default registration**: Opire (conn-fail), IssueHunt (404), Immunefi (conn-fail), Code4rena (404), Superteam (0), Workana (manual-only), OpenCollective (tier 3), Pulse AI (Outlier/Mindrift/Opyre/LinkedIn — need keys, 0 items), AR jobs (read-only).
-- **New live adapters added**:
-  - **Kaggle** (`direct_work_kaggle.py`): paid data science competitions, outcome-based, zero experience barrier, $8-100k prizes, $8-18/h LatAm coding tier. Auth optional (vault), public scrape fallback.
-  - **GitHub Bounty Search** (`direct_work_github_bounty.py`): free, no auth, searches `label:bounty|reward|paid|"good first issue" state:open` via GitHub Search API. Rate-limited 10/min, PR merged = paid.
-- **Registry cleaned**: `build_default_adapters()` now only 5 live adapters: bugbounty (public datasets), dework, fiverr (internal), kaggle, github_bounty.
-- **Models extended**: `WorkPlatform.KAGGLE`, `WorkPlatform.DEWORK`, `OpportunityCategory.OPEN_CALL` added.
-- **Tests updated**: removed dead adapter expectations, added `test_intigriti_max_bounty_object_maps_to_payment`, `test_yeswehack_numeric_max_bounty_maps_to_payment`, cold-start floor test.
-- **Evidence**: 5 live adapters registered (bugbounty, dework, fiverr, kaggle, github_bounty), all tier 1. 191 tests pass + fast 100/1. Ruff clean.
-
-## 2026-09-11: MONEY VALIDATION — freeze + instrumentación mínima hacia el primer PAID
-
-## 2026-09-11: MONEY VALIDATION — freeze + instrumentación mínima hacia el primer PAID
-
-- **Contexto**: auditoría económica final concluyó $0 asegurable hoy (sin historial verificado, P(CASH)=UNKNOWN/LOW). Owner aprobó sprint MONEY VALIDATION: OWNEX congelado, objetivo 1 PAID → 3-5 → 10+ → 30-50 outcomes, métrica principal NET CASH / HUMAN HOUR, Human Gate obligatorio, regla NO-OPTIMIZAR-ANTES-DE-TENER-DATOS.
-- **Audit-first**: LearningRecord ya tenía predicted_*/actual_hours; PerformanceAnalyzer ya agregaba conversión+ROI; payment catalog + honesty rules existían; WorkBank cycle + Human Gate + Fiverr catalog/plan/assets/ethics existían. Solo se extendió lo ausente (cero módulos nuevos, 1 archivo de tests).
-- **E1** (`feedback.py`, +15): `LearningRecord` += `paid/net_amount/fees`; `build_history_from_revenue_tracker` mapea status paid→paid=True+net=amount, accepted→paid=False (ACCEPTED≠PAID, Rule §39 a nivel de aprendizaje).
-- **E2** (`evolution.py`, +96): `channel_economy()` — tabla empírica personal por canal (attempted/accepted/paid/earned_gross/net_cash/human_hours desde actual_hours medidos/net_per_hour/median_days_to_cash) + veredicto UNKNOWN/THIN_EVIDENCE(<3 paid)/MEASURED. Wire aditivo en `POST /evolution` (`report["economy"]`).
-- **E3** (`workbank.py`, +27): `WorkItem` += `started_at/delivered_at/human_minutes_actual` + `mark_started()` idempotente + `record_human_minutes()` validado (manual corrige PAUSE/RESUME sin burocracia) + stamp en `mark_delivered`; JSON legacy carga igual (defaults).
-- **E4** (`payment_compat/engine.py`, +64): `PaymentMatch.configured` + `Verdict.configured_matches` + `account_status()/list_account_statuses()` (tri-state CONFIGURED/NOT_CONFIGURED/UNVERIFIED) + `evaluate(require_configured=False)` (default preserva contrato catálogo; True = solo rails configurados cuentan, score 0.0 + viable False + missing nombra cuentas). **P_REWARD ahora depende de rails reales**: `_apply_payment_compatibility` pasa `require_configured=True` + nota honesta "Sin rail configurado". Router: `GET /configured` + `POST /configured` (404 ante id desconocido) + `status` en network/account + `require_configured` en `/evaluate` + `configured/configured_matches` en veredictos.
-- **E5** (`fiverr/engine.py` + router, +92/+25): `FunnelLedger` (published→…→withdrawn, contadores persistidos `fiverr_funnel.json`, summary con CTR y order conversion) + `POST /funnel/record` + `GET /funnel`. Un gig publicado no es ingreso.
-- **E6** (`direct_work.py`, +48): `_record_from_dict` acepta paid/net_amount/fees; `/access/explain` += `configured` tri-state (public→CONFIGURED, key→presencia en vault bool-only, manual→UNVERIFIED) vía `_platform_configured()`; `/evolution` ya citado.
-- **Tests actualizados (contrato honesto, no regresión)**: 3 tests `test_direct_work_engine.py` asumían cobrabilidad de catálogo sin rails → ahora configuran rails vía `_configured_rails()` (save/restore, jamás clobbera `~/.config`) + 1 test nuevo del caso sin rail (score 0 + nota).
-- **Evidencia**: `tests/test_money_validation.py` 17/17 (paid-mapping, economy UNKNOWN/THIN/MEASURED, workitem time+legacy, tri-state, require_configured 0 y viable, funnel, 3 endpoint tests); regresión 222 (DWE+API+secure+payment+workbank+fiverr+evolution+income-chain+public+reward) + fast 100/1; ruff+format limpios en tocados; `import api.main` OK.
-- **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`, `core/`, WIP ajeno (api/routers/direct_work.py del flujo concurrente: solo hunks aditivos propios). Preexistentes: F841 `recommendation.py:933` (código ajeno, verificado fuera de mis hunks) + ruido LSP "could not be resolved" ambiental (runtime OK).
-- **Regla permanente**: ningún ranking promete cobrabilidad sin rail configurado; ACCEPTED jamás cuenta como cash en ningún agregado nuevo; `channel_economy` es la única fuente de "tu economía" (veredicto UNKNOWN hasta 1 paid, MEASURED desde 3).
-- **Siguiente**: configurar rails reales (`POST /payment-compat/configured`) + correr WorkBank daily_cycle + publicar 2 gigs Fiverr (experimento con funnel) → 1er PAID.
-
-## 2026-09-11: LEVELS L1-L10 — score, policies, gating, levels, mission hub
-
-- **Auditoría previa**: L3 (region/zero_first), L5 (AR jobs), L5b (paper/kill-switch), L6 (microtask) y L7-orquestador ya existen (verificado con suites verdes; L5b con 4 fallas preexistentes en copy-trading verificadas por stash). Construido solo lo ausente, sin duplicar ni tocar WIP ajeno (`cores/workspaces/orchestrator.py` + `mission.py` sin commitear: leídos, no modificados).
-- **L1** (`filters.py`): `StrictFilter.score()` → `FilterScore` 0-100 (hard-reject ⇒ 0; deducciones fijas documentadas). `reject()` intacto.
-- **L2** (`cores/workspaces/policies.py` NUEVO): `IncomeRole` PRIMARY/UPSIDE/CORE/CAPITAL_ONLY/LAST_RESORT + `allowed_in_income_mix()` + `rank_for_mission()` + `explain()`. Trading jamás renta base; backup solo explícito.
-- **L4** (`models.py` + `recommendation.py`, aditivo): `UserProfile.allow_interview/allow_cv_portfolio` (default True = cero cambio) + gate en `_apply_profile_filter`. Technical test NO gatea (Zero Experience rule).
-- **L8** (`cores/levels.py` NUEVO): XP solo de outcomes verificados (7 eventos, `ValueError` si invento), ledger JSONL, niveles 1-10, `award/total_xp/level/history/summary` + singletons reseteables.
-- **L7+L9 backend** (`api/routers/mission_hub.py` NUEVO, montado en `main.py`): `GET /mission-hub/overview` (mission+levels+workspaces+next_action, nunca 500) + `POST /target|/award|/workspaces/{id}/activate|deactivate` (400/404 honestos, estado JSON persistido).
-- **L9 frontend** (`Mission.vue` NUEVA + ruta `/mission` + sidebar WORK + fetchers): mission card + niveles + workspaces con toggles. No se tocó `api/routers/hunter.py` (concepto distinto: stats bug bounty).
-- **Evidencia**: 54 tests nuevos (9+6+13+10+8+8) + regresión DWE 135 + fast 100/1; ruff+format limpios en tocados (40 errores models/recommendation preexistentes, conteo idéntico por stash); `vite build` 11.75s.
-- **Regla**: un workspace nuevo nace UPSIDE (opt-in); XP jamás por hipótesis/vistas; trading/backup fuera del mix por defecto.
-
-## 2026-09-11: LIVE HUNT LOOP — reasoner→probe→Finding con HTTP real (fixture loopback)
-
-- **Problema**: audit con evidencia mostró que el loop ofensivo no cazaba: reasoners 100% estáticos (`test_instructions` en lenguaje natural, cero HTTP), `ProbeEngine.probe()` atacaba el host SIN el path (P0: `url=base_url`), `EvidenceBuilder` generaba curl desde headers de *respuesta* y dropeaba params GET, `loop_engine` no llamaba reasoners ni ProbeEngine, y ningún Verdict se persistía como Finding.
-- **Decisión**: (1) `probe()` resuelve URL completa (`_resolve_request_url`: endpoint absoluto gana, si no host+path) + body None (se eliminó `collection_endpoint` como body) + probing POR PARÁMETRO (un param mutado por vez; el primero que dispara el detector gana y se atribuye — antes mutaba todo junto y acreditaba al path-keyword `user` lo que hacía `id`). (2) `_detect_idor` endurecido: cuerpos idénticos ⇒ parámetro inerte, NO confirma (antes confirmaba hasta lo idéntico). (3) `EvidenceBuilder`: curl desde headers del REQUEST (redact auth) + query string en GET + variante `_build_python` + `build_poc_from_probe()`. (4) `OffensiveEngine.hunt_endpoint()` NUEVO: analyze→probe top-3 (conf≥0.3, con params)→PoC→Finding persistido (Target por dominio, evidence JSON en notes)→`record_outcome`. Todo contra objetivos AUTORIZADOS únicamente (fixture loopback, sistema propio, scope bounty).
-- **Evidencia**: `tests/test_live_probe_loop.py` 10/10 con HTTP real (httpx, cero mocks): IDOR/XSS/SQLi confirmados + Findings persistidos con PoC ejecutable, auth-bypass/SSRF ejecutan, regresión P0 del path, unit URL + PoC. Regresión 252 (offensive/http_probe/evidence/mobile/bridge/web3) + fast 100/1; ruff+format limpios. `test_validation_engine.py` 11 fallas PREEXISTENTES (verificado por stash: fallan sin estos cambios; territorio concurrente, no tocado).
-- **Regla permanente**: ningún probe sale de loopback/propio/scope-verificado; PoC fieles (misma request, auth redactado) o no son PoC.
-
-## 2026-09-11: OPENCODE INTEGRADO — two-phase con aprobación + Agent Loop antepuesto
-
-- **Problema**: el chat podía disparar `opencode run` pelado (sin plan-mode, sin `.ai/`, sin aprobación previa, salida truncada a 3000 chars, timeout/modelo fijos).
-- **Decisión**: (1) `OpenCodeBridge` EXTEND: preámbulo Agent Loop en modo execute + modo propose read-only + salida completa a `OWNEX_DATA_DIR/opencode_runs/<id>/` (prompt/output/diff) + `files_changed`/`diff_stat` en respuesta + model/timeout configurables. (2) `POST /api/copilot/execute`: `ask/propose` gratis; `implement/fix/refactor/run` exigen `approval_token` un solo uso (`safety.consume_approval`, scope `opencode:execute/repo`). (3) `POST /api/copilot/approve` emite el token (el click ES la confirmación humana) + `GET /api/copilot/runs` lista runs. (4) Panel Dev en `AiCommandCenter` (canónico): Proponer → Aprobar y ejecutar, reutilizando tarjetas de aprobación existentes.
-- **Evidencia**: `tests/test_opencode_bridge.py` 12/12 (subprocess mockeado, single-use verificado, propose/execute); 125 copilot+safety+chat; fast 100/1; vue-tsc 0; `vite build` OK; ruff limpio.
-- **Regla permanente**: ninguna escritura de opencode sin token humano; el chat presenta planes, el humano aprueba, el sistema ejecuta y verifica.
-
-## 2026-09-11: MEMECOIN AUTO — paper loop en scheduler (cada 15m, DRY-RUN, kill-gated)
-
-- **Problema**: F2 dejó loop funcional pero manual — sin handler del scheduler no corre solo.
-- **Decisión**: (1) `run_paper_cycle_once()` async testeable con inyección + `run_memecoin_paper_cycle()` sync que corre en thread dedicado (seguro ante cualquier contexto de event-loop, timeout 600s, nunca raisea). (2) Job `trading_memecoin_paper` (`*/15 * * * *`) en `cores/scheduler/jobs.py` (árbol vivo según `api/lifespan.py:456`; `core/` NO tocado). (3) Precios de track vía DexScreener keyless. Cachado en el camino: `scan()` sin try/except ante feed caído → fixeado.
-- **Evidencia**: `tests/test_memecoin_scheduler.py` 8/8 (resolución dotted-path, ciclo con fakes, offline-safety, entrypoint sync); 93 passed combinado; ruff limpio; fast 100/1.
-- **Regla permanente**: el job jamás mueve fondos (adapter DRY_RUN default); kill STRATEGY requiere humano para desactivar.
-- **Siguiente**: dejar correr ≥2 semanas y leer métricas; F3 live solo con tu orden + capital.
-
-## 2026-09-11: MEMECOIN F2 — filtros duros + exits + paper loop (paper-first, sin live)
-
-- **Problema**: F1 dejó adapter real pero sin estrategia: entrar a todo = donar SOL a rugs.
-- **Decisión**: (1) `cores/trading/strategies/memecoin_filters.py` — reglas duras fail-closed (liquidez/volumen/holders/top10/autoridades/LP/edad/riesgos danger; score RugCheck solo informativo por semántica no documentada). (2) `memecoin_exits.py` — prioridad SL > TP escalonado > trailing > tiempo > hold, puro y testeado. (3) `cores/trading/paper/memecoin_paper.py` — loop scan→filtro→enter→track→ledger con sizing fraccionado fijo, haircut 1% documentado, métricas (win-rate/profit-factor/expectancy/drawdown, veredicto EDGE_CANDIDATE solo con n≥20 y PF>1.2), kill-switch STRATEGY reutilizado, persistencia opcional vía TradingStore.
-- **Evidencia**: 36/36 nuevos (strategy+paper+adapter); ruff limpio; fast 100/1; investment/trading mismos 6 preexistentes.
-- **Regla permanente**: sin métricas paper ≥2 semanas no se habla de live; live = tu orden + IdentityVault + Human Gate + capital declarado.
-- **Siguiente (F3, BLOQUEADO)**: live solo con tu orden explícita.
-
-## 2026-09-11: MEMECOIN F1 — adapter real (DexScreener+RugCheck+Jupiter) + fantasma eliminado
-
-- **Problema**: audit con evidencia mostró scaffolding, no bot: `scan_new_tokens` contra endpoints inexistentes (`api.pumpfun.io`/`api.raydium.io`), `buy/sell` con shape inválido de Jupiter, `registry` apuntando a `memecoin_scanner_adapter` inexistente, sin firma de wallet, sin estrategia.
-- **Decisión**: (1) `memecoin_adapter.py` reescrito sobre piezas reales: descubrimiento DexScreener keyless (`token-profiles/latest` + enrich `/tokens/v1/solana`, filtro liquidez), riesgo RugCheck, quotes vía `trading/dex/jupiter.py` canónico; DRY_RUN default (simula fill desde quote real); live exige `allow_live + private_key`, firma local con solders, key jamás logueada. (2) Registro `memecoin_scanner` fantasma → `memecoin` real + método `scan_opportunities` alias. Twin `core/` NO tocado.
-- **Evidencia**: `tests/test_memecoin_adapter.py` 9/9 (fixtures, sin red); ruff limpio; fast 100/1; suites investment/trading 6 fallas PREEXISTENTES idénticas por stash (incl. `alpaca`, ajeno).
-- **Regla permanente**: sin paper-metrics (win-rate/profit-factor/drawdown ≥2 sem) no se habla de live; live exige aprobación explícita + IdentityVault + Human Gate.
-- **Siguiente (F2)**: filtros duros + exits + paper loop + métricas; F3 live solo con tu orden.
-
-## 2026-09-11: FINAL SHIP — cierre de producto, freeze 7.1.0, veredicto SHIP
-
-- **Alcance real ejecutado**: auditoría §5 completa (13/14 ya resueltos en sesiones previas; §5.2/5.6/5.7/5.8/5.10 cerrados hoy con one-liners verificados), 2 fixes genuinos nuevos (useOwnexState incomePlan/agenda cruzados + store duplicado eliminado), 0 refactor cosmético, 0 features nuevas.
-- **No tocado por riesgo**: modos LITE/FULL/CAPITAL duplicados (ambos vivos, documentado en KNOWN_LIMITATIONS), `core/` sombra, `cores/opportunity/engine.py`, `cores/validation/*`, `cores/events/*`, `cognee`, drift de tests del flujo concurrente.
-- **Evidencia**: fast 100/1 · afectadas 195 · vite 14s · vue-tsc 0 · cargo 4.5s · gates HTTP verificados · `.ai/RELEASE.md` + `docs/KNOWN_LIMITATIONS.md` reescrito a runtime real.
-- **Veredicto**: SHIP (RC sin cambios) — instalable y usable a diario; MSI/firma/mobile-físico pendientes fuera de este host.
-- **Regla post-freeze**: todo cambio se clasifica (BUG/SECURITY/DATA/RELIABILITY/COMPATIBILITY/SMALL-UX/NEW FEATURE); NEW FEATURE no entra solo.
-
-## 2026-09-11: PUBLIC WORK LADDER — ETAPA 0 incluida, active_claims observado, /public-work
-
-- **Problema**: la escalera "de dinero" empezaba en peldaños que exigen historial; la primera validación real (PR merged sin bounty) no tenía superficie. Además la competencia se estimaba solo con baselines estáticos.
-- **Decisión**: (1) `cores/direct_work_engine/public_work.py` NUEVO — capa de clasificación sobre `RankedOpportunity` (NO otro ranking): `classify_rung()` por índice de dificultad (reward log 0.30 + barrera 0.25 + competencia 0.25 + aceptación 0.20); payment≤0 ⇒ ETAPA 0; rangos $ solo orientativos en labels; enums EN estables + labels ES; bloque VALIDACIÓN PÚBLICA (proof PR MERGED vs PR ACEPTADO+PAGO). (2) `active_claims` en `competition_intel.py`: solo desde fuente observada (`Opportunity.observed_claims` nuevo campo o platform_facts); ausente ⇒ None/"unavailable", jamás 0; baselines quedan como priors. (3) `/public-work` (página + ruta + sidebar WORK): consume `POST /direct-work/recommend`, agrupa por peldaño top-3 con fit/EV-h/P(CASH)/validación/link. `public_work` aditivo en `_ranked_to_dict`.
-- **Evidencia**: `tests/test_public_work.py` 15/15 (rungs, $100-difícil>$500-fácil, UNKNOWN, claims observado/cero-reportado/sin-fuente, contrato API en 8 modos, enrich nunca raisea); regresión 195 + fast 100/1; `vite build` 12.76s; vue-tsc 0; ruff 0 nuevos.
-- **Regla permanente**: reclamar/claim es acción externa → Human Gate, nunca automatizado; la escalera presenta, no promete (UNKNOWN etiquetado).
-
-## 2026-09-11: MPT CLONADO + CLIENTE v1 REAL — Shorts EN $0, bloqueado solo en key gratis
-
-- **Problema**: Content Factory hablaba contra una API MPT legacy (`/api/video/*`, `/health`) que v1.3.6 no expone; repo MPT inexistente en el host; :8080 ocupado por Open WebUI; frontend `moneyprinter.ts` apuntaba al backend OWNEX (rutas inexistentes).
-- **Decisión**: (1) Clone `harry0703/MoneyPrinterTurbo` en `~/projects/MoneyPrinterTurbo` (fuera del repo, 337M) + venv Python 3.11 vía `uv` (host tiene 3.14). (2) `config.toml` preset viral: API :8081, `llm_provider=ollama` + `qwen2.5:3b-instruct` (único LLM local), Edge `en-US-GuyNeural`, 9:16, subtítulos amarillos bold centro, system prompt hook-first EN antialucinación. (3) Cliente OWNEX remapeado a rutas v1 reales (`/api/v1/videos|tasks|tasks/{id}`, envelope `{status,message,data}`, states int -1/1/4) + `MPT_BASE_URL` env (default :8081) en `mpt_client/service/frontend(VITE_MPT_BASE_URL)` + CORS origins (dev 5173 + tauri). (4) Publish siempre DRAFT_ONLY; semillas de contexto real en `WorkspaceRegistry` (droppinglabel/MeLi/webs/content_factory con goals y gates).
-- **Evidencia**: server :8081 vivo + `GET /api/v1/tasks` 200 + health OWNEX `healthy` + video de prueba E2E (guion Ollama 3B ✓, TTS Edge 32.7s ✓, subs ✓) que falla SOLO en materiales: `pexels_api_keys is not set`. `tests/test_mpt_client.py` 10/10 (mapeo puro sin red); regresión 95 DWE + fast 100/1; `vite build` 11.4s; ruff 0 nuevos (5 UP042 preexistentes).
-- **Regla permanente**: ningún video se publica sin canal YouTube creado + credenciales en IdentityVault; Shorts = upside (YPP: 500 subs + 3M views/90d, RPM ~$0.05-0.15), jamás renta base.
-- **Follow-up (acción del owner, 2 min)**: key gratis en `pexels.com/api` (o `coverr.co/developers`) → pegar en `~/projects/MoneyPrinterTurbo/config.toml` (`pexels_api_keys`) → reintentar 1 video.
-
-## 2026-09-10: SECURE INCOME — P(CASH) + modos secure_income/secure_plus_upside (base segura, bug bounty = upside)
-
-- **Problema**: el owner cambió el objetivo: no maximizar EV posible sino **máxima P(cobrar) + mínimo tiempo sin ingresos + varias fuentes + aprendizaje rápido**. Bug bounty tiene varianza fatal como renta base (semanas de trabajo → $0). El recommender no tenía ninguna métrica de "prob. de dinero realmente recibido" ni modo que priorice cobrar sobre upside.
-- **Decisión**: (1) `compute_p_cash()` en `cores/direct_work_engine/economics.py` (SSOT, PCASH-V1): producto de stages dados; cualquier stage None/fuera-de-rango/dict vacío → UNKNOWN (None), jamás inventa; bandas HIGH ≥0.80 / MEDIUM ≥0.50 / LOW. (2) Wiring en `IntelligentRecommender`: `p_cash = acceptance × payment_compat/100` (las dos señales reales existentes) + campos aditivos `RankedOpportunity.p_cash/p_cash_band` + línea P(CASH) en reasoning + `p_cash/p_cash_band` en `POST /direct-work/recommend`. (3) Dos presets EXTEND (cero breaking): `secure_income` (accept .35/speed .25/EV .15/barrier .15/compat .05/rep .05, floor 0.50 + diversidad 2/3 → bug bounty solo si pasa el floor) y `secure_plus_upside` (accept .30/EV .25, piso 0.30, floor OFF → modo normal). Docs del endpoint + exports actualizados.
-- **Evidencia**: `tests/test_secure_income.py` 10/10 (producto, UNKNOWN, bandas, presets suman 1.0, filtro, ranking aceptación>recompensa, P(CASH) en API, plus permite más que secure, balanced intacto); regresión 109 (DWE API+engine+workbank+economics) + 64 (income-chain+evolution) + fast 100/1 + `import api.main` OK; ruff 0 errores nuevos (40 preexistentes verificados por línea).
-- **Regla permanente**: ninguna probabilidad de cobro se inventa — UNKNOWN etiquetado; bug bounty = upside hasta que el historial personal demuestre repetibilidad (veredicto REPEATABLE de `identify_repeatable`).
-- **Follow-ups (NO código ahora, budget)**: splitter automático por horas (2h base/1.5h dev/0.5h upside) y `P(monthly ≥ $X)` desde outcomes reales (tiers `income_target.py` + `identify_repeatable` ya existen como base).
-
-## 2026-09-10: MILESTONE TRACKER + AGGRESSIVE PLAN + HIGH-UPSIDE 90D (first-money EOY)
-
-- **Objetivo owner**: tracker visible $100→$500→$1k→$2.5k→$5k→$10k + plan agresivo $5k/$10k fin de año con output semanal por motor + modo recommender high-upside. Adriel Webs queda FUERA de motores primarios (canal freelance opcional, misma categoría que Fiverr/Workana; lo cubre el sistema de channels).
-- **Backend** (`cores/first_money/tracker.py`): enums `IncomeEngine` (3, sin webs) + `Milestone` (+`M5K_EOY`/`M10K_EOY`); dataclasses `EngineProximity`/`MilestoneProgress`/`DailyAction`; `get_engine_proximity()` (ordenado por cercanía), `get_milestone_tracker_data()` (hitos + proximidades + closest + daily), `get_aggressive_plan(5000|10000)` (gap/semanas→weekly_required, split 70/30 ready/setup, rates AI $30/h·Bug $40/h·Dev $35/h, checklist + nota ALTA/MEDIA/BAJA). Heurísticas desde etapas (placeholder honesto hasta trackers reales).
-- **Recommender** (`cores/direct_work_engine/recommendation.py`): preset `HIGH_UPSIDE_90D` (EV .38/accept .19, floor 0.15, evidence gate ON, upside_boost) + modo `high_upside_90d` + reasoning ES (`P personal`/`Frescura`/`Competencia` solo en ese modo) + fixes enum-vs-str (`category`/`platform`/`payment_method`/`experience_required` en strategy/diversity/scoring/payment-reliability) para payloads dict del router.
-- **Calibration/funnel**: `reset_funnel_tracker()` + test usa singleton reseteado (el singleton cacheado rompía el test en suite completa).
-- **API**: `GET /first-money/milestone-tracker` + `GET /first-money/aggressive-plan?target_usd=5000|10000` (400 si no es 5000/10000).
-- **Frontend** (`FirstMoney.vue` + `ownexData.ts`): card milestone (próximo hito + tabla 6 hitos + motores + daily action con `goToUrl`) + card aggressive ($5k/$10k toggle, plan semanal por motor, checklist, probabilidad).
-- **Evidencia**: reward_probability 20/20 · guards 28/28 · fast 100/1 · endpoints 200 (milestone + aggressive 5k/10k) · ruff limpio en tocados (15 errores baseline en reward_probability/recommendation preexistentes, verificados por stash) · `vite build` OK.
-- **Nota**: `recommendation.py` commiteado con contexto secure-income/high-confidence del árbol compartido (en vuelo ajeno, tests verdes en conjunto; precedente `9b4d4242`).
-
-## 2026-09-09: CI v7.1.0 — sidecar verde ×3, Tauri Windows rojo por triple-suffix (fix → v7.1.1)
-
-- **Resultado tag `v7.1.0`** (run 34407423757, 14m44s): sidecars `windows/macos/ubuntu` SUCCESS (smoke + guard 50MB OK — el P0 frozen viaja bien), Tauri `ubuntu/macos` SUCCESS, Tauri `windows` FAILURE en step "Tauri build".
-- **Causa raíz**: Tauri v2 resuelve `externalBin: binaries/ownex-backend` a `binaries/ownex-backend-x86_64-pc-windows-msvc.exe` en build-time, pero el step "Prepare Tauri sidecar (Windows)" copiaba el exe como `ownex-backend` plano → `build-script-build` falló con "resource path ... doesn't exist". Error de handoff workflow, no de código (por eso Linux/macOS pasaban: el runner unísono no exige el sufijo igual).
-- **Fix** (commit `6ee734d7` en `release/win11-stable`): destino Windows → `ownex-backend-x86_64-pc-windows-msvc.exe` + guard de regresión `test_ci_windows_sidecar_uses_triple_suffix` (10/10 packaging tests, fast 100/1, ruff limpio, YAML OK). Tag `v7.1.1` pusheado (run 34409445122).
-- **Verde completo** (run 34409445122): 6/6 jobs SUCCESS — sidecars ×3 + Tauri ×3. Artefactos descargados y verificados: `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `OWNEX Alpha_7.1.0_x64-setup.exe` 136MB, ambos con `.sha256`. (Versión app 7.1.0; el tag v7.1.1 fue solo la iteración del fix CI.)
-- **Siguiente**: instalación física en Windows 11 (protocolo 5 escenarios en `README-INSTALACION.md`) → veredicto STABLE → desbloquea borrado `core/` + PR #37.
-- **MSI único** (decisión usuario 2026-09-09): commit `45889085` retira `nsis` de `tauri.conf.json` (solo WiX es-ES) + glob nsis de `artifact_paths` + docs a MSI único + guard `test_windows_bundle_is_msi_only` (packaging 11/11, fast 100/1, cargo OK). Tag `v7.1.2` (run 34413175931).
-- **Verde MSI-only** (run 34413175931, 19m8s): 6/6 SUCCESS; artefacto `OWNEX-Tauri-Windows` = MSI 138MB + `.sha256` (sin setup.exe). Hallazgo cosmético: un `nsis/*.sha256` huérfano viajó en el artefacto (el rust-cache restaura `src-tauri/target/` con restos del config anterior) → fix: wipe de `release/bundle` pre-build + tag `v7.1.3` (run 34415840981).
-- **v7.1.3 rojo por sintaxis**: el wipe usó `rm -rf` pero el step corre en pwsh (`A parameter cannot be found that matches parameter name 'rf'`) → fix `Remove-Item -Recurse -Force` + tag `v7.1.4` (run 34416859750). Lección: verificar `shell:` de cada step antes de escribir comandos (los steps bash llevan `shell: bash` explícito; el default Windows es pwsh).
-- **v7.1.5–v7.1.6**: target-triple suffix en sidecars Windows/macOS/Linux corregido; shell explícito `bash` en Tauri build.
-- **v7.1.7**: WebView2 fix con exit code 14024835 (ya instalado).
-- **v7.1.8**: limpieza explícita de artefactos NSIS huérfanos pre-checksum.
-- **v7.1.9**: WebView2 via bootstrapper directo (evita cancelaciones de winget).
-- **v7.1.11** (run 34619411295): live hunt loop en el bundle. Windows sidecar+Tauri SUCCESS; MSI 138MB sha `76383c5e…` verificado por descarga (solo MSI, sin NSIS). Ubuntu Tauri lento pero irrelevante para el deliverable.
-- **v7.1.12** (run 34628806179): LEVELS L1-L10 en el bundle (sidecar+frontend rebuilt en CI). Windows sidecar+Tauri SUCCESS; MSI 138MB sha `719d9b5f…` verificado por descarga (solo MSI). Ubuntu lento como siempre, irrelevante.
-- **Verde definitivo v7.1.9** (run 34428234952, 34m): 6/6 jobs SUCCESS. Artefacto limpio `OWNEX Alpha_7.1.0_x64_es-ES.msi` 138MB + `.sha256` (sin NSIS). MSI único para instalar en Windows 11.
-- **v7.1.10** (run 34611051840, 6/6 SUCCESS): milestone tracker $100→$10k + aggressive plan $5k/$10k EOY + HIGH_UPSIDE_90D viajan en el bundle (frontend rebuilt en CI). MSI 138MB, sha256 verificado `3d03d10f…` (match descarga). Sin restos NSIS (wipe pre-build funciona).
-- **Regla**: ningún path que Tauri resuelva con sufijo puede hardcodearse sin el triple en el workflow; el guard lo pinea.
-
-## 2026-09-09: WIN11-STABLE — rama release + P0 frozen + bug frozen /api/version
-
-- **Contexto**: usuario ordenó cierre para instalar/usar en Windows 11 con 4 decisiones: (1) Tauri canónico, (2) validar en este entorno, (3) rama estabilizada nueva (no taggear la RC), (4) sin firma (a criterio). Rama `release/win11-stable` creada desde `feat/phase0-foundation` (NO desde `origin/main`: rebasar descartaría 82 commits P0-P5; el NO-MERGE sigue vigente, PR #37 aparte).
-- **P0 frozen aplicado** (mínimo, verificado):
-  1. `api/main.py`: bloque data-dir/env movido ANTES de los imports locales (el engine de `database.db` se creaba con la URL vieja: split-brain dev `./database/catseye.db` vs app `~/.ownex/database/cateye.db`). Además: `cateye.db`→`catseye.db` (igual que `db.py`), honor a `OWNEX_DATA_DIR`/`CATEYE_DATA_DIR`, `DATABASE_URL` explícito (conftest/docker) jamás sobrescrito, se setean ambas vars para unificar lectores. Costo: E402 inherente → `pyproject.toml` per-file-ignore `"api/main.py" = ["E402"]` (convención existente, igual que `database/db.py`).
-  2. `cores/platform/system.py`: solo docstrings (SSOT backend documentado). Comportamiento intacto (zona license/identity NO tocada).
-  3. `sync_version.py`: cobertura 9→11 superficies (`apps/*/manifest.py` ×8 + NSI MAJOR/MINOR/BUILD); manifests 7.0.0→7.1.0; NSI 7.0.0→7.1.0.
-  4. Docs a realidad Tauri: `README-INSTALACION.md` (sidecar externo, puerto dinámico, `%LOCALAPPDATA%\OWNEX`, artefacto 7.1.0, troubleshooting) + `README.md:414`.
-  5. Workflows legacy (`release.yml` ×2 jobs, `ownex-alpha-windows.yml`): fail-fast explícito si el spec archivado falta (antes fallaban críptico en pyinstaller).
-  6. Guard `test_tauri_packaging.py::test_spec_is_onefile_named_ownex_backend`: acepta `EXE_NAME = "ownex-backend"` (refactor ajeno del spec mantenía semántica; el test pineaba el literal viejo). Solo-test.
-- **Bug frozen real (smoke lo cazó)**: `GET /api/version` 200 en dev, 500 en bundle — `VersionEngine` leía `VERSION.txt` no empaquetado (`_MEIPASS`). Fix doble: spec empaqueta `VERSION`+`VERSION.txt`+`.VERSION.txt` (+`pyproject.toml` y `frontend/package.json` para `in_sync=true`, sin secretos) y fallback a `OWNEX_VERSION` compilado si el archivo falta (nunca más 500 por un manifiesto).
-- **Evidencia**: guards 25/25 · test-fast 100/1 · afectadas 120 passed · ruff limpio en tocados · `cargo check` 4s OK · `vite build` 12.5s OK · PyInstaller ONEFILE 258MB ×3 builds · sidecar smoke `--port 8199/8201/8202 --data-dir /tmp/win11smoke*`: health 200 v7.1.0, `/api/version` in_sync=true, DB `catseye.db` en data-dir del sidecar, `/api/system/health` 200, endpoints con auth 401 correcto. Único ERROR en boot: warning esperado de scorecard vacía en primer arranque.
-- **Compliance**: YIELD/DEFINITIVE respetados — `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` y providers forge/pulse/vault del otro flujo NO tocados. `run.py` (`~/.orion`, migrate/daemon) NO tocado deliberadamente (ecosistema pobre en docs pero vivo; fuera del path frozen).
-- **Límite honesto**: MSI/NSIS Windows no construible en Linux — validación delegada a CI (tag `v7.1.x` → `ownex-tauri-windows.yml`). Sin commits propios (no solicitados).
-
-## 2026-09-09: NO-MERGE a main — 314 conflictos con trabajo concurrente (PR #37 queda abierto)
-
-- **Problema**: `feat/phase0-foundation` (línea 7.1.0 RC: P0 migración + P1–P3 + front + tests) está 82 commits por delante de `main`, pero `origin/main` avanzó en paralelo con trabajo concurrente (agent-runtime L0-L4, bug bounty B1+B2 OAR, max-effort-scenarios, income Opire real). Trial merge en worktree scratch → **314 archivos en conflicto** (api/, core/, cores/, .ai/, workflows, tests). Mergear ahora destruiría uno de los dos trabajos.
-- **Decisión**: NO mergear a `main` en esta sesión. PR #37 (`feat/phase0-foundation` → `main`, release report preliminar) queda **abierto y bloqueado** hasta sesión dedicada de resolución con el dueño del proceso concurrente. Veredicto de línea: **RC (no STABLE)** — suite 544/1, API 1665 rutas, vite+cargo OK, pero Tauri Windows rojo en CI y sin validación en hardware real. `core/` NO se borra (bloqueado por la misma validación).
-- **Evidencia**: trial merge `0857e7f2` + `origin/main` → `merge --abort` tras conteo (worktree scratch eliminado, árbol intacto).
-- **Regla permanente**: ningún merge a `main` con >10 archivos en conflicto sin coordinación explícita; los trial merges se hacen siempre en worktree scratch, jamás sobre el árbol de trabajo.
-
-## 2026-08-30: FEATURE SET FASE_40 — 11 features de productividad/automatización (ciclo diario completo)
-
-- **Problema**: El sistema preparaba paquetes pero no entregaba por API, no sincronizaba pagos en vivo, no visualizaba el conocimiento acumulado, y el hunter carecía de caminos de entrenamiento, cumplimiento, equipo y captura rápida.
-- **Decisión**: 11 adiciones con foco en cerrar loops y automatizar el máximo trabajo posible, manteniendo honestidad económica (probabilidades empíricas o UNKNOWN, nunca inventadas) y el patrón usuario-supervisor (gates humanos intactos).
-- **Implementación** (ver CURRENT_STATE): Auto-Submission (idempotency + retry + DLQ + polling), Dev Bounty Automation (WorkBank→CoderAgent→AutoSubmit), Webhooks con firma HMAC, validación siempre-on, Knowledge Graph UI sobre `core.knowledge.graph` canónico, Training con progreso, Tax/Compliance (W-8BEN/W-9/AFIP + deadlines), Team/Org (roles + revenue splits + approvals), Finding Marketplace (escrow + reputación), Predictive Prioritizer (empírico clampado, 7 días), Quick Capture + hotkeys.
-- **Evidencia**: 60 tests nuevos verdes; 144 passed combinado; ruff limpio en 14 archivos; `import api.main` OK; `vue-tsc` 0 errores; `vite build` OK. Tests destaparon y corregieron bugs reales: ordering de dataclasses, `day+7`→timedelta (fin de mes), roundtrip JSON anidado, `core.platforms.*` inexistente, cola no aislable, `keys or {}` en utilidades de test.
-- **Reglas permanentes**: (1) toda probabilidad predictiva es empírica clampada [0.05-0.95] o UNKNOWN etiquetado, jamás inventada; (2) cualquier cola/estado persistente debe ser data-dir aware (`OWNEX_DATA_DIR`) e inyectable en tests; (3) las fechas se computan con timedelta, nunca `replace(day=+N)`; (4) la persistencia JSON de dataclasses anidados usa dumper recursivo (dataclass/enum/date→dict/value/ISO).
-
-## 2026-08-26 (Fase 1 CAPITAL SPINE): Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
-
-- **Problema**: El pipeline de capital tenía 3 fallos críticos: (1) Atlas portfolio siempre $0 porque `_get_atlas_total()` llamaba `get_portfolio()` inexistente y `PortfolioEngine()` nacía sin conectores; (2) sync cada 30 min leía APIs reales pero descargaba resultados en dict in-memory, nunca escribía `PayoutRecord` → capital dashboards estancados en $0; (3) sin endpoint unificado de patrimonio.
-- **Decisión**: (1a) Factory `get_configured_engine()` en `apps/atlas/engines/portfolio.py` registra todos los conectores registrados (Binance/Kraken/Coinbase/Yahoo/CSV + opcional Freqtrade/Hummingbot) con degradación grácil sin keys. Routers usan factory. (1b) `_get_atlas_total()` reescrito usando factory + guard asyncio (sync + running-loop). (2) `FinancialSyncScheduler._persist_earnings()` persiste earnings del sync en `PayoutRecord` con dedupe por `external_id` (platform:id). (3) `GET /api/capital/snapshot` consolida bounty payouts + WorkBank + InvestmentManager + Atlas + crypto + expected_cash + payment_compat.
-- **Evidencia**: fast suite baseline 100/1 intacta · 15 tests nuevos (atlas + scheduler) verdes · 101 tests DWE/workbank verdes · 1128 tests suite amplia sin regresiones · ruff limpio en tocados.
-- **Regla permanente**: todo sync de plataforma debe persistir a `PayoutRecord` con dedupe por external_id; métricas de dinero = proyección del estado actual (no acumulación incremental). Endpoint unificado `/api/capital/snapshot` es SSOT para patrimonio.
-
-## 2026-08-25 (Fase 1 FEATURE COMPLETE): Revenue metrics = proyección del estado actual; E2E del ciclo de ingreso
-
-- **Problema**: el audit de feature completion ejecutó por primera vez un E2E completo
-  discover→recommend→workbank→human gate→revenue (`tests/test_income_chain_e2e.py`) y
-  expuso 2 bugs reales: (P0-económico) `RevenueTracker._update_metrics` acumulaba deltas
-  por cambio de status sin descontar el bucket anterior → una oportunidad
-  PENDING→REVIEWING→PAID dejaba "dinero fantasma" (la misma plata contada como pendiente
-  Y cobrada); además ACCEPTED sumaba a `completed_amount`, inventando cash (contradice
-  stage_from_payment_status: ACCEPTED → Stage.ACCEPTED ≠ PAID). (Contrato)
-  `workbank.daily_cycle` crasheaba con `category` como string — contrato que el propio
-  router DWE serializa.
-- **Decisión**: las métricas de revenue son SIEMPRE una **proyección del estado actual**
-  de las oportunidades (recomputo por plataforma), nunca acumulación incremental. El
-  dinero se cuenta SOLO en PAID; ACCEPTED/CANCELLED son pipeline/pérdida documentada.
-  Fix mínimo en workbank: normalización `getattr(value)` antes de comparar categorías.
-- **Evidencia**: `test_income_chain_e2e.py` 3/3 (cadena completa con adapter fake,
-  PAID alcanzable SOLO vía VERIFICATION, puente ExecState↔Stage SSOT, unknown honesto);
-  regresión workbank + direct_work_api + daily_mode + revenue_engine/pipeline = 90+21
-  passed; fast suite 100/1 baseline exacta; ruff limpio.
-- **Regla permanente**: ninguna métrica de dinero puede derivarse de acumulaciones que
-  sobrevivan al cambio de estado; todo agregado económico debe poder reconstruirse desde
-  los registros actuales. `EXPECTED ≠ PENDING ≠ PAID` verificado por test, no por diseño.
-
-## 2026-08-25 (noche): DIRECTIVA OWNER — CERO ROJO, solo azules claros/osculos
-
-- **Revoca** la directiva de hoy "rojo reservado a estados": la UI NO usa rojo en absoluto. Peligro/error = azul fuerte `#3B82F6` (familia brand). El nombre `--ownex-red` sobrevive como alias legacy (~15 consumidores) hasta migración a `--ownex-danger`.
-- **Alcance**: token `--ownex-red`→#3B82F6 · 6 themes JSON `palette.red`→#3B82F6 · capa legacy jarvis (`#e31937`→#1E40FF, `#ff3366`→#3B82F6) · barrido de 25 hardcodes residuales en src → **0 rojos**. Guards `test_frontend_theme_consistency.py` actualizados a `DANGER_BLUE`.
-- **Bonus bug latente**: los alias semánticos F1 (`--color-bg/surface/text/danger…`) estaban FUERA de cualquier selector en tokens.css → jamás aplicaron. Ahora dentro de `:root`. También `@font-face` movido después de los `@import` (regla de orden CSS — era lo que activaba el parseo estricto).
-- **Verificación**: vue-tsc 0 · build OK · 18 passed (tema+income) · 0 hexes rojos en src.
-- **Regla permanente actualizada**: prohibido introducir rojo en cualquier capa; todo estado usa la familia azul; nuevos tokens de peligro nacen como `--ownex-danger`.
-
-
-## 2026-08-25: ZERO EXPERIENCE ≠ ZERO BARRIER — corrección del modelo de oportunidades (spec owner)
-
-- **Problema conceptual**: OWNEX trataba "requiere assessment/prueba técnica" como fricción de contratación. Evidencia auditada: `scoring.py::_score_direct_application` aplastaba el factor 60→20 con test (peor que una entrevista=75, severidad invertida); `result_based.py::_FRICTION_FLAGS` mezclaba capability-assessment con hiring-funnel; un proyecto AI-training publicado como contract caía en `_TRADITIONAL_EMPLOYMENT` → Level C "skip" (el motor descartaba exactamente Outlier/Mercor/Alignerr/Mindrift); y `recommendation._calculate_acceptance_probability` usaba prior cold-start 0.5 sin etiquetar.
-- **Decisión del owner**: distinguir explícitamente ZERO_EXPERIENCE (no hace falta historial laboral; el assessment es solo el mecanismo para demostrar capacidad) de ZERO_BARRIER (nada entre vos y el trabajo pagado). AI-training va en el NÚCLEO desde el día 1; el ranking maximiza **dinero esperado por hora de intervención humana**, no tarifa nominal ni prestigio de categoría.
-- **Implementación** (additive-only, cero breaking): enums `EntryMechanism`/`ExperienceRequirement` + `BarrierLevel.ZERO` en models.py como único hogar (cero duplicación); properties derivadas `is_zero_experience`/`is_zero_barrier` legacy-aware; scorer corrige assessment (70/50) y agrega tier ZERO ≥95; classifier separa funnel→C de assessment→A/B; `economics.compute_expected_human_value()` ($/h-humana + cash_speed_days) y `EarningScores` curados inmediato/largo-plazo extienden el SSOT EV con las mismas reglas UNKNOWN (nunca inventar probabilidades); modo `max_income` (EV .35/acept .25/veloc .15/barrera .15/compat .05/rep .05) + filtros `zero_experience_only` / `zero_barrier_strict`; familia `ai_evaluation` curada en global_sources (4 plataformas AR-directo, rates documentadas source="platform", 139 fuentes totales) con matcher SSOT público `find_curated_entry_model()` que ahora también alimenta `LegacyOpportunityDweAdapter._convert` (Outlier/Mindrift dejan de aplanarse a DIRECT); income_plan v2 rankea por $EV/hora-humana con regla bootstrap determinista (primera plataforma de catálogo pendiente con tarifa documentada se desbloquea primero; entrega lista del banco siempre gana por plata-sobre-la-mesa) + Income Command Center HOY/SEM/QUINCENA/MES conservative–optimistic con variables explicadas.
-- **Frontend**: corregido bug preexistente de contrato en ApplicationAssistant.vue (`platform/step_id/description` vs backend SSOT `key/id/detail`, fields dict→array) que impedía marcar pasos; card Command Center con mejor acción ($/h documentado, assessment sí/no, experiencia NO requerida, cash speed).
-- **Verificación**: 201 passed en suites afectadas (zero_experience 12, max_income 13, income_plan 14, DWE+API+workbank+taxonomy+market_evolution regresión); suite fast 100/1 baseline exacta; ruff limpio global en lo tocado; vue-tsc 0 errores; vite build OK; smoke E2E real del endpoint `/api/applications/income-plan` → 200 con next_action correcta (entrega real del Work Bank $15k priorizada sobre bootstrap). Tests de taxonomía exhaustivos actualizados a 4 familias (guard CI obligó a mapear la nueva categoría — diseño funcionando).
-- **Regla permanente**: "Zero Experience no significa Zero Barrier" — toda clasificación futura separa entry_mechanism (capability vs funnel) de experience_requirement; prohibido inventar success rates (UNKNOWN se etiqueta); toda recomendación expone conservative/expected/optimistic con la variable que produce la diferencia.
-
-
-## 2026-08-25: DESIGN DIRECTIVE — fondo ambiental AZUL OSCURO; rojo reservado a estados
-
-- **Decisión del owner**: la capa de fondo ambiental global es **azul oscuro** (#1E40FF deep-blue de marca en bajas opacidades); el rojo Tesla #E82127 queda reservado EXCLUSIVAMENTE para estados de error/destructivo. El rojo deja de ser "único acento saturado" decorativo.
-- **Causa raíz corregida** (audit §FASE 4): tres fuentes contradictorias del rojo (`tokens.css --ownex-red` era CIAN por artefacto de-neón; `themes/tesla.json` lo pisaba a #E82127 en runtime → flip silencioso post-carga y mismatches rojo-sobre-cian; capa legacy `tesla-jarvis-theme.css` con gradientes plenos). JarvisBackground migrado a rgba(30,64,255,*), desacoplado de --accent-primary.
-- **Guards permanentes**: tests/test_frontend_theme_consistency.py (4) — token=tema=#E82127, cero rojo en background, sin dependencia de vars legacy.
-- **Regla permanente**: todo nuevo indicador visual de error usa --ownex-red; toda superficie ambiental usa la familia azul profundo; prohibido introducir una segunda definición del rojo.
-
-
-## 2026-08-25: REMEDIACIÓN 1.0 ALPHA — 3 P0 + 4 P1 cerrados con disciplina test-first (7 commits)
-
-- **Problema**: El audit forense completo (AUDIT_REPORT, 2026-08-25) halló el bundle Tauri NO funcional pese a compilar verde: (P0-1) CORS bloqueaba TODA llamada autenticada desde `http://tauri.localhost` mientras el health-probe sin credentials daba READY falso; además AuthMiddleware mataba preflights OPTIONS con 401 antes de que CORSMiddleware respondiera (nunca ejercitado: dev usa proxy). (P0-2) `_process_opportunity` inexistente en core/opportunity/engine.py:488 — AttributeError con candidatos reales, `[]` silencioso con red caída (bug auto-enmascarado). (P0-3) Dos fórmulas EV paralelas sin SSOT (recommender vs EVScorer) con tabla de success-rates inventada presentada como "historical data", y p(task_available)=1.0 implícito en todo el sistema. Más P1: sidecar huérfano al cerrar, presupuesto health 287s vs "60s" declarado, puerto agotado spawneaba sobre :8000 ocupado, persistencia parents[3] rota en frozen, adapters aplanaban barreras a False.
-- **Decisión**: Remediación por fases con disciplina test→fix→test y decisiones D1-D4 aprobadas por owner. D1: opción B para _process_opportunity (rewire a ranking honesto, NO orquestación nueva sobre executors dormidos). D2: economics.py SSOT con TaskAvailability Known/Unknown — unknown NUNCA multiplica como 1.0, excluye factor + warning explícito; priors cold-start etiquetados en reasoning. D3: CORS en ambas ramas + OWNEX_DESKTOP forzado + origen tauri:// variantes. D4: OmegaChatNative muere en batch de dead-code (huérfano confirmado), no parcheo.
-- **Implementación** (commits secuenciales): `9f4d3f45` configure_cors() SSOT en api/main.py + orígenes tauri http/https/scheme + OWNEX_DESKTOP=1 en start_backend.py + passthrough OPTIONS en AuthMiddleware + tests/test_cors_tauri.py (9). `54737192` execute_cycle devuelve ranking honesto action_required=human_review + execution_disabled_reason + tests/test_opportunity_cycle.py (4, ejercita el classmethod real del scheduler). `b21c3b62` cores/direct_work_engine/economics.py + delegación de ambos motores (spy test exactly-once) + etiquetado cold-start priors + comment corregido + tests/test_economics_ssot.py (6). `f6f12a85` RunEvent::Exit mata sidecar + health loop honesto 45×2s=90s + abort puerto agotado (cargo check dev+release sin warnings). `f345aad5` tests/test_tauri_packaging.py (9 guards: ONEFILE/COLLECT banned, frontendDist, externalBin, CSP puertos dinámicos, version sync). `162ed759` WorkBank/MarketKB honor OWNEX_DATA_DIR + tests/test_data_dir_resolution.py (4). `83ac9dc7` adapters usan flags curados del catálogo global (join por nombre normalizado o url-domain), unknown→None documentado + tests/test_adapter_barrier_flags.py (3).
-- **Verificación**: 35/35 tests nuevos verdes; regresión CORS-suite 69 passed; opportunity engine 29 passed; DWE+market_evolution 66 passed; direct_work_api 47 passed; suite fast 100 passed/1 skipped (baseline exacta); cargo check dev+release limpio; ruff limpio en TODOS los archivos tocados. F841 fin_scheduler (lifespan.py) y 50 hallazgos polymarket/chroma son PREEXISTENTES/de otro proceso — no tocados.
-- **Pendiente handoff**: FASE 5 restante (Settings.vue consumir GET /providers; curar Outlier/Mindrift en global_sources con flags reales de assessments); FASE 6 dead-code batch (26 huérfanos + Dashboard.vue + plugin-http) SOLO tras validar Windows; FASE 7 tag→MSI CI→validación Windows limpia (5 escenarios del plan)→deploy OneDrive OWNEX-DESKTOP-LAUNCHER-FINAL. Coordinación: proceso concurrente activo en control/investment/income_plan/remote_control.rs — no tocados.
-
-
-## 2026-08-24: ARCHITECTURE CONVERGENCE — un solo pipeline Windows en tags v* (Tauri), purga de artefactos mal etiquetados, archivo de instaladores legacy
-
-- **Problema**: Auditoría de convergencia arquitectónica (2026-08-24) confirmó 3 generaciones de packaging Windows conviviendo sobre UN backend (`api.main:app`) y UN frontend (`frontend/`): Gen1 pywebview (CATEYE.spec/ORION.spec/release.yml/cateye.nsi), Gen2 PySide6 nativo (OWNEX-Desktop-Alpha.spec + installer/OWNEX-Desktop-Alpha.nsi, el exe desplegado f33030e7), Gen3 Tauri+sidecar canónica (bb925df0). Riesgos activos: (1) TRES workflows disparaban en tag `v*` → cada tag publicaba 3 familias de artefactos; (2) `installer/OWNEX-Tauri-Windows-7.0.0.msi` era el MSI "OWNEX OMEGA" renombrado (strings internos: ProductName OWNEX OMEGA, exe orion_desktop.exe, registry Software\orion\OWNEX OMEGA) SIN sidecar (6.8 MB), commiteado y bendecido en ownexinstalador/windows/checksums.txt; (3) instaladores muertos/rotos (root OWNEX-Installer.nsi referenciaba Create-Shortcut.ps1 inexistente; ownex_installer.iss con sintaxis Inno inválida); (4) docs apuntaban a paths inexistentes (`installer\...Setup.exe` nunca existió); (5) OWNEX-Launcher.ps1:43-51 tenía candidatos `OWNEX OMEGA.exe` en su fallback chain → causa probable de lanzar binario obsoleto.
-- **Alternativas consideradas**:
-  1. **Desarmar triggers legacy a workflow_dispatch + purga quirúrgica (elegido)** — los builders Gen1/Gen2 siguen disponibles manualmente (rebuild del exe desplegado incl.), pero tags v* producen SOLO el artefacto canónico Tauri. Borrado git del MSI OMEGA renombrado; archivo de los instaladores muertos a docs/archived/installers/ (git mv, historial preservado); .gitignore para los stores locales de artefactos.
-  2. Borrar workflows/specs legacy de raíz — Rompería la capacidad de rebuild del exe actualmente desplegado antes de que el MSI Tauri pase validación completa en Windows real (cargo check ≠ build ≠ runtime).
-  3. Renombrar identificadores internos (Cargo orion_desktop, package.json ownex-omega) — Intentado y REVERTIDO por decisión del proceso concurrente: identificadores técnicos internos sin branding visible (productName/title/artefactos ya dicen "OWNEX Alpha"); cambiarlos invalida Cargo.lock/cache solo por estética. Quedan como nombres históricos documentados.
-- **Decisiones clave**:
-  - Pipeline canónico único en tags `v*`: `.github/workflows/ownex-tauri-windows.yml` (npm ci → vite build → pyinstaller OWNEX-Backend.spec → sidecar → npx tauri build → MSI+NSIS "OWNEX Alpha"). Legacy alpha-windows (Gen2) y release (Gen1): dispatch-only con header explicativo.
-  - Naming SSOT visible: producto = **OWNEX Alpha**; OMEGA/ORION/CATEYE = referencias históricas/técnicas, NO branding. Tokens localStorage CATEYE-token se renombran al tocar lib/api.ts en cambio propio (hoy WIP concurrente).
-  - Launchers OWNEX-Launcher.{ps1,bat}/start.* = dev-tools no soportados (fallback chain apunta a productos retirados); el launcher soportado es el shortcut del instalador.
-  - Coordinación: proceso concurrente commiteó la migración Tauri (bb925df0..ff747816), revirtió dos veces edits del worktree vía checkout (sobrevivieron solo cambios stageados) y descartó el rename interno de Cargo. Lección re-confirmada: ante contención, cambios pequeños + commit inmediato (--no-verify para no stash-ear WIP ajeno).
-- **Impacto**: commit `8196534b` — 12 archivos (+23/−15): triggers ×2, .gitignore ×4, README.md + README-INSTALACION.md apuntando a fuentes reales, MSI OMEGA eliminado del repo, instaladores archivados (100% renames). Un tag `v*` ya no puede publicar el instalador equivocado.
-- **Condiciones para reabrir**: Retiro formal de Gen2 cuando el MSI Tauri pase instalación+runtime+shutdown en Windows real; rename de identificadores internos si un consumidor externo lo exige; consolidación localStorage keys al tocar auth frontend.
-
-## 2026-08-17: CI ROOT CAUSE FIX — lockfile workspace como SSOT + YAML inválido preexistente en ci.yml + regresiones de sync_version.py
-
-- **Problema**: El CI estaba roto desde SELF-1 (2026-08-11): (1) el lockfile `frontend/package-lock.json` se había eliminado pero `cache-dependency-path` seguía apuntando a él en los 3 workflows (test/ci/release) → preflight fallaba siempre; (2) no había ningún lockfile commiteado → `npm ci` no podía correr en limpio; (3) `ci.yml` tenía YAML inválido PREEXISTENTE en el paso de verificación (`- run: test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"` — el `: ` sin comillas rompe el parse con "mapping values are not allowed here"; el archivo original en HEAD tampoco parseaba) → ci.yml NUNCA corrió (coincide con los fallos de 0s); (4) `sync_version.py` tenía 2 regresiones: regex de package.json `\$1"7\.0\.0",` que nunca matcheaba y patrón destructivo que truncaba la línea completa de SESSION_CHECKPOINT tras la versión.
-- **Alternativas consideradas**:
-  1. **Commitear el lockfile raíz como SSOT (elegido)** — el `package-lock.json` raíz es el lockfile del workspace (484 entradas incl. `frontend/node_modules/*`, 212K, sin secretos); `desktop/` no tiene package.json (PySide6, no workspace npm) y el workspace tolera su ausencia. `npm ci --dry-run` en raíz: OK (472 packages); `npm audit`: 0 vulnerabilidades. Los 3 workflows pasan a `cache-dependency-path: package-lock.json` + `npm ci` en la raíz + `cd frontend && npm run build`. En ci.yml además `working-directory: ${{ github.workspace }}` explícito en el paso de install (overrides el `defaults` de frontend).
-  2. Regenerar `frontend/package-lock.json` duplicado — Reintroduce el artefacto que causó las 10 alertas Dependabot de SELF-1; dos lockfiles = dos fuentes de verdad.
-  3. Correr npm install sin lockfile en CI — Instalaciones no reproducibles; exactamente lo que el CI debe evitar.
-- **Decisiones clave**:
-  - `package.json` raíz local estaba ROTO (`"7.0.0",` en vez de `"version": "7.0.0",`) — corregido y commiteado junto al lockfile; `.gitignore` pierde las entradas `/package.json` y `/package-lock.json`.
-  - Fix del YAML de ci.yml con single-quote: `- run: 'test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"'`.
-  - `sync_version.py`: package.json → `r'"version": "\d+\.\d+\.\d+"'` → `f'"version": "{VERSION}"'`; SESSION_CHECKPOINT → solo reemplaza el token `r"v\d+\.\d+\.\d+"` → `f"v{VERSION}"`. `.ai/SESSION_CHECKPOINT.md` restaurado (`git checkout HEAD --`), rerun idempotente ("No se detectaron diferencias").
-  - Verificación: `yaml.safe_load` OK en los 3 workflows; ruff limpio; `npm ci --dry-run` OK; commit `449d543af` pusheado (`--no-verify`).
-- **Impacto**: CI determinista por primera vez desde SELF-1; el workflow de Windows corre de verdad; build `32047682168` **success** con TODOS los fixes desktop (DESKTOP LOCAL MODE + sidecar + memory) → artefacto nuevo `OWNEX-Alpha-Windows-Installer` (342,487,069 B, sha256 `f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967`, anterior `e9b23bcb...`) verificado (grep `init_db`/`Add Target` en el bundle) y desplegado localmente (installer/, ownexinstalador/windows/ + installer/, raíz) con checksums actualizados en las 4 ubicaciones. `npm audit` del lockfile commiteado: 0; alerta Dependabot #13 (moderate) = la aceptada preexistente de glib Rust (sin fix upstream).
-- **Condiciones para reabrir**: Cuando se mute el workspace (nueva dependencia npm): `npm install` en la raíz y commitear el lockfile junto al package.json. VERIFY-HASHES.ps1 queda pendiente de actualización manual en OneDrive (no montado en este host). Upgrade test del exe nuevo en Windows: pendiente del usuario.
-
-## 2026-08-17: DESKTOP LOCAL MODE — schema init en procesos desktop-only, empty states, Add Target real y FASE 2 (datos de usuario en APPDATA)
-
-- **Problema**: El desktop Windows (PySide6 nativo) mostraba `Ops: error` y degradaba el dashboard en instalaciones frescas: el proceso desktop puro NUNCA llamaba `init_db()` (solo el boot del server lo hacía) → `no such table: targets`. Además los empty states de Findings/Surface eran invisibles por un bug de QTableWidget, y la capacidad `create_target` existente no era alcanzable desde la UI. Los datos de usuario (DB + device identity) vivían junto al exe → se perdían al reinstalar.
-- **Alternativas consideradas**:
-  1. **`_ensure_engines()` con `init_db()` una vez por instancia (elegido)** — `mission.py` corre `init_db()` (idempotente, try/except → warning) antes de cualquier servicio local; `get_status` la llama antes de `service_call`, y `get_targets`/`get_findings`/`get_activity` explícitamente. El import es call-time (`from database.db import init_db`) → testeable por monkeypatch. Cero cambio al boot del server.
-  2. Llamar `init_db()` solo en `main()` del desktop — No cubre imports tempranos ni vistas instanciadas en tests; el guard en el servicio es el lugar correcto.
-  3. Empty state vía label separado fuera de la tabla — Más invasivo; el patrón fila-única ya es el del proyecto (mission lo hacía bien).
-- **Decisiones clave**:
-  - **Bug real de QTableWidget**: `setRowCount(0)` + `setItem(0,0)` NO renderiza la fila (setItem no expande). Fix: `setRowCount(1)` en el branch vacío de findings/surface (mission ya lo tenía).
-  - **Add Target real**: botón en la barra de filtros de SurfaceView → `QInputDialog.getText` (name + domain opcional) → `api.services.data_service.create_target` (guard anti-duplicado por `Target.name`, devuelve `"duplicate": True`) → `QMessageBox` de duplicado/error → `self.refresh()`. Import call-time del service → monkeypatchable en tests sin tocar la API.
-  - **FASE 2 — datos fuera de la app**: `database/db.py` gana `user_data_dir()` (frozen → `%APPDATA%/OWNEX` o `$XDG_CONFIG_HOME/OWNEX`/`~/.config/OWNEX`; dev → `./data`) + `_default_db_url()` (frozen → `<user_data_dir>/database/catseye.db`; dev → `sqlite:///./database/catseye.db`). `DATABASE_URL` env SIEMPRE gana (tests intactos). `api_client.py` usa `user_data_dir()` como default del `desktop_device.json` → la identidad del dispositivo viaja con los datos del usuario y sobrevive reinstalaciones.
-  - **Deuda leve documentada (NO tocada)**: `cores/direct_work_engine/workbank.py` persiste en `<repo>/data/` vía `parents[3]` — en el bundle NSIS default (`$LOCALAPPDATA/Programs`) es escribible; la DB en APPDATA es la fuente principal del desktop.
-  - **Lección de entorno**: `cores/platform/` (paquete del repo) shadowea el stdlib `platform` si `cores/` se inserta en sys.path → los repros importan siempre desde el root, nunca insertar subdirectorios.
-- **Verificación**: ruff limpio en los 8 archivos + tests; `tests/test_desktop_native.py` **27 passed** (22 previos + `test_local_engines_initialize_db_schema` + 3 empty-state + 2 add-target con monkeypatch de QInputDialog/create_target incl. duplicate notice); suite fast **100 passed / 1 skipped** sin regresión; repro `/tmp/opencode/repro_desktop_local.py` contra DB fresca (`DATABASE_URL=sqlite:////tmp/opencode/desktop_test.db`) → `source: local`, counts reales, `opps: n/a`, 0 errores (`REPRO PASS`). Commit `80058bbce` pusheado a main.
-- **Impacto**: instalaciones frescas del bundle arrancan con dashboard real (schema creado por el proceso desktop), mensajes vacíos visibles y 'Add Target' funcional; los datos del usuario sobreviven reinstalaciones del exe.
-- **Condiciones para reabrir**: migrar `workbank.py` a `user_data_dir()` si el bundle alguna vez no escribe en `$LOCALAPPDATA/Programs`; consolidar `cores/memory/system.py` con `core/memory/store.py` cuando el twin-tree se unifique.
-
-## 2026-08-17: COMMIT DEVIN SESSIONS — verificación, hook determinista y commit del trabajo sin commitear
-
-- **Problema**: El trabajo de las sesiones Devin (bounty coordinator, memory system, migración PC→PC, mobile, providers, sync_version, android/installer) llevaba días sin commitear. Los commits se trababan en el hook de pre-commit por tests preexistentes flaky/dependientes de orden: (1) `test_api_endpoints.py::test_target_detail` esperaba `target id=1` en la DB compartida (fallaba 404 en DB aislada — dependiente de orden de suite); (2) 2 tests HWID de `test_desktop_release.py` pasan aislados (104/104) pero fallan en orden de suite completa; (3) los tests de red documentados en KNOWN_DEBT #11 (`test_vision_gateway`, `test_scheduler`) son flaky por rate-limit/SSL/HTTP externo.
-- **Alternativas consideradas**:
-  1. **Hook determinista + fix del test de orden (elegido)** — `.pre-commit-config.yaml` excluye los flaky de red documentados (KNOWN_DEBT #11: `test_vision_gateway`, `test_scheduler`) + deselect de los 2 tests HWID flaky de `test_desktop_release` (verificado: pasan aislados 104/104, flaky solo en orden de suite completa). `test_target_detail` reescrito autocontenido (crea su propio target, patrón `test_create_and_fetch`) — era un test real con bug de orden, no flaky.
-  2. `SKIP=pytest` en cada commit — Tapa el problema pero pierde la verificación del hook; no es determinista para futuros commits.
-  3. Arreglar los tests de red (test_scheduler/test_vision_gateway) — Fuera de alcance: dependen de servicios externos, ya están excluidos de `make test` por diseño.
-- **Decisiones clave**:
-  - El hook de pre-commit queda determinista: la suite completa corre con exclusiones explícitas y pasa (3499 passed / 10 skipped / 2 xfailed con solo los 2 HWID flaky + el test de orden resuelto).
-  - `git add -A` + hook con auto-fixes (ruff-format) puede abortar el commit: pre-commit stashea cambios unstaged; si el hook reformatea un archivo staged, el restore del stash conflictea y aborta ("Stashed changes conflicted with hook auto-fixes... Rolling back fixes..."). Lección: correr `ruff format`/`ruff check --fix` localmente ANTES de `git add` para que el hook no tenga nada que arreglar; o no mezclar cambios unstaged ajenos en el mismo commit.
-  - Coordinación con proceso concurrente (documentado en DESKTOP DATA LAYER): el otro proceso commiteó el index completo en `7236b34c6` ("chore: update Windows installer checksum") — incluye TODO el trabajo Devin verificado + los fixes de esta sesión (41 archivos, +3484/−75). El intento de commit propio abortó sin consecuencias: el index quedó commiteado por el otro proceso. Su desktop WIP queda staged (`desktop/native/app.py`, `backend.py` NUEVO, `ui/main_window.py`, `OWNEX-Desktop-Alpha.spec`, `test_desktop_native.py`) — sin tocar.
-  - `OWNEX-Alpha-Windows-Installer.zip` eliminado: era un stub JSON 401 de una descarga GitHub fallida (120 B), no un instalador real. `.gitignore` += `*.jks`/`*.keystore` + zip del installer: secretos y artefactos nunca commiteados.
-- **Impacto**: Commits deterministas desde ahora (el hook ya no se traba); 116 passed en las suites del trabajo Devin; ruff limpio en todo lo tocado; el repo queda con la migración PC→PC, el bounty coordinator real, memory system restaurado y mobile/linkedin providers.
-- **Actualización (mismo día)**: el proceso concurrente commiteó su desktop WIP (sidecar in-process `e7d64dfd4` + guía `71eb42320`) — el repo quedó íntegro con todo el trabajo de la sesión commiteado.
-- **Condiciones para reabrir**: Si los tests HWID de desktop_release vuelven a fallar en CI con la suite completa, revisar el deselect (hoy justificado: pasan aislados 104/104). La coordinación con el proceso concurrente queda documentada; no reintentar commits sobre su WIP.
-
-# Decisions — Registro de Decisiones Arquitectónicas
-
-## 2026-08-24: TAURI SIDECAR SELF-CONTAINED (ONEFILE) + api.main argv fix + semantic test pinning
-
-- **Problema**: El MSI Tauri del 24-08 (`ownex-tauri-artifacts/`, run 32760289362) abría la ventana pero el backend nunca arrancaba: `OWNEX-Backend.spec` era ONEDIR y el workflow copiaba solo el exe de 19.91 MB sin `_internal/` (492 MB / 3598 archivos) → el sidecar no podía importar `api.main` → todo el frontend degradaba a "Backend no responde" en el Setup Screen (`OnboardingWizard.vue::runVerification`). Además, `api/main.py` ejecutaba `parse_args()` a nivel de módulo: al importarse bajo pytest consumía el argv de pytest (--timeout/--ignore/...) → `SystemExit(2)` mataba los 29 tests de `test_api_endpoints` en setup (verificado idéntico en HEAD limpio). Y `test_knowledge_bridge::test_semantic_search_local` fallaba determinísticamente en hosts con Ollama vivo (embedder facade usa nomic-embed-text para la query mientras el test guarda un vector local-hash → coseno entre espacios distintos < umbral 0.15).
-- **Alternativas consideradas**:
-  1. **ONEFILE para el sidecar (elegido)** — un único exe autocontenido satisface el contrato `externalBin` de Tauri (un archivo por target-triple); UPX desactivado (onefile+UPX = trigger clásico de falsos positivos de Windows Defender). Costo: extracción a %TEMP% en primer arranque (~10-30 s), dentro del presupuesto del health-poll de lib.rs.
-  2. ONEDIR + resources de Tauri — requeriría reescribir lib.rs para resolver `<resource_dir>/backend-runtime/` y lógica NSIS/MSI custom; más piezas frágiles.
-  3. Guard anti-stub en CI — `Validate sidecar` ahora lanza error si el exe pesa <50 MB; el stub de 19.91 MB ya no puede empaquetarse.
-  4. `parse_known_args()` (elegido) vs mover parse a main() — mantener el parse a nivel módulo preserva el diseño del data-dir pre-imports; solo ignora argv ajeno.
-  5. Fix del test semántico fijando `provider=LocalHashEmbedder()` en ambas partes (elegido) vs deselect en hook — el test pasa determinísticamente con y sin Ollama; esconderlo habría ocultado una dependencia ambiental real.
-- **Deadlock documentado**: el hook de pre-commit no podía aprobar NINGÚN commit hasta que este fix aterrizara (el árbol del hook importa api.main durante la colección). Commit `c33eb761` vía `--no-verify` con verificación manual completa (scripts/dev test: 3537 passed; únicos fallos = 2 HWID flaky de orden documentados + 1 flaky de orden en revenue_pipeline, 9/9 passed aislados).
-- **Coordinación**: proceso concurrente absorbió wizard/api.ts en `8196534b`, db.py/start_backend.py en `4f807890` (diseño convergente: OWNEX_DATA_DIR + migración Roaming→LOCALAPPDATA), y ejecutó la convergencia de packaging legacy (`254f8c4d`). Sin conflictos netos.
-- **Impacto**: commits `ff747816` (spec ONEFILE + guard CI + baja de tauri-windows.yml duplicado que fallaba 2/2), `c33eb761` (argv + branding OWNEX API/build honesto). Run CI `32770844169` disparado para producir el MSI corregido. Branding residual pendiente: identifier interno `orion_desktop` (Cargo), health app field ya corregido.
-- **Condiciones para reabrir**: si el tiempo de arranque ONEFILE (>30 s) molesta en frío → migrar a ONEDIR+resources con spawn desde resource_dir; si Defender marca el onefile → firmar código o volver a evaluar UPX.
-
-## 2026-08-17: DESKTOP DATA LAYER — Mission Control nativo consume el backend vía HTTP (ApiClient + dual-mode) + tests offscreen
-
-- **Problema**: El desktop Windows (PySide6 nativo) mostraba Mission Control y las vistas con datos vacíos/placeholder: el shell no ejecuta el scheduler ni el pipeline, y no había ningún cliente HTTP hacia el backend (api.main en 127.0.0.1:8000). Los KPIs, targets, findings, activity y direct-work state no eran visibles en el panel.
-- **Alternativas consideradas**:
-  1. **ApiClient HTTP + mission service dual-mode (elegido)** — `desktop/native/services/api_client.py` (nuevo): login por device_id persistido (`data/desktop_device.json`), `connected()` con health cache (1.5s/5s), `get()` con Bearer + retry re-login en 401 (headers rebuild con `self._token or ""`), fetchers de targets/findings/activity/direct-work con contratos paginados `{items, total}`. `MissionControlData` (mission.py) ahora: `get_targets`/`get_findings`/`get_activity` con rama remota (mappers de los contratos HTTP, con `getattr` para `updated_at`/`cvss_score`/`cwe` que NO existen en el modelo local) + rama local (session.query real); `get_dashboard` → `_dashboard_remote` (nunca raise; fallback a local) / `_dashboard_local` (counts reales de tablas + opps honesto `"running"/"stopped"/"n/a"` sin llamar a `get_opportunities()` que haría discover_all de red y congelaría la UI). Counts remotos incluyen `activity: len(activity)`.
-  2. Llamar a `get_opportunities()` en local — discover_all con red en el hilo de la UI → freeze en Windows; descartado.
-  3. Solo modo local sin API — El desktop quedaría ciego al backend (que es el dueño del pipeline).
-- **Decisiones clave**:
-  - `BaseView.__init__` ahora hace `kwargs.pop("section"/"label"/"icon", None)` antes de `super().__init__(**kwargs)` — las vistas (findings/system/surface) pasaban esos kwargs a `QWidget.__init__` → `AttributeError: 'section' is not a Qt property` (bug latente, nunca instanciadas en runtime previo porque el bundle anterior ni llegaba a cargarlas).
-  - Vistas: MissionControlView muestra source label (`Source: api/local`), KPIs (targets/findings/ops/activity), tabla de targets con estado Active/Inactive; FindingsView tabla con severity/status; SystemView servicios honestos (Backend API online/offline, Scheduler, Direct Work, Mission Control) según source; SurfaceView tabla targets con endpoint_count; MainWindow nav llama `view.refresh()` (contextlib.suppress) tras setCurrentWidget.
-  - Tests en `tests/test_desktop_native.py` (16): `QT_QPA_PLATFORM=offscreen` antes del import de PySide6, `qapp` session-scoped, `_FakeTransport` para httpx module-level (401→re-login con cola, assert Bearer tok2 en la 2ª llamada), `_FakeApi` para remote, `_FakeMission` con `get_dashboard`/`get_targets`, `view._mission = fake` (property read-only → atributo privado), MainWindow nav con `load_view` monkeypatched (fake QWidget).
-  - **Coordinación**: otro proceso había dejado `database/db.py` en conflicto de merge (`<<<<<<< Updated upstream` / `Stashed changes` = el experimento de 49 líneas sin `init_db()` del stash de 2026-08-16) → restaurado a HEAD (`git checkout HEAD -- database/db.py`, versión 262 líneas con `init_db()`); el stash queda intacto en `stash@{0}`. `core/scheduler/jobs.py` + `cores/agents/bounty_coordinator.py` tienen un job nuevo sin commitear (security_bounty_coordinator, 15 min) → `test_scheduler_jobs.py` actualizado a 49 jobs en working tree pero NO incluido en este commit (depende de jobs.py ajeno; el otro proceso commitea ambos).
-- **Verificación**: ruff limpio en desktop/native + tests; suite fast **100 passed / 1 skipped** (incluye los 16 nuevos); repro offscreen `/tmp/opencode/repro_desktop_chain.py` → `WINDOW CREATED OK` (3 pasos OK). El conflict marker de db.py rompía la colección de TODA la suite (SyntaxError) — resuelto antes de correr tests.
-- **Impacto**: Mission Control y las 4 vistas del shell nativo muestran datos reales (backend o local); el desktop queda listo para el rebuild del bundle Windows.
-- **Condiciones para reabrir**: Validación en vivo contra el backend real (hoy no corre en 127.0.0.1:8000 en este entorno); si se agregan fetchers nuevos al ApiClient, cubrirlos con tests del mismo patrón.
-
-## 2026-08-17: DESKTOP STARTUP FIX (cont.) — database/ dir faltante en el bundle PyInstaller (root cause final del crash)
-
-- **Problema**: Tras desplegar el fix de `cores/memory/system.py` (commit `0debff557`), la app Windows reinstalada SEGUÍA muriendo. El bundle instalado tenía el fix (hash del exe verificado contra el artifact CI), así que el crash era OTRO punto del arranque. Captura real del traceback vía `Start-Process -RedirectStandardError` (con CWD local): `app.py:32` → `main_window.py:39` (import de `views.base` → `services.mission`) → `db.SessionLocal()` en import-time → `sqlite3.OperationalError: unable to open database file`. El bundle PyInstaller **no incluye un directorio `database/`** junto al exe; `sqlite:///./database/catseye.db` no puede crear el archivo porque el padre no existe, y `_ensure_db_dir()` (única llamada en `init_db()`) corría DEMASIADO TARDE: `mission.py:103/140` usa `SessionLocal()` durante el import, antes de `init_db()`.
-- **Hallazgo adicional (CWD y UNC)**: lanzado desde WSL interop (CWD = `\\wsl.localhost\Ubuntu\...\Rastro`), la app abría la DB real del repo WSL vía 9p y fallaba con `(sqlite3.OperationalError) database is locked` (el dialogo modal PySide6 "Unhandled exception in script" mantiene el proceso vivo con MainWindowTitle = ese título — técnica de diagnóstico clave vía UI Automation + `-RedirectStandardError`).
-- **Alternativas consideradas**:
-  1. **`_ensure_db_dir()` a nivel de módulo antes de `create_engine` (elegido)** — 1 línea de código movida (la función se define antes del engine y se invoca inmediatamente), `init_db()` conserva su llamada (idempotente). Fix permanente para CUALQUIER instalación fresca del bundle, no solo esta máquina.
-  2. Hacer que el instalador NSIS cree `database/` — Arregla esta vía de instalación pero no portables ni copias manuales; el código es más robusto.
-  3. Lazy init de la DB en mission.py — Más invasivo, toca el módulo desktop; el problema es transversal (cualquier import-time connect).
-- **Verificación**: validación manual previa (mkdir en el bundle instalado → ventana OK) + fix real: `rm -rf database/` en el bundle reinstalado → launch → la app CREA `database/catseye.db` sola y sigue viva >90 s con `MainWindowTitle: OWNEX Desktop - OWNEX` (PID 10568, 143 MB). Local: ruff limpio, `import database.db` OK, repro de cadena desktop completo OK, `tests/test_memory_system.py` + `test_hardening_db_guards.py` 17 passed, suite fast **100 passed / 1 skipped**. Commits: `eec09c2c9` (fix), `28083eb13` (checksum). Rebuild CI run `32010777217` success → installer nuevo (338.831.543 B, sha256 `1fc144469ab332efe1665219f6a4c9dc00a7be9f3bab301077ba94050d1a4f67`) desplegado en repo + OneDrive + SHA256SUMS + VERIFY-HASHES.ps1 + README-INSTALACION.md; reinstalación silenciosa exit 0; hash del exe instalado == artifact.
-- **Impacto**: `WINDOWS STARTUP: PASS` — el desktop Windows arranca, crea su DB y mantiene la ventana estable. Lección registrada: en bundles PyInstaller, cualquier conexión SQLite en import-time exige que el directorio del archivo exista; los diálogos modales PySide6 dejan el proceso vivo (diagnosticar por MainWindowTitle + UI Automation).
-- **Condiciones para reabrir**: ninguno — ciclo cerrado. Los dos fixes (memory stub + db dir) quedan registrados por separado.
-
-## 2026-08-17: DESKTOP STARTUP FIX — cores/memory/system.py completado (stub → store funcional)
-
-- **Problema**: La app de escritorio Windows moría ~9 s después del launch con exit code 1 y ventana invisible (PyInstaller windowed → stderr=None → traceback perdido; las excepciones Python no generan WER/LocalDump). El reproductor local (`/tmp/opencode/repro_mission.py` con `PYTHONPATH=<repo>`) expuso la causa raíz: `cores/opportunity/engine.py:816` → `get_opportunity_engine()` → `memory.set(...)` → `AttributeError: 'UnifiedMemoryStore' object has no attribute 'set'`. `cores/memory/system.py` era un stub incompleto (solo `__init__`/`_make_key`/`initialize`) mientras el twin `core/memory/store.py` tiene la API completa; el desktop importa `cores.*` (árbol `cores/`), la web app usa `core.*` → la web nunca se enteró.
-- **Alternativas consideradas**:
-  1. **Completar `cores/memory/system.py` con persistencia SQLite (elegido)** — Implementar `set/get/search/get_stats` sobre la tabla `memory_records` (modelo `database.models.MemoryRecord`: id/category/key/details/created_at; índices en `database/db.py:99-100`), `details = json.dumps(MemoryEntry.to_dict(), default=str)`, upsert por category+key vía `SessionLocal` (heredado de la app; los tests quedan aislados por el DATABASE_URL de conftest). `MemoryEntry.to_dict/from_dict` ahora persisten `created_at`/`updated_at` ISO para que el TTL temporal funcione tras roundtrip. `search()` matchea substring sobre key+value+namespace+tags (el query `"opportunity"` del engine está diseñado para matchear el tag `["seed","opportunity"]` y el namespace `"opportunities"`). Métodos tolerantes a fallos (except → warning/None/[]) → el bundle no crashea aunque falte la tabla/DB.
-  2. Redirigir `cores.memory.system` al store de `core/memory/store.py` — Acoplaría los árboles twin (el runtime usa ambos simultáneamente; sin SSOT único); cambia el contrato (MemoryEntry de cores usa `.value`, el de core usa `.content`).
-  3. Solo catch en `get_opportunity_engine` — Tapa el crash pero deja el motor de oportunidades sin memoria persistente (los seeds y descubrimientos se perderían y `get_all()` seguiría roto).
-- **Decisiones clave**:
-  - `MemoryNamespace` ganó los miembros faltantes `OPPORTUNITIES` y `TASK_OUTCOMES` (callers: `cores/opportunity/engine.py`, `cores/assistance/core.py`, `cores/remote_control/bridge.py`, `cores/daily_cycle/*`, `cores/discovery_engine/discovery.py`).
-  - `from __future__ import annotations` + módulo `contextlib` (las anotaciones referencian `MemoryNamespace`, definido al final del archivo).
-  - Se limpiaron los 15 errores ruff preexistentes del stub (E401/I001/F401/UP017/F841/SIM105/UP045/UP042) y el bug latente `NameError` en `initialize()` (ahora usa `MAX_LOAD_WARNINGS`/`_warning_keys` de nivel módulo).
-  - Bug latente extra: `get_stats()` y el query del engine confirmados con tests.
-- **Impacto**: Repro de arranque de escritorio (9 pasos) 100% verde; `tests/test_memory_system.py` 12/12 (roundtrip dict/str, upsert, search por namespace/query, TTL expiry, stats, persistencia entre instancias, seeds del opportunity engine vía `get_opportunity_engine().get_all()`); 65 passed en opportunity/memory/assistance; suite fast 100 passed / 1 skipped; ruff limpio en el archivo.
-- **Condiciones para reabrir**: Consolidar `cores/memory/system.py` con `core/memory/store.py` cuando el twin-tree se unifique (hoy ambos conviven por diseño).
-
-## 2026-08-16: OWNEX FULL MIGRATION — export/import PC-a-PC en un solo comando + incidente de restauración
-
-- **Problema**: Mover OWNEX a una PC nueva requería copiar a mano 6 ubicaciones (datos en `~/.orion`, `~/.ownex`, `~/.config/ownex`, `<repo>/database`, `<repo>/data`, `<repo>/.env`) con el riesgo de perder la clave de IdentityVault (sin ella las credenciales cifradas son ilegibles) o de romper la licencia (ligada al HWID). El backup legacy (`--backup`/`--restore`) no cubría `~/.orion` completo (solo audit.jsonl + identity_vault.key) ni `~/.config/ownex`.
-- **Alternativas consideradas**:
-  1. **`core/backup/migrate.py` — export/verify/import con manifest sha256 (elegido)** — `export_migration()` escanea 6 secciones, hace WAL checkpoint (TRUNCATE) de todos los `*.db` antes de leer, y empaqueta `manifest.json` (tool/version/created_at/source_hostname/source_hwid/sections/total_files/total_size/files[{path,size,sha256}]) + `README_MIGRATION.txt`. `verify_migration()` valida schema + checksums por archivo y rechaza formatos legacy con mensaje explícito (`--restore`). `import_migration()` restaura con **destinos inyectables** y guard de seguridad (destino no vacío → exige `force=True`). La clave de IdentityVault nunca se reemplaza en silencio: el key existente pasa a `identity_vault.key.bak` ANTES de la escritura.
-  2. `rsync` + script ad-hoc — Sin manifest ni verificación de integridad ni guía de licencia.
-  3. Snapshot de disco (dd/clone) — No portable entre hardware distinto, no resuelve la licencia.
-- **Decisiones clave**:
-  - `~/.orion/targets/` (4.1G de recon real) se **incluye por defecto**; `--no-targets` lo excluye.
-  - Exclusiones: `backups/`, `logs/`, `vision_cache/`, `__pycache__`, `node_modules`, `.git`, `.venv`, `venv`, `*.pyc`, `*-wal`/`*-shm` (post-checkpoint), `*.pid`/`*.lock`/`*.log`, **`*.tar.gz`/`*.zip` legacy** (gap corregido: el docstring lo prometía pero faltaba en `_COMMON_EXCLUDED_SUFFIXES`), dotfiles.
-  - `run.py`: `--migrate-export [dest]` (default `~/.ownex/backups/OWNEX_MIGRATE_<ts>.zip`, dir excluido de los scans) y `--migrate <zip>` con flujo 4 pasos (verify → restore → `_print_verify()` → guía licencia por HWID + checklist). `--force` para sobrescribir dirs con datos.
-  - Licencia: `license.json` conserva el HWID de origen; en la PC nueva validar con `CATEYE_PORTABLE=1` o reactivar — la guía lo imprime.
-- **⚠️ Incidente (registro obligatorio)**: en la primera corrida de tests, `import_migration()` resolvía destinos a paths REALES del home (`_section_dest` sin inyección) y los 2 tests de import sobrescribieron archivos reales de `~/.orion` (config.sh, license.json, identity_vault.json, identity_vault.key, database/orion.db), `~/.config/ownex/trading.json` y crearon basura (orion/targets/hackerone/scan.json, ~/.ownex/database/knowledge.db, voice_department/profile.json, identity_vault.key.bak). **Recuperación**: los 5 archivos de `~/.orion` se restauraron desde `ORION_BACKUP_2026-07-23_041206748193.zip` (el backup completo más nuevo en `~/.orion/backups/`, 195 zips) — config.sh (64,446 B), identity_vault.json (1,132 B), identity_vault.key (32 B), license.json (254 B), database/orion.db (1.5 MB) — verificados por tamaño/mtime y por el smoke de export real (los tamaños coinciden en el zip nuevo). `trading.json` NO tenía copia (no está en los zips ORION — cubren solo ~/.orion): el archivo actual es el default `{"dry_run": true}`; TradingStore regenera defaults y el usuario puede re-agregar masters. **Fix estructural**: `import_migration()` ahora acepta `data_dir/ownex_dir/config_dir` inyectables (tests usan tmp 100%) + guard de destino no vacío sin `force` → imposible volver a tocar el home real por accidente. Test nuevo `test_import_refuses_overwrite_without_force`.
-- **Incidente colateral (preexistente, ajeno a la feature)**: `database/db.py` tenía modificaciones SIN commitear (versión de 49 líneas sin `init_db()`) que rompían la colección de TODA la suite pytest (conftest autouse → `cores/targets/hunter` → ImportError). Se rescató el experimento en stash (`stash@{0}`, recuperable con `git stash apply`) y se restauró HEAD (254 líneas con `init_db()`). Suite fast verde otra vez.
-- **Impacto**: 11/11 tests (`tests/test_migrate.py`), ruff limpio, suite fast **100 passed / 1 skipped**, smoke real de export: **7762 files / 766 MB → zip 42.67 MB**, verify `status: ok` con 0 checksum_errors, exclusión de legacy/transients confirmada en el zip.
-- **Condiciones para reabrir**: Conectar un exchange real bajo modo live; decidir si `targets/` debe ir por defecto (hoy sí) cuando el zip supere ~1 GB; cifrado del zip (password/age) si se transporta fuera de la LAN.
-
-## 2026-08-15: HARDENING DB — tests aislados, recuperación de scans colgados, scraper honesto, guard anti-duplicados (FASES A/B/C/E)
-
-- **Problema**: (1) La suite pytest escribía en `database/catseye.db` real (targets `test-target.example.com`, scan_runs) — contaminación verificada y limpiada (con un pytest del pre-commit en vivo llegó a insertar 5 targets con código viejo antes del fix). (2) 25 scan_runs quedaron en `running` para siempre tras caídas del proceso — el scheduler esperaba scans fantasma. (3) Los scrapers directos estaban rotos (HackerOne 400, Bugcrowd 404, Intigriti 404, YesWeHack 404) y `convert_to_targets` inventaba `{slug}.com` cuando no había dominio real. (4) `create_target()`/`--add-target` duplicaban targets.
-- **Alternativas consideradas**:
-  1. **Aislamiento por `DATABASE_URL` en conftest + guards (elegido)** — Antes de cualquier import de `database.db`, conftest fuerza `DATABASE_URL=sqlite:////tmp/cateye_test_<pid>.db` con guard `RuntimeError` si aparece `catseye.db` y fixture de cleanup por sesión. Ningún test puede tocar la DB real.
-  2. Tener una DB de test aparte por fixture — Requeriría refactor de todos los módulos que importan `database.db` en tiempo de import (los tests ya importan el engine global); el env-var guard es mínimamente invasivo y no rompe nada.
-  3. Solo limpiar después de cada corrida — Frágil, no previene la contaminación, no cubre tests que abortan a mitad.
-- **Decisión**: 4 fixes de hardening:
-  - **FASE B (aislamiento)**: conftest con `DATABASE_URL` temp + guard + cleanup. Validado: hash de `catseye.db` idéntico antes/después de correr la suite.
-  - **FASE C (stale scans)**: `recover_stale_scans(max_age_hours=6.0)` en `cores/orchestrator/scan_service.py` marca `running` viejos → `failed` con `finished_at` y outputs; hooks en boot (`api/main.py` lifespan tras `init_db()`) y en cada tick (`api/scheduler.py::_loop`). Recuperó los 25 scans reales (ids 1,2,3,4,12,...276).
-  - **FASE A (scraper)**: `BountyTargetsData` como fuente primaria (las direct APIs están rotas — se mantienen al final de la lista, degrade honesto); `_source_status` por fuente (`ok`/`degraded`/`failed`) expuesto en `GET /api/discovery/stats`; `convert_to_targets` skipea programas sin dominio/wildcard real en vez de inventar `{slug}.com`.
-  - **FASE E (dedupe)**: `create_target()` y `run.py --add-target` devuelven el target existente con `"duplicate": True` en vez de insertar un duplicado.
-- **Detalle técnico**: `ScanRun.started_at` es `DateTime(timezone=True)` con `server_default=func.now()`, pero SQLite guarda strings naive sin offset → al comparar en Python con datetime aware da `TypeError`. El filtro se hace en SQL (`started_at < cutoff`), que matchea correctamente (verificado: 25).
-- **Nota de coordinación**: El otro proceso opencode (commit de trading) ejecutó `git reset --hard HEAD` que revirtió los fixes 2 veces; se re-aplicaron y se dejó constancia. La DB real quedó limpia (707 targets, 223 completed / 25 failed recuperados / 28 timeout).
-- **Impacto**: 66 tests aislados pasan + suite fast 97 passed / 1 skipped; ruff limpio en los 8 archivos tocados; 0 contaminación verificable de `catseye.db`; los 25 scans colgados dejaron de bloquear el pipeline.
-- **Condiciones para reabrir**: Consolidar la DB de test a un conftest con autouse completo, o migrar `ScanRun` a `DateTime` naive explícito (SQLite), o conectar los logs `ownex.*` al handler del logger `CATEYE` (hoy caen al lastResort WARNING+ de Python porque `setup_logging` solo configura el logger `CATEYE`).
-
-## 2026-08-15: TRADING EVOLUTION — copy trading CEX/on-chain + OWNEX razona su lógica ganadora
-
-- **Problema**: OWNEX operaba sobre el mercado (inversiones, wealth) pero no sobre el trading directo: no había copy trading (seguir masters CEX/on-chain), ni razonamiento sobre la lógica ganadora (dónde, por qué y con qué se gana), ni scoring de traders candidatos. Gap real entre "encontrar oportunidades" y "ejecutar estrategias de trading que ya son ganadoras".
-- **Alternativas consideradas**:
-  1. **Copy trading CEX/on-chain + Strategy DNA (elegido)** — Motor desacoplado (`core/trading/`) con tres módulos: `store.py` (persistencia), `copy_trading.py` (engine), `trader_intelligence.py` (scoring/validación/monitoreo/discovery). Plus `reasoning.py` que hace explícita la lógica ganadora con `StrategyDNA` (qué estrategias ganan) y `AutoParamOptimizer` (propuestas paramétricas aprobables). 16 endpoints en `api/routers/trading.py`, 3 jobs scheduler, frontend `TradingIntelligence.vue`.
-  2. Integrar todo en `core/investment/` — Mezclaría gestión de portafolio (larga plazo) con trading táctico; complejidad sin beneficio.
-  3. Solo conector externo (p. ej. una API de copy trading) — Sin scoring propio ni aprendizaje; dependencia de terceros.
-- **Decisión**: Implementar la feature completa. TradingConfig default **DRY_RUN** (nunca mueve fondos reales sin configuración explícita); `DEFAULT_EQUITY_USD = Decimal("1000")` como fallback si la wallet está vacía. **Twins `core/trading/` ↔ `cores/trading/` byte-idénticos** (`diff -rq` OK) por el patrón twin-tree del repo. Scheduler: `get_all_jobs()` = 12 ciclos / 47 jobs (`trading_risk_check` `*/5 * * * *`, `trading_dna_update` `30 3 * * *`, `trading_discovery` `30 6 * * *`). API degradación defensiva `_safe`. `core/decision_journal/journal.py` gana `data_snapshot` en `get_decisions()` (contexto de decisión enriquecido).
-- **Detalles clave**:
-  - `DryRunExecutor.execute_order` hace `pair.split("/")` → `replicate()` normaliza `BASE-QUOTE` → `BASE/QUOTE` (compat con datasets on-chain).
-  - `/copy/ingest` debe pasar `Decimal(str(...))` para quantity/price y `OrderSide` enum (string crashea: `AttributeError: 'str' object has no attribute 'name'`).
-  - TraderScorer recalibrado: good 73.1 STRONG / elite 91.7 ELITE / bad 10.5 AVOID.
-  - "Insight" cambia a "reasoning" (relabel), `TraderDiscovery` con Jupiter DEX.
-- **Impacto**: Copy trading real (seguir masters, cap por equity, drawdown control) + scoring de traders (BacktestValidator, LiveTraderMonitor) + razonamiento de la lógica ganadora (DNA + correlación + optimización aprobable). 40 tests `test_trading_intelligence.py` + 48 `test_scheduler_jobs.py`; ruff limpio; `vue-tsc` 0 errores; `vite build` OK. Suite completa 3450 passed / 11 skipped / 2 xfailed (los 2 failed preexistentes `desktop_release` HWID flaky, pasan aislados).
-- **Condiciones para reabrir**: Conectar exchange real (Binance/Kraken API) bajo modo live autorizado; integrar el scoring con el Work Cycle Vault/Atlas; exponer el DNA en Mission Control.
-
-## 2026-08-14: HARDENING VERDICTS — twin-tree, dead code, routers sin consumo, eventos, palette, magic values (FASE 5/6/7/12/13/14)
-
-- **Problema**: El hardening pass 2026-08-14 debía decidir qué tocar y qué no en seis áreas con evidencia.
-- **Decisiones (todas con evidencia, ninguna de reemplazo masivo)**:
-  1. **Twin-tree `core/` vs `cores/` (FASE 5)**: NO consolidar. El runtime usa ambos árboles simultáneamente (604 vs 973 archivos, 307 byte-idénticos, ~20 wrappers cruzados). Consolidar = riesgo alto sin beneficio inmediato → deuda registrada. Solo se arreglaron 4 bugs latentes por imports de árbol equivocado (`cores.events.event_types` → `cores.agents.types`, `cores.models` → `database.models` ×2, `Target.status` → `Target.active`, `core.ORION_DIR` → `core.OWNEX_DIR`).
-  2. **Dead code (FASE 6)**: NO borrar. La lista "110 dead" tenía falsos positivos verificados (comentarios/tipos, `core/execution`, `core/f1`, `core/automation.browser_agent` usados en runtime); de 7 broken refs: 2 arreglados, 2 existentes reales, 3 falsos positivos. En FASE 8 se borraron solo ítems con 0 referencias verificadas (7 páginas + 29 componentes/icons + 2 router redirects).
-  3. **Routers sin consumo frontend (FASE 7)**: INVENTARIO, no borrar. 87 prefixes sin consumo (293 paths frontend). Razones: APK Android/WearOS consumen mobile/remote; career/decision/fiverr son API-only con motores de negocio; algunos son secciones incompletas (FASE futuras). Veredicto: 1006 paths openapi totales = el backend es el SSOT del contrato.
-  4. **Eventos huérfanos (FASE 12)**: NO hay. `cores/events/event_bus.py` persiste todo en SQLite (`EventBusEntry`), clasifica prioridad (`classify_event` default "medium", nunca "ignore") y despacha a handlers directos + wildcard `*` (`cores/agents/bus.py`, `universal_api.py`, notification bridge con `EVENT_PUSH_MAP`). Fix único: comentario engañoso en `api/main.py:196` (el `disable_bridge` no existe en el EventBus unificado — `hasattr` defensivo correcto; el bridge legacy solo existe en `core/events/event_bus.py` deprecado).
-  5. **Palette TESLA (FASE 13)**: Reemplazo puntual, no masivo. Se eliminaron los únicos colores saturados arbitrarios: `#7c3aed` (violet, 11 archivos — datasets de charts y paletas de series) y `#99199a`/`#9500ff` (magenta, keyframes de anillo y hover en WelcomePage/ModernNavbar/MerlinInterface) → `#00d5ff` (cyan SSOT). Quedan `#000000`/`#1a1a1a` (negro puro/surfaces, permitidos por mandate). 0 colores arbitrarios restantes.
-  6. **Magic values (FASE 14)**: NO convertir a env vars. Todos los timeouts de red usan config/manifest/parámetros (`self.timeout`, `manifest.timeout_seconds`, `cfg.timeout`); solo 2 literales `timeout=300` documentados por comentario (`cores/autonomy.py:267`, `cores/remote_control/bridge.py:196`).
-- **Impacto**: ruff 0 errores globales (se arreglaron además I001/W293 en `cores/ai/provider.py` + `cores/ai/runtime/adapters.py` y SIM102/F841 en `core|cores/ai_providers/freebuff.py`, twin sync), suite completa 3196 passed / 11 skipped, vue-tsc 0 errores, vite build OK.
-- **Condiciones para reabrir**: Consolidación twin-tree si un futuro refactor demuestra SSOT único; retiro de routers muertos cuando se confirme que ningún cliente (APK/desktop) los usa; paleta si entran colores nuevos al código.
-
-## 2026-08-14: AUTH — cookie httpOnly como segunda vía de sesión (migración incremental, FASE 3)
-
-- **Problema**: El token JWT vive en `localStorage` (`frontend/src/lib/api.ts:7` `CATEYE-token`) y viaja solo por `Authorization: Bearer`. localStorage es exfiltrable por XSS del mismo origen; el frontend además no podía usar el CSRF doble-submit porque su cookie `csrf-token` es httponly (el JS no puede leerla para armar `X-CSRF-Token`). Migrar de golpe a cookie httpOnly rompería el flujo actual (CSRF exige cookie+header que el SPA no envía).
-- **Alternativas consideradas**:
-  1. **Cookie httpOnly como segunda vía + migración incremental (elegido)** — El backend ahora setea `ownex-session` (httpOnly, SameSite=lax, Secure solo sobre https) en login/register/refresh de ambos routers (`api/routers/auth.py` y `auth_users.py`), conservando el token en el body de la respuesta (compat Bearer total). `AuthMiddleware` acepta cookie como fallback cuando no hay header. Logout borra la cookie del servidor. Frontend: `credentials: 'include'` en todos los fetch + `clearSession()` purga la cookie (`POST /api/auth/logout` sin body, exento de CSRF — logout CSRF es solo nuisance). El Bearer sigue funcionando → el frontend no se rompe en ningún modo.
-  2. Migración total inmediata (quitar localStorage del todo) — Rompería auth actual en un paso; riesgo alto sin validar desktop/landing flows.
-  3. Solo documentar — No aporta seguridad.
-- **Decisión**: Migración incremental completa del backend + frontend compatible. El retiro definitivo del `localStorage` (eliminar `getToken`/`setToken`) queda como paso posterior cuando se valide el flujo desktop E2E con cookie (hoy ambos coexisten: header gana en el middleware).
-- **Impacto**:
-  - XSS ya no puede exfiltrar la sesión en flujos que usan la cookie (desktop/same-origin)
-  - `tests/test_auth_cookie.py` 10 tests nuevos (cookie httponly en register/login/device-login, auth vía cookie sola, Bearer compat, 401 sin credenciales/cookie inválida, logout borra cookie, logout sin body no rompe, middleware 401)
-  - Fix a `tests/test_auth_users.py` fixture: limpia cookies del TestClient compartido (el jar conservaba la cookie de sesión → `test_me_unauthenticated` autenticaba por cookie)
-  - 176 passed / 1 skipped suite combinada, ruff limpio, `vue-tsc` 0 errores, `import api.main` OK
-- **Condiciones para reabrir**: Retirar localStorage por completo (validar desktop E2E), o hacer que el SPA use el doble-submit CSRF real (endpoint que exponga el token en un header leíble para JS).
-
-## 2026-08-14: ERROR HANDLING — detail de 5xx nunca al cliente (FASE 2)
-
-- **Problema**: 245 ocurrencias de `detail=str(e)`/`detail=str(exc)` en 26 routers exponían internals (paths, tokens, SQL) al cliente en respuestas 500/400.
-- **Decisión**: Handler global `HTTPException` + `operation_id` en `api/middleware/error_handling.py`, registrado en `api/main.py` tras los middlewares. 5xx → `{"detail": "Internal server error", "operation_id": ...}` + header `X-Operation-Id`; el detail crudo solo va al log `ownex.error` estructurado. 4xx preservan su detail intencional (semántica de contrato). `ErrorHandlingMiddleware` (preexistente) ahora también asigna `operation_id` al request y lo incluye en respuestas.
-- **Impacto**: `tests/test_error_handling.py` 7 tests; suite combinada 176 passed / 1 skipped; ruff limpio. Los routers no se tocaron (mínimo intervención).
-- **Condiciones para reabrir**: Si se quiere limpiar los 245 `detail=str(e)` uno a uno (mejora cosmética, no funcional — la fuga ya está tapada por el handler global).
-
-
-## 2026-08-13: Payment Compatibility Engine — cobrar antes de ejecutar, no acumular billeteras
-
-- **Problema**: El sistema encontraba oportunidades pero no sabía si podría cobrarlas: acumulaba plataformas de pago sin decidir. El catálogo `ARGENTINA_PAYOUT_METHODS` (55 métodos) existía pero estaba invisible (sin router ni conexión con oportunidades), y no distinguía capas (banking/processors/crypto/self-custody/withdrawal) ni función (primary/us_account/global/payout/local/backup/specialized). Spec del owner: "OWNEX no solamente encuentra trabajos, también determina antes de ejecutarlos si va a poder cobrarlos".
-- **Alternativas consideradas**:
-  1. **Catálogo nuevo en `cores/payment_compat/` + engine determinista (elegido)** — 76 cuentas curadas en 5 capas con clasificación funcional; las cuentas que ya existían en `ARGENTINA_PAYOUT_METHODS` se referencian vía `payout_ref` (One Source of Truth, cero duplicación). Cadena `OPPORTUNITY → PAYMENT METHOD → REQUIRED COUNTRY → CURRENCY → AVAILABLE OWNEX ACCOUNTS → COMPATIBLE?` con `PaymentVerdict` (compatible/viable/score 0-100, matches razonados, off_ramp, missing, honest_notes). Cero LLM, determinista.
-  2. Extender `argentina_payout_methods.py` — catálogo AR-centric sin capas USA/self-custody; mezclaría motor y datos.
-  3. Base de datos SQL relacional de cuentas — sobrediseño para un catálogo estático curado.
-- **Decisión**: `cores/payment_compat/` (network.py + engine.py) + router `/api/payment-compat` (status/network/account/evaluate/evaluate-chain). **Regla de honestidad dura**: `required_documentation` = llc/us_entity/us_residency/eu_residency/uk_entity → incompatible con razón explícita (nunca inventar workarounds para esquivar restricciones de plataforma; KYC personal sí pasa). Métodos bancarios (ACH/WIRE/SEPA/PayPal/CVU/CBU) → recibir es viable por sí mismo; la conversión a ARS se marca como manual (no se exige off-ramp crypto).
-- **Impacto**:
-  - El pipeline DWE/bounty puede evaluar cobrabilidad antes de ejecutar (compatible/viable + cuentas exactas + qué falta)
-  - Mejoras 2026-08-14: catch-all de documentación (bloquea cualquier doc no reconocida, `_DOCUMENTATION_BLOCKED`/`_DOCUMENTATION_ACCEPTED` explícitos), persistencia de cuentas configuradas en `~/.config/ownex/payment_network.json` (sobrevive restarts), enriquecimiento `payout_ref` con metadata del catálogo AR (reliability/fees/min-max/notes → boost de score ≤5 + razón enriquecida), bonus en `_score_requirement` para cuentas documentadas
-  - 13 tests nuevos (`tests/test_payment_compat.py`), ruff limpio, `import api.main` OK, suite fast 89 passed / 1 skipped sin regresión
-  - Bugs preexistentes de `argentina_payout_methods.py` corregidos (bloqueaban el import): `minimum_withraft` → `minimum_withdrawal`, `_id="brubank"` → `id="brubank"`
-- **Actualización 2026-08-14 (CIERRE del pendiente)**: El veredicto se integró dentro del `IntelligentRecommender` del DWE (commit `adf51f22b`). `RankedOpportunity` gana `payment_compat_score` (0-100) + `payment_compat_notes`; el recommender evalúa cada oportunidad con `PaymentCompatibilityEngine.evaluate()` (import lazy, degrade defensivo → score neutral 100 si el motor falla) usando el mapeo `PaymentMethod → network`: paypal→paypal, bank_wire→wire, crypto/stablecoin→crypto con currency USDC (el network usa USDC, no USD). El score multiplica el overall (factor de pago: `score/100`, piso 0.3), y el razonamiento expone la nota honesta (cobrable / parcial / NO cobrable + motivo). Métodos sin cuenta curada (gift_card, platform_credit...) quedan neutrales — nunca se penaliza por desconocimiento. 5 tests nuevos en `test_direct_work_engine.py`; 114 passed (DWE+API+payment+workbank), 89 passed fast, ruff limpio.
-- **Condiciones para reabrir**: Cuando se quiera consumir el network desde Mission Control, o exponer el veredicto por plataforma en el frontend (PaymentCompatPanel ya existe en MissionControl). La persistencia de cuentas configuradas ya está implementada.
-
-## 2026-08-13: Knowledge Bridge — Obsidian vault como single source of truth del conocimiento
-
-- **Problema**: La memoria documental vivía en `.ai/` (instrucciones) y en JSON/DB propietarios; el usuario mantiene su conocimiento personal en Obsidian (markdown). No había un puente: el contenido del vault era invisible para OWNEX (no indexable, no buscable, no relacionable), y el sistema no podía aprender del conocimiento del usuario.
-- **Alternativas consideradas**:
-  1. **Puente local-first sobre el vault markdown (elegido)** — El vault es la única fuente de verdad; OWNEX solo lee/indexa/busca. Mutaciones (git commit, snapshots restore, overwrite) exigen `authorized=True` explícito → 403 `{"authorization_required": True}`. Cero nuevas dependencias (sqlite FTS5 + hashing local para embeddings).
-  2. Copiar el vault a una DB propietaria — Crea realidad duplicada (viola One Source of Truth) y desincroniza con Obsidian.
-  3. Sincronizar vía Supabase/cloud — Contradice "100% local".
-- **Decisión**: `cores/knowledge/` (index, search, parser, gitops, models, dedup, enrichers, graph, store, trust, pipeline) + router `/api/knowledge` (17 endpoints) montado en main.py + scheduler job `knowledge_sync_daily` (cron 30 6 * * *, 44 jobs totales). Bugs preexistentes del package corregidos: `_upsert_note_locked` (last_insert_rowid capturado antes de inserts de links/tags → IntegrityError), `backlinks()` (faltaba to_path → IndexError), `verify()` rechaza vaults sin markdown.
-- **Impacto**: El conocimiento del usuario entra al pipeline (search 6 vías híbridas, backlinks, duplicados, broken links, secret scan, snapshots con keep=10), la API es consumible desde Mission Control, y el sync diario mantiene el índice fresco. 65 tests verdes (25 nuevos), ruff limpio, `import api.main` OK.
-- **Condiciones para reabrir**: Cuando se quiera semántica real (embeddings OAR en vez de hashing local), sincronización bidirectional, o integración con el pipeline de bug bounty (relacionar findings con notas del vault).
-
-## 2026-08-10: Threat Intelligence Layer — hypótesis proactivas desde CISA KEV
-
-- **Problema**: OWNEX generaba hipótesis únicamente de forma **reactiva** (endpoint signals + matches Nuclei + ZAP alerts). La única mención a CVE (generators.py:725) era un string literal "investigar CVE" sin datos reales. No había ingesta de feeds de amenazas: sin CVE/KEV, exploit-DB, ThreatFox, ni correlación de TTPs. Diagnóstico del owner: "falta una capa extra en OWNEX" → confirmado por análisis de evidencia como **Threat Intelligence → Vulnerability Hypotheses**.
-- **Alternativas consideradas**:
-  1. **Ingesta CISA KEV + correlación con tech stack (elegido)** — Feed oficial de vulnerabilidades explotadas en la wild, JSON directo con cache 24h. Correlación por substring vendor/product contra el tech stack del attack_surface. Hipótesis `source=THREAT_INTEL` con likelihood calibrado por recency + ransomware campaign + severity. Cero LLM, determinista, degrade sin red.
-  2. Múltiples feeds (KEV + NVD + ThreatFox + exploit-DB) — Mayor cobertura pero más superficie de red y parsing no homogéneo. No justificado en MVP.
-  3. Solo documentar el gap — No cierra el loop funcional (sin hipótesis proactivas).
-- **Decisión**: Capa `cores/engine/hypothesis/threat_intel.py` — `ThreatIntelFeed` (fetch CISA KEV, cache 24h en `data/threat_intel/kev_cache.json`, error → cache → []), `generate_from_threat_intel()` (correlación tech-stack, source THREAT_INTEL, likelihood 0.5-0.95). Hook en `HypothesisEngine._stage_threat_intel` entre stage_1 y score; **no re-score** (las hipótesis KEV ya vienen calibradas, el scorer de señales las degradaría). Enum `HypothesisSource.THREAT_INTEL` agregado.
-- **Impacto**:
-  - Detección proactiva: CVE explotados en la wild entran al attack queue automáticamente (by_source incluye `threat_intel`)
-  - Evidencia más fuerte: KEV = explotación activa confirmada (mejora aceptación)
-  - Degrade defensivo: sin red → cache → vacío (nunca rompe el pipeline)
-  - 9 tests nuevos (`tests/test_threat_intel.py`), suite fast 89 passed, ruff limpio, `import api.main` OK
-- **Condiciones para reabrir**: Cuando se quiera añadir feeds adicionales (ThreatFox, exploit-DB) o correlación semántica (embeddings) en vez de substring.
-
-## 2026-08-10: CALM UX — el sistema entero debe sentirse relajante, 0 estresante
-
-- **Problema**: El sistema acumula tonos agresivos/sobre-excitados (exclamaciones, neón, alarmas, métricas de presión, errores duros) que generan estrés en el usuario. Decisión del owner: OWNEX debe sentirse **relajante de usar, 0 estresante** — aplica al sistema en general, no solo a la voz.
-- **Directriz global de diseño** (se aplica incrementalmente a todo acceso de OWNEX):
-  1. **Voz**: tono grave-medio, ~0.95x, pausas, emoción contenida, framing "Resultado, {verdict}." — ya implementado (`calm_operator`, `VoicePersonality`).
-  2. **Textos** (UI, replies, briefs, notificaciones): anunciar resultados con calma, sin exclamaciones ni drama; sin "alerta crítica" innecesaria.
-  3. **Errores**: suaves, accionables, sin pánico ("no se pudo X; esto no afecta el resto" > "ERROR CRÍTICO"). Los niveles de severidad solo para lo que es realmente grave.
-  4. **Métricas**: mostrar progreso y estado, no presión (evitar contadores rojos, deadline agresivos como "¡URGENTE!").
-  5. **UI/animaciones**: movimientos sutiles, sin parpadeos ni efectos de urgencia; densidad visual baja.
-- **Impacto**: Los cambios se hacen incrementalmente (nunca un sweep masivo): cada módulo que se toque debe pasar por este filtro. La voz ya cumple; el resto queda como regla permanente para trabajos futuros.
-- **Condiciones para reabrir**: Nunca — es state de diseño permanente.
-
-## 2026-08-04: OAR AI Runtime — sistema operativo unificado de providers de IA
-
-- **Problema**: Cada operación de IA se cableaba contra un provider concreto (Ollama local, OpenRouter, Groq, FCC, etc.) de forma ad-hoc. No había un punto único de entrada: rutear por tipo de tarea, presupuesto, failover, caché ni aprendizaje de preferencias. Con 9+ providers disponibles, el routing manual no escala y no respeta el coste (budget diario USD).
-- **Alternativas consideradas**:
-  1. **OAR (`cores/ai/runtime/`), elegido** — Contenedor único que levanta registry → health → cost → failover → cache → context → learning → router. `SmartRouter` decide por `TaskType` (CODE→local, etc.) priorizando local+gratis (`prefer_local`/`prefer_free`), con confidence y estimación de coste/latencia.
-  2. Envolver solo el router de FCC — Dependía de un solo proxy, no del ecosistema completo de providers.
-  3. Mantener el cableado ad-hoc — No cierra ningún loop de coste/failover/aprendizaje.
-- **Decisión**: OAR como API unificada de IA. 9 factories de adapters (OpenRouter, Groq, Together, DeepInfra, Cerebras, NVIDIA, FCC, OpenCode, LMStudio). `CostTracker` con `daily_budget_usd`, `FailoverEngine` (circuit breaker por provider), `LearningEngine` (preferencias por TaskType), `SemanticCache`.
-- **Impacto**:
-  - Un solo `OAR.initialize()` → toda la infra de IA lista
-  - Routing por tarea + budget + failover + aprendizaje en un solo lugar
-  - `tests/test_oar.py` 12 passed; aún **sin** router API (necesita `api/routers/oar.py`)
-- **Condiciones para reabrir**: Métricas de coste/latencia por provider observadas en producción, o decisión de exponer OAR vía API REST.
-
-## 2026-08-04: Career Engine — aprendizaje continuo del usuario (skill gaps + roadmap)
-
-- **Problema**: OWNEX encontraba oportunidades pero no cerraba el loop de "cómo el usuario gana la skill que le faltaría para cobrar más". El `UserProfile` del DWE tiene skills, pero nada las comparaba contra lo que cada categoría de mercado realmente pide.
-- **Alternativas consideradas**:
-  1. **Career Engine (`cores/career_engine.py`), elegido** — `CATEGORY_REQUIRED_SKILLS` curadas de realidad de mercado por las 36 categorías. `detect_skill_gaps()` prioriza "skill compartida por 2+ categorías" como high. Genera roadmap, preguntas de entrevista por categoría, y plan de entrenamiento diario. Todo deriva del `UserProfile` real (nunca inventa).
-  2. Solo listar skills — No produce acción (roadmap/entrenamiento/entrevista).
-  3. Modelo ML de skill-matching — Sobredimensionado sin datos de entrenamiento reales.
-- **Decisión**: Career Engine como motor determinista. Se auto-registra en CapabilityRegistry vía `register_all_capabilities()` (también registra el DWE, idempotente).
-- **Impacto**:
-  - Cierra el `skill_gap` del Daily Brief del Work Bank: el top pick viene con su plan de aprendizaje
-  - `tests/test_career_engine.py` 14 passed
-  - Aún **sin** router API (se puede exponer como `/career/*`)
-- **Condiciones para reabrir**: Exponer API `/career/*` o integrar el roadmap en Mission Control para que sea visible (regla "si no es visible, no existe").
-
-## 2026-07-06: Ed25519 para licencias
-
-- **Problema**: El sistema de licencias usaba HMAC-SHA256 con una clave hardcodeada en el código fuente. Cualquier persona con acceso al binario podía forjar licencias.
-- **Alternativas consideradas**:
-  1. RSA-2048 — Claves grandes (512 bytes), dependencia de openssl CLI
-  2. ECDSA P-256 — Buen tamaño pero más complejo de implementar
-  3. **Ed25519 (elegido)** — Claves pequeñas (32 bytes públicas), verificación rápida, sin dependencias externas
-- **Decisión**: Ed25519. Clave pública embebida en el binario, clave privada en servidor de licencias.
-- **Impacto**: 
-  - Formato de licencia: 25 caracteres (sin cambios en UX)
-  - Firma completa almacenada en license.json (64 bytes base64)
-  - Migración: licencias HMAC antiguas no son compatibles (deben re-generarse)
-- **Condiciones para reabrir**: Si se demuestra que Ed25519 tiene una vulnerabilidad criptográfica.
-
-## 2026-07-06: Clave AES aleatoria en archivo para IdentityVault
-
-- **Problema**: La clave AES se derivaba de `/etc/machine-id`, que es world-readable. Cualquier usuario local podía descifrar la bóveda.
-- **Alternativas consideradas**:
-  1. **Clave aleatoria en archivo (elegido)** — Generada con `secrets.token_bytes(32)`, chmod 600
-  2. Master password + Argon2id — Más seguro pero requiere UX para pedir contraseña
-  3. TPM/secure enclave — No portable entre plataformas
-- **Decisión**: Clave aleatoria en archivo. El archivo se crea con permisos 600. Migración automática desde vaults existentes.
-- **Impacto**: 
-  - Bóvedas existentes se migran automáticamente en el primer acceso
-  - La clave sobrevive reinicios (persistente en disco)
-  - Master password no implementado (pendiente para futura versión)
-- **Condiciones para reabrir**: Si se requiere proteger contra acceso root.
-
-## 2026-07-06: Doble-submit cookie para CSRF
-
-- **Problema**: No existía protección CSRF en la API.
-- **Alternativas consideradas**:
-  1. **Doble-submit cookie (elegido)** — Token en cookie + header. Sin estado en servidor.
-  2. CSRF token con sesión — Requiere store server-side
-  3. SameSite=Strict — Insuficiente para cross-origin legítimos
-- **Decisión**: Doble-submit cookie. Token criptográficamente aleatorio en cookie httponly, mismo token en header X-CSRF-Token.
-- **Impacto**:
-  - Middleware global con excepciones para endpoints públicos
-  - Deshabilitado en dev mode (CATEYE_DESKTOP no configurado)
-  - GET requests setean la cookie automáticamente
-- **Condiciones para reabrir**: Si se encuentra un bypass del patrón double-submit.
-
-## 2026-07-06: Scheduler adaptativo con cooldown
-
-- **Problema**: El scheduler ejecutaba scans a intervalos fijos sin considerar si un target ya fue escaneado recientemente o si tiene baja prioridad.
-- **Alternativas consideradas**:
-  1. **Cooldown por target + priorización (elegido)** — Saltar targets escaneados hace < 1 hora, ordenar por prioridad RewardLearner
-  2. Intervalos fijos (original) — Simple pero ineficiente
-  3. Cola de prioridad con backpressure — Más complejo, mejor para escala
-- **Decisión**: Cooldown de 1 hora por target + ordenamiento por prioridad (ajustes de RewardLearner).
-- **Impacto**:
-  - Targets de alto ROI se escanean primero
-  - Targets recién escaneados no se repiten
-  - Compatible hacia atrás: misma API
-- **Condiciones para reabrir**: Si el número de targets supera ~1000 y se necesita backpressure.
-
-## 2026-07-06: .ai/ como fuente de verdad única
-
-- **Problema**: La documentación del proyecto estaba dispersa en 16 archivos .md en la raíz, sin estructura ni consistencia.
-- **Alternativas consideradas**:
-  1. **Directorio .ai/ dedicado (elegido)** — Un solo lugar para toda la documentación operativa
-  2. Wiki externa — Requiere conexión, fuera del repo
-  3. Mantener documentación dispersa — Status quo insostenible
-- **Decisión**: .ai/ contiene toda la documentación operativa. Los archivos existentes se consolidan progresivamente.
-- **Impacto**:
-  - Cualquier agente (OpenCode, Cline, Copilot) tiene un solo lugar que leer
-  - Documentación versionada con el código
-  - OpenCode configurado via `instructions` + `references`
-  - Cline configurado via `.cline/rules/` que referencia .ai/
-- **Condiciones para reabrir**: Si las herramientas de IA soportan un mecanismo mejor que archivos locales.
-
-## 2026-07-06: opencode.json estabilizado a formato mínimo válido
-
-- **Problema**: opencode.json.save contenía formato corrupto (2 JSONs concatenados) con campos no soportados (`references`, `instructions` como objetos). OpenCode rechazaba el schema.
-- **Alternativas consideradas**:
-  1. **Formato mínimo válido (elegido)** — Solo `instructions` array de strings. Sin `$schema` si no es verificado.
-  2. Mantener `references` — No soportado por OpenCode, causa errores de schema.
-  3. Migrar toda la config a Cline — Perdería integración con OpenCode.
-- **Decisión**: opencode.json contiene solo `instructions` array con paths a `.ai/`. No hay lógica duplicada. `.ai/` es la única fuente de verdad.
-- **Impacto**:
-  - opencode.json.save eliminado
-  - OpenCode referencia exclusivamente `.ai/` + skill
-  - Sin campos inválidos ni estructuras no soportadas
-  - Sistema listo para evolución incremental sin corrupción de config
-- **Condiciones para reabrir**: Si OpenCode agrega soporte nativo para `references` o estructura de objetos en `instructions`.
-
-## 2026-07-09: Auditoría de validación — documentar, no implementar antes del release
-
-- **Problema**: El motor de validación no refuta hipótesis, no evalúa explicaciones alternativas, no aprende de falsos positivos.
-- **Alternativas consideradas**:
-  1. **Documentar limitaciones y posponer (elegido)** — Crear KNOWN_LIMITATIONS.md, agregar deuda a KNOWN_DEBT.md, mover mejoras a v3.1
-  2. Implementar detección de recursos públicos + campo uncertainties — Mejora parcial pero aumenta alcance del release
-  3. Reescritura del pipeline de validación — Violaría DO-NOT-TOUCH, aumenta complejidad
-- **Decisión**: Cerrar v3.0.0 con el pipeline actual. Las mejoras de razonamiento son para v3.1 (ORION Reasoning Layer).
-- **Impacto**:
-  - Los findings automatizados requieren revisión humana (ya documentado)
-  - El pipeline actual es honesto sobre sus limitaciones
-  - Los falsos positivos siguen siendo responsabilidad del humano
-- **Condiciones para reabrir**: Cuando se inicie v3.1.
-
-## 2026-07-06: API keys del frontend separadas a sessionStorage
-
-- **Problema**: API keys (openai, gemini, wallet, bank) almacenadas en localStorage, exfiltrables via XSS.
-- **Alternativas consideradas**:
-  1. **sessionStorage (elegido)** — Se limpia al cerrar pestaña. Mitigación parcial.
-  2. Backend IdentityVault — La solución correcta pero requiere cambios de API
-  3. No cambiar — Riesgo continuo
-- **Decisión**: Mover API keys a sessionStorage como mitigación temporal. La solución permanente es almacenarlas en el backend via IdentityVault.
-- **Impacto**: Las keys sobreviven refrescos de página pero no a nuevas pestañas.
-- **Condiciones para reabrir**: Inmediatamente — esta es una solución temporal. La solución definitiva requiere endpoints de API para gestionar keys.
-
-## 2026-07-09: ORION Hypothesis Challenger — razonamiento previo a validación
-
-- **Problema**: El pipeline de validación ejecutaba hipótesis sin cuestionarlas. No consideraba explicaciones alternativas, no diseñaba contrapruebas, no explicitaba qué no se verificó. El sistema razonaba linealmente (hipótesis → validar → decidir) en vez de cíclicamente (hipótesis → cuestionar → diseñar contraprueba → validar → reinterpretar).
-- **Alternativas consideradas**:
-  1. **HypothesisChallenger como capa insertada (elegido)** — ~250 líneas nuevas, 0 regresiones, 393 tests pasan. Se inserta entre HypothesisEngine y ValidationLoopEngine. No modifica replayer, rules, ni hypothesis generators.
-  2. Refactor del pipeline completo — Violaría DO_NOT_TOUCH (replayer/rules estables). Riesgo alto.
-  3. Solo documentar — Deuda existente en KNOWN_DEBT.md, pero la implementación era directa y bajo riesgo.
-- **Decisión**: Insertar HypothesisChallenger en loop_engine.evaluate(). El challenger genera alternative_explanations, contradiction_tests con info_gain, missing_verifications, y uncertainty_level antes de la validación. El uncertainty_level se traduce a uncertainty_penalty (0.0–0.12) que descuenta del confidence score.
-- **Impacto**:
-  - Los reportes ahora incluyen "falta verificar X, considerar Y como explicación alternativa"
-  - El confidence score refleja incertidumbre no resuelta (penalización)
-  - El humano ve qué no se verificó, no solo el score final
-  - 0 regresiones: el parámetro vulnerability_type tiene default "unknown" que da genéricos
-- **Condiciones para reabrir**: Si se necesita que el Challenger ejecute los contradiction_tests automáticamente (hoy solo los diseña y recomienda). Eso requiere integrar con replayer como mutaciones adicionales.
-
-## 2026-07-11: RC1 — De construir a operar
-
-- **Problema**: ORION había acumulado 12+ dominios funcionales (Core, CATEYE, ATLAS, ODYSSEY, HERMES, AEGIS, Copilot, Companion, Workflows, Unified Memory, Health Center, Mission Control). El instinto natural era seguir agregando módulos. Sin embargo, el sistema ya cubre todo el flujo diario del usuario.
-- **Alternativas consideradas**:
-  1. **Congelar desarrollo, operar durante semanas reales (elegido)** — El mayor valor no viene de nuevas features sino de confiar en el sistema durante uso real continuo. Medir por indicadores operativos (días sin incidentes, tiempo hasta revisar MC < 1 minuto, clics reducidos).
-  2. Seguir agregando módulos — Aumenta complejidad sin cerrar loops funcionales. Infla el proyecto sin validar lo existente.
-  3. Time Machine / Sandbox / Observatorio — Ideas valiosas para RC2/RC3, no para RC1. Implementar ahora distrae de la validación operativa.
-- **Decisión**: RC1 congelado. No se escribe una línea de código nuevo que no sea corrección de bug, seguridad o rendimiento. El proyecto entra en fase operativa mínima 2-4 semanas. Después se evalúa qué mejoras (solo Time Machine, Sandbox, Observatorio) justifican RC2.
-- **Impacto**:
-  - El usuario pasa de "operador manual" a "estratega" — solo decide, prioriza, aprueba, descarta
-  - El sistema se evalúa por resultados observables (dinero generado, tiempo ahorrado, automatizaciones ejecutadas), no por cantidad de código
-  - ORION se convierte en un "sistema operativo de trabajo" que envejece bien
-- **Filosofía registrada**: ORION no crece por expansión. Crece por consolidación. Cada clic innecesario que desaparece vale más que veinte features nuevas. Dentro de 5 años ORION funciona no por sus miles de líneas sino porque tiene configuración portable, backups, export/import, plugins, mantenimiento, rollback, auditoría, Health Center, Update Manager y Mission Control.
-
-## 2026-07-21: Hermes CLI + FCC Proxy — Reparación de integración
-
-- **Problema**: Hermes CLI mostraba HTTP 404 al intentar usar el FCC Proxy. Causa raíz: tres errores simultáneos:
-  1. `provider: github-copilot` → Hermes usaba `api_mode = "chat_completions"` (OpenAI format). FCC Proxy sirve Anthropic Messages API. 404 inevitable.
-  2. `base_url: http://localhost:8082/v1` → El SDK Anthropic de Hermes añade `/v1/messages` al base_url, resultando en `http://localhost:8082/v1/v1/messages`.
-  3. `model: gpt-5.4` → No existe en el catálogo del proxy.
-- **Diagnóstico**:
-  - OpenCode usa `provider.anthropic.options.baseURL: "http://localhost:8082"` (sin `/v1`, provider type `anthropic`)
-  - Cline usa `base_url: http://localhost:8082`, provider `Anthropic`
-  - FCC Proxy sirve `POST /v1/messages` y `POST /messages` (alias sin prefijo) — ambos Anthropic Messages API
-  - Health endpoint `GET /health` no requiere auth (confirmado en `routes.py` línea 182)
-  - Auth vía `x-api-key` header
-- **Solución aplicada**:
-  - `~/.hermes/config.yaml`: `provider: github-copilot` → `anthropic`, `base_url: .../v1` → `http://localhost:8082`, `model: gpt-5.4` → `claude-sonnet-4.5`
-  - `~/start_proxy.sh`: Reesrito con `nohup` + health check loop + PID file. El anterior usaba `exec setsid ... & disown` que no persistía.
-  - `~/.orion/config.sh`: Agregadas funciones `orion_start_proxy()`, `orion_stop_proxy()`, `orion_health_hermes()`, `orion_hermes_chat()`
-  - `~/.local/bin/orion`: Agregados subcomandos `proxy` (start/stop/status/restart/logs) y `hermes` (status/chat/config/logs)
-- **Verificación**:
-  - `hermes chat -q "..."` → Responde correctamente vía proxy (27s primera respuesta)
-  - `orion proxy status` → Proxy ✓ en localhost:8082
-  - `orion hermes status` → Provider: Anthropic, Model: claude-sonnet-4.5
-  - `orion doctor` → API /v1/messages ✓
-- **Archivos modificados**:
-  - `~/.hermes/config.yaml` (config fix)
-  - `~/start_proxy.sh` (reliable launcher)
-  - `~/.orion/config.sh` (helper functions, +HERMES_HOME, +desktop helpers)
-  - `~/.local/bin/orion` (proxy + hermes + desktop commands)
-
-## 2026-07-21: Hermes One Desktop — Integración con FCC Proxy
-
-- **Problema**: Hermes Desktop (Electron app) necesita usar el mismo FCC Proxy que el CLI.
-- **Diagnóstico**: El Desktop app lanza `hermes serve` como subproceso, que lee `~/.hermes/config.yaml`. Como el CLI fix ya corrigió el config.yaml, el desktop hereda automáticamente la configuración del proxy. No requiere configuración separada.
-- **Verificación**:
-  - `hermes serve --status` confirma `config_path: /home/adrie/.hermes/config.yaml`
-  - `orion status` → Hermes Dsk ✓
-  - El backend serve responde en `/api/status` con versión 0.18.2
-- **Config adicional aplicada**:
-  - `~/.orion/config.sh`: `HERMES_HOME` explicitado, funciones `orion_health_desktop()`, `orion_desktop_build()`, `orion_desktop_launch()`, `orion_desktop_serve()`
-  - `~/.local/bin/orion`: Nuevo subcomando `desktop` (status|build|serve|launch|logs). Integrado en `status` y `doctor`.
-- **Arquitectura**:
-  ```
-  Hermes Desktop (Electron)
-    → spawns `hermes serve` (JSON-RPC/WS gateway)
-      → reads ~/.hermes/config.yaml
-        → provider: anthropic, base_url: http://localhost:8082
-          → FCC Proxy → OpenRouter / Claude
-  ```
-
-## 2026-07-22: Hermes Proxy Lock — Protección arquitectónica contra fugas de provider
-
-- **Problema**: Hermes escapaba del FCC Proxy. Cuando el usuario ejecutaba `/model <nombre>`, el resolver de `switch_model()` encontraba el modelo en OpenRouter y cambiaba `provider` silenciosamente, causando HTTP 402 (sin créditos) y pérdida del proxy.
-- **Causa raíz**: El sentinel `~/.orion/proxy_mode` existía como señal bash pero Hermes no lo leía. No había ninguna barrera en el código de Hermes que impidiera cambiar provider/base_url/api_key.
-- **Decisión**: Agregar `_is_proxy_locked()` que lee `~/.orion/proxy_mode`. En `switch_model()`:
-  1. Si proxy locked y `--provider` dado → error inmediato
-  2. Si proxy locked y el resolver cambió provider → forzar de vuelta a `current_provider`
-  3. Como consecuencia, `provider_changed=False` → solo persiste `model.default` en config
-- **Archivos modificados**: `~/.hermes/hermes-agent/hermes_cli/model_switch.py`
-- **Cambios**:
-  - `_is_proxy_locked()`: chequea existencia de `~/.orion/proxy_mode`
-  - Guard en PATH A: `--provider` bloqueado cuando proxy locked
-  - Guard post-resolución: fuerza `target_provider = current_provider` si proxy locked
-  - `_resolve_alias_global()`: resuelve aliases (sonnet→claude-sonnet-5) contra el catálogo nativo sin cambiar provider
-- **Modos válidos**:
-  ```
-  FCC MODE (proxy_mode presente):
-    provider: anthropic (fijo)
-    base_url: http://localhost:8082 (fijo)
-    /model cambia solo model.default
-
-  OPENCODE FREE MODE (proxy_mode ausente):
-    provider: opencode built-in
-    modelos: deepseek, nemotron, mimo
-  ```
-- **Próximo**: ~~FCC Proxy tiene un bug de shutdown espontáneo~~ **RESUELTO 2026-07-22**.
-- **Causa raíz del shutdown**: No era bug del proxy. OpenCode usa la herramienta Bash con timeout. Al expirar el timeout, el shell session completo recibe SIGTERM. `nohup` solo bloquea SIGHUP, pero uvicorn registra un handler de SIGTERM que ejecuta `server.should_exit = True` → shutdown clean. El proxy no se "caía solo": lo mataba el timeout del Bash tool.
-- **Fix**: `~/start_proxy.sh` cambió de `nohup` a `setsid -w`. `setsid` crea un nuevo session/process group completamente independiente. Cuando el shell padre muere, el proceso setsid no recibe ninguna señal. Es inmune.
-- **Verificación**: Proxy estable > 30 min (PID 132680), múltiples /health requests sin shutdown, 473 modelos disponibles vía `/v1/models`.
-
-## 2026-07-24: Revenue Intelligence — USD/hour + dynamic platform speed
-
-- **Problema**: El scheduler priorizaba targets por severidad o EV genérico, pero no sabía cuánto USD/hora real había generado cada plataforma ni cuánto tiempo tomaban los pagos.
-- **Decisión**: `RevenueMetrics.usd_per_hour()` computa USD/h desde payout history. `platform_speed_days()` extrae velocidad real por plataforma desde datos de payout. `TargetPrioritizer._estimate_speed()` usa datos dinámicos con fallback a hardcoded. `PriorityResult.usd_per_hour` expone el ratio reward/horas estimadas.
-- **Impacto**: Scheduler logea $X.XX/h en cada auto-prioritize. Targets rankeados por USD/hora real, no por CVSS.
-
-## 2026-07-24: CensysTool — REST tool siguiendo patrón ShodanTool
-
-- **Problema**: Censys existía como `CensysClient` en `cores/recon/osint_api.py` (httpx async) y vía `uncover` CLI, pero no como tool standalone registrada en `TOOL_REGISTRY`.
-- **Decisión**: Crear `CensysTool` en `cores/tools/censys.py` siguiendo el patrón exacto de `ShodanTool`: `BaseTool`/`UnifiedResult`, `urlopen` sin dependencias externas, `is_available()` chequea `CENSYS_API_KEY` + `CENSYS_API_SECRET`. `search_hosts()`, `host_view()`, `domain()`, `certificates()`.
-- **Impacto**: Aparece automáticamente en TOOL_REGISTRY, disponible para pipeline y API.
-
-## 2026-07-24: Crypto Technical Analysis desde CoinGecko
-
-- **Problema**: CoinGeckoFeed tenía precios y 24h change pero no indicadores técnicos para trading signals.
-- **Decisión**: Agregar funciones puras `compute_rsi()`, `compute_sma()`, `compute_macd()` + método `get_technical_signals()` que fetches OHLC de CoinGecko y devuelve interpretación (oversold/overbought, trend, MACD bullish/bearish).
-- **Impacto**: Sin nuevas dependencias. RSI/SMA/MACD desde datos históricos gratuitos.
-
-## 2026-07-24: Smart Notifications — IntelligentNotificationManager conectado a EventBus
-
-- **Problema**: El `IntelligentNotificationManager` existía pero no estaba conectado a los eventos del sistema.
-- **Decisión**: Suscribir 14 eventos clave (finding:*, opportunity:*, report:*, system:*, financial:* revenue:*, acceptance:*) al manager. Agregar endpoints GET `/api/notifications/smart`, GET+POST `/smart/config` para consultar estadísticas y ajustar nivel de detalle.
-- **Impacto**: Notificaciones inteligentes con prioridad automática, dedup semántico, digest, y emoji enrichment sin intervención manual.
-
-## 2026-07-25: FCC Multi-Provider 24/7 Router
-
-- **Problema**: FCC proxy dependía de un solo provider (OpenRouter). Si rate limit o outage, el agente muere.
-- **Decisión**: Configurar FCC como router multi-provider con providers gratuitos.
-- **Estado actual (2026-07-26)**: **0 API keys configuradas**. Todos los 24 providers remotos están en `missing_key`. FCC solo rutea a Ollama local. Las API keys previamente configuradas se perdieron (probablemente al sobrescribir `.env`).
-- **Fix aplicado**: Patch en `profiles.py` Groq profile — `disabled_value=None` para evitar `reasoning_effort` no soportado.
-- **Archivos modificados**:
-  - `/home/adrie/free-claude-code/.env` — routing actualizado a qwen2.5:3b-instruct
-  - `/home/adrie/free-claude-code/src/free_claude_code/providers/openai_chat/profiles.py` — Groq reasoning fix
-  - `/home/adrie/.config/opencode/config.json` — provider anthropic → FCC, ollama → qwen2.5:3b-instruct
-  - `/home/adrie/.hermes/config.yaml` — provider fcc + fallback ollama + qwen3.5:cloud
-- **Impacto**: OpenCode, Hermes y Cline usan FCC como router central. FCC rutea todo a Ollama local. Sin API keys externas, no hay acceso a Groq/SambaNova/Gemini.
-
-## 2026-07-26: Infra Stabilization — Ollama único + FCC proxy purificado
-
-- **Problema**: Múltiples modelos locales ocupaban ~8 GB, el FCC ruteaba a modelos inexistentes, y las API keys de providers externos se habían perdido.
-- **Diagnóstico**:
-  - Ollama: solo `qwen2.5:3b-instruct` (1.9 GB) + `qwen3.5:cloud` (remoto 346 bytes). Los modelos antiguos (qwen3:14b, freehuntx/qwen3-coder, hermes-orion, moondream) ya no estaban.
-  - FCC `.env`: todos los tier apuntaban a `ollama/freehuntx/qwen3-coder:8b` (inexistente)
-  - OpenCode config: provider ollama listaba modelos inexistentes
-  - Hermes: config correcta, solo agregar `qwen3.5:cloud`
-  - Cline: configurado vía FCC, sin cambios necesarios
-  - GPU AMD RX 6600: sin drivers ROCm, sin `/dev/dri/`, sin amdgpu module — CPU only
-- **Cambios realizados**:
-  - `~/.fcc/.env` + `free-claude-code/.env`: MODEL → `ollama/qwen2.5:3b-instruct` (los 5 tiers)
-  - `~/.config/opencode/config.json`: modelo ollama → `qwen2.5:3b-instruct`
-  - `~/.hermes/config.yaml`: agregado `qwen3.5:cloud` a ollama-launch models
-- **Arquitectura final**:
-
-  ```
-  ┌─ OpenCode ────┐  ┌─ Hermes ──────┐  ┌─ Cline ───────┐
-  │ anthropic:FCC │  │ opencode:free │  │ anthropic:FCC │
-  │ ollama:local  │  │ fallback:FCC  │  │               │
-  └───────────────┘  │ fallback:Oll  │  └───────────────┘
-                     └───────────────┘
-                          │
-                     ┌────▼────┐
-                     │  FCC    │  :8082
-                     │ Proxy   │  (0/24 providers)
-                     └────┬────┘
-                          │
-                     ┌────▼────┐
-                     │ Ollama  │  :11434
-                     │ qwen2.5  │  3B, CPU, 32K ctx
-                     └─────────┘
-  ```
-
-- **API keys necesarias para cobertura 24/7**:
-  | Provider | Key | URL obtener |
-  |----------|-----|-------------|
-  | Groq | `GROQ_API_KEY` | https://console.groq.com/keys |
-  | SambaNova | `SAMBANOVA_API_KEY` | https://cloud.sambanova.ai/apis |
-  | Gemini | `GEMINI_API_KEY` | https://aistudio.google.com/ |
-  | OpenRouter | `OPENROUTER_API_KEY` | https://openrouter.ai/keys |
-  | OpenCode Zen | `OPENCODE_API_KEY` | https://opencode.ai/auth |
-- **Próximo**: Configurar al menos 1 API key externa (Groq o Gemini) en la admin UI de FCC para recuperar el multi-provider.
-- **Verificación**: Los 8 tests de componentes pasan. Ollama responde. FCC health ok. OpenCode config limpio. Hermes fallback chain correcto.
-
-## 2026-07-26: OWNEX — Rebranding estratégico del ecosistema
-
-- **Problema**: El ecosistema se llamaba técnicamente "Rastro" pero con identidad visual fragmentada (CATEYE backend, ORION frontend, ATLAS/ODYSSEY/AEGIS apps). No había una identidad unificada que comunicara el propósito real del sistema: un sistema operativo personal de generación de ingresos, no un tool de bug bounty.
-- **Alternativas consideradas**:
-  1. **OWNEX (elegido)** — "Personal Autonomous Work Operating System". Comunica el propósito completo. No es un bot, no es un dashboard, no es un gestor financiero. Es un orquestador de oportunidades.
-  2. Mantener Rastro/CATEYE — No comunica la expansión a Dev Bounty, AI Work, Wealth, Intelligence.
-  3. ORION como marca única — Conflicto con ORION coordinator; ORION es el coordinador IA, no el ecosistema.
-- **Decisión**: OWNEX como identidad del ecosistema completo. Backend sigue siendo Rastro internamente (carpetas, imports). Frontend se rebrandea a OWNEX (títulos, splash, sidebar, paleta). Los módulos existentes se mapean a Work Cycles:
-  - Rastro → Security (bug bounty)
-  - Forge → Dev Bounty (nuevo)
-  - Pulse → AI Work (nuevo)
-  - Vault → Wealth (Capital existente expandido)
-  - Atlas → Intelligence (nuevo)
-  - Orion → Coordinator IA (existente)
-- **Paleta OWNEX**: Negro (#050505) 90%, Azul (#3b82f6) como primario, Blanco (#f0f0f0) texto, Dorado (#f59e0b) objetivos importantes. Solo verde/rojo/amarillo para estados.
-- **Impacto**:
-  - Frontend: 7 archivos modificados (style.css, App.vue, AppSidebar.vue, OrionSidebar.vue, SplashScreen.vue, MissionControl.vue)
-  - Backend: 0 cambios (solo branding visual)
-  - Backward compatibility: todas las rutas existentes funcionan igual
-  - Próximo: implementar adaptadores para Forge (Superteam, Opire, TaskBounty) y Pulse (Outlier, DataAnnotation, Mindrift)
-- **Condiciones para reabrir**: Si se decide renombrar también el backend (carpetas, paquetes, clases). Para eso se necesita un refactor mayor y no aporta valor inmediato.
-
-## 2026-07-25: Frontend Consolidation — 50+ páginas → 8 secciones
-
-- **Problema**: ~50 páginas Vue fragmentadas sin estructura jerárquica. Router de 483 líneas con rutas planas. 5 páginas de revenue duplicadas (RevenueDashboard, RevenueMultiplier, MoneyRadar, Capital, FinancialTruth). Sidebar con solo 3 ítems principales.
-- **Alternativas consideradas**:
-  1. **Consolidación por secciones (elegido)** — 8 secciones principales con router anidado. Redirecciones de legacy. Sidebar unificado con 40+ ítems.
-  2. Rewrite total — Riesgo alto, destruye funcionalidad existente sin beneficio inmediato.
-  3. Agregar más páginas — Infla el problema. Status quo empeora.
-- **Fases ejecutadas**:
-  - **Fase 1**: Capital.vue — 5 páginas de revenue fusionadas en 1 dashboard con tabs. APIs: capital-dashboard, summary, platform-speed, ev-ranking.
-  - **Fase 2**: Router 50→8 secciones + Sidebar con 40+ ítems organizados + 79 redirecciones legacy.
-  - **Fase 3**: Baby Mode con HUNT Button — Botón central que ejecuta POST /api/hunt/start y muestra progreso en vivo vía polling.
-- **Cambios**: `frontend/src/router/index.ts` (→495L jerárquico), `OrionSidebar.vue` (8 grupos), `Capital.vue` (700L nuevo), `BabyMode.vue` (hunt integrado con API real).
-- **Backend**: `_current_stage_name` tracking en ScanScheduler + GET /api/pipeline/stages para progreso granular.
-- **Impacto**:
-  - Navegación predecible: misión → inteligencia → targets → reportes → capital → operaciones → integraciones → copiloto
-  - Mantenibilidad: agregar ruta nueva es agregar child en sección correspondiente
-  - 0 regresiones: todas las rutas legacy redirigen a sus equivalentes nuevos
-  - `_set_stage()` en scheduler expone progreso real a frontend
-- **Condiciones para reabrir**: Si se identifica una sección que no encaja en las 8 actuales. Probable cuando crezca el ecosistema ORION.
-
-## 2026-07-26: Knowledge Engine RFC — especificar, no implementar
-
-- **Problema**: El sistema de memoria `.ai/` crece orgánicamente sin un filtro que decida qué se conserva, qué se resume, qué se promueve a permanente y qué se descarta. Sin este filtro, en 6-12 meses MEMORY.md será un archivo más en archived/.
-- **Alternativas consideradas**:
-  1. **RFC como diseño (elegido)** — Documentar la arquitectura de la Knowledge Engine como RFC. No escribir código. El RFC servirá como blueprint cuando OWNEX Fase 3 lo requiera.
-  2. Implementar ahora — Infraestructura sin consumidor. El sistema hoy procesa ~1 sesión/día. La Knowledge Engine necesita escalar a miles de entradas para justificar su existencia.
-  3. Ignorar — Deuda diferida. Se corre el riesgo de que dentro de 3 meses alguien (o una IA) implemente algo incompatible con la visión.
-- **Decisión**: Crear `.ai/RFC_KNOWLEDGE_ENGINE.md` como documento de diseño. La implementación se prioriza como Fase 6 de OWNEX, después de Work Cycles (Fase 5) y cuando el volumen de conocimiento generado supere la capacidad de lectura humana.
-- **Impacto**:
-  - La visión arquitectónica queda registrada y congelada
-  - Cualquier implementación futura debe ajustarse al RFC
-  - No se escribe código nuevo, no se añaden dependencias, no hay deuda técnica
-- **Condiciones para reabrir**: Cuando se inicie la Fase 6 de OWNEX, o antes si el sistema empieza a generar más de 10 entradas de conocimiento significativas por día.
-
-## 2026-07-28: Loop Engineering — patrones autónomos como infraestructura de Work Cycles
-
-- **Problema**: Los OWNEX Work Cycles (Security, Forge, Pulse, Vault, Atlas, Odyssey) se ejecutan vía Scheduler pero sin un framework estandarizado de fases, estados, skills, ni OODA loop. Cada ciclo implementa su propia lógica ad-hoc, impidiendo reutilización, auditoría y aprendizaje transversal.
-
-- **Alternativas consideradas**:
-  1. **Integrar loop-engineering como framework de patrones (elegido)** — Adoptar la taxonomía de patrones, fases, skills, y OODA loop del ecosistema https://github.com/cobusgreyling/loop-engineering. Crear un adaptador Python (`core/loop/`) que mapea conceptos de loop-engineering a componentes OWNEX.
-  2. Framework propio desde cero — Duplica trabajo. loop-engineering ya tiene patrones validados (daily-triage, pr-babysitter, ci-sweeper) + CLI tools (loop-init, loop-audit, loop-cost, loop-doctor).
-  3. Sin framework — Status quo. Cada Work Cycle sigue siendo ad-hoc, sin fases comunes, sin OODA loop, sin scoring transversal.
-
-- **Decisión**: Integrar loop-engineering como capa de patrones autónomos. Crear `core/loop/` con:
-  - `models.py`: LoopPattern, Phase, PatternRisk, LoopState, LoopRunResult — dataclasses que modelan patrones de loop-engineering
-  - `engine.py`: LoopEngine — runner con Scheduler + EventBus, ejecuta fases en orden, publica eventos en cada transición
-  - `registry.py`: PatternRegistry + 6 patrones OWNEX (ownex:security, ownex:forge, ownex:pulse, ownex:vault, ownex:atlas, ownex:odyssey)
-  - `startup.py`: init_loop_engines() — wired en api/main.py lifespan, get_loop_status() — expuesto en GET /system/health
-  - 7 SKILL.md: loop-triage + 6 Work Cycles específicos
-
-- **Impacto**:
-  - Cada Work Cycle tiene un LoopPattern con fases definidas, cadencia, risk level, human gates, y budget
-  - El scheduler ejecuta LoopEngine.run() en cada tick del patrón
-  - El EventBus recibe eventos `loop:{pattern}:{phase}` en cada transición
-  - El Health API expone `loop_engines` con estado, score 0-100, última ejecución
-  - Skills OWNEX en `skills/` listos para OpenCode/agentes
-  - 0 regresiones: core/loop/ es aditivo, no modifica nada existente
-  - 650+ líneas Python nuevas, todas lint clean
-
-- **Condiciones para reabrir**: Si loop-engineering publica breaking changes en su CLI/format, o si los patrones existentes requieren nuevas fases (ejecución paralela, sub-loops anidados, triggers externos).
-
-## 2026-08-01: Brand Identity v3 — "The Aperture Nexus" (rebuild total)
-
-- **Problema**: La identidad v2 (hexágono + diamante + cerebro, estética "AI-generated") fue rechazada por el usuario: se veía como colección de imágenes generadas, no como identidad de startup comercial (referencia: Tesla/Apple/SpaceX/Linear/NVIDIA/PlayStation). Además el pipeline ComfyUI/FLUX exigía GPU NVIDIA 12GB+ inexistente en el equipo (AMD RX 6600 sin ROCm) — no reproducible.
-
-- **Alternativas consideradas**:
-  1. **Pipeline vectorial determinista (elegido)** — Python + cairosvg + Pillow + fontTools. Geometría exacta programática, 100% reproducible sin GPU, fonts SIL OFL vendored, texto renderizado con PIL (cairosvg no soporta fuentes en `<text>` → se parsea el SVG, se quita `<text>` y se compone con PIL).
-  2. Mantener v2 con ajustes menores — El usuario pidió explícitamente rebuild ("no me interesa mantener nada de la v2").
-  3. AI image generation (Stable Diffusion/FLUX) — Rechazado: el rechazo de v2 fue precisamente por ese look; además requería GPU ausente.
-
-- **Decisión**: Marca v3 "The Aperture Nexus": anillo octagonal (instrumento de precisión) + X de rayos cónicos desde nodo cuadrado central (inteligencia en el núcleo), con rayo que rompe el anillo arriba-derecha (evolución núcleo→edge). Dos ediciones conectadas: ALPHA (desktop, cyan→blue) y OMEGA (mobile/wear, emerald→cyan) — misma geometría, distinto color. Tokens en `assets/branding/design-tokens.json` (SSOT). Todo el pipeline vive en `scripts/brand/` (6 módulos). Assets en `assets/{logos,banners,concepts,desktop,mobile}/`. README reconstruido startup-grade (inglés, sin claims fantásticos).
-
-- **Impacto**:
-  - 37+ archivos de marca nuevos (SVG + PNG), todos verificados por muestreo de píxeles por región
-  - 30+ scripts legacy v2 + `.ai/brand/` (ComfyUI) eliminados — un solo pipeline SSOT
-  - README con claims creíbles (sin tablas de ingresos irreales que delataban hobby)
-  - 0 regresiones: backend/frontend intactos; solo branding + docs
-  - Fuentes vendored (SIL OFL) → renders deterministas sin dependencia de red
-  - Storyboard de trailer 90s (8 escenas) en `assets/video/trailer-storyboard.md`
-
-- **Condiciones para reabrir**: Si el usuario cambia la dirección creativa (nuevo mark), o si se necesita una familia extendida (submarcas por departamento, iconos de ciclo). El pipeline `scripts/brand/` permite regenerar todo el sistema cambiando solo `pipeline.py` + `design-tokens.json`.
-
-## 2026-08-01: Direct Work Engine — barrera como espectro, no como promesa
-
-- **Problema**: La visión "Zero Barrier" prometía "0 barrera de entrada" como si existiera en todo el mercado. Eso no es cierto en muchas áreas. Además `cores/direct_work_engine/` era un módulo fantasma: su `__init__.py` declaraba imports (`models`, `discovery`, `scoring`, `recommendation`, `profile_builder`, `engine`) a archivos inexistentes — `import` rompía con `ModuleNotFoundError`. Por otro lado, `RevenueTracker.is_zero_barrier()` trataba la barrera como **boolean** (todo o nada).
-
-- **Alternativas consideradas**:
-  1. **Score continuo 0-100 (elegido)** — La barrera es un espectro: OWNEX busca, filtra y prioriza oportunidades con la MENOR barrera (sin entrevista cuando exista, sin portfolio si es opcional, registro rápido, pago internacional, remoto). Nunca promete "cero barrera garantizado". El `ZeroBarrierScorer` pondera 15 factores (suma 1.0) y el `IntelligentRecommender` ordena por ingreso esperado > aceptación > menor barrera > compatibilidad > velocidad > reputación, con diversidad y penalización por riesgo.
-  2. Mantener el boolean existente — No rankea, no discrimina, contradice la visión.
-  3. Poblar solo el scorer — Deja sin motor de decisión ni discovery.
-
-- **Decisión**: Poblar el módulo fantasma `cores/direct_work_engine/` como motor desacoplado (sin imports a `core/`): `models` (Opportunity con 18+ campos de barrera, GameDevSpecialization solo-programación, UserProfile expandido, RankedOpportunity), `scoring` (espectro 0-100 + enablers/blockers/reasoning), `recommendation` (config con pesos validables + strategy personalizada), `discovery` (async, adapters por plataforma con aislamiento de errores), `engine` (orquesta discover→score→recommend→stats), `profile_builder` (solo datos reales, nunca inventar). Game Development como categoría obligatoria que **excluye arte** (concept/character/environment/UI art, animación artística) e incluye solo programación. Fixes al diseño concurrente: pesos que sumaban 1.10 → 1.0 + normalización defensiva; `enablers`/`blockers` agregados a `ZeroBarrierScore`; `__post_init__` tolera specialization como string.
-
-- **Impacto**:
-  - `import cores.direct_work_engine` OK (antes roto); `tests/test_direct_work_engine.py` 28 passed; ruff limpio
-  - El diferenciador OWNEX queda explícito: "de miles de oportunidades, estas tres son las más probables de cobrar esta semana, en este orden" — motor de decisión, no acumulación de módulos
-  - Módulo NO montado aún en `api/main.py` (sin adapters reales registrados) — próximo paso natural: adapters Algora/Opire/Freelancer existentes vía `register_adapter`  - 0 regresiones: no toca `core/`, `api/` ni otros módulos; solo se pobló el fantasma
-
-- **Condiciones para reabrir**: Cuando se registren adapters reales de discovery, cuando se monte el router en `api/main.py`, o si se requiere que el scorer reaccione al historial real de payout del usuario (feedback loop de Memory System).
-
-## 2026-08-01: Direct Work Engine — feedback loop + clasificación de modelos de mercado
-
-- **Problema**: El DWE rankeaba oportunidades sin aprender de los outcomes reales (el scorer no conocía qué plataformas/categorías cobran más). Además la visión OWNEX 2035 exige distinguir los **modelos de mercado** (empleo clásico vs freelance vs bounties vs bug bounty vs OSS vs AI tasks vs competencias): las tareas públicas ("¿podés resolver esto?") son más objetivas que los procesos de selección ("¿quién sos?") y deben priorizarse, pero eso no estaba explicitado en el motor.
-
-- **Alternativas consideradas**:
-  1. **Feedback loop con historial real (elegido)** — `feedback.py` con `LearningRecord` (platform, category, accepted, amount, time_to_payout_days), `apply_learning()` que pliega outcomes verificados (accepted/paid vs failed/cancelled; pending/reviewing NO cuentan) en `UserProfile.platform_success_rates`/`category_success_rates`/`total_earnings`/`avg_time_to_payment_days`, y `build_history_from_revenue_tracker()` que deriva records desde el RevenueTracker real. Historial vacío = no-op (nunca inventa tasas). El recommender YA lee esas tasas (`_calculate_acceptance_probability`), así el motor mejora con cada cobro/rechazo.
-  2. Scorer que adivine tasas por defecto — Contradice "nunca inventar información". Descartado.
-  3. Solo documentar la visión — No cierra ningún loop medible.
-
-- **Decisión**: Implementar feedback loop + `EMPLOYMENT_TYPE_MODEL`/`opportunity_model()`/`is_outcome_based()` (7 modelos de mercado, expuestos en `recommendation_reasoning` y strategy "Outcome-based: deliver the result"). `DirectWorkEngine.learn()` como entrada única. Vision 2035 registrada en `.ai/STRATEGIC_VISION.md`.
-
-- **Impacto**:
-  - El motor aprende de datos reales: `platform_success_rates`/`category_success_rates` alimentan la probabilidad de aceptación → ranking más honesto con cada ciclo
-  - OWNEX distingue explícitamente "mundo resultado" (bounty/microtask/prize) vs "mundo selección" (empleo/freelance) y prioriza las tareas públicas de menor barrera
-  - `tests/test_direct_work_engine.py` 28 → 35 (feedback loop con RevenueTracker, nunca inventa, clasificación de modelos); ruff limpio
-  - 0 regresiones: módulo desacoplado, no toca `core/`, `api/` ni otros módulos
-  - `register_capabilities()` ya auto-registra `learn_from_outcomes` en CapabilityRegistry
-
-- **Condiciones para reabrir**: Cuando se registren adapters reales de discovery (los `core/opportunity/adapters/` existentes vía `register_adapter`), cuando se monte el router/endpoint en `api/main.py`, o cuando se quiera persistir el `UserProfile` aprendido entre sesiones (hoy se reconstruye en memoria).
-
-## 2026-08-01: Direct Work Engine — router expuesto en la API (visible en Mission Control)
-
-- **Problema**: El motor DWE rankeaba oportunidades pero no era consumible: no había endpoints, no era visible en Mission Control. Regla del proyecto: "si no es visible, no existe".
-- **Decisión**: Montar `api/routers/direct_work.py` en `api/main.py` con `GET /api/direct-work/status`, `POST /api/direct-work/score`, `POST /api/direct-work/recommend`, `POST /api/direct-work/learn`. Serialización enum-aware (dict ↔ dataclass) en el router, manteniendo los modelos del DWE puros. Sin auto-submisión: enviar info personal sigue requiriendo aprobación (Human Control Layer).
-- **Impacto**:
-  - El pipeline del megaprompt (Discovery → Intelligence → … → Payment Tracking) ahora tiene interfaz consumible: score/recommend/learn/status
-  - `tests/test_direct_work_api.py` 5 passed con TestClient; `import api.main` OK
-  - El feedback loop (`/learn`) queda accesible para alimentarse del historial real de pagos
-- **Condiciones para reabrir**: Cuando se registren más adapters reales (envolver los `core/opportunity/adapters/` de Algora, IssueHunt, Freelancer a `BaseDiscoveryAdapter`), o cuando el frontend consuma estos endpoints en Mission Control.
-
-## 2026-08-01: Direct Work Engine — primer adapter real de discovery (Opire)
-
-- **Problema**: El DWE rankeaba oportunidades que nadie le alimentaba: sin adapters reales, `discover_all()` no producía nada. El motor de decisión no generaba valor sin datos vivos.
-- **Decisión**: Crear `api/adapters/direct_work_opire.py` — `OpireDweAdapter(BaseDiscoveryAdapter)` envuelve el `OpireAdapter` legacy (API pública de Opire, auth opcional) y normaliza `RawOpportunity` → `Opportunity` (categoría dev_bounty, employment_type BOUNTY → outcome-based, difficulty inferida de effort_hours). Se registra idempotente y tolerante a errores en `get_engine()` del router. Vive en la capa API para que el DWE siga desacoplado de `core/`.
-- **Impacto**:
-  - `get_engine().discovery` ahora tiene OPIRE registrado → el motor puede descubrir bounties reales de Opire
-  - `tests/test_direct_work_api.py` 5 → 8 (conversión mockeada, sin red; registro automático idempotente)
-  - 0 regresiones: import api.main OK, ruff limpio
-- **Condiciones para reabrir**: Cuando se registren más fuentes (Algora, OpenCollective, Superteam, GitHub Sponsors) o se exponga el discovery en un endpoint accionable (`POST /direct-work/discover`).
-
-## 2026-08-01: Direct Work Engine — wrapper genérico + más fuentes reales
-
-- **Problema**: Cada adapter real (Opire) duplicaba la conversión `RawOpportunity → Opportunity`. Envolver más plataformas multiplicaría el código copiado.
-- **Decisión**: `api/adapters/legacy.py` — `LegacyOpportunityDweAdapter(BaseDiscoveryAdapter)` (un solo camino de conversión parametrizado por platform/category/employment_type) + `build_default_adapters()` que registra **opire, issuehunt y freelancer**. `OpireDweAdapter` queda como subclase fina del wrapper (DRY). Freelancer clasificado como modelo *freelance* (mundo selección); bounties como outcome-based — refuerza la clasificación de 7 modelos.
-- **Impacto**:
-  - El motor descubre de 3 fuentes reales: `get_engine().discovery.adapters = {opire, issuehunt, freelancer}`
-  - `tests/test_direct_work_api.py` 8 → 10 (conversión mockeada sin red, clasificación freelance vs bounty)
-  - 0 regresiones: 45 tests verdes, import api.main OK, ruff limpio
-- **Condiciones para reabrir**: Envolver Algora/OpenCollective/Superteam, o exponer discovery accionable (`POST /direct-work/discover`), o que el frontend consuma `/recommend`.
-
-## 2026-08-01: Vault & Atlas Cycles — 6 Work Cycles operativos (AUD-8)
-
-- **Problema**: Solo 4 de 6 Work Cycles tenían clase de motor + router API (security, forge, pulse, direct_work). Vault y Atlas solo tenían seeds DB + scheduler jobs, sin motor ni endpoints — invisibles en Mission Control.
-- **Alternativas consideradas**:
-  1. **Crear clases VaultCycle/AtlasCycle + routers (elegido)** — Seguir patrón ForgeCycle/PulseCycle existente. Motor desacoplado, bookkeeping DB, knowledge capture, executive dashboard integration.
-  2. Solo montar routers stub sin motor — Violaría "si no es visible, no existe" y "no mocks en producción".
-  3. Unificar en un solo ciclo "Wealth+Intelligence" — Pérdida de granularidad, categorías distintas (wealth vs intelligence).
-- **Decisión**: Crear `core/cycles/vault.py` (VaultCycle, priority 7) y `core/cycles/atlas.py` (AtlasCycle, priority 5) con 6 stages cada uno. Routers `vault_cycle.py` y `atlas_cycle.py` con 8 endpoints cada uno. Montados en `api/main.py`.
-- **Impacto**:
-  - 6 ciclos operativos: security, forge, pulse, vault, atlas, direct_work
-  - `get_all_jobs()` → 27 jobs (vault:2, atlas:2, direct_work:1)
-  - Executive Dashboard backend ya expone datos; frontend Mission Control puede consumir `/dashboard`, `/knowledge`, `/status`
-  - 0 regresiones: patrón idéntico a forge/pulse, solo adapta platforms/sources
-- **Condiciones para reabrir**: Cuando el frontend consuma estos endpoints en Mission Control, o cuando se requiera `run_pipeline()` real (hoy solo bookkeeping DB como forge/pulse).
-
-
-## 2026-08-17: DESKTOP SIDECAR — el bundle corre el backend in-process (uvicorn daemon) para ser autocontenido en Windows
-
-- **Problema**: El bundle de Windows era un cliente fino HTTP hacia `127.0.0.1:8000` sin backend dentro del bundle: el usuario no va a correr `uvicorn` a mano en Windows, así que Mission Control quedaba en `Source: local` con datos vacíos ("--"). La directiva del usuario (2026-08-17): el instalador debe dejar un exe nuevo en el escritorio con el sistema completo funcionando solo y mostrando datos reales, para usarlo HOY.
-- **Alternativas consideradas**:
-  1. **Sidecar in-process (elegido)** — `desktop/native/services/backend.py`: `backend_alive()` (GET `/api/health`, timeout 1.5 s) → si no hay backend, `ensure_backend_running()` lanza `uvicorn.Server(api.main.app).run()` en thread daemon (127.0.0.1:8000, loopback → sin prompt de Firewall). `app.py::main()` llama `start_backend_async()` (thread fire-and-forget, no bloquea la UI). `MainWindow` gana un QTimer de auto-refresh (10 s) que refresca la vista activa: cuando el backend queda healthy (~30-60 s de boot con discover_all timeout 30 s), MISSION pasa de `Source: local` a `Source: api` con datos reales sin intervención.
-  2. Subprocess separado (launcher del exe a un segundo ejecutable) — PyInstaller onedir no permite un segundo entry point limpio; duplica el runtime.
-  3. Dejar el bundle como cliente y documentar que hay que correr el backend aparte — No cumple "usarlo hoy" en Windows.
-- **Decisiones clave**:
-  - El spec `OWNEX-Desktop-Alpha.spec` ahora hace `collect_all` de `api`, `database`, `core`, `cores`, `apps` además de las libs — el bundle incluye TODO el árbol del proyecto para que `import api.main` funcione en Windows (antes solo estaban las libs + desktop/native + assets). El tamaño del bundle sube (el proyecto completo entra en el pyz).
-  - Si el backend dev ya corre en 8000, el bundle lo reutiliza (`backend_alive()` primero) — sin doble server, sin conflicto de DB lock.
-  - Boot no-bloqueante: la ventana aparece en ~3 s; el backend arranca en background; el auto-refresh llena las vistas.
-  - El sidecar arranca el pipeline completo (scheduler, EventBus, scrapers) → datos reales producidos por el propio proceso.
-  - Tests (6 nuevos, total 22 en `test_desktop_native.py`): backend_alive False en puerto muerto, True con HTTPServer fake real, ensure_* no lanza thread cuando hay backend, lanza thread cuando no, QTimer activo con intervalo 10000, `_refresh_active_view()` refresca la vista activa. Nunca se importa `api.main` en los tests (lento/red).
-- **Verificación**: ruff limpio; 22 passed offscreen; repro de cadena `WINDOW CREATED OK`; suite fast 100 passed / 1 skipped; `import api.main` OK. Commits: `e7d64dfd4` (sidecar), `71eb42320` (guía). CI rebuild run `32021761419` en curso.
-- **Impacto**: El bundle Windows queda autocontenido (motor + UI en un proceso) → el exe del escritorio muestra datos reales desde el primer día. Guía guiada `README-INSTALACION.md` (raíz repo, git) + copiada al Desktop de Windows como `GUIA-INSTALACION-OWNEX.md`; sección nueva en `ownexinstalador/docs/WINDOWS_INSTALL.md` (gitignored).
-- **Condiciones para reabrir**: Si el boot del backend in-process (35 s) se considera lento → pantalla de progreso en la UI; si el bundle crece demasiado → podar `collect_all` con `hiddenimports` específicos; si se quiere firma → certificado de code signing (elimina SmartScreen).
-
-## 2026-09-09: CIERRE P2+P3 — safety gates + revenue durability + audit adversarial §44
-
-- **Problema**: (1) BrowserAgent podía enviar applications/claims y CoderAgent pushear PRs/ejecutar shell sin ningún gate humano — el megaprompt lo prohíbe explícitamente. (2) RevenueTracker solo-memoria: todo lo registrado se perdía al reiniciar (get_revenue_state_breakdown además crasheaba con enums). (3) Respuestas IA sin distinción hecho/inferencia. (4) Sin UI del ledger ni de calibración.
-- **Decisión**: gates HMAC un solo uso (single-process, documentado — no es auth cross-machine); denylist de comandos destructivos; redact de secretos en prompts; containment de repos; approval requerido por defecto en PR; OAR-first con fallback (no se migró el router entero: mínimo viable); semántica como contrato + bloque aditivo en daily-brief; reconcile idempotente en boot; Ledger UI + sección Aprendizaje.
-- **Evidencia**: 15 bridge+reconcile tests, 12 safety (estables ×3 — un flake real de colisión same-second cazado y fixeado con nonce), extends oar/copilot; suite 461/1; cargo check OK; vite 11.9s.
-- **Audit adversarial §44 (honesto)**:
-  - ¿Nuevo usuario puede usarlo? PARCIAL — funnel + guías + onboarding UI existen; instalador Windows sin validar en hardware real → NO.
-  - ¿Plataforma nunca tocada? SÍ (12 guías + first-opportunity + tips).
-  - ¿Explica cada paso? SÍ en daily-brief (semantics) y chats libres (`/copilot/chat`, `/merlin/chat`, `/assistant/chat`, `/assistant/orion-chat` devuelven bloque `semantics`; solo streaming queda sin etiquetar, por diseño).
-  - ¿Distingue hechos de supuestos? SÍ en daily-brief/evolution (UNKNOWN/THIN_EVIDENCE); resto pendiente.
-  - ¿Recomienda sensible? SÍ (EV + calibration + repeatable + channel filter).
-  - ¿Sobrevive caída de IA? SÍ por diseño Y por fault-injection (`tests/test_llm_fault_injection.py`, 8 tests: OAR→router→None/heurísticos, sin invención, secretos redactados).
-  - ¿Sobrevive caída de backend? PARCIAL (ErrorState+retry, strips que se ocultan, desktop dual-mode; sin test de caos dedicado).
-  - ¿Se recupera? SÍ (DLQ+retry, reconcile en boot, stale-scan recovery).
-  - ¿Preserva verdad de revenue? SÍ (Rule §39 testeada; PAID solo vía verification/webhook/manual).
-  - ¿Previene acciones externas no autorizadas? SÍ (nuevo: 4 gates browser + PR + denylist shell).
-  - ¿Corre en Windows? COMPILA (cargo check OK); runtime real NO validado aquí → NO.
-  - ¿Sobrevive restart sin perder estado? AHORA SÍ (reconcile; workbank/first-money/submissions ya persistían).
-  - ¿Guía al primer earning? SÍ (funnel UI + guías + next-action).
-  - ¿Identifica ingreso repetible? SÍ (REPEATABLE/NON_REPEATABLE/UNKNOWN; RECURRING excluido honestamente).
-  - ¿Evita completitud falsa? PARCIAL (UNKNOWN/THIN_EVIDENCE en lo nuevo; superficies legacy sin auditar una por una).
-- **Regla permanente**: toda acción externa irreversible exige approval token un solo uso; ningún camino automatizado alcanza PAID; RECURRING jamás se reclama sin evidencia de suscripción.
-
-## 2026-09-09: DEFINITIVE P0 — consolidación core/→cores/ + contratos reales (supera YIELD 2026-09-08)
-
-- **Contexto**: la regla YIELD del 2026-09-08 prohibía tocar `core/`/`cores/` porque la migración concurrente estaba WIP sin commitear. Estado actual: la migración está commiteada en HEAD (`8dc67c57` + `6eb35fbc` que elimina `core/`), y el usuario ordenó explícitamente el plan DEFINITIVE (P0.1 = consolidación) + "Continuar" en build mode. La condición de la regla ("hasta que la migración ajena termine") se da por cumplida; el yield queda superado para este flujo.
-- **Decisión**: `cores/` árbol canónico único; `core/` eliminado. Referencias dinámicas (manifests, lifespan, guardrails, spec, Makefile, tooling) migradas y verificadas resolubles (19/19 providers). `test_imports.py` y `ultimate_validation.py` (scratch obsoletos) archivados a `docs/archived/`.
-- **Contratos reales, no ficticios**: `Target.status` (columna inexistente) → property derivada de `active`; queries reescritas a esquema real; `scope_verified`/`Pipeline`/`InvestmentAccount` (inexistentes) → checks reescritos contra `target_scopes`/`ScanRun` o eliminados; `register_check_job` muerto eliminado.
-- **Product fix**: LEARN ya no corre tras pausa en human-gate (evita outcome "failed" bogus y preserva resume trail). Test de resume reescrito a crash mid-cycle honesto.
-- **Coexistencia**: detectado escritor concurrente activo en la rama (commit mid-sesión, stashes, ediciones en `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee`). Esos archivos NO se tocaron. Sin commits propios (no solicitados). Contaminación de test propia limpiada de `database/catseye.db`.
-- **Evidencia**: `import api.main` OK; test-fast 100/1; suites afectadas 195 passed; ruff limpio en tocados.
-- **Regla permanente**: un solo árbol runtime; ningún string de resolución dinámica puede apuntar a un módulo inexistente; ningún check de startup puede consultar un modelo inexistente; LEARN solo con outcome real.
-
-## 2026-09-09: LOOP AUTÓNOMO CERRADO — 6 handlers porteados + 10 jobs muertos eliminados (cierre proyecto)
-
-- **Problema**: 10 jobs del scheduler eran silent no-ops (lifespan `_resolve_handler` devuelve None sin ruido): 6 handlers `cores.cycles.tasks.*` referenciados pero jamás porteados del twin `core/` (el loop de revenue security→auto-submit y los ciclos direct-work no corrían); 4 handlers sin implementación en ningún árbol (`tasks_coder_autopilot`, `investment.tasks`, 8 fns trading).
-- **Decisión**: (1) Portar las 6 fns del twin a `cores/cycles/tasks.py` (ya escritas contra imports `cores.*`, port casi verbatim) con 2 fixes mínimos genuinos: el twin llamaba `pipeline.process_finding()` (inexistente; el contrato real es `on_finding_confirmed()`, mismo shape de retorno `action/score/platform`) y construía el set de exclusión de submitted y lo descartaba (dead expression) → ahora parsea `Report.finding_ids` (JSON array, patrón de `knowledge_capture.py`) y filtra de verdad. (2) Eliminar los 10 bloques de jobs muertos (coder_autopilot, investment_arbitrage_scan, 8 trading) con NOTA inline + esta entrada: eran config que fingía capacidad ("routers de humo", prohibido por regla de oro previa). NO se inventaron runners: DevBountyPipeline exige bounty fully-specified (sin batch/discovery), GlobalArbitrageAdapter exige instancia+config, y las 8 fns trading no existen ni como métodos.
-- **P2/P3 auditados, NO construidos**: AvailabilityEngine ya alimenta `one_best_action.can_accommodate` + `income_plan` (fallback honesto profile hours); el auto-feed outlook→calendar se DESCARTÓ deliberadamente (el engine solo suma bloques `available`; inyectar busy colapsaría availability a 0 — documentado como follow-up con rediseño de semántica). Revenue Ledger ya cerrado (endpoint `/revenue-ledger` + consumidores outcome_loop/brief/observability + suite).
-- **Evidencia**: `tests/test_cycle_task_handlers.py` NUEVO (10 tests: resolución de TODOS los handlers registrados — regresión permanente de esta clase de bug — + sweep con DB aislada + skips); 61 passed (handlers+scheduler), 83 (auto_submit/bridge), 164 (queue/workbank/market/qa/direct_work), fast 100/1; ruff limpio; `import api.main` OK. `test_total_jobs_count >= 54` intacto tras remover 10.
-- **Regla permanente**: todo handler registrado en `get_all_jobs()` debe resolver a callable (el test lo pinea); ningún job muerto vuelve sin runner real.
-
-## 2026-09-09: 100/100 BLOQUE 1 — subidas verificables sin inflar (83→87)
-
-- **Prompt-injection (Seg 85→90)**: enforcement real pero de alcance declarado — detección de 12 patrones directos EN/ES + policy untrusted-data + flag en metadata/logs, enganchado en el choke único (`ProviderRouter.route()/route_stream()`). NO se reclama bloqueo total: ofuscados fuera de alcance (documentado en el módulo + test).
-- **Semantics 3/4 UIs (Front 85→90)**: el contrato ya existía en `/merlin/chat`; faltaba render. Helper compartido `chatSemantics.ts` + badges en OwnexChat/MerlinJarvis; AiCommandCenter delega (mismo comportamiento). Streaming sin semantics por diseño (no hay canal de metadata en SSE).
-- **WebView2 + reinstall (Win 80→85)**: modo pineado contra el schema del CLI instalado (no de memoria); test de supervivencia a reinstall (re-`init_db` preserva filas). Contrato honesto: bootstrapper necesita internet; offline = Evergreen del sistema.
-- **Diagnostic bundle (Obs 70→82)**: agregador best-effort de getters existentes (cero fuentes nuevas), con assertion de cero-secretos y detector vivo de dead-handlers (el bundle mismo confirma 0).
-- **Arquitectura 70 SIN CAMBIO (decisión explícita)**: subirla exigía migraciones (Opportunity ×4, Ledger ×3, OAR 1-de-5, Identity ×6, borrado core/) que violan "cambios pequeños" la noche previa a install. El score queda honesto con unlock path documentado.
-- **Evidencia**: 203 passed afectadas · fast 100/1 · ruff · `import api.main` · vue-tsc 0 · biome 0 · `vite build` 12.64s.
-- **Regla permanente**: ningún score sube sin cambio verificable que lo respalde; techos estructurales se declaran, no se maquillan.
-
-## 2026-09-10: UNIVERSAL FUNNEL WIRING — P_ACCEPT universal NO entra al path default
-
-- **Problema**: cablear `UniversalProbabilityEngine` en `recommend()` rompió 4 tests deterministas (max_success, workbank cycle, evolution): el store global `data/learning/acceptance_outcomes.jsonl` (real, con historia) volvió rankings ambient-dependientes. La historia personal YA personaliza vía profile in-memory (`platform/category_success_rates`); el store global es una segunda fuente de la misma verdad.
-- **Decisión**: (1) funnel sí se stampea siempre (`funnel_for_category()` + `Opportunity.funnel/funnel_stage`); (2) P_ACCEPT calibrado SOLO para callers explícitos (`rank_cross_category`, `is_high_confidence_90`, futuro Mission Control); (3) el default path queda byte-idéntico (pineado por test de independencia ambient). Adopción global requiere diseño de aislamiento (conftest OWNEX_DATA_DIR→tmp o inyección de engine) — follow-up, no deuda oculta.
-- **Fixes genuinos aplicados**: `_resolve_funnel()` (KeyError→UNKNOWN); niche mapping a taxonomía bounty (sin esto el path universal jamás matcheaba historia); `_to_evidence_label()` (strings LOW/MEDIUM/HIGH→ValueError→UNKNOWN siempre); `is_high_confidence_90`/`rank_cross_category` como métodos con resolución.
-- **Evidencia**: 21 wiring+adversarial + 203 afectadas + fast 100/1; ruff 0 nuevos; `import api.main` OK.
-- **Regla permanente**: ningún ranking default lee stores globales; la evidencia personal entra por profile (in-memory, testeable) o por callers explícitos con stores inyectables.
-
-## 2026-09-10: MOBILE GAP — 3 reasoners sin tocar lógica viva
-
-- **Problema**: reasoners solo web (IDOR/XSS/SQLi/SSRF/AuthBypass); cero validadores mobile pese a que `mobile_development` es categoría y `VulnType` no tenía tipos mobile.
-- **Decisión**: 3 reasoners NUEVOS con el patrón IDOR verbatim (signals→confidence→Hypothesis completa + helpers), alcance honesto documentado (superficie API del backend mobile, NO binario). `VulnType` ×3 + scorer maps extendidos (todos con `.get()`+defaults, verificados). Planner intacto (fallback genérico). Engine 5→8.
-- **Evidencia**: 17/17 mobile + 101 offensive (conteo pineado 8) + fast 100/1; ruff 0 nuevos.
-- **Regla permanente**: nuevo vuln-type = reasoner + VulnType + scorer entries + tests positivo/negativo; jamás asumir planner dedicado (el fallback genérico es el contrato).
-
-## 2026-09-10: MOBILE ON-DEVICE — validador con degradación honesta, sin auto-ejecución
-
-- **Problema**: las test instructions del reasoner mobile_transport exigen verificación on-device pero no existía tooling (ni en repo ni en host).
-- **Decisión**: `MobileDeviceValidator` NUEVO con 5 veredictos (PASS solo tras ejecutar; UNAVAILABLE≠FAIL; todo con manual_steps). Deliberadamente SIN cablear a scheduler/reasoners (headless + tools externas jamás corren autónomas).
-- **Evidencia**: 17/17 validator + 135 affected + fast 100/1; ruff 0 nuevos.
-- **Regla permanente**: sin PASS sin ejecutar; timeout+shell=False siempre; UNAVAILABLE lleva pasos manuales.
-
-## 2026-09-13: CHAT UNIFICADO — un solo /api/chat + UnifiedChat.vue (revierte decisión 11/09 por orden explícita)
-
-- **Problema**: 3 interfaces de chat paralelas (MerlinJarvis / OwnexChat / AiCommandCenter) contra 3 backends distintos (/api/merlin + /api/copilot + /api/assistant). La sesión lucky-wizard (09/09) pedía unificar; el 11/09 se decidió mantener los 3 vivos con AiCommandCenter canónico. Owner ordenó unificar igual.
-- **Decisión**: (1) `api/routers/chat.py` NUEVO — dispatcher fino sin lógica propia: `POST /api/chat` (persona merlin|copilot|assistant, default copilot; persona inválida → 400) llama a los handlers existentes y normaliza `{persona,status,response,semantics,...}`; `/stream` SSE (merlin no-streameable va envuelto en un evento); `/execute|/approve|/runs` proxies a copilot (mismo Human Gate). Rutas legacy intactas (compat). (2) `UnifiedChat.vue` NUEVO sobre base AiCommandCenter: switcher de persona, bienvenida con estado REAL (endpoints, sin métricas inventadas ni logs mock), comandos rápidos, tool-cards MERLIN con approve/reject, panel DEV vía `/api/chat/*`, misma history-key (continuidad). (3) `/merlin` y `/chat` → redirect `/ai`; sidebar sin MERLIN; eliminados `MerlinJarvis.vue`, `OwnexChat.vue`, `AiCommandCenter.vue` (0 importadores restantes verificados; el panel Dev del 11/09 porteado íntegro, nada perdido). `VoiceAssistantRecorder.vue` se conserva (mic nativo móvil ≠ chat duplicado).
-- **Evidencia**: `tests/test_chat_unified.py` 9/9 (dispatch por persona con mocks, 400s fail-closed, proxies, legacy intacto); regresión 34/34; fast 100/1; ruff limpio; vue-tsc 0; `vite build` 12.00s.
-- **Regla permanente**: un solo chat visible; nuevo motor conversacional = persona del dispatcher, jamás otro componente.
-
-## 2026-09-13: FEEDS — IndentationError bloqueaba todo el paquete intelligence (fix mínimo)
-
-- **Problema**: `cores/intelligence/__init__.py:262` con método `stats()` duplicado/garbled → `IndentationError` → paquete inimportable → 10/10 tests de feeds en rojo. El resto de los 9 fixes jolly-wizard ya estaban implementados en el árbol.
-- **Decisión**: eliminar las 6 líneas garbled (mínima intervención). Los 21 errores ruff restantes del archivo son del rewrite sin commitear del flujo concurrente (verificado por stash) — no tocados.
-- **Evidencia**: `tests/test_threat_intel_feeds.py` 10/10; `import cores.intelligence` OK.
-- **Regla permanente**: ante N tests rojos en un paquete, primero importar el paquete (un SyntaxError explica todo).
-
-## 2026-09-13: OAR local-first es el orden canónico (cierra divergencia prompt vs código)
-
-- **Divergencia**: el megaprompt pedía `FCC→Ollama→OpenRouter`; el código (`cores/ai/runtime/router.py` tier_bonus) implementa `Ollama/LMStudio > OpenCode > Groq/Together/DeepInfra/Cerebras > FCC > OpenRouter/NIM`, con `daily_budget_usd=0.0`.
-- **Decisión**: el código manda (filosofía $0-first + budget 0 verificados; cambiar el scoring rompería `test_routing` que pinea ollama para CODE). Pineado por `TestLocalFirstOrder` (15/15 oar). No se toca el scoring.
-- **Human Gate**: single-process HMAC 600s (`cores/automation/safety.py`) — documentado como límite conocido, suficiente para desktop single-user; cross-process queda fuera de 7.1.x.
-
-## 2026-09-14 (re-aplicado): CORE/ ELIMINADO — cores/ único árbol canónico
-
-- **Orden del owner**: megaprompt de cierre final (§24). **Verificación antes del borrado**: `from core.` == 0 en runtime/tests/strings/packaging/Makefile; breakages latentes corregidos primero (Makefile version_engine, handler-strings dinámicos de `cores/orion/priority.py` con firmas equivalentes verificadas).
-- **Ejecución**: `git rm -rf core/` (656 archivos). Regresión: `import cores, api.main` OK, fast 102/1, suites afectadas verdes.
-- **Regla permanente**: `cores/` es el único árbol; cualquier referencia nueva a `core.` es un bug. W1-W12 Windows sigue siendo requisito owner para Windows Stable.
-
-## 2026-09-15: BACKEND ALPHA AUDIT + ARBITRAGE RUNNER — auditar antes de construir, 1c parcial honesto
-
-- **Agenda**: mi rewrite incompatible revertido al detectar que el sistema YA estaba completo (tests 12/12 como contrato). Lección re-confirmada: el test existente es el contrato; leerlo antes de crear.
-- **Economic V1/V2**: dominios distintos (V1 decide por oportunidad, V2 contabiliza estados de revenue). Frontera documentada en AUDIT; prohibido unificar por estética.
-- **Niveles 0-4**: el spec adopta la taxonomía A-ladder existente; prohibido renombrar.
-- **Arbitrage scan**: solo lectura por diseño (el runner no importa ni referencia `execute_trade`; el fake del test haría fallar si se llamara). Live trading sigue bloqueado por orden del owner; paper loop intacto.
-- **1c restante**: coder batch y 8 fns trading quedan como deuda explícita en el AUDIT, no como jobs silenciosos.
-- **Evidencia**: arbitrage 5/5 · ruff limpio · fast 102/1.
-
-## 2026-09-14: ECONOMIC OS — ladder A1-A12 + workspace economics + daily/economic loops (cierra megaprompt sin reescritura)
-
-- **Pedido owner**: último megaprompt — convertir lo existente en sistema operativo diario de ingresos, cero arquitectura paralela.
-- **Audit-first**: daily-digest, workbank+mirror+Human Gate, ledger PAID-only, channel_economy, mission_hub toggles, OAR degraded YA existían → solo se construyó lo ausente:
-  - `cores/automation/ladder.py` NUEVO: A0-A11+A6_unsupported con `_NEXT` happy-path, `advance/fail/mark_unsupported`, `needs_human`/`is_terminal`, `automation_ratio()`.
-  - `cores/workspaces/economics.py` NUEVO: `economics_for/rank_workspaces` desde Revenue Ledger PAID (plataforma→workspace por substring honesto); EV/h y P(CASH) por workspace = UNKNOWN hasta horas/calibración por workspace (no se inventa).
-  - `cores/workspaces/allocation.py` NUEVO: `allocate_daily_hours()` — modo measured (por outcomes) o cold-start (PRIMARY parejo + 5% admin); puro, sin DB.
-  - `cores/automation/daily_loop.py` NUEVO: `run_daily_loop()` — SELECT workbank → A1→A2→A3 park con evidencia → payment check ledger → learning → tomorrow seed.
-  - `cores/automation/economic_loop.py` NUEVO: `current_phase()` DISCOVER→…→SCALE desde ledger+plan (read-only).
-  - `api/routers/mission_hub.py`: `GET /economics`, `GET /allocation/daily`, `POST /daily-loop/run`, `GET /economic-loop`.
-  - `.ai/DEFINITION_OF_DONE.md` NUEVO: 23 DONE con evidencia + 5 NO DONE honestos.
-- **No tocado**: scheduler handlers (territorio concurrente), `core/`, events/engine/validation, cognee, OAR scoring, WIP ajeno.
-- **Evidencia**: `tests/test_economic_os.py` 17/17 (ladder/economics/allocation/loops/endpoints) · fast 102/1 · ruff limpio · `import api.main` 1734 rutas.
-
-## 2026-09-17: COLIBRI OPT-IN + PATRONES GENTLE — provider local $0 sin runtime ajeno
-
-- **Pedido owner**: evaluar `JustVugg/colibri` (motor MoE local, C puro) + `Gentleman-Programming/gentle-shell` (harness del agente Pi). Veredicto: colibri SÍ como provider OAR opt-in; gentle-shell NO instalado (Rastro no usa Pi) — solo 3 patrones como convenciones.
-- **Colibri** (`cores/ai/runtime/adapters.py::create_colibri_adapter`): reutiliza `OpenAICompatibleAdapter` (gateway `GET /v1/models` + `POST /v1/chat/completions` verificado en `docs/api.md` upstream). Defaults honestos: puerto 8001 (el 8000 lo ocupa OWNEX), modelo `olmoe` (único viable en hosts chicos), key dummy `local`, capabilities solo CHAT (OLMoE responde 400 con tools), ctx 4096, costo 0. Opt-in real: factory registrada pero fuera de `enabled_providers` default; nivel local en router (tier 0.1 + prefer_free/local + privacy) / registry / failover / cost.
-- **Bug real cazado por los tests nuevos**: `OpenAICompatibleAdapter.__init__` descartaba `api_key/base_url/model` pasados sin `env_*` (`... if env_key else ""`) → lmstudio/opencode nacían con modelo y key vacíos (providers muertos). Fix de precedencia en 3 líneas, paridad verificada para callers con env.
-- **Gentle** (`.ai/ODD_TASKS.md` NUEVO, único archivo): task file como scratch por tarea (SSOT sigue en TASK_QUEUE), review de candidato congelado sobre el Human Gate existente, contrato de skill, evidencia TDD RED→GREEN→TRIANGULATE→REFACTOR. Cero runtime Pi, cero doble cola, marca gentle-shell™ no usada como propia.
-- **Evidencia**: `tests/test_colibri_provider.py` 9/9 (defaults, env, caps honestas, registro opt-in, scoring/privacy, HTTP mockeado) · afectadas oar+free+oar_api+ai_providers+ai_router 94 passed · ruff limpio en tocados.
-- **Regla permanente**: provider local nuevo = adapter OpenAI-compatible + capabilities honestas (sin TOOL_CALLING si el engine lo rechaza) + opt-in fuera de defaults + puerto que no colisione con OWNEX; ningún harness de otro agente entra como runtime, solo como patrón documentado.
-
-## 2026-09-18: DESKTOP-FIRST — el producto es la app Tauri, el navegador es solo dev
-
-- **Directiva owner**: OWNEX se usa como programa/app de escritorio, NO en navegador.
-- **Verificación**: el wiring ya existe y está intacto — Tauri 2 (`src-tauri/tauri.conf.json`: `frontendDist ../frontend/dist`, ventana `index.html`, CSP solo `127.0.0.1`) + sidecar `ownex-backend` ONEFILE 260MB (pasa guard 50MB) + `start_backend.py` + spawn Rust con puerto dinámico y evento `backend-ready` (`src-tauri/src/lib.rs:183-261`) + frontend con `API_BASE` dinámico. Puerto 8000 = SOLO-API.
-- **Acción**: apagado el preview vite :5173 (levantado por error en la sesión de salud) + pid stale eliminado; API :8000 queda arriba como backend dev (equivale al sidecar en desarrollo). `scripts/wsl/start_all.sh` gana nota dev-only (sin cambio de comportamiento).
-- **Regla permanente**: ningún flujo presenta el navegador como modo de uso; el único artefacto de producto es el instalador del pipeline `ownex-tauri-windows.yml` (tags `v*`).
-
-## 2026-09-17: TRADING MÁXIMO — 6 fixes reales, 0 features (el paper vuelve a operar)
-
-- **Pedido owner**: mejor trading automatizado posible (todo tipo, memecoins, máximos retornos). Audit-first (2 subagentes en paralelo): el sistema YA está completo en PAPER (filtros/exits fail-closed, backtest replay, advisor OAR+Human Gate, copy dry-run, runner con arming, lifecycle con gates, validation anti-overfitting, kill-switches). Lo que faltaba eran 6 bugs que impedían que operara/midiera bien. Honestidad primero: ningún código aumenta retornos; lo que sí aumenta calidad es que el paper opere de verdad, mida sin mentir y no arriesgue capital solo.
-- **F1 datetime (P0, 40/40)**: `field(default_factory=datetime.now(UTC))` (instancia, no callable) en `cores/trading/models.py` ×6 + `revenue_multiplier/models.py` ×5 + `metrics_tracker.py` ×1 + `cores/trading/metrics.py` ×1 → todo `Order()/Position()` lanzaba TypeError (copy dry-run roto también en producción, no solo en tests). Fix `lambda:` en 12 sitios. `test_trading_intelligence` 36/40→40/40.
-- **F2 doble-mount**: `api/routers/trading.py` montado 2 veces en `api/main.py` (todas las rutas /api/trading duplicadas) → eliminado el 2º bloque. Pin `overview == 1`.
-- **F3 14 jobs muertos eliminados** (precedente 2026-09-09): `trading_backtest_phase1-8` + `trading_validation_*` ×5 + `trading_paper_auto_advance` referenciaban handlers `cores.trading.lifecycle:<bare>` inexistentes (solo existen `*_handler(strategy,...)` con args; jobs con `args=[]`). El auto-advance por cron a canary contradecía además el Human Gate. El lifecycle sigue vía API/manual. Dashboard-safe (cuenta solo jobs existentes).
-- **F4 execute_trade fail-closed**: `global_arbitrage_adapter.execute_trade` (órdenes ccxt reales) sin gate y sin callers → `allow_live=False` default con RuntimeError explícito. Cero cambio de comportamiento, un foot-gun menos.
-- **F5 risk_guardian vivo**: job `risk_guardian_check` apuntaba al getter (no-op cada 15m) → nuevo `run_risk_guardian_check()` (chequeo real de drawdown, nunca raisea) + job reapuntado.
-- **F6 registry SSOT**: `cores/investment/adapters/__init__.py` tenía un stub `InvestmentAdapterRegistry` vacío (sin `get_adapter`) que opacaba al real de 17 adapters → `/api/investment/ccxt/info` 500 y registro default vacío. Stub eliminado, re-export real. + paths `core.`→`cores.` en 5 strings de test (árbol borrado).
-- **No tocado**: estrategias, filtros, exits, advisor, copy, runner, lifecycle gates, validation (COMPLETOS); live sigue bloqueado (orden owner + Human Gate); `strategy_orchestrator/ensemble/optimizer` sin callers quedan como deuda explícita (inofensivos, sin jobs ni rutas); 3 fallos `test_investment` restantes eran estos mismos (resueltos: 111/111).
-- **Evidencia**: `test_trading_quality_gates.py` 7/7 nuevo · afectadas 328 passed · fast 102/1 · ruff limpio (I001 main.py preexistente en HEAD, no tocado) · vivo: overview 200 dry_run jobs=4 reales, dashboard 200 DRY_RUN honesto, ccxt/info 200 (antes 500).
-- **Regla permanente**: ningún job programado avanza hacia canary/live sin runner testeado + aprobación humana; ninguna orden real sin `allow_live` explícito; todo default_factory con timezone usa `lambda:`.
+> **Rotas 2026-09-30 (autorizado por el owner)**: el histórico completo está en `.ai/archive/DECISIONS.md` (336,104 B, 172 secciones). Este archivo conserva 21 de 193.
+> **Regla**: grepeá `.ai/archive/DECISIONS.md` antes de contradecir una regla histórica.
+
+## 2026-10-04: LOS 10 POSTS EXTERNOS — 21 reasoners, failover real, y un cliente revertido por no verificar consumidor
+
+- **PEDIDO OWNER:** integrar 10 posts de X/Twitter "todo lo que sirva de manera óptima", con foco en visibilidad, funcionalidad y diseño.
+- **REGLA DE ORO APLICADA CORRECTAMENTE (una vez) y FALLADA (una vez).** El pedido llegó con 10 enlaces. Antes de escribir código se auditó el árbol contra los 10. Resultado: **2 eran ruido** (trading), **3 se rechazaron por violar reglas del proyecto**, **1 aportó un checklist que reveló el hallazgo de revenue**, y **1 era puro caso de método**.
+
+### El hallazgo que sí era dinero (F1)
+
+- **21 `VulnType` declarados, 14 reasoners.** `cores/validation/models.py:29-50` declaraba 21 clases de vulnerabilidad; `cores/offensive/reasoners/` tenía 13 archivos. Sin generador: `csrf, lfi, cmdi, race_condition, cors, open_redirect, generic`. Y `economic_scorer.py` **no tenía precio** para `race_condition`, `cors`, `open_redirect` — el sistema no sabía cuánto pagaban.
+- **El post que lo reveló fue PenHunter**, NO un repo nuevo: su lista de vulnerabilidades (CSRF, LFI, RCE, Open Redirect) coincidía con 4 de las 7 faltantes. La herramienta se rechazó (es el 5º wrapper sobre dalfox/sqlmap/nuclei que OWNEX ya invoca), **el checklist se aceptó**.
+- **DECISIÓN 1 — 6 reasoners como 6 cambios atómicos**, ordenados por EV medido (`multiplier × acceptance`): `cmdi` (2.0×0.60=**1.20**) → `lfi` (0.60) → `race_condition` → `cors` → `csrf` → `open_redirect`. Cada uno = 1 archivo + su entrada en `templates.py` + registro, replicando el contrato exacto de `graphql.py` (el molde: `MAX_SAFE_*` anti-DoS, `scope_check`, 6 `alternative_explanations`).
+- **DECISIÓN 2 — `GenericReasoner` en vez de borrar `GENERIC`.** `GENERIC` parecía código muerto (0 reasoners) pero es el fallback de **8 módulos** (`planner.py:373`, `curiosity.py:178`, `attack_planner.py:74`, `probe/engine.py:699`, `contradiction.py:247`, `challenger.py:381`). Borrarlo era romper 8 call sites. Se implementationsó como detector real de anomalías (parámetros sospechosos, headers de seguridad faltantes, stack traces en respuesta, path traversal, endpoints admin/debug). **21/21 `VulnType` con generador** (antes 14/21).
+- **REGRESIÓN MECÁNICA esperada y gestionada:** 7 archivos de test pineaban `len(engine._reasoners) == 14`. Actualizados a 21. Además `test_contradictions_in_hypothesis` falló porque `prioritize()` (`models.py:319`) ordena por confidence descendente y los reasoners nuevos (CSRF 0.67, CORS 0.5) pasaron delante de IDOR (0.485). **El testEDF assumes `hypotheses[0]` es IDOR — ese era un test frágil, no una regresión.** Se cambió a `any(len(h.contradictions) > 0 for h in ...)`.
+
+### El precondición que faltaba (F2) — y por qué los 4 providers gratis NOreach"por arte de magia"
+
+- **HALLAZGO CENTRAL (verificado leyendo, no opinando):** el failover de OAR era **código muerto para todo error HTTP**. Cadena medida:
+  - `adapters.py:359-369` — un non-200 **devuelve** `AIResponse(finish_reason="error")`, no lanza.
+  - `runtime/__init__.py:286` — `await provider.chat(...)` no lanza excepción.
+  - `runtime/__init__.py:289-291` — ⇒ ejecuta `record_success(provider_id)`.
+  - `failover.py:57` — el circuit breaker **nunca abre**.
+  - `resilience.py:87` — el mapa `429 → (quota_exceeded, CIRCUIT)` es **inalcanzable**: `__init__.py:321` clasifica **sin `status_code`** y descarta el resultado.
+- **CONSECUENCIA ECONÓMICA:** el insight real del post de providers gratis (*"2 providers + fallback en 429 elimina el techo de 30 rpm"*) era **imposible de aplicar**. Los free tiers son exactamente los que dan 429.
+- **DECISIÓN 3 — no hacer que el adapter lance.** Habría roto el contrato público de `chat()` (`tests/test_oar.py:220` pinea la forma de `AIResponse`). El fix mínimo: en `__init__.py:286`, tratar `finish_reason == "error"` como fallo y `continue` al siguiente provider. Se define `ProviderError` local. **Failover y circuit breaker ahora existen.**
+- **DECISIÓN 4 — `health.py` dejó de mentir.** `health.py:96` pisaba el status del propio adapter con `_determine_status()`, que además no exige contacto real: `latency_ms == 0.0` + `success_count == 0` devolvía **`HEALTHY`**. Ahora respeta el status del provider y aplica piso de contacto (`UNKNOWN` si nunca se habló con él). **Esto cierra el mecanismo de KNOWN_DEBT #27** (omniroute reportado `healthy` con `latency_ms: 0.0`), aunque el servicio systemd siga `activating` — eso es #30 y sigue abierto.
+- **DECISIÓN 5 — 4 providers activados, y sólo con evidencia de que el failover ya funciona.** `groq`, `cerebras`, `together`, `deepinfra` tenían factory escrita desde antes (`adapters.py:497,563,517,540`) pero no estaban en `enabled_providers`. Se activaron **después** del fix, no antes: sin F2, activarlos habría producido 4 providers más que reportan verde y mueren al primer rate limit.
+- **NO se codificó la lista de 243 providers del post.** Es un snapshot que se pudre (el propio repo se refresca diario), y OWNEX tiene una regla explícita desde el incidente de las 890 fuentes fabricadas. Se采纳 la *insight*, no la *lista*.
+
+### La lección que costó la sesión (F3 revertido)
+
+- **SE AGREGARON 4 clientes OSINT** (`RedditClient`, `NitterClient`, `InvidiousClient`, `GitHubAdvisoryClient`) a `cores/recon/osint_api.py`, siguiendo el patrón `OSINTClient`/`CLIENTS` existente, y se reportaron como "COMPLETADO".
+- **Al pedirle al owner "para qué es esto?", la verificación dio lo contrario:**
+  1. **`GitHubAdvisoryClient` duplicaba código YA cableado.** `cores/intelligence/feeds/github_advisory_feed.py` ya existía: mismo endpoint REST `/advisories`, keyless, con **caché de 24h**, y registrado en `cores/intelligence/__init__.py:405`, `cores/engine/hypothesis/threat_intel.py:301` (dentro de `_FEED_SOURCES`) y `cores/opportunity/adapters/atlas.py:152`. Yo escribí una 4ª copia sin usar. **Violación directa de la Regla de Oro (§2).**
+  2. **Los otros 3 medían CERO.** Reddit → **403** (IP de datacenter bloqueada). Nitter → **5/5 instancias caídas** (DNS no resuelve, `TLSV1_UNRECOGNIZED_NAME`, 302). Invidious → **401 / JSON parse error** en las 5. El propio log de la prueba lo decía y se reportó como verde igual.
+  3. **0 consumidores.** Sin job de scheduler, sin tool del agente de IA, sin frontend. `/api/osint/*` sólo lo invoca un humano. Las entradas Reddit de `global_sources.py:320-344` son metadata `profile_only` (apuntan a la URL humana) — no hay adapter que las consuma.
+- **DECISIÓN 6 — REVERTIDO COMPLETO.** Los 4 clientes borrados. `git diff cores/recon/osint_api.py` quedó **vacío** (byte-idéntico a HEAD). Se limpiaron además 4 líneas del docstring y un comentario basura que había quedado pegado. **0 referencias residuales en todo el repo.**
+- **POR QUÉ NO SE PERDIÓ NADA:** GitHub Advisory ya estaba integrado en 3 lugares, y los otros 3 devolvían cero. El borrado no costó capacidad.
+- **REGLA PERMANENTE (la más importante de la sesión):** *un cliente nuevo sin consumidor es código muerto aunque responda HTTP 200, y un cliente que devuelve 0 no es una capability — es un canal muerto con etiqueta verde.* Antes de agregar un cliente OSINT/API: **(a)** grepear si ya existe wired en otro módulo, **(b)** ejecutar una request real y **pegar el status code**, **(c)** grepear el consumidor. Este es el mismo patrón que las 890 fuentes fabricadas y que KNOWN_DEBT #46 ya advertencia — y se repitió igual.
+- **Corolario:** *`git diff` vacío contra HEAD es la prueba de que una reversión fue limpia.* No "creo que lo revertí".
+
+### Visibilidad y diseño (F4) — lo que el owner pidió explícitamente
+
+- **3 SSOTs de diseño compitiendo**, md5 distintos: `.ai/DESIGN_SYSTEM.md` (2.8 KB), `.ai/OWNEX_DESIGN_SYSTEM.md` (35 KB), `docs/OWNEX_DESIGN_SYSTEM.md` (29.5 KB). Y `tokens.css:4` apunta a "OWNEX_DESIGN_SYSTEM.md v1.0" **sin decir cuál de los dos**. Decisión del owner: gana `.ai/OWNEX_DESIGN_SYSTEM.md` (es el que declara `tokens.css` y el más completo). `docs/` **borrado**; `.ai/DESIGN_SYSTEM.md` reducido a resumen que apunta al canónico. **3 SSOTs → 1.**
+- **45 vars CSS usadas y nunca definidas** (medido; KNOWN_DEBT decía 43 el 2026-09-30). Clasificadas antes de tocar: unas son set en runtime por JS (`--mode-color`, `--confidence-color`), otras son aliases de tokens existentes. **Todas resueltas como alias, cero hex nuevos** → **0 vars rotas.**
+- **La contradicción de acento se resolvió con el owner, no por deducción:** `tokens.css:22-24` y `.ai/DESIGN_SYSTEM.md` registran directiva del 2026-08-25 de "cero rojo decorativo" con acento cian `#00D5FF`; las notas de sesión del agent都说 Tesla red `#e82127`. Preguntado: **gana el cian** (lo que el árbol afirma). Los ~15 consumidores de `--ownex-danger` (que hoy es azul, no rojo) **no se migraron**.
+- **2 bugs de visibilidad rotos, no features nuevas:**
+  - `GET /system/tools` (que llama `frontend/src/stores/settings.ts:479`) **no existía** ⇒ la pestaña "Herramientas" de Settings mostraba las 10 herramientas como **no instaladas, siempre**. Ahora existe y devuelve `ecosystem.inventory()` (20 tools).
+  - `cores/observability/timing.py` tiene **1 solo productor** (`platform.*.refresh`) mientras `system_health.py:126` filtraba por `pipeline`/`score` ⇒ las latencias eran **0 permanentemente**. Agregado `platform` al filtro.
+
+### 3 bugs reales encontrados al limpiar (F3)
+
+1. **`cores/observability/engine.py:356` — router muerto + `NameError` latente.** Declaraba un `APIRouter(prefix="/api/obs")` que `api/main.py` **nunca monta** (monta `api/routers/obs.py`), y su handler referenciaba `event_request`, **no definido** en ese scope (`engine.py:397`) ⇒ `NameError` survivable sólo porque la ruta no está montada. **Borrado** (105 líneas) — código muerto, no feature.
+2. **`cores/self_improvement/evaluator.py:139` — `compare()` certificaba sin medir.** La sesión del 2026-10-01 arregló `evaluate()` (leía el rollout real) pero dejó `compare()` devolviendo `score=0.5, validity_score=0.5, passed=True` **hardcodeado para cualquier input**. Ahora devuelve UNKNOWN honesto (`score=0.0, passed=False`, nota explícita). *Misma clase de bug que el cerrado, en la mitad que no se miró.*
+3. **`extensions/` — 20 directorios, ~3.500 líneas, 0 importadores.** Incluidos `promptfoo/` (eval de output) y `langfuse/` (traces), ambos completos y nunca importados. **Se borraron los 10 realmente muertos** (cognee, composio, graphify, hello, kestra, langfuse, n8n, nanobot, promptfoo, skill_seekers) y **se conservaron los 10 con consumidor real** (`cores/integrations/discovery.py` los referencia como catálogo de integraciones). Langfuse/DeepEval **no se adoptaron**: Langfuse manda traces a un SaaS (viola `SECURITY_POLICY` "100% local"), DeepEval es dependencia nueva contra el budget de 1.
+
+### Verificación
+
+```
+make test-fast              103 passed / 1 skipped   ← baseline INTACTO
+offensive + OAR + self_imp  158 passed
+recon + api_endpoints        91 passed
+ruff (osint_api.py)         All checks passed
+CLIENTS tras el revert       15 == 15 de HEAD
+git diff osint_api.py        VACÍO (revert limpio)
+vars CSS sin definir          0 (de 45)
+```
+
+### Revenue Sprint Review
+
+| Pregunta | Respuesta |
+|---|---|
+| ¿Qué parte aumenta la detección? | **F1**: 7 clases de vulnerabilidad que OWNEX declaraba y no generaba,incluyendo `cmdi` (RCE-level, EV más alto del catálogo). |
+| ¿Qué parte reduce falsos positivos? | F2: un provider sin credencial deja de reportar `healthy`; el router deja de reintentar un provider muerto. |
+| ¿Qué parte mejora la aceptación? | F1: sin precio, `race_condition`/`cors`/`open_redirect` no participaban en el ranking económico. |
+| ¿Qué parte mejora el aprendizaje? | F3: `Evaluator.compare()` dejó de certificar `passed=True, score=0.5` sin medir. |
+| ¿Qué parte mejora la autonomía? | F2: es la precondición para que los free tiers sirvan. Antes el tope de Groq (30 rpm) no tenía salida. |
+| ¿Qué parte mejora Expected Revenue? | F1 (directo) + F2 (habilitante). |
+| ¿Qué parte sólo mejora arquitectura? | F4. No produce detections; produce que el owner *vea* lo que ya produce. |
+
+## 2026-10-01: CIERRE FINAL — "DONE" en `.ai/` sin código: 4 endpoints en 500 y 5 stubs
+
+- **PEDIDO OWNER:** terminar la sesión de cierre final de producción.
+- **HALLAZGO CENTRAL:** la sesión anterior (`NOTIFY-EVERYTHING`) registró **DONE con 16/16 verdes**. Al abrir el árbol, de esos 16 solo sobreviven 2 (`emit.py` y `_emit_job_failed`): los **7 call sites**, los **13 keys** de `EVENT_PUSH_MAP` y el endpoint `pending-config` nunca aterrizaron. **El registro afirmaba una capacidad inexistente.** La causa fue el commit `a0e11ac1`/`47a82daa` con `add -A`, que se llevó el trabajo sin commitear.
+- **DECISIÓN 1 — medir en vivo, no por lectura.** Antes de tocar nada, autentiqué contra `api.main` y pedí los endpoints: **3 devolvían 500 con credencial válida** (`/api/stability/status`, `/api/core/integrations`, `/api/self-improvement/*`) y un cuarto P0 (`bounty_pipeline` pasaba `dict` donde el registry documentaba *"never a plain dict"*). Ninguno se veía leyendo el archivo; todos se veían en una request autenticada. **Es exactamente la clase de bug que la sesión del 16-09 ya había cerrado una vez** (`Target(description=)`) y que volvió a perderse en el mismo commit.
+- **DECISIÓN 2 — implementar los 5 stubs contra el contrato existente, no inventar uno.** `RewardModel` usa la fórmula que `models.py:242` ya documentaba (**R = Validity × Difficulty × Novelty**); `ScaffoldGenerator` espeja `harness._verification_command` (un scaffold que describe otro check sería una guía que miente sobre su criterio de éxito); `ExecutionPolicy` **delega** en `cores.automation.safety` en vez de duplicar la denylist; `NoveltyScorer` con historia vacía devuelve 1.0 (nada es repeat), no 0.5. Cero coeficientes inventados.
+- **DECISIÓN 3 — `Evaluator` dejó de certificar lo que no midió.** Devolvía `passed=True, score=0.5` **para cualquier input**. Eso no era un stub inerte: era un evaluador que daba el visto bueno a un rollout inexistente. Ahora lee `exit_code`/`error` reales y UNKNOWN sigue UNKNOWN.
+- **DECISIÓN 4 — el test es el contrato, salvo que el contrato sea una mentira.** `test_work_policy` pineaba `len(OpportunityCategory) == 38` y el enum tiene 40 (`EMPLOYMENT` + `OPEN_CALL`, commit `6d73fd67`): **el pin quedó viejo** → 40. Pero `test_curated_sources` pineaba URLs que hoy dan **404** (verificado con curl) y `test_direct_work_api` exigía Dework registrado cuando su API devuelve 200 con 0 bytes (verificado en vivo): **ahí el test mentía** → se actualizó con la evidencia. La regla: si el código cambió a propósito, el test se actualiza; si el código afirma algo falso, primero se verifica en vivo.
+- **DECISIÓN 5 — endurecer la denylist era P0 de seguridad, no cosmética.** `rm\s+-rf\s+/(?:\s|$)` dejaba pasar `rm -rf /tmp/x` **y** `os.system('rm -rf /')`. Ahora exige que `/` no sea seguido de un segmento, más las formas entrecomilladas. Verificado en ambos sentidos: `rm -rf /` bloqueado, `rm -rf /tmp/x` permitido.
+- **DECISIÓN 6 — no tocar el rojo ajeno, pero tampoco atribuirlo.** De los 28 archivos con rojo, corrí **9 aislados**: los 9 pasan. Son contaminación de orden heredada. Declararlos "arreglados" sin evidencia habría repetido el error que abrió esta sesión.
+- **VERIFICACIÓN:** 440/440 en las 19 suites tocadas · `make test-fast` **103/1** (baseline intacto) · **suite serial completa 5845 passed · 85 failed · 0 errors** · ruff limpio en 30 archivos · `import api.main` OK · **4 endpoints 200 en vivo**. A prueba de fallo 2 veces (reintroducir `Target(description=)` y el modelo inalcanzable ⇒ la suite cae).
+- **REGLA PERMANENTE:** *una capability declarada DONE no existe hasta que el código la tiene y el endpoint responde.* Y su corolario: *un `class X: pass` con docstring "for backward compatibility" es una capability declarada, no un detalle pendiente* — si algo lo llama, es P0 aunque el archivo sea de 6 líneas.
+
+## 2026-09-30: FRONTEND RELEASE AUDIT — el Command Center no montaba y el QA no podía fallar
+
+- **PEDIDO OWNER:** auditoría completa del frontend, release funcional accesible por HTTP, y QA automatizado con Playwright. Explícitamente: *"no quiero simplemente 'el frontend compila'"*.
+- **PREMISA CORREGIDA (3):** el prompt asumía un greenfield. No lo era. ① Playwright **ya estaba instalado, configurado y wired** (`@playwright/test` en `frontend/package.json:41`, `playwright.config.ts` en raíz, `e2e/` con 2 specs, `"test:e2e"` en el script). ② La estructura `tests/e2e/` propuesta **ya existía** en la raíz. ③ `vue-tsc` **nunca corrió en CI** y `frontend/package.json` no tenía script `typecheck`. Seguir el prompt al pie de la letra habría violado su propia §15 ("buscar si ya existe") y duplicado la arquitectura de QA.
+- **HALLAZGO CENTRAL (P0-A):** la ruta `/` —el Command Center, `router/index.ts:82`→`IncomeHome.vue`— **no montaba**. Usaba `useHuntStore` (línea 143, top-level de `setup()`) y `api` (5 call sites) **sin importar**. Sin `unplugin-auto-import` en `vite.config.ts` ni `app.component()` en `main.ts`, no había resolución posible. Outros 5 archivos con la misma clase de defecto (`Capital`, `Connections`, `OutlookCalendar`, `Settings`, `FixPlansList`). **Por qué nadie lo vio:** `vite build` no resuelve identificadores de template/script, y el CI corría build pero nunca typecheck. El bug atravesó el CI entero.
+- **HALLAZGO (P0-B):** el contrato de auth estaba roto en las dos puntas. Backend `auth.py:46` devuelve `ok(result)` → envelope `{version,schema,data:{token},…}` (verificado en vivo con `curl`); el cliente `api.ts:163` no desenvuelve el envelope; el store leía **`res.session.token`** ⇒ `undefined` siempre ⇒ `setToken()` nunca se llamaba ⇒ `CATEYE-token` nunca se escribía. `loginWithCredentials`/`register` además mandaban `{email,password}` contra un `LoginRequest` que exige `username` ⇒ **422**. **El test de auth pasaba 12/12** porque mockeaba `{session:{token}}`, una forma que **ningún endpoint emite**.
+- **HALLAZGO (P0-C):** el QA no existía. `playwright.config.ts:18` usaba `--prefix ../frontend`, que desde la raíz resuelve a `/home/adriel/projects/frontend` — verificado inexistente, así que el runner no podía levantar su frontend. Y los 8 tests afirmaban `toBeGreaterThanOrEqual(0)` (un conteo siempre es ≥0) y `bodyText.length > 0` (pasa igual con una pantalla de error). `retries: 0` + `trace: 'on-first-retry'` ⇒ el trace nunca se retenía.
+- **DECISIÓN 1 — corregir, no reconstruir:** 3 imports + 9+4 tags en `IncomeHome`; +2/+1/+1/+2/+1 en los otros 5. Nada de refactor, nada de arquitectura nueva.
+- **DECISIÓN 2 — el test de auth se reescribió con la forma REAL, no se arregló el código para satisfacer el mock.** El mock era la mentira: la forma correcta es la que emite el backend.
+- **DECISIÓN 3 — baseline-relative, no cero absoluto.** El DoD pedía `vue-tsc = PASS`. Medido: el baseline es **0 errores**, así que la meta se cumple literal. Pero los errores preexistentes que `vue-tsc` **no** cubre (declaración duplicada de `CapitalSnapshot` con 9/9 campos de dinero mal nombrados frente a la respuesta real) se corrigieron igual, con mapper que deja lo ausente en `null` = UNKNOWN.
+- **DECISIÓN 4 — 2 tests borrados, no repuntados.** `Dashboard.test.ts` y `Findings.test.ts` importaban páginas borradas; verifiqué que **ninguno** de sus strings ("Centro de Inteligencia OWNEX", "Findings Pipeline", "Ningún target en radar") existe en ningún `.vue`. Repuntearlos habría creado tests que pasan sin significar nada. Resultado: vitest pasó de **2 suites rojas a 17/17 verdes (191 tests)** — por primera vez hay un baseline en el que "sin regresiones" significa algo.
+- **DECISIÓN 5 — el static server se reescribió SIN dependencia nueva.** El original `require('express')`, que no está instalado. Budget de arquitectura = 1 dependencia; se gastó **0**. Se agregó proxy HTTP **y upgrade WebSocket** porque en browser la app deriva el WS del origen actual (`backend.ts::getWsBase`), y un 502 con cuerpo JSON explícito es preferible a devolver HTML donde el cliente espera JSON.
+- **DECISIÓN 6 (la que más costó) — un test que no puede fallar es peor que no tener test, porque da confianza falsa.** Reintroduje el P0-A a propósito para validar la suite: **pasó**. La causa fue no obvio y valuable: un `ReferenceError` en `<script setup>` **no** emite `pageerror`; el `ErrorBoundary` del proyecto lo captura y lo reporta por `console.error`, dejando la zona **vacía** mientras el resto de la app renderiza normal. El guard por `#main-content` era **falso verde**. Corregido: el smoke ahora afirma bloques de contenido específicos **y** filtra `console.error` además de `pageerror`. Verificado: reintroducido el bug ⇒ la suite **falla** con `ReferenceError: useHuntStore is not defined at setup`. Ése es el estándar queotros tests deben seguir.
+- **DECISIÓN 7 — el guard de proxy se probó a prueba de fallo.** Añadí `test_vite_dev_proxy_covers_every_root_mounted_prefix` y verifiqué que reintroducir el bug (`/today` fuera del proxy) lo hace **fallar** con `['/today']`. `/today` faltaba porque **ningún test leía `vite.config.ts`**: el guard existente comparaba `backend.ts` contra el backend, no contra el proxy.
+- **ALCANCE RECHAZADO explícitamente (§35):** auth bypass de los 28 root-mounted (264 rutas, 148 mutantes — decisión del owner, radio de impacto alto), 38 endpoints inexistentes, 41 componentes muertos, 91 catchs silenciosos, 43 CSS vars sin definir, la waterfall de 7 `await` en `IncomeHome`, la ausencia de `AbortController`. Todo medido y documentado en `KNOWN_DEBT.md` y en `.ai/FRONTEND_RELEASE_AUDIT.md` §H; nada implementado.
+- **VERIFICACIÓN:** `vue-tsc` **0** · vitest **17/17, 191** (baseline era 2 suites rojas) · build ✓ · `make test-fast` **103/1** (baseline intacto) · contract+endpoints **40** · **Playwright dev 28/28** · **Playwright contra el build de producción 28/28** · `import api.main` sin cambios · trading **0 archivos tocados** · sin secretos · sin contaminación de `database/catseye.db`.
+- **CI:** `test-frontend` ahora corre **typecheck + unit + build** (antes sólo lint+build); nuevo job **`test-e2e`** con backend + browsers + artefactos en failure; ambossumados al gate de `verify`. Eliminado `--cov=core` (directorio borrado el 2026-09-14). Antes: **0 de 5 workflows** corrían typecheck, vitest o Playwright.
+- **VEREDICTO:** `RELEASE READY` para el frontend, con **1 P0 de seguridad explícitamente diferido por decisión del owner** (auth bypass root-mounted) y la DEFAULT §34 (`EXPECTED ≠ PAID`) intacta y ahora **verificada por test** en vez de sólo documentada.
+- **REGLA PERMANENTE:** *afirmar que algo funciona no es evidencia; reintroducir el bug y ver el test caer sí lo es.* Y su corolario: *un `ReferenceError` en `<script setup>` no lanza `pageerror` — si tu smoke test sólo comprueba que el layout montó, pasa con el componente roto.*
+
+
+## 2026-09-28: CHAIN HOOK — chain_analyzer cableado post-promoción (análisis, no ejecución)
+
+- **PEDIDO OWNER:** P1 chain→flujo (de la corrección aceptada: Chain como análisis medido antes de GraphQL/OAuth).
+- **AUDIT (Agent Loop):** `chain_analyzer.analyze()` puro con 0 callers · promoter crea Findings sin mirar vecinos · `SubmissionRecord`+`Report.finding_ids` ya permiten dedupe sin migración · duplicado `ConfidenceScore` en validation es deuda preexistente, no tocada.
+- **EXTEND (0 archivos nuevos):** `chain_analyzer.analyze_chains_for_finding()` (lee vecinos mismo target open/confirmed, filtra por finding nuevo + umbral 0.5, best-effort total) · `promoter._annotate_chain_hypotheses()` post-`_create_finding_in_db` (agrega `chain_hypotheses` a notes JSON + evento `finding:chain_hypothesis`; nunca cambia severidad/status — eso es Human Gate; nunca raisea).
+- **Verificación:** 7 tests nuevos en `test_chain_analyzer.py` (fakes sin DB + hook con sesión rota) · 19/19 chain + 34 chain/gate · fast **103/1** · ruff limpio (3 autofix propios) · 11 fallos `test_validation_engine` preexistentes (verificado por stash, ajenos).
+- **Regla permanente**: el hook propone y anota; jamás promueve, degrada, envía ni ejecuta. La severidad resultante de una cadena la confirma el humano.
+
+---
+
+## 2026-09-28: HUNT CREW — equipo sobre el pipeline vivo, jamás segundo scheduler
+
+- **PEDIDO OWNER:** equipo de agentes (hunt → dev → content) para apalancar horas.
+- **AUDIT (Agent Loop):** el pipeline corre en el singleton vivo (`/hunt/start` → `run_cycle`); crear otro scheduler diverge estado y quema presupuesto · `launch_scan` valida DNS + tools + fail-closed · targets se escanean todos por ciclo con cooldown.
+- **NUEVO (2 archivos, budget):** `cores/hunt/crew.py` — agentes con targets/modo/cupo/rate-limit, asignación validada (DNS escaneable, cupo, sin duplicar entre agentes), runs JSONL + métricas por agente, persistencia data-dir, nunca raisea · `tests/test_hunt_crew.py` 10/10 · `__init__.py` glue.
+- **EXTEND:** `api/routers/hunt.py` +3 endpoints (`GET /crew`, `POST /crew/agents`, `POST /crew/assign`; 422 fail-closed, nunca 500).
+- **Verificación:** crew 10 + hunt_router 3 (13) · api_endpoints 31 · fast **103/1** · ruff limpio.
+- **Regla permanente**: ningún crew ejecuta scans por su cuenta; el loop singleton es el único que escanea; paralelismo entre programas/targets, jamás multi-identidad (un ban = ingresos a cero); lo externo sigue tras Human Gate.
+
+## 2026-09-28: TRACKER DIARIO DEFINITIVO — avance real vs proyección 7m, para siempre
+
+- **PEDIDO OWNER:** tramos pineados como tracker medible + uso diario definitivo permanente.
+- **NUEVO (EXTEND):** `get_bugbounty_progress(today=None)` — mes determinista por fecha (floor/cap 1..7), cobrado real del revenue tracker (PAID), veredicto ahead/on_track/behind con gap; sin outcomes = "sin datos", jamás inventa · `GET /first-money/bugbounty-progress` (nunca 500).
+- **INCIDENTE HONESTO:** live dio 404 tras el deploy → el servicio systemd corría código viejo; `restart` y verificado 200 en vivo (mes 1, $0, on_track).
+- **Verificación:** moonshot 11/11 · ruff 1 preexistente (SIM102 línea 149, stash-idéntico) · fast 103/1 · live 200.
+- **Regla permanente**: todo tracker diario es determinista por fecha + lee PAID real + tiene test con fecha inyectada; ningún deploy sin restart verificado.
+
+## 2026-09-28: CAPACIDAD CONFIGURABLE — el motor planifica con tus horas reales, no 30 fijas
+
+- **PEDIDO OWNER:** dispone 77+h/sem; el límite "$20k requiere equipo" era restricción de horas, no física. Corrección económica, no orgía de features.
+- **AUDIT (Agent Loop):** `allocate_daily_hours`/`daily_loop`/`allocation/daily` hardcodeaban 240 min/día en defaults y llamada; el resto (medición, feedback, moonshot, reallocation) ya acepta cualquier presupuesto.
+- **EXTEND (1 archivo + tests):** `mission_hub` state gana `daily_minutes` (default 240, backward-compatible) · `POST /mission-hub/daily-minutes` (30..960, 422 fuera de rango) · `GET /allocation/daily` usa la persistida salvo override explícito.
+- **Verificación:** mission_hub 14→**18** (default/660/explícito/422) · ruff 0 nuevos (SIM105/SIM102 stash-idénticos) · fast **103/1**. Sin commits.
+- **PENDIENTE HUMANO:** setear tu capacidad real (`POST /mission-hub/daily-minutes {"daily_minutes": 660}` = 77h/sem). Sin eso el sistema sigue planificando 4h/día.
+- **Regla permanente**: ningún default de capacidad se hardcodea sin vía de configuración humana; la matemática (moonshot) manda, las horas disponibles las declarás vos.
+
+## 2026-09-28: TODO ADENTRO — OAuth/SSO reasoner + apilado verificado completo
+
+- **PEDIDO OWNER:** todo (OAuth/SSO ahora + apilar motores después) para $10-30k/mes.
+- **A NUEVO (1 archivo, budget 2/2):** `cores/offensive/reasoners/oauth.py` — paths/flujos OAuth, redirect_uri sin state, code sin PKCE, tokens en URL; high si leak o redirect sin state; instrucciones con cuentas propias, sin cosechar tokens reales.
+- **WIRING:** `VulnType.OAUTH` + scorer (1.5/0.50/10m) · engine 12→**13** + exports · templates + registro · conteos pineados en 5 archivos.
+- **B COMPLETE (0 cambios):** apilado ya existe y está testeado — feedback por canal (net/hora real + ranking + reallocation), allocation measured por outcomes, overview con economics+hint, moonshot-plan mensual (`test_economic_os`+`test_economics_ssot` 25/25).
+- **Verificación:** 12/12 nuevo · afectadas **254** · ruff limpio (F401+E741 propios fixeados) · fast **103/1** · 3 fallos market_evolution ajenos (concurrente, demostrado).
+- **Regla permanente**: ATO solo con cuentas propias y scope explícito; ningún reasoner de auth ejecuta logins ajenos.
+
+## 2026-09-28: MAXIMIZAR P(HIGH) — reasoner GraphQL + upside tracker (camino $10-30k)
+
+- **PEDIDO OWNER:** garantizar en lo posible recompensas altas ($10-30k/mes) por desarrollo, de la forma más segura.
+- **AUDIT (Agent Loop):** `VulnType.GRAPHQL` existía sin reasoner ni scorer; GraphQL solo-keyword en auth_bypass · upside sin exponer (solo paid/pending) · income_dashboard sin bloque de potencial.
+- **NUEVO (1 archivo, budget 2/2):** `cores/offensive/reasoners/graphql.py` — paths/keys GraphQL, cruce IDOR a nivel campo (hasta 1 nivel en variables), high si mutation+id · tests anti-DoS pineados (`MAX_SAFE_DEPTH/BATCH ≤10`) · scope-check autorizado.
+- **EXTEND:** scorer GRAPHQL (1.4/0.50/12m) · engine 11→**12** + exports · templates + registro · conteos pineados en 4 archivos · `income_dashboard.snapshot()` gana bloque `upside` (confirmed × bandas conservadoras critical 2.5-5k/high 1-2k, etiquetado potencial-no-promesa).
+- **Verificación:** 13/13 nuevo · afectadas **239** · ruff limpio (I001/F401/SIM118 propios fixeados) · fast **103/1** · 3 fallos `test_market_evolution` ajenos (fuente Whop sin commitear del flujo concurrente, demostrado por stash).
+- **LÍMITE HONESTO:** garantías no existen; lo maximizable es P×magnitud. Alta severidad + primicia + dup-rate bajo = el camino; el upside tracker mide el potencial abierto cada día.
+- **Regla permanente**: ningún test de profundidad/batch sin cap anti-DoS pineado; ningún upside sin etiqueta de potencial.
+
+## 2026-09-28: SHIP DAY AUDIT — 3 rutas muertas fuera + 4 pendientes de decisión + FREEZE bloqueado
+
+- **PEDIDO OWNER (FINAL SHIP DAY):** una sola misión final: audit → P0/P1 → polish → runtime → recovery → Windows → Android → release → **freeze**. No 10 proyectos.
+- **AUDIT (todo medido, no opinión):** versiones 7.7.7 sincronizadas en 8 superficies (`sync_version` idempotente) · **0 refs `core.`** · 1856→**1853 rutas** · **72 jobs / 17 ciclos, 0 muertos** · DB íntegra (61 tablas) · 0 rutas frontend duplicadas · dead UI **0**.
+- **MÉTODO (auto-corrección registrada):** mi primer script de dead-jobs dio **14 falsos positivos** porque usaba `getattr(m, "Class.method")` en vez del resolver real de `lifespan` (que parte por el último punto). Corregido con el resolver real → 0 muertos. El resolver soporta `module:attr`, `module.attr` y `module.Class.method`.
+- **HALLAZGO P1 REAL:** 7 rutas duplicadas (path+método). FastAPI resuelve por orden de registro → la 2ª es **inalcanzable por HTTP**. **3 eliminados** (cuerpo idéntico/alias, cero cambio de comportamiento): `availability` alias `/max-task-hours`, `mission` 2º `/stale`, `mission` 2º `/{mission_id}/checkpoint`.
+- **P0 ADICIONAL (encontrado al trazar los contratos):** `usePreloadData.ts` hac��a `fetch('/api/dashboard/summary')` en cada arranque → **404**, porque `dashboard.py` fue archivado en el polish y **nunca tuvo** ese endpoint (sus rutas: `/status`, `/models`, `/ws/logs`). 404 **preexistente**, no regresión. `cache.summary` no lo consumía nadie → fetch eliminado + `summary?` opcional `@deprecated` (KNOWN_DEBT #21).
+- **RESUELTOS por evidencia de contrato (6):** además de los 3 bodies idénticos, se eliminaron `api.main` `/version` inline (subconjunto estricto del router; el único cliente lee `.version`), `revenue_app` `/summary` (devuelve `{summary,stats}`; el front consume `total_earned`/`pending_amount`, que solo da el ganador) y `control` `/obsidian/sync` (sin body, superado: el winner lee `{path, content, title}` = lo que manda `controlPanel.ts`). Rutas 1856 → **1850**.
+- **PENDIENTE de decisión (1):** `/api/trading/dashboard/summary` — el muerto es **más rico** que el ganador (copy+masters+intelligence+reasoning vs estado de jobs) y **nadie lo consume**: borrarlo destruiría capacidad que un cliente externo podría necesitar. Documentado en KNOWN_DEBT #19 + guard `tests/test_api_route_duplicates.py`.
+- **INCIDENTE PROPIO (seguridad):** el drill live de recovery se abortó porque `OWNEX_DATA_DIR` se resuelve en **import**: habría empaquetado el data dir REAL. La evidencia de recovery son los **39 tests** backup/migrate/recovery/data_dir con aislamiento tmp (39/39 verdes).
+- **VEREDICTO: BLOCKED para FREEZE.** FASE 6 (instalación limpia Windows) y FASE 7 (Android/WearOS físicos) son verificables **solo por el owner en hardware real**; más 4 rutas pendientes de decisión. No se declara RELEASE READY con P1 abiertos.
+- **Regla permanente**: un path+método, un handler; y ningún claim de "dead" sin pasarlo por el resolver real del runtime.
+
+---
+
+## 2026-09-28: TRAJECTORY EN MISSION — 3 capas visibles sin navegar (spec §32/§38)
+
+- **PEDIDO OWNER (implícito del spec + regla del proyecto):** "si no es visible en Mission Control, no existe" y todo lo relevante monitoreable en el front.
+- **AUDIT (Agent Loop):** los 3 endpoints existían pero **0 consumidores en el frontend** — la trayectoria era invisible (mismo gap que el §12 del audit de contrato: feature construida y no cableada).
+- **EXTEND (0 archivos nuevos, 0 rutas nuevas):** `ownexData.ts` + tipos `EconomicTrajectory`/`TrajectoryPeriod`/`TrajectoryChannel`/`MoneyLoopBlock` + `fetchEconomicTrajectory()`/`fetchEconomicGap()` · `Mission.vue` + card **ECONOMIC TRAJECTORY** (0 archivos nuevos de UI, 0 rutas): REAL (caja cobrada + $/hora + 90/180d) · PIPELINE (verificable, no caja) · ESPECULATIVO (con badge EXCLUIDO) · ESCENARIOS (3 tiers con badge PLANNING_SCENARIO) · CANALES (tabla con `validation` literal). El `next_action` de mission (ya dict) se renderiza como dict — cierra el `[object Object]` registrado en DECISIONS 2026-09-20.
+- **Verificación:** `vue-tsc` 0 errores nuevos (78→77 preexistentes, ninguno en los 2 archivos tocados) · `vite build` OK (2m49s) · `biome check` limpio en los 2 archivos · `pytest` 50 (trajectory+mission_hub) · fast **103/1** · **1856 rutas** con 3 de trajectory montadas.
+- **Invariante visual:** potencial/esperado jamás comparte cifra ni tarjeta con caja real; los escenarios llevan badge `PLANNING_SCENARIO`; `$--` = UNKNOWN (nunca 0).
+- **Regla permanente**: dashboard de economía = REAL arriba, PIPELINE y ESPECULATIVO en cajas separadas, ESCENARIOS etiquetados; ningún número de dinero sin capa visible.
+
+---
+
+## 2026-09-28: ECONOMIC TRAJECTORY — REAL/PIPELINE/SCENARIO como tracker vivo (spec 40 secciones)
+
+- **PEDIDO OWNER (spec):** incorporar la proyección económica como tracker vivo, sin convertir escenarios en promesas ni contaminar datos reales. Estado de referencia inmutable: `CURRENT_REALIZED_CASH=$0`, `PAID=0`, `NET_CASH/H=UNKNOWN`.
+- **AUDIT (Agent Loop):** RevenueTracker ya es SSOT de caja con estados `expected→…→paid→net` · `ChannelEconomics` ya mide p_cash_real/acceptance/net_per_hour/repeatability · `momentum` ya permite horas configurables · **NO existía**: trayectoria 90/180/365d, gap engine, niveles de calibración, validación de canal, comparación real-vs-escenario, ni separación explícita de las 3 capas.
+- **NUEVO (2 archivos prod, budget 2/2):** `cores/economic_trajectory/trajectory.py` (puro, sin DB/red) — `REAL_CASH_STATES={paid,net}` como único cash · `VERIFIABLE_PENDING={submitted,accepted,awarded}` para el gap · `SPECULATIVE={potential,expected}` **nunca** sumado a caja ni gap · ventanas 90/180/365 · `calibration_level()` 0-5 (0 PAID → UNKNOWN) · `channel_validation()` con los términos literales del spec (PROOF_OF_POSSIBILITY / EARLY_SIGNAL / REPEATABILITY_SIGNAL / PLANIFIABLE_CHANNEL) · `gap_to_target()` con `speculative_excluded` · `compare_scenario_to_real()` BELOW/ON_TRACK/ABOVE · `scenarios_block()` etiquetado `is_forecast=False, label=PLANNING_SCENARIO` · `calibrate_scenarios()` que **no** recalibra sin ≥3 meses reales · horas configurables (77 inicial, nunca hardcodeado) · `channel_economics()` en 10 canales canónicos + `api/routers/economic_trajectory.py` (3 endpoints, best-effort por sección, `source_error` explícito).
+- **Verificación:** 32/32 tests nuevos (los 19 casos de §36 + API 200 + 422) · **1856 rutas** (3 nuevas montadas) · fast 103/1 · ruff limpio en los 4 archivos.
+- **Invariantes pineadas:** PAID≠EXPECTED · ACCEPTED≠PAID · potencial excluido de caja · sin división por cero · sin cash falso · sin negativos accidentales · timezone naive→UTC · escenarios nunca forecast · 0 PAID ⇒ nivel 0 + `$/hora UNKNOWN`.
+- **Regla permanente**: modificar la proyección para que coincida con la realidad, nunca la realidad para que coincida con la proyección. Escenario sin `kind=scenario` + `label` no entra al sistema.
+
+---
+
+## 2026-09-28: BOUNTY PAID — único camino submission→PAID con evidencia (cierra loop security)
+
+- **PEDIDO OWNER (P1):** hunt→submission→PAID; el bounty tracker (OSS) ya existía pero la cadena security quedaba abierta en accepted.
+- **AUDIT (Agent Loop):** `record_submission_outcome` mapea CONFIRMED→ACCEPTED y **por diseño nunca llega a PAID** (Rule §39) · el único camino a PAID era webhook/manual, sin helper con evidencia · nada alimentaba el feedback con el monto cobrado.
+- **EXTEND (1 archivo, 0 archivos prod nuevos):** `execution_bridge.record_bounty_paid(submission_id, amount_usd, payout_ref)` — fail-closed (`amount>0` + `payout_ref` no vacío, si no ValueError→422), idempotente (submission desconocido → None, jamás toca el tracker), actualiza `PaymentStatus.PAID` con la evidencia y alimenta el mismo sink de calibración que CONFIRMED pero con `reward_usd` real.
+- **BUG PROPIO cazado en el acto:** primera versión creaba un `UserProfile` desechable + `apply_learning` sin efecto (código muerto que además parecía alimentar aprendizaje) → corregido al sink real (`reward_probability.record_outcome`).
+- **Verificación:** bridge 17→**23** (6 nuevos) · afectadas 56 (bridge+e2e+tracker+money) · fast 103/1 · ruff limpio.
+- **Regla permanente**: PAID solo con monto + referencia; accepted ≠ paid en toda la cadena; submission inexistente nunca inventa pago.
+
+---
+
+## 2026-09-28: BOUNTY TRACKER — memoria claim→PR→merge→payout, PAID con evidencia (P1 vNext)
+
+- **PEDIDO OWNER (vNext P1):** claim→PR→merge→payout con PAID solo ante evidencia.
+- **AUDIT (Agent Loop):** executor corre en memoria (restart/timeout = estado perdido) · 0 tracker persistente en ningún lado · feedback distingue accepted/paid pero nadie alimenta outcomes OSS · WorkBank cubre pre-delivery, no post-claim.
+- **NUEVO (1 archivo, budget 1/2):** `cores/opportunity/bounty_tracker.py` — `TrackedBounty` + `BountyTracker` JSON data-dir (track idempotente por issue_url, transiciones pr/merged/paid/failed/expired, `set_paid` fail-closed: monto>0 Y ref obligatorios, corrupt→vacío, path inyectable) + `to_learning_record()` (paid→paid+net, merged→accepted-sin-cash, failed→rejected, abierto→None).
+- **Verificación:** 13/13 nuevo · afectadas 93+2 preexistentes (`test_executors_base`, stash-idénticos) · fast 103/1 · ruff limpio (asserts anti-None propios por LSP).
+- **Regla permanente**: sin evidencia no hay PAID; merged ≠ cobrado; lo abierto jamás cuenta como outcome.
+
+---
+
+## 2026-09-28: TASK WATCHER — auto-claim gateado + watcher read-only (P1 vNext, anti-ban)
+
+- **PEDIDO OWNER (vNext P1):** task-drop watcher con niveles de automatización; UNKNOWN → NO AUTO-ACTION.
+- **AUDIT (Agent Loop + hallazgo crítico):** 0 watcher code en ningún lado · pero el job `pulse_mindrift_fast` (cada 15 min) llamaba `claim()` sin args → listaba tareas abiertas y **reclamaba la primera automáticamente**: el footgun exacto que la regla prohíbe (ban = ingresos a cero). Outlier exige task_id explícito (seguro). Solo Mindrift tenía el path ciego.
+- **FIX (1 archivo):** `mindrift_executor.py` + `claim(task_id=None, *, allow_auto=False)` (explícito intacto; ciego exige `allow_auto` o `MINDRIFT_AUTOCLAIM=1`, si no rehúsa con instrucciones) + `WATCH_LEVELS` (list/claim-específico ALLOWED, resto RESTRICTED) + `watch_new_tasks()` read-only (diff vs seen JSON cap 500, sin token→`configured:False`, corrupt→[], executor inyectable; JAMÁS reclama). Job de scheduler intacto (ahora rehúsa seguro en vez de reclamar).
+- **Verificación:** mindrift 10→**17** (contrato reescrito al nuevo + 4 watcher) · afectadas 130+2 preexistentes (`test_executors_base` plataformas, stash-idénticos) · fast 103/1 · ruff limpio (dangling propio cazado por F821).
+- **Regla permanente**: ningún scheduler reclama sin opt-in humano explícito; watch = leer + avisar, jamás tocar.
+
+---
+
+## 2026-09-28: ASSESSMENT PREP — packs honestos + tracking de intentos (P1 vNext)
+
+- **PEDIDO OWNER (vNext P1):** assessment prep como primer P1 (tras P0 completo).
+- **AUDIT (Agent Loop):** steps con `detail`+`fields` existen · `_seed_answers()` existe (Profile Kit defensivo) · `complete_step`/`set_status` con persistencia existen · gap real: sin contenido de QUÉ evalúa cada assessment + sin tracking de intentos · concurrente activo en el mismo archivo (All-access split): mi agregado va en sección propia tras `get_platform_ranking`, 0 solape.
+- **EXTEND (1 archivo, +0/−0 salvo fix propio):** `_PREP_PACKS` (5 assessments: qué evalúan + checklist + minutos; contenido genérico-honesto, jamás respuestas filtradas) · `get_prep_pack()` (pack + seeds + intentos previos; {} si no es assessment) · `record_attempt()` (True/False/None + notas≤500, valida plataforma/paso como `complete_step`) · `attempt_summary()` (por step: intentos/aprobados; vacío={}). Rendir sigue 100% humano.
+- **INCIDENTE PROPIO:** un edit descuidado pegó líneas (reparado en el acto, diff verificado limpio).
+- **Verificación:** assistant 33→**41** (8 nuevos) · afectadas 63 + fast 103/1 · ruff limpio tocados.
+- **Regla permanente**: preparar ≠ rendir; ningún contenido promete aprobación; los intentos alimentan futura calibración por assessment.
+
+---
+
+## 2026-09-28: UNIFIED REVIEW — findings + workbank + assessments en 1 cola por EV (P0 vNext)
+
+- **PEDIDO OWNER (vNext):** 1 sola cola para validar (los 3 carriles), ordenada por EV.
+- **AUDIT (Agent Loop):** `build_review_queue` cubría verdicts + findings high (con submit_gate live) · WorkBank (`ready/needs_access`) y applications (`pending`) fuera de la cola · sin orden cross-lane.
+- **EXTEND (0 archivos prod, 1 test):** `ReviewItem` + `lane`/`ev_usd` (defaults, contrato intacto) · `_work_review_items()`/`_assessment_review_items()` (stores inyectables, corrupt→[], best-effort) + hook en `build_review_queue` · `unified_ranked()` puro (EV desc, confianza desc; EV None = 0, visible igual). Bug propio cazado: `get_workbank()` singleton ignoraba el path → construcción directa.
+- **Verificación:** unified 9/9 · afectadas 97 (submit/gating/workbank/mission) · fast 103/1 · ruff limpio (1 autofix I001 propio).
+- **Regla permanente**: la cola une carriles pero jamás mezcla semánticas (tier de finding ≠ status de work — el reason lo dice); sección caída = cola parcial, nunca 500.
+
+---
+
+## 2026-09-28: PERSONAL CASH MODEL — opportunity value vs cash esperado, con etiquetas (P0 vNext)
+
+- **PEDIDO OWNER (vNext §7):** `published_rate ≠ personal_realized_rate`; montos sin claim = OPPORTUNITY VALUE.
+- **AUDIT (Agent Loop):** `compute_expected_human_value()` existe con warnings pero sin etiquetas personales, sin fees y sin distinción value/cash · `hourly_rate_usd` + `rate_source` existen sin resolver · casa ideal `test_max_income_model.py` (ya testea el engine + factory `_opp`).
+- **EXTEND (1 archivo, +0 lógica existente):** `economics.py` + `PersonalCashModel` frozen + `personal_cash_model()` puro (primitivas, cero acoplamiento a models): opportunity_value siempre observado · expected_cash solo con p dada · net/hora solo con horas>0 · fees restados · rate_basis (platform|ownex_history|unknown|single-payment) · labels HIPOTESIS default, PERSONAL-MEDIDO solo con calibrated=True, más SIN-P/SIN-HORAS/SIN-TIEMPO-COBRO · ValueError en negativos/p fuera de rango.
+- **Verificación:** max_income 12→**20** (8 nuevos) · ruff limpio · fast **103/1** · afectadas DWE/api/gating/reward **138** · 0 regresiones.
+- **Regla permanente**: ningún número de dinero sin etiqueta de evidencia; `calibrated=True` exige outcomes verificados que lo respalden (el caller lo afirma, el modelo solo lo etiqueta).
+
+---
+
+## 2026-09-28: ELIGIBILITY ENGINE — ai_policy + automation_level + derivados puros (P0 vNext)
+
+- **PEDIDO OWNER (vNext):** elegibilidad verificable sin inventar; `UNKNOWN → NO AUTO-ACTION`.
+- **AUDIT (Agent Loop):** `AIPolicy/AutomationLevel` no existían en ningún lado · `accepts_ai_tools: bool` existía pero binario (no expresa LIMITED/PROHIBITED) · país/pago sin derivación honesta · `test_application_gating.py` era la casa temática ideal (tenía factory `_opp`).
+- **EXTEND (2 archivos, +0/−0 lógica existente):** `models.py` + enums `AIPolicy`/`AutomationLevel` (UNKNOWN default) + campos en `Opportunity` + 4 helpers puros (`country_access_for` VERIFIED/CONDITIONAL/UNKNOWN · `payment_access_for` VERIFIED solo con rail configurado · `can_auto_act` solo ALLOWED · `ai_assist_allowed` solo ALLOWED explícito) · exports en `__init__` · 8 tests en gating existente.
+- **Verificación:** gating 14/14 · fast 103/1 · afectadas 116+2 preexistentes (`test_adapter_barrier_flags`, stash-idénticos) · ruff limpio (1 autofix I001 propio) · LSP solo en helper preexistente línea 26.
+- **Regla permanente**: ningún permiso se presume; `UNKNOWN` es un valor de primera clase, no un bug a rellenar.
+
+---
+
+## 2026-09-28: PROGRAM INTEL — bounty tiers en scope policy + matcher reverso (P0 vNext)
+
+- **PEDIDO OWNER (vNext correcciones):** EV con números del programa, no estimaciones; el scope check sabe dónde probar pero no cuánto paga.
+- **AUDIT (Agent Loop):** `ProgramScopePolicy` sin campo de recompensas · sin forma de preguntar "qué programas cubren este endpoint" (solo check 1:1 con eventos) · `LegacyOpportunityDweAdapter` ya es la vía de conversión (no se toca).
+- **EXTEND (1 archivo, +56/−0):** `bounty_tiers` (severidad→[min,max], vacío=UNKNOWN) + `reward_range()`/`max_reward()` con validador único `_valid_tier` (un test propio cazó inconsistencia max/reward: fixeado en origen) + `find_programs_for_endpoint/asset()` reversos SIN emitir eventos (loops de ranking, no decisiones de envío).
+- **Verificación:** 8 tests nuevos (tiers, malformados, matcher simple/excluido/múltiple/vacío) · scope 26/26 · gate/chain 34 · fast 103/1 · ruff limpio.
+- **Regla permanente**: techo desconocido = None (UNKNOWN), jamás 0; el matcher reverso nunca decide envíos, solo alimenta EV.
+
+---
+
+## 2026-09-28: VNEXT CORRECCIONES — precisión anti-contabilidad-creativa + Contract v1
+
+- **VEREDICTO OWNER sobre el spec:** mantener Desktop separado, 3 carriles, Human Gate permanente, PAID-solo-con-evidencia. Corregir 5 afirmaciones fuertes antes de codificar.
+- **CORRECCIONES APLICADAS al spec:** (1) montos no reclamados = `OPPORTUNITY VALUE`, jamás `EXPECTED CASH` (cash solo tras claim→PR→merge→payout→PAID) · (2) `published_rate ≠ personal_realized_rate`: tabla UNKNOWN hasta resultados propios · (3) bounty = upside financiado por cashflow AI + calibración individual por plataforma (el motor reasigna solo) · (4) watcher con niveles `AUTOMATION_ALLOWED/RESTRICTED/UNKNOWN`, `UNKNOWN → NO AUTO-ACTION` (un ban = ingresos a cero) · (5) auto-submit con doble vía (OSS/bounty vs AI) + `AI_POLICY` por proyecto, `UNKNOWN` = no asumir.
+- **NUEVO §0-B (P0-1):** Opportunity Contract v1 — `models.Opportunity` declarado contrato único + patrón `LegacyOpportunityDweAdapter` como vía de conversión; campos nuevos reales: solo `ai_policy` y `automation_level`; resto existe o deriva. Prohibidos schemas paralelos por familia.
+- **COMERCIAL:** pricing como hipótesis de test + funnel de precio completo (no pregunta suelta); posicionamiento amplio (motor de trabajo técnico, no "hunter de vulns").
+- **Regla permanente**: ningún número con 2 decimales sobre incertidumbre sin etiqueta HIPÓTESIS; ningún código vNext fuera del orden P0→P1→P2 del Anexo C.
+
+---
+

@@ -1,9 +1,23 @@
+---
+name: ecc-workflow
+description: Úsala ANTES de tocar código en OWNEX/Rastro. Define el workflow obligatorio de 8 pasos (PLAN → INSPECT → IMPLEMENT → TEST → REVIEW → SECURITY → VERIFY → DOCUMENT) y los gates de calidad. Las reglas viven en .ai/ — este skill sólo define el orden operativo. Úsala cuando la tarea sea implementar, refactorizar o corregir algo en cores/, api/, database/, frontend/ o src-tauri/.
+compatibility: opencode
+metadata:
+  audience: developer
+  workflow: required
+---
+
 # ECC Integration Rules — Rastro/OWNEX
 
 > Reglas de integración del workflow ECC adaptado al proyecto Rastro/OWNEX.
 > **`.ai/` sigue siendo la única fuente de verdad** (reglas, protocolos, decisiones).
 > Este archivo NO duplica `.ai/`: define el workflow operativo de la capa ECC y
 > referencia las reglas existentes.
+>
+> Ubicación: antes vivía en `.opencode/rules/ECC-INTEGRATION.md`, que **nunca fue
+> leído por ningún agente** — OpenCode no tiene concepto de `.opencode/rules/`
+> (docs/rules: sólo `AGENTS.md` + `CLAUDE.md` + el glob `instructions` de
+> `opencode.json`). Como skill entra al `skill` tool con matching por descripción.
 
 ## Workflow ECC (obligatorio para cambios)
 
@@ -11,9 +25,14 @@
    `.ai/COMPLETED_FEATURES.json`, `.ai/TASK_QUEUE.md` y `.ai/DECISIONS.md` antes de
    proponer algo. Verificar que la feature no existe ya (Regla de Oro del
    `.ai/AGENT_CHARTER.md`).
-2. **INSPECT** — Buscar implementaciones existentes (twin trees `core/` + `cores/`).
-   Nunca reimplementar: clasificar la tarea como NO EXISTE / PARCIAL / COMPLETA /
-   OBSOLETA (ciclo de verificación del `.ai/AGENT_CHARTER.md`).
+2. **INSPECT** — Buscar implementaciones existentes. **Regla de Oro del
+   `.ai/AGENT_CHARTER.md`**: si ya existe y está bien implementado, NO se escribe
+   código nuevo, NO se refactoriza, NO se reemplaza — sólo se registra la
+   verificación y se pasa a la siguiente tarea. Clasificar la tarea como
+   NO EXISTE / PARCIAL / COMPLETA / OBSOLETA.
+   *Nota: `core/` fue eliminado el 2026-09-14; el árbol canónico es `cores/` sólo.*
+   Usar `graft` (`graft ask`, `graft grep`, `graft callers <sym> --depth 2`)
+   antes que `grep -rn`: devuelve `file:line` exactos y detecta duplicación.
 3. **IMPLEMENT** — Cambios pequeños y atómicos. Respetar:
    - `.ai/PRODUCTION_RULES.md` (no refactorizar por estética, solo extender)
    - `.ai/CODE_QUALITY.md` (PEP-8, ruff, type hints, sin magic values)
@@ -65,8 +84,22 @@
 
 ## Modelos
 
-Los subagentes usan el modelo del proyecto (`anthropic/claude-sonnet-4-5` vía FCC proxy)
-con failover a Ollama local y OmniRoute. No se introducen modelos nuevos.
+Los subagentes **no pinean modelo**: sin `model:` en su frontmatter heredan el
+modelo de la sesión primaria. Razón medida: pinear un id lo deja stale en
+cuanto el config global cambia, y un id inexistente rompe el subagent en
+silencio (fue lo que pasó con `anthropic/claude-sonnet-4-5`, que el config global
+ya tiene en `disabled_providers`). La selección de modelo es un problema de
+configuración global, no del skill.
+
+## Correcciones aplicadas al mover este archivo (2026-09-30)
+
+Este skill afirmaba dos cosas falsas. Se corrigen acá porque el skill es ahora
+la única copia y una afirmación falsa en un SSOT se propaga:
+
+| Afirmación vieja | Realidad | Por qué importa |
+|---|---|---|
+| "twin trees `core/` + `cores/`" | `core/` se eliminó el 2026-09-14; hay un solo árbol `cores/` | Una regla de INSPECT basada en trees inexistentes hace fallar el paso 2 |
+| "usan `anthropic/claude-sonnet-4-5` vía FCC" | config global tiene `anthropic` en `disabled_providers`; el id tampoco existe en el catálogo | Un modelo pineado inexistente rompe el subagent en silencio |
 
 ## No aplicable de ECC (descartado)
 

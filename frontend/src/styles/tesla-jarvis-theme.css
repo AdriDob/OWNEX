@@ -9,7 +9,7 @@
   --bg-hover: #2a2a2a;
 
   /* Accent Colors — Tesla Red/Jarvis Blue */
-  --accent-primary: var(--ownex-accent); /* Tesla Red */
+  --accent-primary: var(--ownex-accent); /* cian — el rojo Tesla se eliminó 2026-08-25 */
   --accent-secondary: #00d4ff; /* Jarvis Blue */
   --accent-tertiary: #00ff88; /* Success Green */
   --accent-warning: var(--ownex-yellow); /* Warning Orange */
@@ -42,7 +42,7 @@
   --glass-blur: 20px;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, var(--accent-primary) 0%, #ff4d6a 100%);
+  --gradient-primary: linear-gradient(135deg, var(--accent-primary) 0%, var(--ownex-danger) 100%);
   --gradient-secondary: linear-gradient(135deg, var(--accent-secondary) 0%, #00aaff 100%);
   --gradient-success: linear-gradient(135deg, var(--accent-tertiary) 0%, #00cc66 100%);
   --gradient-dark: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);

@@ -3,7 +3,11 @@
 ## 🎯 **Secure By Default**
 
 ### **Fundamentos Críticos**
-- **100% Local**: Todo el stack opera localmente, **nada sale del host**
+- **Local-first**: el núcleo (backend, DB, UI, vault, scheduler) opera localmente.
+  **NO** es "nada sale del host": hay integraciones externas por diseño
+  (APIs de bug bounty —HackerOne/Bugcrowd/Intigriti—, gateways de LLM
+  —OmniRoute/FCC/FreeLLMAPI—, GitHub/Kaggle, Ollama Cloud). Todas son
+  credenciales en IdentityVault/env, nunca secretos en el código.
 - **No Account Cloud**: No APIs pagas. Implementar `HTTPS` estándar, `OAuth2`
 - **Auditoría en Cada Paso**: `curl http://localhost:8000/api/health` → `logger.warning("Health check failed")`
 - **Literatura**: Todas las decisiones de seguridad documentadas en DECISIONS.md

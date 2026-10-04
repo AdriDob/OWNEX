@@ -147,7 +147,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             category="finance",
             priority=7,
             config={
-                "data_sources": ["coingecko", "defillama", "coingecko"],
+                "data_sources": ["coingecko", "defillama"],
                 "auto_rebalance": False,
             },
         )

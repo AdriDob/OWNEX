@@ -74,7 +74,7 @@ Rastro (anteriormente CATEYE) es un sistema de inteligencia operativa privada qu
 - RevenuePipeline – finding → evidence → report → platform → payout
 
 ### 2. Offensive Intelligence
-- HTTP Probes – 5 reasoners (IDOR, SSRF, XSS, SQLi, Auth Bypass)
+- HTTP Probes – **13 reasoners** en `cores/offensive/` (IDOR, SSRF, XSS, SQLi, Auth Bypass, BACL, GraphQL, OAuth, Deeplink, Deserialization, Mobile Data, Mobile Transport, Prompt Injection). El doc decía 5 — obsoleto desde 2026-09-28
 - Contradiction Engine – cross-vulnerability analysis
 - Evidence Composer – standardized PoC and metadata
 
@@ -126,12 +126,12 @@ curl http://127.0.0.1:8000/api/health
 
 | Metric | Status | Details |
 |--------|--------|---------|
-| **Version** | `v4.6.0 STABLE` | July 2026 |
-| **Tests** | 1419+ pass | 8 xfailed, 0 new failures |
+| **Version** | `7.7.7` | verificado contra VERSION.txt + pyproject.toml |
+| **Tests** | gate `make test-fast` = **103 pass / 1 skipped** | la suite completa NO tiene conteo confiable (ver `.ai/KNOWN_DEBT.md` #36: 85 rojos post-cierre, mayoría de flujo concurrente) |
 | **Lint** | ✅ Ruff clean | 0 errors |
 | **Pipeline** | ✅ E2E functional | 13 stages |
-| **HTTP Probes** | ✅ 5 types | 56 tests |
-| **Commands** | ✅ 107 registered | 14 categories |
+| **HTTP Probes** | ✅ 13 reasoners | medir con `grep -c . cores/offensive/reasoners/*.py` |
+| **Commands** | conteo obsoleto | medir en runtime, no citar de docs |
 | **Widgets** | ✅ 10 types | drag-and-drop |
 | **Health Center** | ✅ 3 systems | score 0-100 |
 
@@ -174,7 +174,7 @@ curl http://127.0.0.1:8000/api/health
 +------------------------------------------------------------------+
 |                    SECURITY MODEL                                 |
 +------------------------------------------------------------------+
-| 100% local .............. Nothing leaves your machine. No telemetry.|
+| Local-first ............. Núcleo local; hay integraciones externas (APIs de bug bounty, gateways de LLM). NO es "nada sale de la máquina".|
 | AES-256-GCM ............ Credential vault encrypted. Random key.    |
 | CSRF ..................... Double-submit cookie on all mutantes routes. |
 | Rate limiting .......... By identity with IP fallback.             |
@@ -194,8 +194,8 @@ For questions, please refer to the project documentation or repository issues.
 
 <div align="center">
 <sub>
-  <strong>ORION Platform</strong> · Private Intelligence OS · v4.6.0 STABLE<br/>
-  100% local · No cloud · Autonomous<br/>
+  <strong>ORION Platform</strong> · v7.7.7<br/>
+  local-first · núcleo local + integraciones externas opcionales<br/>
   <a href="https://github.com/AdriDob/Rastro">GitHub</a> · 
   <a href=".ai/ROADMAP.md">Roadmap</a> · 
   <a href=".ai/CURRENT_STATE.md">Current State</a> · 
