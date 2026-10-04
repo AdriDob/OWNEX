@@ -58,7 +58,7 @@ compatibilidad apunta al canónico; nunca dos canónicos en paralelo.
 
 | Concepto | Implementaciones actuales (verificadas) | Reemplazo canónico | Acción |
 |---|---|---|---|
-| **Validation** | 4 clases compitiendo en `cores/validation/` (23 ficheros, 6.460 L): `ValidationBridge:58`, `ValidationEngine:50`, `ValidationLoopEngine:23`, `ValidationPlanner:planner.py:420` + `ValidationPromoter:promoter.py:36`, `ValidationOutcome:learning.py:39`, `ValidationResult:models.py:313`, `ValidationEngineResult:engine.py:405` | `ValidationService` (Planner→Executor→Analyzer→Confidence→Verdict) | **MERGE** vía facade |
+| **Validation** | 4 clases compitiendo en `cores/validation/` (23 ficheros, 6.460 L): `ValidationBridge:58` (316 L), `ValidationEngine:50` (460 L), `ValidationLoopEngine:23` (282 L), `ValidationPlanner:planner.py:420` (493 L). **Medido 2026-10-04**: la API usa `ValidationLoopEngine` (6) y `ValidationBridge` (2); `ValidationEngine` y `ValidationPlanner` sólo los consumen sus tests | `ValidationService` (Planner→Executor→Analyzer→Confidence→Verdict) | **BLOQUEADO** — ver §3.2 |
 | **Autonomy / ejecución autónoma** | 6 módulos, 39 ficheros: `autonomous`(2) `autonomy`(12) `autopilot`(13) `execution_queue`(4) `daily_cycle`(3) `loop`(5) | Política de ejecución (`MANUAL`/`ASSISTED`/`AUTO_REVERSIBLE`/`HUMAN_APPROVAL`) sobre `execution_queue` | **MERGE** — autonomía es **política**, no dominio |
 | **"Atacar" / probar un objetivo** | 5 caminos: `offensive/`(50f) `attack/`(2f) `exploit/`(2f) `hunt/`(2f) `validation/`(23f) | **Un ataque es una acción dentro de VALIDATION**, no una entidad de negocio | **MERGE** — `attack`/`exploit`/`hunt` son fases, no dominios |
 | **Evidence** | 3 módulos + 1 dentro de validation: `evidence/`(4f) `evidence_graph/`(3f) `artifacts/`(12f) `validation/evidence_builder.py` | `EvidenceBundle` (`Evidence = hechos`, `Finding = interpretación`) | **MERGE** |
@@ -112,6 +112,45 @@ un test verde. **Por qué NO se arregla acá:** decidir cuál de las dos politic
 gana es una decisión de producto (¿el gate canónico tiene niveles de riesgo? ¿tiene
 los modos?), no una limpieza. Se registra como `KNOWN_DEBT #49`.
 
+### 3.2 MERGE de Validation: bloqueado por migración en curso (2026-10-04)
+
+El merge de las 4 clases se **midió** pero **no se ejecutó**, por una razón
+concreta y verificada:
+
+`cores/validation/` tiene **5 ficheros modificados sin commitear** en este
+momento (231 líneas añadidas) — `confidence.py`, `models.py`, `promoter.py`,
+`economic_scorer.py`, `evidence_builder.py`. Es una migración de
+`ConfidenceScorer.calculate()` para el piloto LAYA:
+
+```
+calculate(results, validation, endpoint_signals, llm_boost=0.0,
+          uncertainty_penalty=0.0, laya_signal=None) -> ConfidenceScore
+```
+
+Su consecuencia medible: **11 tests rojos** en `test_validation_engine.py` y
+`test_validation_bridge.py` (`TypeError: missing 2 required positional
+arguments`), que los tests de la API **no cubren** — `make test-fast` sigue en
+**103/1**.
+
+**Por qué NO se ejecuta el merge ahora:**
+
+| Razón | Consecuencia si se ignora |
+|---|---|
+| `cores/validation/` está en migración activa | el merge colisiona con trabajo sin commitear |
+| Los 11 rojos son de esa migración, no del solapamiento | no puedo distinguir "mi fallo" de "su fallo" ⇒ cualquier diagnóstico es suposición |
+| El otro flujo todavía no actualizó sus tests | un rojo más sería imposible de atribuir |
+
+**Qué hay que hacer antes de intentarlo** (en este orden):
+
+1. El otro flujo commitea su migración LAYA y pone sus 11 tests en verde.
+2. `make test` (no `test-fast`) para tener el conteo real de la suite completa.
+3. Sólo entonces: medir el blast radius de cada clase con
+   `graft callers <symbol> --depth 2` y decidir el orden del merge.
+
+**Regla permanente:** *un merge es correcto cuando los tests del módulo están
+verdes y el módulo no tiene trabajo sin commitear. Mientras haya reds de otro
+cambio en el mismo módulo, tocarlo es trabajar a ciegas.*
+
 ## 4. Lo que **no** es un producto
 
 §6 del megaprompt, aplicado. Ninguno de estos existe como producto separado y
@@ -154,6 +193,7 @@ No verificado — **no** se afirma en ningún sitio de este documento:
 | # | UNKNOWN | Por qué |
 |---|---|---|
 | 1 | Cuántos de los 194 módulos de `cores/` tienen consumidor real | Requiere análisis de dependencia por módulo; `graft callers --depth all` por cada uno |
+| 8 | Por qué `ValidationEngine` y `ValidationPlanner` no tienen consumidor de producción | ¿legado, o API que falta? Afecta si el merge es `REMOVE` o `DEPRECATE`. Medido: sólo sus tests los importan |
 | 2 | Route count real | ~1.850 según `DECISIONS` 2026-09-30, sin re-medir |
 | 3 | Conteo de la suite completa | Sólo medido `make test-fast` = 103/1. El histórico registra 85 rojos post-cierre |
 | 4 | Cuántos de los 44 `--x` sin definir son intencionales | `KNOWN_DEBT #48` — triage var por var |

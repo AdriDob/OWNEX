@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 27 de 36.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 34 de 39.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -124,9 +124,9 @@ El camino al primer PAID quedó **construido, testeado y bloqueado correctamente
 - **Mitigación aplicada:** todas las verificaciones de Fase 2-3 se hicieron contra `/direct-work/workbank` y `/unified-income/*` con el prefijo correcto.
 - **Regla permanente:** antes de afirmar "0" contra la API, confirmar el status code. **404 y 0 no son lo mismo**, y OWNEX tiene routers root-mounted *y* bajo `/api`.
 
-## 30. `omniroute` sigue `activating` y OAR lo reporta `healthy` (2026-09-29) — P2 (ver #27)
+## 30. `omniroute` sigue `activating` y OAR lo reporta `healthy` (2026-09-29) — P2 (ver #27, mecanismo cerrado)
 
-Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene documentado: `systemctl --user is-active omniroute` = `activating` hace días, mientras `/oar/doctor` lo lista en `providers.healthy` con `latency_ms: 0.0`. El self-diagnostic afirma salud que no puede comprobar.
+Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene documentado: `systemctl --user is-active omniroute` = `activating` hace días. **Actualización 2026-10-04:** el mecanismo que lo reportaba `healthy` con `latency_ms: 0.0` ya fue corregido (ver #27 cerrado) — hoy se reporta `UNKNOWN`, no verde. **Lo que sigue abierto es sólo que el servicio systemd no levanta.**
 
 ## 24. `/api/trading/dashboard/summary` — el test daba confianza falsa (2026-09-28) — P3, decidido
 
@@ -154,7 +154,7 @@ Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene do
 - **Bono colateral de la misma sesión:** el failover de OAR era **código muerto para todo error HTTP** (`adapters.py` devolvía en vez de lanzar ⇒ `record_success` ⇒ circuit breaker nunca abría ⇒ el mapa 429 de `resilience.py:87` inalcanzable). Arreglado: `finish_reason == "error"` ahora es fallo y hace `continue` al siguiente provider. Sin ese fix, activarle 4 providers free no habría protegido nada.
 - **Regla permanente:** *un health check que no exige contacto real no es un health check, es un eco.* Y *`latency == 0` con `success_count == 0` significa "nunca se preguntó", que es `UNKNOWN` — no `HEALTHY`.*
 
-## 30. `omniroute` sigue `activating` y OAR lo reporta `healthy` (2026-09-29) — P2 (ver #27)
+## 25. `trading-lab/*` = 8 funciones muertas en `ownexData.ts` (2026-09-28) — P3, PENDIENTE
 
 - **Evidencia:** 8 funciones llaman `/trading-lab/*` (7 llamadas) y el backend tiene **0 rutas** `trading-lab` (verificado sobre `app.routes` runtime) → cada llamada es un 404 garantizado.
 - **Pero 0 impacto visible:** las 8 funciones tienen **0 referencias fuera de `ownexData.ts`** (ni `.vue` ni `.ts`) → ninguna pantalla las renderiza, ningún usuario ve el 404. Baja de P1 a **P3**.
@@ -352,83 +352,26 @@ distinta no son duplicado, son un landmine.* Y *un enum que nadie consulta
 no es la SSOT aunque esté definido* — el hardcode paralelo en el router es la
 prueba de que no lo es.
 
-## 48. 44 variables CSS referenciadas y nunca definidas (2026-10-04) — P2, triage requerido
+## 48. ✅ CERRADO 2026-10-04 — 44 variables CSS sin definir (P2)
 
-**Medido, no supuesto:** 265 tokens CSS definidos en los 7 `.css` de
-`frontend/src`; **44** `var(--x)` referenciadas sin definición en ninguno.
+**Resuelto en paralelo por otro flujo** con una migración de 132 líneas en
+`frontend/src/design/tokens.css` (tokens component-scoped + `--cycle-*`).
 
-**No son 44 bugs.** Un subconjunto es intencional: variables que el padre inyecta
-por inline style (`--badge-color` en `OwnexBadge.vue`/`RequirementBadge.vue`,
-`--mode-color` en `*ModeSelector.vue`, `--confidence-color`). El resto necesita
-triage var por var antes de tocar nada.
+**Medido hoy tras la migración:** 310 tokens definidos, 183 usados,
+**0 referenciadas sin definir**. Los 44 casos se repartían entre los que el padre
+inyecta por inline style (`--badge-color`, `--mode-color`, `--confidence-color`
+— ahora con default en el token) y los que faltaban de verdad (`--ownex-bg-elevated`,
+`--ownex-border`, `--ownex-primary`, los `--cycle-*`).
 
-**Las que no tienen explicación y son cross-component** (medidas):
-`--ownex-bg-elevated` (BarChart, DoughnutChart, EmptyState,
-EnhancedPersonalizationWizard + `tesla-jarvis-theme.css:7-8` +
-`accessibility.css:22`), `--ownex-border` (BarChart, DoughnutChart, ErrorState,
-LineChart), `--ownex-primary` / `--ownex-fg` / `--ownex-muted` / `--ownex-red`
-(4 componentes `TradingLab*`), `--cycle-atlas|forge|pulse|security|vault`
-(KnowledgeFeed), `--text-{xs,sm,base,lg,xl}` + `--shadow-1` + `--border-*`
-(AgentFleet, KnowledgeFeed).
+**El número "43" del audit frontend 2026-09-30 y el "44" que medí son el mismo
+fenómeno con distinto criterio de conteo.** La cifra real dependía de si se
+contaban los `var(--x)` con default inline.
 
-**Contexto:** el audit frontend 2026-09-30 (§H) reportó "43 CSS vars sin definir".
-La cifra real medida hoy es **44** — o el conteo difiere por criterio, o quedó
-uno nuevo. **UNKNOWN** hasta triage.
-
-**Por qué NO se arregla acá:** definir 44 vars a ciegas es inventar una paleta.
-Cada una necesita saber si debería existir, y si su valor debe derivar de un
-token existente.
-
-**Regla permanente:** *`var(--x)` sin definición no es un error de sintaxis — es
-un valor que vuelve a ser `unset` en cascada y el elemento se ve pero no se
-estiliza.* Ningún guard mide esto hoy.
-
-## 47. `accessibility.css` NO importado: `.skip-nav` y el modo alto contraste están muertos (2026-10-04) — P1 accesibilidad
-
-**Descubiertotrying no al implementar:** el audit de paletapleasant `#FF4D6A` en
-`frontend/src/styles/tesla-jarvis-theme.css:45` (rojo vivo en un stylesheet
-importado globalmente en `main.ts:9`) y Behandlung de "0 importadores = fichero
-muerto" como hipótesis. **La hipótesis era falsa y medirla evitó un borrado
-destructivo.**
-
-**Evidencia:**
-- `frontend/src/styles/accessibility.css` tiene **0 importadores** (grep en todo
-  el repo: sólo lo mencionan este archivo histórico y el propio test).
-- Define `.skip-nav`, y `.skip-nav` **se usa en 1 `.vue`** (`AgentFleet.vue`) —
-  no es clase de Tailwind, así que ese fichero es su único proveedor.
-- También define `.skip-to-content`, `.text-high-contrast`, `.card-interactive`
-  y `forced-colors` (modo alto contraste de Windows) — 0 usos, pero es
-  functionality de a11y deliberadamente escrita.
-- Tailwind 4 **sí** cubre `sr-only` (usado en 2 `.vue`), así que ese no depende
-  de este fichero.
-
-**Conclusión:** el fichero no está muerto, está **no importado**. El efecto es
-peor que código muerto: `.skip-nav` se renderiza sin estilo y el modo alto
-contraste / `forced-colors` nunca se aplican.
-
-**Por qué NO se arregla acá:** importarlo activa UI visible y trae 4 hex fuera
-del SSOT (`#44FF44 #4D8FFF #60A5FA #80B3FF`) que hay que migrar a
-`var(--ownex-*)` primero, más `focus-visible` que puede pisar el
-`focus-glow` de `style.css:312`. Es decisión de producto con consecuencia
-visual, no un guard.
-
-**Regla permanente:** *0 importadores no prueba "muerto" — prueba "no
-importado". Antes de borrar un stylesheet, grep de sus clases en los `.vue`:
-si un selector se usa y su único proveedor es el fichero, el bug es el import
-faltante, no el fichero sobrante.*
-
-## 46. Mercor y Mindrift retirados; las "data-entry sin barrera" no tienen bolsa (2026-10-01)
-
-**Criterio del owner, corregido:** *"assessment sirve pero NO interview"* + sin experiencia profesional. Es más estricto que el que asumía el catálogo (`requires_interview=False` no distingue una **AI interview** de un test).
-
-- **Mercor RETIRADA** (decisión del owner). Tres razones, medidas:① entrada = *"AI interview + technical screening"* (es un interview); ② pago **por proyecto**, no ingreso por hora estable (`payout_cadence_days=30`, tag `slow_match`); ③ rail = **Stripe, que no cubre Argentina**. El adapter (`direct_work_ai_eval.py`) queda en el archivo pero **fuera del registro** — una línea lo reactiva.
-- **Mercor corregido en mis propias cifras:** dije "97 roles $100-200/h filtrados para AR". **Era falso.** Medido: **61 roles**, rango **$16–$200/h**, **mediana $60/h**. Los 97 eran *tech+priced* **antes** del filtro geográfico (20 restringidos a USA). El catálogo decía "$25-53/h skilled"; el real es $16-200.
-- **Mindrift All-access ya NO es `ZERO_BARRIER`.** Verificado en mindrift.ai: la respuesta oficial a *"¿qué requisitos?"* es **"Domain expertise in your field"** y **"70% of our contributors hold a Master's degree or PhD"**. La fila decía *"no degree, no CV, no interview"* — era incorrecto. Ahora `CREDENTIALS` ⇒ `BLOCKED`.
-- **Las 4 data-entry "sin barrera" no tienen bolsa pública** (verificado 2026-10-01): **Hive** = B2B enterprise (su `/jobs` es marketing: *"Hive | Enterprise AI Solutions"*); **Dataloop** = `/jobs` y `/annotators` dan 404, sin `/signup`; **SuperAnnotate** tiene signup abierto (200) pero sin listado público de tareas con rate (precio por proyecto); **Kili** — el dominio del catálogo (`kili-technology.com`) responde 200 con portal de contributors, pero **`www.kilitechnology.com` está en venta (GoDaddy)**. Descripciones corregidas con la evidencia.
-- **Drivendata / Zindi / Numerai NO se agregaron** (pedido del owner): Drivendata responde `/lander` (parking, 114 B); Zindi es SPA y su `__INITIAL_STATE__` es del panel de usuario, no del listado público (`/api/competitions` devuelve **HTML**, no JSON); Numerai es un portal de staking, no un listado de任務.
-- **Hallazgo colateral que NO toqué:** el adapter `kaggle` figura `LIVE` en el audit pero **devuelve 0** — `kaggle.com/competitions` es SPA sin datos en el HTML (5.5 KB) y su API pide auth (**401**). Es el mismo patrón de mentira que vengo eliminando. Queda para una sesión dedicada.
-- **Estado:** 7 adapters (`bugbounty`, `intigriti`, `kaggle`, `github_bounty`, `algora`, `bountyboard`, `polar`), **142 ACTIVE** sin experiencia/entrevista.
-- **Regla permanente:** *`LIVE` es una afirmación que hay que poder probar.* Un adapter que devuelve 0 no es "live": es un canal muerto con etiqueta verde. Y un rótulo de barrera (`ZERO_BARRIER`) vale lo que vale la página de la plataforma, no lo que diga la fila.
+**Guard:** ninguno específico (no hay medición de vars colgantes en la suite), pero
+`test_no_arbitrary_hex_in_vue_components` falla si un `.vue` reintroduce un hex
+fuera del SSOT, y `test_no_red_in_any_live_stylesheet` cubre cualquier
+stylesheet. **Deuda de tooling, no de CSS**: falta el guard que cuente
+`var(--x)` usadas contra las definidas.
 
 ## 50. FASE 0 — consolidación: 4.166 líneas muertas borradas, 3 bugs de producción destapados (2026-10-04)
 
@@ -452,3 +395,140 @@ faltante, no el fichero sobrante.*
 - `cores/scheduler/jobs/bug_bounty.py` — `register_bb_jobs()` existe y nadie lo llama. Depende de `LifeScheduler` (uno de los 8 schedulers, no el canónico `CoreScheduler`). Conectarlo exigiría decidir cuál scheduler es real.
 
 **Regla permanente:** *un paquete que promete módulos que nunca se commitearon es peor que uno sin módulos* — deja el árbol inimportable y esconde el código que sí existe.
+
+## 51. FASE 1 — 7 `VulnType` declarados sin generador, y 3 sin precio (2026-10-04) — P0 revenue, CERRADO
+
+**El hallazgo de revenue de la sesión de los 10 posts, verificado leyendo (no por
+el post).**
+
+`cores/validation/models.py:29-50` declara **21** clases de vulnerabilidad.
+`cores/offensive/reasoners/` tenía **13 archivos**. La diferencia son 7 clases que
+el sistema **declaraba支持 y no generaba jamás**:
+
+| VulnType | Tenía precio (`VULN_PAYOUT_MULTIPLIER`) | Tenía acceptance (`BASE_ACCEPTANCE`) | EV medido |
+|---|---|---|---|
+| `csrf` | 0.6 | 0.35 | 0.21 |
+| `lfi` | 1.2 | 0.50 | 0.60 |
+| `cmdi` | **2.0** | 0.60 | **1.20** ← mayor EV |
+| `race_condition` | 1.0 | **faltaba** | — |
+| `cors` | 0.5 | **faltaba** | — |
+| `open_redirect` | 0.3 | **faltaba** | — |
+| `generic` | 0.5 | 0.30 | 0.15 |
+
+**Por qué era dinero, no cosmética:** `race_condition`, `cors` y `open_redirect`
+tenían multiplier pero **ningún precio de aceptación** ⇒ `BASE_ACCEPTANCE.get(v,
+0.3)` caía al default ⇒ **no participaban en el ranking económico**. El sistema
+tenía 3 clases que no sabía cuánto pagaban.
+
+**✅ CERRADO 2026-10-04.** 6 reasoners nuevos (`cmdi`, `lfi`, `race_condition`,
+`cors`, `csrf`, `open_redirect`) + `generic` implementado como detector real de
+anomalías (no bucket vacío). `BASE_ACCEPTANCE` y `VALIDATION_EFFORT_MINUTES`
+completos para los 3 que faltaban. **21/21 `VulnType` con generador y con
+precio.**
+
+**`generic` NO se borró aunque parecía código muerto:** es el fallback de **8
+módulos** (`planner.py:373`, `curiosity.py:178`, `attack_planner.py:74`,
+`probe/engine.py:699`, `contradiction.py:247`, `challenger.py:381`). Borrarlo
+hubiera roto 8 call sites. Se implementó como detector de anomalías real
+(parámetros sospechosos, headers de seguridad faltantes, stack traces en la
+respuesta, path traversal, endpoints admin/debug).
+
+**Regla permanente:** *un enum que declara 21 miembros no es una capability: es
+una promesa. La capability es la razón que produce una hipótesis para cada
+miembro.* Y *si algo tiene multiplier pero no acceptance, no está en el ranking
+— está decorado.*
+
+## 52. El failover de OAR era código muerto para todo error HTTP (2026-10-04) — P0, CERRADO
+
+**Cadena medida leyendo (no opinando):**
+```
+adapters.py:359-369   non-200 → return AIResponse(finish_reason="error")   ← NO lanza
+__init__.py:286       await provider.chat(...)                             ← no hay excepción
+__init__.py:289-291   → record_success(provider_id)                        ← circuit nunca abre
+resilience.py:87      429: ("quota_exceeded", CIRCUIT)                     ← inalcanzable
+```
+El adapter **devolvía** en vez de lanzar ⇒ el runtime veía éxito ⇒
+`record_success` ⇒ `failover.py:57` **nunca abría el circuito**. Y
+`__init__.py:321` clasificaba el error **sin `status_code`** y **descartaba** el
+`RetryPolicy` calculado. El mapa 429 era código muerto.
+
+**Consecuencia económica:** el free tier de Groq (30 rpm) **no tenía salida**.
+"2 providers + fallback en 429" era imposible de aplicar — y los free tiers son
+exactamente los que dan 429.
+
+**✅ CERRADO 2026-10-04.** `finish_reason == "error"` se trata como fallo:
+`record_failure(provider_id, ProviderError(...))` + `continue` al siguiente
+provider. El adapter **no** se cambió a lanzar (rompería el contrato público de
+`chat()`). Sólo después de este fix se activaron `groq`, `cerebras`, `together`,
+`deepinfra` — que tenían factory escrita desde antes (`adapters.py:497,563,517,540`)
+pero no estaban en `enabled_providers`.
+
+**Regla permanente:** *un failover que nunca se ejecutó no es un failover: es un
+`try/except` decorativo.* Y *un adapter que traga sus errores y los devuelve como
+respuesta successfully-shape hace el circuit breaker inalcanzable para toda la
+clase de errores HTTP* —incluida la que más importa en free tiers.
+
+## 53. `/api/system/tools` no existía: la pestaña "Herramientas" mentía (2026-10-04) — P2, CERRADO
+
+`frontend/src/stores/settings.ts:479` llama `GET /system/tools`. Ese endpoint
+**no existía** en `api/routers/system.py` ⇒ 404 ⇒ **Settings → Herramientas
+mostraba las 10 herramientas como no instaladas, siempre**. El endpoint correcto
+ya existía y estaba cableado en otro sitio (`/api/stability/tools`,
+`stability.py:48`, → `ecosystem.inventory()`).
+
+**✅ CERRADO 2026-10-04.** Un endpoint nuevo en `api/routers/system.py` que
+reutiliza `get_tool_ecosystem().inventory()` (20 tools, sin lógica duplicada).
+Devuelve 401 sin credencial (= existe, requiere auth) en vez de 404 (= no existe).
+
+**Corolario del mismo carril:** `/oar/doctor` sigue con **0 consumidores en el
+frontend** — el fetch existe (`ownexData.ts:1598` guarda en `AiCenterState.oar`)
+pero **ningún componente lee `ai.oar`**. El dato se descarga y se descarta. Queda
+abierto: es cableado de UI, no bug de backend.
+
+## 54. FASE 0 — data layer unificado: 63 `fetch()` crudos migrados al cliente `api` (2026-10-04)
+
+**Por qué no era limpieza cosmética:** `fetch()` crudo **no manda `Authorization`** ni resuelve el puerto del sidecar. Al cerrar el P0 de auth (139 rutas root-mounted ahora exigiendo sesión), cada uno de esos call sites pasó a devolver **401**. El frontend tenía dos capas de datos compitiendo y 71 llamadas crudas por fuera de las dos.
+
+- **Migrados 63 de 71** al cliente `api` (`frontend/src/lib/api.ts`), que ya centraliza token, resolución de puerto (Tauri), `resolveApiUrl` para root-mounted, refresh de backend y 401 con logout de sesión.
+- **8 quedan, y cada uno con razón** (no son deuda):
+  · `ReportDetail.vue` + `stores/report.ts` — downloads **blob** (export PDF); el cliente devuelve JSON.
+  · `ComputerUse.vue` — mismo puerto pero con `apiBase` propio y flujo de Computer Use.
+  · `useThemeEngine.ts` — assets estáticos (`/assets/branding/themes/*.json`), sin auth por diseño.
+  · `useOwnVoice.ts` — TTS con su propio manejo de audio y token.
+  · `moneyprinter.ts` — **servicio externo** (`MPT_BASE_URL`), no es nuestro backend.
+- **Bug encontrado por el build, invisible para tsc y los tests:** la migración dejó un `})` huérfano en `AlertPopup.vue` ⇒ `Missing catch or finally clause`. `vue-tsc --noEmit` dio 0 y los 191 tests pasaron; lo cazó `vite build`. Por eso el build es gate, no un extra.
+- **También en FASE 0:** `withGlobalTauri: false` (los 3 comandos IPC ya no son alcanzables desde cualquier JS de la página), 3 deps muertas fuera (`@supabase/supabase-js`, `class-variance-authority`, `xterm` v5 — se usa `@xterm/xterm`), y `frontend/tauri.config.json` (v1 obsoleto, schema de Tauri v2, 0 referencias) borrado.
+
+**Verificación:** backend `test-fast` 103/1 · frontend 191/191 · `vue-tsc` 0 · `vite build` 12.1s · `import api.main` OK.
+
+**Regla permanente:** *dos capas de datos compitiendo no es arquitectura, es dos verdades sobre si el usuario está autenticado.* Y: *el gate que atrapa un error de sintaxis es el que compila, no el que chequea tipos* — `vue-tsc` dio 0 con un bloque `try` sin `catch`.
+
+## 55. El MERGE de `cores/validation/` está BLOQUEADO por migración en curso (2026-10-04) — proceso
+
+**El solapamiento sí está medido** (`docs/PRODUCT_MAP.md` §3.2): 4 clases
+compitiendo — `ValidationBridge` (316 L), `ValidationEngine` (460 L),
+`ValidationLoopEngine` (282 L), `ValidationPlanner` (493 L). La API usa
+`LoopEngine` (6) y `Bridge` (2); las otras dos sólo las consumen sus tests.
+
+**El merge NO se ejecuta ahora** porque `cores/validation/` tiene **5 ficheros
+modificados sin commitear** (231 líneas): migración de
+`ConfidenceScorer.calculate()` para el piloto LAYA. Su consecuencia medible:
+**11 tests rojos** en `test_validation_engine.py` + `test_validation_bridge.py`,
+que `make test-fast` **no cubre** (sigue 103/1).
+
+**Por qué importa el Procedimiento:** con 11 rojos de otro cambio en el mismo
+módulo, un rojo más sería **imposible de atribuir**. El dato no es "el módulo
+está roto" — es "no sé qué parte del módulo está rota y por quién".
+
+**Orden requerido antes de intentar el merge:**
+1. El otro flujo commitea la migración LAYA y sus 11 tests vuelven a verde.
+2. `make test` (no `test-fast`) para el conteo real de la suite completa.
+3. `graft callers <symbol> --depth 2` por clase, para decidir `REMOVE` vs
+   `DEPRECATE` de `ValidationEngine` y `ValidationPlanner`.
+
+**Regla permanente:** *un merge es correcto cuando los tests del módulo están
+verdes y el módulo no tiene trabajo sin commitear. Mientras haya reds de otro
+cambio en el mismo módulo, tocarlo es trabajar a ciegas.* Y corolario:
+*`test-fast` verde no es evidencia de que el módulo esté sano — es evidencia de
+que el gate no lo cubre.*
+
