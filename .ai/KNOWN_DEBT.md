@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 52 de 45.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 53 de 46.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1212,3 +1212,58 @@ tenerla porque promete un rendimiento que no llega.
 >
 > Y al revés: *si una key no aparece en el panel, el owner no puede
 > activarla. El registro es la única superficie.*
+
+## 60. Helius no hace falta: el RPC público alcanza (2026-10-05) — CORRIGE la recomendación de #57
+
+> Owner: *"Nada de pago por favor"*
+
+### El error
+
+En `d3d2bbab` recomendé poner `HELIUS_API_KEY` "para evitar 429". Eso fue
+**alarmismo sin medir**. Medido ahora, con el sistema real:
+
+### Lo que el RPC público gratuito realmente aguanta
+
+`api.mainnet-beta.solana.com` declara en sus headers:
+
+```
+x-ratelimit-tier: free
+x-ratelimit-rps-limit: 250
+x-ratelimit-method-limit: 150
+x-ratelimit-conn-limit: 40
+```
+
+Medición real desde esta máquina:
+
+| Escenario | Resultado |
+|---|---|
+| 30 requests **secuenciales** (sin pausa) | **30 OK, 0 errores**, 221 ms/req |
+| **10 hilos × 20 requests** (concurrente) | **160 de 200 → HTTP 429** |
+
+> El límite de 250 RPS es **nominal**: el límite efectivo con concurrencia es
+> de ~10-20 RPS. El `tier: free` existe, funciona, y **no lo vamos a pagar**.
+
+### El razonamiento que estaba mal
+
+Un swap son **~3 llamadas RPC** (`quote` → `build_swap_tx` → `sendTransaction`),
+más las lecturas de saldo/balance. El ciclo de trading actual corre cada
+3-7 minutos. Eso es del orden de **decenas de requests por hora**: muy por
+debajo de incluso el límite efectivo. La preocupación era infundada.
+
+### Conclusión operativa
+
+- **No poner `HELIUS_API_KEY`.** El sistema funciona con el RPC público.
+- El riesgo real no es el 429 por volumen: es la **concurrencia**
+  (radares + validación simultáneos). Si aparece un 429, la mitigación
+  correcta es **reintento con backoff y serializar**, no pagar.
+- `publicnode.com` (también gratuito, keyless) respondió **354 ms vs 1002 ms
+  del oficial** — 3× más rápido, mismo tier free. Candidato a fallback.
+
+**Pendiente si algún día molesta el 429:** cliente RPC con backoff
+exponencial y cola de una request a la vez. **No un provider pago.**
+
+### Regla permanente
+
+> *No pedirle al owner que pague por algo que el tier gratuito cubre con
+> margen de sobra.* Medir el límite real antes de pedir una key — la
+>新月 documentación del provider y el límite nominal no son el límite real.
