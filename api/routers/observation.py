@@ -7,8 +7,39 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import APIRouter
+
+
+def _db_path() -> Path:
+    r"""Ruta real de la base, tal como la resuelve el motor de la app.
+
+    Antes cada endpoint hacía `os.path.expanduser("~/.ownex/database/cateye.db")`:
+
+    - rompía en Windows instalado (la app usa %LOCALAPPDATA%\OWNEX);
+    - ignoraba OWNEX_DATA_DIR, que el resto del sistema sí respeta;
+    - apuntaba a `cateye.db`, una base huérfana sin escribirse desde el
+      2026-08-25 — el router reportaba sobre datos que ya no existían.
+
+    Ahora se deriva de `database.db.DATABASE_URL`: donde el motor realmente abre
+    la base. Una sola fuente de verdad, sin una segunda resolución que pueda
+    divergir.
+    """
+    from database.db import DATABASE_URL
+
+    if not DATABASE_URL.startswith("sqlite"):
+        raise RuntimeError(f"observation requiere SQLite, no {DATABASE_URL.split(':', 1)[0]}")
+    return Path(DATABASE_URL.removeprefix("sqlite:///"))
+
+
+def _data_dir() -> Path:
+    return _db_path().parent.parent
+
+
+def _backup_dir() -> Path:
+    return _data_dir() / "backups"
+
 
 router = APIRouter(prefix="/api/observation", tags=["observation"])
 
@@ -32,9 +63,9 @@ async def get_health():
         with SessionLocal() as db:
             db.execute(text("SELECT 1"))
             db_ok = True
-            db_path = os.path.expanduser("~/.ownex/database/cateye.db")
-            if os.path.exists(db_path):
-                db_size = os.path.getsize(db_path) / 1024 / 1024
+            db_path = _db_path()
+            if db_path.exists():
+                db_size = db_path.stat().st_size / 1024 / 1024
     except Exception:
         pass
 
@@ -111,8 +142,8 @@ async def get_recovery_status():
 @router.get("/backup")
 async def get_backup_status():
     """Get backup status."""
-    db_path = os.path.expanduser("~/.ownex/database/cateye.db")
-    backup_path = os.path.expanduser("~/.ownex/backups")
+    db_path = _db_path()
+    backup_path = _backup_dir()
 
     has_backup = os.path.exists(backup_path)
     backup_count = 0
@@ -123,8 +154,8 @@ async def get_backup_status():
             backup_count = len([f for f in os.listdir(backup_path) if f.endswith(".db")])
 
     return {
-        "database_path": db_path,
-        "backup_path": backup_path,
+        "database_path": str(db_path),
+        "backup_path": str(backup_path),
         "has_backups": has_backup,
         "backup_count": backup_count,
         "auto_backup": True,
@@ -136,10 +167,9 @@ async def get_backup_status():
 async def create_backup():
     """Create a database backup."""
     import shutil
-    from pathlib import Path
 
-    db_path = Path(os.path.expanduser("~/.ownex/database/cateye.db"))
-    backup_dir = Path(os.path.expanduser("~/.ownex/backups"))
+    db_path = _db_path()
+    backup_dir = _backup_dir()
     backup_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
