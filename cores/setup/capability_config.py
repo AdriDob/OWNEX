@@ -35,7 +35,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Literal
 
 Impact = Literal["bloqueada", "degradada", "ninguno"]
@@ -314,3 +314,135 @@ def snapshot(env: Mapping[str, str] | None = None) -> dict[str, object]:
         },
         "note": "sólo presencia de variables, nunca valores",
     }
+
+
+# ── Techo de resultados por fuente ─────────────────────────────────────────
+#
+# Los adapters truncan en duro: `bounties[:20]`, `projects[:30]`,
+# `job_cards[:15]`. Eso descarta oportunidades que la API YA devolvió, así que
+# el techo —no la red— es lo que limita el sistema. En un sistema pensado para
+# correr meses, el límite tiene que ser visible y ajustable, no un literal.
+#
+# Se lee en cada fetch (no al importar) para que cambiarlo surta efecto sin
+# reiniciar el backend.
+DEFAULT_MAX_PER_SOURCE = 200
+_ENV_MAX = "OWNEX_MAX_PER_SOURCE"
+
+
+def max_per_source() -> int:
+    """Máximo de oportunidades que devuelve un adapter por consulta."""
+    raw = os.environ.get(_ENV_MAX, "")
+    if raw.strip().isdigit() and int(raw) > 0:
+        return int(raw)
+    return DEFAULT_MAX_PER_SOURCE
+
+
+# ── Dónde conseguir cada llave, con el enlace exacto ────────────────────────
+#
+# La primera versión decía `where="Variables de entorno"` en las 14 entradas: un
+# texto que no dice nada accionable. Cada valor es una instrucción ejecutable.
+KEY_SOURCES: dict[str, str] = {
+    "GITHUB_TOKEN": (
+        "https://github.com/settings/tokens/new?scopes=repo&description=OWNEX\n"
+        "1. GitHub > Settings (arriba a la derecha) > Developer settings\n"
+        "2. Personal access tokens > Fine-grained tokens > Generate new token\n"
+        "3. Resource owner: tu cuenta. Repository access: solo los repos que toques.\n"
+        "4. Permissions > Repository permissions > Contents: Read and write.\n"
+        "5. Generate y copia el token (ghp_...). Solo se muestra una vez."
+    ),
+    "SOLANA_PRIVATE_KEY": (
+        "No se pide en ninguna web: es la clave de tu wallet. RIESGO: una wallet "
+        "con fondos reales puede perderlos. Usa una wallet de pruebas con 0 SOL. "
+        "Si nunca vas a operar, puede quedar vacio."
+    ),
+    "HELIUS_API_KEY": (
+        "https://www.helius.dev/ > Get Started > genera una API key. El plan "
+        "gratuito basta para el RPC publico (OWNEX lo detecta solo)."
+    ),
+    "ANTHROPIC_API_KEY": (
+        "https://console.anthropic.com/settings/keys > Create Key. Requiere "
+        "facturacion. Opcional: sin ella el sistema usa la cadena local."
+    ),
+    "GROQ_API_KEY": "https://console.groq.com/keys > Create API Key. Free tier generoso.",
+    "NVIDIA_API_KEY": "https://build.nvidia.com/ > Get API Key.",
+    "TOGETHER_API_KEY": "https://api.together.xyz/settings/api-keys > Create API Key.",
+    "DEEPINFRA_API_KEY": "https://deepinfra.com/dash/api_keys > crear clave.",
+    "OLLAMA_CLOUD_API_KEY": "https://ollama.com/settings/keys > generar clave.",
+    "HUNTER_API_KEY": "https://hunter.io/api_keys > crear clave.",
+    "SECURITYTRAILS_API_KEY": "https://securitytrails.com/account/api-keys > copiar clave.",
+    "HIBP_API_KEY": (
+        "https://haveibeenpwned.com/API/Key > requiere suscripcion de pago. "
+        "Opcional: sin clave usa el endpoint publico."
+    ),
+    "BUILDWITH_API_KEY": "https://app.buildwith.com/api > copiar API key.",
+    "HTTP_PROXY": (
+        "No se compra. Si tu red bloquea escaneos, configura un proxy y expon "
+        "HTTP_PROXY (ej. http://127.0.0.1:8080). Sin proxy se escanea desde tu "
+        "IP real, que es lo que la plataforma puede ver."
+    ),
+    "TRADING_MODE": (
+        "No es una llave: pon dry_run para operar sin dinero real. Es el valor mas "
+        "importante de esta lista: leelo antes de activarlo."
+    ),
+    "OWNEX_APPROVAL_KEY": (
+        "No se pide: lo genera OWNEX la primera vez que apruebes una accion. Solo "
+        "rellenalo si ya lo copiaste de ~/.ownex/."
+    ),
+    "OWNEX_MAX_PER_SOURCE": (
+        "No se compra: es un numero. Quantas oportunidades acepta un adapter por "
+        f"consulta. Default {DEFAULT_MAX_PER_SOURCE}. Si lo subis, OWNEX "
+        "recorre mas trabajo por ciclo y usa mas memoria."
+    ),
+}
+
+
+def where_to_get(env: str) -> str:
+    """Instruccion accionable para conseguir `env`. Nunca devuelve vacio."""
+    return KEY_SOURCES.get(env, f"Busca {env} en la documentacion de la plataforma que integra.")
+
+
+@dataclass
+class CheckResult:
+    """`usable` no es `present`: una clave puesta con un valor de ejemplo NO es
+    usable, y el panel necesita poder decirlo en vez de pintar un check verde."""
+
+    env: str
+    present: bool
+    usable: bool
+    detail: str
+    where: str
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+
+_PLACEHOLDERS = frozenset({"changeme", "none", "null", "your_key_here", "todo", "xxx", "<key>"})
+
+
+def check_env(env: str) -> CheckResult:
+    """Comprueba si una variable esta puesta y si parece utilizable."""
+    where = where_to_get(env)
+    raw = os.environ.get(env, "")
+    if not raw.strip():
+        return CheckResult(env, False, False, "No esta configurada.", where)
+    if raw.strip().lower() in _PLACEHOLDERS:
+        return CheckResult(env, True, False, "Tiene un valor de ejemplo, no una llave real.", where)
+    if env == "GITHUB_TOKEN" and not raw.startswith(("ghp_", "github_pat_")):
+        return CheckResult(env, True, False, "No tiene el formato de un token de GitHub.", where)
+    if env == "TRADING_MODE" and raw.lower() not in {"dry_run", "paper", "live"}:
+        return CheckResult(env, True, False, "Valor no reconocido (usa dry_run, paper o live).", where)
+    if env == "SOLANA_PRIVATE_KEY" and len(raw) < 32:
+        return CheckResult(env, True, False, "Demasiado corta para ser una clave de wallet.", where)
+    if env == _ENV_MAX and not raw.strip().isdigit():
+        return CheckResult(env, True, False, "Tiene que ser un numero entero positivo.", where)
+    return CheckResult(env, True, True, "Configurada.", where)
+
+
+def check_all() -> list[CheckResult]:
+    """Verifica cada variable de todas las capacidades, sin duplicados."""
+    seen: dict[str, CheckResult] = {}
+    for cap in CAPABILITIES:
+        for req in cap.requirements:
+            if req.env not in seen:
+                seen[req.env] = check_env(req.env)
+    return list(seen.values())
