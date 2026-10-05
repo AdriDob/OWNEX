@@ -608,3 +608,97 @@ que el gate no lo cubre.*
 - **1 dependencia** (`codemirror` + 5 paquetes `@codemirror/lang-*`): dentro del presupuesto de "1 dep por feature".
 - **6 guards** (`CodeEditor.test.ts`): monta de verdad, refleja cambios externos (abrir otro archivo sin perder texto), números de línea presentes, `readOnly` respetado, y un nombre de archivo desconocido no rompe.
 - **Verificación:** 208/208 (202 previos + 6) · `vue-tsc` 0 · `vite build` 13.0s · chunk WorkRoom 744K → 388K · `test-fast` 103/1.
+
+## 57. FASE 1 — `DiffViewer`: ver qué cambió antes de aprobar el envío (2026-10-05)
+
+**Por qué:** el deliverable de un bounty **se judgea por el diff**. `WorkRoom.vue` (ver→preparar→editar→aprobar→enviar) guardaba el archivo sin ninguna forma de ver qué había modificado: aprobar el envío era aprobar a ciegas.
+
+- **`frontend/src/components/ui/DiffViewer.vue` (nuevo):** diff unificado línea a línea con numeración original/nuevo, colapso de contexto largo (`⋯ N líneas sin cambios`) y estadísticas en el encabezado.
+- **Conectado al loop sin tocar el backend:** `openFile()` congela el contenido que dejó `prepare` en `fileOriginal`; el diff es `fileOriginal` vs `fileContent`. Tras guardar, el original pasa a ser lo guardado (el diff refleja cambios *pendientes*, no los ya aplicados).
+- **Bug real del diff —、姜 el que hace mentir el conteo (medido):** con el original sin salto final (`'uno\ndos'`) contra `'uno\ndos\ntres\ncuatro\ncinco'`, `diffLines` parte el texto en el último límite y devuelve *removed `'dos'`* + *added `'dos\ntres\ncuatro'`* ⇒ **4 agregadas y 1 borrada por 3 líneas de verdad**. Se normaliza el `\n` final de ambos lados antes de diffear.
+- **Prueba de fallo:** quitar esa normalización ⇒ caen 2 guards (los de conteo real).
+- **10 guards** (`DiffViewer.test.ts`), centrados en la trampa clásica del diff:Replacement cuenta 1+1, `\n` final no inventa líneas, vacío por un lado, colapso que no pierde contenido.
+- **2 errores míos de test, no del componente:** un regex sobre `text()` capturaba los números del gutter ("41") y daba falso positivo → se lee por `data-testid`; y un test afirmaba `'ctx 3'` sobre un fixture de `'a'..'h'` (comprobaba una cadena que su propio fixture no tenía).
+- **1 dependencia** (`diff`, 615 KB unpacked / ~15 KB minificado), dentro de presupuesto.
+- **Verificación:** 218/218 (208 previos + 10) · `vue-tsc` 0 · `vite build` 13.1s · `test-fast` 103/1.
+
+## 54. Un 401 y un 429 se reportaban igual, y el `overall` decía "healthy" con 6 de 10 caídos (2026-10-05) — P1 honestidad, CERRADO
+
+Encontrado al verificar en vivo el panel de `/oar/doctor` (commit `b687ae7f`),
+no leyendo código. Dos fallos de la misma familia: **un indicador que no puede
+empeorar no es un indicador, es un eco.**
+
+### (a) `check_health` colapsaba todo non-200 a `UNHEALTHY` sin `last_error`
+
+Medido contra la API real: `GROQ_API_KEY` **existe en el env pero es inválida**
+(Groq responde `401 {"error":{"message":"Invalid API Key"}}`). El sistema la
+reportaba:
+
+```
+groq  unhealthy  latency_ms=608  last_error=None
+```
+
+O sea: fue contactada, respondió, y el panel renderizaba `—`. El owner no
+tenía forma de saber que el problema era la key. Un 401 (key inválida), un 429
+(cuota) y un 503 (transitorio) exigen **acciones distintas**: arreglar la key /
+esperar / reintentar.
+
+**✅ Cerrado (`fe2d4b88`).** `resilience.health_status_for(code)` — helper
+público que **reusa** `_STATUS_MAP` en vez de duplicar la tabla (el mapa ya
+existía; `adapters.py` no lo podía usar porque no importaba `resilience`, así
+que se expuso en vez de copiar). `check_health` clasifica por código y setea
+`last_error` con el body real truncado a 200 chars.
+
+Verificado en vivo después:
+```
+groq  auth_failed  last_error=HTTP 401: {"error":{"message":"Invalid API Key"...
+```
+
+### (b) `doctor()["overall"]` = `healthy if healthy else unhealthy`
+
+Sólo comprobaba que la lista de healthy no estuviera vacía. No distinguía "todo
+bien" de "hay al menos uno". Medido antes del fix:
+
+```
+overall:  healthy          ← 6 de 10 providers caídos
+healthy:  [ollama, fcc, nvidia_nim, omniroute]
+unhealthy:[opencode, ollama_cloud, groq, cerebras, together, deepinfra]
+```
+
+**✅ Cerrado (`26d6f19f`).** `overall` se deriva de la distribución:
+
+| Distribución | overall |
+|---|---|
+| 0 providers registrados | `unknown` (no sabemos, no es veredicto) |
+| todos unhealthy | `unhealthy` |
+| todos healthy/degraded | `healthy` |
+| mezcla con alguno sano | `degraded` |
+
+Un provider `degraded` sigue aportando, así que **no** sube el `overall` por sí
+solo. Se agregó `providers.usable` = cuántos aportan capacidad real ahora.
+Verificado en vivo: `overall: degraded, usable 4/10`.
+
+**Consumido por el panel** (`0802cfdf`): `runtime sano|degradado|caído|sin datos`.
+`unknown` se renderiza "sin datos", nunca como sano.
+
+### Las dos pruebas de fallo
+
+Este proyecto no acepta un test verde como evidencia. Ambos fixes se
+verificaron reintroduciendo el bug:
+
+| Fix | Tests que caen con el bug reintroducido |
+|---|---|
+| `check_health` | 3 de 6 (`401`, `429`, `503`) — con `last_error=None` exacto |
+| `doctor()` aggregate | 3 de 7 (mayoría-muerta, 1-de-10, none→`unknown`) |
+
+### Regla permanente
+
+*Un agregado que sólo puede decir "bien" mientras la mayoría está caída es un
+mentiro con formato JSON.* Y **cada código de error debe nombrar la acción que
+el owner tiene que tomar**: `401` → arreglá la key; `429` → esperá; `503` →
+reintentá. Sin `last_error`, el diagnóstico no es un diagnóstico: es una lista
+de estados sin causa.
+
+Corolario: *construir el panel **expuso** los dos bugs*. El endpoint ya
+existía y "funcionaba"; lo que faltaba era un consumidor real que lo mirara.
+Una capacidad sin consumidor no se rompe — se **descubre** tarde.
