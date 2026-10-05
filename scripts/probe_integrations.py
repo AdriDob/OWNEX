@@ -65,6 +65,10 @@ class Probe:
     expects_key: bool = False
     body: dict[str, Any] | None = None
     timeout: float = 12.0
+    #: El servicio external murio, pero el codigo YA no lo usa. Es un
+    #: canario: si alguien lo reintroduce, el probe lo sigue marcando, pero
+    #: no es una integracion rota del sistema.
+    retired: bool = False
     note: str = ""
     status: str = field(default="", init=False)
     code: int | None = field(default=None, init=False)
@@ -180,7 +184,10 @@ PROBES: tuple[Probe, ...] = (
     ),
     Probe("intelx", "https://2.intelx.io/intelligent/search?term=probe", env_key="INTELX_API_KEY", expects_key=True),
     # SpoofCheck: declarado keyless en osint_api.py pero el host NO resuelve.
-    Probe("spoofcheck", "https://spoofcheck.io/api/domain/google.com"),
+    # NOTA: spoofcheck.io NO resuelve DNS (el servicio fue cerrado). El codigo
+    # ya NO lo usa: lee DNS directo con dnspython (ver osint_api.py).
+    # Se mantiene aca como canario: si alguien lo reintroduce, esto lo marca.
+    Probe("spoofcheck", "https://spoofcheck.io/api/domain/google.com", retired=True),
     Probe(
         "securitytrails",
         "https://api.securitytrails.com/v1/domain/google.com/subdomains",
@@ -206,7 +213,8 @@ def main() -> int:
     for p in selected:
         p.run()
 
-    muertos = [p for p in selected if p.status == MUERTO]
+    muertos = [p for p in selected if p.status == MUERTO and not p.retired]
+    retirados = [p for p in selected if p.status == MUERTO and p.retired]
 
     if args.json:
         print(
@@ -231,14 +239,21 @@ def main() -> int:
     print("-" * 62)
     for p in selected:
         code = str(p.code) if p.code is not None else "---"
-        flag = "  <-- MUERTO" if p.status == MUERTO else ""
+        flag = "  <-- MUERTO" if p.status == MUERTO and not p.retired else ""
+        flag = "  (servicio retirado, no en uso)" if p.status == MUERTO and p.retired else flag
         print(f"{p.status:10} {code:>5} {p.ms:>6}  {p.name}{flag}")
         if p.status == MUERTO and p.detail:
             print(f"{'':10} {'':>5} {'':>6}  └─ {p.detail}")
 
     print()
-    vivas = [p for p in selected if p.status in (VIVO, PIDE_KEY, THROTTLE)]
-    print(f"{len(vivas)} / {len(selected)} integraciones vivas")
+    vivas = [p for p in selected if p.status in (VIVO, PIDE_KEY, THROTTLE) and not p.retired]
+    print(f"{len(vivas)} / {len(vivas) + len(muertos)} integraciones vivas")
+    if retirados:
+        print()
+        print("SERVICIOS RETIRADOS (el código ya no los usa; canarios contra regresión):")
+        for p in retirados:
+            print(f"  · {p.name}: {p.detail}")
+
     if muertos:
         print()
         print("INTEGRACIONES MUERTAS — el sistema las llama y recibe None/0 sin error:")
