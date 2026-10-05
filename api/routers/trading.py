@@ -255,6 +255,88 @@ def check_alerts(
     return {"success": True, "alerts": alerts, "count": len(alerts)}
 
 
+@router.post("/intelligence/promote")
+async def promote_candidates_to_masters(
+    limit: int = 10,
+    copy_ratio: float = 0.1,
+    min_passed: int = 5,
+) -> dict[str, Any]:
+    """Convierte candidatos APROBADOS del discovery en copy-trading masters.
+
+    Cierra la cadena que estaba rota en 3 puntos: `TraderDiscovery` descubría
+    (Polymarket), `BacktestValidator` aprobaba, y `CopyTradingEngine.add_master`
+    registraba — pero **nada conectaba los tres**. Los masters se cargaban a
+    mano con `POST /copy/masters`, o sea que el descubrimiento automático no
+    servía para nada.
+
+    **Los masters entran DESARMADOS (`enabled=False`).** Descubrir no es
+    autorizar: el owner tiene que revisar y armar cada uno explícitamente con
+    `POST /copy/masters/{id}/toggle`. Ése es el Human Gate.
+
+    `min_passed` es el gate de evidencia (5 de 6 checks: out-of-sample,
+    robustez de régimen, tamaño de muestra, no-martingala, slippage realista,
+    survivorship bias).
+    """
+    from cores.trading.copy_trading import CopyTradingEngine, FollowedTrader
+    from cores.trading.trader_intelligence import TraderDiscovery
+
+    # discover_scored() ya trae la validación de BacktestValidator por candidato.
+    scored = await TraderDiscovery().discover_scored(limit=limit)
+    engine = CopyTradingEngine(store=_get_engine()._store)  # noqa: SLF001
+
+    added: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+
+    for item in scored:
+        # discover_scored() anota las métricas bajo "trader" (asdict de TraderMetrics).
+        metrics = item.get("trader") or item.get("metrics") or {}
+        mid = str(metrics.get("trader_id") or "")
+        if not mid:
+            skipped.append({"trader_id": mid, "reason": "sin trader_id"})
+            continue
+
+        if (item.get("validation") or {}).get("passed", 0) < min_passed:
+            skipped.append({"trader_id": mid, "reason": "evidencia insuficiente", "score": item.get("score")})
+            continue
+
+        if engine.get_master(mid):
+            skipped.append({"trader_id": mid, "reason": "ya lo seguís"})
+            continue
+
+        try:
+            trader = FollowedTrader(
+                master_id=mid,
+                name=str(metrics.get("name") or mid),
+                source=str(metrics.get("source") or "polymarket"),
+                copy_ratio=copy_ratio,
+                enabled=False,  # NUNCA armado al descubrir
+            )
+            engine.add_master(trader)
+        except ValueError as exc:
+            skipped.append({"trader_id": mid, "reason": str(exc)})
+            continue
+
+        added.append(
+            {
+                "master_id": mid,
+                "name": trader.name,
+                "source": trader.source,
+                "score": item.get("score"),
+                "tier": item.get("tier"),
+                "enabled": False,
+            }
+        )
+
+    return {
+        "success": True,
+        "added": added,
+        "added_count": len(added),
+        "skipped": skipped,
+        "skipped_count": len(skipped),
+        "note": "los masters entran desarmados (enabled=false): armalos con POST /copy/masters/{id}/toggle",
+    }
+
+
 @router.get("/reasoning/dna")
 def get_dna() -> dict[str, Any]:
     dna = _safe(lambda: _get_engine()._store.get("dna", []), [])  # noqa: SLF001

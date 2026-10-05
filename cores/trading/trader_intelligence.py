@@ -9,6 +9,7 @@ Discovery degrades gracefully (never crashes the pipeline).
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -175,16 +176,27 @@ class TraderDiscovery:
         except Exception:
             return None
 
-    def _polymarket_candidates(self) -> list[TraderMetrics]:
+    async def _polymarket_candidates(self) -> list[TraderMetrics]:
+        """Candidatos de Polymarket.
+
+        **async**: `SmartMoneyCopier.scan_top_traders` y
+        `generate_copy_signals` son coroutines. Esta función era sync y las
+        llamaba sin await, así que `for item in raw` recibía un coroutine →
+        `TypeError: 'coroutine' object is not iterable` → discovery devolvía
+        SIEMPRE 0 candidatos. El log decía "continuing" y el radar quedaba
+        mudo en silencio.
+        """
         copier = self._get_copier()
         if copier is None:
             return []
         try:
             raw: Any = []
             if hasattr(copier, "scan_top_traders") and callable(copier.scan_top_traders):
-                raw = copier.scan_top_traders() or []
+                result = copier.scan_top_traders()
+                raw = (await result if inspect.isawaitable(result) else result) or []
             elif hasattr(copier, "generate_copy_signals") and callable(copier.generate_copy_signals):
-                raw = copier.generate_copy_signals() or []
+                result = copier.generate_copy_signals()
+                raw = (await result if inspect.isawaitable(result) else result) or []
             else:
                 return []
         except Exception:
@@ -200,9 +212,10 @@ class TraderDiscovery:
     def _trader_from_dict(item: dict[str, Any], source: str) -> TraderMetrics:
         return TraderMetrics(
             trader_id=str(item.get("trader_id") or item.get("id") or item.get("address") or "unknown"),
-            name=str(item.get("name") or item.get("trader") or ""),
+            # El leaderboard de Polymarket devuelve `user_name` (y `rank`).
+            name=str(item.get("name") or item.get("user_name") or item.get("trader") or ""),
             source=source,
-            total_trades=int(item.get("total_trades") or item.get("num_trades") or 0),
+            total_trades=int(item.get("total_trades") or item.get("num_trades") or item.get("trades") or 0),
             win_rate=float(item.get("win_rate") or 0.0),
             profit_factor=float(item.get("profit_factor") or 0.0),
             sharpe=float(item.get("sharpe") or 0.0),
@@ -218,7 +231,7 @@ class TraderDiscovery:
     async def discover(self, limit: int = 10) -> list[TraderMetrics]:
         candidates: list[TraderMetrics] = []
         try:
-            candidates.extend(self._polymarket_candidates())
+            candidates.extend(await self._polymarket_candidates())
         except Exception:
             logger.warning("polymarket discovery failed — continuing", exc_info=True)
         return candidates[:limit]
