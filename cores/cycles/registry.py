@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from cores.cycles.models import CycleStatus
+from cores.cycles.models import CycleCategory, CycleStatus
 
 
 @dataclass
@@ -99,7 +99,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="security",
             name="Security",
             description="Bug bounty, vulnerability research, Rastro pipeline",
-            category="security",
+            category=CycleCategory.SECURITY.value,
             priority=10,
             config={
                 "source_apps": ["rastro", "aegis"],
@@ -114,7 +114,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="forge",
             name="Forge",
             description="Dev bounties, OSS contributions, code review rewards",
-            category="development",
+            category=CycleCategory.FORGE.value,
             priority=8,
             config={
                 "platforms": ["superteam", "opire", "algora", "issuehunt"],
@@ -129,7 +129,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="pulse",
             name="Pulse",
             description="AI training, data annotation, microtask platforms",
-            category="ai_work",
+            category=CycleCategory.PULSE.value,
             priority=6,
             config={
                 "platforms": ["outlier", "dataannotation", "mindrift", "remotasks"],
@@ -144,7 +144,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="vault",
             name="Vault",
             description="Portfolio management, crypto, DeFi, arbitrage, financial analysis",
-            category="finance",
+            category=CycleCategory.VAULT.value,
             priority=7,
             config={
                 "data_sources": ["coingecko", "defillama"],
@@ -159,7 +159,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="atlas",
             name="Atlas",
             description="Research, OSINT, trend analysis, CVE tracking, market intelligence",
-            category="intelligence",
+            category=CycleCategory.ATLAS.value,
             priority=5,
             config={
                 "sources": ["cve", "github", "twitter", "rss"],

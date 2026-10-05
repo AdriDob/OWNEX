@@ -13,6 +13,21 @@ os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
 # Isolate test DB: never touch the real database/catseye.db
 os.environ["DATABASE_URL"] = f"sqlite:////tmp/cateye_test_{os.getpid()}.db"
 
+# Isolate the data dir: never write to ~/.ownex nor ~/ownex/submissions.
+#
+# Antes se escribían paquetes de trabajo reales en el HOME: 1.354 fixtures
+# ("deliv-1", "e2e-1", "wire-1", todos con `[Add implementation details here]`)
+# acumulados en ~/ownex/submissions/opire/ entre el 4 y el 5 de agosto. La causa
+# era doble: AssistedExecutor tenía "~/ownex/submissions" hardcodeado (corregido
+# para respetar OWNEX_DATA_DIR) y conftest sólo aislaba DATABASE_URL.
+#
+# A nivel de módulo, no con monkeypatch: debe cubrir toda la sesión, igual que
+# DATABASE_URL.
+_TEST_DATA_DIR = Path(f"/tmp/ownex_test_{os.getpid()}")
+_TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["OWNEX_DATA_DIR"] = str(_TEST_DATA_DIR)
+os.environ.setdefault("CATEYE_DATA_DIR", str(_TEST_DATA_DIR))
+
 from database.db import DATABASE_URL as _DB_URL  # noqa: E402
 
 if "catseye.db" in _DB_URL:
