@@ -92,8 +92,14 @@ class HealthMonitor(HealthMonitorProtocol):
             if total > 0:
                 health.error_rate = health.error_count / total
 
-            # Determine status based on metrics
-            health.status = self._determine_status(health)
+            # Respect provider's own status if already determined (not UNKNOWN)
+            # Also enforce latency floor: no successful contact = UNKNOWN, never HEALTHY
+            if health.status == HealthStatus.UNKNOWN:
+                if health.success_count == 0 and health.latency_ms == 0.0:
+                    health.status = HealthStatus.UNKNOWN
+                else:
+                    health.status = self._determine_status(health)
+            # else: keep provider's status (AUTH_FAILED, QUOTA_EXCEEDED, etc.)
 
             # Store on provider for quick access (using setattr to avoid protocol issues)
             provider._last_health = health

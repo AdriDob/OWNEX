@@ -56,6 +56,10 @@ class TestOARFreeDefaults:
             "fcc",
             "nvidia_nim",
             "omniroute",
+            "groq",
+            "cerebras",
+            "together",
+            "deepinfra",
         ]
         assert cfg.default_provider == "ollama"
         assert cfg.default_model == "qwen2.5:3b-instruct"
@@ -77,6 +81,10 @@ class TestOARFreeDefaults:
         # El scoring prefer_free debe reconocer los nuevos providers gratuitos.
         assert "ollama_cloud" in src
         assert "omniroute" in src
+        assert "groq" in src
+        assert "cerebras" in src
+        assert "together" in src
+        assert "deepinfra" in src
 
 
 class TestUnifiedOmnirouteCurated:

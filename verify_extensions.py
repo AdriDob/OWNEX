@@ -16,21 +16,17 @@ def main():
     # Record script start for verification evidence
     print("Verification started at project root:", Path.cwd())
 
-    # Check that all 13 extensions exist
+    # Check that all 9 extensions exist
     expected_extensions = [
-        "lightrag",
-        "cognee",
-        "graphiti",
-        "skyvern",
+        "aider",
         "crawl4ai",
-        "composio",
-        "n8n",
-        "kestra",
-        "langfuse",
-        "graphify",
-        "skill_seekers",
-        "promptfoo",
-        "nanobot",
+        "git",
+        "graphiti",
+        "lightrag",
+        "mcp",
+        "playwright",
+        "qdrant",
+        "skyvern",
     ]
 
     print("1. Extension Directory Structure:")

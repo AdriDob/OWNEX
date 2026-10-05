@@ -4,6 +4,7 @@ from cores.confidence import audit_findings, audit_single, audit_verdicts
 from cores.replay import build_replay, list_replay_targets
 from cores.review_queue import build_review_queue
 from cores.timeline import build_timeline
+from cores.tools.ecosystem import get_tool_ecosystem
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
@@ -121,6 +122,13 @@ def get_definitions():
         ],
         "event_types": ["scan", "finding", "report", "verdict", "sync", "system"],
     }
+
+
+@router.get("/tools")
+def get_tools():
+    """Tool inventory with install status — consumed by frontend Settings → Herramientas."""
+    ecosystem = get_tool_ecosystem()
+    return ecosystem.inventory()
 
 
 @router.get("/replay/{target_id}")

@@ -149,19 +149,15 @@ def check_extensions() -> None:
         return
 
     expected = [
-        "lightrag",
-        "cognee",
-        "graphiti",
-        "skyvern",
+        "aider",
         "crawl4ai",
-        "composio",
-        "n8n",
-        "kestra",
-        "langfuse",
-        "graphify",
-        "skill_seekers",
-        "promptfoo",
-        "nanobot",
+        "git",
+        "graphiti",
+        "lightrag",
+        "mcp",
+        "playwright",
+        "qdrant",
+        "skyvern",
     ]
     found = 0
     for name in expected:

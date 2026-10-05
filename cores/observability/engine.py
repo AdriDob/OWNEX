@@ -6,6 +6,7 @@ sync status, and real-time event streaming via WebSocket.
 
 from __future__ import annotations
 
+import contextlib
 import enum
 import json
 import logging
@@ -167,10 +168,8 @@ class ObservabilityEngine:
     def _broadcast_event(self, event: dict) -> None:
         """Broadcast event to WebSocket connections."""
         for _ws in self._ws_connections.values():
-            try:
-                # Would send via WebSocket
-                pass
-            except Exception:
+            # Would send via WebSocket
+            with contextlib.suppress(Exception):
                 pass
 
     # ── Event Querying ──────────────────────────────────────────
@@ -338,120 +337,13 @@ class ObservabilityEngine:
     def unregister_ws(self, ws_id: str) -> None:
         self._ws_connections.pop(ws_id, None)
 
-    def _broadcast(self, event: dict) -> None:
-        """Broadcast event to all WebSocket connections."""
-        for _ws_id, _ws in self._ws_connections.items():
-            try:
-                # Would send via WebSocket
-                pass
-            except Exception:
-                pass
 
-
-# ── API Router ───────────────────────────────────────────────────
-
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel, Field
-
-router = APIRouter(prefix="/api/obs", tags=["observability"])
-
-
-class ObservabilityEventRequest(BaseModel):
-    event_type: str
-    message: str
-    severity: str = "info"
-    source: str = "system"
-    metadata: dict = Field(default_factory=dict)
-
-
-class ObservabilityMetricsRequest(BaseModel):
-    metric_name: str
-    value: float
-    labels: dict[str, str] = Field(default_factory=dict)
-
-
-@router.post("/events")
-async def emit_event(event_request: ObservabilityEventRequest, engine=Depends(lambda: get_obs_engine())):
-    """Emit an observability event."""
-    return engine.emit(
-        event_type=event_request.event_type,
-        message=event_request.message,
-        severity=event_request.severity,
-        source=event_request.source,
-        metadata=event_request.metadata,
-    )
-
-
-@router.get("/events")
-async def get_events(
-    event_type: str | None = Query(None),
-    severity: str | None = Query(None),
-    source: str | None = Query(None),
-    since: str | None = Query(None),
-    limit: int = Query(50, le=500),
-    engine=Depends(lambda: get_obs_engine()),
-):
-    """Query observability events."""
-    since = datetime.fromisoformat(since.replace("Z", "+00:00")) if since else None
-    return engine.get_events(
-        event_type=event_request.event_type,
-        severity=severity,
-        source=source,
-        since=since,
-        limit=limit,
-    )
-
-
-@router.get("/dashboard")
-async def get_dashboard(engine=Depends(lambda: get_obs_engine())):
-    """Get full dashboard snapshot."""
-    return engine.get_dashboard_snapshot()
-
-
-@router.post("/metrics")
-async def record_metric(metric_request: ObservabilityMetricsRequest, engine=Depends(lambda: get_obs_engine())):
-    """Record a metric value."""
-    engine.record_metric(metric_request.metric_name, metric_request.value, metric_request.labels)
-    return {"status": "recorded"}
-
-
-@router.get("/metrics")
-async def get_metrics(
-    metric_name: str | None = Query(None),
-    since: str | None = Query(None),
-    limit: int = Query(100, le=1000),
-    engine=Depends(lambda: get_obs_engine()),
-):
-    """Get metrics."""
-    since = datetime.fromisoformat(since.replace("Z", "+00:00")) if since else None
-    return engine.get_metrics(metric_name, since, limit)
-
-
-# ── WebSocket ───────────────────────────────────────────────────
-
-
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket for real-time observability events."""
-    await websocket.accept()
-    ws_id = f"obs_ws_{uuid.uuid4().hex[:8]}"
-
-    from cores.observability.engine import get_obs_engine
-
-    engine = get_obs_engine()
-    engine.register_ws(ws_id, None)
-
-    try:
-        while True:
-            data = await websocket.receive_json()
-            if data.get("type") == "ping":
-                await websocket.send_json({"type": "pong"})
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        logger.error(f"[OBS] WebSocket error: {e}")
-    finally:
-        pass
+def _broadcast(self, event: dict) -> None:
+    """Broadcast event to all WebSocket connections."""
+    for _ws_id, _ws in self._ws_connections.items():
+        # Would send via WebSocket
+        with contextlib.suppress(Exception):
+            pass
 
 
 # ── Singleton ───────────────────────────────────────────────────

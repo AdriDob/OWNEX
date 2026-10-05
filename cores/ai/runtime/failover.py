@@ -124,7 +124,10 @@ class FailoverEngine(FailoverEngineProtocol):
         tier_order = {
             "ollama": 0,
             "lmstudio": 0,
+            "ollama_cloud": 0,
             "opencode": 1,
+            "omniroute": 1,
+            "freellmapi": 1,
             "groq": 2,
             "together": 2,
             "deepinfra": 2,

@@ -43,6 +43,13 @@ from .router import SmartRouter, create_smart_router
 logger = logging.getLogger("oar")
 
 
+class ProviderError(Exception):
+    """Raised when a provider returns an error response (finish_reason='error')."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class OAR:
     """OWNEX AI Runtime — Unified AI provider operating system."""
 
@@ -284,6 +291,10 @@ class OAR:
                 request.model = decision.model_id
 
                 response = await provider.chat(request)
+
+                # Treat HTTP error responses as failures for failover
+                if response.finish_reason == "error":
+                    raise ProviderError(response.metadata.get("error", "Provider returned error"))
 
                 # Record success
                 if self._failover:

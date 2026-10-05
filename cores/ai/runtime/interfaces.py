@@ -432,6 +432,10 @@ class OARConfig:
             "fcc",  # free via NVIDIA/Groq/OpenRouter
             "nvidia_nim",  # NVIDIA NIM free
             "omniroute",  # orquestador local free 24/7
+            "groq",  # Groq free (llama-3.1-70b, 30 rpm)
+            "cerebras",  # Cerebras free (llama3.1-70b, fast)
+            "together",  # Together AI free (meta-llama, 60 rpm)
+            "deepinfra",  # DeepInfra free (meta-llama, low cost)
         ]
     )
     default_provider: str = "ollama"
