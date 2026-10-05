@@ -193,6 +193,24 @@ def get_system_state_events(
     }
 
 
+@router.get("/capabilities")
+def get_capabilities():
+    """Configuración pendiente por capacidad — la superficie que faltaba.
+
+    Responde al pedido del owner: *"todo lo que quede pendiente de
+    configuración debe aparecer en la configuración del sistema"*.
+
+    Antes esa información estaba en tres lugares que nadie podía ver juntos:
+    145 `os.getenv()` dispersos, una tupla de 16 keys en el checklist, y
+    docstrings que prometían capacidades contingent on keys no listadas.
+
+    Devuelve **presencia** de cada variable, nunca su valor.
+    """
+    from cores.setup.capability_config import snapshot
+
+    return snapshot()
+
+
 @router.get("/update-check")
 def check_update():
     from desktop.updater import _current_version, check_for_updates

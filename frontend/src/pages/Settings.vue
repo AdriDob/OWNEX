@@ -5,6 +5,7 @@ import { useI18n } from '@/composables/useI18n'
 import type { ToolsSettings } from '@/stores/settings'
 import { useThemeEngine } from '@/composables/useThemeEngine'
 import { api } from '@/lib/api'
+import PendingConfig from '@/components/system/PendingConfig.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
@@ -17,6 +18,7 @@ import {
   AlertTriangle, RefreshCw, ExternalLink, User, Wrench, Server, Lock, Download, Upload, RotateCcw,
   Activity, Database, Wifi, HardDrive, Monitor, Box,
   Sparkles, Bug, Crosshair, Scan, DollarSign, Plug,
+  Cog, Zap,
 } from '@lucide/vue'
 
 const settings = useSettingsStore()
@@ -430,6 +432,9 @@ onMounted(async () => {
 
     <!-- ═══════ GENERAL ═══════ -->
     <div v-if="activeTab === 'general'" class="space-y-4">
+      <!-- Qué falta configurar para que el sistema esté completo -->
+      <PendingConfig />
+
       <div class="card-base rounded-xl p-5 space-y-5">
         <h3 class="font-mono text-xs font-semibold text-foreground flex items-center gap-2">
           <User class="h-4 w-4 text-primary" /> Perfil
