@@ -20,7 +20,10 @@ Supported services:
   13. SpoofCheck (email spoof analysis)
   14. ThreatFox
   15. IPInfo
-  16. AbstractAPI (geolocation, email validation)
+
+Todas keyless salvo donde se indica: Shodan, Censys, VirusTotal, SecurityTrails,
+AlienVault OTX, Hunter.io, BuiltWith, HIBP, GreyNoise, IntelX, Pulsedive e
+IPInfo leen su key del env. URLScan, ThreatFox y SpoofCheck son keyless.
 """
 
 import hashlib

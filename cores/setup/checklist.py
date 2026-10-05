@@ -134,14 +134,23 @@ def _detect_smtp_mail() -> bool:
 
 # Env keys that prove a remote AI provider is configured (no network call).
 _AI_API_KEY_ENVS = (
+    # Stack OAR (cores/ai/runtime/adapters.py) — las que leeenabled_providers
+    "GROQ_API_KEY",
+    "CEREBRAS_API_KEY",
+    "TOGETHER_API_KEY",
+    "DEEPINFRA_API_KEY",
+    "OLLAMA_CLOUD_API_KEY",
+    "OMNIROUTE_API_KEY",
+    "FREELLMAPI_API_KEY",
+    "NVIDIA_API_KEY",
     "ANTHROPIC_API_KEY",
-    "FCC_API_KEY",
+    "OPENROUTER_API_KEY",
+    # Stack legacy (cores/ai/providers/*) — providers que OAR no cubre
     "OPENAI_API_KEY",
     "GEMINI_API_KEY",
-    "OPENROUTER_API_KEY",
     "GOSEAI_API_KEY",
-    "NVIDIA_API_KEY",
     "NIM_API_KEY",
+    "FCC_API_KEY",
     "OPENCODE_API_KEY",
 )
 
@@ -307,6 +316,23 @@ def _detect_mpt_material_key() -> bool:
         return False
 
 
+def _detect_supplier_outreach(min_contacted: int = 3) -> bool:
+    """True cuando ≥3 proveedores fueron contactados por WA (desbloqueo $50k).
+
+    Lee el OutreachStore real (contacted/replied/verified). Sin contactos
+    registrados sigue pendiente y visible como advertencia.
+    """
+    try:
+        from cores.ecommerce.outreach import get_outreach_store
+
+        recs = get_outreach_store().list_all() or {}
+        n = sum(1 for r in recs.values() if getattr(r, "status", "") in ("contacted", "replied", "verified"))
+        return n >= min_contacted
+    except Exception as exc:  # pragma: no cover - defensivo
+        logger.warning("detector supplier_outreach falló: %s", exc)
+        return False
+
+
 def _catalog() -> list[dict[str, Any]]:
     """Checklist curado, ordenado por prioridad dentro de cada fase."""
     return [
@@ -315,9 +341,18 @@ def _catalog() -> list[dict[str, Any]]:
             "phase": PHASE_ESSENTIALS,
             "priority": 1,
             "title": "Activar un proveedor de IA",
-            "why": "Sin esto, copilot, briefs y chat degradan en silencio. Ollama local o una key remota.",
+            "why": (
+                "Sin esto, copilot, briefs y chat degradan en silencio. OAR tiene 10 providers "
+                "activados; los que no tienen key reportan UNKNOWN (no healthy) y no aportan."
+            ),
             "est_minutes": 10,
-            "how_to": "Settings → AI: usar Ollama local (:11434) o pegar key (Anthropic/OpenAI/Gemini/OpenRouter).",
+            "how_to": (
+                "Sin key: Ollama local (:11434) y opencode. Con key gratis (tier free, $0): "
+                "GROQ_API_KEY, CEREBRAS_API_KEY, TOGETHER_API_KEY, DEEPINFRA_API_KEY, "
+                "NVIDIA_API_KEY, OLLAMA_CLOUD_API_KEY. Registrarte en la consola de cada "
+                "proveedor y exportar la variable. El failover ante 429 ya está activo: con "
+                "2+ keys, un rate limit de uno cae al siguiente en vez de cortar."
+            ),
             "url": "/operations/settings",
             "url_label": "Configurar IA",
             "auto": _AUTO,
@@ -549,6 +584,30 @@ def _catalog() -> list[dict[str, Any]]:
             "url": "/trading",
             "url_label": "Ver Trading",
             "auto": _MANUAL,
+        },
+        {
+            "id": "whop_account",
+            "phase": PHASE_PLATFORMS,
+            "priority": 14,
+            "title": "Cuenta Whop + 1 campaña de clipping",
+            "why": "Clipping paga por 1K views (típico $0.50-1.50, fee 10%, cobro ~10 días). Sin cuenta no hay submissions ni PAID.",
+            "est_minutes": 30,
+            "how_to": "whop.com → cuenta → Content Rewards → reclamar 1 campaña (rate≥$1/1K, cap≥$100, gratis). Cuentas TikTok/IG/YT con 7-14d de warm-up antes de enviar.",
+            "url": "https://whop.com/",
+            "url_label": "Abrir Whop →",
+            "auto": _MANUAL,
+        },
+        {
+            "id": "supplier_outreach_3wa",
+            "phase": PHASE_PLATFORMS,
+            "priority": 15,
+            "title": "Contactar 3 proveedores por WA (desbloqueo $50k)",
+            "why": "Sin 3 WA no hay verify→ACTIVE→vidriera→venta. Es el desbloqueo humano #1 del plan $50k/mes.",
+            "est_minutes": 60,
+            "how_to": "GET /suppliers/{id}/outreach (Dropsheable, Canevic, Flex) → mandar WA con las 5 preguntas → se marca solo al contactar.",
+            "url": "/operations/ecommerce",
+            "url_label": "Ver proveedores",
+            "auto": True,
         },
         {
             "id": "obsidian_vault",
@@ -847,6 +906,7 @@ _DETECTORS: dict[str, Callable[[], bool]] = {
     "github_token": _detect_github_token,
     "first_target": _detect_first_target,
     "mpt_material_key": _detect_mpt_material_key,
+    "supplier_outreach_3wa": _detect_supplier_outreach,
     "obsidian_vault": _detect_obsidian_vault,
     "smtp_mail": _detect_smtp_mail,
     "trading_exchange": _detect_trading_exchange,
