@@ -58,6 +58,9 @@ class ForgeAdapter(OpportunityAdapter):
             return []
 
 
+SUPERTEAM_LISTINGS_URL = "https://superteam.fun/api/listings?type=bounty"
+
+
 class SuperteamAdapter(OpportunityAdapter):
     """Superteam.dev adapter - Solana/Web3 dev bounties (Forge cycle)."""
 
@@ -74,12 +77,20 @@ class SuperteamAdapter(OpportunityAdapter):
         try:
             headers = get_auth_headers("superteam", self.config)
             async with httpx.AsyncClient() as client:
-                resp = await client.get("https://api.superteam.fun/bounties", headers=headers, timeout=10)
+                # El dominio `api.superteam.fun` NO resuelve por DNS (medido 2026-10-05):
+                # gaierror. El endpoint vivo es earn.superteam.fun/api/listings/?type=bounty,
+                # que devuelve una LISTA JSON plana, no un dict envuelto.
+                resp = await client.get(SUPERTEAM_LISTINGS_URL, headers=headers, timeout=15, follow_redirects=True)
+                # La URL canonica es superteam.fun/api/listings; earn.superteam.fun
+                # responde 308 hacia ella. Sin follow_redirects el body es el texto
+                # "Redirecting...", resp.json() revienta y el adapter devuelve [].
                 if resp.status_code != 200:
                     return []
 
                 data = resp.json()
-                bounties = data.get("bounties", data.get("data", []))
+                # Antes se esperaba un dict; `.get()` sobre una lista lanza AttributeError,
+                # el except devolvia [] y este adapter nunca devolvio una oportunidad.
+                bounties = data if isinstance(data, list) else data.get("bounties", data.get("data", []))
 
                 raw_opps: list[RawOpportunity] = []
                 for bounty in bounties[:20]:  # Limit
@@ -89,8 +100,13 @@ class SuperteamAdapter(OpportunityAdapter):
                             name=bounty.get("title") or bounty.get("name") or "Superteam Bounty",
                             description=bounty.get("description") or "",
                             platform="superteam",
-                            url=bounty.get("url") or bounty.get("apply_url"),
-                            reward=float(bounty.get("reward_usd") or bounty.get("reward", 0)),
+                            url=(
+                                f"https://superteam.fun/listing/{bounty.get('slug')}"
+                                if bounty.get("slug")
+                                else (bounty.get("url") or "")
+                            ),
+                            # earn.superteam.fun expone el monto en `rewardAmount` (USD, string).
+                            reward=float(bounty.get("rewardAmount") or bounty.get("reward_usd") or 0),
                             effort_hours=float(bounty.get("estimated_hours", 8)),
                             tags=bounty.get("tags", ["web3", "solana"]),
                             cycle="forge",
