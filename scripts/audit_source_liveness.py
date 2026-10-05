@@ -35,19 +35,61 @@ from cores.opportunity.global_sources import get_sources  # noqa: E402
 # SourceDefinition.url, que es la URL pública del sitio humano: que devuelva
 # HTML es lo esperado, no un fallo. Lo que decide si un conector sirve es si el
 # endpoint que el adapter consume devuelve el formato que el adapter parsea.
-ADAPTER_ENDPOINTS: dict[str, str] = {
-    "atlas": "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1",
-    "opencollective": "https://api.opencollective.com/graphql/v2",
-    "security_bounty": "https://api.hackerone.com/v1/hackers/programs",
-    "forge_legacy": "https://api.superteam.fun/bounties",
-    "opire": "https://api.opire.com/v1/bounties",
-    "opyre": "https://api.opyre.com/v1/bounties",
-    "issuehunt": "https://api.issuehunt.io/v1/bounties",
-    "ai_tasks": "https://outlier.ai",
-    "ar_jobs": "https://www.zonajobs.com.ar",
-    "high_payout": "https://immunefi.com/bug-bounty/",
-    "microtask": "https://app.prolific.com/api/v1/tasks",
+# Endpoints REALES, verificados contra la red el 2026-10-05. El valor es lo
+# que el adapter llama hoy; la nota explica qué es realmente ese endpoint.
+#
+# `kind` separa dos cosas que el script v1 confundía:
+#   api      — existe un endpoint de API consumible
+#   frontend — NO hay API pública: es la SPA del producto y devuelve HTML
+# Un "html-not-json" sobre un frontend no es un bug que arreglar, es un hecho
+# que documentar: para esa plataforma la integración no es un GET.
+ADAPTER_ENDPOINTS: dict[str, tuple[str, str, str]] = {
+    # (endpoint que llama el adapter, kind, nota)
+    "atlas": (
+        "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=1",
+        "api",
+        "API pública del NIST. Correcta.",
+    ),
+    "security_bounty": (
+        "https://api.hackerone.com/v1/hackers/programs",
+        "api",
+        "Devuelve 401 JSON: pide credencial. Gate correcto.",
+    ),
+    "forge_legacy": (
+        "https://superteam.fun/api/listings?type=bounty",
+        "api",
+        "Reparado: earn.superteam.fun responde 308 aquí. 20 listings.",
+    ),
+    "opencollective": (
+        "https://api.opencollective.com/graphql/v2",
+        "api",
+        "GraphQL: 400 en GET es correcto, necesita POST con query.",
+    ),
+    "opire": (
+        "https://api.opire.com/v1/bounties",
+        "api",
+        "El dominio NO resuelve por DNS. Fuente caída o URL inventada.",
+    ),
+    "opyre": (
+        "https://api.opyre.com/v1/bounties",
+        "api",
+        "El dominio NO resuelve por DNS. Sin verificar si existe otro.",
+    ),
+    "issuehunt": (
+        "https://api.issuehunt.io/v1/bounties",
+        "api",
+        "El host responde pero la ruta da 404. API no pública aquí.",
+    ),
+    "ai_tasks": ("https://outlier.ai", "frontend", "Sin API pública; el producto es una SPA."),
+    "ar_jobs": ("https://www.zonajobs.com.ar", "frontend", "Bolsa de empleo sin API pública."),
+    "high_payout": ("https://immunefi.com/bug-bounty/", "frontend", "El listado es la SPA; el backend es privado."),
+    "microtask": (
+        "https://app.prolific.com/api/v1/tasks",
+        "frontend",
+        "La ruta devuelve 404 JSON: la API exige credencial y otro path.",
+    ),
 }
+
 
 # Un 401/403 con content-type JSON significa "existe y pide credencial": la
 # respuesta correcta de un Human Gate, no un endpoint muerto.
@@ -68,7 +110,7 @@ class Finding:
     latency_ms: int
 
 
-async def probe(client: httpx.AsyncClient, name: str, url: str) -> Finding:
+async def probe(client: httpx.AsyncClient, name: str, url: str, kind: str = "api") -> Finding:
     try:
         r = await client.get(url)
     except Exception as exc:  # noqa: BLE001
@@ -85,13 +127,15 @@ async def probe(client: httpx.AsyncClient, name: str, url: str) -> Finding:
         return Finding(name, url, r.status_code, "live", "json", latency)
     if r.status_code >= 400:
         return Finding(name, url, r.status_code, "dead", f"HTTP {r.status_code}", latency)
+    if kind == "frontend":
+        return Finding(name, url, r.status_code, "sin-api-publica", "SPA: no hay API que consumir", latency)
     snippet = " ".join(r.text[:110].split())
     return Finding(name, url, r.status_code, "html-not-json", snippet, latency)
 
 
 async def run(limit: int | None, adapters_only: bool) -> list[Finding]:
     if adapters_only:
-        items = [(n, u) for n, u in ADAPTER_ENDPOINTS.items()]
+        items = [(n, v[0], v[1]) for n, v in ADAPTER_ENDPOINTS.items()]
         if limit:
             items = items[:limit]
         sem = asyncio.Semaphore(PROBE_CONCURRENCY)
@@ -150,11 +194,22 @@ def main() -> int:
     usable_verdicts = {"live", "needs-credential", "skip"} if args.adapters else {"live", "skip"}
     broken = [f for f in findings if f.verdict not in usable_verdicts]
     if broken:
-        print(f"\n  {len(broken)} con problemas (las que un conector no puede usar tal cual):")
-        for f in broken[:25]:
-            print(f"    {f.verdict:14} {f.name[:26]:28} {f.detail[:44]}")
-        if len(broken) > 25:
-            print(f"    … y {len(broken) - 25} más")
+        sin_api = [f for f in findings if f.verdict == "sin-api-publica"]
+    if sin_api:
+        print(f"\n  {len(sin_api)} SIN API PÚBLICA (no es un bug: no hay endpoint que consumir):")
+        for f in sin_api:
+            print(f"    {f.name[:26]:28} {f.detail[:48]}")
+    sin_api = [f for f in findings if f.verdict == "sin-api-publica"]
+    if sin_api:
+        print(f"\n  {len(sin_api)} SIN API PUBLICA (no es un bug: no hay endpoint que consumir):")
+        for f in sin_api:
+            print(f"    {f.name[:26]:28} {f.detail[:48]}")
+
+    print(f"\n  {len(broken)} con problemas (las que un conector no puede usar tal cual):")
+    for f in broken[:25]:
+        print(f"    {f.verdict:14} {f.name[:26]:28} {f.detail[:44]}")
+    if len(broken) > 25:
+        print(f"    ... y {len(broken) - 25} mas")
 
     usable = sum(counts.get(v, 0) for v in usable_verdicts)
     print(f"\n  conectores usables tal cual: {usable}/{total}  ({100 * usable / total:.1f}%)")
