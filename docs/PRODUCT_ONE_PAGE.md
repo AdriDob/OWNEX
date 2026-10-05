@@ -116,6 +116,70 @@ Explícitamente fuera del producto:
 
 ---
 
+---
+
+## OWNEX 1.0 — criterio de salida (fijado 2026-10-04, decisión del owner)
+
+> **OWNEX 1.0 se considera operativo cuando completa al menos una ejecución real
+> de extremo a punta, con resultado económico registrado, atravesando
+> correctamente sus Human Gates y sin falsificar ni inferir el resultado.**
+
+```
+PAID = 0      →  NO es 1.0
+PAID >= 1     →  OWNEX 1.0
+```
+
+**Un pago. No miles. No $25k.** El primer evento económico distingue *software que
+creemos que puede ganar dinero* de *software que ganó dinero*. `EXPECTED` y
+`PROJECTED` **no** cuentan: sólo un `REALIZED` con evidencia.
+
+### Los tres niveles, para no confundirlos
+
+| Nivel | Criterio | Naturaleza |
+|---|---|---|
+| **1 · funciona** | 1 ejecución real pagada | hito |
+| **2 · produce** | ingresos repetibles | calibración |
+| **3 · escala** | $25k/mes → $100k/mes | negocio |
+
+Bloquear el 1.0 hasta $25k/mes es un error de criterio: son cosas distintas.
+
+### Congelamiento de expansión vigente
+
+Desde 2026-10-04 **no se agrega** un subsistema, motor, agente, framework de
+agentes, router, pipeline ni arquitectura nueva. **Excepciones, sólo:**
+
+1. P0/P1 de seguridad o corrección de datos.
+2. Desbloqueo directo del loop económico.
+3. Duplicación crítica con dos canónicos vivos.
+
+**Medición que sostiene la regla:** 26 de los 27 subsistemas de un plan de
+9 etapas propuesto ya existen escritos en `cores/`. Un plan que no chequea el
+código antes de proponer construcción, duplica.
+
+### El filtro, para cada cambio
+
+```
+¿Acerca a B (loop real) o C (coherencia)?
+   NO → ¿Corrige P0/P1, overlap, seguridad, evidencia o deuda crítica?
+          NO → NO SE HACE AHORA
+```
+
+### Estado medido del bloqueo
+
+| Dato | Valor |
+|---|---|
+| `GITHUB_TOKEN` en `~/.config/ownex/opportunity.env` | **pendiente (vacío)** |
+| `targets` | 722 |
+| `pipeline_runs` | 1.621 |
+| `endpoints` | 9.922 |
+| `missions` | 6 |
+| `submission_records` | **0** |
+| `revenue_events` | **0** |
+
+El motor de seguridad **corrrió y produjo datos**. El loop económico **nunca se
+ejecutó ni una vez**, y se detuvo en el Human Gate — que es exactamente el diseño
+correcto. Lo que falta no es capacidad: es la credencial y un rail de cobro.
+
 ## LA FRONTERA QUE NO SE CRUZA
 
 > **AI interpreta. La realidad confirma.**

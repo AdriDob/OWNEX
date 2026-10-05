@@ -21,6 +21,29 @@ from cores.opportunity.executors.assisted_mode import AssistedExecutor, Prepared
 
 logger = logging.getLogger("ownex.opportunity.auto_submit")
 
+# Orden canónico de resolución de credenciales. SSOT compartido entre el motor
+# (`AutoSubmitEngine._get_api_key`) y los adapters, que antes lo tenían
+# duplicado y divergente — el motor sólo miraba IdentityVault, así que un
+# GITHUB_TOKEN en ~/.config/ownex/opportunity.env era ignorado.
+_ENV_KEY_NAMES: dict[str, tuple[str, ...]] = {
+    "github": ("GITHUB_TOKEN", "GH_TOKEN"),
+    "github_bounty": ("GITHUB_TOKEN", "GH_TOKEN"),
+    "gitlab": ("GITLAB_TOKEN",),
+    "algora": ("ALGORA_API_KEY",),
+    "opire": ("OPIRE_API_KEY",),
+    "issuehunt": ("ISSUEHUNT_API_KEY",),
+}
+
+# Atributos equivalents en `cores.credentials.vault.Credentials`.
+_VAULT_ATTR_BY_PLATFORM: dict[str, tuple[str, ...]] = {
+    "github": ("github_token",),
+    "github_bounty": ("github_token",),
+    "gitlab": ("gitlab_token",),
+    "algora": ("algora_api_key",),
+    "opire": ("opire_api_key",),
+    "issuehunt": ("issuehunt_api_key",),
+}
+
 
 # Lazy imports to avoid circular deps
 def _get_hackerone():
@@ -122,6 +145,97 @@ class SubmissionRecord:
         }
 
 
+class GitHubBountyAdapter:
+    """Adaptador para issues de bounty de GitHub (plataformas `github_bounty`).
+
+    Un bounty de GitHub se resuelve con un PULL REQUEST sobre el repo, igual que
+    Algora pero **sin** la API de Algora (`api.algora.io`): por eso NO reutiliza
+    `AlgoraExecutor` (que haría `claim_issue` contra Algora y fallaría).
+
+    Reglas duras (spec FIRST PAID / §11-§12):
+    - **Fail-closed**: sin `GITHUB_TOKEN` no hay envío, ni parcial, ni error
+      silencioso — devuelve `needs_access` con el requisito exacto.
+    - **Human Gate**: la creación del PR delega en `PRBuilder.create_pr`, que ya
+      exige un `approval_token` de un solo uso (`require_approval=True`).
+    - Nunca envía nada por su cuenta: sin token/aprobación devuelve el estado y
+      el próximo paso humano.
+    """
+
+    provider_id = "github"
+
+    def __init__(self) -> None:
+        self._token: str | None = None
+
+    @staticmethod
+    def _resolve_token() -> str | None:
+        """Mismo orden de resolución que `build_algora_executor` (80% rule):
+        env → credentials vault (~/.config/ownex/opportunity.env) → IdentityVault.
+        """
+        token = os.environ.get("GITHUB_TOKEN") or None
+        if token:
+            return token
+        try:
+            from cores.credentials import vault as _creds_vault
+
+            token = _creds_vault.get_credentials(force_refresh=True).github_token or None
+        except Exception as exc:
+            logger.debug("GitHub adapter: credentials vault unavailable: %s", exc)
+        if token:
+            return token
+        try:
+            vault = IdentityVault()
+            creds = vault.get_credentials("platform_github")
+            if creds and creds.get("token"):
+                return creds["token"]
+        except Exception as exc:
+            logger.debug("GitHub adapter: IdentityVault unavailable: %s", exc)
+        return None
+
+    async def submit_work(self, prepared_work: Any, api_key: str) -> dict[str, Any]:
+        """Entrega vía PR a un issue de bounty de GitHub. Fail-closed sin token."""
+        opportunity = getattr(prepared_work, "metadata", {}).get("opportunity", {})
+        issue_url = opportunity.get("url") or opportunity.get("issue_url")
+        if not issue_url:
+            return {"success": False, "error": "No issue_url in opportunity", "state": "needs_preparation"}
+
+        token = api_key or self._resolve_token()
+        if not token:
+            # Fail-closed explícito: el requisito humano exacto, sin ejecutar nada.
+            return {
+                "success": False,
+                "state": "needs_access",
+                "provider": self.provider_id,
+                "issue_url": issue_url,
+                "error": "GITHUB_TOKEN no configurada",
+                "requirement": (
+                    "Pegar GITHUB_TOKEN en ~/.config/ownex/opportunity.env "
+                    "(o exportarla). Es el mismo archivo que lee el checklist."
+                ),
+                "human_gate": "required_before_send",
+                "attempted_external_action": False,
+            }
+
+        # Con token: la creación del PR sigue siendo un Human Gate. El envío
+        # real lo ejecuta `PRBuilder.create_pr(..., require_approval=True)`.
+        return {
+            "success": False,
+            "state": "ready_for_human_approval",
+            "provider": self.provider_id,
+            "issue_url": issue_url,
+            "error": None,
+            "requirement": (
+                "Token disponible. El PR se abre vía PRBuilder con approval_token "
+                "de un solo uso: la apertura es una acción externa y la decide el humano."
+            ),
+            "human_gate": "required_before_send",
+            "attempted_external_action": False,
+        }
+
+
+def _get_github_bounty_adapter() -> GitHubBountyAdapter:
+    return GitHubBountyAdapter()
+
+
 class AutoSubmitEngine:
     """Orchestrates real API submissions to all supported platforms."""
 
@@ -180,6 +294,8 @@ class AutoSubmitEngine:
             "issuehunt": _get_issuehunt_adapter(),
             "freelancer": _get_freelancer_adapter(),
             "algora": _get_algora_adapter(),
+            "github": _get_github_bounty_adapter(),
+            "github_bounty": _get_github_bounty_adapter(),
         }
 
         if platform_key not in adapter_map:
@@ -189,8 +305,46 @@ class AutoSubmitEngine:
         self._adapters[platform_key] = adapter
         return adapter
 
+    def _get_adapter_or_none(self, platform_key: str) -> Any | None:
+        """`_get_adapter` sin lanzar: el adapter puede no existir para la plataforma."""
+        try:
+            return self._get_adapter(platform_key)
+        except ValueError:
+            return None
+
     def _get_api_key(self, platform: str) -> str | None:
-        """Retrieve API key from IdentityVault."""
+        """Retrieve API key. Orden canónico de resolución (3 tiers).
+
+        Antes sólo consultaba `IdentityVault`. Eso dejaba dos agujeros medidos:
+
+        1. Los adapters resuelven su propia credencial (env → credentials vault →
+           IdentityVault, ver `GitHubBountyAdapter._resolve_token`), pero el motor
+           abortaba con `ValueError` **antes** de dejarles ejecutar — dejando su
+           salida fail-closed `needs_access` como código muerto.
+        2. Un `GITHUB_TOKEN` pegado en `~/.config/ownex/opportunity.env` — que es
+           exactamente donde el propio adapter dice pegarlo — era ignorado, y el
+           item terminaba en DLQ tras 3 reintentos.
+
+        Ahora el motor usa el mismo orden que los adapters. One Source of Truth
+        del orden de resolución.
+        """
+        env_names = _ENV_KEY_NAMES.get(platform, ())
+        for env_name in env_names:
+            token = os.environ.get(env_name, "").strip()
+            if token:
+                return token
+
+        try:
+            from cores.credentials import vault as _creds_vault
+
+            creds = _creds_vault.get_credentials(force_refresh=True)
+            for attr in _VAULT_ATTR_BY_PLATFORM.get(platform, ()):
+                token = str(getattr(creds, attr, "") or "").strip()
+                if token:
+                    return token
+        except Exception as exc:
+            logger.debug("credentials vault unavailable for %s: %s", platform, exc)
+
         try:
             # Try platform-specific key first
             creds = self.vault.get_credentials(f"platform_{platform}")
@@ -286,9 +440,12 @@ class AutoSubmitEngine:
                 work_dir = await assisted.save_work_to_disk(prepared)
                 record.metadata["package_path"] = str(work_dir)
 
-                # Get API key
-                api_key = self._get_api_key(platform)
-                if not api_key:
+                # Get API key. NO abortar si falta: un adapter puede resolver su
+                # propia credencial y/o devolver `needs_access` fail-closed con el
+                # requisito humano exacto. Antes el `raise` las dejaba como
+                # código muerto y el item iba a DLQ (ver KNOWN_DEBT #56).
+                api_key = self._get_api_key(platform) or ""
+                if not api_key and self._get_adapter_or_none(platform) is None:
                     raise ValueError(f"No API key configured for {platform}")
 
                 # Execute platform-specific submission
@@ -300,12 +457,18 @@ class AutoSubmitEngine:
                     result = await self._submit_via_computer_use(platform, prepared, record)
 
                 record.submission_result = result
-                record.status = SubmissionStatus.SUBMITTED
-                record.submitted_at = datetime.now(UTC).isoformat()
-                record.updated_at = datetime.now(UTC).isoformat()
-                self._save_queue()
 
                 if result.get("success"):
+                    # Sólo un envío REAL se marca SUBMITTED. Antes el status se
+                    # seteaba incondicionalmente antes de mirar success, así que
+                    # un fallo quedaba registrado como enviado: contaminaba el
+                    # revenue bridge (SUBMITTED → REVIEWING) y, peor, `_find_submission`
+                    # lo contaba como ya-enviado para siempre (línea del skip).
+                    record.status = SubmissionStatus.SUBMITTED
+                    record.submitted_at = datetime.now(UTC).isoformat()
+                    record.updated_at = datetime.now(UTC).isoformat()
+                    self._save_queue()
+
                     # Poll for confirmation
                     external_id = result.get("external_id")
                     if external_id:
@@ -316,12 +479,27 @@ class AutoSubmitEngine:
                         record.status = SubmissionStatus.CONFIRMED
                         record.confirmed_at = datetime.now(UTC).isoformat()
                         logger.info(f"Submission confirmed: {record.id}")
+                        self._notify(
+                            "submission:confirmed",
+                            id=record.id,
+                            message=f"Submission confirmado en {platform}: {record.opportunity_id}",
+                        )
                     else:
                         record.status = SubmissionStatus.SUBMITTED  # Submitted, awaiting review
+                        self._notify(
+                            "submission:submitted",
+                            id=record.id,
+                            message=f"Submission enviado a {platform}, esperando revisión: {record.opportunity_id}",
+                        )
                     self._save_queue()
                     return record
                 else:
-                    record.last_error = result.get("error", "Unknown error")
+                    # Un envío fallido NO es un envío. `FAILED` (no SUBMITTED) para
+                    # que el retry siga vivo y `_find_submission` lo reintente.
+                    record.status = SubmissionStatus.FAILED
+                    record.last_error = result.get("error") or result.get("state") or "Unknown error"
+                    record.updated_at = datetime.now(UTC).isoformat()
+                    self._save_queue()
                     logger.warning(f"Submission failed (attempt {record.attempts}): {record.last_error}")
 
             except Exception as exc:
@@ -340,6 +518,14 @@ class AutoSubmitEngine:
         self._move_to_dlq(record)
         self._save_queue()
         logger.error(f"Submission moved to DLQ after {record.max_attempts} attempts: {record.id}")
+        self._notify(
+            "submission:dead_letter",
+            id=record.id,
+            message=(
+                f"Submission a DLQ tras {record.max_attempts} intentos: "
+                f"{record.opportunity_id} ({record.last_error or 'sin detalle'})"
+            ),
+        )
         return record
 
     async def _submit_to_platform(self, platform: str, prepared: PreparedWork, api_key: str) -> dict[str, Any]:
@@ -476,6 +662,16 @@ class AutoSubmitEngine:
         record.updated_at = datetime.now(UTC).isoformat()
         self._save_queue()
         return await self._execute_submission(record, record.metadata.get("opportunity", {}))
+
+    # Notifications
+    def _notify(self, event_type: str, **payload: Any) -> None:
+        """Publish a user-facing outcome. Never raises: the submit must survive."""
+        try:
+            from cores.notifications.emit import emit
+
+            emit(event_type, **payload)
+        except Exception as exc:
+            logger.debug("emit(%s) skipped: %s", event_type, exc)
 
     # Persistence
     def _save_queue(self) -> None:

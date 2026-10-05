@@ -503,6 +503,47 @@ abierto: es cableado de UI, no bug de backend.
 
 **Regla permanente:** *dos capas de datos compitiendo no es arquitectura, es dos verdades sobre si el usuario está autenticado.* Y: *el gate que atrapa un error de sintaxis es el que compila, no el que chequea tipos* — `vue-tsc` dio 0 con un bloque `try` sin `catch`.
 
+## 56. ✅ CERRADO 2026-10-04 — 2 bugs P0 en la cadena GITHUB_TOKEN → submission → revenue
+
+Auditado eslabón por eslabón al dejar el `GITHUB_TOKEN` pendiente. Los tres
+eslabones existen, pero **dos de ellos tenían un agujero que hacía que pegar el
+token no hubiera funcionado**.
+
+**Bug 1 — el fail-closed del adapter era código muerto.**
+`_execute_submission` hacía `raise ValueError("No API key configured")` cuando
+`_get_api_key` no encontraba nada. Pero `GitHubBountyAdapter.submit_work()`
+tiene un camino `needs_access` fail-closed escrito exactamente para ese caso
+(`requirement` con el path exacto, `human_gate: required_before_send`,
+`attempted_external_action: false`) — y **nunca se alcanzaba**. Peor: `_get_api_key`
+sólo consultaba `IdentityVault`, así que un token pegado en
+`~/.config/ownex/opportunity.env` — que es exactamente donde el propio adapter
+dice pegarlo — era **ignorado**, y el item iba a DLQ tras 3 reintentos con esperas.
+
+*Fix:* el motor ahora usa el mismo orden de resolución que los adapters
+(`env → credentials vault → IdentityVault`, en `_ENV_KEY_NAMES` /
+`_VAULT_ATTR_BY_PLATFORM` — SSOT compartido), y no aborta antes de darle la
+oportunidad al adapter de resolver su propia credencial o devolver su
+`needs_access`. El DLQ real se preserva para plataformas sin adapter.
+
+**Bug 2 — un envío fallido se registraba como enviado.**
+`record.status = SubmissionStatus.SUBMITTED` se seteaba incondicionalmente,
+*antes* de mirar `result["success"]`. Consecuencias medidas:
+1. el revenue bridge recibía `SUBMITTED` → `REVIEWING` (`execution_bridge:8,182`),
+   un estado pendiente que **no ocurrió**;
+2. `_find_submission` (línea del skip) contaba el item como ya-enviado para
+   siempre, salvo `force=True` — **el reintento quedaba muerto**.
+
+*Fix:* `SUBMITTED` sólo dentro de la rama `success`. Un fallo queda `FAILED`
+mientras reintenta y `DLQ` al agotar, con `submitted_at = None`.
+
+**Guard:** `tests/test_github_token_readiness.py` — 10/10, con 3 mutaciones
+verificadas (revertir el fix del `raise` → 4 tests caen; revertir la resolución
+por env → 1 cae; revertir el status condicional → 3 caen).
+
+**Nota de método:** `SubmissionStatus.FAILED` existía en el enum y **nunca se
+usaba** en el loop de reintentos. El bug 2 no era un descuido de una línea: era
+un estado entero del sistema que nadie había recorrido.
+
 ## 55. El MERGE de `cores/validation/` está BLOQUEADO por migración en curso (2026-10-04) — proceso
 
 **El solapamiento sí está medido** (`docs/PRODUCT_MAP.md` §3.2): 4 clases
