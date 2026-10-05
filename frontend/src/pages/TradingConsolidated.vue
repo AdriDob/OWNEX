@@ -7,6 +7,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { TrendingUp, Brain, FlaskConical, DollarSign, RefreshCw, ShieldAlert, Play, Pause } from '@lucide/vue'
 import { api } from '@/lib/api'
+import TradingRadars from '@/components/trading/TradingRadars.vue'
 
 const loading = ref(true)
 const error = ref('')
@@ -245,10 +246,8 @@ onMounted(fetchData)
         </div>
       </div>
 
-      <!-- Snapshot para más features -->
-      <div class="rounded-xl border border-dashed border-border/20 p-4 text-center text-xs text-muted-foreground">
-        Backtest, advisor y descubrimiento de traders disponibles: <code class="text-foreground">POST /api/trading/backtest/run</code>, <code class="text-foreground">/advisor/propose</code>, <code class="text-foreground">/intelligence/discover</code>.
-      </div>
+      <!-- Radares de mercado: pump.fun, dip, spread CEX/DEX -->
+      <TradingRadars />
     </div>
   </div>
 </template>

@@ -6,6 +6,7 @@ in a single call for the simple UX mandate.
 
 from __future__ import annotations
 
+import dataclasses
 import os
 from decimal import Decimal
 from typing import Any
@@ -436,9 +437,9 @@ async def pump_radar(
     return {
         "success": True,
         "scanned_at": __import__("time").time(),
-        "config": cfg.__dict__,
+        "config": dataclasses.asdict(cfg),
         "count": len(candidates),
-        "candidates": [c.__dict__ for c in candidates],
+        "candidates": [dataclasses.asdict(c) for c in candidates],
     }
 
 
@@ -531,7 +532,7 @@ async def dip_radar() -> dict[str, Any]:
     from cores.trading.extra_radars import DipRadarConfig, scan_dip_candidates
 
     cands = await scan_dip_candidates(DipRadarConfig())
-    return {"success": True, "count": len(cands), "candidates": [c.__dict__ for c in cands]}
+    return {"success": True, "count": len(cands), "candidates": [dataclasses.asdict(c) for c in cands]}
 
 
 @router.get("/dip/last")
