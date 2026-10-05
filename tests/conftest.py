@@ -30,10 +30,19 @@ os.environ.setdefault("CATEYE_DATA_DIR", str(_TEST_DATA_DIR))
 
 from database.db import DATABASE_URL as _DB_URL  # noqa: E402
 
-if "catseye.db" in _DB_URL:
+# El guard anterior (`if "catseye.db" in _DB_URL`) era tautológico: DATABASE_URL
+# se fija 14 líneas más arriba, así que nunca podía dispararse. Éste compara la
+# ruta RESUELTA contra las dos bases reales — la del repo (90 MB con datos del
+# usuario) y la de la app instalada.
+_REAL_DATABASES = {
+    (Path(__file__).resolve().parent.parent / "database" / "catseye.db").resolve(),
+    (Path.home() / ".ownex" / "database" / "catseye.db").resolve(),
+}
+_resolved_db = Path(_DB_URL.replace("sqlite:///", "", 1)).resolve()
+if _resolved_db in _REAL_DATABASES:
     raise RuntimeError(
-        "Refusing to run tests against the real database "
-        f"(DATABASE_URL={_DB_URL!r}). Set DATABASE_URL to a temp path first."
+        f"Refusing to run tests against a real database: {_resolved_db}. "
+        "A test writing there writes to production data."
     )
 
 

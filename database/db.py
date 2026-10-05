@@ -72,6 +72,14 @@ if getattr(sys, "frozen", False):
 
 
 def _default_db_url() -> str:
+    # `OWNEX_DATA_DIR` manda en TODOS los modos. Antes sólo se consultaba en el
+    # binario compilado: en dev devolvía `sqlite:///./database/catseye.db`
+    # ignorando la variable, así que un test con OWNEX_DATA_DIR apuntando a un
+    # temporal seguía escribiendo (y leyendo) la base del repo — a menos que
+    # `api.main` se importara antes y fijara DATABASE_URL.
+    env_dir = os.getenv("OWNEX_DATA_DIR")
+    if env_dir:
+        return "sqlite:///" + str((Path(env_dir) / "database" / "catseye.db").resolve())
     if getattr(sys, "frozen", False):
         return "sqlite:///" + str((user_data_dir() / "database" / "catseye.db").resolve())
     return "sqlite:///./database/catseye.db"
