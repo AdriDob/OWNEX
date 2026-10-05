@@ -111,10 +111,34 @@ def frontend_calls() -> dict[tuple[str, str], tuple[Path, int]]:
 
 
 class TestElGuardReplicaElResolver:
-    def test_los_root_mounted_siguen_declarados(self) -> None:
-        prefixes = _root_prefixes()
-        assert len(prefixes) >= 25, f"se esperaban ~27 root-mounted, hay {len(prefixes)}"
-        assert "/dev-bounty" in prefixes, "cambió el resolver; actualizá la réplica"
+    def test_cada_root_mounted_existe_de_verdad_en_raiz(self, backend_paths: set[str]) -> None:
+        """Una entrada en ROOT_MOUNTED_PREFIXES que da 404 en raíz rompe llamadas.
+
+        MEDIDO 2026-10-05: de los 27 que había, **25 daban 404** y sólo 2
+        respondían. Y como `resolveApiUrl` normaliza `/api/x` → `x` y después
+        decide, incluso las llamadas con `/api` explícito terminaban en raíz:
+        8 rotas (6 de `dev-bounty`, 2 de `wear-os`), 355 no afectadas.
+
+        Este test es el que impida que la lista vuelva a inflarse.
+        """
+        # Un namespace por sí solo puede dar 404 aunque su router exista bajo
+        # ese prefijo (`/wear-os` → 404, pero `/wear-os/approvals` → 200). Por
+        # eso se verifica que el prefijo tenga AL MENOS un descendant en la
+        # app real, no que el namespace exacto exista.
+        falsos = [
+            p
+            for p in _root_prefixes()
+            # Exacto (p.ej. /today) o con descendants (p.ej. /wear-os ->
+            # /wear-os/approvals).
+            if p not in backend_paths and not any(r.startswith(p + "/") for r in backend_paths)
+        ]
+        assert not falsos, (
+            "estos namespaces están en ROOT_MOUNTED_PREFIXES pero el backend NO "
+            f"sirve NINGUNA ruta bajo ellos: {falsos}\n\n"
+            "  Cada uno hace que las llamadas que lo usen terminen en raíz y "
+            "devuelvan 404. Sacalos de la lista (verificado: existen bajo "
+            "/api), o montalos en raíz si eso es lo correcto."
+        )
 
     def test_ambos_estilos_de_llamada_resuelven_igual(self) -> None:
         """`/x` y `/api/x` resuelven al mismo lado: el resolver normaliza."""
@@ -131,7 +155,9 @@ class TestElGuardReplicaElResolver:
 #
 #   app-sin-backend : la pantalla existe, su API nunca se cableó
 #   drift            : el backend movió el contrato, el front quedó atrás
-#   root-vs-api     : el front pide en raíz, el backend sirve bajo /api
+#   root-vs-api     : ELIMINADO 2026-10-05 — la lista ROOT_MOUNTED_PREFIXES
+#                     estaba inflada (25 de 27 daban 404 en raíz). Corregido
+#                     en frontend/src/lib/backend.ts; ahora 404 = 0 de este tipo.
 #
 # ESTE allowlist NO ES "está bien así". Cada entrada es una pantalla que el
 # owner ve vacía. Cerrarlas es decisión de producto, endpoint por endpoint.
@@ -145,6 +171,8 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     "/api/aegis/targets/active": ("app-sin-backend", "DashboardAegis: targets activos sin API"),
     "/api/aegis/scans/today": ("app-sin-backend", "DashboardAegis: scans del día sin API"),
     "/api/atlas/health": ("app-sin-backend", "SettingsAtlas: health de atlas sin API"),
+    "/wear-os/approvals/pending": ("drift", "el backend sirve /wear-os/approvals, no /pending"),
+    "/wear-os/approval-request": ("drift", "el backend sirve /wear-os/approval/{id}, no /request"),
     "/api/odyssey/analytics/summary": ("app-sin-backend", "DashboardOdyssey: analytics sin API"),
     "/api/odyssey/analytics/roi": ("app-sin-backend", "DashboardOdyssey: ROI sin API"),
     "/api/odyssey/analytics/performance": ("app-sin-backend", "DashboardOdyssey: performance sin API"),
@@ -169,15 +197,6 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     "/api/trading-lab/validation/status": ("drift", "trading-lab: validation sin API"),
     "/api/trading-lab/capital/snapshot": ("drift", "trading-lab: capital sin API"),
     "/platform-guides": ("drift", "platform-guides sin endpoint raíz"),
-    "/wear-os/approvals/pending": ("drift", "wear-os: approvals sin API"),
-    "/wear-os/approval-request": ("drift", "wear-os: request sin API"),
-    # ── root-vs-api: el front pide en raíz, el backend sirve bajo /api ──
-    "/dev-bounty/status": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
-    "/dev-bounty/activate": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
-    "/dev-bounty/deactivate": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
-    "/dev-bounty/run": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
-    "/dev-bounty/queue": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
-    "/dev-bounty/beginner-mode": ("root-vs-api", "el backend sirve /api/dev-bounty/*"),
 }
 
 

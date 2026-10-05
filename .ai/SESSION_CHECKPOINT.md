@@ -1,3 +1,47 @@
+
+## Sesión 2026-10-05 — CONSOLIDACIÓN CERRADA + 2 P0 (bypass de auth, promoter muerto)
+
+> **PEDIDO OWNER:** "todo" — commit de la deuda, los 85 rojos, y la deuda abierta (#32/#33/#30/`/oar/doctor`).
+> **VEREDICTO: la deuda de 4 días estaba bloqueada por el hook, no olvidada.** Al validarla aparecieron **2 P0 de producto** que ningún diff delata. Commit `4daef0f9` (354 archivos) + push.
+
+### Los 2 P0 (ninguno visible en un diff)
+
+**1. Bypass de auth en 51 rutas.** `AuthMiddleware._register_mounted()` guardaba el path **con plantilla** (`/workbank/{item_id}/deliver/approve`) y el dispatch lo comparaba contra el path **concreto** (`/workbank/1/…`): nunca coinciden ⇒ la rama "asset o SPA route" se los llevaba y pasaban **sin credencial**. Medido en vivo, anónimo: `GET /mobile/reject/1` → **405** (llegó al router) vs `GET /today` → 401. Afectaba `POST /mobile/approve/{id}` y `POST /mobile/reject/{id}`. Fix: matchear `route.path_regex`, indexado por primer segmento literal. 15 tests nuevos + a prueba de fallo.
+
+**2. El flujo validation → Finding estaba muerto.** `promoter.promote()` usaba `ConfidenceEngine().evaluate(result)` — alias de `ConfidenceScorer`, cuyo `calculate()` exige 3 args — con **un** arg ⇒ `TypeError` en cada llamada. `ValidationEngine.run()` tenía la misma llamada. **Estaba oculto porque los 11 tests que lo probaban figuraban como "baseline conocido" en #36: eran el spec de un módulo sin implementar.** Fix: `ConfidenceScore.from_validation_result()` (pesos explícitos que suman 1.0; sin baseline/probes ⇒ 0 con gap explícito). Promoter y engine usan la misma función.
+
+### El rojo era ruido de medición, no de producto
+
+**104 → 30.** No eran 104 bugs: 26 tests median 401 por no autenticar contra root-mounted · 19 heredaban `no such table` porque dos fixtures hacían `drop_all` **sin filtro** y dejaban la base sin tablas (pasan aislados) · 3 heredaban 403 por un `os.environ.pop` sin teardown · el resto fijaban contratos ya decididos en otro sentido. Cada uno se arregló contra la API real, **no creando funciones para satisfacer al test**.
+
+### Por qué la consolidación llevaba 4 días sin commitear
+
+**No era olvido: el hook la rechazaba.** `.pre-commit-config.yaml` corre `ruff`, `ruff-format`, `pytest` (fast) y `frontend-build`. 31 violaciones de ruff bloqueaban el commit — y **2 eran bugs reales**: `__all__` de `reward_probability.py` declaraba `EXTERNAL_REWARD_PRIORS` y `RewardPrior`, que no existen ⇒ `import *` reventaba.
+
+Corregido de paso: `make check` **no** corre ruff pese a que AGENTS.md lo describe así. Y `git commit` con archivos unstaged hace que el hook los stashee y su restore es de fiar **NO** — perdió `promoter.py` completo (277→11 líneas) y 4 `VulnType`. Recuperado y documentado en KNOWN_DEBT #73.
+
+### Verificación
+
+```
+suite serial completa   6176 passed · 30 failed · 0 errors
+make check              fast 103 passed / 1 skipped  (baseline INTACTO)
+ruff + ruff-format      156 archivos: All checks passed
+vue-tsc                 exit 0
+vite build              OK 13.25s
+import api.main         BOOT OK, 1728 rutas
+```
+
+### Verificado y YA cerrado (no tocar)
+
+- **`/oar/doctor` tiene consumidor vivo**: `router/index.ts:60` → `UnifiedChat.vue:616` → `ProviderHealthPanel.vue:138`. El item de CURRENT_STATE que decía "0 consumidores" quedó viejo.
+- **#33** lo cerró el flujo concurrente en `a355001b`/`9b9712c2` (39 endpoints + guard).
+
+### Pendiente owner
+
+1. **Validación física Windows/Android (W1–W12)** → veredicto STABLE. Nada de lo de esta sesión se medió en hardware real.
+2. **Los 30 rojos restantes**: triados por causa en KNOWN_DEBT #36/#71/#72. `secure_income`(5), `opportunity_cycle`(4), resto 1-2 — son de domina complemento, no de los 2 P0.
+3. **Decidir Code4rena / Immunefi** (KNOWN_DEBT #71): adapter escrito, cableado en ningún registro. ¿carril vivo o se borra? Los tests ahora affirmations su ausencia y avisan si alguien los cablea.
+4. `ConfidenceEngine = ConfidenceScorer` sigue siendo un alias mentiroso (`confidence.py:235`): borrarlo cuando se migrate el dominio viejo.
 # Session Checkpoint — Agosto 2026
 
 > v7.7.7 — SESIÓN 2026-10-01 (**CIERRE FINAL DE PRODUCCIÓN**): **4 endpoints que devolvían 500 con credencial válida → 200**, 5 stubs "for backward compatibility" implementados, y un bug que perdía findings en silencio. La sesión anterior había declarado `NOTIFY-EVERYTHING` DONE con 16/16 verdes y el código nunca aterrizó (commit `a0e11ac1` con `add -A` se lo llevó). Verificado midiendo, no leyendo. Detalle: `.ai/CURRENT_STATE.md` + `.ai/DECISIONS.md` 2026-10-01.
@@ -8,355 +52,3 @@
 > v7.7.7 — SESIÓN 2026-09-14 (re-aplicada): **CONSOLIDACIÓN FINAL — `core/` ELIMINADO** (656 archivos; verificación completa 0 refs `core.`; Makefile+orion/priority migrados antes del borrado; un flujo paralelo lo revirtió al comitear y fue re-aplicado + re-verificado). Deuda barrida: test_orion_core (`event_type`), test_daily_brief fixture + `save_brief` acepta dict (bug real del job scheduler), dead code eliminado en brief.py. Features de sesión ya commiteadas por el flujo paralelo: HelpCenter+AlertsCenter+/api/help/*+/api/alerts/sweep+plan diario, purga de plataformas low-value. Verificación: fast 102/1, api.main OK, suites afectadas verdes, ruff limpio. Detalles: `.ai/DECISIONS.md`/`CURRENT_STATE.md`/`KNOWN_DEBT.md` 2026-09-14. **Pendiente owner**: commit+push, validación física Windows W1–W12 → veredicto STABLE.
 
 > v7.7.7 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) + MOBILE GAP (3 reasoners) + MOBILE ON-DEVICE (validador) cerrados + pusheados. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesiones "MOBILE ON-DEVICE", "MOBILE GAP" y "UNIVERSAL FUNNEL WIRING".
-
-## Sesión 2026-09-09 — LOOP AUTÓNOMO (en curso)
-
-- **Hecho**: 6 handlers porteados a `cores/cycles/tasks.py` (2 fixes) + 10 jobs muertos eliminados + `test_cycle_task_handlers.py` (10 tests) + P2/P3 auditados-cerrados. Verificación: 61+83+164 passed, fast 100/1, ruff limpio, `import api.main` OK.
-- **No tocado**: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*`, `cognee` (+ `.ai/DECISIONS.md` tiene WIP ajeno al inicio — mi entrada va al final, sin colisión).
-- **Falta**: commit + push de esta sesión.
-
-## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (post-cierre)
-
-- **Consolidado en esta sesión**: (1) E2E chat canónico — semantics autoritativas backend→UI, `2d74a793`; (2) hook pre-commit → fast suite, `25dd4a1a` (primer commit con hook verde end-to-end desde el cierre anterior).
-- **Flujo concurrente sobre esta rama**: commiteó `6ee734d7` + `8d49f305` encima de mi `2d74a793`; `8d49f305` viajó en mi push (estaba local, sin push). Historial lineal sin conflictos.
-- **WIP ajeno SIN commitear (intacto, no tocado)**: `.ai/DECISIONS.md`, `cores/opportunity/engine.py`, submódulo `cognee` (contenido sucio).
-- **Verificación previa al sellado**: hook fast 100/1 (1s) · YAML hook válido · ruff limpio en tocados · `vite build` OK · `test_chat_semantics.py` 12 passed.
-- **Pendiente para retomar**: validación Windows runtime real (MSI/NSIS); borrado físico `core/` bloqueado (d968f4bf); PR #37 (NO-MERGE, 314 conflictos) abierto; re-apertura del hook a suite completa cuando el flujo ajeno aterrice (KNOWN_DEBT #14).
-
-## Sesión 2026-09-09 (post-cierre) — HOOK PRE-COMMIT → FAST SUITE (gate de commits desbloqueado)
-
-### Qué se hizo
-- **Descubrimiento**: el hook (suite completa) estaba roto por **~123 fallas en ~25 archivos** del flujo concurrente — no 2. Categorizado por causa raíz (drift de contrato): módulos sin aterrizar (`cores.commander.agent_registry`, `api.routers.financial_hub`), firmas cambiadas a mitad (`ConfidenceScorer.calculate()` que el flujo ajeno edita en el árbol), kwargs nuevos (`reset_capability_registry(store_path=)`), atributos renombrados (`DailyBriefEngine._run_ddl_visitor`, `_check_gooseai`), default de providers (`devin` vs `omniroute`), env var del develop (`NIM_API_KEY` real que `test_ai_router` asume vacía — key no commiteada, `rg` del repo vacío).
-- **Decisión del owner**: hook pytest → **suite fast** (scoring + opportunity + scheduler-jobs + e2e + security_cycle = 100/1 determinista, ~1s), mismo contrato que `make test-fast`, en lugar de whitelist de ~25 archivos (frágil, taparía regresiones propias).
-- **Cambios**: `.pre-commit-config.yaml` (hook pytest = fast set + comentario de por qué NO suite completa) · `Makefile` (nota: commits gatean en test-fast, `make test` explícito con breaks conocidos; se sumaron excludes financial_hub/self_improvement) · `scripts/dev` (mismas excludes) · `KNOWN_DEBT.md` #14 actualizado a "drift de contrato amplio" con tabla de causas + condiciones de re-apertura (`ownership: concurrent-flow`).
-- **Verificación**: hook fast **100 passed / 1 skipped en 1.00s** · YAML del hook válido · ruff limpio en scripts/dev.
-- **Fuera de alcance**: ninguno de los ~25 archivos rotos (territorio del flujo ajeno, sin tocar). `make test` completo sigue mostrando sus breaks hasta que aterrice.
-
-## Sesión 2026-09-09 (post-cierre) — E2E CHAT CANÓNICO: semantics backend → UI (P1-backlog cerrado)
-
-### Qué se hizo
-- **Gap verificado en código**: el backend etiqueta con autoridad (`POST /api/copilot/chat` → `semantics` con regla "output del modelo = INFERENCE, jamás FACT", `copilot.py:128-143`), pero `CopilotChatResponse` (ownexData.ts) NO declaraba `semantics` → el etiquetado se perdía en el borde de tipos y la UI re-etiquetaba con un heurístico local cuyo default era `'FACT'` (`AiCommandCenter.vue::tagFor`) — podía marcar como FACT exactamente lo que el backend prohíbe.
-- **Fix (3 archivos, 0 nuevos, EXTEND)**:
-  1. `frontend/src/services/ownexData.ts`: `CopilotChatResponse.semantics?` (opcional, no rompe otros consumidores) + nueva interface `SemanticLabels`.
-  2. `frontend/src/components/ai/AiCommandCenter.vue`: `fromBackendSemantics()` prefiere las labels autoritativas del backend (cap 12 bloques, 220 chars c/u, mismo límite previo); fallback heurístico soló si el contrato se rompe; **default de `tagFor` corregido `'FACT'`→`'INFERENCE'`** (todo output de modelo es inferencia; el path de error ya usa UNKNOWN explícito, nada honesto se pierde).
-  3. `tests/test_chat_semantics.py` +3 (12 total): round-trip multi-turno exactamente como `sendChatMessage` lo manda (prompt grounded + `history: [{role, content}]`) con `_CapturingRouter` que verifica que al provider llega historia+usuario en orden y que `semantics.FACT == []` con `INFERENCE` no vacío; fallback de drift (nunca FACT); `message` vacío/whitespace → 400 (fail-closed que el frontend asume al trimmear).
-- **Verificación**: `test_chat_semantics.py` **12 passed** · fast suite **100/1** (baseline exacta) · ruff limpio en los 3 tocados · `vue-tsc` 0 errores en los 2 archivos frontend (los errores LSP de ownexData ~1402+ son `CapitalSnapshot` merge preexistente, ajeno, verificado por stash) · `vite build` **OK 16.6s**.
-- **Fuera de alcance**: streaming (`/chat/stream` sin semantics por diseño), otras UIs de chat, archivos del flujo concurrente (`cores/opportunity/engine.py`, `cognee` — sueltos en el árbol, no tocados).
-
-## Cierre de sesión: 2026-09-09 — SESIÓN SELLADA (commit + push)
-
-- **Commit `9b4d4242`** (`feat(win11-stable): cierre sesión`): 57 archivos, +1692/−384 — todo el working tree P0→P5 (Command Center, revenue bridge, chat semantics, version engine, manifests, db, tests). Pusheado con `-u` creando `origin/release/win11-stable`.
-- **Verificación pre-commit**: fast suite **100 passed / 1 skipped** (baseline exacta); scan de secretos del diff limpio (solo falsos positivos de fixtures/docs).
-- **Hook de pre-commit**: falló la suite completa por fallos AJENOS a la sesión (`ModuleNotFoundError: No module named 'api.routers.financial_hub'` en test_financial_hub + test_self_improvement = WIP del flujo concurrente, módulos no tocados aquí). Se commiteó con `--no-verify` siguiendo la convención documentada en DECISIONS para este caso exacto.
-- **Submódulo `cognee`**: solo contenido sucio en su working tree (pointer sin cambio) → NO incluido en el commit.
-- **Pendiente para retomar desde otra PC**: validación Windows runtime real (MSI/NSIS); borrado físico de `core/` bloqueado hasta esa validación (d968f4bf); PR #37 (NO-MERGE, 314 conflictos) sigue abierto.
-
-## Última Sesión: 2026-09-09 — WIN11-STABLE (rama release + P0 frozen + smoke) ✅
-
-### Qué se hizo (build mode, rama `release/win11-stable` creada desde `feat/phase0-foundation`)
-- Decisiones usuario: Tauri canónico · validar en este entorno · rama estabilizada nueva (NO-MERGE sigue: PR #37 aparte) · sin firma.
-- P0: `api/main.py` env-first + `catseye.db` + `OWNEX_DATA_DIR` + URL explícita wins (E402→per-file-ignore); `cores/platform/system.py` docstrings; `sync_version.py` 11 superficies; READMEs Tauri; workflows legacy fail-fast; guard `EXE_NAME` (test-only).
-- Bug frozen `/api/version` 500→200 in_sync=true (spec datas + fallback `OWNEX_VERSION`).
-- Evidencia: 25/25 · 100/1 · 120 · ruff · cargo 4s · vite 12.5s · ONEFILE 258MB ×3 · smoke 8199/8201/8202 OK.
-- No tocado: territorio concurrente + `run.py`. Sin commits. Límite: MSI/NSIS vía CI.
-- Detalle: `DECISIONS.md` → "2026-09-09: WIN11-STABLE"; `CURRENT_STATE.md` → sesión WIN11-STABLE.
-
-## Última Sesión: 2026-09-09 — DEFINITIVE P0: consolidación core/→cores/ + fixes críticos ✅
-
-### Qué se hizo (build mode, plan DEFINITIVE P0)
-- **P0.1 consolidación completada**: imports `core.`→`cores.` migrados y verificados en 0 archivos fuera del árbol (solo quedaba `test_imports.py` scratch → archivado a `docs/archived/`; `ultimate_validation.py` scratch → archivado). NOTA 2026-09-09 (post-revert d968f4bf): el árbol físico `core/` fue restaurado y SIGUE presente; `cores/` es el único árbol importado por código vivo (0 refs `core.`), pero el borrado físico queda pendiente de decisión explícita — no reintentar sin coordinar.
-- **Referencias dinámicas migradas**: manifests forge/pulse/vault (`core.opportunity…`→`cores…`, 19/19 verificados resolubles), `OWNEX-Backend.spec` (collect solo `cores`), `api/lifespan.py` capability ID, docstrings, `cores/engine/guardrails.py`, `cores/documentation/introspect.py`, Makefile/scripts-dev/.coveragerc (paths `cores/`).
-- **Target.status + scope**: `Target.status` era columna ficticia (solo existe `active`) → property derivada + 3 queries reescritas a esquema real (`orion_context`, `system_context` con join a `Endpoint.last_scanned` + `TargetIntel.opportunity_score`, `startup_checks` contra `target_scopes`). `check_stalled_pipelines` reescrito contra `ScanRun` real (era `models.Pipeline` inexistente). Eliminados `check_investment_funding` (modelo `InvestmentAccount` inexistente) y `register_check_job` muerto (símbolos inexistentes, sin callers).
-- **Product fix real**: `_run_cycle` ejecutaba LEARN tras pausa en human-gate (outcome "failed" bogus + cerraba resume trail) → ahora retorna tras DELIVER pausado; test `test_resume_capability` reescrito a crash mid-cycle real (human-gate) y pasa.
-- **Autonomía**: `test_none_autonomy_blocks_sensitive_actions` corregido a semántica NONE=todon requiere aprobación (consistente con `AutonomyLevel` + test hermano).
-- **Vault Pydantic V2**: `type(creds).model_fields` en `cores/credentials/vault.py` (canónico).
-- **Hunt contract**: verificado ya resuelto en HEAD (`api/routers/hunt.py` `/api/hunt/*` ↔ `frontend/src/stores/hunt.ts`). `_resolve` 422, `datetime.now(UTC)`, dead-code dirs: ya resueltos en HEAD (no duplicados).
-- **Verificación**: `import api.main` OK; test-fast **100/1** exacto a baseline; suites afectadas **195 passed**; ruff limpio en tocados. Test pollution propia limpiada de `database/catseye.db` (24 filas worker_checkpoints de repros manuales).
-- **Windows CI**: workflow `ownex-tauri-windows.yml` verificado coherente (pyinstaller spec → `ownex-backend` == externalBin == sidecar entry; artefactos MSI+NSIS + SHA256). Runtime nativo Windows sigue pendiente de hardware real.
-- **P1 Command Center (nuevo, `api/routers/command_center.py` + `tests/test_command_center.py` 5/5)**: eliminado EV fabricado ($500/100 hardcodeados → null + UNKNOWN honesto); contrato extendido WHY/RISK/SUCCESS_CONDITION/NEXT + bloque `semantics` FACT/INFERENCE/RECOMMENDATION/UNKNOWN; bloque `ai` en `/status` (providers OAR + budget, degrade a "unavailable" sin romper). Aditivo: frontend tolera nulls, sin regresiones.
-- **Verificación actualizada**: suites combinadas **216 passed / 1 skipped** (incl. 5 nuevos); test-fast 100/1; ruff limpio en tocados (SIM105 restantes preexistentes).
-- **P1 tiers UI + spec (cierre)**: `GET /api/command-center/tiers` (SURVIVAL/TARGET $5K/STRETCH $15K + pace/proyección/gap desde ledger PAID + best-opportunity; 3 tests nuevos, 8/8 en `test_command_center.py`); `RevenueTiersStrip.vue` montado en IncomeHome tras FirstMoneyStrip (degrade silencioso); `fetchRevenueTiers()` en ownexData; spec objetivo registrada como canónica en `OWNEX_VISION_CHARTER.md` §Economic Objective. Chat E2E verificado (23 passed: chat_semantics+oar+mobile_copilot). Verificación final: backend 164 passed, ruff clean, **vue-tsc exit 0** proyecto completo.
-
-### Estado concurrente (IMPORTANTE)
-- Otro proceso escribe en esta rama (commit 6eb35fbc aterrizó mid-sesión; stashes activos incl. `filter-branch`; ediciones sin commitear en `cores/events/event_bus.py`, `cores/opportunity/engine.py`, `cores/validation/confidence.py`, submódulo `cognee`). **No tocados** deliberadamente (territorio P2 del otro flujo).
-- La regla YIELD 2026-09-08 (no tocar core/cores) se considera superada: la migración ajena ya está commiteada en HEAD y el usuario ordenó explícitamente el plan DEFINITIVE + "Continuar" en build mode. Ver `DECISIONS.md` 2026-09-09 (DEFINITIVE P0).
-- Protocolo seguido: cero operaciones de índice que colisionen, fixes solo en territorio propio, sin commits (no solicitados).
-
-### Pendiente
-- Validación Windows runtime en hardware real (MSI/NSIS install→launch→persist→upgrade→uninstall).
-- Borrado físico de `core/`: BLOQUEADO por política (d968f4bf + DECISIONS.md 2026-09-09) hasta Windows validation. No reintentar.
-- Decisión de fase siguiente: P2 (motores) colisiona con el flujo concurrente hoy (edita opportunity/validation/events). P1-backlog restante: chat con estado canónico ya existe (`/copilot/chat` + `ownexAi.ts`); queda por verificar E2E.
-
-## Última Sesión: 2026-09-09 — FINAL DOC/REPO + commits finales ✅
-
-### Qué se hizo
-- **Docs**: README 7.0.0→7.1.0 (título, badge, artefacto installer); CHANGELOG entry 7.1.0 (P0–P5).
-- **Repo**: verificación ruff + test-fast; commits agrupados del working tree P0–P5 + push.
-- **Estado verificado**: suite amplia 544 passed / 1 skipped; `import api.main` OK (1665 rutas); `vite build` OK; `cargo check` OK.
-
-### Pendiente (requiere hardware real)
-- Validación Windows runtime (instalador MSI/NSIS) + upgrade test con datos `%APPDATA%/OWNEX` intactos.
-- `core/` aún NO borrado — pendiente verificación Windows + suite amplia antes de eliminar.
-- **NO-MERGE 2026-09-09**: trial merge a `origin/main` → 314 conflictos (trabajo concurrente agent-runtime/bug-bounty/income en main). PR #37 queda abierto y bloqueado. Veredicto línea: **RC, no STABLE**. Ver `DECISIONS.md` 2026-09-09.
-
----
-
-## Sesión previa: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
-
-### Qué se hizo
-- **Auditoría funcional completa del frontend** contra el OpenAPI real (1.236 paths):
-  cross-reference de ~500 llamadas `api.*` → matriz viva en `.ai/FRONTEND_FUNCTIONALITY_MATRIX.md`.
-- **3 bugs sistémicos corregidos** (afectaban TODA la app):
-  1. Doble prefijo `/api/api/x` (~150 call sites, 404 silencioso tapado por catches) → normalización central en `lib/api.ts::request()`.
-  2. Namespaces root-mounted (`direct-work/*` 35 rutas, `mobile/*`, `wear-os/*`) → `resolveApiUrl()` + proxies vite.
-  3. Fetch crudos con path hardcodeado (evidence/chat-stream/pdf) → `getApiBase()` request-time.
-- **Discovery endurecido**: reset ante fallo de red + re-scan rápido→lento infinito + `retryConnection()`; `backendStatus` reactivo.
-- **ErrorState.vue** (ERROR/CAUSA/ACCIÓN, connecting calmado — regla CALM UX) reemplaza banners rojos inexplicables.
-- **Rewires a contratos reales**: learning/profile·events·export·reset, canonical/insights (404→empty), execution/traces, differential-intelligence/analyze, POST hypotheses/{target}→attack_queue, endpoints?target_id=, validation/validate+idor/idor (payloads reales), micro/batch/{action}, ReplayCenter→scans/runs, Identity sync→platforms/sync + settings granulares.
-- **Mock eliminado en producción**: KnowledgeGraphMini generateSampleData() → empty state honesto.
-- **AI Settings completo**: PUT /settings/ai/config mapea claves de TODOS los providers al registry vivo; saveAI aplica provider en vivo (antes solo persistía JSON); inputs devin/freebuff; catálogo dinámico GET providers con fallback offline.
-- **Identity**: modo global deshabilitado honesto (backend solo tiene modo por-plataforma).
-- **Docs**: TECHNICAL_DEBT.md reconstruido; FRONTEND_FUNCTIONALITY_MATRIX.md creado.
-
-### Verificación
-- vue-tsc **0 errores** · vitest **226/226** · build OK · ruff clean
-- E2E backend-vivo **11/11** | Commits: bbf5750d, cbf69102, 032975b3, df17ebc9, ab0255da
-
-### Deuda restante
-- P2: noExplicitAny preexistentes en 4 archivos legacy (stash-diff verificado)
-- Decisión producto: investment sub-adapters (~32 llamadas sin backend) — construir o retirar UI
-
----
-
-## Sesión previa: 2026-08-24 — Taxonomy refactor Phases 2-6 ✅
-
-### Qué se hizo
-- **Auditoría forense completa** (READ-ONLY): 4 enums OpportunityCategory (38 canónica / 11 engine / 3 global_sources / 11 mercenary IntEnum) + shadow taxonomies por literales (~40 sitios). Informe completo entregado con matrices A-P.
-- **FASE 2** (`ed5eaa5d`): mapper adoptado en boundaries — bounty_coordinator normaliza T2→canónico (desconocidos pasan literales); opportunity_feedback rewired a FeedbackLoop real (bug preexistente: llamaba métodos inexistentes del engine → 500 siempre) + validación fail-closed 400. `tests/test_taxonomy_boundaries.py` NUEVO.
-- **FASE 3** (`afa55bc7`): auto_scanner itera el enum en vez de hardcodear 3 familias; source_intel expone `vocabulary="global_source_families"`.
-- **FASE 4** (`919bc884`): mercenary `/categories` expone slug estable + canonical vía work_taxonomy; ordinal IntEnum deja de ser contrato público.
-- **FASE 5** (`bf97a517`): OpenSourceCategory (10 miembros) mapeado a canónica con rationale inline.
-- **FASE 6**: `cores/work_policy.py` NUEVO — CategoryPolicy separada de la identidad (invariante #10), sembrada SOLO con evidencia: owner-priority-list (8 cats → HIGH) + prioridades curadas del mercenary filter heredadas vía MERCENARY_TO_CANONICAL; resto LOW con rationale explícito. Cero valores económicos inventados.
-- Pendiente: F7 (API higiene direct_work resolve estricto), F8 (tipos TS frontend), F9 (migración shadows a policy con paridad numérica), F10 (dead code).
-
----
-
-## Sesión anterior: 2026-08-24 — Application Assistant (FASE_39) ✅
-
-### Qué se hizo
-- **Plan asistido de postulación a plataformas de ingreso** (`core/application_assistant.py` NUEVO):
-  - Catálogo curado de 5 plataformas priorizadas por caja (Outlier, Mercor, Alignerr, Mindrift, Fiverr) con pay ranges honestos region-tiered
-  - 19 pasos con guía de qué poner en cada campo + respuestas sugeridas pre-rellenadas desde el Profile Kit real
-  - Tracking persistente en `data/applications.json` (sobrevive restarts) + `overview()` con next_action
-  - Endpoints en `api/routers/control.py`: GET `/api/applications/{plan,overview}`, POST `/applications/{platform}/steps/{step_id}/complete` (404), POST `/applications/{platform}/status` (400)
-- **Hallazgo que motivó el módulo**: verificación de mercado 2026 confirmó que Outlier/Mercor/Alignerr/Mindrift aceptan Argentina DIRECTO (ID + móvil del país real, sin VPN). El `vpn_assistant.py` tenía AR en `DISALLOWED_COUNTRIES` como suposición conservadora → **FIX**: AR (+MX) movidos a ALLOWED con fuente citada; `DATAANNOTATION_ALLOWED_COUNTRIES` separado (sigue US/UK/CA/AU/NZ/IE); verdicts ya no empujan VPN (apuntan a `/api/applications/plan`). Módulo VPN archivado.
-- **Coordinación**: proceso concurrente (`c33eb761`) revirtió dos veces cambios unstaged (control.py + COMPLETED_FEATURES.json); re-aplicados y re-verificados.
-
-### Verificación
-- ruff limpio en los 4 archivos; `tests/test_application_assistant.py` **16/16**
-- Suite fast **100 passed / 1 skipped** (baseline exacta); `import api.main` OK; smoke E2E overview+complete OK
-- FASE_39 registrada en COMPLETED_FEATURES.json; entrada completa en CURRENT_STATE.md
-
----
-
-## Sesión anterior: 2026-08-07 — Closed Loop Revenue Implementado ✅
-
-### Qué se hizo
-- **Closed Loop Revenue completo** - Sistema de autonomía y aprendizaje automático
-  - **PaymentTracker** (`core/payment_tracker.py`): Rastreo de pagos vía webhooks/polling, persistencia en JSON
-  - **TrustEngine** (`core/trust_engine.py`): Sistema de confianza por plataforma con métricas (success_rate, payment_rate, trust_level)
-  - **ClosedLoopManager** (`core/closed_loop.py`): Conecta detección de pago → actualización de trust → aprendizaje de perfil
-  - **Auto-approval configurable**: Threshold por monto, nivel de confianza mínimo, plataformas bloqueadas/permitidas
-- **API endpoints** (15 nuevos en `control.py`):
-  - `/api/payment-tracker/*` - status, webhook, config, confirm, pending
-  - `/api/trust-engine/*` - status, platform metrics, config, outcome, can-auto-approve
-  - `/api/closed-loop/*` - status, process-payment, process-rejection, config
-- **Frontend integration**:
-  - Types TypeScript en `controlPanel.ts` (PaymentEvent, TrustMetrics, ClosedLoopStatus)
-  - `AutonomyDashboard.vue` - Dashboard de autonomía con % auto, trust metrics, pagos pendientes
-  - Integrado en MissionControl.vue después de FinanceGuru
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 28 definidos
-- **Work Bank**: Recomienda método de cobro automáticamente (visible en frontend)
-- **Closed Loop**: Sistema básico implementado (webhooks → trust → perfil → aprendizaje)
-- **Autonomía**: Dashboard muestra % auto, trust metrics, pagos pendientes
-
-### Próximos pasos para ser insuperable
-1. Integrar webhooks reales de plataformas (HackerOne, Opire, Freelancer)
-2. Auto-submit con auto-approval (integrar con AssistedExecutor)
-3. RL engine para aprender de decisiones
-4. Multi-tenant beta
-
----
-
-## Sesión 2026-08-07 — Integración Frontend + Backend Completa ✅
-
-### Qué se hizo
-- **Integración Work Bank + PayoutNet (Backend)**: Enriquecimiento automático de oportunidades con método de cobro óptimo
-  - Agregados campos `payout_method` y `payout_method_rationale` a `WorkItem`
-  - Integración de `PayoutNet.recommend_for()` en `daily_cycle` del Work Bank
-  - Exposición de métodos de cobro en endpoints `/direct-work/bank` y `/direct-work/recommend`
-  - Recomendación automática por plataforma (ej: opire → Binance P2P, freelance → DolarApp)
-- **Tests de integración**: 5 tests nuevos en `test_workbank_payout_integration.py`
-  - Verificación de payout fields en items
-  - Persistencia de métodos entre instancias
-  - Robustez ante fallos de PayoutNet
-  - Validación de endpoints
-- **Integración Frontend**: Exposición visual de métodos de cobro
-  - Actualizados tipos TypeScript en `ownexData.ts` (`DirectWorkRanked`, `WorkBankItem`, `DeliverableItem`)
-  - Agregado badge de método de cobro en `DirectWorkRadar.vue` (delivery queue y ranked opportunities)
-  - PayoutNet.vue ya conectado a endpoints `/api/payout-net/*`
-  - Nuevas funciones para endpoints adicionales: `fetchIncomeDashboard`, `projectIncome`, `fetchEvolutionReport`, `fetchSuccessStats`
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 28 definidos
-- **Work Bank**: Ahora recomienda método de cobro automáticamente para cada oportunidad (visible en frontend)
-- **Frontend**: Expone métodos de cobro en DirectWorkRadar y conecta todos los endpoints de análisis de ingresos
-
----
-
-## Sesión 2026-08-07 — Limpieza de lint y reanudación ✅
-
-### Qué se hizo
-- **Limpieza de lint**: 100 errores → 0 errores
-  - Fixed 23 endpoints en `api/routers/control.py` (B006: mutable defaults → `None`)
-  - Fixed ternary operator en `core/daily_tasks.py` (SIM108)
-  - Removed unused variables (`done_count`, `issue`, `state`, `g`)
-  - Replaced % format con f-strings en `core/goal_evaluator.py` (UP031)
-  - Added `strict=True` a `zip()` en `core/master_guide.py` (B905)
-  - Renamed ambiguous variables `l` → `level`/`level_data` en `core/skill_method.py` (E741)
-  - Fixed undefined `ACCOUNTS` → `g.recommend_accounts(purpose)` en control.py
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK
-
----
-
-## Sesión 2026-08-04 — Revenue Maximization Tools Completados ✅
-
-### Todas las 7 herramientas críticas implementadas
-
-#### 1. CoderAgent E2E Integration ✅
-- Archivo: `core/autonomy/bounty_pipeline.py`
-- 7 fases: Clone → Analyze → Generate → Test → PR → Claim → Submit
-- Integración con AlgoraExecutor para claim/submit reales
-- Feedback loop automático para aprender de outcomes
-- API: `/api/bounty-pipeline/execute`, `/status`, `/config`
-- Tests: 6/6 pasan
-- **Impacto**: +$1,500-$8,000/mes (Mes 2-3)
-
-#### 2. BrowserAgent Automation ✅
-- Archivo: `cores/opportunity/executors/platform_workers.py`
-- DataAnnotationWorker: login real, fetch_projects, submit_response
-- OutlierWorker: login real, fetch_projects, submit_work
-- ~1000 líneas de lógica real con múltiples selectores
-- Manejo robusto de errores (CAPTCHA, 2FA, timeouts)
-- **Impacto**: +$3,000-$10,000/mes (microtasks automatizados)
-
-#### 3. Multi-Agent Coordinator ✅
-- Archivo: `cores/agents/bounty_coordinator.py`
-- Cola de prioridad basada en EVH
-- Control de concurrencia (max 3-5 bounties simultáneos)
-- Timeout automático (30min por defecto)
-- Integración con EventBus para monitoreo
-- API: `/api/agent-coordinator/start`, `/stop`, `/status`, `/add-bounty`
-- **Impacto**: +$5,000-$15,000/mes (paralelización)
-
-#### 4. Auto-Submission Pipeline ✅
-- Archivo: `cores/auto_submit/pipeline.py` actualizado
-- Elite quality gate (severity, confidence, evidence, reproduction)
-- Sistema de aprobaciones manuales/automáticas
-- Rate limiting (5 submissions/hora)
-- API: `/api/auto-submit/pending`, `/approve/{id}`, `/reject/{id}`, `/config`
-- **Impacto**: +50-100% throughput
-
-#### 5. Credential Vault Automation ✅
-- Archivo: `core/credentials/vault.py` actualizado
-- Auto-rotación de API keys (90 días max)
-- Alertas 7 días antes de expiración
-- Backup automático antes de rotar
-- Failed auth count trigger (3 fallos → rotar)
-- API: `/api/credentials/rotate/{platform}`, `/rotation-status`, `/expiring-soon`
-- **Impacto**: -50% intervención manual
-
-#### 6. Mobile Companion Approvals ✅
-- Archivo: `api/routers/mobile_approvals.py`
-- Namespace Android unificado (ai.rastro.app)
-- WebSocket para push notifications
-- Aprobaciones móviles para bounties
-- API: `/mobile/pending-approvals`, `/approve/{id}`, `/reject/{id}`
-- **Impacto**: +20% velocidad de aprobación
-
-#### 7. Voice Assistant Integration ✅
-- Archivo: `cores/voice/command_executor.py`
-- Comandos de voz: "claim bounty X", "submit PR", "start pipeline"
-- Parser de comandos con regex patterns
-- Confirmación por voz para acciones críticas
-- API: `/api/voice/commands/execute`, `/history`, `/available`
-- **Impacto**: +15% UX
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 86/87 pasan (1 skip)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 27 definidos
-- **BountyPipeline**: Operativo con E2E integration
-- **Feedback Loop**: Operativo con persistencia DB y personalización de scoring
-- **All Routers Mounted**: bounty_pipeline, agent_coordinator, auto_submit, mobile_approvals, voice_commands, credentials_rotation
-
-### Impacto Total Esperado
-
-**Sin automatización**: $400-$2,800/mes (Mes 1)
-**Con todas las herramientas**: $10,000-$20,000/mes (Mes 6)
-
-**Multiplicador**: ~10x en capacidad de ingresos
-
-### Archivos Nuevos Creados
-- `core/autonomy/bounty_pipeline.py` (Pipeline E2E)
-- `cores/agents/bounty_coordinator.py` (Multi-agent coordinator)
-- `cores/voice/command_executor.py` (Voice commands)
-- `api/routers/bounty_pipeline.py` (API)
-- `api/routers/agent_coordinator.py` (API)
-- `api/routers/auto_submit.py` (API)
-- `api/routers/mobile_approvals.py` (API)
-- `api/routers/voice_commands.py` (API)
-- `api/routers/credentials_rotation.py` (API)
-- `tests/test_bounty_pipeline.py` (Tests)
-- `scripts/test_coordinator.py` (Test script)
-
-## ⚠️ REGLA ACTIVA (2026-09-08): core/ y cores/ son NO-TOCAR
-
-Proceso concurrente ejecutó/está ejecutando la migración core→cores (wip, sin commitear,
-parcialmente roto). Usuario decidió YIELD COMPLETO: ningún agente de este flujo modifica
-core/ o cores/ hasta que el usuario confirme explícitamente que la migración ajena terminó.
-Snapshot de referencia: /tmp/rastro_pre_consolidation_20260908_205343.tar.gz
-Contexto completo: .ai/CURRENT_STATE.md → "Sesión 2026-09-08 (noche)".
-
-## Sesión 2026-09-11 — MILESTONE/AGGRESSIVE/HIGH-UPSIDE (este flujo)
-- Commit `b2921679` en `release/win11-stable` (pusheado): milestone tracker $100→$10k + plan agresivo $5k/$10k EOY + HIGH_UPSIDE_90D + fixes enum-vs-str + funnel reset. Tag `v7.7.7` (run 34611051840). Tracking: DECISIONS "2026-09-10: MILESTONE TRACKER...", CURRENT_STATE "Sesión 2026-09-10 — MILESTONE TRACKER...".
-- Archivos propios commiteados (11): first_money/tracker.py, routers/first_money.py, FirstMoney.vue, ownexData.ts, DWE recommendation.py/scoring.py/reward_probability.py, tests reward_probability + tauri_packaging, DECISIONS.md, CURRENT_STATE.md. Territorio concurrente no tocado (salvo contexto compartido verde documentado).
-
-## Sesión 2026-09-11 — LIVE HUNT LOOP (este flujo) — CERRADA
-- Commit `b6122b9a` (pusheado): probe() URL completa + probing por parámetro + `_detect_idor` endurecido + EvidenceBuilder fiel + `OffensiveEngine.hunt_endpoint()` + `tests/test_live_probe_loop.py` 10/10 (HTTP real, cero mocks). Tag `v7.7.7` (run 34619411295): Windows MSI 138MB sha `76383c5e…` verificado. Docs: commit `8b9fcce8` (solo hunk v7.7.7 en DECISIONS, sin tocar contenido concurrente).
-- No tocado: `cores/events/*`, `cores/opportunity/engine.py`, `cores/validation/*` (salvo `evidence_builder.py`), `cognee`, `core/`, `test_validation_engine.py` (11 fallas preexistentes verificadas por stash).
-- Regla: probes solo contra loopback/propio/scope-verificado.
-
-## Sesión 2026-09-13 — CIERRE 3 SESIONES (glowing-pixel + jolly-wizard + lucky-wizard) — SELLADA
-- **Cierre verificado 2026-09-13** (trace ade52cd191224eb1fdc257a9321168d2, sin commits solicitados):
-  glowing-pixel 11/11 verificación sin código; jolly-wizard 9/10 ya implementadas + fix
-  `IndentationError` `cores/intelligence/__init__.py:262` (6 líneas) → 10/10 feeds verdes;
-  lucky-wizard chat unificado (`api/routers/chat.py` + `UnifiedChat.vue`, 3 chats legacy eliminados).
-- **Evidencia de sellado**: `test_chat_unified` 9/9 + `test_threat_intel_feeds` 10/10 +
-  `test_hunt_router` 3/3 (22 passed) · fast 100/1 · ruff limpio en `chat.py` + tests nuevos
-  (21 errores `cores/intelligence/__init__.py` del rewrite sin commitear ajeno, no tocados).
-- Detalle: `.ai/CURRENT_STATE.md` → "Sesión 2026-09-13 — CIERRE 3 SESIONES".

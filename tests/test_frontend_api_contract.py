@@ -76,13 +76,55 @@ def _frontend_calls_root_paths() -> set[str]:
 
 
 def test_root_mounted_prefixes_cover_real_backend_routers() -> None:
+    """Cada namespace root-mounteado que el front usa debe existir en raíz.
+
+    MEDIDO 2026-10-05 (HTTP real): de los 27 namespaces que estaban en
+    `ROOT_MOUNTED_PREFIXES`, sólo 2 responden en la raíz — `/platform-guides`
+    y `/today`. Los otros 25 existen bajo `/api`.
+
+    Como `resolveApiUrl` normaliza `/api/x` → `x` y después decide, tener un
+    namespace de más en la lista hacía que **incluso las llamadas con `/api`
+    explícito terminaran en raíz y dieran 404** (8 llamadas: 6 de
+    `dev-bounty`, 2 de `wear-os`).
+
+    El fix definitivo (commit 4daef0f9, otro flujo) fue además hacer que
+    esas llamadas usen `/api/...` explícito. Este test verifica que la lista
+    quedó consistente con el backend real: cada entrada sirve en raíz, y el
+    front no deja nada por fuera.
+    """
     front = set(_frontend_root_mounted())
     backend = _backend_root_mounted_prefixes() - _AUTH_EXCLUDED
-    missing = backend - front
-    assert not missing, f"Falta prefix frontend para routers root-mounted: {sorted(missing)}"
-    # Sin entradas muertas: todo lo listado debe existir en el backend
-    stale = front - backend
-    assert not stale, f"Prefixes frontend sin router backend: {sorted(stale)}"
+
+    # Cada entrada del front debe servir en raíz (ruta exacta o descendants).
+    stale = [p for p in front if not any(r == p or r.startswith(p + "/") for r in backend)]
+    assert not stale, (
+        f"Prefixes en ROOT_MOUNTED_PREFIXES sin ruta en raíz: {sorted(stale)}\n\n"
+        "  Cada uno hace que las llamadas que lo usen terminen en raíz y "
+        "devuelvan 404 (medido: 25 de 27 daban 404)."
+    )
+
+    # El backend puede montar más namespaces en raíz de los que el front
+    # necesita: mientras el front escriba esas llamadas con `/api/` explícito
+    # (o el namespace no se use), no hacen falta en la lista.
+    # Lo que NO puede pasar es que el front sí use uno y no esté declarado.
+
+    sin_declarar = set()
+    for f in (FRONTEND / "src").rglob("*"):
+        if f.suffix not in (".ts", ".vue") or "node_modules" in str(f):
+            continue
+        text = f.read_text(encoding="utf-8", errors="ignore")
+        for match in re.findall(r"api\.(?:get|post|put|patch|delete)\(['\"]([^'\"?]+)", text):
+            if match.startswith("/api/"):
+                continue  # explícito: no depende de la lista
+            clean = match[4:] if match.startswith("/api/") else match
+            if any(clean == p or clean.startswith(p + "/") for p in backend):
+                sin_declarar.add(clean)
+
+    assert not sin_declarar, (
+        f"el front llama estos paths SIN /api y el backend los monta en raíz, "
+        f"pero no están en ROOT_MOUNTED_PREFIXES: {sorted(sin_declarar)}\n"
+        "  Van a /api/... y dan 404. Agregalos a la lista, o poné /api en la llamada."
+    )
 
 
 def test_vite_dev_proxy_covers_every_root_mounted_prefix() -> None:
