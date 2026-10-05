@@ -348,7 +348,39 @@ async def run_paper_cycle_once(
         logger.warning("paper track failed: %s", exc)
     summary = loop.metrics()
     summary.update({"entered": entered, "closed": [t.mint for t in closed]})
+
+    # Reportar el PnL REALIZADO al copy-trading engine. Sin esto,
+    # `CopyTradingEngine.record_daily_pnl()` queda con 0 callers, el
+    # `daily_pnl` nunca se puebla y `daily_dd_pct()` devuelve 0.0 siempre:
+    # el auto-stop por drawdown de copy trading era decorativo.
+    _report_realized_pnl_to_copy(closed)
     return summary
+
+
+def _report_realized_pnl_to_copy(closed: list[Any]) -> None:
+    """Suma el PnL de los trades recién cerrados al registro diario de copy.
+
+    Best-effort: el control de riesgo no debe caer si el bridge falla, pero
+    tampoco puede tragarse el error en silencio (sería volver al estado
+    anterior: un guard que parece activo y no lo está).
+    """
+    if not closed:
+        return
+    realized = 0.0
+    for trade in closed:
+        pnl = getattr(trade, "pnl_sol", None)
+        if pnl is not None:
+            realized += float(pnl)
+    if realized == 0.0:
+        return
+    try:
+        from cores.trading.copy_trading import CopyTradingEngine
+
+        engine = CopyTradingEngine()
+        engine.record_daily_pnl("memecoin_paper", realized)
+        logger.info("copy trading: PnL realizado del ciclo reportado = %.6f", realized)
+    except Exception as exc:
+        logger.warning("copy trading: no se pudo reportar el PnL del ciclo (%s)", exc)
 
 
 def run_memecoin_paper_cycle(max_new: int = 3) -> dict[str, Any]:
