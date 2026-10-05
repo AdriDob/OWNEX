@@ -38,6 +38,41 @@ if "catseye.db" in _DB_URL:
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _cleanup_test_artifacts_in_data_dir():
+    """Red de seguridad: borra artefactos de test que se filtren al data dir real.
+
+    `OWNEX_DATA_DIR` aísla la mayoría, pero cualquier code path que resuelva el
+    path por otra vía (o que corra fuera de pytest) escribe en
+    `~/.ownex/database/`. Ya se acumulaban 8.597 bases `knowledge_graph_kg_test_*`
+    (663 MB) ahí, en el directorio de la app instalada.
+
+    No borra nada del directorio real de la app: sólo ficheros cuyo nombre
+    matchea los prefijos de test conocidos.
+    """
+
+    yield
+
+    data_dir = Path(os.environ.get("OWNEX_DATA_DIR", ""))
+    # Nunca tocar el directorio real de la app instalada: sólo temporales.
+    if not data_dir or data_dir == Path.home() / ".ownex":
+        return
+    db_dir = data_dir / "database"
+    if not db_dir.is_dir():
+        return
+    patterns = ("*_test_*.db", "*_test_*.db-wal", "*_test_*.db-shm", "*_kg_test_*.db*")
+    removed = 0
+    for pattern in patterns:
+        for f in db_dir.glob(pattern):
+            try:
+                f.unlink()
+                removed += 1
+            except OSError:
+                pass
+    if removed:
+        print(f"[conftest] limpiados {removed} artefactos de test de {db_dir}")
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _cleanup_test_db() -> None:
     """Remove the per-PID temp test DB after the session."""
     yield
