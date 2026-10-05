@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 55 de 47.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 56 de 48.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1369,3 +1369,96 @@ el síntoma del bug silencioso).
 > contra un mock escrito a mano.* Un mock codifica la forma que vos creés,
 > no la que la API tiene. Los 3 fallos de acá vinieron de no mirar la
 > respuesta cruda nunca.
+
+## 62. SpoofCheck muerto + herramienta para que no vuelva a pasar (2026-10-05) — P2, CERRADO
+
+Continuación de #61. Mismo modo de fallo, otra integración.
+
+### El bug
+
+`SpoofCheckClient` apuntaba a `https://spoofcheck.io/api`. Ese host **no
+resuelve DNS** (verificado con `scripts/probe_integrations.py`). Estaba
+declarado como *keyless* desde siempre — nunca funcionó ni una vez — y cada
+llamada devolvía `None` dentro de un `except` silencioso:
+
+> indistinguible de "el dominio no tiene SPF".
+
+Nótese que además estaba **mal escrito** (`spoocheck`, con doble `o`) en una
+versión anterior: el bug era invisible incluso para quien leyera el código.
+
+### ✅ Cerrado (`4c1e1a7e`)
+
+Reemplazado por **consulta DNS directa** con `dnspython` (ya dependencia del
+proyecto):
+
+| Antes | Ahora |
+|---|---|
+| API HTTP que puede morir | TXT record vía DNS |
+| Necesitaba red + DNS público | Sólo DNS |
+| Keyless (y muerto) | Keyless (y funciona) |
+| `None` silencioso | Dict con `verdict` explícito |
+
+Verificado contra DNS real: `google.com` → SPF `~all` (softfail), DMARC
+`reject` (enforcing), veredicto `PARCIAL`. La lógica de los criterios es del
+propio RFC: `v=spf1` presente, `p=` no `~all` ni `?all`, `v=DMARC1` con `p=`
+distinto de `none`.
+
+Los selectores DKIM no son estándar, así que se consultan los habituales
+(`default`, `google`, `selector1`, `selector2`, `mail`, `dkim`) y se reporta
+**cuáles se encontraron** — no se afirma que falten.
+
+El resolver es inyectable, así que los tests no dependen de la red.
+
+### La herramienta: `scripts/probe_integrations.py`
+
+Es lo que **habría detectado** los dos bugs (Jupiter y SpoofCheck) en segundos.
+
+```
+$ python scripts/probe_integrations.py
+VIVO      200   432  jupiter-price
+VIVO      200   510  dexscreener
+MUERTO    ---  8049  ipinfo
+                  └─ ConnectTimeout: timed out
+23 / 26 integraciones vivas
+```
+
+Distingue cuatro estados, y esa distinción es lo que hace útil la herramienta:
+
+| Estado | Significado |
+|---|---|
+| `VIVO` | 2xx, responde |
+| `pide-key` | 401/402/403 — **la ruta existe**, falta credencial |
+| `throttle` | 429 — la ruta existe, nos limitan |
+| `MUERTO` | 404, DNS fail o connection error — **no funciona** |
+
+Confundir `pide-key` con `MUERTO` sería el error grave: 11 de las 15 fuentes
+OSINT dan 401 y están **perfectamente sanas**.
+
+Uso: `--json` para CI, `--only dexscreener,polymarket` para una sola.
+
+### `ipinfo` — NO se borró (a propósito)
+
+`ipinfo.io` da **ConnectTimeout** (3 intentos) desde esta máquina. No es 404:
+el host existe. Puede ser bloqueo de la red local, no del servicio. Borrarlo
+sería romper algo que funciona en la red del owner. Se dejó con un docstring
+que dice exactamente qué chequear si falla.
+
+### Tests
+
+11 tests: que no apunte al host muerto, que siga siendo keyless, que no use
+HTTP, la lectura de SPF/DMARC con un resolver falso, que `~all`/`?all`/`p=none`
+**no** se declaren efectivos, y que `check_domain` sea awaitable (si fuera
+sync bloquearía el event loop, igual que el bug de `/activate` en #58).
+
+Prueba de fallo: reintroduciendo `spoofcheck.io`, caen 2 tests.
+
+### Regla permanente
+
+> *Una integración con API de terceros se sondea contra la API real, no se
+> asume.* Los tests con fakes verifican **tu** lógica; sólo un sondeo real
+> verifica que **la API** sigue ahí.
+>
+> Y: *preferir el mecanismo nativo sobre el servicio intermedio.* SPF/DMARC
+> es un TXT record: preguntárselo directamente al DNS elimina una dependencia
+> que puede morir, gratis y sin key. El servicio que hacía de proxy era la
+> única parte que podía fallar.

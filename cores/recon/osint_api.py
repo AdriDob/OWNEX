@@ -29,6 +29,7 @@ IPInfo leen su key del env. URLScan, ThreatFox y SpoofCheck son keyless.
 import hashlib
 import logging
 import os
+import re
 from typing import Any
 from urllib.parse import quote
 
@@ -407,7 +408,14 @@ class ThreatFoxClient(OSINTClient):
 
 
 class IPInfoClient(OSINTClient):
-    """IPInfo — geolocation, ASN, carrier data."""
+    """IPInfo — geolocation, ASN, carrier data.
+
+    ⚠️ **Inalcanzable desde la red de desarrollo** (ConnectTimeout medido el
+    2026-10-05 con `scripts/probe_integrations.py --only ipinfo`, 3 intentos).
+    No se borró: puede ser bloqueo de la red local y no del servicio. Si
+    `/api/osint/query {"service":"ipinfo",...}` devuelve `None` y tenés
+    `IPINFO_API_KEY` seteada, es un timeout de red, no un cliente roto.
+    """
 
     def __init__(self):
         super().__init__("https://ipinfo.io", "IPINFO_API_KEY")
@@ -421,13 +429,124 @@ class IPInfoClient(OSINTClient):
 
 
 class SpoofCheckClient(OSINTClient):
-    """Check SPF/DMARC/DKIM records for email spoof risk."""
+    """SPF / DMARC / DKIM por consulta DNS directa.
 
-    def __init__(self):
-        super().__init__("https://spoofcheck.io/api", "")
+    Antes apuntaba a `https://spoofcheck.io/api`, un host que **ya no resuelve
+    DNS** (verificado 2026-10-05 con `scripts/probe_integrations.py`). El
+    servicio fechou y el código seguía declarándolo como *keyless*: nunca
+    funcionó ni una vez, y cada llamada devolvía `None` dentro de un `except`
+    silencioso — indistinguible de "el dominio no tiene SPF".
+
+    Lo que hay que consultar es, literalmente, un TXT record. Hacerlo por DNS
+    elimina la dependencia externa que puede morir, no cuesta nada y no
+    necesita API key. `dnspython` ya es dependencia del proyecto.
+
+    Los criterios son del propio RFC: `v=spf1` presente, `p=` no es `~all`
+    (satisface cualquiera) ni `?all` (neutral), `v=DMARC1` con `p=` no `none`.
+    Los nombres de selector DKIM no son estándar, así que se toman de los
+    candidatos habituales (`default`, `google`, `selector1`, `selector2`,
+    `mail`, `dkim`) y se reporta cuáles existen.
+    """
+
+    _DKIM_SELECTORS = ("default", "google", "selector1", "selector2", "mail", "dkim")
+
+    def __init__(self, resolver: Any | None = None):
+        """`resolver` sólo se inyecta en tests: en producción usa DNS real."""
+        # base_url/api_key quedan para NO romper el contrato de OSINTClient.
+        super().__init__("dns:", "")
+        self.api_key = ""  # keyless por diseño
+        self._resolver = resolver
 
     async def check_domain(self, domain: str) -> dict[str, Any] | None:
-        return await self._get(f"/domain/{domain}")
+        import asyncio
+
+        return await asyncio.to_thread(self._check_sync, domain)
+
+    def _check_sync(self, domain: str) -> dict[str, Any] | None:
+        try:
+            import dns.resolver
+        except ImportError:  # pragma: no cover - dnspython es dependencia
+            logger.warning("dnspython no disponible: no se puede leer DNS")
+            return None
+
+        resolve = self._resolver.resolve if self._resolver is not None else dns.resolver.resolve
+
+        def _txt(name: str) -> list[str]:
+            try:
+                answers = resolve(name, "TXT", lifetime=6)
+            except Exception:
+                return []
+            out: list[str] = []
+            for rdata in answers:
+                try:
+                    out.append(b"".join(rdata.strings).decode("utf-8", "replace"))
+                except Exception:
+                    continue
+            return out
+
+        spf = _txt(domain)
+        dmarc = _txt(f"_dmarc.{domain}")
+
+        spf_recs = [r for r in spf if r.lower().startswith("v=spf1")]
+        dmarc_recs = [r for r in dmarc if r.lower().startswith("v=dmarc1")]
+
+        # `-all` (hardfail) > `~all` (softfail) > `?all` (neutral) > `+all`
+        spf_policy: str | None = None
+        for rec in spf_recs:
+            token = next((t for t in rec.split() if t.endswith("all")), None)
+            if token:
+                spf_policy = token
+                break
+
+        dmarc_policy: str | None = None
+        for rec in dmarc_recs:
+            m = re.search(r"\bp=(\w+)", rec, re.IGNORECASE)
+            if m:
+                dmarc_policy = m.group(1).lower()
+                break
+
+        dkim_found = [s for s in self._DKIM_SELECTORS if _txt(f"{s}._domainkey.{domain}")]
+
+        return {
+            "domain": domain,
+            "source": "dns",
+            "spf": {
+                "present": bool(spf_recs),
+                "records": len(spf_recs),
+                "policy": spf_policy,
+                # `~all` y `?all` no protegen de forma efectiva.
+                "effective": spf_policy in ("-all", "~all"),
+                "hard_fail": spf_policy == "-all",
+            },
+            "dmarc": {
+                "present": bool(dmarc_recs),
+                "records": len(dmarc_recs),
+                "policy": dmarc_policy,
+                "enforcing": dmarc_policy not in (None, "none"),
+            },
+            "dkim": {"selectors_found": dkim_found, "checked": list(self._DKIM_SELECTORS)},
+            # Verdicto honesto: sin datos no se afirma que falte.
+            "verdict": _spoof_verdict(spf_recs, spf_policy, dmarc_recs, dmarc_policy),
+        }
+
+
+def _spoof_verdict(
+    spf_recs: list[str],
+    spf_policy: str | None,
+    dmarc_recs: list[str],
+    dmarc_policy: str | None,
+) -> str:
+    """Veredicto derivado de lo observado, sin inventar."""
+    if not spf_recs and not dmarc_recs:
+        return "NO_DATA: sin registros SPF ni DMARC. Un dominio sin SPF/DMARC es "
+        "vulnerable a spoofing de remitente."
+    if spf_policy in ("~all", "?all") or dmarc_policy == "none":
+        return "PARCIAL: hay registros pero las políticas no son estrictas"
+    if not spf_recs:
+        return "PARCIAL: DMARC ok pero sin SPF"
+    if not dmarc_recs:
+        return "PARCIAL: SPF ok pero sin DMARC"
+    return "BIEN: SPF y DMARC con políticas que aplican a todos"
 
 
 # Registry for discovery
