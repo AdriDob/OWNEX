@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 50 de 44.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 52 de 45.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1107,3 +1107,108 @@ Esto ya pasó dos veces en esta sesión: primero el test de credenciales
 > **Un test que sólo puede pasar es un test que no prueba nada.** La
 > pregunta no es "¿pasa?" sino "¿pasa por la razón correcta?" — y eso se
 > verifica reintroduciendo el bug.
+
+## 65. `infinite-sources` fabricaba oportunidades — la feature de "más fuentes" era 100% ficticia (2026-10-05) — CERRADO
+
+**El hallazgo más grave en alcance después del CSRF**, y ironyía total: era exactamente la feature que el owner pidió ("quiero la mayor cantidad de fuentes y adapters sin experiencia ni entrevista").
+
+- **Medido:** las **7** "fuentes" de `cores/financial_intelligence/infinite_source_discovery.py` — LinkedIn, Indeed, RemoteOK, WeWorkRemotely, FlexJobs, GitHub, **Fiverr** — **no hacen ninguna llamada de red**. `discover_sources()` devuelve listas escritas a mano, con comentarios `simulated_jobs` / `# In production, would use ... API`. Verificado con un test que por fuente comprueba `simulated=True, red=False`: **7/7 simuladas**.
+- **Fabricaba:** URLs inexistentes (`linkedin.com/jobs/view/123`, `fiverr.com/gig/123`) y rates inventados, presentados con forma de oportunidad zero-barrier válida. `total_discovered` daba 0 en vivo porque **nunca se había corrido** — el botón cuelgue y nadie lo notó. (Y `discover_sources()` **colgaba**: por eso mi primer intento abortó.)
+- **Se propagaba:** `ultra_fast_income.generate_plan()` (línea 176) lo consumía cuando no le pasaban oportunidades, y `POST /api/ultra-fast-income/*` **está montado**. Es decir: un plan de ingresos podía construirse sobre trabajo ficticio.
+- **Cierre:** `generate_plan(None)` ahora **falla explícitamente** pidiendo oportunidades reales (no inventa); `POST /api/infinite-sources/discover` responde **410 Gone** con el motivo. Se usa 410 y no 5xx porque `error_handling.py:77` oculta el `detail` de todo 5xx por política de seguridad correcta.
+- **Bug de middleware encontrado de paso (arreglado):** `ErrorHandlingMiddleware.dispatch` tenía `except Exception` **sin re-lanzar `HTTPException`**, así que degradaba **todos** los 4xx de todos los routers a `500 "Internal server error"`. Un 404 "no encontrado" llegaba al usuario como error interno. Agregado `except HTTPException: raise`.
+- **4 guards** en `tests/test_fake_source_discovery.py`, incluido uno que **obliga a revisar a propósito** si alguna fuente pasa a ser real (para poder levantar el `410`). Prueba de fallo: reactivar el return simulado ⇒ cae el guard.
+
+**Regla permanente:** *una discovery que devuelve datos escritos a mano no es una feature: es un generador de promesas.* Si no puede mostrar la URL de la fuente, no es una oportunidad. Y: *un `except Exception` en un middleware de errores destruye el contrato de errores de todo el sistema.*
+
+## 59. Regla del owner: toda la config pendiente aparece en el panel (2026-10-05) — CERRADO
+
+> *"todo lo que quede pendiente de configuración debe aparecer en la
+> configuración del sistema (front)"*
+
+### Por qué faltaba
+
+La configuración viva estaba en tres lugares que nadie podía ver juntos:
+
+| Lugar | Qué | Problema |
+|---|---|---|
+| `cores/` + `api/` | **145** `os.getenv()` distintos | Ningún índice |
+| `setup/checklist.py::_AI_API_KEY_ENVS` | 16 keys, un solo item "activar IA" | Las 10 del OAR no aparecían en ninguna superficie |
+| Docstrings | Prometían capabilities contingent on keys | No listadas en ningún lado |
+
+Consecuencia medida: **de 10 providers de IA activados, 6 sin credencial
+seguían reportándose `auth_failed` sin que nada dijera "falta la key".** De
+las 4 keys de trading, ninguna aparecía en el front.
+
+> Una capacidad gateada por una key invisible es una capacidad que no
+> existe — y además nadie puede activarla sin leer código.
+
+### Qué se construyó
+
+- **`cores/setup/capability_config.py`** — registro `capability → keys`.
+  Una entrada por **capacidad**, no por variable (GROQ sirve a dos
+  capacidades y se declara en las dos, con `all_envs()` deduplicando).
+  11 capacidades · 18 keys · cada una explica **qué se pierde sin ella**.
+- **`GET /api/system/capabilities`** — presencia, **nunca valores**. Hay un
+  test que verifica que un env con secretos no aparezcan en el snapshot.
+- **`PendingConfig.vue`** en Settings → General, arriba de todo.
+
+### La regla que hace confiable el panel
+
+`impact` ∈ `{bloqueada, degradada, ninguno}`, y los tests verifican que
+**coincida con la realidad**:
+
+```
+bloqueada ⟺ hay key REQUERIDA faltando
+degradada  ⟺ sólo faltan keys OPCIONALES
+ninguno    ⟺ no falta nada
+```
+
+Decir "bloqueada" cuando el sistema funciona es la misma clase de mentira que
+un 0 inventado — y **peor**: el owner chasearía una key que no hace falta, y
+después de una vez dejaría de mirar el panel. Un panel que miente una sola
+vez pierde su función para siempre.
+
+Estado real medido: **1 bloqueada** (`SOLANA_PRIVATE_KEY` — sin ella no se
+puede firmar), 5 degradadas, 5 keyless.
+
+### Helius: qué es y por qué el owner preguntó
+
+Es la key de un **RPC de Solana pago** (`mainnet.helius-rpc.com`). El
+sistema la usa para tres operaciones contra la red:
+
+| Método JSON-RPC | Para qué |
+|---|---|
+| `getBalance` | saldo SOL de la wallet |
+| `getTokenAccountsByOwner` | saldo de tokens SPL |
+| `sendTransaction` | broadcast de la swap firmada |
+
+Sin ella se usa `api.mainnet-beta.solana.com`: público, **limita por IP**, y
+un 429 en medio de un swap (construir → firmar → enviar) es perder la trade.
+
+Es **opcional y el panel lo declara así**: sin Helius el sistema funciona,
+con menos margen. Antes de `d3d2bbab` la key se recibía y se guardaba pero
+**nunca se leía** — configurarla no cambiaba nada, que es peor que no
+tenerla porque promete un rendimiento que no llega.
+
+### Dos bugs que los tests encontraron en mi propio trabajo
+
+1. `ai_local` declaraba `impact="ninguno"` pero tenía `OLLAMA_HOST` como
+   opcional pendiente: **contradecía su propia regla**. `OLLAMA_HOST` tiene
+   default funcional (`localhost:11434`), así que se quitó — una capacidad
+   100 % operativa no debe aparecer en la lista de faltantes.
+2. El guard de `example.com` (`fd943623`) fallaba con mi propio docstring,
+   que menciona el dominio a propósito para documentar qué pasó. Ajustado
+   para chequear **código, no prosa**: un guard que falla por un comentario
+   obliga a borrar la explicación del fix.
+
+### Regla permanente
+
+> *Toda capacidad que dependa de configuración debe declararla en
+> `capability_config.py`, con el impacto real (bloqueada / degradada /
+> ninguno) y qué se pierde sin cada key. Si agregás una capacidad con keys,
+> la agregás ahí — no en un router, no en un componente, no sólo en un
+> docstring.*
+>
+> Y al revés: *si una key no aparece en el panel, el owner no puede
+> activarla. El registro es la única superficie.*
