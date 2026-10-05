@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 39 de 40.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 43 de 41.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -702,3 +702,117 @@ de estados sin causa.
 Corolario: *construir el panel **expuso** los dos bugs*. El endpoint ya
 existía y "funcionaba"; lo que faltaba era un consumidor real que lo mirara.
 Una capacidad sin consumidor no se rompe — se **descubre** tarde.
+
+## 58. FASE 1 — el build como gate de commit + e2e autenticados (2026-10-05)
+
+**Cerré el agujero que yo mismo había señalado:** los 3 bugs de hoy (`v-else` sin `v-if`, `})` huérfano, import sin instalar) dieron **0 errores en `vue-tsc` y pasaron los 202 tests**. Sólo `vite build` los cazó. CI corría el build (`ci.yml:107`) pero se salta con `--no-verify`, que es exactamente como entraron.
+
+- **Hook `frontend-build` agregado a `.pre-commit-config.yaml`** (`vue-tsc` + `vite build`, sólo cuando cambian archivos de `frontend/src`). Probado a prueba de fallo: con un `try` sin `catch` (el bug real de hoy) **bloquea el commit**; restaurado, pasa.
+- **3 e2e fallaban con 401 tras el gate de auth.** Los tests pegaban a `/today` y `/direct-work/revenue-ledger` **sin credencial**. El gate es lo correcto (devuelven estado financiero); los tests se autenticaron. Nuevo helper `e2e/_session.ts` (`authHeaders`). **28/28 e2e verdes.**
+- **Bug propio ruido de consola, raíz corregida (no el test):** con el gate de auth, cada carga sin sesión logueaba `ApiError: Sesión expirada` vía `console.error`, y el smoke lo leía como error de runtime. Dosiles:
+  1. `lib/api.ts` decía "Sesión expirada" **sin token** — falso: nunca hubo sesión. Ahora distingue.
+  2. Tres call sites logueaban el 401 esperado como error. Nuevo `isUnauthenticated()` (`lib/errors.ts`); un 401 **con** token sigue siendo error.
+- **`useHuntStore is not defined` en `/` (P0 de la raíz): NO era código roto** — era un `dist` corrupto/stale. Verificado: el build sin minificar importaba bien (`ag as useHuntStore`); el minificado no. `rm -rf dist node_modules/.vite` + rebuild lo resolvió. **Un chunk de producción roto puede parecer un bug de código y no lo es.**
+- **`test_security_cycle` resuelto por el flujo paralelo (verificado por mí):** la causa era `category="offensive"`, que **no existe** en `CycleCategory` (el enum define `SECURITY = "security"`). Corregido en los tres sitios (`registry.py:102`, `security.py:63`, `DEFAULT_CYCLES`). Comprobé que **desde cero** (tabla `cycles` dropeada) `ensure_cycle()` devuelve `category: security`, y `test-fast` quedó estable 103/1 en tres corridas seguidas.
+
+**Verificación:** frontend 229/229 · e2e 28/28 · `test-fast` 103/1 (estable en 3 corridas) · `vue-tsc` 0 · `vite build` OK.
+
+## 59. FASE 1 — supervisión de la ejecución: `ExecutionPanel` cierra 6 capacidades sin UI (2026-10-05)
+
+**El gap medido:** `execution_queue`, `worker_core`, `auto_submit`, `bounty_pipeline`, `unified_income` y `economic_feedback` tenían **cero** referencias en el frontend. Son justamente las que dicen si el trabajo automático avanza o se muere — y el rol del owner es supervisor: sin verlas no hay nada que supervisar.
+
+- **`ExecutionPanel.vue` (nuevo):** resumen por fase (listos / enviados / fallidos / neto-por-hora) + cola densa virtualizada sobre `DataTable`. Montado como pestaña **Ejecución** en `/operations`, donde un supervisor ya mira.
+- **Invariante de dinero, con guard:** `economic-feedback` devuelve `global_net_per_hour: null` cuando no hay horas registradas. El panel lo muestra como **UNKNOWN**, nunca `$0.00/h` — "no sé cuánto ganás por hora" y "ganás cero por hora" son afirmaciones distintas (KNOWN_DEBT #34). Prueba de fallo: devolver `$0` por `null` ⇒ cae el guard.
+- **Degradación honesta:** si `economic-feedback` falla (404 incluido), el panel **igual sirve**: la cola es lo esencial y el neto/hora queda UNKNOWN.
+- **Bug real encontrado por vitest (5 unhandled errors):** `CodeEditor` llamaba **`EditorState.reconfigure`, que no existe** en CodeMirror 6 — la API correcta es `Compartment.reconfigure`. El TypeError quedaba oculto detrás del `try/catch` del cargador de lenguaje porque ocurre **después**, en el `dispatch`. Además el guard `if (!view)` estaba **antes** del `await`, y como el `await` cede el control el componente se desmonta mientras carga el paquete: se captura la referencia antes y se relee después. El `Compartment` además es más barato: reconfigura sólo el resaltado, no toda la config.
+- **Un test mío era flaky por timing** (leía `html()`): el documento **sobrevive** al reconfigure, verificado leyendo `.cm-content` a t0 y t300.
+
+**Verificación:** frontend 237/237 (22 archivos, 0 unhandled) · `vue-tsc` 0 · `vite build` 12.7s · e2e 28/28 · `test-fast` 103/1 · `import api.main` OK.
+
+## 60. BUG CRÍTICO: CSRF rompía TODO el loop de escritura del navegador (2026-10-05)
+
+**El más grave de la sesión, y era preexistente.** Descubierto al intentar usar el botón de acción de `ExecutionPanel` y ver que el POST devolvía 403.
+
+- **Causa:** `api/middleware/csrf_middleware.py` emitía la cookie `csrf-token` con `httponly=True`. Eso hace **IMPOSIBLE** el patrón double-submit que su propio docstring describe ("State-changing requests must include the same token in the `X-CSRF-Token` header"): el patrón exige que el cliente lea la cookie y la reenvíe, y `httpOnly` impide leerla desde JS. El frontend nunca mandaba ese header.
+- **Radio de impacto medido:** TODOS los POST/PUT/DELETE/PATCH del navegador devolvían **403 CSRF** — aprobar entregas (`/direct-work/workbank/{id}/deliver/approve`), cambiar modos, resolver alertas, guardar archivos. El producto era **solo lectura**: se podía ver el trabajo pero no ejecutarlo.
+- **Por qué nadie lo notó:** `tests/conftest.py:11` hace `os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")` para TODA la suite, así que ningún test ejercitaba CSRF. Y los e2e de Playwright sólo hacen GET.
+- **Fix (dos mitades, ambas necesarias):**
+  1. La cookie `csrf-token` va `httponly=False`. Es correcto **aquí**: no es una credencial (la sesión es el header Bearer / `ownex-session`, que sí van httpOnly).
+  2. `frontend/src/lib/api.ts` lee la cookie y reenvía `X-CSRF-Token` en toda request.
+- **La protección sigue viva (verificado):** sin header ⇒ **403**; con header falso ⇒ **403**; con header correcto ⇒ pasa CSRF y decide la máquina de estados (200 si la transición es válida, 400 si no). No se desactivó nada: se completó el patrón.
+- **5 guards** en `tests/test_csrf_double_submit.py`, que **reactivan CSRF** para ese archivo (el conftest lo apagaba). Prueba de fallo: volver a `httponly=True` cae `test_la_cookie_csrf_debe_ser_legible_por_js`.
+- **Regla permanente:** *un opt-out de seguridad en el conftest es una cortina que ningún test puede levantar.* Si una suite entera corre con la protección apagada, la primera línea de todo test de seguridad es reactivarla explícitamente.
+
+## 55. Auditoría de trading + revenue: 6 P0 de ejecución y honestidad (2026-10-05) — CERRADOS
+
+Pedido del owner: *"auditar todo lo que imagine que me gustaría que tenga tipo
+trading automático en pump fun, más tipos de trading automático, copy
+trading... el apartado de multiplicación de ingresos me interesa muchísimo,
+que todo sea desde el propio panel"*.
+
+**Lo primero que encontré: casi todo ya existía.** Pump.fun (`pump_radar.py`,
+DexScreener + RugCheck, keyless), dip radar, spread CEX/DEX, copy trading
+completo con risk controls, 8 adapters de bounty, revenue multiplier con 62
+tools catalogadas. La regla de Oro se cumple: no había que construir, había
+que **arreglar y exponer**.
+
+### Los P0 (verificados ejecutando, no leyendo)
+
+| # | Bug | Impacto |
+|---|---|---|
+| 1 | `/pump/execute` llamaba `kill.is_triggered()` — **método inexistente**, tragado por `except: pass` | **Compraba sin chequear el kill switch** |
+| 2 | `is_active(STRATEGY)` sin identifier → `return False` siempre | **Kill switch de estrategia nunca bloqueaba** |
+| 3 | Kill switch en RAM, una instancia por call site | El del paper ≠ el de la compra real; restart lo borraba |
+| 4 | `record_trade(pnl=0, won=True)` fijos | **`win_rate` = 100% garantizado** |
+| 5 | `record_revenue()` con **0 callers** | Revenue y `estimated_annual` siempre 0 |
+| 6 | `/activate {"mode":"live"}` sin Human Gate | **Un POST movía fondos reales** |
+
+**Todos corregidos.** El #6 reusa el mismo `consume_approval` (HMAC single-use)
+que ya funcionaba en `/pump/execute`.
+
+### Dos correcciones a la propia auditoría (no reporté bugs inexistentes)
+
+- **La firma de Solana estaba invertida, pero en el archivo equivocado.** La
+  auditoría dijo que `memecoin_adapter._live_swap` tenía los argumentos
+  invertidos "respecto a `solana_wallet.py`". Probado empíricamente con
+  solders 0.29.0: `(message, [keypair])` es el orden **correcto** y
+  `([signature], message)` es el que **falla**. El bug real estaba en
+  `solana_wallet.sign_and_serialize`, que además usaba `sign_message()`
+  (firma bytes arbitrarios) en vez de firmar la transacción. Ese es el path de
+  copy trading y `RealExecutor`.
+- **Un test encontró comportamiento de seguridad correcto donde yo esperaba un
+  bug**: solders rechaza `keypair-pubkey mismatch`. No es un defecto: impide
+  firmar la transacción de otra cuenta. Se fijó como test.
+
+### Bug de lógica: los hard filters de pump/dip NUNCA pasaban
+
+`evaluate_pair()` lee claves planas (`pair["liquidity_usd"]`) pero los radares
+le pasaban el dict **anidado** de DexScreener (`{"liquidity": {"usd": ...}}`).
+Resultado: `passed_filters == False` en el 100% de los candidatos, siempre.
+El path que sí funciona (`memecoin_adapter:115`) normaliza antes.
+`rg "passed_filters" tests/` → 0 tests. **PENDIENTE: normalizar + test.**
+
+### Otros P0 abiertos (no tocados)
+
+- `GitleaksAdapter` mal cableado: `gitleaks detect --source https://…` — gitleaks
+  sólo acepta paths locales, así que el stage de secrets **no podía funcionar
+  para ningún dominio** (además la URL no era un repo). **CERRADO** en el
+  commit siguiente con `secret_scan_repos` en config.
+- `helius_api_key` se recibe y se guarda pero **nunca se usa**: el RPC es
+  siempre `api.mainnet-beta.solana.com`, que rate-limita y bloquea tx.
+- `send_transaction` tiene `skip_preflight=True` hardcodeado: un tx inválido
+  consume fees.
+- 20 sitios con `confidence=0.x` hardcodeada (nuclei 0.7, katana 0.3,
+  ffuf 0.4, subfinder 0.6, gau 0.3, sqlmap 0.8, xsstrike 0.7, gitleaks 0.8,
+  advisor 0.6/0.7/0.8, copy_trading 0.9/0.95/0.99). La "confidence" no se
+  relaciona con los datos.
+- `record_daily_pnl()` con 0 callers ⇒ `daily_dd_pct()` siempre 0 ⇒ el
+  auto-stop por drawdown de copy trading es decorativo.
+
+### Regla permanente
+
+*Un control de seguridad que se puede saltear por un typo no es un control: es
+decoración.* Y *una capacidad sin consumidor no se rompe — se descubre tarde*:
+los 3 radaresLkannaban solos cada 3-7 minutos contra APIs reales, y su
+endpoint era un **500 garantizado** que nadie había chamado jamás. Construir el
+panel fue lo que destapó el bug.
