@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 48 de 43.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 50 de 44.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1015,3 +1015,95 @@ que no se lee es una promesa que el sistema no cumple.* Los dos son
 indetectables leyendo: no hay excepción, no hay traceback, no hay log. Se
 detectan preguntando *"¿qué cambia si el owner configura esto?"* y mirando
 qué pasa cuando la respuesta es **nada**.
+
+## 64. El streaming del chat nunca funcionó (2026-10-05) — RESUELTO
+
+La auditoría lo había detectado como "el cliente SSE existe y `UnifiedChat` no lo importa". Al conectarlo apareció el bug de fondo.
+
+- **Causa:** `assistantStreamChat` hacía **`JSON.parse(data)` sobre cada evento**, pero el backend emite SSE con **texto plano**: `api/routers/assistant.py:113` hace `yield f"data: {token}\n\n"` y todos los providers (`ollama`, `openrouter`, `gooseai`) generan strings. `"hola"` no es JSON ⇒ excepción ⇒ el `catch` la descartaba. **El streaming no mostraba nada nunca**, y como el chat sólo mostraba "typing…" hasta que la respuesta llegaba entera, con el provider a 3-8s la IA parecía colgada.
+- **Fix (dos partes):**
+  1. `lib/api.ts` acepta texto plano y, si algún provider emitiera JSON, `{token: "..."}`. Un JSON válido **sin** campo `token` se trata como contenido, no se traga (bug encontrado por un test al escribir el fix).
+  2. `UnifiedChat.vue` usa el stream para las personas con endpoint de stream y **cae al camino no-stream si falla** (sin provider, red), en vez de dejar el mensaje colgado en `typing`.
+- **Verificado contra el backend:** `POST /api/assistant/chat/stream` → **200 `text/event-stream`**, y con 0 credenciales emite `data: [DONE]\n\n` (sin tokens, correcto: no hay provider). Eso confirma el formato exacto que el cliente ahora parsea.
+- **6 guards** (`src/lib/__tests__/assistantStream.test.ts`) sobre el contrato real: acumula texto plano, corta en `[DONE]` sin emitirlo, acepta JSON, no pierde JSON sin `token`, stream vacío no cuelga, ignora líneas que no son `data:`. Prueba de fallo: volver al `JSON.parse` original ⇒ caen 4.
+
+**Regla permanente:** *un parser acordado a mano es un bug esperando el primer payload real.* El tipo del evento se verificó contra la respuesta del servidor, no contra el nombre de la función.
+
+## 58. El pipeline de bounty escaneaba `example.com` y congelaba el server (2026-10-05) — P0, CERRADO
+
+Los dos últimos puntos del hallazgo #55, y los dos más graves de la tanda
+porque no producen ningún error visible.
+
+### (a) Los targets eran inventados — P0 (salida a internet no autorizada)
+
+`_discover_targets` leía:
+
+```python
+entry.get("url") or entry["target"]["marketplace"]["handle"]
+```
+
+**Ninguno de los dos campos existe.** El dataset público de bounty-targets
+(`arkadiyt/bounty-targets-data`) usa `handle` a nivel superior.
+
+Verificado contra las **449 entradas reales** de HackerOne: con el código
+anterior, **0 de 10** parseaban. El método caía **siempre** al fallback:
+
+```python
+targets = ["docs.hackerone.com", "httpforever.com", "example.com"]
+```
+
+El pipeline escaneaba **`example.com` con nuclei y sqlmap**. Esto no es "un
+dato de fallback raro": es tráfico de escaneo real saliendo de la máquina
+del owner hacia un dominio que nadie pidió escanear, y un `example.com` en
+los findings que luego el sistema podía intentar reportar como bounty.
+
+**✅ Cerrado (`fd943623`).** Se parsea `handle`, se compone
+`{handle}.hackerone.com`, y se filtra por `offers_bounties` (escanear un
+programa que no paga bounty no puede convertirse en ingreso). Si el dataset
+falla → `[]` y el pipeline **no escanea nada**.
+
+> **Preferimos 0 targets a targets inventados.** Un fallback de dominios
+> inventados es peor que no tener fallback: convierte "no hay datos" en
+> "hay hallazgos" y ambos salen a internet.
+
+Verificado en vivo después: 4 targets reales (`omarchy`, `common_codes`,
+`wolt`, `agoda-public`) donde antes había 3 inventados.
+
+### (b) `/activate` congelaba el event loop del server entero — P0 (DoS)
+
+El orchestrator es **síncrono**: `subprocess.run` de nuclei/sqlmap con
+timeouts de hasta 900s por tool, más llamadas de red. Llamado directo desde
+un `async def`, bloquea el loop:
+
+> no sólo esa request, sino **health, WebSockets, copilot y todo el resto**
+> durante los minutos que dure el escaneo.
+
+Un owner que toca "activar revenue" se queda sin backend, y no por un bug:
+por un diseño que no contempla que el trabajo es bloqueante.
+
+**✅ Cerrado (`fd943623`).** `asyncio.to_thread(rm.activate_max_revenue_mode)`.
+El loop sigue respondiendo; la request espera su resultado igual.
+
+### La nota de método (lo más importante de este commit)
+
+La primera versión del test de concurrencia usaba `TestClient`, que ejecuta
+la app en su **propio event loop dentro de otro hilo**. El heartbeat
+medía el loop equivocado → **el test PASABA con el bug presente**.
+
+Reescrito para invocar el handler directamente sobre el loop real:
+
+| | ticks durante 1.2s de escaneo |
+|---|---:|
+| Con el bug (sync directo) | **0** |
+| Con `to_thread` | >10 |
+
+> **Regla:** *un test de concurrencia que no mide el loop real pasa
+> siempre.* Y verificar que el test **falla con el bug presente** es parte
+> de escribir el test, no un extra.
+
+Esto ya pasó dos veces en esta sesión: primero el test de credenciales
+(`TestClient`), ahora el de concurrencia. La generalización útil:
+
+> **Un test que sólo puede pasar es un test que no prueba nada.** La
+> pregunta no es "¿pasa?" sino "¿pasa por la razón correcta?" — y eso se
+> verifica reintroduciendo el bug.
