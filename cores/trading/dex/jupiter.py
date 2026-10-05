@@ -10,9 +10,9 @@ import httpx
 
 logger = logging.getLogger("orion.trading.jupiter")
 
-JUPITER_QUOTE_URL = "https://quote-api.jup.ag/v6/quote"
-JUPITER_SWAP_URL = "https://quote-api.jup.ag/v6/swap"
-JUPITER_PRICE_URL = "https://api.jup.ag/price/v2"
+JUPITER_QUOTE_URL = "https://lite-api.jup.ag/swap/v1/quote"
+JUPITER_SWAP_URL = "https://lite-api.jup.ag/swap/v1/swap"
+JUPITER_PRICE_URL = "https://lite-api.jup.ag/price/v3"
 
 SOL_MINT = "So11111111111111111111111111111111111111112"
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
@@ -61,17 +61,37 @@ _PUBLIC_RPC_URLS: frozenset[str] = frozenset(
 )
 
 
+# IMPORTANTE (verificado 2026-10-05, KNOWN_DEBT #61): la API de Jupiter
+# movió el trading de /v6/{quote,swap} a /swap/v1/{quote,swap}. La URL vieja
+# `quote-api.jup.ag` ya NO RESUELVE DNS, así que TODO el trading on-chain
+# estaba muerto con un ConnectError silencioso dentro de un try/except que
+# devolvía None. Medido contra la API real antes de cambiar la constante.
+
+# RPCs alternativos keyless y gratuitos, medidos 2026-10-05.
+# publicnode respondió 354 ms vs 1002 ms del oficial: mismo tier free, 3x más rápido.
+_FREE_FALLBACK_RPCS: tuple[str, ...] = ("https://solana-rpc.publicnode.com",)
+
+
 class JupiterClient:
     def __init__(
         self,
         rpc_url: str = "https://api.mainnet-beta.solana.com",
-        jupiter_api_url: str = "https://quote-api.jup.ag/v6",
+        jupiter_api_url: str = "https://lite-api.jup.ag/swap/v1",
         helius_api_key: str = "",
         skip_preflight: bool = False,
+        rpc_retries: int = 2,
+        rpc_backoff_base: float = 0.25,
+        rpc_backoff_max: float = 2.0,
     ) -> None:
         # Preflight ON por defecto: simular la tx es local y gratis, evitarla
         # cuesta fees reales. Ver `send_transaction`.
         self._skip_preflight = skip_preflight
+        # Retry con backoff por endpoint: el tier free aguanta secuencial pero
+        # castiga concurrencia (medido: 10 hilos x 20 -> 160/200 con 429).
+        # La rotación entre endpoints gratuitos evita pagar un RPC.
+        self._rpc_retries = rpc_retries
+        self._rpc_backoff_base = rpc_backoff_base
+        self._rpc_backoff_max = rpc_backoff_max
         self._jupiter_url = jupiter_api_url.rstrip("/")
         self._helius_api_key = helius_api_key
         # `helius_api_key` se recibía y se guardaba pero NUNCA se usaba: el RPC
@@ -111,6 +131,76 @@ class JupiterClient:
     def using_paid_rpc(self) -> bool:
         """True si estamos usando Helius en vez del RPC público."""
         return "helius" in self._rpc_url
+
+    def _rpc_candidates(self) -> list[str]:
+        """Endpoints RPC a intentar, en orden.
+
+        Todos **gratuitos y keyless** salvo que el operador haya puesto uno
+        propio o una key de Helius. Medido 2026-10-05 (ver KNOWN_DEBT #60):
+
+            api.mainnet-beta.solana.com  -> 1002 ms, tier free, 30/30 seq OK
+            solana-rpc.publicnode.com    ->  354 ms, keyless, más rápido
+
+        El oficial aguanta 30 requests secuenciales sin un solo 429; el
+        límite de 250 RPS es nominal pero con concurrencia el efectivo cae a
+        ~10-20 RPS. Por eso la rotación: si uno está saturado, el otro
+        probablemente no lo esté.
+        """
+        cands = [self._rpc_url]
+        for alt in _FREE_FALLBACK_RPCS:
+            if alt not in cands:
+                cands.append(alt)
+        return cands
+
+    def _rpc_post(self, payload: dict[str, Any]) -> dict[str, Any] | None:
+        """POST JSON-RPC con reintento exponencial y rotación de endpoint.
+
+        Antes cada llamada RPC era UN intento contra UN endpoint: un 429 o un
+        timeout perdía la operación sin reintentar nada. Con el tier free
+        eso es esperable bajo concurrencia (medido: 10 hilos × 20 → 160/200
+        con 429), no una excepción.
+
+        Reintenta sólo errores transitorios (429, 5xx, timeout, conexión).
+        Un error de JSON-RPC de negocio (cuenta sin lamports, slippage
+        vencido) NO se reintenta: son deterministas y retry sólo quema
+        tiempo.
+        """
+        import time as _time
+
+        last_exc: Exception | None = None
+        candidates = self._rpc_candidates()
+
+        for attempt in range(self._rpc_retries * len(candidates)):
+            url = candidates[attempt % len(candidates)]
+            try:
+                resp = self._http.post(url, json=payload)
+                if resp.status_code == 429 or resp.status_code >= 500:
+                    last_exc = httpx.HTTPStatusError(f"RPC {resp.status_code}", request=resp.request, response=resp)
+                else:
+                    resp.raise_for_status()
+                    return resp.json()
+            except (httpx.TimeoutException, httpx.ConnectError, httpx.HTTPStatusError) as e:
+                last_exc = e
+
+            if attempt < self._rpc_retries * len(candidates) - 1:
+                backoff = min(self._rpc_backoff_base * (2**attempt), self._rpc_backoff_max)
+                logger.warning(
+                    "RPC %s falló (%s); reintento %d/%d en %.2fs",
+                    url,
+                    type(last_exc).__name__,
+                    attempt + 1,
+                    self._rpc_retries * len(candidates) - 1,
+                    backoff,
+                )
+                _time.sleep(backoff)
+
+        logger.error(
+            "RPC falló tras %d intentos en %d endpoints: %s",
+            self._rpc_retries * len(candidates),
+            len(candidates),
+            last_exc,
+        )
+        return None
 
     def quote(
         self,
@@ -236,12 +326,9 @@ class JupiterClient:
                 },
             ],
         }
-        try:
-            resp = self._http.post(self._rpc_url, json=payload)
-            resp.raise_for_status()
-            result = resp.json()
-        except httpx.HTTPError as e:
-            logger.error("sendTransaction RPC failed: %s", e)
+        result = self._rpc_post(payload)
+        if result is None:
+            logger.error("sendTransaction: no se pudo obtener respuesta RPC tras reintentos")
             return None
 
         err = result.get("error")
@@ -268,12 +355,22 @@ class JupiterClient:
             logger.error("Jupiter price fetch failed: %s", e)
             return {}
 
+        # /price/v3 devuelve `{ "<mint>": {...} }` en la RAÍZ.
+        # /price/v2 (la URL vieja) devolvía `{ "data": { "<mint>": {...} } }`.
+        # El parser viejo leía `data["data"]` y con v3 devolvía `{}` siempre.
+        entries = data.get("data") if isinstance(data.get("data"), dict) else data
+
         prices: dict[str, TokenPrice] = {}
-        for mint, info in data.get("data", {}).items():
+        for mint, info in (entries or {}).items():
+            if not isinstance(info, dict):
+                continue
+            # v3 renombró los campos: `usdPrice` (antes `price`) y
+            # `priceChange24h` (antes `change24h`). Leídos con los nombres
+            # viejos devolvían 0.0 sin error: el peor modo de fallo.
             prices[mint] = TokenPrice(
                 mint=mint,
-                price_usd=Decimal(str(info.get("price", "0"))),
-                price_change_24h=float(info.get("change24h", 0)),
+                price_usd=Decimal(str(info.get("usdPrice", info.get("price", "0")))),
+                price_change_24h=float(info.get("priceChange24h", info.get("change24h", 0)) or 0),
             )
         return prices
 
@@ -290,12 +387,9 @@ class JupiterClient:
                 {"encoding": "jsonParsed"},
             ],
         }
-        try:
-            resp = self._http.post(self._rpc_url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-        except httpx.HTTPError as e:
-            logger.error("getTokenAccountsByOwner failed: %s", e)
+        data = self._rpc_post(payload)
+        if data is None:
+            logger.error("getTokenAccountsByOwner: RPC sin respuesta tras reintentos")
             return 0
 
         accounts = data.get("result", {}).get("value", [])
@@ -318,12 +412,9 @@ class JupiterClient:
             "method": "getBalance",
             "params": [wallet_address],
         }
-        try:
-            resp = self._http.post(self._rpc_url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-        except httpx.HTTPError as e:
-            logger.error("getBalance failed: %s", e)
+        data = self._rpc_post(payload)
+        if data is None:
+            logger.error("getBalance: RPC sin respuesta tras reintentos")
             return 0
         return data.get("result", {}).get("value", 0)
 
