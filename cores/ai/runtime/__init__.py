@@ -477,14 +477,31 @@ class OAR:
         healthy = self._health.get_healthy_providers() if self._health else []
         degraded = self._health.get_degraded_providers() if self._health else []
         unhealthy = self._health.get_unhealthy_providers() if self._health else []
+        total = len(healthy) + len(degraded) + len(unhealthy)
+
+        # `healthy if healthy else unhealthy` decía "healthy" con 1 de 10
+        # providers vivo: el aggregate no distinguía "todo bien" de "hay al
+        # menos uno". Un self-diagnostic que no puede empeorar es un eco.
+        if not total:
+            overall = "unknown"
+        elif len(unhealthy) == total:
+            overall = "unhealthy"
+        elif len(healthy) + len(degraded) == total:
+            overall = "healthy"
+        elif healthy or degraded:
+            overall = "degraded"
+        else:
+            overall = "unhealthy"
 
         return {
-            "overall": "healthy" if healthy else "unhealthy",
+            "overall": overall,
             "providers": {
                 "healthy": healthy,
                 "degraded": degraded,
                 "unhealthy": unhealthy,
-                "total": len(healthy) + len(degraded) + len(unhealthy),
+                "total": total,
+                # Fracción utilizable: cuántos aportan capacidad real ahora.
+                "usable": len(healthy),
             },
             "health_details": self._health.get_all_health() if self._health else {},
             "cost_budget": self._cost.get_budget_status() if self._cost else {},
