@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 56 de 48.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 57 de 49.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1462,3 +1462,93 @@ Prueba de fallo: reintroduciendo `spoofcheck.io`, caen 2 tests.
 > es un TXT record: preguntárselo directamente al DNS elimina una dependencia
 > que puede morir, gratis y sin key. El servicio que hacía de proxy era la
 > única parte que podía fallar.
+
+## 63. 39 endpoints que el frontend llama y el backend no sirve (2026-10-05) — P1, AUDITADO + GUARD
+
+Continuación de la serie #61/#62 (la dependencia que se rompe devuelve su
+valor por defecto). Acá el síntoma es un 404 que la UI **traga** con
+`.catch(() => ({}))` y muestra una pantalla vacía.
+
+### La medición
+
+624 llamadas `api.*` del frontend contra 1734 rutas del backend, usando el
+resolver **real** del front (`frontend/src/lib/backend.ts::resolveApiUrl`):
+
+```
+endpoints distintos que el front llama : 402
+con backend                          : 363
+SIN backend                         :  39   ← 404 garantizado
+```
+
+Afecta pantallas que el owner ve: `DashboardAegis`, `SettingsAtlas`,
+`DashboardOdyssey`, `ModeManagerPanel`, `CopilotConsolidated`,
+`ProfileConsolidated`, `QuickCapture`, `SecurityConsolidated`, `StatusBar` y
+`ownexData.ts` (las 6 de `trading-lab`).
+
+### Las tres trampas, y por qué importan
+
+Escribí el script tres veces y dio tres números distintos:
+
+| Versión | Resultado | Por qué |
+|---|---:|---|
+| v1 | 227 rotas | Comparaba el path crudo |
+| v2 | 42 rotas | Ignoraba los root-mounted |
+| v3 (HTTP real) | **39 rotas** | Verifica con `TestClient`, no comparando strings |
+
+1. **El path crudo engaña.** El front resuelve `/trading/overview` →
+   `/api/trading/overview`.
+2. **Los root-mounted se sirven SIN `/api`.** `ROOT_MOUNTED_PREFIXES` son 27
+   namespaces: `/dev-bounty/status`, no `/api/dev-bounty/...`. Ignorarlo mete
+   falsos positivos.
+3. **Una ruta puede existir aunque su `path` no lo diga.** Sólo asking por HTTP
+   lo demuestra.
+
+> *Un número de deuda mal medido es peor que no medirlo: entrena a
+> desconfiar del número.*
+
+### Clasificación por causa
+
+| Causa | N | Qué es |
+|---|---:|---|
+| `app-sin-backend` | 10 | La UI existe (Aegis, Atlas, Odyssey), su API nunca se cableó |
+| `drift` | 21 | El backend movió el contrato, el front quedó atrás |
+| `root-vs-api` | 8 | El front pide en raíz, el backend sirve bajo `/api` |
+
+### El guard: allowlist que se autoverifica
+
+`tests/test_frontend_backend_contract.py`. Los 39 están en `CONOCIDOS_ROTOS`
+con su causa y su pantalla. **Más dos tests que impiden que el allowlist
+mienta**:
+
+- si un conocido **vuelve a funcionar** → hay que sacarlo (si se arregló, la
+  lista miente y el guard deja de avisar)
+- si una entrada **no la llama nadie** → hay que borrarla (no es un móvil: es
+  una lista de deseos)
+
+Y el guard real: falla cuando aparece un 404 **nuevo**.
+
+**El allowlist NO es permiso para dejarlo así.** Cada entrada dice qué pantalla
+se ve vacía. Cerrarlos es decisión de producto, endpoint por endpoint, y este
+archivo no toma esa decisión.
+
+### `scripts/audit_frontend_contract.py`
+
+La evidencia para tomar la decisión: `--list` con `archivo:línea`, `--json`
+para parsear. Verifica por HTTP real.
+
+### Pruebas de fallo
+
+| Inyección | Resultado |
+|---|---|
+| 404 nuevo en el front | cae `test_todo_lo_llamado_por_el_front_existe` |
+| conocido que ya funciona | cae `test_los_conocidos_siguen_rotos` |
+
+### Regla permanente
+
+> *Una UI que traga el error con `.catch(() => ({}))` muestra una pantalla
+> vacía que parece "no hay datos". El 404 es invisible a menos que alguien
+> mire la red.*
+>
+> Y al escribir un guard de contrato: **replicá el resolver del consumidor.**
+> Comparar el path crudo convierte un guard en ruido, y ruido entrena a
+> ignorarlo.
