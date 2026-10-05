@@ -291,9 +291,16 @@ def start_daemon():
     if not venv_python.exists():
         venv_python = Path.home() / "projects" / "Rastro" / ".venv" / "bin" / "python"
 
-    # Use nohup to detach
-    env = os.environ.copy()
-    env["DATABASE_URL"] = "sqlite:///" + str(Path.home() / ".orion" / "database" / "cateye.db")
+        # Use nohup to detach
+        env = os.environ.copy()
+        # Antes fijaba `~/.orion/database/cateye.db` a mano: una BASE QUINTA,
+        # distinta de la que usa la app. Ahora el daemon hereda el mismo
+        # DATABASE_URL que el proceso que lo lanza, y solo lo calcula si no
+        # existe — con la misma cadena de resolucion.
+        if not env.get("DATABASE_URL"):
+            import database.db as _db
+
+            env["DATABASE_URL"] = _db.DATABASE_URL
 
     proc = subprocess.Popen(
         [str(venv_python), "run.py", "--daemon"],

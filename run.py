@@ -45,11 +45,22 @@ if getattr(sys, "frozen", False) and not os.environ.get("CATEYE_DATA_DIR"):
 
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
+#
+# Resolution order. Before this it was CATEYE_DATA_DIR only, defaulting to
+# ~/.orion, which created a FIFTH database distinct from the app's:
+#   OWNEX_DATA_DIR -> CATEYE_DATA_DIR -> <portable data dir> -> ~/.ownex
+# The installed app resolves the same chain, so dev and the installation
+# converge instead of diverging.
 if not os.environ.get("DATABASE_URL"):
-    _data_dir = Path(os.environ.get("CATEYE_DATA_DIR", Path.home() / ".orion"))
-    _db_path = _data_dir / "database" / "cateye.db"
+    _data_dir = os.environ.get("OWNEX_DATA_DIR") or os.environ.get("CATEYE_DATA_DIR")
+    if not _data_dir and getattr(sys, "frozen", False):
+        _data_dir = str(_portable_data) if _portable_data.is_dir() else None
+    _data_dir = _data_dir or str(Path.home() / ".ownex")
+    _db_path = Path(_data_dir) / "database" / "catseye.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+    os.environ["OWNEX_DATA_DIR"] = _data_dir
+    os.environ.setdefault("CATEYE_DATA_DIR", _data_dir)
 
 _BASE_DIR = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 if str(_BASE_DIR) not in sys.path:
