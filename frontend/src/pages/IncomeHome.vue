@@ -33,6 +33,7 @@ import DailyBriefCard from '@/components/daily/DailyBriefCard.vue'
 import FirstMoneyStrip from '@/components/daily/FirstMoneyStrip.vue'
 import SetupPendingStrip from '@/components/daily/SetupPendingStrip.vue'
 import RevenueTiersStrip from '@/components/daily/RevenueTiersStrip.vue'
+import RevenueMultiplierPanel from '@/components/revenue/RevenueMultiplierPanel.vue'
 import DailyDigest from '@/components/daily/DailyDigest.vue'
 import AvailabilityIntelligenceCard from '@/components/daily/AvailabilityIntelligenceCard.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
@@ -43,6 +44,8 @@ import OwnexCard from '@/components/ui/OwnexCard.vue'
 import ComputerUseWidget from '@/components/computer-use/ComputerUseWidget.vue'
 import FlightRecorder from '@/components/system/FlightRecorder.vue'
 import { useOwnexState } from '@/composables/useOwnexState'
+import { useHuntStore } from '@/stores/hunt'
+import { api } from '@/lib/api'
 import {
   type CapitalSnapshot,
   fetchAiCenter,
@@ -57,6 +60,8 @@ import {
   type IncomePlanState,
   type PlatformRankingItem,
   fetchDirectWorkWorkBank,
+  fetchTodayPlan,
+  type TodayPlan,
 } from '@/services/ownexData'
 
 /** FEATURE PARITY: snapshot de capital (SSOT patrimonio) + estado IA. */
@@ -127,6 +132,15 @@ const error = ref<string | null>(null)
 const income = ref<IncomePlanState | null>(null)
 const system = ref<{ health: number; status: string } | null>(null)
 const realized = ref<RealizedRevenue | null>(null)
+
+/**
+ * FIRST PAID — objetivo económico principal.
+ * UNA llamada (`/today`). `null` = backend no disponible; dentro del plan,
+ * `p_cash_state` y `net_per_hour`-style campos llegan como texto/UNKNOWN y
+ * NUNCA se renderizan como $0.
+ */
+const today = ref<TodayPlan | null>(null)
+const firstPaidDone = computed(() => (today.value?.state.paid_outcomes ?? 0) >= 1)
 
 const hunt = useHuntStore()
 const router = useRouter()
@@ -303,6 +317,9 @@ async function load(): Promise<void> {
     /* silencioso */
   }
 
+  // FIRST PAID — 1 llamada. Degrada a null (UNKNOWN) si el backend no responde.
+  today.value = await fetchTodayPlan()
+
   loading.value = false
   computeDigest()
 }
@@ -317,7 +334,7 @@ onMounted(load)
       <!-- Row 1: System Status + Money + OWNEX Status -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <!-- System Health -->
-        <Card class="p-4 space-y-2">
+        <OwnexCard class="p-4 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -341,10 +358,10 @@ onMounted(load)
             <span>{{ system?.errors || '—' }} errors</span>
             <span>{{ system?.uptime || '—' }} uptime</span>
           </div>
-        </Card>
+        </OwnexCard>
 
         <!-- Money Snapshot -->
-        <Card class="p-4 space-y-2">
+        <OwnexCard class="p-4 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
@@ -374,10 +391,10 @@ onMounted(load)
               <p class="text-muted-foreground">MES (potencial)</p>
             </div>
           </div>
-        </Card>
+        </OwnexCard>
 
         <!-- OWNEX Status -->
-        <Card class="p-4 space-y-2">
+        <OwnexCard class="p-4 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-lg" :class="hunt.status === 'running' ? 'bg-primary/10' : hunt.status === 'paused' ? 'bg-warning/10' : 'bg-muted/10'">
@@ -408,7 +425,7 @@ onMounted(load)
               <ExternalLink class="h-3.5 w-3.5 mr-1" /> Cola trabajo
             </button>
           </div>
-        </Card>
+        </OwnexCard>
       </div>
 
       <!-- Row 2: Quick Actions -->
@@ -444,6 +461,44 @@ onMounted(load)
       <!-- N0: DAILY BRIEF — ¿Qué hago ahora? -->
       <DailyBriefCard />
 
+      <!-- N0-FIRST-PAID: objetivo económico principal. UNKNOWN explícito, nunca $0. -->
+      <section
+        v-if="today"
+        data-test="first-paid-strip"
+        class="rounded-lg border border-border p-3"
+        :aria-label="firstPaidDone ? 'First Paid completado' : 'First Paid pendiente'"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <h3 class="text-xs font-semibold tracking-wide uppercase">First Paid</h3>
+          <span
+            class="text-xs font-mono px-2 py-0.5 rounded border"
+            :class="firstPaidDone ? 'text-emerald-400 border-emerald-500/40' : 'text-muted-foreground border-border'"
+          >
+            {{ firstPaidDone ? '1 / 1' : '0 / 1' }}
+          </span>
+        </div>
+
+        <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+          <dt class="text-muted-foreground">Ready</dt>
+          <dd class="font-mono">{{ today.state.ready_to_deliver }}</dd>
+          <dt class="text-muted-foreground">P(CASH)</dt>
+          <dd class="font-mono" data-test="first-paid-pcash">{{ today.state.p_cash_state }}</dd>
+          <dt class="text-muted-foreground">Cobrado</dt>
+          <dd class="font-mono" data-test="first-paid-real">${{ today.money.paid_usd }}</dd>
+        </dl>
+
+        <p
+          v-if="today.next_step && !today.next_step.done"
+          class="mt-2 text-xs border-t border-border pt-2"
+          data-test="first-paid-next"
+        >
+          <span class="text-muted-foreground">Próximo paso:</span>
+          {{ today.next_step.title }}
+          <span class="block text-muted-foreground mt-0.5">{{ today.next_step.why }}</span>
+          <code v-if="today.next_step.endpoint" class="block mt-1 opacity-70">{{ today.next_step.endpoint }}</code>
+        </p>
+      </section>
+
       <!-- N0.1: FIRST MONEY — progreso $0 → primer ingreso -->
       <FirstMoneyStrip />
 
@@ -452,6 +507,10 @@ onMounted(load)
 
       <!-- N0.1b: REVENUE TIERS — SURVIVAL / TARGET $5K / STRETCH $15K + pace -->
       <RevenueTiersStrip />
+
+      <!-- Multiplicador de ingresos: bounty + trading + revenue (8 endpoints que
+           no tenían consumidor) -->
+      <RevenueMultiplierPanel />
 
       <!-- N0.1: DAILY DIGEST — qué importa hoy (agrega de todos los sistemas) -->
       <DailyDigest />
@@ -463,7 +522,7 @@ onMounted(load)
       <OneActionCard :auto-refresh="true" :refresh-interval="300000" />
 
       <!-- N1: potencial económico -->
-      <Card class="space-y-3 p-5">
+      <OwnexCard class="space-y-3 p-5">
         <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">💰 Ingreso potencial</p>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div v-for="(label, key) in horizons" :key="key" class="rounded-lg border border-border/20 bg-surface/20 p-4">
@@ -476,7 +535,7 @@ onMounted(load)
         <p class="font-mono text-[10px] leading-relaxed text-muted-foreground/70">
           {{ income.income_command_center.basis.note }} · {{ income.income_command_center.basis.sources }}
         </p>
-      </Card>
+      </OwnexCard>
 
       <!-- Daily return digest: what changed since last visit -->
       <div v-if="digest" class="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-accent/20 bg-accent/5 px-4 py-2.5">
@@ -495,7 +554,7 @@ onMounted(load)
         </summary>
         <div class="mt-3">
       <!-- PLATFORM RANKING: ¿dónde trabajo hoy? -->
-      <Card v-if="platformRanking.length" class="space-y-3 p-5">
+      <OwnexCard v-if="platformRanking.length" class="space-y-3 p-5">
         <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">🎯 ¿Dónde trabajo hoy?</p>
         <div class="space-y-2">
           <div v-for="p in platformRanking.slice(0, 5)" :key="p.platform"
@@ -503,9 +562,9 @@ onMounted(load)
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <span class="truncate font-mono text-xs font-medium">{{ p.name }}</span>
-                <Badge :variant="p.recommendation === 'WORK_HERE' ? 'success' : p.recommendation === 'FINISH_SETUP' ? 'info' : p.recommendation === 'ACTIVE_STREAM' ? 'success' : 'default'" class="shrink-0">
+                <OwnexBadge :variant="p.recommendation === 'WORK_HERE' ? 'success' : p.recommendation === 'FINISH_SETUP' ? 'info' : p.recommendation === 'ACTIVE_STREAM' ? 'success' : 'default'" class="shrink-0">
                   {{ p.recommendation === 'WORK_HERE' ? '→ Trabajar acá' : p.recommendation === 'FINISH_SETUP' ? 'Completar setup' : p.recommendation === 'ACTIVE_STREAM' ? 'Stream activo' : 'Empezar onboarding' }}
-                </Badge>
+                </OwnexBadge>
               </div>
               <p v-if="p.next_action" class="mt-1 truncate font-mono text-[10px] text-muted-foreground">
                 → {{ p.next_action.title }} (~{{ p.next_action.est_minutes }} min)
@@ -525,7 +584,7 @@ onMounted(load)
         <p class="font-mono text-[10px] leading-relaxed text-muted-foreground/70">
           Rankeado por $/h efectivo (tarifa documentada × readiness). Completá el onboarding para subir el rate efectivo.
         </p>
-      </Card>
+      </OwnexCard>
         </div>
       </details>
 
@@ -551,7 +610,7 @@ onMounted(load)
         </div>
 
         <!-- INCOME GOAL: "quiero ganar 10k este mes" → plan concreto -->
-        <Card class="border-primary/25 bg-primary/5 p-4">
+        <OwnexCard class="border-primary/25 bg-primary/5 p-4">
           <div class="flex items-center gap-2">
             <Bot class="h-3.5 w-3.5 text-primary" />
             <h2 class="text-xs font-semibold uppercase tracking-wider">¿Cuánto querés ganar?</h2>
@@ -594,7 +653,7 @@ onMounted(load)
               </div>
             </div>
             <div v-if="goalPlan.recommended_sources.length" class="mt-2 flex flex-wrap gap-1">
-              <Badge v-for="s in goalPlan.recommended_sources.slice(0, 6)" :key="s" variant="outline" class="font-mono text-[9px]">{{ s }}</Badge>
+              <OwnexBadge v-for="s in goalPlan.recommended_sources.slice(0, 6)" :key="s" variant="outline" class="font-mono text-[9px]">{{ s }}</OwnexBadge>
             </div>
             <ul v-if="goalPlan.risk_factors.length" class="mt-2 space-y-0.5">
               <li v-for="(r, i) in goalPlan.risk_factors" :key="i" class="font-mono text-[10px] text-muted-foreground">· {{ r }}</li>
@@ -609,7 +668,7 @@ onMounted(load)
               </span>
             </div>
           </template>
-        </Card>
+        </OwnexCard>
 
         <!-- FEATURE PARITY §7: snapshot de capital (SSOT patrimonio) -->
         <div v-if="capital" class="grid grid-cols-2 gap-3 rounded-lg border border-border/20 bg-surface/10 p-3 sm:grid-cols-4">
@@ -628,16 +687,16 @@ onMounted(load)
           <div class="flex items-center justify-between gap-2">
             <div>
               <p class="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">IA</p>
-              <Badge :variant="aiOk === null ? 'default' : aiOk ? 'success' : 'info'" dot>
+              <OwnexBadge :variant="aiOk === null ? 'default' : aiOk ? 'success' : 'info'" dot>
                 {{ aiOk === null ? '—' : aiOk ? 'OK' : 'Fallback' }}
-              </Badge>
+              </OwnexBadge>
             </div>
           </div>
         </div>
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <!-- N1b: qué hace OWNEX vs qué hacés vos -->
-        <Card class="space-y-3 p-5">
+        <OwnexCard class="space-y-3 p-5">
           <div class="flex items-center gap-2">
             <Bot class="h-4 w-4 text-accent" aria-hidden="true" />
             <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">🤖 OWNEX está haciendo</p>
@@ -648,9 +707,9 @@ onMounted(load)
               <span class="text-foreground/90">{{ a.text }}</span>
             </li>
           </ul>
-        </Card>
+        </OwnexCard>
 
-        <Card class="space-y-3 p-5">
+        <OwnexCard class="space-y-3 p-5">
           <div class="flex items-center gap-2">
             <CircleUser class="h-4 w-4 text-gold" aria-hidden="true" />
             <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">👤 Tus próximas acciones</p>
@@ -674,7 +733,7 @@ onMounted(load)
           <p v-else class="text-sm text-muted-foreground">
             Sin cola pendiente. OWNEX sigue buscando; esta lista se llena sola.
           </p>
-        </Card>
+        </OwnexCard>
 
         <!-- Computer Use widget -->
         <ComputerUseWidget />
@@ -686,7 +745,7 @@ onMounted(load)
             📈 Stack activo · skills · proyección <span class="text-muted-foreground/50 group-open:hidden">▸</span><span class="hidden group-open:inline text-muted-foreground/50">▾</span>
         </summary>
         <div class="mt-3">
-      <Card class="space-y-2 p-5">
+      <OwnexCard class="space-y-2 p-5">
         <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">📈 Stack activo (tarifas documentadas)</p>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
           <div v-for="s in income.income_command_center.active_stack" :key="s.key"
@@ -695,9 +754,9 @@ onMounted(load)
             <p class="font-mono text-[11px]" :class="s.rate_documented ? 'text-success' : 'text-muted-foreground'">
               {{ s.rate_documented ? `$${s.rate_documented}/h` : 'tarifa n/d' }}
             </p>
-            <Badge :variant="s.status === 'accepted' ? 'success' : s.status === 'in_review' ? 'info' : 'default'" class="mt-1">
+            <OwnexBadge :variant="s.status === 'accepted' ? 'success' : s.status === 'in_review' ? 'info' : 'default'" class="mt-1">
               {{ s.status }}
-            </Badge>
+            </OwnexBadge>
           </div>
         </div>
 
@@ -718,7 +777,7 @@ onMounted(load)
             <p v-if="timeline.milestones[0]?.months" class="font-mono text-[9px] text-muted-foreground">{{ timeline.milestones[0].months }} meses</p>
           </div>
         </div>
-      </Card>
+      </OwnexCard>
         </div>
       </details>
     </template>

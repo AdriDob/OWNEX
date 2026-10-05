@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXA — Turn your goals into daily actions</title>
+<meta name="description" content="Tell NEXA what you want. Get your next action. Goal → Plan → Today → Action → Progress.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <div class="logo">NEXA</div>
+  <div class="tag">validation prototype — no signup required</div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Turn your goals into daily actions.</h1>
+    <p class="sub">Tell us what you want to achieve.<br>We'll help you figure out what to do next.</p>
+
+    <div class="demo-box" id="demo-box">
+      <label for="goal-input">What do you want to achieve?</label>
+      <input id="goal-input" type="text" maxlength="140"
+        placeholder="e.g. Quiero aprender Python / Get a software job / Save $5,000"
+        autocomplete="off">
+      <button id="build-btn" class="primary">Build my first action</button>
+      <p class="hint">Demo runs 100% in your browser. No account. No tracking of personal data.</p>
+    </div>
+
+    <div class="result hidden" id="result"></div>
+
+    <div class="email-capture hidden" id="email-step">
+      <h3>Want the full plan?</h3>
+      <p>Get your 7-day breakdown + daily next actions by email.</p>
+      <form id="email-form">
+        <input id="email-input" type="email" required placeholder="you@email.com">
+        <button type="submit" class="primary">Send me my plan</button>
+      </form>
+      <p id="email-ok" class="ok hidden">Done. Check your inbox. Now — quick question below.</p>
+    </div>
+
+    <div class="pricing hidden" id="pricing-step">
+      <h3>NEXA Pro (planned)</h3>
+      <ul class="prices">
+        <li><strong>$3.99</strong>/month</li>
+        <li><strong>$39.99</strong>/year</li>
+        <li><strong>$79.99</strong> lifetime</li>
+      </ul>
+      <p>Unlimited goals · AI planning · advanced stats · sync</p>
+      <div class="price-btns">
+        <button data-intent="clicked_pro" class="primary">I want Pro</button>
+        <button data-intent="clicked_notify" class="ghost">Notify me</button>
+        <button data-intent="clicked_not_interested" class="ghost">Not interested</button>
+      </div>
+      <p id="price-thanks" class="ok hidden">Thanks — recorded. This helps decide if NEXA gets built.</p>
+    </div>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>GOAL</strong> — you state what you want</li>
+      <li><strong>PLAN</strong> — NEXA breaks it into steps</li>
+      <li><strong>TODAY</strong> — you see one next action</li>
+      <li><strong>ACTION</strong> — you do it (~30 min)</li>
+      <li><strong>PROGRESS</strong> — streak builds</li>
+    </ol>
+  </section>
+
+  <section class="faq">
+    <h2>Not another to-do list?</h2>
+    <p>Correct. To-do lists store tasks. NEXA converts a vague goal into the <em>single next action</em> you can do today — then tracks execution, not just planning.</p>
+  </section>
+</main>
+
+<footer>
+  <p>NEXA validation experiment · static demo · <a href="../focus/">Try FOCUS instead</a></p>
+  <form id="footer-email">
+    <input type="email" placeholder="email for updates" required>
+    <button type="submit">Join waitlist</button>
+  </form>
+</footer>
+
+<script src="../shared/analytics.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
