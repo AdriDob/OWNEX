@@ -128,8 +128,11 @@ El camino al primer PAID quedó **construido, testeado y bloqueado correctamente
 
 Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene documentado: `systemctl --user is-active omniroute` = `activating` hace días. **Actualización 2026-10-04:** el mecanismo que lo reportaba `healthy` con `latency_ms: 0.0` ya fue corregido (ver #27 cerrado) — hoy se reporta `UNKNOWN`, no verde. **Lo que sigue abierto es sólo que el servicio systemd no levanta.**
 
-## 24. `/api/trading/dashboard/summary` — el test daba confianza falsa (2026-09-28) — P3, decidido
+## 24. ✅ RESUELTO 2026-10-04 (vía #19) — `/api/trading/dashboard/summary` — el test daba confianza falsa
 
+- **La raíz del "test que daba confianza falsa" (2026-10-04):** el test no estaba mal escrito. Daba confianza falsa porque **verificaba la ruta perdedora**. `/api/trading/dashboard/summary` estaba en dos routers y FastAPI gana el primero registrado; el test pineaba el payload del segundo. Mientras el orden de montaje no cambiara, pasaba sin probar nada real.
+- **La prueba de que era eso, y no un test flojo:** otra consolidación en `main.py` (quitar el montaje temprano de `trading.router`) cambió el winner sin cambiar ninguna línea del test ni de `trading.py`. El test empezó a fallar solo. Eso convierte "el test no prueba nada" en "el test probaba el contrato equivocado".
+- Resuelto en #19 (commit `7a4f2acf`): eliminado el duplicado, `trading.py` queda como único dueño, y el test ahora pasa **de forma determinista** en vez de depender del orden de registro.
 - **Evidencia nueva (la sesión anterior no la tenía):**
   - **0 callers** en frontend, Android, Tauri y `apps/` (el path sólo aparece en un comentario de `usePreloadData.ts` que habla de *otro* path).
   - La app real sirve el payload del **ganador** (`by_type/by_cycle/categories/enabled/disabled/job_ids/total_jobs`, sin `copy`) — verificado en vivo. El handler "muerto" es inalcanzable.
@@ -161,7 +164,7 @@ Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene do
 - **Acción post-stable:** borrar las 8 funciones (dead code) junto con los tipos asociados. No se hizo en el cierre por el mismo motivo de riesgo del #24.
 - **Regla permanente:** un cliente de API sin consumidor es deuda, no un bug visible; pero namespace completo inexistente en backend = superficie muerta que hay que podar, noinality documentar para siempre.
 
-## 19. 1 ruta API duplicada cross-router (ship-day 2026-09-28) — PENDIENTE DECISIÓN OWNER
+## 19. ✅ CERRADO 2026-10-04 — las 7 rutas duplicadas, incluida la que faltaba
 
 - **Hallazgo (runtime, no openapi lazy):** 7 duplicados reales (mismo path+método). FastAPI resuelve por **orden de registro** → el 2º handler es **inalcanzable por HTTP** = código muerto.
 - **Resueltos (6, con evidencia por contrato, cero cambio de comportamiento):**
@@ -175,10 +178,15 @@ Sin cambios en esta fase (decisión del owner: fuera de alcance). Se mantiene do
   | `control` `/obsidian/sync` | sin body, superado: el winner lee `{path, content, title}` = lo que manda `controlPanel.ts` |
 
   Rutas 1856 → **1850**.
-- **Pendiente (1):** `/api/trading/dashboard/summary` GET → winner `trading_dashboard:trading_dashboard_summary` (estado de jobs) · muerto `trading:dashboard_summary` (copy + masters + intelligence + reasoning).
-  **No se borró a propósito:** el muerto es **más rico** que el ganador y **ningún caller del repo lo consume** (el front solo usa `/trading/overview` y `/trading/copy/*`). Borrarlo destruiría capacidad que un cliente externo (Tauri/Android) podría necesitar. Decidir: (a) dejar el winner, (b) darle un path propio, o (c) eliminarlo.
-- **Guard:** `tests/test_api_route_duplicates.py` (2 tests) falla si aparece cualquier duplicado nuevo Y si el pendiente desaparece sin actualizar el allowlist.
-- **Regla permanente**: un path+método, un handler. Si dos routers sirven lo mismo, uno se archiva explícitamente.
+- **✅ RESUELTO la última (2026-10-04, commit `7a4f2acf`) — opción (c) eliminar.** `/api/trading/dashboard/summary` GET: winner `trading_dashboard:trading_dashboard_summary` (estado de jobs) · perdedor `trading:dashboard_summary` (copy + masters + intelligence + reasoning).
+  - **Por qué se broke antes de decidir:** otra consolidación en `api/main.py` quitó el montaje temprano de `trading.router` (que registraba la ruta ganadora en idx=727 y dejaba **3** rutas para ese path). Al consolidarse quedaron **2** y pasó a ganar el perdedor, que **no trae `copy`** → se rompió `test_trading_router_mounted_and_accionable`. No se arregló invirtiendo el orden de montaje (eso deja la ambigüedad y un reorder futuro la rompe igual): se borró el duplicado.
+  - **La objeción de esta entrada era especulativa y quedó desmentida.** Decía *"borrarlo destruiría capacidad que un cliente externo (Tauri/Android) podría necesitar"*. Medido antes de borrar: **0 referencias** a `dashboard/summary` en `frontend/`, `src-tauri/`, `android/`, `apps/`, `desktop/`. Cero.
+  - El front usa `/api/trading/overview` (`TradingConsolidated.vue:22`), servido por `trading.py`, **intacto**. `usePreloadData.ts:45` documenta que `/api/dashboard/summary` se removió en ship-day 2026-09-28.
+  - `trading_dashboard.py` queda con su único endpoint propio, `/dashboard/status`, que no colisiona. `trading.py` queda como único dueño de `/dashboard/summary` con sus 32 endpoints.
+  - Rutas duplicadas: **0**. Allowlist `PENDING_OWNER_DECISION` vacía en `tests/test_api_route_duplicates.py`.
+  - **Consecuencia para #24:** ese test no era "confianza falsa" por estar mal escrito — daba confianza falsa porque **verificaba la ruta perdedora**.
+- **Guard:** `tests/test_api_route_duplicates.py` (2 tests) falla si aparece cualquier duplicado nuevo Y si el pendiente desaparece sin actualizar el allowlist. **Este guard atrapó el borrado**: hubo que actualizar `PENDING_OWNER_DECISION` a vacío en el mismo commit.
+- **Regla permanente**: un path+método, un handler. Si dos routers sirven lo mismo, uno se archiva explícitamente. Y **un duplicado no se decide por "cuál es más rico" sino por quién lo consume** — acá la respuesta medida fue "nadie", y el que se borró era el rico.
 
 ## 21. `/api/dashboard/summary` era un 404 en cada arranque (P0, corregido)
 
@@ -573,3 +581,30 @@ cambio en el mismo módulo, tocarlo es trabajar a ciegas.* Y corolario:
 *`test-fast` verde no es evidencia de que el módulo esté sano — es evidencia de
 que el gate no lo cubre.*
 
+
+## 55. FASE 1 — densidad: `DataTable` gana virtualización + selección y `AttackSurface` la usa (2026-10-05)
+
+**El problema medido por la auditoría:** 6 de 217 archivos usan `<table>`, 0 virtualization con **10.143 endpoints** en `GET /api/attack-surface` (8 categorías, la mayor con 554 filas) y 43 de 64 páginas sin una sola mutación.
+
+- **`DataTable.vue` extendido, no reemplazado** (215 → ~330L): virtualización por ventana con overscan + spacers (la altura del scrollbar sigue siendo verdadera), `dense`, selección con `v-model:selected` y contador, `row-key` acepta función **o string**, encabezado fijo, y el pager se desactiva cuando virtualiza (el scrollbar *es* el pager).
+- **`AttackSurface.vue` migrado**: la tabla manual que renderizaba las 554 filas de una categoría pasa a la tabla densa con búsqueda por path/método/vector. Las columnas se declararon contra la **forma real** de `get_attack_surfaces()` (`id/target_id/path/method/risk_score/confidence/vector/labels/signals`), no inventadas.
+- **3 bugs reales cazados al probar (no al escribir):**
+  1. El checkbox de fila tenía `@click.stop="toggleRow"`: marcaba visual y el handler lo alternaba otra vez ⇒ **no seleccionaba**. Ahora es `@change` + `@click.stop`.
+  2. Igual en "seleccionar todo" (`@click` → `@change`).
+  3. `rowKey` se declaraba `(item) => string` y fallaba con `row-key="id"`, que es **como se escribe en un template**.
+- **Prueba de fallo:** desactivar la virtualización (`shouldVirtualize = false`) ⇒ caen los 2 guards de spacer y de pager. Un guard que no puede fallar no sella nada.
+- **11 guards nuevos** en `DataTable.density.test.ts`, incluyendo el contrato previo (sort, empty, rowClick) para no romper `Capital.vue`, el único consumidor anterior.
+- **Verificación:** 202/202 (191 previos + 11) · `vue-tsc` 0 · `vite build` 12.4–13.8s · `test-fast` 103/1.
+- **Por qué el build importa (2ª vez en esta sesión):** un `v-else` sin su `v-if` y un `})` huérfano pasaron `vue-tsc` (0 errores) y los 191 tests. Sólo `vite build` los cazó.
+
+## 56. FASE 1 — editor real (CodeMirror 6) en el loop de entrega (2026-10-05)
+
+**Por qué:** el deliverable de un bounty es **código** (el diff del PR, un PoC, un test) y `WorkRoom.vue` —el único flujo end-to-end del producto— lo editaba con un `<textarea>` plano. La auditoría también lo había medido: **cero** Monaco, cero CodeMirror, 6 textareas.
+
+- **`frontend/src/components/ui/CodeEditor.vue` (nuevo):** CodeMirror 6 (no Monaco: ~1/3 de peso con tree-shaking real en Vite, sin workers). Números de línea, Tab que indenta, plegado, auto-cierre de brackets, búsqueda, resaltado de selección, `Ctrl/Cmd+S` sin capturar.
+- **Superficie idéntica al textarea** (`v-model` + `save`) más `language`, `readOnly` y alturas: el llamador no cambia de API.
+- **Lenguajes por carga dinámica**, no estáticos. Medido: importar los 5 en estático subió el chunk de WorkRoom a **744 KB** aunque se editara un `README.md`; con `import()` bajo demanda quedó en **388 KB**. El editor sigue siendo usable sin resaltado si el paquete no carga (fail-soft).
+- **Conectado al loop:** `WorkRoom.vue` (ver→preparar→**editar**→aprobar→enviar) usa el editor con el nombre del archivo como pista de lenguaje (`README.md` → markdown, `test_x.py` → Python).
+- **1 dependencia** (`codemirror` + 5 paquetes `@codemirror/lang-*`): dentro del presupuesto de "1 dep por feature".
+- **6 guards** (`CodeEditor.test.ts`): monta de verdad, refleja cambios externos (abrir otro archivo sin perder texto), números de línea presentes, `readOnly` respetado, y un nombre de archivo desconocido no rompe.
+- **Verificación:** 208/208 (202 previos + 6) · `vue-tsc` 0 · `vite build` 13.0s · chunk WorkRoom 744K → 388K · `test-fast` 103/1.
