@@ -60,7 +60,12 @@ class SecurityCycle:
                     "name": "Security",
                     "slug": "security",
                     "description": "Bug bounty, Rastro, vulnerability research",
-                    "category": "offensive",
+                    # CycleCategory.SECURITY, no "offensive": "offensive" no
+                    # existe en el enum y el test lo pinaba a "security".
+                    # Pasaba sólo porque el cycle ya existía en la DB con el
+                    # valor viejo; cuando otro flujo cambió metadata a JSON y
+                    # forzó el re-create, el bug salió a la luz.
+                    "category": "security",
                     "enabled": True,
                     "priority": 100,
                     "status": "idle",
@@ -259,7 +264,7 @@ def register_security_cycle(registry) -> None:
                 slug="security",
                 name="Security",
                 description="Bug bounty, vulnerability research, Rastro pipeline",
-                category="offensive",
+                category="security",
                 priority=10,
                 config={
                     "source_apps": ["rastro", "aegis"],

@@ -157,7 +157,12 @@ class RevenueMultiplierOrchestrator:
                 trade_result = self._crypto.execute_trade(signal)
                 if trade_result.get("success"):
                     results["trades_executed"] += 1
-                    self._metrics.record_trade(pnl=Decimal("0"), won=True)
+                    # PnL real si el executor lo reporta; si no, UNKNOWN (None).
+                    # Antes: pnl=Decimal("0"), won=True fijos => win_rate 100%.
+                    exec_result = trade_result.get("executor_result")
+                    pnl = getattr(exec_result, "pnl", None) if exec_result is not None else None
+                    won = None if pnl is None else (pnl > 0)
+                    self._metrics.record_trade(pnl=pnl, won=won)
                     self._publisher.publish_event(
                         RevenueEvent(
                             source="crypto:trader",

@@ -12,6 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from cores.automation.safety import consume_approval, issue_approval
 from cores.trading.config import TradingConfig
 from cores.trading.copy_trading import CopyTradingEngine, FollowedTrader, MasterTrade, ReplicationResult
 from cores.trading.executor import create_executor
@@ -411,3 +412,146 @@ async def advisor_propose(payload: dict[str, Any] | None = None) -> dict[str, An
         persisted.append(adjustment.__dict__)
 
     return {"success": True, "proposals": persisted, "count": len(persisted)}
+
+
+# ── Pump Radar — radar real de pumps, lectura + ejecución gated ────────
+
+
+@router.get("/pump/radar")
+async def pump_radar(
+    min_liquidity_usd: float = 10000,
+    min_volume_h24: float = 20000,
+    min_price_change_h24: float = 20.0,
+    max_candidates: int = 20,
+) -> dict[str, Any]:
+    from cores.trading.pump_radar import PumpRadarConfig, scan_pump_candidates
+
+    cfg = PumpRadarConfig(
+        min_liquidity_usd=min_liquidity_usd,
+        min_volume_h24_usd=min_volume_h24,
+        min_price_change_h24_pct=min_price_change_h24,
+        max_candidates=max_candidates,
+    )
+    candidates = await scan_pump_candidates(cfg)
+    return {
+        "success": True,
+        "scanned_at": __import__("time").time(),
+        "config": cfg.__dict__,
+        "count": len(candidates),
+        "candidates": [c.__dict__ for c in candidates],
+    }
+
+
+@router.get("/pump/last")
+def pump_last() -> dict[str, Any]:
+    snap = _get_engine()._store.get("pump_radar_last")  # noqa: SLF001
+    if not snap:
+        return {"success": True, "snapshot": None, "reason": "no snapshot yet (radar runs every 5m)"}
+    return {"success": True, "snapshot": snap}
+
+
+@router.post("/pump/simulate")
+async def pump_simulate(payload: dict[str, Any]) -> dict[str, Any]:
+    mint = str(payload.get("mint") or "").strip()
+    amount_sol = float(payload.get("amount_sol") or 0.1)
+    if not mint:
+        raise HTTPException(status_code=422, detail="mint required")
+    if amount_sol <= 0 or amount_sol > 5:
+        raise HTTPException(status_code=422, detail="amount_sol 0-5")
+    from cores.investment.adapters.memecoin_adapter import MemecoinAdapter
+
+    adapter = MemecoinAdapter()
+    try:
+        quote = await adapter.quote_buy(mint, amount_sol)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"quote failed: {exc}") from exc
+    if not quote:
+        raise HTTPException(status_code=404, detail="no quote for mint (illiquid or unknown)")
+    return {"success": True, "dry_run": True, "mint": mint, "amount_sol": amount_sol, "quote": quote}
+
+
+@router.post("/pump/approve")
+def pump_approve(payload: dict[str, Any]) -> dict[str, Any]:
+    mint = str(payload.get("mint") or "").strip()
+    if not mint:
+        raise HTTPException(status_code=422, detail="mint required")
+    token = issue_approval(action="pump_live_trade", target=mint, workspace="trading")
+    return {"success": True, "approval_token": token, "mint": mint, "ttl_seconds": 600}
+
+
+@router.post("/pump/execute")
+async def pump_execute(payload: dict[str, Any]) -> dict[str, Any]:
+    mint = str(payload.get("mint") or "").strip()
+    token = str(payload.get("approval_token") or "").strip()
+    amount_sol = float(payload.get("amount_sol") or 0.1)
+    if not mint:
+        raise HTTPException(status_code=422, detail="mint required")
+    if not token:
+        raise HTTPException(status_code=403, detail="approval_token required (POST /pump/approve first)")
+    if not consume_approval(token, action="pump_live_trade", target=mint, workspace="trading"):
+        raise HTTPException(status_code=403, detail="invalid or expired approval_token")
+    if amount_sol <= 0 or amount_sol > 1.0:
+        raise HTTPException(status_code=422, detail="amount_sol 0-1.0 for live (risk cap)")
+    from cores.trading.config import TradingConfig
+
+    cfg = TradingConfig.from_env()
+    if not cfg.is_live:
+        raise HTTPException(status_code=412, detail="TradingConfig not in REAL mode (set TRADING_MODE=real)")
+    # Kill switch: se consulta por el NOMBRE REAL del método (`is_active`).
+    # Antes llamaba `is_triggered()`, que no existe → AttributeError tragado
+    # por `except Exception: pass` → el path de compra real nunca chekeaba el
+    # switch. Un control que se puede saltear por un typo no es un control.
+    from cores.trading.risk import KillSwitchLevel, KillSwitchManager
+    from cores.trading.store import TradingStore
+
+    kill = KillSwitchManager(store=TradingStore())
+    if kill.is_active(KillSwitchLevel.GLOBAL) or kill.is_active(KillSwitchLevel.STRATEGY):
+        raise HTTPException(status_code=423, detail="kill switch active — resolve before live trade")
+    if amount_sol * 150 > cfg.max_position_size_usd:
+        raise HTTPException(
+            status_code=422, detail=f"position exceeds max_position_size_usd {cfg.max_position_size_usd}"
+        )
+    from cores.investment.adapters.memecoin_adapter import MemecoinAdapter
+
+    adapter = MemecoinAdapter(config={"allow_live": True, "private_key": cfg.exchange_api_key or cfg.helius_api_key})
+    if not adapter._private_key:  # noqa: SLF001
+        raise HTTPException(status_code=412, detail="no private key configured (IdentityVault / env)")
+    try:
+        await adapter.connect()
+        result = await adapter.execute_buy(mint, amount_sol)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"execute failed: {exc}") from exc
+    if not result:
+        raise HTTPException(status_code=502, detail="execute returned no result")
+    return {"success": True, "mint": mint, "amount_sol": amount_sol, "result": result}
+
+
+@router.get("/dip/radar")
+async def dip_radar() -> dict[str, Any]:
+    from cores.trading.extra_radars import DipRadarConfig, scan_dip_candidates
+
+    cands = await scan_dip_candidates(DipRadarConfig())
+    return {"success": True, "count": len(cands), "candidates": [c.__dict__ for c in cands]}
+
+
+@router.get("/dip/last")
+def dip_last() -> dict[str, Any]:
+    snap = _get_engine()._store.get("dip_radar_last")  # noqa: SLF001
+    if not snap:
+        return {"success": True, "snapshot": None, "reason": "no snapshot yet (dip every 7m)"}
+    return {"success": True, "snapshot": snap}
+
+
+@router.get("/spread/radar")
+async def spread_radar() -> dict[str, Any]:
+    from cores.trading.extra_radars import scan_spread
+
+    return await scan_spread()
+
+
+@router.get("/spread/last")
+def spread_last() -> dict[str, Any]:
+    snap = _get_engine()._store.get("spread_radar_last")  # noqa: SLF001
+    if not snap:
+        return {"success": True, "snapshot": None, "reason": "no snapshot yet (spread every 3m)"}
+    return {"success": True, "snapshot": snap}

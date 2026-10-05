@@ -34,6 +34,7 @@ class PaperConfig:
     max_hold_minutes: float = 120.0
     min_liquidity_usd: float = 10_000.0
     strategy_id: str = "memecoin_v1"
+    use_pumpfun_launches: bool = True  # fresh pump.fun feed merged into scan (still filtered)
 
 
 @dataclass(slots=True)
@@ -184,6 +185,16 @@ class MemecoinPaperLoop:
             verdict = evaluate_pair(tok, rug, cfg, now_ms=int(time.time() * 1000))
             if verdict.passed:
                 out.append({**tok, "filter_warnings": list(verdict.warnings)})
+        # Fresh pump.fun launches (pre-filtered at the feed, best-effort, never breaks scan)
+        if getattr(self.config, "use_pumpfun_launches", False):
+            try:
+                from cores.trading.pumpfun_launch import get_sol_price_usd, scan_pumpfun_launches
+
+                for tok in await scan_pumpfun_launches(sol_price_usd=get_sol_price_usd()):
+                    if tok.get("mint") not in {t.get("mint") for t in out}:
+                        out.append({**tok, "filter_warnings": tok.get("filter_warnings", [])})
+            except Exception:
+                pass
         return out
 
     async def enter(self, candidate: dict[str, Any], now: float | None = None) -> PaperPosition | None:
@@ -313,7 +324,7 @@ async def run_paper_cycle_once(
     loop = MemecoinPaperLoop(
         adapter=adapter,
         store=store if store is not None else TradingStore(),
-        kill=kill if kill is not None else KillSwitchManager(),
+        kill=kill if kill is not None else KillSwitchManager(store=store if store is not None else TradingStore()),
         config=config,
     )
     entered, closed = [], []

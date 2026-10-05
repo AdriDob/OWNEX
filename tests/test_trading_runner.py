@@ -158,3 +158,30 @@ class TestKillSwitch:
         res = asyncio.run(r.run_signal("s-1", _signal(), live=True))
         assert res["success"] is False
         assert "kill switch" in res["error"]
+
+
+# ── Aislamiento del store ──────────────────────────────────────
+#
+# `RiskEngine()` ahora persiste el kill switch en `TradingStore`
+# (data/trading/trading_state.json). Antes vivía en RAM, así que un test
+# que activaba el switch por max-daily-loss no contaminaba a los demás.
+# Con persistencia, ese test dejaba `global: true` en el store REAL y los
+# tests siguientes cortaban con "kill switch active" — además de dejar el
+# trading bloqueado para el owner.
+#
+# Este fixture inyecta un store temporal en todo `RiskEngine()` construido
+# dentro del test. Los tests siguen probando el código real (persistencia
+# incluida), pero contra un archivo descartable.
+@pytest.fixture(autouse=True)
+def _isolated_kill_switch(tmp_path, monkeypatch):
+    from cores.trading import risk as risk_mod
+    from cores.trading.store import TradingStore
+
+    tmp_store = TradingStore(data_dir=tmp_path / "trading_store")
+    real_init = risk_mod.RiskEngine.__init__
+
+    def _patched_init(self, store=None):
+        real_init(self, store or tmp_store)
+
+    monkeypatch.setattr(risk_mod.RiskEngine, "__init__", _patched_init)
+    yield

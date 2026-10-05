@@ -18,6 +18,7 @@ from cores.trading.contracts import (
     Order,
     Position,
 )
+from cores.trading.store import TradingStore
 
 logger = logging.getLogger("ownex.trading.risk")
 
@@ -78,9 +79,22 @@ class RiskMetrics:
 
 
 class KillSwitchManager:
-    """Manages kill switches at multiple levels."""
+    """Manages kill switches at multiple levels.
 
-    def __init__(self):
+    **Persisted** (`TradingStore` → `data/trading/trading_state.json`, clave
+    `kill_switch`). Antes vivía en RAM por instancia: cada
+    `KillSwitchManager()` nacía limpio, así que el switch que activaba el
+    paper loop era un objeto distinto del que consultaba el path de compra
+    real, y un restart lo borraba. Un kill switch que no sobrevive un restart
+    no es un kill switch.
+
+    La carga es **fail-safe**: si el estado no se puede leer, los switches
+    arrancan OFF (no bloquean la operación) pero el error queda logueado —
+    no se inventa un bloqueo que el owner no activó.
+    """
+
+    def __init__(self, store: TradingStore | None = None):
+        self._store = store
         self.kill_switches: dict[KillSwitchLevel, bool] = {
             KillSwitchLevel.GLOBAL: False,
             KillSwitchLevel.STRATEGY: False,
@@ -91,6 +105,50 @@ class KillSwitchManager:
         self._exchange_kill_switches: dict[str, bool] = {}
         self._asset_kill_switches: dict[str, bool] = {}
         self._events: list[KillSwitchEvent] = []
+        self._load()
+
+    # ── Persistencia ─────────────────────────────────────────────
+
+    _STORE_KEY = "kill_switch"
+
+    def _load(self) -> None:
+        if self._store is None:
+            return
+        try:
+            data = self._store.get(self._STORE_KEY) or {}
+        except Exception as exc:  # pragma: no cover - fail-safe, no bloquea
+            logger.warning("KillSwitchManager: no se pudo leer el estado persistido (%s); arrancan OFF", exc)
+            return
+        for level in self.kill_switches:
+            self.kill_switches[level] = bool(data.get(level.value, False))
+        self._strategy_kill_switches = {k: True for k in (data.get("strategies") or {})}
+        self._exchange_kill_switches = {k: True for k in (data.get("exchanges") or {})}
+        self._asset_kill_switches = {k: True for k in (data.get("assets") or {})}
+
+    def _persist(self) -> None:
+        if self._store is None:
+            return
+        try:
+            self._store.set(
+                self._STORE_KEY,
+                {
+                    **{level.value: self.kill_switches[level] for level in self.kill_switches},
+                    "strategies": sorted(self._strategy_kill_switches),
+                    "exchanges": sorted(self._exchange_kill_switches),
+                    "assets": sorted(self._asset_kill_switches),
+                },
+            )
+        except Exception as exc:  # pragma: no cover - fail-safe, no bloquea
+            logger.warning("KillSwitchManager: no se pudo persistir el estado (%s)", exc)
+
+    def _notify(self, event_type: str, **payload: Any) -> None:
+        """Publish a user-facing outcome. Never raises: risk control must survive."""
+        try:
+            from cores.notifications.emit import emit
+
+            emit(event_type, **payload)
+        except Exception as exc:
+            logger.debug("emit(%s) skipped: %s", event_type, exc)
 
     def activate(
         self,
@@ -123,7 +181,13 @@ class KillSwitchManager:
             triggered_by=triggered_by,
         )
         self._events.append(event)
+        self._persist()
         logger.critical(f"KILL SWITCH ACTIVATED: {level.value} - {reason}")
+        self._notify(
+            "trading:killswitch_on",
+            id=f"killswitch-{level.value}",
+            message=f"KILL SWITCH ACTIVADO ({level.value}): {reason}",
+        )
         return event
 
     def deactivate(
@@ -151,19 +215,46 @@ class KillSwitchManager:
             for asset in affected:
                 self._asset_kill_switches[asset] = False
 
+        self._persist()
         logger.info(f"KILL SWITCH DEACTIVATED: {level.value} by {triggered_by}")
+        self._notify(
+            "trading:killswitch_off",
+            id=f"killswitch-{level.value}",
+            message=f"KILL SWITCH DESACTIVADO ({level.value}) por {triggered_by}",
+        )
         return True
 
     def is_active(self, level: KillSwitchLevel, identifier: str | None = None) -> bool:
-        """Check if a kill switch is active."""
+        """Check if a kill switch is active.
+
+        **Fail-closed:** si el nivel tiene el flag global prendido, devuelve
+        True *aunque no haya identifier*. Antes `is_active(STRATEGY)` sin
+        identifier caía al `return False` final y devolvía False siempre: un
+        kill switch de estrategia no bloqueaba nada. Un control que ignora su
+        propia señal es peor que no tenerlo, porque aparenta estar activo.
+        """
         if level == KillSwitchLevel.GLOBAL:
             return self.kill_switches[KillSwitchLevel.GLOBAL]
-        elif level == KillSwitchLevel.STRATEGY and identifier:
-            return self.kill_switches[KillSwitchLevel.STRATEGY] or self._strategy_kill_switches.get(identifier, False)
-        elif level == KillSwitchLevel.EXCHANGE and identifier:
-            return self.kill_switches[KillSwitchLevel.EXCHANGE] or self._exchange_kill_switches.get(identifier, False)
-        elif level == KillSwitchLevel.ASSET and identifier:
-            return self.kill_switches[KillSwitchLevel.ASSET] or self._asset_kill_switches.get(identifier, False)
+        # Flag global del nivel: aplica a todos, haya identifier o no.
+        if self.kill_switches[level]:
+            return True
+        if identifier is None:
+            # Sin identifier no podemos decir cuál estrategia, pero el
+            # endpoint llama sin identifier y DEBE quedar bloqueado si hay
+            # cualquiera prendida: fail-closed. Un control que necesita un
+            # argumento que el caller no pasa es un control apagado.
+            per_id = {
+                KillSwitchLevel.STRATEGY: self._strategy_kill_switches,
+                KillSwitchLevel.EXCHANGE: self._exchange_kill_switches,
+                KillSwitchLevel.ASSET: self._asset_kill_switches,
+            }.get(level)
+            return any(per_id.values()) if per_id else False
+        if level == KillSwitchLevel.STRATEGY:
+            return self._strategy_kill_switches.get(identifier, False)
+        if level == KillSwitchLevel.EXCHANGE:
+            return self._exchange_kill_switches.get(identifier, False)
+        if level == KillSwitchLevel.ASSET:
+            return self._asset_kill_switches.get(identifier, False)
         return False
 
     def get_status(self) -> dict[str, Any]:
@@ -179,10 +270,15 @@ class KillSwitchManager:
 class RiskEngine:
     """Centralized risk management engine."""
 
-    def __init__(self):
+    def __init__(self, store: TradingStore | None = None):
         self.limits: dict[RiskLimitType, RiskLimit] = self._default_limits()
         self.metrics = RiskMetrics()
-        self.kill_switch = KillSwitchManager()
+        # Kill switch GLOBAL y persistente sólo si le pasamos un store
+        # explícito. Sin store queda en RAM (tests, usos efímeros) y NO
+        # escribe a data/trading/. Antes el default era persistir siempre,
+        # y cualquier test que activara el switch dejaba `global: true` en el
+        # store real, bloqueando el trading del owner.
+        self.kill_switch = KillSwitchManager(store=store)
         self._breach_callbacks: list[callable] = []
 
     def _default_limits(self) -> dict[RiskLimitType, RiskLimit]:
@@ -339,7 +435,13 @@ _risk_engine: RiskEngine | None = None
 
 
 def get_risk_engine() -> RiskEngine:
+    """Singleton del risk engine de trading.
+
+    Este es el punto de entrada de producción: le pasa `TradingStore()` para
+    que el kill switch sea GLOBAL y sobreviva un restart. `RiskEngine()` a
+    secas queda en RAM a propósito (tests).
+    """
     global _risk_engine
     if _risk_engine is None:
-        _risk_engine = RiskEngine()
+        _risk_engine = RiskEngine(store=TradingStore())
     return _risk_engine

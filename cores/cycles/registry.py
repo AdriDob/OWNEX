@@ -99,7 +99,7 @@ def _seed_defaults(registry: CycleRegistry) -> None:
             slug="security",
             name="Security",
             description="Bug bounty, vulnerability research, Rastro pipeline",
-            category="offensive",
+            category="security",
             priority=10,
             config={
                 "source_apps": ["rastro", "aegis"],
