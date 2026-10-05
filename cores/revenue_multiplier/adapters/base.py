@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import abc
 import logging
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Any
 
 from cores.revenue_multiplier.models import Finding
@@ -294,43 +296,103 @@ class GitleaksAdapter(ToolAdapter):
     def name(self) -> str:
         return "gitleaks"
 
+    @staticmethod
+    def _clone_for_scan(url: str) -> tuple[str | None, str | None]:
+        """Clona un repo GitHub a un temp para escanearlo.
+
+        Devuelve (ruta_local, tmp_dir_para_borrar) o (None, None) si no se
+        pudo clonar. Sólo github.com — es lo que genera el hunter.
+        """
+        import re
+        import tempfile
+
+        m = re.match(r"^https?://github\.com/([^/]+)/([^/?#]+)", url)
+        if not m:
+            return None, None
+        owner, repo = m.group(1), m.group(2).removesuffix(".git")
+        tmp = tempfile.mkdtemp(prefix="ownex-gitleaks-")
+        local = str(Path(tmp) / repo)
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--quiet", f"https://github.com/{owner}/{repo}", local],
+                capture_output=True,
+                text=True,
+                timeout=180,
+                check=True,
+            )
+        except (subprocess.SubprocessError, OSError) as exc:
+            logger.warning("gitleaks: no se pudo clonar %s/%s (%s)", owner, repo, exc)
+            shutil.rmtree(tmp, ignore_errors=True)
+            return None, None
+        return local, tmp
+
     def run(self, target: str, **kwargs: Any) -> list[Finding]:
+        """Escanea secretos de un repo o path local.
+
+         Gitleaks sólo acepta **paths locales** (`--source`), no URLs. Antes el
+         hunter pasaba `repo_path=f"https://github.com/{domain}"`, que gitleaks
+         no puede abrir: FileNotFoundError -> output vacío -> `except` en el
+         caller lo logueaba como warning y el stage "Secret scanning" no
+        (reportaba nunca. Un escáner que siempre devuelve 0 hallazgos no es un
+         escáner: es ruido.
+
+         Si `repo_path` parece una URL de GitHub, se clona primero a un temp
+         (depth 1) y se escanea el clon. Sin red o sin git, se devuelve []
+         con un warning explícito: menos "0 hallazgos" y más "no escaneado".
+        """
         import json
+        import re
 
-        repo_path = kwargs.get("repo_path", target)
-        cmd = [
-            self._binary,
-            "detect",
-            "--source",
-            repo_path,
-            "--no-git",
-            "--report-format",
-            "json",
-            "--report-path",
-            "/dev/stdout",
-            "-v",
-        ]
-        output = self._execute(cmd, timeout=kwargs.get("timeout", 120))
+        repo_path = kwargs.get("repo_path") or target
+        tmp_dir: str | None = None
 
-        findings: list[Finding] = []
-        for line in output.strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                data = json.loads(line)
-                findings.append(
-                    Finding(
-                        title=f"Secret leak: {data.get('Description', 'Unknown')}",
-                        description=f"File: {data.get('File', '')} - {data.get('Match', '')[:200]}",
-                        severity="high",
-                        tool="gitleaks",
-                        target=target,
-                        endpoint=data.get("File", ""),
-                        evidence=data.get("Secret", "")[:50],
-                        confidence=0.8,
-                        raw_output=data,
-                    )
+        if re.match(r"^https?://", str(repo_path)):
+            repo_path, tmp_dir = self._clone_for_scan(str(repo_path))
+            if tmp_dir is None:
+                logger.warning(
+                    "gitleaks: %s es una URL y no se pudo clonar; stage NO ejecutado (no '0 secretos')",
+                    repo_path,
                 )
-            except json.JSONDecodeError:
-                continue
+                return []
+
+        try:
+            cmd = [
+                self._binary,
+                "detect",
+                "--source",
+                str(repo_path),
+                "--no-git",
+                "--report-format",
+                "json",
+                "--report-path",
+                "/dev/stdout",
+                "-v",
+            ]
+            output = self._execute(cmd, timeout=kwargs.get("timeout", 120))
+
+            findings: list[Finding] = []
+            for line in output.strip().split("\n"):
+                if not line.strip():
+                    continue
+                try:
+                    data = json.loads(line)
+                    findings.append(
+                        Finding(
+                            title=f"Secret leak: {data.get('Description', 'Unknown')}",
+                            description=f"File: {data.get('File', '')} - {data.get('Match', '')[:200]}",
+                            severity="high",
+                            tool="gitleaks",
+                            target=target,
+                            endpoint=data.get("File", ""),
+                            evidence=data.get("Secret", "")[:50],
+                            confidence=0.8,
+                            raw_output=data,
+                        )
+                    )
+                except json.JSONDecodeError:
+                    continue
+            return findings
+        finally:
+            if tmp_dir:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
         return findings

@@ -129,16 +129,37 @@ class BugBountyHunter:
                     logger.warning("  %s failed: %s", tool_name, e)
 
     def _stage_secrets(self, domain: str) -> None:
-        logger.info("Stage 7/7: Secret scanning — %s", domain)
+        """Stage 7/7: Secret scanning.
+
+        Gitleaks escanea **repos y paths locales**, no dominios. Antes se
+        armaba `https://github.com/{domain}` (ej.
+        `https://github.com/docs.hackerone.com`), que no es un repo: el clone
+        fallaba y el stage reportaba "0 secretos" cuando en realidad no se
+        escaneó nada.
+
+        Ahora sólo corre si `secret_scan_repos` trae repos reales para este
+        dominio (config explícita). Sin repo, el stage se salta con un log
+        honesto en vez de fingir un escaneo.
+        """
+        repos = self._config.secret_scan_repos or {}
+        targets = repos.get(domain) or []
+        if not targets:
+            logger.info("Stage 7/7: Secret scanning — sin repo configurado para %s (stage omitido)", domain)
+            return
+
         adapter = self._get_adapter("gitleaks")
-        if adapter:
+        if not adapter:
+            return
+        for repo_url in targets:
             try:
-                results = adapter.run(domain, repo_path=f"https://github.com/{domain}")
+                results = adapter.run(repo_url)
                 if results:
                     self._findings.extend(results)
-                    logger.warning("  gitleaks: %d secrets found!", len(results))
+                    logger.warning("  gitleaks: %d secretos en %s", len(results), repo_url)
+                else:
+                    logger.info("  gitleaks: 0 secretos en %s", repo_url)
             except Exception as e:
-                logger.warning("  gitleaks failed: %s", e)
+                logger.warning("  gitleaks falló en %s: %s", repo_url, e)
 
     def _deduplicate(self) -> None:
         seen: set[str] = set()

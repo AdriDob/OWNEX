@@ -40,6 +40,12 @@ class RevenueMultiplierConfig(BaseModel):
     max_daily_bounty_targets: int = 20
     cooldown_hours_between_scans: int = 6
     trading_pair_whitelist: list[str] = Field(default_factory=lambda: ["SOL/USDC", "BONK/USDC", "WIF/USDC"])
+    # Secret scanning: dominio -> lista de repos de GitHub a escanear con
+    # gitleaks. VACÍO a propósito: gitleaks necesita un repo/path local, no
+    # un dominio. Antes el hunter armaba `https://github.com/{domain}` y el
+    # stage reportaba "0 secretos" sin haber escaneado nada. Configurá acá los
+    # repos que quieras vigilar; sin entrada, el stage se omite con log.
+    secret_scan_repos: dict[str, list[str]] = Field(default_factory=dict)
     slippage_bps: int = 100
     min_position_usd: float = 10.0
     max_position_usd: float = 500.0
