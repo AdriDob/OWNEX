@@ -428,14 +428,20 @@ class TestAPIEndpoints:
     @pytest.fixture
     def client(self, tmp_data_dir, monkeypatch):
         import importlib
-        import os
         import sys
 
         # Re-enable CSRF for these tests (conftest disables it by default)
         monkeypatch.delenv("CATEYE_CSRF_DISABLED", raising=False)
 
-        os.environ["OWNEX_DATA_DIR"] = str(tmp_data_dir)
-        os.environ["DATABASE_URL"] = f"sqlite:////{tmp_data_dir}/test.db"
+        # monkeypatch, no os.environ directo: este fixture antes dejaba
+        # OWNEX_DATA_DIR y DATABASE_URL puestos para el resto de la sesión, y
+        # como `api/main.py` los lee AL IMPORTAR, cualquier test posterior
+        # heredaba el tmp_path de este test como data dir real.
+        # Síntoma medido: `test_desktop_release.py::test_data_dir_default`
+        # pasaba en aislamiento y fallaba en lote con
+        # `assert 'OWNEX' in '/home/adriel/.ownex'`.
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_data_dir))
+        monkeypatch.setenv("DATABASE_URL", f"sqlite:////{tmp_data_dir}/test.db")
         # Force reload to pick up new env vars
         if "api.main" in sys.modules:
             importlib.reload(sys.modules["api.main"])

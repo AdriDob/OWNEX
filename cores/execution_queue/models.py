@@ -8,6 +8,7 @@ test-first; la persistencia y los adapters llegan en el siguiente corte.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 from collections.abc import Callable
@@ -101,10 +102,9 @@ class ExecutionQueueStore:
     def _emit_transition(self, item_id: str, old_state: str, new_state: str, payload: dict) -> None:
         """Emit transition event if callback is registered."""
         if self._on_transition:
-            try:
+            # Never let event emission break the transition (SIM105).
+            with contextlib.suppress(Exception):
                 self._on_transition(item_id, old_state, new_state, payload)
-            except Exception:
-                pass  # Never let event emission break the transition
 
     def add(self, item_id: str, payload: dict | None = None) -> dict:
         self._items[item_id] = {
