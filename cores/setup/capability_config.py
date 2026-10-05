@@ -188,15 +188,16 @@ CAPABILITIES: tuple[Capability, ...] = (
         id="trading_onchain",
         label="Trading en Solana (lectura de mercado)",
         category="Trading",
-        what="Quotes de Jupiter y precios. Funciona con el RPC público.",
-        requirements=(
-            _c(
-                "HELIUS_API_KEY",
-                "Sin key se usa api.mainnet-beta.solana.com, que limita por IP y puede dar 429 en un swap.",
-                optional=True,
-                where="RPC de Solana",
-            ),
-        ),
+        what="Quotes de Jupiter, precios y balance. Funciona sin configurar nada.",
+        # DECISION DEL OWNER (2026-10-05): nada de pago. NO poner HELIUS_API_KEY.
+        # Medido en KNOWN_DEBT #60: el RPC oficial declara x-ratelimit-tier: free
+        # y aguanta 30 requests secuenciales sin un solo 429. Un swap son ~3
+        # llamadas. El problema real era la concurrencia (10 hilos x 20 -> 160/200
+        # con 429), y se resolvio con retry + rotacion entre DOS RPCs gratuitos
+        # (api.mainnet-beta.solana.com y solana-rpc.publicnode.com, el segundo
+        # 3x mas rapido). Pagar un RPC para evitar un problema que ya no existe
+        # seria gastar plata prometiendo un rendimiento que no hace falta.
+        requirements=(),
     ),
     Capability(
         id="trading_live",

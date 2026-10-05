@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 53 de 46.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 55 de 47.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1267,3 +1267,105 @@ exponencial y cola de una request a la vez. **No un provider pago.**
 > *No pedirle al owner que pague por algo que el tier gratuito cubre con
 > margen de sobra.* Medir el límite real antes de pedir una key — la
 >新月 documentación del provider y el límite nominal no son el límite real.
+
+## 66. El motor "¿qué hago ahora?" estaba roto desde el commit 2d74d038 (2026-10-05) — RESUELTO
+
+- **Bug:** `one_best_action._get_default_profile()` llamaba `IntelligentProfileBuilder().build()` sin argumento, cuando `build(profile: UserProfile)` lo exige ⇒ `TypeError` en cada llamada ⇒ `GET /api/unified-income/best-action` respondía siempre **"Sin acción disponible"**. Verificado en HEAD (no lo introdujo esta sesión).
+- **Fix:** usa el **perfil real persistido** vía `ProfileKitEngine().load()` + `profile_from_dict()`. Sin perfil devuelve un `UserProfile` vacío — nunca uno inventado.
+- **Verificado en vivo, ahora responde con datos reales:**
+  ```
+  action_type:            deliver_now
+  title:                  Entregar: [PAID BOUNTY - $660] Enhanced Image Preview
+  work_item_id:           github_bounty_github_warpspeedopen-source/warpspeed-bounties_6
+  expected_value_usd:     660.0
+  acceptance_probability: 0.95
+  estimated_human_hours:  0.5
+  cash_speed_days:        7
+  url:                    https://github.com/warpspeedopen-source/warpspeed-bounties/issues/6
+  prerequisites:          ['Revisar deliverables', 'Confirmar submission URL']
+  ```
+  Con URL real, ítem real y pasos concretos — auditable, no una frase motivacional.
+- **`BestActionCard.vue` (nuevo):** expone la acción con su evidencia (valor esperado, aceptación, tiempo humano, días a caja, prerequisitos) y el enlace a abrir el Work Room. Montado en la pestaña **Trabajo** de `/operations`, arriba del banco.
+- **Invariante en los tests:** valor esperado `$0` **no** se disfraza de ingreso (son cosas distintas: con 0 PAID el esperado es 0 real) y la probabilidad ausente se muestra **UNKNOWN, no 0%**. 6 guards.
+- **Bug propio encontrado escribiendo los tests:** el componente no llamaba `onMounted(load)` — el `loading` se quedaba en `true` y la tarjeta no mostraba nada. Lo detectaron los tests (el mock nunca fue invocado); el tipo y el build no lo ven.
+
+**Regla permanente:** *una feature puede estar completa en el backend y no existir en la UI, o al revés.* Este motor llevaba meses escrito y jamás respondió: un `TypeError` de firma en la ruta deConstruction.
+
+## 61. El trading on-chain estaba MUERTO: la API de Jupiter migró (2026-10-05) — P0, CERRADO
+
+Descubierto **respondiendo** el "nada de pago" del owner sobre Helius. En vez
+de discutir el RPC, probé el path completo de trading — y no funcionaba nada.
+
+### Lo que encontré
+
+| Qué | Estado real |
+|---|---|
+| `quote-api.jup.ag` | **NO RESUELVE DNS** |
+| `api.jup.ag/price/v2` | **404** (migró a `/price/v3`) |
+
+La API de Jupiter movió el trading de `/v6/{quote,swap}` a `/swap/v1/{quote,swap}`.
+Todas las llamadas caían en `except httpx.HTTPError → None`, y el sistema
+reportaba *"sin route"* / *"no liquidity found"* — **indistinguible de "no hay
+oportunidades"**.
+
+### El peor detalle: el parser de precios devolvía 0.0 sin error
+
+`/price/v3` cambió la forma **dos veces** y el parser viejo no detectó ninguna:
+
+```
+envoltura:  {"data": {"<mint>": ...}}   →   {"<mint>": ...}
+campos:     price / change24h           →   usdPrice / priceChange24h
+```
+
+Leído con los nombres viejos: **0.0, sin excepción, sin log**. El peor modo
+de fallo posible — un número plausible que en realidad significa *"no lo sé"*,
+y que el panel de trading no puede distinguir de *"el token vale 0"*.
+
+> **Una dependencia externa que cambia de forma no falla: devuelve su valor
+> por defecto.** Una excepción al menos te dice que algo anda mal; un `0.0`
+> silencioso te lo esconde y deja el sistema "funcionando" sin hacer nada.
+
+### ✅ Cerrado (`6bfc7ba7`)
+
+URLs migradas a `/swap/v1` y `/price/v3`, parser adaptado a la forma real
+(acepta v2 y v3). Verificado **contra la API real**, después del fix:
+
+```
+1. quote      0.01 SOL -> 1.2000 USDC        421 ms
+2. price      SOL = $120.003                 511 ms
+3. balance    9936649383 USDC lamports       699 ms
+4. swap tx    656 b64 chars
+```
+
+### La decisión del owner: nada de pago
+
+`HELIUS_API_KEY` **retirada del registro de configuración**. Medido en #60:
+el RPC oficial declara `x-ratelimit-tier: free` y aguanta 30 requests
+secuenciales sin un 429; un swap son ~3 llamadas. El problema real era la
+**concurrencia** (10 hilos × 20 → 160/200 con 429), y se resolvió con
+**retry + rotación entre dos RPCs gratuitos**:
+
+- `api.mainnet-beta.solana.com` (1002 ms)
+- `solana-rpc.publicnode.com` (354 ms — 3× más rápido, keyless)
+
+Además las 3 llamadas RPC pasaron de **1 intento contra 1 endpoint** (un 429
+perdía la operación) a **reintento con backoff + rotación**. Sólo reintenta
+errores transitorios; un error de negocio (sin lamports, slippage) no se
+reintenta porque es determinista.
+
+### 13 tests
+
+Fijan las URLs actuales, la forma real del parser v3, y guards
+estructurales: que ninguna URL apunte a `quote-api.jup.ag`, que el trading
+sea **keyless**, y que no quede ninguna llamada RPC directa sin retry.
+
+Pruebas de fallo: con la URL vieja cae 1 test; con el parser v2 caen 3
+(incluido *"el precio no es cero si la API responde"*, que es exactamente
+el síntoma del bug silencioso).
+
+### Regla permanente
+
+> *Toda integración con una API de terceros se prueba contra la API real, no
+> contra un mock escrito a mano.* Un mock codifica la forma que vos creés,
+> no la que la API tiene. Los 3 fallos de acá vinieron de no mirar la
+> respuesta cruda nunca.

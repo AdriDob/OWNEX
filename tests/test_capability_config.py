@@ -142,14 +142,24 @@ class TestWellKnownCapabilities:
     def test_trading_live_usa_solana_private_key(self) -> None:
         assert "SOLANA_PRIVATE_KEY" in BY_ID["trading_live"].required_envs
 
-    def test_helius_es_opcional_no_requerida(self) -> None:
-        """Helius NO es necesaria: el sistema funciona con el RPC público.
+    def test_helius_no_esta_en_el_registro(self) -> None:
+        """DECISIÓN DEL OWNER: nada de pago. Helius no se pide.
 
-        Marcarla como requerida haría que el panel diga "bloqueada" sin
-        motivo, que es la mentira que este panel existe para no contar.
+        Medido (KNOWN_DEBT #60): el RPC público oficial aguanta 30 requests
+        secuenciales sin un 429, y un swap son ~3 llamadas. El problema real
+        era la concurrencia, y se resolvió con retry + rotación entre dos RPCs
+        gratuitos. Pedir una key pagada para eso sería gastar plata.
         """
-        assert "HELIUS_API_KEY" in BY_ID["trading_onchain"].optional_envs
+        assert "HELIUS_API_KEY" not in BY_ID["trading_onchain"].optional_envs
         assert "HELIUS_API_KEY" not in BY_ID["trading_onchain"].required_envs
+        assert "HELIUS_API_KEY" not in all_envs(), "Helius no debe aparecer en la lista de keys"
+
+    def test_trading_onchain_no_tiene_pendientes(self) -> None:
+        """Sin key pendiente: el panel no debe pedir nada para operar."""
+        c = BY_ID["trading_onchain"]
+        assert c.impact({}) == "ninguno"
+        assert c.missing_required({}) == []
+        assert c.missing_optional({}) == []
 
     def test_trading_mode_es_opcional_porque_default_es_dry_run(self) -> None:
         """`TRADING_MODE` ausente = dry_run = seguro. No es un bloqueo."""
