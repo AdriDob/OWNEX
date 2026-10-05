@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger("orion.revenue.api")
 router = APIRouter(prefix="/api/revenue-multiplier", tags=["revenue_multiplier"])
@@ -26,7 +26,42 @@ async def revenue_status():
 
 @router.post("/activate")
 async def activate_max_revenue(data: dict[str, Any] | None = None):
-    """Activate MAX REVENUE MODE — runs bounty pipeline and/or crypto trading."""
+    """Activate MAX REVENUE MODE — runs bounty pipeline and/or crypto trading.
+
+    **Modo LIVE exige Human Gate.** Antes `POST {"mode":"live"}` llegaba a
+    `_live_execute` → `RealExecutor` → `send_transaction` (broadcast
+    on-chain) sin ninguna verificación: sin approval, sin kill switch, sin
+    chequear `TradingConfig.is_live`. Sólo el `max_position_usd` lo frenaba.
+
+    Ahora pedir LIVE sin token válido devuelve 403 antes de ejecutar nada.
+    El mecanismo es el MISMO que ya usa `/api/trading/pump/execute`
+    (`consume_approval`, HMAC single-use, binding de action+target+workspace).
+    """
+    payload = data or {}
+    requested = str(payload.get("mode") or "").lower()
+
+    if requested == "live":
+        from cores.automation.safety import consume_approval
+
+        token = str(payload.get("approval_token") or "").strip()
+        target = str(payload.get("target") or "max_revenue_live")
+        if not consume_approval(token, action="revenue_live_trade", target=target, workspace="revenue"):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "modo live requiere Human Gate: pedí un token con "
+                    "issue_approval(action='revenue_live_trade', target=..., workspace='revenue') "
+                    "y mandalo como approval_token"
+                ),
+            )
+
+        # Kill switch global: mismo control que el resto del trading.
+        from cores.trading.risk import KillSwitchLevel, KillSwitchManager
+        from cores.trading.store import TradingStore
+
+        if KillSwitchManager(store=TradingStore()).is_active(KillSwitchLevel.GLOBAL):
+            raise HTTPException(status_code=423, detail="kill switch global activo — no se puede operar en live")
+
     try:
         from cores.revenue_multiplier import (
             ExecutionMode,
