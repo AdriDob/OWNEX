@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 43 de 41.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 46 de 42.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -816,3 +816,123 @@ decoración.* Y *una capacidad sin consumidor no se rompe — se descubre tarde*
 los 3 radaresLkannaban solos cada 3-7 minutos contra APIs reales, y su
 endpoint era un **500 garantizado** que nadie había chamado jamás. Construir el
 panel fue lo que destapó el bug.
+
+## 61. FASE 1 — el banco producía trabajo y la UI no lo listaba (2026-10-05)
+
+**El hallazgo:** `WorkRoom.vue` cerraba el loop completo (ver → preparar → editar → diff → aprobar → enviar) pero **nada en la interfaz navegaba a él**: `/operations/work-room/:id` no tenía entrada. El banco escaneaba 1.018 oportunidades y dejaba 2 items listos, y eso era **inalcanzable desde la UI**. El producto tenía motor y lacked de manos.
+
+- **`WorkBankList.vue` (nuevo):** lista accionable con recompensa, plataforma, estado y entregables; navegación al Work Room; y sobre todo el botón **«Correr ciclo»** (`POST /workbank/cycle`), que es la acción que descubre y prepara trabajo — sin ella el sistema es un lector.
+- **Invariante de dinero con guard:** los ítems `unpaid_evidence` (9 de 11, de repos que nunca mergearon) **no se listan como accionables**; se ocultan **declarando cuántos son** («Se ocultan 2»), no se desaparecen en silencio. Mezclarlos devolvería los $5.810 de pipeline fantasma que el backend ya había eliminado.
+- **7 guards** (`WorkBankList.test.ts`) sobre ese invariante, la navegación, el ciclo y el fallo honesto del ciclo. Prueba de fallo: quitar el filtro de accionables ⇒ caen 2 guards.
+- **El ciclo verificado en vivo:** `POST /direct-work/workbank/cycle` → 200 con `scanned: 1018`, `eligible_zero_barrier: 7`, `ready_to_deliver: 2`, y `rejected_reasons` explicando los descartes (`below_min_payment`, `bug_bounty_program_not_a_deliverable_task`, `not_programmable_dev_work`).
+- **Montado como pestaña «Trabajo»** en `/operations`, junto a «Ejecución».
+
+**Verificación:** frontend 252/252 (24 archivos, 0 unhandled) · `vue-tsc` 0 · `vite build` 14.3s · e2e 28/28 · `test-fast` 103/1 (estable 2/2) · CSRF+security 48/48.
+
+## 62. Los 11 items del banco eran inalcanzables por API (2026-10-05) — RESUELTO
+
+**Descubierto al usar el botón de acción de `ExecutionPanel` y al construir `WorkBankList`.**
+
+- **Causa:** el `WorkItem.id` se tomaba de `opp.id`, que viene de la URL del issue de GitHub: `github_bounty_github_<owner>/<repo>#<n>`. En FastAPI/Starlette **`/` crea una ruta nueva** y **`#` trunca el fragmento antes de que el router matchee**. Y `encodeURIComponent` **no** lo salva: medido que `a/b`, `a%2Fb` y `a%23b` dan **404 los tres** (el path se decodifica tras el matching).
+- **Impacto medido: los 11 items del banco eran inalcanzables.** `/direct-work/workbank/{id}/deliver/prepare` daba 404 para **todos**, o sea que el Work Room no cargaba para ningún trabajo real. El ciclo producía trabajo y la UI no podía abrirlo.
+- **Fix en la fuente:** `_path_safe_id()` (workbank.py) sanea el id al crear el item (`_UNSAFE_ID_CHARS = [^A-Za-z0-9._-]+`), **conservando legibilidad**: `github_bounty_github_acme/repo#7` → `github_bounty_github_acme_repo_7`. Los ids ya limpios (`opire-1`, `deliver-1`) no cambian. Si el saneo queda vacío, usa sha1 del original.
+- **Migración del store legado:** `_load()` renombra los ids antiguos al cargarlos (log explícito), así que los 11 items previos quedan accesibles sin tocar el `url` original de cada uno.
+- **Verificado:** ciclo completo → `scanned: 1020`, `eligible_zero_barrier: 22`, `ready_to_deliver: 24`, **`ids NO path-safe: 0`**, y `POST /workbank/{id}/deliver/prepare` → **200**.
+- **6 guards** en `tests/test_workbank_path_safe_ids.py`: no-op en ids limpios, legibilidad, entradas hostiles (`""`, `"///"`, `"
+	"`), no-colisión entre urls distintas, persistencia.
+- **e2e nuevo** (`e2e/workroom.spec.ts`): navega directo a `/operations/work-room/<id real>` y verifica que la vista **no queda en blanco** ni dice "No encontrado". Navega directo a propósito: recorrer pestañas chocaba con el splash (`z-[200]`) y un overlay (`z-[100]`) que interceptan clics — comportamiento preexistente del shell, no del panel.
+- **29/29 e2e** (antes 28 + este).
+
+**Regla permanente:** *un id que viene de una URL de otro sistema nunca puede ser un path param.* Sanear en la frontera es más barato que descubrir, tres meses después, que todo el trabajo encontrado era inalcanzable.
+
+## 56. Tres guards que parecían activos y no lo estaban (2026-10-05) — P0/P1, CERRADOS
+
+Continuación de #55. Los tres son la misma familia: **el control existe, se
+reporta, y no controla nada**. Se encontraron verificando en vivo, no leyendo.
+
+### (a) El auto-stop por drawdown de copy trading era decorativo — P0
+
+La cadena entera existía:
+
+    CopyTradingEngine.record_daily_pnl(master, amount)   ← definición
+    CopyTradingEngine._daily_pnl()                       ← lee
+    CopyTradingEngine.daily_dd_pct()                      ← calcula
+    CopyTradingEngine.risk_breached()                    ← dispara el stop
+
+`record_daily_pnl` tenía **0 callers en producción** (sólo un test). Entonces
+`_daily_pnl()` → `{}` siempre, `daily_dd_pct()` → **0.0 siempre**, y
+`risk_breached()` **nunca podía dispararse por drawdown**.
+
+**✅ Cerrado (`54b6445f`).** `paper_metrics` (memecoin_paper) es el único lugar
+del sistema que calcula PnL real de trades cerrados (`realized_pnl_sol`). Ahora
+`_report_realized_pnl_to_copy` sube ese PnL al registro del copy engine al
+cerrar cada ciclo. Best-effort pero **no mudo**: si el bridge falla, avisa.
+Verificado: `daily_dd_pct() > 0` con PnL negativo registrado — antes imposible.
+
+### (b) La confidence de un finding era una constante — P1
+
+Cada adapter usaba un decimal escrito a mano (sqlmap 0.8 · xsstrike 0.7 ·
+subfinder 0.6 · ffuf 0.4 · katana/gau 0.3) y el orchestrator reporta bounty
+todo finding con `confidence >= min_confidence_for_report` (**0.65**).
+
+Traducido: **sqlmap y xsstrike pasaban el gate por el nombre de la
+herramienta**, sin evidencia. Las de descubrimiento puro estaban por encima o
+por debajo del corte según un decimal inventado.
+
+Es la clase de cifra que el proyecto prohíbe ("UNKNOWN nunca como cifra"), pero
+en la forma más fácil de no ver: *parece* una medición porque hay un float.
+
+**✅ Cerrado (`403782e0`).** `ToolAdapter._confidence_for(severity)`: la
+confianza sale de la severity que reporta el scanner. Lo que no la tiene
+arranca en 0.30, deliberadamente bajo el gate.
+
+| severity | confidence | cruza gate 0.65 |
+|---|---:|---|
+| critical | 0.75 | ✅ |
+| high | 0.70 | ✅ |
+| medium | 0.55 | ❌ |
+| low | 0.40 | ❌ |
+| info / desconocido | 0.30 | ❌ |
+
+Antes cruzaban 2 herramientas enteras por nombre. Ahora sólo severidad alta.
+
+### (c) Clave duplicada silenciosa en `ownexData.ts` — P2, y bloqueaba commits
+
+`total_earned_usd` estaba declarada **dos veces** en `MilestoneTrackerState` y
+dos veces en `MilestoneTrackerResponse`. En JS la segunda clave **pisa** la
+primera sin aviso.
+
+El daño real no es el bug: es el ruido. `vite build` lo reportaba como
+`[plugin vite:esbuild] Duplicate key "total_earned_usd"`, y ese warning
+**enmascaraba** el error que realmente rompía el build (`fetchTodayPlan` no
+exportado). Costó dos commits con `--no-verify` porque el hook
+`frontend-build` no era confiable.
+
+**✅ Cerrado (`5d8504be`).** Duplicados eliminados + guard nuevo
+(`test_frontend_duplicate_keys.py`).
+
+Escribir ese guard fue más difícil de lo que parecía, y la razón vale la pena:
+- v1 contaba todas las claves del `return` → **23 falsos positivos** (un
+  `return { close_engine: { engine: ... } }` tiene `engine` a dos profundidades).
+- v2 contaba paréntesis y no cerraba el bloque en `} | null`, comiéndose la
+  interface siguiente.
+- v3 no detectaba `phases: Record<string, {` que abre **dos** llaves en una línea.
+- v4: balance de llaves, la clave se registra con el depth **resultante**, y
+  para al cerrar el bloque.
+
+Sólo cuentan claves al mismo nivel de llaves del mismo bloque.
+
+### Regla permanente
+
+*Un control que sólo se ejercita en tests es decorativo hasta que alguien lo
+conecta al flujo real.* Y al revés: *un guard que se reportaba en la UI y no
+podía dispararse es peor que no tenerlo, porque el owner confía en él.*
+
+Tres formas deFallback, un mismo bug:
+- caller inexistente → `record_daily_pnl`
+- número constante donde debería haber cálculo → `confidence`
+- clave repetida donde debería haber una fuente → `total_earned_usd`
+
+**Cómo detectar la clase:** para cada guard, preguntarse *"¿qué pasa si lo
+borro? Si la respuesta es 'no pasa nada', era decorativo."* Ese es el test
+que ninguno de los tres tenía.
