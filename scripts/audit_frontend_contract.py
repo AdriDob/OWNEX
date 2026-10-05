@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""Auditoría del contrato frontend↔backend: ¿el front llama a endpoints que existen?
+
+Por qué existe (2026-10-05). Se repite el mismo modo de fallo de #61 (Jupiter) y
+#62 (SpoofCheck): **una dependencia que se rompe devuelve su valor por defecto**.
+Acá el síntoma es un 404 que la UI traga con `.catch(() => ({}))` y muestra una
+pantalla vacía sin avisar.
+
+Medido con el resolver REAL del front (`frontend/src/lib/backend.ts`):
+
+    endpoints distintos que el front llama : 402
+    con backend                          : ~365
+    SIN backend (404 real)               : ~30
+
+⚠️ **Este script NO es un test.** Un test que siempre falla entrena a ignorarlo,
+y uno que se desactiva solo no vigila nada. La decisión de qué hacer con cada 404
+(¿se restaura el endpoint o se borra la llamada?) es del owner; este script es la
+evidencia para tomarla.
+
+Uso:
+    python scripts/audit_frontend_contract.py            # resumen
+    python scripts/audit_frontend_contract.py --list     # detalle con archivo:línea
+    python scripts/audit_frontend_contract.py --json     # parseable
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
+
+REPO = Path(__file__).resolve().parent.parent
+FRONTEND = REPO / "frontend" / "src"
+
+CALL = re.compile(r"""api\.(get|post|put|patch|delete)(?:<[^>]*>)?\(\s*[`'"]([^`'"]+)""")
+
+
+def root_prefixes() -> set[str]:
+    """Los namespaces que el front resuelve SIN /api."""
+    ts = (FRONTEND / "lib" / "backend.ts").read_text(encoding="utf-8")
+    block = ts.split("ROOT_MOUNTED_PREFIXES = [", 1)[1].split("]", 1)[0]
+    return set(re.findall(r"'([^']+)'", block))
+
+
+def resolve(path: str, prefixes: set[str]) -> str:
+    """Réplica de `resolveApiUrl` en backend.ts."""
+    clean = path[4:] if path.startswith("/api/") else path
+    clean = clean.split("?")[0].rstrip("/") or "/"
+    is_root = any(clean == p or clean.startswith(p + "/") for p in prefixes)
+    return clean if is_root else f"/api{clean}"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--list", action="store_true", help="detalle con archivo:línea")
+    ap.add_argument("--json", action="store_true", help="salida JSON")
+    args = ap.parse_args()
+
+    import logging
+
+    logging.disable(logging.CRITICAL)  # el BOOT log ensucia stdout
+
+    from fastapi.testclient import TestClient
+
+    from api.main import app
+
+    real = {r.path for r in app.routes if getattr(r, "path", None)}
+    prefixes = root_prefixes()
+    client = TestClient(app)
+
+    calls: dict[tuple[str, str], tuple[Path, int]] = {}
+    templates = 0
+    for f in FRONTEND.rglob("*"):
+        if f.suffix not in (".ts", ".vue") or "node_modules" in str(f):
+            continue
+        for ln, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            for m in CALL.finditer(line):
+                method, path = m.group(1).upper(), m.group(2)
+                if "${" in path:
+                    templates += 1
+                    continue
+                calls.setdefault((method, resolve(path, prefixes)), (f, ln))
+
+    # Verificar por HTTP real, no por comparación de strings: una ruta puede
+    # existir montada bajo un router aunque no esté en el path declarado.
+    rotas: list[tuple[str, str, Path, int, str]] = []
+    for (method, resolved), (f, ln) in sorted(calls.items()):
+        try:
+            code = client.get(resolved).status_code if method == "GET" else None
+            if code == 404:
+                rotas.append((method, resolved, f, ln, "GET->404"))
+                continue
+        except Exception:  # pragma: no cover
+            pass
+        if resolved not in real and not (resolved.startswith("/api/") and resolved[4:] in real):
+            rotas.append((method, resolved, f, ln, "path no declarado"))
+
+    vivas = len(calls) - len(rotas)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "llamadas": len(calls),
+                    "templates": templates,
+                    "con_backend": vivas,
+                    "sin_backend": len(rotas),
+                    "rotas": [
+                        {"method": m, "path": r, "file": str(f.relative_to(REPO)), "line": ln, "why": w}
+                        for m, r, f, ln, w in rotas
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return 1 if rotas else 0
+
+    print(f"endpoints distintos que el front llama : {len(calls)}")
+    print(f"  con backend                          : {vivas}")
+    print(f"  SIN backend                         : {len(rotas)}")
+    print(f"  (llamadas con template literal       : {templates})\n")
+    if args.list and rotas:
+        print("=== 404 REALES: el front llama, el backend no sirve ===\n")
+        for m, r, f, ln, w in rotas:
+            print(f"  {m:6} {r:46} [{w}]")
+            print(f"         {f.relative_to(REPO)}:{ln}")
+    elif not args.list and rotas:
+        print("  usar --list para el detalle con archivo:línea")
+    return 1 if rotas else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
