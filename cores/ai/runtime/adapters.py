@@ -19,6 +19,7 @@ from .interfaces import (
     ModelCapabilities,
     ProviderHealth,
 )
+from .resilience import health_status_for
 
 logger = logging.getLogger("oar.adapters")
 
@@ -247,9 +248,14 @@ class OpenAICompatibleAdapter(AIProviderProtocol):
     ):
         self._provider_id = provider_id
         self._name = name
-        self._api_key = api_key or os.getenv(env_key, "") if env_key else ""
+        self._api_key = api_key or (os.getenv(env_key, "") if env_key else "")
         self._base_url = (base_url or os.getenv(env_base, "")).rstrip("/") if base_url or env_base else ""
-        self._model = model or os.getenv(env_model, "") if env_model else ""
+        # Precedencia: el model explícito gana SIEMPRE; el env sólo se lee si
+        # vino su nombre. Antes `model or os.getenv(...) if env_model else ""`
+        # descartaba el model explícito cuando env_model venía vacío (todos los
+        # factories OpenAI-compatible) → supported_models == [] → el registro
+        # no podía mapear ningún model a su provider (routing roto en silencio).
+        self._model = model or (os.getenv(env_model, "") if env_model else "")
         self._pricing = pricing
         self._capabilities = capabilities or {Capability.CHAT}
         self._max_context = max_context
@@ -295,10 +301,26 @@ class OpenAICompatibleAdapter(AIProviderProtocol):
                     headers={"Authorization": f"Bearer {self._api_key}"},
                 )
             latency = (time.monotonic() - start) * 1000
+
+            if resp.status_code == 200:
+                return ProviderHealth(
+                    provider_id=self.provider_id,
+                    status=HealthStatus.HEALTHY,
+                    latency_ms=latency,
+                    uptime_seconds=time.monotonic() - self._start_time,
+                )
+
+            # Un non-200 no es todo lo mismo: 401/403 = key inválida (arreglar
+            # la key), 402/429 = cuota (esperar), 5xx = transitorio (reintentar).
+            # Colapsarlos a UNHEALTHY sin last_error dejaba al owner sin saber
+            # qué arreglar: el panel mostraba "—" para un 401.
+            status = HealthStatus(health_status_for(resp.status_code))
+            body = resp.text[:200].strip()
             return ProviderHealth(
                 provider_id=self.provider_id,
-                status=HealthStatus.HEALTHY if resp.status_code == 200 else HealthStatus.UNHEALTHY,
+                status=status,
                 latency_ms=latency,
+                last_error=f"HTTP {resp.status_code}: {body}" if body else f"HTTP {resp.status_code}",
                 uptime_seconds=time.monotonic() - self._start_time,
             )
         except Exception as e:
@@ -692,6 +714,42 @@ def create_omniroute_adapter(
             Capability.TOOL_CALLING,
             Capability.JSON_MODE,
             Capability.LONG_CONTEXT,
+        },
+        max_context=128000,
+    )
+
+
+def create_freellmapi_adapter(
+    api_key: str | None = None,
+    host: str = "http://localhost:8787/v1",
+    model: str = "auto",
+) -> OpenAICompatibleAdapter:
+    """FreeLLMAPI — agregador self-hosted de free tiers detrás de un /v1.
+
+    34 providers / 635 endpoints con routing por cuota aprendida y failover.
+    SELF-HOSTED por diseño (Node 20+ / Docker): las keys del usuario viven
+    cifradas en su propio SQLite y se descifran en memoria por request — no
+    hay proxy externo viendo el tráfico.
+
+    Es UN provider más para OAR (que sigue siendo el SSOT del routing), no un
+    motor paralelo: reutiliza OpenAICompatibleAdapter, sin abstracción nueva.
+    Opt-in: sólo se registra si FREELLMAPI_BASE_URL está definido.
+    """
+    return OpenAICompatibleAdapter(
+        provider_id="freellmapi",
+        name="FreeLLMAPI (self-hosted)",
+        api_key=api_key,
+        base_url=os.getenv("FREELLMAPI_BASE_URL", host),
+        model=os.getenv("FREELLMAPI_MODEL", model),
+        env_key="FREELLMAPI_API_KEY",
+        pricing=(0.0, 0.0),  # free tiers por definición
+        capabilities={
+            Capability.CHAT,
+            Capability.CODE,
+            Capability.REASONING,
+            Capability.TOOL_CALLING,
+            Capability.JSON_MODE,
+            Capability.EMBEDDING,
         },
         max_context=128000,
     )
