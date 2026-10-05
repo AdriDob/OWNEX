@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -44,9 +45,20 @@ class PreparedWork:
 class AssistedExecutor:
     """Wrapper for executors that requires user approval before submission."""
 
-    def __init__(self, base_executor: Any, output_dir: str | Path = "~/ownex/submissions"):
+    def __init__(self, base_executor: Any, output_dir: str | Path | None = None):
         self.base_executor = base_executor
-        self.output_dir = Path(output_dir).expanduser()
+        # Antes el default era el literal "~/ownex/submissions", que ignoraba
+        # OWNEX_DATA_DIR. Eso rompía el aislamiento de tests: cada corrida de
+        # pytest escribía paquetes de trabajo en el HOME real (1.351 fixtures
+        # acumulados en ~/ownex/submissions/opire/ entre el 4 y el 5 de agosto).
+        # Ahora resuelve desde OWNEX_DATA_DIR como el resto del sistema, con el
+        # path histórico como fallback para instalaciones existentes.
+        if output_dir is not None:
+            resolved = Path(output_dir)
+        else:
+            data_dir = os.environ.get("OWNEX_DATA_DIR") or os.environ.get("CATEYE_DATA_DIR")
+            resolved = Path(data_dir) / "submissions" if data_dir else Path("~/ownex/submissions")
+        self.output_dir = resolved.expanduser()
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self._pending_work: list[PreparedWork] = []
 
