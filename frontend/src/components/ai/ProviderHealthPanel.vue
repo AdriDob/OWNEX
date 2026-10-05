@@ -29,7 +29,13 @@ type OarHealth = {
 
 type OarDoctor = {
   overall?: string
-  providers?: { healthy?: string[]; degraded?: string[]; unhealthy?: string[]; total?: number }
+  providers?: {
+    healthy?: string[]
+    degraded?: string[]
+    unhealthy?: string[]
+    total?: number
+    usable?: number
+  }
   health_details?: Record<string, OarHealth>
   circuit_breakers?: Record<string, boolean>
 }
@@ -78,12 +84,41 @@ const usable = computed(() => rows.value.filter((r) => r.status === 'healthy' &&
 const needKey = computed(() => rows.value.filter((r) => r.needsKey))
 const breakerOpen = computed(() => rows.value.filter((r) => r.breakerOpen))
 
+/** Estado global del runtime. "unknown" = no sabemos, no es un veredicto. */
+const overallLabel = computed(() => {
+  switch (doctor.value?.overall) {
+    case 'healthy':
+      return 'runtime sano'
+    case 'degraded':
+      return 'runtime degradado'
+    case 'unhealthy':
+      return 'runtime caído'
+    case 'unknown':
+      return 'runtime sin datos'
+    default:
+      return 'runtime sin datos'
+  }
+})
+
 function statusClass(status: string): string {
   if (status === 'healthy') return 'text-[var(--color-sys-healthy)]'
   if (status === 'degraded') return 'text-[var(--color-sys-degraded)]'
   if (status === 'unknown') return 'text-[var(--color-text-muted)]'
   return 'text-[var(--color-sys-blocked)]'
 }
+
+const overallClass = computed(() => {
+  switch (doctor.value?.overall) {
+    case 'healthy':
+      return 'text-[var(--color-sys-healthy)]'
+    case 'degraded':
+      return 'text-[var(--color-sys-degraded)]'
+    case 'unhealthy':
+      return 'text-[var(--color-sys-blocked)]'
+    default:
+      return 'text-[var(--color-text-muted)]'
+  }
+})
 
 function fmtLatency(ms: number | null): string {
   if (ms === null) return '—'
@@ -121,7 +156,8 @@ onMounted(load)
           <template v-if="loading">consultando…</template>
           <template v-else-if="rows.length === 0">sin providers registrados</template>
           <template v-else>
-            {{ usable }}/{{ rows.length }} aportan capacidad
+            <span :class="overallClass">{{ overallLabel }}</span>
+            · {{ usable }}/{{ rows.length }} aportan capacidad
             <template v-if="needKey.length"> · {{ needKey.length }} sin credencial</template>
           </template>
         </p>

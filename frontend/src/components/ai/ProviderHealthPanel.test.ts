@@ -120,6 +120,55 @@ describe('ProviderHealthPanel', () => {
     w.unmount()
   })
 
+  it('muestra el estado global del runtime, no solo el conteo', async () => {
+    const degraded = {
+      ...DOCTOR,
+      overall: 'degraded',
+      providers: { ...DOCTOR.providers, usable: 2, total: 4 },
+    }
+    mockDoctor(degraded)
+    const w = mount(ProviderHealthPanel)
+    await flushPromises()
+
+    expect(w.text()).toContain('runtime degradado')
+    w.unmount()
+  })
+
+  it('"runtime sin datos" cuando el backend no sabe (unknown ≠ sano)', async () => {
+    const unknown = { ...DOCTOR, overall: 'unknown' }
+    mockDoctor(unknown)
+    const w = mount(ProviderHealthPanel)
+    await flushPromises()
+
+    expect(w.text()).toContain('runtime sin datos')
+    expect(w.text()).not.toContain('runtime sano')
+    w.unmount()
+  })
+
+  it('"runtime caído" cuando no queda ninguno sano', async () => {
+    const down = {
+      ...DOCTOR,
+      overall: 'unhealthy',
+      health_details: {
+        groq: { status: 'unhealthy', latency_ms: 600, error_rate: 1, last_error: 'HTTP 500' },
+        cerebras: {
+          status: 'auth_failed',
+          latency_ms: 0,
+          error_rate: 0,
+          last_error: 'Missing API key or base URL',
+        },
+      },
+      circuit_breakers: { groq: true },
+    }
+    mockDoctor(down)
+    const w = mount(ProviderHealthPanel)
+    await flushPromises()
+
+    expect(w.text()).toContain('runtime caído')
+    expect(w.text()).toContain('0/2 aportan capacidad')
+    w.unmount()
+  })
+
   it('sin providers: empty state honesto, no "todo bien"', async () => {
     mockDoctor({ overall: 'unhealthy', providers: { total: 0 }, health_details: {}, circuit_breakers: {} })
     const w = mount(ProviderHealthPanel)
