@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 46 de 42.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 48 de 43.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -936,3 +936,82 @@ Tres formas deFallback, un mismo bug:
 **Cómo detectar la clase:** para cada guard, preguntarse *"¿qué pasa si lo
 borro? Si la respuesta es 'no pasa nada', era decorativo."* Ese es el test
 que ninguno de los tres tenía.
+
+## 63. La UI reportaba envíos fallidos como exitosos (2026-10-05) — RESUELTO
+
+**Bug de honestidad, el mismo patrón que ya se corrigió dos veces.**
+
+- **Medido en vivo:** `POST /direct-work/workbank/{id}/submit` responde **HTTP 200 con `success: false`** cuando el envío cae en DLQ. Respuesta real observada: `{success: false, status: "dlq", attempts: 3, last_error: "GITHUB_TOKEN no configurada"}`. `WorkRoom.vue` miraba el **status HTTP** y notificaba **"Enviado a la plataforma"**.
+- O sea: el usuario veía un envío exitoso que no ocurrió, con la razón real escondida en un campo que la UI ignoraba.
+- **Fix:** `submitFailure()` centraliza el chequeo (`success === false`) y usa el campo de falla correcto de cada ruta: `message`/`last_error` (submit), `reason` (auto-submit, que no trae `message`), `status` como último recurso. Aplicado a `submit`, `approve` y el nuevo `auto-submit`.
+- **Descubierto de paso:** `POST /workbank/{id}/auto-submit` **no envía nada** — el executor tiene un `TODO: Integrate with platform APIs for real auto-submission` y devuelve `requires_manual_action: true`. La UI ahora lo dice explícitamente, en vez de dejar que el nombre del botón prometa un envío que no ocurre.
+- **5 guards** (`WorkRoom.test.ts`), incluido el caso exacto: `success: false` + HTTP 200 **no** puede producir `notifications.success`. Prueba de fallo: romper el guard ⇒ caen 3 tests.
+- **Verificación del backend:** el path de envío es **fail-closed correcto** — sin token va a DLQ con la razón exacta, no finge éxito. El bug era sólo de la capa de presentación.
+
+**Regla permanente:** *un 200 no significa que la operación ocurrió.* Los endpoints de acción externa devuelven el veredicto en el cuerpo; la UI tiene que leerlo, no el status HTTP.
+
+## 57. Key de Helius muerta + preflight quemando fees (2026-10-05) — P0/P1 dinero, CERRADO
+
+Los dos últimos puntos del hallazgo #55 que tocaban **el path que mueve
+fondos**. Ninguno se detectaba leyendo: los dos son silenciosos.
+
+### (a) `helius_api_key` se recibía, se guardaba, y no se leía — P1
+
+    self._helius_api_key = helius_api_key   ← única mención en todo el árbol
+
+`rg _helius_api_key` daba **1 match**: la asignación. El RPC quedaba siempre
+en `api.mainnet-beta.solana.com`, que limita por IP y puede devolver 429
+justo en un swap (construir → firmar → enviar).
+
+Una key configurada que no cambia nada es configuración muerta que además
+promete un rendimiento que no llega: el owner cree que tiene throughput de
+pago y tiene el de un RPC público.
+
+**✅ Cerrado (`d3d2bbab`).** `_resolve_rpc_url()` prioriza Helius si hay key,
+**salvo** que el caller haya pasado un RPC dedicado (si el operador eligió su
+propio nodo, Helius no lo pisa). `_PUBLIC_RPC_URLS` lista los públicos
+sustituibles. Propiedades `rpc_url` y `using_paid_rpc` para diagnóstico.
+
+### (b) `skip_preflight=True` hardcodeado — P0 (quema fees)
+
+    def send_transaction(self, tx_b64, skip_preflight: bool = True):
+
+Con el preflight apagado el RPC **no simula** la transacción. Una tx inválida
+(slippage vencido, cuenta sin lamports, mint inválido) se incluye igual,
+**cobra la fee de la red** y se descarta. Y no hay forma de saber cuántas:
+el RPC responde éxito al broadcaster, el fees se pagan igual.
+
+**✅ Cerrado (`d3d2bbab`).** Default `False` (preflight ON): la simulación es
+local y no cuesta fees; evitarla sí los cuesta. Configurable por instancia y
+por llamada (`None` = default del cliente, `bool` = override explícito).
+
+### Estado real de las credenciales (medido 2026-10-05)
+
+```
+HELIUS_API_KEY        NO     ← el fix #57 no tiene efecto hasta que la pongas
+SOLANA_PRIVATE_KEY    NO
+SOLANA_KEYPAIR_PATH   NO
+TRADING_MODE          NO     ← default dry_run: SEGURO
+OWNEX_APPROVAL_KEY    NO     ← ver abajo
+```
+
+`TRADING_MODE` ausente es **lo correcto**: `TradingConfig.from_env()` usa
+`"dry_run"` como default, así que aunque el resto esté mal, no se mueve
+dinero.
+
+`OWNEX_APPROVAL_KEY` ausente **degrada el Human Gate**: la key pasa a ser
+`_EPHEMERAL_KEY` (efímera por proceso), así que **tras cada restart los
+approval tokens emitidos quedan inválidos**. Documentado, pero frágil: si
+algún día se corre `/pump/execute` o `/activate live` a través de dos
+procesos distintos, el gate va a fallar cerrado sin explicación clara.
+**No se cambió**: el default efímero es la opción segura (un approval no debe
+sobrevivir al proceso que lo emitió). Queda como decisión del owner si
+setear la key.
+
+### Regla permanente
+
+*Un default que quema dinero no puede quedar hardcodeado, y una key recibida
+que no se lee es una promesa que el sistema no cumple.* Los dos son
+indetectables leyendo: no hay excepción, no hay traceback, no hay log. Se
+detectan preguntando *"¿qué cambia si el owner configura esto?"* y mirando
+qué pasa cuando la respuesta es **nada**.
