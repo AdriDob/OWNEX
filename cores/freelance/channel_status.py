@@ -37,14 +37,36 @@ class ChannelStatus(StrEnum):
 # high competition, low documented rates vs the primary engines.
 FREELANCE_CHANNELS: tuple[str, ...] = ("fiverr",)
 
+# Fiverr: REVIVIDO y OPCIONAL (decisión del owner 2026-09-30).
+#
+# Contexto: `cores/fiverr/` es el motor de gigs PROPIO del usuario (solución
+# completa, no horas), así que es ingreso propio — no es un marketplace donde
+# competimos por precio. Por eso NO se excluye como Workana.
+#
+# Dónde vive: es un carril decommerce/venta (adyacente a `ecommerce`,
+# `DROPPINGLABEL`, `MERCADO_LIBRE`), NO el foco del proyecto.
+# Foco del proyecto = DEV/tech de nicho (dev_bounty, oss, security, AI/tech).
+# Se puede dejar PAUSED con un click sin perder nada.
 _DEFAULT_STATUS: dict[str, ChannelStatus] = {
     "fiverr": ChannelStatus.ACTIVE,
     "workana": ChannelStatus.EXCLUDED,
 }
 
-# Platforms permanently excluded from recommendations (user decision,
-# purge 2026-09): low pay, extreme competition, poor time-to-money.
-_HARD_EXCLUDED: frozenset[str] = frozenset({"workana", "upwork", "utest", "clickworker", "freelancer"})
+_HARD_EXCLUDED: frozenset[str] = frozenset(
+    {
+        "workana",
+        "upwork",
+        "utest",
+        "clickworker",
+        "freelancer",
+        # Retirados 2026-10-01 por decisión del owner: el carril freelance
+        # completo queda fuera ("no quiero trabajar en fiverr ni en freelance").
+        # Hard-excluded ⇒ no admiten override por HTTP: un clic no puede
+        # devolver a la cola un carril que el dueño vetó.
+        "fiverr",
+        "freelance",
+    }
+)
 
 
 def _store_path() -> Path:
@@ -72,8 +94,16 @@ def _save(state: dict[str, str]) -> None:
 
 
 def get_status(channel: str) -> ChannelStatus:
-    """Return the status for a channel (defaults to ACTIVE for known channels)."""
+    """Status del canal. Los `_HARD_EXCLUDED` NO admiten override.
+
+    Bug cerrado (2026-09-30): el store se leía antes de `_HARD_EXCLUDED`, así
+    que un `POST` previo podía resucitar un canal duro-excluido (el store tenía
+    `workana: active` pese a estar en `_HARD_EXCLUDED` desde el purge 2026-09).
+    Una exclusión permanente del owner no puede revertirse por HTTP.
+    """
     key = channel.strip().lower()
+    if key in _HARD_EXCLUDED:
+        return ChannelStatus.EXCLUDED
     state = _load()
     raw = state.get(key)
     if raw:

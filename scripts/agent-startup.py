@@ -43,7 +43,7 @@ def check_version() -> bool:
     """Step 1: Version check."""
     header("STEP 1: Version Check")
     result = subprocess.run(
-        [sys.executable, "-m", "core.system.version_engine", "info"],
+        [sys.executable, "-m", "cores.system.version_engine", "info"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -58,7 +58,7 @@ def check_version() -> bool:
 
     # Check sync
     sync_result = subprocess.run(
-        [sys.executable, "-m", "core.system.version_engine", "sync"],
+        [sys.executable, "-m", "cores.system.version_engine", "sync"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,

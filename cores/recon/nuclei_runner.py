@@ -22,6 +22,7 @@ class NucleiRunner:
         severity: str = "medium,high,critical",
         tags: list[str] | None = None,
         exclude_tags: list[str] | None = None,
+        template_dirs: list[str | Path] | None = None,
     ) -> Path:
         path = self.output_dir / out_file
         cmd = [
@@ -39,6 +40,11 @@ class NucleiRunner:
             cmd.extend(["-tags", ",".join(tags)])
         if exclude_tags:
             cmd.extend(["-exclude-tags", ",".join(exclude_tags)])
+        # Plantillas propias (P2): directorios custom que se suman a las default.
+        # Directorios inexistentes se saltean (nunca rompen el scan).
+        for tdir in template_dirs or []:
+            if Path(tdir).is_dir():
+                cmd.extend(["-t", str(tdir)])
 
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE

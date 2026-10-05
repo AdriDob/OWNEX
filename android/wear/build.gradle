@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    // Kotlin 2.x: compilador de Compose como plugin (mismo fix que app).
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
@@ -11,8 +13,8 @@ android {
         applicationId "ai.rastro.watch"
         minSdk 30
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 777
+        versionName "7.7.7"
     }
 
     buildTypes {

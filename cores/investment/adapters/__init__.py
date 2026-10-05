@@ -18,30 +18,12 @@ from cores.investment.adapters.futures_adapter import FuturesAdapter
 from cores.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter
 from cores.investment.adapters.memecoin_adapter import MemecoinAdapter
 from cores.investment.adapters.polymarket_adapter import PolymarketAdapter
+
+# Canonical registry lives in .registry (SSOT, 17+ adapters, lazy imports).
+# This package only re-exports it: the stub defined here used to shadow the
+# real one, so /api/investment/* got an empty registry (500s).
+from cores.investment.adapters.registry import InvestmentAdapterRegistry, build_default_registry
 from cores.investment.adapters.stocks_adapter import AlpacaAdapter
-
-
-# Stub registry for backward compatibility
-class InvestmentAdapterRegistry:
-    """Registry of investment adapters."""
-
-    def __init__(self) -> None:
-        self._adapters: dict[str, Any] = {}
-
-    def register(self, name: str, adapter: Any) -> None:
-        self._adapters[name] = adapter
-
-    def get(self, name: str) -> Any | None:
-        return self._adapters.get(name)
-
-    def list_adapters(self) -> list[str]:
-        return list(self._adapters.keys())
-
-
-def build_default_registry() -> InvestmentAdapterRegistry:
-    """Build default adapter registry with all available adapters."""
-    registry = InvestmentAdapterRegistry()
-    return registry
 
 
 def build_aave_adapter() -> AaveAdapter:

@@ -95,8 +95,8 @@ async def create_mission(
     """Create a new mission."""
     try:
         mission_type = MissionType(request.mission_type)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid mission type: {request.mission_type}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid mission type: {request.mission_type}") from exc
 
     result = controller.create_mission(
         mission_type=mission_type,
@@ -248,23 +248,6 @@ async def unblock_mission(mission_id: str, controller: MissionController = Depen
     return {"success": True, "mission": result.mission.to_dict()}
 
 
-@router.post("/{mission_id}/checkpoint")
-async def save_checkpoint(
-    mission_id: str, request: MissionCheckpointRequest, controller: MissionController = Depends(get_controller)
-):
-    """Save checkpoint for mission."""
-    result = controller.checkpoint(
-        mission_id,
-        request.stage,
-        request.stage_order,
-        request.result,
-        request.context,
-    )
-    if not result.success:
-        raise HTTPException(status_code=404, detail=result.error or "Mission not found")
-    return {"success": True, "mission": result.mission.to_dict()}
-
-
 @router.post("/{mission_id}/restore")
 async def restore_from_checkpoint(mission_id: str, controller: MissionController = Depends(get_controller)):
     """Restore mission from latest checkpoint."""
@@ -283,11 +266,11 @@ async def heartbeat(mission_id: str, controller: MissionController = Depends(get
     return {"success": True, "mission": result.mission.to_dict()}
 
 
-@router.get("/stale")
-async def get_stale(max_age_hours: float = 2.0, controller: MissionController = Depends(get_controller)):
-    """Get stale missions."""
-    missions = controller.get_stale_missions(max_age_hours)
-    return {"missions": [m.to_dict() for m in missions]}
+# NOTE (ship-day 2026-09-28): el segundo handler de /stale y de
+# /{mission_id}/checkpoint se eliminó — FastAPI resuelve por orden de
+# registro, así que eran inalcanzables por HTTP y sus bodies eran idénticos
+# al handler que gana (cero cambio de comportamiento). El guard
+# tests/test_api_route_duplicates.py lo impide de volver.
 
 
 @router.post("/recover-stale")

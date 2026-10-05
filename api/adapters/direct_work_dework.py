@@ -62,13 +62,26 @@ class DeworkDweAdapter(BaseDiscoveryAdapter):
                     try:
                         resp = await client.get(endpoint, timeout=15)
                         if resp.status_code == 200:
+                            # Un canal muerto se declara, no se tragal (2026-09-30):
+                            # los endpoints devuelven 200 con text/html y cuerpo
+                            # vacío, así que `resp.json()` lanzaba y el except
+                            # silencioso dejaba el canal en 0 sin dejar rastro.
+                            ctype = (resp.headers.get("content-type") or "").lower()
+                            if "json" not in ctype:
+                                logger.warning(
+                                    "Dework: %s respondió %s (no JSON) — canal sin API JSON; "
+                                    "no se parsea, no se inventa",
+                                    endpoint,
+                                    ctype or "sin content-type",
+                                )
+                                continue
                             data = resp.json()
                             tasks = data if isinstance(data, list) else data.get("data", data.get("tasks", []))
                             if tasks:
                                 logger.info("Dework: successfully fetched from %s", endpoint)
                                 break
                     except Exception as e:
-                        logger.debug("Dework endpoint %s failed: %s", endpoint, e)
+                        logger.warning("Dework endpoint %s falló: %s", endpoint, e)
                         continue
 
                 if not tasks:

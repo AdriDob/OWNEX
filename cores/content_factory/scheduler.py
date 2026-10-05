@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from datetime import UTC, datetime
 from typing import Any, Optional
 
@@ -63,6 +64,15 @@ def get_content_factory_jobs() -> list[dict[str, Any]]:
             "handler": "cores.content_factory.scheduler:run_health_check",
             "max_instances": 1,
             "misfire_grace_time": 300,
+            "coalesce": True,
+        },
+        {
+            "job_id": "content_factory_whop_auto_build",
+            "name": "Content Factory - Whop Auto Build (rank + MPT)",
+            "trigger": CronTrigger(hour=6, minute=30),  # 06:30 UTC, tras el generate
+            "handler": "cores.content_factory.scheduler:run_whop_auto_build",
+            "max_instances": 1,
+            "misfire_grace_time": 3600,
             "coalesce": True,
         },
     ]
@@ -142,8 +152,6 @@ async def run_daily_publish() -> dict[str, Any]:
     try:
         channels = db.query(ChannelConfig).filter(ChannelConfig.is_active == 1).all()
 
-        mpt_client = await create_mpt_client()
-
         for channel in channels:
             try:
                 # Find jobs ready for publishing
@@ -159,10 +167,8 @@ async def run_daily_publish() -> dict[str, Any]:
 
                 async with create_content_factory_service(db, await create_mpt_client()) as service:
                     for job in pending_jobs:
-                        try:
+                        with contextlib.suppress(Exception):
                             await service.publish_to_youtube(job)
-                        except Exception:
-                            pass
 
                 published = sum(1 for j in pending_jobs if j.status == VideoJobStatus.PUBLISHED)
                 results["total_published"] += published
@@ -224,7 +230,7 @@ async def run_weekly_optimize() -> dict[str, Any]:
 
         for channel in channels:
             # Re-score topics based on recent performance
-            topic_performance = (
+            _topic_performance = (
                 db.query(
                     VideoAnalytics.video_job_id,
                     func.avg(VideoAnalytics.views).label("avg_views"),
@@ -244,7 +250,7 @@ async def run_weekly_optimize() -> dict[str, Any]:
             # Update topic scores based on performance
 
             # Archive exhausted topics
-            exhausted = (
+            _exhausted = (
                 db.query(VideoTopic)
                 .filter(
                     VideoTopic.channel_id == channel.id,
@@ -280,6 +286,20 @@ async def run_health_check() -> dict[str, Any]:
         }
 
 
+async def run_whop_auto_build() -> dict[str, Any]:
+    """Rank verified free ES/EN Whop briefs → packs → MPT video → ready.
+
+    Never raises: everything degradable is reported in the result. Human
+    boundary intact: packs stop at ready, posting/submitting stay manual.
+    """
+    from cores.content_factory.whop import ClipPackStore, auto_build_packs
+
+    try:
+        return await auto_build_packs(ClipPackStore())
+    except Exception as e:  # pragma: no cover — auto_build_packs never raises by contract
+        return {"created": 0, "videos_ready": 0, "skipped": [f"unexpected: {type(e).__name__}"]}
+
+
 # For backward compatibility with CoreScheduler
 def get_job_handlers():
     """Return dict of job_id -> handler function."""
@@ -289,4 +309,5 @@ def get_job_handlers():
         "content_factory_hourly_analytics": run_hourly_analytics,
         "run_weekly_optimize": run_weekly_optimize,
         "content_factory_health_check": run_health_check,
+        "content_factory_whop_auto_build": run_whop_auto_build,
     }

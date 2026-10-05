@@ -1,6 +1,13 @@
 # OWNEX Design System — MASTER
 
-> Single source of truth for all visual, interaction, and UX decisions across OWNEX.
+> Documento de **intención de diseño**. No es el SSOT de valores.
+>
+> **Autoridad (reconciliado 2026-10-04):** los valores de color viven en
+> `frontend/src/design/tokens.css`. Este archivo explica el *por qué*; si un
+> valor aquí contradice a `tokens.css`, **manda `tokens.css`**. Antes de este
+> cruce, este documento afirmaba ser el single source of truth y definía 8
+> tokens que no existen en el CSS, uno de ellos (`--color-destructive`) con un
+> valor que contradecía la directiva del owner.
 
 ## Philosophy
 
@@ -18,25 +25,25 @@ Reference: Apple + Linear + Raycast + Stripe — but OWNEX identity.
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-background` | `#000000` | Page background |
-| `--color-surface` | `#0a0a0a` | Panels, cards |
-| `--color-surface-hover` | `#141414` | Hover states |
-| `--color-border` | `#1f1f1f` | Default borders |
-| `--color-border-light` | `#2e2e2e` | Elevated borders |
-| `--color-foreground` | `#f5f5f5` | Primary text |
-| `--color-muted-foreground` | `#8a8a8a` | Secondary text |
-| `--color-muted` | `#4a4a4a` | Disabled, hints |
+| `--color-background` | `#000000` | Page background — token real: `--ownex-bg-deep` |
+| `--color-surface` | `#0a0a0a` | Panels, cards — token real: `--ownex-bg-surface` |
+| `--color-surface-hover` | `#141414` | Hover states — **sin token en `tokens.css`**; `var(--ownex-bg-elevated)` se usa pero nunca se define |
+| `--color-border` | `rgba(255,255,255,0.08)` | Default borders — `tokens.css` lo define como `--ownex-bg-glass-border`, NO como `#1f1f1f` |
+| `--color-border-light` | `#2e2e2e` | Elevated borders — **sin token en `tokens.css`** |
+| `--color-foreground` | `#f5f5f5` | Primary text — token real: `--ownex-text-primary` |
+| `--color-muted-foreground` | `#8a8a8a` | Secondary text — token real: `--ownex-text-secondary` |
+| `--color-muted` | `#4a4a4a` | Disabled, hints — token real: `--ownex-text-disabled` |
 
 ### Identity Colors
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-primary` | `#ffffff` | Actions, selections |
-| `--color-accent` | `#00d5ff` | Information, links |
-| `--color-success` | `#16a34a` | Active, success |
-| `--color-warning` | `#d97706` | Attention |
-| `--color-destructive` | `#00d5ff` | Error, risk (blue, NOT red) |
-| `--color-gold` | `#b45309` | Rewards, premium |
+| `--color-primary` | `#ffffff` | Actions, selections — token real: `--ownex-blue` |
+| `--color-accent` | `#00d5ff` | Information, links — token real: `--ownex-accent` |
+| `--color-success` | `#16a34a` | Active, success — token real: `--ownex-green` |
+| `--color-warning` | `#d97706` | Attention — token real: `--ownex-yellow` |
+| `--color-destructive` | `#3b82f6` | Error, riesgo. **Nombre legacy**: el token real es `--ownex-danger`. Este valor lo pinea `tests/test_frontend_theme_consistency.py` |
+| `--color-gold` | `#b45309` | Rewards, premium — token real: `--ownex-gold` |
 
 ### Rules
 - NO red in UI (directiva owner 2026-08-25)

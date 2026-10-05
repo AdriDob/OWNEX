@@ -335,3 +335,18 @@ class TestIntelligenceJobs:
         assert job.handler == "cores.intelligence.tasks:run_intelligence_refresh"
         mod_name, attr = job.handler.split(":")
         assert callable(getattr(importlib.import_module(mod_name), attr))
+
+
+class TestEconomicFeedbackJobs:
+    """Guard: los 3 jobs del ciclo económico existen y sus handlers resuelven."""
+
+    def test_supervisor_jobs_registered(self):
+        import importlib
+
+        from cores.scheduler.jobs import get_economic_feedback_jobs
+
+        by_id = {j.job_id: j for j in get_economic_feedback_jobs()}
+        assert set(by_id) == {"economic_feedback_daily", "autopilot_kill_scale", "daily_loop_run"}
+        for job_id in ("autopilot_kill_scale", "daily_loop_run"):
+            mod_name, attr = by_id[job_id].handler.split(":")
+            assert callable(getattr(importlib.import_module(mod_name), attr)), job_id

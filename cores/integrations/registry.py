@@ -81,6 +81,33 @@ class IntegrationRegistry:
             )
         )
 
+    def load_all(self, definitions: list[Any]) -> int:
+        """Load `IntegrationDef` descriptors into the registry.
+
+        Consumer: `init_integration_registry()` (this module) and
+        `GET /api/core/integrations`. The descriptors come from
+        `cores.integrations.discovery.get_builtin_integrations()`; status stays
+        "unknown" until `refresh()` reads env/vault — registering is not
+        claiming a connection.
+        """
+        loaded = 0
+        for idef in definitions:
+            if self.get(idef.name) is not None:
+                continue  # already registered (idempotent init)
+            self.register(
+                IntegrationStatus(
+                    name=idef.name,
+                    category=idef.category,
+                    description=idef.description,
+                    icon=idef.icon,
+                    tags=list(idef.tags),
+                )
+            )
+            loaded += 1
+        if loaded:
+            logger.debug("Loaded %d built-in integrations", loaded)
+        return loaded
+
     def get(self, name: str) -> IntegrationStatus | None:
         return self._status_cache.get(name)
 

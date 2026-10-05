@@ -128,3 +128,39 @@ class TestApprovalGate:
 
     def test_runs_endpoint(self):
         assert client.get("/api/copilot/runs").json()["status"] == "ok"
+
+
+class TestBinarySideBySide:
+    """OpenCode v1/v2 side-by-side: OPENCODE_BINARY elige binario, default v1."""
+
+    async def test_bridge_defaults_to_v1(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("OPENCODE_BINARY", raising=False)
+        monkeypatch.setattr(ob, "_runs_dir", lambda: tmp_path)
+        monkeypatch.setattr(ob, "PROJECT_DIR", tmp_path)
+        cmds: list = []
+        monkeypatch.setattr(subprocess, "run", lambda cmd, **kw: (cmds.append(cmd), FakeCompleted(stdout="ok"))[1])
+        bridge = ob.OpenCodeBridge()
+        assert bridge._binary == "opencode"
+        res = await bridge.run("x")
+        assert any(c[0] == "opencode" for c in cmds if c and c[0] != "git")
+        assert res["binary"] == "opencode"
+
+    async def test_bridge_env_selects_opencode2(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("OPENCODE_BINARY", "opencode2")
+        monkeypatch.setattr(ob, "_runs_dir", lambda: tmp_path)
+        monkeypatch.setattr(ob, "PROJECT_DIR", tmp_path)
+        cmds: list = []
+        monkeypatch.setattr(subprocess, "run", lambda cmd, **kw: (cmds.append(cmd), FakeCompleted(stdout="ok"))[1])
+        bridge = ob.OpenCodeBridge()
+        assert bridge._binary == "opencode2"
+        res = await bridge.run("x")
+        assert any(c[0] == "opencode2" for c in cmds if c and c[0] != "git")
+        assert res["binary"] == "opencode2"
+
+    def test_provider_env_selects_binary(self, monkeypatch):
+        from cores.copilot.providers.opencode_provider import OpenCodeProvider
+
+        monkeypatch.delenv("OPENCODE_BINARY", raising=False)
+        assert OpenCodeProvider()._binary == "opencode"
+        monkeypatch.setenv("OPENCODE_BINARY", "opencode2")
+        assert OpenCodeProvider()._binary == "opencode2"

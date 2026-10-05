@@ -287,6 +287,23 @@ class RevenueLedger:
             session.refresh(entry)
 
             logger.info(f"[REVENUE] Transition {entry_id}: {previous_state} → {new_state.value}")
+
+            # PAID is the ONLY cash state. Emit here (not in record_payout) so
+            # every path that reaches PAID notifies, and nothing else does.
+            if new_state == RevenueState.PAID:
+                try:
+                    from cores.notifications.emit import emit
+
+                    emit(
+                        "revenue:payout_recorded",
+                        id=entry_id,
+                        message=(
+                            f"Payout registrado: ${entry.net_usd:.2f} netos "
+                            f"({entry.platform}, gross ${entry.gross_usd:.2f})"
+                        ),
+                    )
+                except Exception:
+                    pass  # a notification must never break the ledger
             return entry
         except Exception:
             session.rollback()

@@ -65,6 +65,9 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
     # AI-training platforms (Outlier/Mercor/Alignerr/Mindrift family,
     # curated 2026-08-25): hourly evaluation streams ≈ ai_evaluation.
     GlobalSourceCategory.ai_evaluation: OpportunityCategory.AI_EVALUATION,
+    # Open calls (Whop Content Rewards clipping, 2026-09-20): anyone joins,
+    # paid per verified views → canonical OPEN_CALL (no hourly rate).
+    GlobalSourceCategory.open_call: OpportunityCategory.OPEN_CALL,
 }
 
 # core.opportunity.mercenary_filter (11 prioritized categories) -> canonical

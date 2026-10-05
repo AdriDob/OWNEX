@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AlertTriangle, Cable, CheckCircle2, Dices, KeyRound, Percent, Save, Shield, Sliders } from '@lucide/vue'
 import { onMounted, reactive, ref } from 'vue'
+import { api } from '@/lib/api'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/useToast'
 
@@ -41,9 +42,9 @@ const bankrollConfig = reactive({
 onMounted(async () => {
   loading.value = true
   try {
-    const coreRes = await fetch('/api/core/apps')
-    if (coreRes.ok) {
-      const apps = await coreRes.json()
+    const coreApps = await api.get<any[]>('/api/core/apps')
+    if (coreApps) {
+      const apps = coreApps
       const odysseyApp = apps.find((a: any) => a.id === 'odyssey')
       if (odysseyApp?.providers) {
         connectors.value = odysseyApp.providers.map((pid: string) => ({

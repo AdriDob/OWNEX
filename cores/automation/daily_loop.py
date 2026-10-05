@@ -55,11 +55,21 @@ def _top_candidates(limit: int = 3, *, total_minutes: int = 240) -> list[dict[st
             alloc = allocate_daily_hours(total_minutes)
             # Build workspace → minutes weight
             weight = {s.workspace: s.minutes for s in alloc.slices if s.workspace != "admin"}
+
+            def _weight_for(item: Any) -> float:
+                # Plataforma → workspace (best-effort); sin mapeo pesa 0.
+                try:
+                    from cores.automation.kill_scale import _workspace_for_channel
+
+                    ws = _workspace_for_channel(str(getattr(item, "platform", "") or ""))
+                    if ws:
+                        return float(weight.get(ws, 0))
+                except Exception:
+                    pass
+                return float(weight.get(str(getattr(item, "platform", "") or "").lower(), 0))
+
             # Sort by weight desc then reward
-            ready.sort(
-                key=lambda x: (weight.get(str(getattr(x, "platform", "") or "").lower(), 0), float(x.reward or 0)),
-                reverse=True,
-            )
+            ready.sort(key=lambda x: (_weight_for(x), float(x.reward or 0)), reverse=True)
         except Exception:
             ready.sort(key=lambda x: float(x.reward or 0), reverse=True)
         return [

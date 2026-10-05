@@ -138,8 +138,14 @@ def require_browser_approval(
 
 # Shell commands that must never run under automation, even inside a repo.
 BLOCKED_COMMAND_PATTERNS: tuple[str, ...] = (
-    r"\brm\s+-rf\s+/(?:\s|$)",
-    r"\brm\s+-rf\s+~(?:\s|$|/)",
+    # Target = bare root or bare home. The old `(?:\s|$)` let `rm -rf /tmp/x`
+    # and `os.system('rm -rf /')` through: the only thing that makes a target
+    # safe is that `/` is NOT followed by a path segment.
+    r"\brm\s+-rf?\s+/(?![\w.-])",
+    # Quoted root/home: `rm -rf '/'`, `rm -rf "~"`.
+    r"\brm\s+-rf?\s+['\"]/(?![\w.-])['\"]",
+    r"\brm\s+-rf?\s+~(?!\w)",
+    r"\brm\s+-rf?\s+['\"]~(?!\w)['\"]",
     r"\bmkfs\b",
     r"\bdd\s+.*\bof=",
     r":\(\)\s*\{",

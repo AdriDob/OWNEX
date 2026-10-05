@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
+import CardContent from '@/components/ui/CardContent.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import {
   getOutlookAgenda,

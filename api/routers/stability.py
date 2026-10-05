@@ -22,6 +22,7 @@ from fastapi import APIRouter, HTTPException
 
 from cores.backup.engine import backup_status
 from cores.capabilities.registry import get_capability_registry
+from cores.health.engine import get_health_center
 from cores.update.engine import UpdateManager
 from cores.version import OWNEX_CODENAME, OWNEX_VERSION
 

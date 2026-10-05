@@ -90,12 +90,19 @@ class TestGetExecutors:
         assert isinstance(executors, dict)
 
     def test_returns_known_platforms(self):
+        """El registro headless tiene 4 plataformas, no 5.
+
+        `algora` salió del registro a propósito: `AlgoraExecutor` exige un
+        `AlgoraConfig` (nunca un dict plano) y un token de GitHub, y se
+        construye por `build_algora_executor()` / `AlgoraDweAdapter`. El
+        docstring de `get_executors` lo dice; este test afirmaba lo contrario.
+        """
         executors = get_executors()
-        assert "algora" in executors
         assert "freelancer" in executors
         assert "mindrift" in executors
         assert "opire" in executors
         assert "issuehunt" in executors
+        assert "algora" not in executors, "algora entra por build_algora_executor(), no por el registro headless"
 
     def test_all_executors_have_platform(self):
         executors = get_executors()
@@ -112,9 +119,13 @@ class TestGetExecutors:
         for inst in executors.values():
             assert isinstance(inst, BaseExecutor)
 
-    def test_outlier_in_default_executors(self):
+    def test_browser_workers_are_not_in_headless_registry(self):
+        """Los browser workers (outlier, dataannotation, mindrift_browser)
+        necesitan Playwright + credenciales + Human Gate: nunca headless.
+
+        Este test afirmaba que estaban en `get_executors()`. Están en
+        `cores.automation.workers.get_browser_workers()`.
+        """
         executors = get_executors()
-        assert "outlier" in executors
-        assert "remotasks" in executors
-        assert "dataannotation" in executors
-        assert "mindrift_browser" in executors
+        for name in ("outlier", "remotasks", "dataannotation", "mindrift_browser"):
+            assert name not in executors, f"{name} es browser worker, no executor headless"

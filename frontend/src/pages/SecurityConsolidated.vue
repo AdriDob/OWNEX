@@ -4,6 +4,7 @@
  * Combines: SecurityCycle + ExecutiveDashboard
  */
 import { ref, computed, onMounted } from 'vue'
+import { api } from '@/lib/api'
 import { Shield, BarChart3, Activity, RefreshCw, CheckCircle, AlertTriangle, Clock } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
@@ -17,8 +18,8 @@ async function fetchData() {
   loading.value = true
   try {
     const [pRes, eRes] = await Promise.allSettled([
-      fetch('/api/cycles/security/dashboard').then(r => r.json()),
-      fetch('/api/cycles/security/executive').then(r => r.json()),
+      api.get<any>('/api/cycles/security/dashboard'),
+      api.get<any>('/api/cycles/security/executive'),
     ])
     if (pRes.status === 'fulfilled') pipeline.value = pRes.value
     if (eRes.status === 'fulfilled') executive.value = eRes.value

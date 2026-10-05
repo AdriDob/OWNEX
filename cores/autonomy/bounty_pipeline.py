@@ -24,7 +24,7 @@ from cores.autonomy.pr_builder import PRBuilder, PRResult
 from cores.autonomy.repo_analyzer import RepoAnalyzer, RepoInfo
 from cores.autonomy.test_runner import TestRunner, TestRunSummary
 from cores.opportunity.executors import ExecutionResult
-from cores.opportunity.executors.algora_executor import AlgoraExecutor
+from cores.opportunity.executors.algora_executor import AlgoraConfig, AlgoraExecutor
 from cores.opportunity.feedback import FeedbackOutcome, get_feedback_loop
 
 logger = logging.getLogger("ownex.autonomy.bounty_pipeline")
@@ -97,7 +97,10 @@ class BountyPipeline:
         self.test_runner = TestRunner()
         self.pr_builder = PRBuilder()
         self.algora_executor = AlgoraExecutor(
-            config={"token": self.config.algora_token, "github_token": self.config.github_token}
+            config=AlgoraConfig(
+                github_token=self.config.github_token,
+                algora_api_key=self.config.algora_token,
+            )
         )
         self.feedback_loop = get_feedback_loop()
 

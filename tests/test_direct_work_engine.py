@@ -506,6 +506,49 @@ class TestLearningFeedback:
         assert profile.platform_success_rates == {"opire": 1.0}
 
 
+class TestPCalibration:
+    def _recs(self, accepted: int, total: int, technique: str = "tool_hijack", program: str = "openai_safety"):
+        from cores.direct_work_engine.feedback import LearningRecord
+
+        return [
+            LearningRecord(platform="h1", accepted=i < accepted, technique=technique, program=program)
+            for i in range(total)
+        ]
+
+    def test_empty_is_unknown(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate, p_accept_estimate
+
+        assert calibrate([]) == {}
+        assert p_accept_estimate([]) is None
+
+    def test_verdict_thresholds(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate
+
+        assert calibrate(self._recs(1, 2))[("tool_hijack", "openai_safety")]["verdict"] == "UNKNOWN"
+        assert calibrate(self._recs(2, 5))[("tool_hijack", "openai_safety")]["verdict"] == "THIN"
+        assert calibrate(self._recs(6, 12))[("tool_hijack", "openai_safety")]["verdict"] == "MEASURED"
+
+    def test_rate_honest(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate
+
+        row = calibrate(self._recs(3, 4))[("tool_hijack", "openai_safety")]
+        assert (row["attempts"], row["successes"], row["rate"]) == (4, 3, 0.75)
+
+    def test_estimate_prefers_exact_then_technique_then_global(self) -> None:
+        from cores.direct_work_engine.feedback import p_accept_estimate
+
+        recs = self._recs(1, 2) + self._recs(4, 4, technique="direct_override", program="anthropic_safety")
+        assert p_accept_estimate(recs, "direct_override", "anthropic_safety") == 1.0
+        assert p_accept_estimate(recs, "direct_override", "other_program") == 1.0
+        assert p_accept_estimate(recs, "unknown_tech", "other_program") == 0.833
+
+    def test_legacy_records_without_technique_still_count(self) -> None:
+        from cores.direct_work_engine.feedback import LearningRecord, p_accept_estimate
+
+        recs = [LearningRecord(platform="h1", accepted=True), LearningRecord(platform="h1", accepted=False)]
+        assert p_accept_estimate(recs) == 0.5
+
+
 class TestOpportunityModel:
     def test_outcome_based_classification(self) -> None:
         from cores.direct_work_engine.models import EmploymentType

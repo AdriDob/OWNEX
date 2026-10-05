@@ -90,7 +90,11 @@ async def daily_brief() -> dict[str, Any]:
                 for r in ranked[:10]:
                     opp = r.opportunity if hasattr(r, "opportunity") else r
                     score = getattr(r, "final_score", getattr(r, "score", 0))
-                    ev_hr = getattr(opp, "expected_value_usd_per_hour", 0)
+                    # SSOT: el recommender ya calcula htroi (compute_htroi). El
+                    # campoopp.expected_value_usd_per_hour nunca existió y dejaba
+                    # este bloque siempre en 0.0.
+                    htroi = getattr(r, "htroi", None) or {}
+                    ev_hr = htroi.get("usd_per_hour") if isinstance(htroi, dict) else None
                     prob = getattr(opp, "acceptance_probability", 0.5)
                     reward = getattr(opp, "payment", getattr(opp, "estimated_reward_usd", 0))
                     hours = getattr(opp, "estimated_time_hours", 2.0)
@@ -102,7 +106,7 @@ async def daily_brief() -> dict[str, Any]:
                             "platform": getattr(opp, "platform", "unknown"),
                             "category": getattr(opp, "category", "unknown"),
                             "expected_value_usd": round(reward * prob, 2),
-                            "expected_value_per_hour": round(ev_hr, 2),
+                            "expected_value_per_hour": round(ev_hr, 2) if isinstance(ev_hr, (int, float)) else None,
                             "probability": round(prob, 2),
                             "estimated_hours": round(hours, 1),
                             "reward_usd": round(reward, 2),

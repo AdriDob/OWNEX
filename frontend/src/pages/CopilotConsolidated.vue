@@ -4,6 +4,7 @@
  * Combines: AgentCenter + MemoryPatterns + PersonalIntelligence + InsightsView
  */
 import { ref, computed, onMounted } from 'vue'
+import { api } from '@/lib/api'
 import { Bot, Brain, BookOpen, Lightbulb, Sparkles, MessageCircle } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
 
@@ -16,8 +17,8 @@ async function fetchData() {
   loading.value = true
   try {
     const [mRes, lRes] = await Promise.allSettled([
-      fetch('/api/copilot/context').then(r => r.json()),
-      fetch('/api/learning/progress').then(r => r.json()),
+      api.get<any>('/api/copilot/context'),
+      api.get<any>('/api/learning/progress'),
     ])
     if (mRes.status === 'fulfilled') memory.value = mRes.value.context
     if (lRes.status === 'fulfilled') learning.value = lRes.value

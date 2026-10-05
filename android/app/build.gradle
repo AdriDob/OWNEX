@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+// Kotlin 2.x: el compilador de Compose va como plugin, no como composeOptions.
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 android {
     namespace = "ai.rastro.app"

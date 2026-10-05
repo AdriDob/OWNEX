@@ -146,12 +146,11 @@ async def get_aggressive_plan(target_usd: int = 5000) -> dict[str, Any]:
     Accepts 5000/10000 (legacy) + 50000 (marzo 2027 vigente) + cualquier múltiplo de 1000.
     """
     allowed = (5000, 10000, 50000, 25000, 15000, 30000, 40000)
-    if target_usd not in allowed:
-        # Compat: cualquier múltiplo de 5000 dentro de rango razonable
-        if target_usd < 1000 or target_usd > 100000 or target_usd % 1000 != 0:
-            raise HTTPException(
-                status_code=400, detail="target_usd must be 5000, 10000 or 50000 (o múltiplo de 1000 entre 1k y 100k)"
-            )
+    # Compat: cualquier múltiplo de 1000 dentro de rango razonable
+    if target_usd not in allowed and (target_usd < 1000 or target_usd > 100000 or target_usd % 1000 != 0):
+        raise HTTPException(
+            status_code=400, detail="target_usd must be 5000, 10000 or 50000 (o múltiplo de 1000 entre 1k y 100k)"
+        )
     tracker = get_first_money_tracker()
     # 50000 del plan vigente usa march2027_plan que tiene escalera detallada
     if target_usd == 50000 and hasattr(tracker, "get_march2027_plan"):
@@ -170,6 +169,29 @@ async def get_march2027_plan() -> dict[str, Any]:
     """Plan escalonado a marzo 2027 — objetivo $50k, ataque $100k."""
     tracker = get_first_money_tracker()
     return tracker.get_march2027_plan()
+
+
+@router.get("/moonshot-plan")
+async def get_moonshot_plan(target_monthly_usd: float = 50000, hours_per_week: float = 30) -> dict[str, Any]:
+    """Escenario moonshot de run-rate mensual: factibilidad vs horas + apalancamiento requerido."""
+    if target_monthly_usd <= 0 or target_monthly_usd > 1000000 or hours_per_week <= 0 or hours_per_week > 168:
+        raise HTTPException(status_code=422, detail="target_monthly_usd (0,1M] y hours_per_week (0,168]")
+    tracker = get_first_money_tracker()
+    return tracker.get_moonshot_plan(target_monthly_usd=target_monthly_usd, hours_per_week=hours_per_week)
+
+
+@router.get("/bugbounty-7mo-plan")
+async def get_bugbounty_7mo_plan() -> dict[str, Any]:
+    """Proyección 7 meses solo-bug-bounty (rangos pineados, hipótesis explícita)."""
+    tracker = get_first_money_tracker()
+    return tracker.get_bugbounty_7mo_plan()
+
+
+@router.get("/bugbounty-progress")
+async def get_bugbounty_progress() -> dict[str, Any]:
+    """Avance real vs proyección 7m (uso diario; nunca 500)."""
+    tracker = get_first_money_tracker()
+    return tracker.get_bugbounty_progress()
 
 
 @router.post("/reset")

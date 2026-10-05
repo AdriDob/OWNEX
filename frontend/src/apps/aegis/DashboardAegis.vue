@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Activity, Bug, Crosshair, Plus, Shield, Target, Zap } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -40,11 +41,11 @@ async function fetchData() {
   error.value = ''
   try {
     const [targetsRes, findingsRes, activeRes, openRes, scansRes] = await Promise.allSettled([
-      fetch('/api/aegis/targets?limit=10'),
-      fetch('/api/aegis/findings?limit=10'),
-      fetch('/api/aegis/targets/active'),
-      fetch('/api/aegis/findings/open'),
-      fetch('/api/aegis/scans/today'),
+      api.get<any>('/api/aegis/targets', { limit: 10 }),
+      api.get<any>('/api/aegis/findings', { limit: 10 }),
+      api.get<any>('/api/aegis/targets/active'),
+      api.get<any>('/api/aegis/findings/open'),
+      api.get<any>('/api/aegis/scans/today'),
     ])
     if (targetsRes.status === 'fulfilled' && targetsRes.value.ok) {
       const data = await targetsRes.value.json()

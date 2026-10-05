@@ -22,6 +22,21 @@ from typing import Any
 logger = logging.getLogger("ownex.first_money")
 
 
+# ── Supuestos del escenario moonshot ($50k/mes) ──
+# HIPÓTESIS explícitas de techos mensuales y rates por motor, NO datos medidos.
+# Sirven para la matemática de factibilidad; se calibran con outcomes PAID reales.
+# rate_usd_h=None = ingreso recurrente que no consume horas (MRR/activos).
+MOONSHOT_ASSUMPTIONS: dict[str, dict[str, float]] = {
+    "bug_bounty": {"ceiling_usd": 20000.0, "rate_usd_h": 60.0},
+    "dev_bounty": {"ceiling_usd": 8000.0, "rate_usd_h": 35.0},
+    "ai_training": {"ceiling_usd": 6000.0, "rate_usd_h": 30.0},
+    "services_b2b": {"ceiling_usd": 8000.0, "rate_usd_h": 50.0},
+    "ecommerce": {"ceiling_usd": 6000.0, "rate_usd_h": 25.0},
+    "content": {"ceiling_usd": 2000.0, "rate_usd_h": 15.0},
+    "assets_mrr": {"ceiling_usd": 5000.0, "recurrent": 1.0},
+}
+
+
 class IncomeEngine(StrEnum):
     """Motores de ingresos disponibles (Adriel Webs es OPCIONAL, no principal)."""
 
@@ -778,6 +793,201 @@ class FirstMoneyTracker:
                 "muy_fuerte": "70k–150k",
                 "excepcional": "150k+",
             },
+        }
+
+    def get_moonshot_plan(
+        self,
+        target_monthly_usd: float = 50000,
+        hours_per_week: float = 30,
+        assumptions: dict[str, dict[str, float]] | None = None,
+    ) -> dict[str, Any]:
+        """Escenario moonshot de run-rate mensual (ej. $50k/mes sostenidos).
+
+        Matemática de factibilidad, NO promesa: reparte el objetivo entre
+        techos por motor y calcula horas requeridas vs disponibles. Si las
+        horas no alcanzan, el veredicto exige apalancamiento (equipo, MRR,
+        capital) en vez de inventar que "se puede solo".
+        """
+        table = assumptions or dict(MOONSHOT_ASSUMPTIONS)
+        weekly_required = float(target_monthly_usd) / 4.33
+        hours_available = max(0.0, float(hours_per_week))
+        allocation: list[dict[str, Any]] = []
+        remaining = float(target_monthly_usd)
+        hours_needed = 0.0
+        for engine, spec in table.items():
+            if remaining <= 0:
+                break
+            ceiling = max(0.0, float(spec.get("ceiling_usd", 0) or 0))
+            rate = spec.get("rate_usd_h")
+            take = min(ceiling, remaining)
+            if take <= 0:
+                continue
+            hrs = round(take / 4.33 / float(rate), 1) if rate else 0.0
+            hours_needed += hrs
+            remaining -= take
+            allocation.append(
+                {
+                    "engine": engine,
+                    "monthly_usd": round(take, 2),
+                    "est_hours_per_week": hrs,
+                    "recurrent": bool(spec.get("recurrent", False)),
+                }
+            )
+        shortfall = round(max(0.0, remaining), 2)
+        hours_needed = round(hours_needed, 1)
+        feasible_solo = shortfall <= 0 and hours_needed <= hours_available
+        leverage: list[str] = []
+        if shortfall > 0:
+            leverage.append(f"faltan USD {shortfall:,.0f}/mes por encima de techos: equipo o MRR/activos que lo cubran")
+        if hours_needed > hours_available:
+            leverage.append(
+                f"faltan {round(hours_needed - hours_available, 1)}h/sem: equipo (horas) o automatización (menos h por USD)"
+            )
+        if feasible_solo:
+            verdict = "FACTIBLE_SOLO: techos + horas alcanzan en este escenario (validar contra outcomes reales)"
+        else:
+            verdict = "NO_FACTIBLE_SOLO: requiere apalancamiento — " + "; ".join(leverage)
+        return {
+            "target_monthly_usd": float(target_monthly_usd),
+            "weekly_required_usd": round(weekly_required, 2),
+            "hours_per_week_available": hours_available,
+            "hours_per_week_needed": hours_needed,
+            "allocation": allocation,
+            "shortfall_usd": shortfall,
+            "feasible_solo": feasible_solo,
+            "leverage_needed": leverage,
+            "verdict": verdict,
+            "assumptions": "HIPÓTESIS de escenario (techos+rates), no datos medidos; calibrar con outcomes PAID reales",
+        }
+
+    def get_bugbounty_7mo_plan(self) -> dict[str, Any]:
+        """Proyección 7 meses solo-bug-bounty (oct 2026 → abr 2027), pineada.
+
+        Rangos mensuales (flojo/central/fuerte) + acumulados por escenario.
+        HIPÓTESIS calibrada con datos 2025/26 (H1 $81M, avg $1.090, IDOR/AI
+        creciendo, power-law), NO promesa: con 0 outcomes todo es prior
+        externo hasta que los outcomes reales la reemplacen.
+        """
+        months = [
+            {
+                "m": 1,
+                "label": "Oct",
+                "low": 0,
+                "central": 0,
+                "high": 300,
+                "driver": "Cuentas, VDPs, primeros reportes, duplicados de aprendizaje",
+            },
+            {
+                "m": 2,
+                "label": "Nov",
+                "low": 0,
+                "central": 150,
+                "high": 700,
+                "driver": "Primeros válidos low ($250-500 c/u)",
+            },
+            {
+                "m": 3,
+                "label": "Dic",
+                "low": 300,
+                "central": 800,
+                "high": 2000,
+                "driver": "IDOR/BACL lows + mediums, dup-rate bajando",
+            },
+            {
+                "m": 4,
+                "label": "Ene",
+                "low": 500,
+                "central": 1500,
+                "high": 4000,
+                "driver": "Repetibilidad en 1 nicho; 1 medium-high posible",
+            },
+            {
+                "m": 5,
+                "label": "Feb",
+                "low": 1000,
+                "central": 2500,
+                "high": 6000,
+                "driver": "1 high ($2-8k) si la primicia P3 pega",
+            },
+            {
+                "m": 6,
+                "label": "Mar",
+                "low": 1500,
+                "central": 4000,
+                "high": 10000,
+                "driver": "Pipeline con 2-3 en triage; invites iniciales",
+            },
+            {
+                "m": 7,
+                "label": "Abr",
+                "low": 1500,
+                "central": 5000,
+                "high": 15000,
+                "driver": "Run-rate con 1 high/trimestre + recurrente",
+            },
+        ]
+        cum = {"flojo": 0, "central": 0, "fuerte": 0}
+        for m in months:
+            cum["flojo"] += m["low"]
+            cum["central"] += m["central"]
+            cum["fuerte"] += m["high"]
+            m["cum_central"] = cum["central"]
+        return {
+            "months": months,
+            "cumulative": cum,
+            "run_rate_m7_central": months[-1]["central"],
+            "basis": "HIPÓTESIS (H1 2025/26 + funnel principiante 10-20 reportes → 2-4 válidos); reemplazar con outcomes PAID reales",
+            "condition": "~2h/día efectivas + cuentas creadas + scope público; sin volumen no hay funnel",
+        }
+
+    def get_bugbounty_progress(self, today: str | None = None) -> dict[str, Any]:
+        """Avance real vs proyección 7m: para uso diario definitivo.
+
+        Compara cobrado acumulado (revenue tracker, PAID real) contra el
+        acumulado central del mes en curso. Determinista por fecha, nunca
+        500, nunca inventa: sin outcomes el veredicto es "sin datos".
+        """
+        from datetime import UTC, datetime
+
+        plan = self.get_bugbounty_7mo_plan()
+        months = plan["months"]
+        try:
+            now = datetime.fromisoformat(today) if today else datetime.now(UTC)
+            if now.tzinfo is None:
+                now = now.replace(tzinfo=UTC)
+        except (ValueError, TypeError):
+            now = datetime.now(UTC)
+        elapsed = (now.year - 2026) * 12 + (now.month - 10) + 1
+        idx = max(1, min(elapsed, len(months)))
+        current = next(m for m in months if m["m"] == idx)
+        try:
+            from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+            tracker = get_revenue_tracker()
+            metrics = getattr(tracker, "metrics", {}) or {}
+            earned = round(sum(float(getattr(m, "completed_amount", 0) or 0) for m in metrics.values()), 2)
+        except Exception:
+            earned = 0.0
+        expected = float(current["cum_central"])
+        if earned <= 0 and expected <= 0:
+            verdict, status = "sin datos todavía: mes 1 sin cobrado esperado", "on_track"
+        elif earned >= expected:
+            verdict, status = f"adelantado: ${earned:,.0f} vs ${expected:,.0f} esperados", "ahead"
+        elif expected > 0 and earned >= expected * 0.5:
+            verdict, status = f"en camino: ${earned:,.0f} de ${expected:,.0f} esperados", "on_track"
+        else:
+            verdict, status = (
+                f"por debajo: ${earned:,.0f} de ${expected:,.0f} esperados — revisar volumen/dup-rate/nicho",
+                "behind",
+            )
+        return {
+            "as_of": now.date().isoformat(),
+            "month": {"m": current["m"], "label": current["label"], "driver": current["driver"]},
+            "earned_usd": earned,
+            "expected_cum_central_usd": expected,
+            "cumulative_central": plan["cumulative"]["central"],
+            "status": status,
+            "verdict": verdict,
         }
 
     def _estimate_probability(self, target_usd: int, weeks_left: int, weekly_required: float) -> str:

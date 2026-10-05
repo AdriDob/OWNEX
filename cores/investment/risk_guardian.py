@@ -224,3 +224,23 @@ def get_risk_guardian() -> RiskGuardian:
     if not hasattr(get_risk_guardian, "_instance"):
         get_risk_guardian._instance = RiskGuardian()
     return get_risk_guardian._instance
+
+
+def run_risk_guardian_check() -> dict[str, Any]:
+    """Scheduler entrypoint: corre el chequeo real y nunca rompe el tick.
+
+    Honesto por construcción: sin estrategias devuelve checked=0; si el
+    guardian explota, devuelve el error en lugar de raisear.
+    """
+    try:
+        return dict(get_risk_guardian().check_all_strategies())
+    except Exception as exc:
+        logger.warning("risk_guardian_check failed (tick sobrevive): %s", exc)
+        return {
+            "checked": 0,
+            "paused": [],
+            "resumed": [],
+            "warnings": [],
+            "healthy": [],
+            "error": str(exc),
+        }

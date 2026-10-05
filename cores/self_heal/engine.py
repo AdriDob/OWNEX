@@ -166,7 +166,7 @@ class SelfHealEngine:
             "cores.revenue.tracker",
             "cores.capabilities.registry",
             "cores.self_heal.engine",
-            "cores.self_update.engine",
+            "cores.self_update",
             "cores.events.event_bus",
         ]
         results = []
@@ -191,9 +191,12 @@ class SelfHealEngine:
             "README_INSTALL_WIN11.md",
             ".env.example",
             "api/main.py",
-            "core/revenue/engine.py",
-            "core/self_heal/engine.py",
-            "core/self_update/engine.py",
+            # `core/` was consolidated into `cores/` (commit 6eb35fbc); these
+            # three paths still used the deleted prefix, so this diagnostic
+            # reported permanently-missing files that in fact exist.
+            "cores/revenue/engine.py",
+            "cores/self_heal/engine.py",
+            "cores/self_update/system.py",
         ]
         results = []
         for fname in essential:

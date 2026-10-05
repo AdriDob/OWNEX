@@ -213,3 +213,53 @@ class TestOtherPortedHandlers:
             result = run_daily_market_evolution()
         assert result["status"] == "ok"
         assert result["platforms_analyzed"] == 3
+
+
+class TestReviewQueueDigest:
+    def test_cola_vacia_no_molesta(self):
+        from types import SimpleNamespace
+
+        from cores.cycles import tasks
+
+        empty = SimpleNamespace(
+            total_items=0,
+            high_confidence=[],
+            medium_confidence=[],
+            low_confidence=[],
+            to_dict=lambda: {"counts": {"high": 0, "medium": 0, "low": 0}},
+        )
+        with patch("cores.review_queue.build_review_queue", return_value=empty):
+            out = tasks.run_review_queue_digest()
+        assert out == {"status": "ok", "total": 0, "notified": False}
+
+    def test_con_items_notifica_una_vez(self):
+        from types import SimpleNamespace
+
+        from cores.cycles import tasks
+
+        top = SimpleNamespace(label="IDOR en /api/users")
+        full = SimpleNamespace(
+            total_items=3,
+            high_confidence=[top],
+            medium_confidence=[],
+            low_confidence=[],
+            to_dict=lambda: {"counts": {"high": 1, "medium": 2, "low": 0}},
+        )
+        with patch("cores.review_queue.build_review_queue", return_value=full):
+            with patch("cores.notifications.action_required.notify_action_required") as notify:
+                out = tasks.run_review_queue_digest()
+        assert out["status"] == "ok" and out["notified"] is True and out["total"] == 3
+        notify.assert_called_once()
+        assert notify.call_args.kwargs["priority"] == "high"
+
+    def test_error_no_raisea(self):
+        from cores.cycles import tasks
+
+        with patch("cores.review_queue.build_review_queue", side_effect=RuntimeError("db down")):
+            out = tasks.run_review_queue_digest()
+        assert out["status"] == "error"
+
+    def test_digest_job_registrado_y_resuelve(self):
+        jobs = {j.job_id: j for job in get_all_jobs().values() for j in job}
+        assert "security_review_digest" in jobs
+        assert _resolve(jobs["security_review_digest"].handler) is not None

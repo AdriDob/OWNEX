@@ -235,3 +235,32 @@ class TestFunnelHooks:
         record_submission_outcome(rec)
         summary = get_funnel_tracker().summary()
         assert summary["stages"]["submitted"] == 1
+
+
+class TestDuplicateRate:
+    def _acc(self, tmp_path):
+        from cores.direct_work_engine.reward_probability import PersonalAcceptanceProbability
+
+        return PersonalAcceptanceProbability(tmp_path / "acc.jsonl")
+
+    def test_sin_datos_none_honesto(self, tmp_path):
+        out = self._acc(tmp_path).duplicate_rate()
+        assert out == {"outcomes": 0, "duplicates": 0, "duplicate_rate": None, "under_threshold_20": None}
+
+    def test_tasa_y_umbral_20(self, tmp_path):
+        eng = self._acc(tmp_path)
+        for _ in range(4):
+            eng.record_outcome(platform="h1", niche="web", result="accepted")
+        eng.record_outcome(platform="h1", niche="web", result="duplicate")
+        out = eng.duplicate_rate()
+        assert out["outcomes"] == 5
+        assert out["duplicates"] == 1
+        assert out["duplicate_rate"] == 0.2
+        assert out["under_threshold_20"] is False
+
+    def test_filtra_por_programa(self, tmp_path):
+        eng = self._acc(tmp_path)
+        eng.record_outcome(platform="h1", program="a", niche="web", result="duplicate")
+        eng.record_outcome(platform="h1", program="b", niche="web", result="accepted")
+        assert eng.duplicate_rate(program="a")["duplicate_rate"] == 1.0
+        assert eng.duplicate_rate(program="b")["duplicate_rate"] == 0.0

@@ -18,9 +18,9 @@ import importlib
 import os
 
 import pytest
+from fastapi.testclient import TestClient
 
 from api.middleware.csrf_middleware import COOKIE_NAME, HEADER_NAME, SAFE_METHODS
-from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="module")
@@ -29,11 +29,23 @@ def client():
     # `CATEYE_CSRF_DISABLED=1` — por eso ningún test podía detectar que el
     # navegador recibía 403 en cada POST. Aquí se reactiva y se recarga el
     # módulo antes de importar la app.
-    os.environ.pop("CATEYE_CSRF_DISABLED", None)
+    #
+    # El `pop` era global y sin teardown: al terminar este módulo el resto de
+    # la suite corría con CSRF activo y heredaba 403 en todos sus POST. Se
+    # midió en `test_evidence_composer.py` (3 tests en 403 que pasan 37/37
+    # aislados). Por eso el restore va en el `finally` del yield.
+    previous = os.environ.pop("CATEYE_CSRF_DISABLED", None)
     importlib.reload(importlib.import_module("api.middleware.csrf_middleware"))
     from api.main import app
 
-    return TestClient(app)
+    try:
+        yield TestClient(app)
+    finally:
+        if previous is not None:
+            os.environ["CATEYE_CSRF_DISABLED"] = previous
+        else:
+            os.environ.pop("CATEYE_CSRF_DISABLED", None)
+        importlib.reload(importlib.import_module("api.middleware.csrf_middleware"))
 
 
 @pytest.fixture(scope="module")

@@ -479,3 +479,74 @@ def compute_confidence(
         formula_version=CONFIDENCE_FORMULA_VERSION,
         warnings=tuple(warnings),
     )
+
+
+# ── Personal cash model (vNext §7, additive) ────────────────────────────────
+# Une reward observado + P calibrada + horas + fees en UNA estructura
+# etiquetada. Reglas duras:
+# - opportunity_value es monto OBSERVADO, jamás promesa de cobro.
+# - expected_cash existe solo con p_accept dada; si no, None (UNKNOWN).
+# - Toda cifra sin calibración propia lleva HIPOTESIS; MEDIDO solo con
+#   calibrated=True (outcomes verificados que la respaldan).
+
+
+@dataclass(frozen=True, slots=True)
+class PersonalCashModel:
+    opportunity_value_usd: float
+    expected_cash_usd: float | None
+    expected_net_per_hour_usd: float | None
+    time_to_cash_days: float | None
+    rate_basis: str  # platform | ownex_history | unknown | single-payment
+    labels: tuple[str, ...] = ()
+
+
+def personal_cash_model(
+    *,
+    reward_usd: float,
+    p_accept: float | None,
+    human_hours: float | None,
+    fees_usd: float = 0.0,
+    hourly_rate_usd: float | None = None,
+    rate_source: str = "unknown",
+    time_to_cash_days: float | None = None,
+    calibrated: bool = False,
+) -> PersonalCashModel:
+    """Modelo personal de cash con etiquetas de honestidad. Puro, sin I/O."""
+    if reward_usd < 0:
+        raise ValueError("reward_usd no puede ser negativo")
+    if fees_usd < 0:
+        raise ValueError("fees_usd no puede ser negativo")
+    if p_accept is not None and not 0.0 <= p_accept <= 1.0:
+        raise ValueError("p_accept debe estar en [0, 1] o ser None")
+
+    labels: list[str] = ["PERSONAL-MEDIDO" if calibrated else "HIPOTESIS"]
+    expected_cash: float | None = None
+    if p_accept is None:
+        labels.append("SIN-P")
+    else:
+        expected_cash = round(reward_usd * p_accept - fees_usd, 2)
+
+    net_per_hour: float | None = None
+    if expected_cash is None or human_hours is None or human_hours <= 0:
+        labels.append("SIN-HORAS")
+    else:
+        net_per_hour = round(expected_cash / human_hours, 2)
+
+    cash_days: float | None = None
+    if time_to_cash_days is not None and time_to_cash_days >= 0:
+        cash_days = float(time_to_cash_days)
+    else:
+        labels.append("SIN-TIEMPO-COBRO")
+
+    if hourly_rate_usd is not None and hourly_rate_usd > 0:
+        basis = rate_source if rate_source in ("platform", "ownex_history") else "unknown"
+    else:
+        basis = "single-payment"
+    return PersonalCashModel(
+        opportunity_value_usd=round(reward_usd, 2),
+        expected_cash_usd=expected_cash,
+        expected_net_per_hour_usd=net_per_hour,
+        time_to_cash_days=cash_days,
+        rate_basis=basis,
+        labels=tuple(labels),
+    )

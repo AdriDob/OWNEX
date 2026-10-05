@@ -47,7 +47,12 @@ def rug():
 
 
 def make_loop(**overrides):
-    cfg_kwargs = {"position_sol": 1.0, "max_open_positions": 3, "daily_loss_limit_sol": 5.0}
+    cfg_kwargs = {
+        "position_sol": 1.0,
+        "max_open_positions": 3,
+        "daily_loss_limit_sol": 5.0,
+        "use_pumpfun_launches": False,  # tests: cero red, feed mockeado aparte
+    }
     cfg_kwargs.update(overrides)
     return MemecoinPaperLoop(FakeAdapter([token()], {MINT: rug()}), config=PaperConfig(**cfg_kwargs))
 

@@ -102,7 +102,7 @@ class TestHandleFindingStatusChanged:
     def test_confirmed_records_accepted_outcome(self, verdict_learner, mock_learner):
         with (
             patch(
-                "core.learning.verdict_learner.get_finding_details",
+                "cores.learning.verdict_learner.get_finding_details",
                 return_value={
                     "id": 1,
                     "vulnerability_type": "sql_injection",
@@ -112,7 +112,7 @@ class TestHandleFindingStatusChanged:
                 },
             ),
             patch(
-                "core.learning.verdict_learner.get_quality_dimensions",
+                "cores.learning.verdict_learner.get_quality_dimensions",
                 return_value={
                     "evidence": 0.9,
                     "reproducibility": 0.8,
@@ -139,7 +139,7 @@ class TestHandleFindingStatusChanged:
     def test_rejected_records_rejected_outcome(self, verdict_learner, mock_learner):
         with (
             patch(
-                "core.learning.verdict_learner.get_finding_details",
+                "cores.learning.verdict_learner.get_finding_details",
                 return_value={
                     "id": 2,
                     "vulnerability_type": "xss",
@@ -149,7 +149,7 @@ class TestHandleFindingStatusChanged:
                 },
             ),
             patch(
-                "core.learning.verdict_learner.get_quality_dimensions",
+                "cores.learning.verdict_learner.get_quality_dimensions",
                 return_value={
                     "evidence": 0.3,
                     "reproducibility": 0.4,

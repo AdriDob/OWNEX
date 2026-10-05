@@ -352,6 +352,7 @@
 import { computed, onMounted, ref } from 'vue'
 import AlertPopup from '@/components/AlertPopup.vue'
 import ModeManagerPanel from '@/components/ModeManagerPanel.vue'
+import { api } from '@/lib/api'
 
 interface Phase {
   value: string
@@ -579,8 +580,7 @@ const getConfidenceClass = (confidence: number): string => {
 
 const fetchAdaptiveProbabilities = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/adaptive-probabilities')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/adaptive-probabilities')
     adaptiveProbabilities.value = data
   } catch (error) {
     console.error('Failed to fetch adaptive probabilities:', error)
@@ -589,8 +589,7 @@ const fetchAdaptiveProbabilities = async () => {
 
 const fetchTrajectory = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/trajectory')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/trajectory')
     trajectory.value = data
   } catch (error) {
     console.error('Failed to fetch trajectory:', error)
@@ -599,8 +598,7 @@ const fetchTrajectory = async () => {
 
 const fetchStatistics = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/statistics')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/statistics')
     statistics.value = data
   } catch (error) {
     console.error('Failed to fetch statistics:', error)
@@ -609,8 +607,7 @@ const fetchStatistics = async () => {
 
 const fetchUltraFastStatus = async () => {
   try {
-    const response = await fetch('/api/ultra-fast-income/status')
-    const data = await response.json()
+    const data = await api.get<any>('/api/ultra-fast-income/status')
     currentMode.value = data.current_mode
     isUltraFastMode.value = data.is_ultra_fast
   } catch (error) {
@@ -620,8 +617,7 @@ const fetchUltraFastStatus = async () => {
 
 const fetchUltraFastPlan = async () => {
   try {
-    const response = await fetch('/api/ultra-fast-income/plan')
-    const data = await response.json()
+    const data = await api.get<any>('/api/ultra-fast-income/plan')
     ultraFastPlan.value = data
   } catch (error) {
     console.error('Failed to fetch ultra fast plan:', error)
@@ -630,15 +626,9 @@ const fetchUltraFastPlan = async () => {
 
 const setMode = async (mode: string) => {
   try {
-    const response = await fetch('/api/ultra-fast-income/set-mode', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode }),
-    })
-    if (response.ok) {
-      await fetchUltraFastStatus()
-      await fetchUltraFastPlan()
-    }
+    await api.post('/api/ultra-fast-income/set-mode', { mode })
+    await fetchUltraFastStatus()
+    await fetchUltraFastPlan()
   } catch (error) {
     console.error('Failed to set mode:', error)
   }
@@ -646,8 +636,7 @@ const setMode = async (mode: string) => {
 
 const fetchStatus = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/status')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/status')
     status.value = data
   } catch (error) {
     console.error('Failed to fetch status:', error)
@@ -656,8 +645,7 @@ const fetchStatus = async () => {
 
 const fetchRiskStatus = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/risk-status')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/risk-status')
     riskStatus.value = data
   } catch (error) {
     console.error('Failed to fetch risk status:', error)
@@ -666,8 +654,7 @@ const fetchRiskStatus = async () => {
 
 const fetchTriggers = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/triggers')
-    const data = await response.json()
+    const data = await api.get<any>('/api/progressive-scaling/triggers')
     triggers.value = data.triggers
   } catch (error) {
     console.error('Failed to fetch triggers:', error)
@@ -676,10 +663,7 @@ const fetchTriggers = async () => {
 
 const evaluateProgression = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/evaluate-progression', {
-      method: 'POST',
-    })
-    const data = await response.json()
+    const data = await api.post<any>('/api/progressive-scaling/evaluate-progression')
     alert(`Progression Evaluation:\n${data.reason}\nRecommendation: ${data.recommendation}`)
   } catch (error) {
     console.error('Failed to evaluate progression:', error)
@@ -688,10 +672,7 @@ const evaluateProgression = async () => {
 
 const progressPhase = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/progress', {
-      method: 'POST',
-    })
-    const data = await response.json()
+    const data = await api.post<any>('/api/progressive-scaling/progress')
     if (data.status === 'progressed') {
       alert(`Progressed to ${data.new_phase}`)
       await fetchStatus()
@@ -705,16 +686,10 @@ const progressPhase = async () => {
 
 const updateMetrics = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/update-metrics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(metricsForm.value),
-    })
-    if (response.ok) {
-      showMetricsModal.value = false
-      await fetchStatus()
-      alert('Metrics updated successfully')
-    }
+    await api.post('/api/progressive-scaling/update-metrics', metricsForm.value)
+    showMetricsModal.value = false
+    await fetchStatus()
+    alert('Metrics updated successfully')
   } catch (error) {
     console.error('Failed to update metrics:', error)
   }
@@ -722,10 +697,7 @@ const updateMetrics = async () => {
 
 const checkTriggers = async () => {
   try {
-    const response = await fetch('/api/progressive-scaling/check-triggers', {
-      method: 'POST',
-    })
-    const data = await response.json()
+    const data = await api.post<any>('/api/progressive-scaling/check-triggers')
     triggers.value = data.results.map((r: any) => ({ type: r.type, triggered: r.triggered }))
     await fetchStatus()
     await fetchRiskStatus()

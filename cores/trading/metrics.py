@@ -42,7 +42,7 @@ class PerformanceMetrics:
     start_balance: Decimal = Decimal()
     end_balance: Decimal = Decimal()
     return_pct: float = 0.0
-    calculated_at: datetime = field(default_factory=datetime.now(UTC))
+    calculated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 def calculate_performance(

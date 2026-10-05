@@ -90,6 +90,7 @@ class Supplier:
     contact_email: str = ""
     contact_phone: str = ""
     website: str = ""
+    instagram: str = ""  # handle @tienda (sin @ también vale) para outreach y contenido IG $0
     api_endpoint: str = ""
     api_credentials: dict[str, str] = field(default_factory=dict)
     shipping_countries: list[str] = field(default_factory=list)
@@ -115,10 +116,121 @@ class Supplier:
     fee_pct: float = 0.0  # % por venta (ej. Dropsheable 3%)
     stock_sync: bool = False  # stock sincronizado automático
     verified: bool = False  # acuerdo comercial verificado (checklist 5 preguntas)
+    reseller_program: bool = False  # True si el modelo admite revender su catálogo (plataforma/fábrica/encargo)
     verified_at: datetime | None = None
     fulfillment_model: str = ""  # comision | dropshipping | mayorista (C = reject $0)
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+
+
+ZERO_CAPITAL_ACTIVE = "active"  # términos $0 confirmados: se puede publicar y vender
+ZERO_CAPITAL_FUTURE = "future"  # buen candidato pero exige algo (abono, mínimo, stock) o falta verificar
+ZERO_CAPITAL_REJECTED = "rejected"  # exige capital inicial o despachamos nosotros
+
+# Autenticidad del producto (anti-baja por marca). UNKNOWN bloquea la publicación.
+AUTHENTICITY_OFFICIAL = "official"  # original del fabricante/marca
+AUTHENTICITY_LICENSED = "licensed"  # licencia oficial de reventa
+AUTHENTICITY_REPLICA = "replica"  # réplica/inspirado: se vende descrita tal cual, jamás como original
+AUTHENTICITY_UNKNOWN = "unknown"  # sin verificar: NO se publica hasta definirlo
+AUTHENTICITY_VALUES = (
+    AUTHENTICITY_OFFICIAL,
+    AUTHENTICITY_LICENSED,
+    AUTHENTICITY_REPLICA,
+    AUTHENTICITY_UNKNOWN,
+)
+
+
+def zero_capital_gate(supplier: Supplier) -> dict[str, Any]:
+    """Clasifica un proveedor para operar con $0 reales (puro, nunca raisea).
+
+    Regla no negociable del owner: primero venta, después dinero, después escala.
+    - REJECTED: exige capital inicial (stock/suscripción prepaga que haya que
+      financiar) o el fulfillment es nuestro (sin stock no hay despacho).
+    - FUTURE: no exige capital pero falta algo — abono mensual, compra mínima,
+      fulfillment mixto, acuerdo mayorista sin confirmar o 5 preguntas sin verificar.
+    - ACTIVE: verificado + sin capital + sin abono + sin mínimo + despacha el proveedor.
+    """
+    reasons: list[str] = []
+    blocked = False
+    try:
+        capital = float(getattr(supplier, "capital_required_usd", 0) or 0)
+    except (TypeError, ValueError, ArithmeticError):
+        capital = 0.0
+    try:
+        monthly = float(getattr(supplier, "monthly_cost_usd", 0) or 0)
+    except (TypeError, ValueError, ArithmeticError):
+        monthly = 0.0
+    try:
+        minimum = float(getattr(supplier, "minimum_order_usd", 0) or 0)
+    except (TypeError, ValueError, ArithmeticError):
+        minimum = 0.0
+    fulfillment = str(getattr(supplier, "fulfillment", "provider") or "provider").lower()
+    fee_model = str(getattr(supplier, "fee_model", "none") or "none").lower()
+    fulfillment_model = str(getattr(supplier, "fulfillment_model", "") or "").lower()
+    verified = bool(getattr(supplier, "verified", False))
+    # Simple = no te pide pagar nada más que por ventas (fee none o % por venta,
+    # sin capital/abono/mínimo, despacha el proveedor). Mayorista sin verificar
+    # NO es simple: sus términos reales (mínimos, unitario) aún se desconocen.
+    simple = (
+        capital <= 0
+        and monthly <= 0
+        and fee_model in ("none", "per_sale_pct")
+        and minimum <= 0
+        and fulfillment == "provider"
+        and (verified or fulfillment_model in ("", "dropshipping", "comision"))
+    )
+
+    if capital > 0:
+        blocked = True
+        reasons.append(f"exige capital inicial USD {capital:g} (stock/compra previa)")
+    if fulfillment == "own":
+        blocked = True
+        reasons.append("fulfillment propio: despacharíamos nosotros (exige stock)")
+    if blocked:
+        return {"status": ZERO_CAPITAL_REJECTED, "reasons": reasons, "simple": False}
+    if monthly > 0 or fee_model in ("monthly", "hybrid"):
+        reasons.append("cobra abono/suscripción (no es $0 total hasta pagarlo con ventas)")
+    if minimum > 0:
+        reasons.append(f"compra mínima USD {minimum:g} (hay que financiarla)")
+    if fulfillment == "mixed":
+        reasons.append("fulfillment mixto: confirmar qué parte despacha el proveedor")
+    if fulfillment_model == "mayorista" and not verified:
+        reasons.append("mayorista sin acuerdo: confirmar unitario + despacho a nombre tercero + comisión por escrito")
+    if not verified:
+        reasons.append("acuerdo sin verificar: faltan las 5 preguntas (comisión, stock, despacho, devoluciones, fotos)")
+    if reasons:
+        return {"status": ZERO_CAPITAL_FUTURE, "reasons": reasons, "simple": simple}
+    return {
+        "status": ZERO_CAPITAL_ACTIVE,
+        "reasons": ["términos $0 verificados: sin capital, sin abono, despacha el proveedor"],
+        "simple": True,
+    }
+
+
+def publish_blockers(product: Any) -> list[str]:
+    """Bloqueadores de publicación de un producto (puro, nunca raisea).
+
+    Regla: `unknown` no se publica hasta verificarlo (ni como original ni como
+    réplica). La lista vacía = publicable (el humano igual aprueba).
+    """
+    blockers: list[str] = []
+    try:
+        authenticity = str(getattr(product, "authenticity", AUTHENTICITY_UNKNOWN) or AUTHENTICITY_UNKNOWN).lower()
+    except Exception:
+        authenticity = AUTHENTICITY_UNKNOWN
+    if authenticity not in AUTHENTICITY_VALUES:
+        blockers.append(f"authenticity inválido ({authenticity}): usar official|licensed|replica|unknown")
+    elif authenticity == AUTHENTICITY_UNKNOWN:
+        blockers.append("authenticity sin verificar: definir official|licensed|replica antes de publicar")
+    try:
+        price = float(getattr(product, "sale_price_usd", 0) or 0) or float(getattr(product, "sale_price_ars", 0) or 0)
+    except (TypeError, ValueError, ArithmeticError):
+        price = 0.0
+    if price <= 0:
+        blockers.append("sin precio de venta (fijarlo con /sourcing/net-real)")
+    if not str(getattr(product, "supplier_id", "") or "").strip():
+        blockers.append("sin proveedor asignado")
+    return blockers
 
 
 @dataclass(slots=True)
@@ -142,6 +254,7 @@ class Product:
     images: list[str] = field(default_factory=list)
     tags: list[str] = field(default_factory=list)
     attributes: dict[str, str] = field(default_factory=dict)  # color, size, material, etc.
+    authenticity: str = AUTHENTICITY_UNKNOWN  # official | licensed | replica | unknown
     status: ProductStatus = ProductStatus.DRAFT
     marketplace_listings: dict[str, str] = field(default_factory=dict)  # marketplace -> listing_id
     seo_title: str = ""

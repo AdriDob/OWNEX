@@ -176,7 +176,7 @@ class SmartRouter:
 
         # Cost optimization
         if self._config.prefer_free:
-            if provider_id in ["ollama", "lmstudio", "opencode", "ollama_cloud", "omniroute"]:
+            if provider_id in ["ollama", "lmstudio", "opencode", "ollama_cloud", "omniroute", "freellmapi"]:
                 score += 0.15
             elif provider_id in ["groq", "together", "deepinfra", "cerebras"]:
                 score += 0.05
@@ -200,6 +200,7 @@ class SmartRouter:
             "ollama_cloud": 0.1,
             "opencode": 0.05,
             "omniroute": 0.05,
+            "freellmapi": 0.05,  # self-hosted free: mismo nivel que omniroute
             "groq": 0.0,
             "together": 0.0,
             "deepinfra": 0.0,

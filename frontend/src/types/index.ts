@@ -7,12 +7,38 @@
 
 // ==================== AUTH TYPES ====================
 
-export interface LoginResponse {
-  session: {
-    token: string
-    user_id: string
-    expires_at: string
-  }
+/**
+ * Device login result as actually emitted by the backend.
+ * `api/routers/auth.py::login` returns `ok(result)` = APIEnvelope, and
+ * `cores/auth/auth_manager.py::authenticate` returns this inner shape.
+ *
+ * The previous `{ session: { token, expires_at } }` shape was never emitted by
+ * any endpoint, which made `autoLogin()` return false forever and left
+ * `CATEYE-token` permanently unset. See .ai/KNOWN_DEBT.md (frontend auth contract).
+ */
+export interface DeviceLoginData {
+  token: string
+  refresh?: string
+  device_id?: string
+  user_id?: string
+  existing?: boolean
+}
+
+/** Full wire body of `POST /auth/login` (CATEYE/v1 envelope). */
+export interface DeviceLoginEnvelope {
+  version?: string
+  schema?: string
+  data: DeviceLoginData
+  error?: unknown
+  timestamp?: string
+}
+
+/** Shape of `/auth/users/login` and `/auth/users/register` (api/routers/auth_users.py). */
+export interface TokenResponse {
+  access_token: string
+  refresh_token: string
+  token_type?: string
+  email_verified?: boolean
 }
 
 export interface DeviceInfo {

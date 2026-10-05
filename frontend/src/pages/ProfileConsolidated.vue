@@ -4,6 +4,7 @@
  * Combines: ProfileKit + Identity
  */
 import { ref, computed, onMounted } from 'vue'
+import { api } from '@/lib/api'
 import { User, Shield, Zap, Copy, Check, RefreshCw } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
 
@@ -17,8 +18,8 @@ async function fetchData() {
   loading.value = true
   try {
     const [pRes, iRes] = await Promise.allSettled([
-      fetch('/api/profile-kit').then(r => r.json()),
-      fetch('/api/identity').then(r => r.json()),
+      api.get<any>('/api/profile-kit'),
+      api.get<any>('/api/identity'),
     ])
     if (pRes.status === 'fulfilled') profile.value = pRes.value
     if (iRes.status === 'fulfilled') identity.value = iRes.value

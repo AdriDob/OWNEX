@@ -149,8 +149,50 @@ CAPABILITIES: tuple[Capability, ...] = (
         id="bounty_target_discovery",
         label="Descubrimiento automático de targets",
         category="Bug Bounty",
-        what="Lee el dataset público de bounty-targets (449 programas).",
-        requirements=(),
+        what=(
+            "Busca bounty issues abiertos en GitHub y en plataformas de dev "
+            "bounty. Sin token funciona igual, pero con tope de rate."
+        ),
+        requirements=(
+            ConfigRequirement(
+                env="GITHUB_TOKEN",
+                without=(
+                    "Sin token el discovery funciona, pero GitHub limita a 10 "
+                    "req/min (con token: 30) y los envios no salen: es el "
+                    "bloqueo del primer pago."
+                ),
+                optional=True,
+                where="Se rellena aqui: Configuracion del sistema > Este panel.",
+            ),
+        ),
+    ),
+    # ── Dev bounty vía PR: el camino del primer ingreso ─────────
+    Capability(
+        id="dev_bounty_pr",
+        label="Dev bounty vía Pull Request",
+        category="Dev Bounty",
+        what=(
+            "Prepara el trabajo, abre el PR y lo somete a aprobación humana. "
+            "Es el camino que produce el primer ingreso real."
+        ),
+        requirements=(
+            ConfigRequirement(
+                env="GITHUB_TOKEN",
+                without=(
+                    "Sin token el discovery funciona, pero GitHub limita a 10 "
+                    "req/min (con token: 30) y los envios no salen: es el "
+                    "bloqueo del primer pago."
+                ),
+                optional=True,
+                where="Se rellena aqui: Configuracion del sistema > Este panel.",
+            ),
+            ConfigRequirement(
+                env="OWNEX_MAX_PER_SOURCE",
+                without="No es una llave: es un numero (default 200).",
+                optional=True,
+                where="Se rellena aqui: Configuracion del sistema > Este panel.",
+            ),
+        ),
     ),
     # ── IA: capacidad general del sistema ───────────────────────
     Capability(

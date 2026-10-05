@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
-
 OUTREACH_TEMPLATES: dict[str, str] = {
     "urban": (
         "Hola {name}! Soy Adriel — vendemos ropa urbana en MercadoLibre (tráfico orgánico, sin redes). "
@@ -52,7 +51,83 @@ OUTREACH_TEMPLATES: dict[str, str] = {
 }
 
 
-def _category_key(supplier_id: str, supplier_name: str) -> str:
+# ── Variante Instagram ($0, orgánico, sin pauta) ──
+# Mismo contrato que OUTREACH_TEMPLATES pero encuadrado en venta por IG:
+# el proveedor mantiene stock y despacha, nosotros publicamos y cerramos
+# por WhatsApp. Descripción honesta siempre (réplica = réplica, decant = decant).
+OUTREACH_TEMPLATES_IG: dict[str, str] = {
+    "urban": (
+        "Hola {name}! Soy Adriel — vendemos ropa urbana en Instagram (contenido orgánico, cierre por WhatsApp, sin local ni stock). "
+        "Buscamos proveedores por comisión: ustedes mantienen stock y despachan 24-72h con tracking y paquete neutro, "
+        "nosotros publicamos y traemos las ventas. ¿Comisión % o margen reventa? ¿Stock verificable (Sheet/Drive)? "
+        "¿Tabla de talles + fotos pro para publicar? Si me pasás ficha + precios, salimos esta semana. ¡Gracias!"
+    ),
+    "futbol": (
+        "Hola {name}! Soy Adriel — vendemos camisetas de fútbol importadas en Instagram (alta calidad, réplica AAA/sublimada, "
+        "siempre descrita tal cual, cierre por WhatsApp). Buscamos proveedor por comisión: ustedes guardan stock y despachan "
+        "24-48h con tracking (Andreani/OCA), nosotros vendemos. ¿Comisión %? ¿Stock diario verificable? ¿Paquete neutro? "
+        "¿Tabla de talles + fotos reales de la prenda? Priorizamos al que responde con datos + fotos. ¿Me pasás catálogo + precios?"
+    ),
+    "relojes": (
+        "Hola {name}! Soy Adriel — vendemos relojes en Instagram (ticket alto, sin talles, cierre por WhatsApp). "
+        "Buscamos proveedor por comisión: ustedes despachan 24-48h con tracking, garantía y paquete cuidado, nosotros publicamos. "
+        "¿Comisión %? ¿Stock verificable? ¿Acero/smart/analógico? ¿Garantía y devoluciones? Con catálogo + fotos detalle + precio costo, "
+        "armamos las publicaciones esta semana. ¡Gracias!"
+    ),
+    "perfumes": (
+        "Hola {name}! Soy Adriel — vendemos perfumes árabes y nicho en Instagram (decants 5/10ml de originales + frascos sellados, "
+        "siempre con lote y originalidad verificable, cierre por WhatsApp). Buscamos proveedor por comisión: ustedes despachan "
+        "24-48h con tracking, nosotros vendemos. ¿Comisión % o margen? ¿Stock/lote verificable? ¿Decants o sellado? ¿Devoluciones? "
+        "Con catálogo + fotos, publicamos esta semana."
+    ),
+    "accesorios": (
+        "Hola {name}! Soy Adriel — vendemos accesorios en Instagram (acero, gorras, lentes — suben el ticket, cierre por WhatsApp). "
+        "Buscamos proveedor por comisión: ustedes mantienen stock y despachan 24-72h con tracking y paquete neutro, nosotros publicamos. "
+        "¿Comisión %? ¿Stock verificable? ¿Cambios? Si me pasás fotos + precio, lo subimos esta semana. ¡Gracias!"
+    ),
+    "generic": (
+        "Hola {name}! Soy Adriel — vendemos en Instagram (orgánico, cierre por WhatsApp, sin stock propio). "
+        "Buscamos proveedores por comisión: ustedes mantienen stock y despachan 24-72h con tracking y paquete neutro, "
+        "nosotros publicamos y traemos las ventas. ¿Comisión %? ¿Stock verificable? ¿Devoluciones? Con catálogo + fotos, "
+        "publicamos esta semana. ¡Gracias!"
+    ),
+}
+
+CANALES_VALIDOS = ("meli", "ig")
+
+
+# ── Propuesta de reventa (pitch a tiendas existentes) ──
+# No pide comisión de entrada ni stock: ofrece clientes + vidriera a cambio de
+# unitario + despacho a nombre Droppinglabel. Se envía a CUALQUIER proveedor
+# (con o sin programa de reventa); el flag reseller_program solo ordena.
+RESELLER_PITCH_NICHO = {
+    "futbol": "camisetas de fútbol",
+    "perfumes": "perfumes árabes",
+    "relojes": "relojes y accesorios",
+    "urban": "ropa urbana",
+    "accesorios": "accesorios",
+    "generic": "tus productos",
+}
+
+RESELLER_PITCH_TEMPLATE = (
+    "Hola {name}! Soy Adriel, de Droppinglabel (tienda en Instagram de {nicho}). "
+    "Te propongo algo simple: revendo tu catálogo en mi Instagram — yo publico tus productos, "
+    "traigo los clientes y cierro por WhatsApp; ustedes solo preparan y despachan a mi cliente "
+    "a nombre de Droppinglabel. Ustedes ganan ventas extra sin moverse: sin costo fijo, solo pagan "
+    "comisión sobre lo que se vende. ¿Trabajan con revendedores por comisión o precio mayorista unitario? "
+    "¿Despachan a nombre de mi tienda (paquete neutro)? Si me pasan catálogo + precios + fotos, "
+    "arrancamos esta semana. ¡Gracias!"
+)
+
+
+def build_reseller_pitch(supplier_id: str, supplier_name: str) -> dict[str, str]:
+    """Propuesta de reventa lista para enviar (corta, por WhatsApp)."""
+    niche = niche_for(supplier_id, supplier_name)
+    body = RESELLER_PITCH_TEMPLATE.format(name=supplier_name, nicho=RESELLER_PITCH_NICHO.get(niche, "tus productos"))
+    return {"niche": niche, "body": body, "wa_url": f"https://wa.me/?text={quote(body)}"}
+
+
+def niche_for(supplier_id: str, supplier_name: str) -> str:
     sid = (supplier_id or "").lower()
     name = (supplier_name or "").lower()
     blob = f"{sid} {name}"
@@ -60,9 +135,13 @@ def _category_key(supplier_id: str, supplier_name: str) -> str:
         return "urban"
     if "fut" in blob or "sport" in blob or "gol" in blob or "sur sport" in blob:
         return "futbol"
+    if "camiseta" in blob or "tribuna" in blob or "hincha" in blob or "bocha" in blob or "mundial" in blob:
+        return "futbol"
     if "watch" in blob or "reloj" in blob or "time" in blob or "cronos" in blob or "horus" in blob or "tempo" in blob:
         return "relojes"
     if "perf" in blob or "aroma" in blob or "decant" in blob or "scent" in blob or "viales" in blob:
+        return "perfumes"
+    if "arab" in blob or "oud" in blob or "lattafa" in blob or "musk" in blob or "attar" in blob:
         return "perfumes"
     if (
         "acc" in blob
@@ -78,19 +157,43 @@ def _category_key(supplier_id: str, supplier_name: str) -> str:
     return "generic"
 
 
-def build_message(supplier_id: str, supplier_name: str) -> dict[str, str]:
-    key = _category_key(supplier_id, supplier_name)
-    tmpl = OUTREACH_TEMPLATES.get(key, OUTREACH_TEMPLATES["generic"])
+def build_message(supplier_id: str, supplier_name: str, canal: str = "meli") -> dict[str, str]:
+    """Mensaje listo por categoría y canal (``meli`` o ``ig``). Default meli = contrato histórico."""
+    key = niche_for(supplier_id, supplier_name)
+    table = OUTREACH_TEMPLATES_IG if str(canal or "meli").lower() == "ig" else OUTREACH_TEMPLATES
+    tmpl = table.get(key, table["generic"])
     body = tmpl.format(name=supplier_name)
     # Wa link: use phone if known, else generic (user fills)
     wa_text = quote(body)
     wa_url = f"https://wa.me/?text={wa_text}"
-    return {"category_key": key, "body": body, "wa_url": wa_url, "char_count": str(len(body))}
+    return {
+        "category_key": key,
+        "canal": str(canal or "meli").lower(),
+        "body": body,
+        "wa_url": wa_url,
+        "char_count": str(len(body)),
+    }
 
 
 def outreach_store_path() -> Path:
     base = Path(os.environ.get("OWNEX_DATA_DIR", "data"))
     return base / "ecommerce_outreach.json"
+
+
+def next_step_for_status(status: str) -> str:
+    """Siguiente paso accionable por estado de outreach (nunca genérico)."""
+    s = (status or "pending").lower()
+    if s == "pending":
+        return "Contactar por WhatsApp (1 click) → se marca contacted solo"
+    if s == "contacted":
+        return "Esperar 48h → si responde pedir ficha+precios (marcar replied), si no re-contactar"
+    if s == "replied":
+        return "Validar ficha (precio/stock/talles/envío) → sync-catalog → DRAFT"
+    if s == "verified":
+        return "sync-catalog → DRAFT → precio VIABLE (≥25%) → publicar (Meli/IG)"
+    if s == "rejected":
+        return "Descartado — no contactar, pasar al siguiente proveedor"
+    return "Contactar por WhatsApp (1 click)"
 
 
 @dataclass(slots=True)
@@ -107,6 +210,7 @@ class OutreachRecord:
         return {
             "supplier_id": self.supplier_id,
             "status": self.status,
+            "next_step": next_step_for_status(self.status),
             "last_contact_at": self.last_contact_at,
             "wa_url": self.wa_url,
             "message": self.message[:300],
@@ -127,7 +231,14 @@ class OutreachStore:
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
             for rid, rec in raw.items():
-                self._data[rid] = OutreachRecord(**rec)
+                if not isinstance(rec, dict):
+                    continue
+                # next_step es derivado (no campo del dataclass): ignorarlo al recargar.
+                rec.pop("next_step", None)
+                try:
+                    self._data[rid] = OutreachRecord(**rec)
+                except TypeError:
+                    continue
         except Exception:
             pass
 

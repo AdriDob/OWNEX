@@ -4,6 +4,7 @@
  * Combines: IntelligenceDashboard + ConfidenceDashboard + DifferentialEngine
  */
 import { ref, computed } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { Bug, Brain, Lightbulb, BarChart3, Search, Shield, Check, X, Trash2 } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
@@ -22,8 +23,8 @@ async function fetchData() {
   loading.value = true
   try {
     const [fRes, hRes] = await Promise.allSettled([
-      fetch('/api/findings').then(r => r.json()),
-      fetch('/api/hypotheses').then(r => r.json()),
+      api.get<any>('/api/findings'),
+      api.get<any>('/api/hypotheses'),
     ])
     if (fRes.status === 'fulfilled') findings.value = fRes.value.findings || []
     if (hRes.status === 'fulfilled') hypotheses.value = hRes.value.hypotheses || []

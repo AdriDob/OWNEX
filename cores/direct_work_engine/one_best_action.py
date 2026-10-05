@@ -187,10 +187,24 @@ class OneBestActionEngine:
         return self._build_refresh_action(ctx)
 
     def _get_default_profile(self) -> UserProfile:
-        from cores.direct_work_engine.profile_builder import IntelligentProfileBuilder
+        """Perfil REAL persistido, no uno inventado.
 
-        builder = IntelligentProfileBuilder()
-        return builder.build().profile
+        Antes: `IntelligentProfileBuilder().build()` sin argumentos, cuando
+        `build(profile)` los exige ⇒ `TypeError` ⇒ `GET /unified-income/
+        best-action` respondía "Sin acción disponible" (o 500) siempre. El
+        motor de "qué hago ahora" llevaba roto desde el commit 2d74d038.
+        """
+        from cores.direct_work_engine.profile_kit import ProfileKitEngine
+
+        kit = ProfileKitEngine()
+        try:
+            stored = kit.load()
+        except Exception as exc:  # noqa: BLE001 — sin perfil => vacío, no inventado
+            logger.debug("profile_kit unavailable, using empty profile: %s", exc)
+            stored = {}
+        if not stored:
+            return UserProfile(name="")
+        return kit.profile_from_dict(stored)
 
     def _workitem_to_opportunity(self, item: WorkItem) -> Opportunity:
         """Convert WorkItem to Opportunity for ranking."""

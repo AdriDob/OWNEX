@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from cores.validation.adapters import HTTPAdapter, ProbeResponse
-from cores.validation.confidence import ConfidenceEngine
 from cores.validation.economic_scorer import EconomicScorer
 from cores.validation.engine import ValidationEngine
 from cores.validation.models import (
@@ -296,10 +295,9 @@ class TestValidationPlanner:
 # ═══════════════════════════════════════════════════════════════
 
 
-class TestConfidenceEngine:
+class TestConfidenceFromValidationResult:
     def test_high_confidence_with_strong_signals(self, sample_validation_result: ValidationResult):
-        engine = ConfidenceEngine()
-        score = engine.evaluate(sample_validation_result)
+        score = ConfidenceScore.from_validation_result(sample_validation_result)
 
         assert score.score >= 0.7
         assert score.should_promote
@@ -310,24 +308,21 @@ class TestConfidenceEngine:
         assert len(score.reasoning) > 0
 
     def test_no_baseline_returns_zero(self):
-        engine = ConfidenceEngine()
         result = ValidationResult(probes=[ProbeResult()])
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score == 0.0
         assert not score.should_promote
         assert "Baseline missing" in score.gaps
 
     def test_no_probes_returns_zero(self):
-        engine = ConfidenceEngine()
         result = ValidationResult(baseline=ProbeResult())
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score == 0.0
         assert not score.should_promote
 
     def test_mixed_signals_medium_confidence(self):
-        engine = ConfidenceEngine()
         baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=500)
         probe = ProbeResult(
             probe_type=ProbeType.ID_SWAP,
@@ -338,13 +333,12 @@ class TestConfidenceEngine:
             auth_bypassed=False,
         )
         result = ValidationResult(baseline=baseline, probes=[probe])
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert 0 <= score.score <= 0.8  # Señal débil
         assert not score.should_promote
 
     def test_sql_error_detection(self):
-        engine = ConfidenceEngine()
         baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=100)
         probe = ProbeResult(
             probe_type=ProbeType.ERROR_ANALYSIS,
@@ -359,7 +353,7 @@ class TestConfidenceEngine:
             probes=[probe],
             total_signals=["SQL error detected", "Error message contains SQL syntax"],
         )
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score > 0.2
         assert len(score.reasoning) > 0

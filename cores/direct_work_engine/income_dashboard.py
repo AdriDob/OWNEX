@@ -43,6 +43,7 @@ class IncomeDashboard:
             "generated_at": datetime.now(UTC).isoformat(),
             "work": self._work_block(),
             "income": self._income_block(),
+            "upside": self._upside_block(),
             "roi": self._roi_block(),
             "projection": self._projection_block(
                 work_income_usd_per_month=work_income_usd_per_month,
@@ -130,6 +131,52 @@ class IncomeDashboard:
         except Exception as exc:
             logger.debug("ROI block degraded: %s", exc)
             return []
+
+    # Bandas conservadoras por severidad para el upside potencial.
+    # HIPÓTESIS etiquetada (no payouts prometidos): critical $2.5-5k, high $1-2k.
+    _UPSIDE_BANDS: dict[str, tuple[float, float]] = {
+        "critical": (2500.0, 5000.0),
+        "high": (1000.0, 2000.0),
+        "medium": (250.0, 500.0),
+    }
+
+    def _upside_block(self) -> dict[str, Any]:
+        """Potencial abierto: confirmed por severidad × bandas conservadoras.
+
+        Potencial, no promesa: solo findings confirmados aún no cobrados.
+        Vacío honesto (0.0) sin confirmados.
+        """
+        try:
+            from database.db import SessionLocal
+            from database.models import Finding
+
+            session = SessionLocal()
+            try:
+                rows = session.query(Finding.severity).filter(Finding.status == "confirmed").all()
+            finally:
+                session.close()
+            by_sev: dict[str, int] = {}
+            for (sev,) in rows:
+                key = str(sev or "medium").lower()
+                by_sev[key] = by_sev.get(key, 0) + 1
+            lo = sum(self._UPSIDE_BANDS.get(s, (0.0, 0.0))[0] * n for s, n in by_sev.items())
+            hi = sum(self._UPSIDE_BANDS.get(s, (0.0, 0.0))[1] * n for s, n in by_sev.items())
+            return {
+                "open_confirmed": sum(by_sev.values()),
+                "by_severity": by_sev,
+                "upside_low_usd": round(lo, 2),
+                "upside_high_usd": round(hi, 2),
+                "note": "Potencial (bandas conservadoras), no promesa. Solo confirmed no cobrados.",
+            }
+        except Exception as exc:
+            logger.debug("Upside block degraded: %s", exc)
+            return {
+                "open_confirmed": 0,
+                "by_severity": {},
+                "upside_low_usd": 0.0,
+                "upside_high_usd": 0.0,
+                "note": "Sin datos.",
+            }
 
     def _projection_block(
         self,

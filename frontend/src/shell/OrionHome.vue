@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Activity, Bug, Dices, TrendingUp } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/useToast'

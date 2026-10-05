@@ -677,6 +677,17 @@ class TestSimpleFilter:
 
     def test_verify_endpoint_activa_y_404(self) -> None:
         assert client.post("/api/ecommerce/suppliers/no-existe/verify").status_code == 404
+
+
+class TestPODSeed:
+    def test_caufyprint_pod_nace_future(self) -> None:
+        from cores.ecommerce.engine import seed_ranked_suppliers
+        from cores.ecommerce.models import zero_capital_gate
+
+        seeds = {s.id: s for s in seed_ranked_suppliers()}
+        assert "caufyprint_pod" in seeds
+        assert zero_capital_gate(seeds["caufyprint_pod"])["status"] == "future"
+        assert "1 unidad" in seeds["caufyprint_pod"].notes
         r = client.post(
             "/api/ecommerce/suppliers",
             json={"id": "simple_verify_me", "name": "Simple Test", "website": "https://example.com"},

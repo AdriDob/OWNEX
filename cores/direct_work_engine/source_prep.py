@@ -162,9 +162,9 @@ async def generate_ai_prep(src: Any, timeout_s: float = 60.0) -> dict[str, Any]:
     guide = build_prep_guide(src)
     prompt = _build_ai_prompt(src, guide)
     try:
-        from cores.copilot.providers.router import TASK_CHAT, get_provider_router
-
         import asyncio
+
+        from cores.copilot.providers.router import TASK_CHAT, get_provider_router
 
         resp = await asyncio.wait_for(
             get_provider_router().route(task_type=TASK_CHAT, messages=[{"role": "user", "content": prompt}]),

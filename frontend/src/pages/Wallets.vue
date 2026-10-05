@@ -95,7 +95,8 @@ function cancelEdit() {
 async function saveAddress(walletId: string) {
   savingAddress.value = true
   try {
-    await api.put(`/identity-center/wallets/${walletId}`, { address: editAddress.value })
+    // Contrato real: POST /identity-center/wallets con body { [key]: address }
+    await api.post('/identity-center/wallets', { [walletId]: editAddress.value })
     if (data.value) {
       const w = data.value.wallets.find((w) => w.id === walletId)
       if (w) w.address = editAddress.value
@@ -112,13 +113,19 @@ async function fetchWallets() {
   loading.value = true
   error.value = ''
   try {
-    const [walletsRes, statsRes, platformsRes] = await Promise.all([
-      api.get<{ wallets: WalletEntry[] }>('/identity-center/wallets'),
+    const [identityRes, statsRes, platformsRes] = await Promise.all([
+      // Contrato real: GET /identity-center → { wallets: { usdc, binance, takenos, public } }
+      api.get<{ wallets: Record<string, string> }>('/identity-center'),
       api.get<ReportStats>('/reports/stats').catch(() => null),
       api.get<{ accounts: PlatformWithEarnings[] }>('/opportunity/identity/accounts').catch(() => null),
     ])
     data.value = {
-      wallets: walletsRes.wallets || [],
+      // Normaliza dict key→address a la lista que la vista ya consume.
+      wallets: Object.entries(identityRes.wallets || {}).map(([id, address]) => ({
+        id,
+        platform: id,
+        address: address || '',
+      })),
       stats: statsRes,
       platformEarnings:
         platformsRes?.accounts

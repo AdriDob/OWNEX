@@ -23,7 +23,7 @@ class TestCatalog:
     def test_catalog_has_all_items_with_required_keys(self) -> None:
         required = {"id", "phase", "priority", "title", "why", "est_minutes", "how_to", "auto"}
         items = cl._catalog()
-        assert len(items) == 21
+        assert len(items) == 35
         for item in items:
             assert required <= set(item), item["id"]
 
@@ -48,7 +48,7 @@ class TestStatus:
         status = checklist.status()
         assert status["complete_pct"] == 0
         assert status["done_items"] == 0
-        assert len(status["pending"]) == 21
+        assert len(status["pending"]) == 35
         assert status["complete"] is False
         assert status["next_task"] is not None
 
@@ -57,7 +57,7 @@ class TestStatus:
         status = checklist.status()
         assert "profile_kit" in status["done"]
         assert status["done_items"] == 1
-        assert status["complete_pct"] == 5
+        assert status["complete_pct"] == 3
         assert all(p["id"] != "profile_kit" for p in status["pending"])
 
     def test_status_shape_has_phases_labels(self, checklist: SetupChecklist) -> None:
@@ -138,6 +138,17 @@ class TestComplete:
             "mpt_material_key",
             "obsidian_vault",
             "smtp_mail",
+            "trading_exchange",
+            "memecoin_wallet",
+            "betfair",
+            "ccxt_exchange",
+            "outlook",
+            "aux_bounty_keys",
+            "ai_work_keys",
+            "meta_account",
+            "meli_account",
+            "affiliate_networks",
+            "supplier_outreach_3wa",
         ):
             monkeypatch.setitem(cl._DETECTORS, name, lambda: True)
         for manual in (
@@ -151,6 +162,9 @@ class TestComplete:
             "supplier_streetwear",
             "supplier_perfumes",
             "supplier_accessories",
+            "exchange_binance",
+            "exchange_alpaca",
+            "whop_account",
             "trading_live",
         ):
             checklist.mark_done(manual)
@@ -293,3 +307,33 @@ class TestExternalUrls:
         status = checklist.status()
         by_id = {p["id"]: p for p in status["pending"]}
         assert by_id["github_token"]["url"] == "https://github.com/settings/tokens"
+
+
+class TestSupplierOutreachUnlock:
+    def test_item_es_auto_con_url(self) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "supplier_outreach_3wa")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_PLATFORMS
+        assert item["url"] == "/operations/ecommerce"
+
+    def test_detector_pendiente_con_menos_de_3(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        import cores.ecommerce.outreach as outreach_mod
+        import cores.setup.checklist as checklist_mod
+
+        monkeypatch.setattr(outreach_mod, "_store", None)
+        store = outreach_mod.get_outreach_store()
+        store.mark_contacted("s1", "https://wa.me/?text=hola", "hola")
+        store.mark_contacted("s2", "https://wa.me/?text=hola", "hola")
+        assert checklist_mod._detect_supplier_outreach() is False
+
+    def test_detector_completa_con_3(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        import cores.ecommerce.outreach as outreach_mod
+        import cores.setup.checklist as checklist_mod
+
+        monkeypatch.setattr(outreach_mod, "_store", None)
+        store = outreach_mod.get_outreach_store()
+        for sid in ("dropsheable", "canevic_perf", "flex_sport_arg"):
+            store.mark_contacted(sid, "https://wa.me/?text=hola", "hola")
+        assert checklist_mod._detect_supplier_outreach() is True

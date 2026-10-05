@@ -131,3 +131,10 @@ backups/
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 graft/
 src-tauri/binaries/ownex-backend
+
+# Playwright E2E — artefactos de ejecución (se regeneran en cada corrida)
+test-results/
+test-results-prod/
+playwright-report/
+blob-report/
+.playwright/

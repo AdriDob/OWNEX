@@ -143,9 +143,15 @@ async def vpn_install_windscribe() -> dict[str, Any]:
 # ── Obsidian ─────────────────────────────────────────────────────
 
 
-@router.post("/obsidian/sync")
-async def obsidian_sync() -> dict[str, Any]:
-    """Sync memory / notes a Obsidian."""
+async def obsidian_sync() -> dict[str, Any]:  # noqa: D401
+    """Sync de memoria → Obsidian.
+
+    NOTA (ship-day 2026-09-28): este handler estaba INALCANZABLE por HTTP
+    (duplicaba `obsidian_sync.py::sync_obsidian_file`, mismo path+método, y ese
+    router se monta antes). El winner es el correcto: el front manda
+    POST /obsidian/sync con body {path, content, title}. Este sync de memoria
+    sin body quedó superado — se conserva solo como función para reuso local.
+    """
     try:
         from cores.obsidian_sync import ObsidianSync
 
@@ -212,6 +218,17 @@ async def applications_income_plan() -> dict[str, Any]:
         from cores.direct_work_engine.income_plan import build_unified_income_plan
 
         return build_unified_income_plan()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from None
+
+
+@router.get("/applications/all-access")
+async def applications_all_access() -> dict[str, Any]:
+    """Vía all-access segura (Outlier/Mercor/Alignerr/Mindrift): entrar sin experiencia profesional."""
+    try:
+        from cores.application_assistant import get_application_assistant
+
+        return get_application_assistant().get_all_access_entry()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 

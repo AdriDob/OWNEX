@@ -4,6 +4,7 @@
  * Combines: InvestigationCenter + InvestigationDetail
  */
 import { ref, computed, onMounted } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { Search, Eye, ArrowLeft, RefreshCw, Calendar, Shield, Target } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
@@ -18,8 +19,7 @@ const detail = ref<any>(null)
 async function fetchData() {
   loading.value = true
   try {
-    const res = await fetch('/api/investigations')
-    const data = await res.json()
+    const data = await api.get<any>('/api/investigations')
     investigations.value = data.investigations || []
   } catch { /* silent */ }
   loading.value = false
@@ -29,8 +29,7 @@ async function loadDetail(id: string) {
   selectedId.value = id
   activeTab.value = 'detail'
   try {
-    const res = await fetch(`/api/investigations/${id}`)
-    detail.value = await res.json()
+    detail.value = await api.get<any>(`/api/investigations/${id}`)
   } catch { /* silent */ }
 }
 

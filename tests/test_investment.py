@@ -1059,7 +1059,7 @@ class TestInvestmentAdapterRegistry:
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
             "alpaca",
-            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            "cores.investment.adapters.stocks_adapter.AlpacaAdapter",
             enabled=True,
         )
         adapters = registry.list_adapters()
@@ -1073,7 +1073,7 @@ class TestInvestmentAdapterRegistry:
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
             "ibkr",
-            "core.investment.adapters.stocks_adapter.IBKRAdapter",
+            "cores.investment.adapters.stocks_adapter.IBKRAdapter",
             enabled=False,
         )
         adapters = registry.list_adapters()
@@ -1087,7 +1087,7 @@ class TestInvestmentAdapterRegistry:
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
             "alpaca",
-            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            "cores.investment.adapters.stocks_adapter.AlpacaAdapter",
             enabled=True,
         )
         results = await registry.initialize_all()
@@ -1102,7 +1102,7 @@ class TestInvestmentAdapterRegistry:
         registry = InvestmentAdapterRegistry()
         registry.register_adapter(
             "alpaca",
-            "core.investment.adapters.stocks_adapter.AlpacaAdapter",
+            "cores.investment.adapters.stocks_adapter.AlpacaAdapter",
             enabled=True,
         )
         await registry.initialize_all()

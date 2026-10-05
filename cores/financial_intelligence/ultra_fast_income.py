@@ -170,12 +170,28 @@ class UltraFastIncomeEngine:
         from cores.direct_work_engine.execution_planner import plan_execution
         from cores.direct_work_engine.success_engine import plan_opportunity_success
 
-        # Use infinite source discovery if no opportunities provided
+        # Use infinite source discovery if no opportunities provided.
+        #
+        # 2026-10-05: `infinite_source_discovery.discover_sources()` NO hace
+        # ninguna llamada de red — sus 7 "fuentes" (LinkedIn, Indeed,
+        # RemoteOK, WeWorkRemotely, FlexJobs, GitHub, Fiverr) devuelven
+        # listas **simuladas** con URLs inventadas (`linkedin.com/jobs/view/123`,
+        # `fiverr.com/gig/123`) y rates inventados. Consumirlas metía trabajo
+        # ficticio en un plan de ingresos: la misma clase de mentira que ya se
+        # corrigió dos veces en este proyecto (pipeline de $5.810, UNKNOWN
+        # renderizado como $0).
+        #
+        # Se falla explícitamente en vez de devolver datos inventados: quien
+        # llama tiene que pasar oportunidades REALES.
         if opportunities is None:
-            logger.info("Using infinite source discovery to find opportunities")
-            discovered = self._infinite_discovery.discover_sources(limit=20)
-            opportunities = [opp.to_dict() for opp in discovered]
-            logger.info(f"Discovered {len(opportunities)} opportunities from infinite sources")
+            raise ValueError(
+                "generate_plan requiere oportunidades reales. "
+                "La discovery automática (infinite-source) está deshabilitada: "
+                "sus resultados son simulados, no scraping real. "
+                "Pasá `opportunities` desde el WorkBank o un adapter verificado."
+            )
+
+        logger.info(f"Ultra-fast plan con {len(opportunities)} oportunidades reales")
 
         # Filter for ultra fast categories
         ultra_fast_items = []

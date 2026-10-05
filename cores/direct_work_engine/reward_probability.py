@@ -432,7 +432,7 @@ class PersonalAcceptanceProbability:
         n_duplicates = sum(1 for r in recs if r.result == "duplicate")
         n_rejected = sum(1 for r in recs if r.result == "rejected")
         n_invalid = sum(1 for r in recs if r.result == "invalid")
-        total_hours = sum(r.hours_invested for r in recs)
+        sum(r.hours_invested for r in recs)
 
         # Bayesian posterior with prior
         p = (n_accepted + PRIOR_STRENGTH * prior_p) / (n + PRIOR_STRENGTH)
@@ -440,7 +440,7 @@ class PersonalAcceptanceProbability:
         lower = _wilson_lower_bound(n_accepted, n) if n > 0 else 0.0
         upper = _wilson_upper_bound(n_accepted, n) if n > 0 else 0.0
 
-        label = acceptance_evidence_label(n)
+        acceptance_evidence_label(n)
         prior_p = (prior.p_accept[0] + prior.p_accept[1]) / 2.0
         source = "PRIOR_EXTERNO" if n == 0 else ("PRIOR_EXTERNO+personal" if n < MIN_PERSONAL_SAMPLES else "personal")
         confidence = acceptance_confidence_level(n, sum(r.evidence_quality for r in recs) / n if n > 0 else 1.0)
@@ -463,6 +463,36 @@ class PersonalAcceptanceProbability:
             source=source,
             confidence=confidence,
         )
+
+    def duplicate_rate(
+        self,
+        niche: str = "",
+        platform: str = "",
+        program: str = "",
+    ) -> dict[str, object]:
+        """Tasa de duplicados sobre outcomes verificados. None sin datos (nunca inventa).
+
+        Meta operativa: <20% (primicia P3 + lógica de negocio, no scans genéricos).
+        """
+        try:
+            recs = [
+                r
+                for r in self._load()
+                if (not niche or r.niche == niche)
+                and (not platform or r.platform == platform.strip().lower())
+                and (not program or r.program == program.strip().lower())
+            ]
+        except Exception:
+            return {"outcomes": 0, "duplicates": 0, "duplicate_rate": None, "under_threshold_20": None}
+        n = len(recs)
+        dups = sum(1 for r in recs if r.result == "duplicate")
+        rate = round(dups / n, 4) if n else None
+        return {
+            "outcomes": n,
+            "duplicates": dups,
+            "duplicate_rate": rate,
+            "under_threshold_20": (rate < 0.2) if rate is not None else None,
+        }
 
 
 # ── Evidence Gate (P5) ─────────────────────────────────────────────
@@ -522,25 +552,24 @@ class EvidenceGate:
         personal_engine: PersonalAcceptanceProbability | None = None,
     ) -> EvidenceGateState:
         """Evaluate evidence gate for an opportunity."""
-        engine = personal_engine or self.acceptance_engine
-        niche = niche_for_category(
+        niche_for_category(
             getattr(getattr(opportunity, "category", None), "value", getattr(opportunity, "category", ""))
         )
         platform = str(getattr(getattr(opportunity, "platform", None), "value", getattr(opportunity, "platform", "")))
         program = str(getattr(opportunity, "program", "")).strip().lower()
-        vuln_class = str(getattr(opportunity, "vuln_class", "")).strip().lower()
+        str(getattr(opportunity, "vuln_class", "")).strip().lower()
 
         # Evidence scores from EvidenceBundle
         validity_score = getattr(evidence, "cvss_score", 0.0) / 10.0  # CVSS is 0-10, normalize to 0-1
         uniqueness_score = getattr(evidence, "evidence_score", 0.0)  # Use evidence_score as uniqueness proxy
-        acceptance_score = getattr(evidence, "acceptance_probability", 0.0)
+        getattr(evidence, "acceptance_probability", 0.0)
         reward_score = getattr(evidence, "reward_score", 0.0) if hasattr(evidence, "reward_score") else 0.0
         evidence_score = getattr(evidence, "evidence_score", 0.0)
 
         # Opportunity fields
-        opp_p_accept = getattr(opportunity, "acceptance_probability", 0.0)
-        opp_evidence_quality = getattr(opportunity, "evidence_quality", 0.0)
-        opp_uniqueness_score = getattr(opportunity, "uniqueness_score", 0.0)
+        getattr(opportunity, "acceptance_probability", 0.0)
+        getattr(opportunity, "evidence_quality", 0.0)
+        getattr(opportunity, "uniqueness_score", 0.0)
         scope_verified = getattr(opportunity, "scope_verified", False)
 
         # Personal acceptance estimate (with Wilson CI)
@@ -582,10 +611,9 @@ class EvidenceGate:
         }
 
         # Wilson lower bound for acceptance
-        p_accept_lower = acceptance_est.p_accept_lower
         # Effective sample size
         n = acceptance_est.n_outcomes
-        evidence_quality = sum(r.evidence_quality for r in self._load_acceptance_records()) / n if n > 0 else 0.0
+        sum(r.evidence_quality for r in self._load_acceptance_records()) / n if n > 0 else 0.0
 
         notes: list[str] = []
         notes.append(f"P_VALID: {validity_score:.0%}")
@@ -942,7 +970,7 @@ __all__ = [
     "NICHE_PRIORITY",
     "NICHE_WEB3",
     "NICHE_WEB_CLASSIC",
-    "EXTERNAL_REWARD_PRIORS",
+    "DEFAULT_EXTERNAL_PRIORS",
     "OutcomeRecord",
     "PersonalRewardEstimate",
     "PersonalRewardProbability",
@@ -968,7 +996,6 @@ __all__ = [
     "PersonalRewardEstimate",
     "PersonalRewardProbability",
     "PersonalAcceptanceProbability",
-    "RewardPrior",
     "FunnelEvent",
     "FunnelTracker",
 ]

@@ -5,8 +5,9 @@ Generate a professional GitHub profile header image for a full-stack software de
 
 from __future__ import annotations
 
+import contextlib
 import math
-from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 
 # Configuration
@@ -164,15 +165,12 @@ def generate_header_image(output_path: str = "/tmp/profile_header.png"):
     try:
         font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 44)
         font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
-        font_mono = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 14)
-        font_flag = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", 24)
-    except:
+    except OSError:
+        # Las fuentes del sistema pueden no existir (WSL, Windows, CI). Las dos
+        # que se usan tienen fallback; el resto se eliminó: estaban cargadas y
+        # nunca leídas.
         font_large = ImageFont.load_default()
         font_medium = ImageFont.load_default()
-        font_small = ImageFont.load_default()
-        font_mono = ImageFont.load_default()
-        font_flag = ImageFont.load_default()
 
     # Draw subtle grid background
     draw_grid(draw, WIDTH, HEIGHT, 50)
@@ -189,7 +187,6 @@ def generate_header_image(output_path: str = "/tmp/profile_header.png"):
     # === HEADER SECTION ===
     # Argentina flag + Name
     name_y = 65
-    name = "Adriel Dobal"
 
     # Draw Argentina flag next to name
     flag_size = 32
@@ -197,7 +194,7 @@ def generate_header_image(output_path: str = "/tmp/profile_header.png"):
     flag_y = name_y - flag_size // 2
     try:
         draw_argentina_flag(draw, int(flag_x), int(flag_y), flag_size, flag_size * 2 // 3)
-    except:
+    except Exception:
         # Fallback: draw "🇦🇷 Argentina" as text
         draw.text(
             (int(flag_x), int(flag_y)),
@@ -244,8 +241,6 @@ def generate_header_image(output_path: str = "/tmp/profile_header.png"):
 
     # Category labels and tech cards
     cat_y = tech_start_y
-    col_width = 240
-    gap = 24
     start_x = 60
 
     for cat_name, techs in TECH_CATEGORIES.items():
@@ -364,10 +359,8 @@ def generate_header_image(output_path: str = "/tmp/profile_header.png"):
         )
 
     # Argentina flag small at bottom right
-    try:
+    with contextlib.suppress(BaseException):
         draw_argentina_flag(draw, WIDTH - 60, HEIGHT - 38, 24, 16)
-    except:
-        pass
 
     # Save
     img.save(output_path, "PNG")

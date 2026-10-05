@@ -251,7 +251,8 @@ class TestOpireDweAdapter:
         from api.routers.direct_work import get_engine
         from cores.direct_work_engine.models import WorkPlatform
 
-        # Opire adapter was removed (upstream dead); live adapters are bugbounty, dework, fiverr, kaggle, github_bounty
+        # Opire adapter was removed (upstream dead); dework joined it on
+        # 2026-10-01 (200 text/html con 0 bytes, verificado en vivo).
         assert WorkPlatform.KAGGLE in get_engine().discovery.adapters
         assert WorkPlatform.GITHUB in get_engine().discovery.adapters
 
@@ -292,7 +293,13 @@ class TestLegacyDweAdapter:
 
         adapters = build_default_adapters()
         names = {a.source.name for a in adapters}
-        assert {"bugbounty", "dework", "fiverr", "kaggle", "github_bounty"} <= names
+        # fiverr retirado 2026-10-01 por decisión del owner (carril freelance
+        # vetado). `intigriti` entra: directorio público con payouts reales.
+        assert {"bugbounty", "kaggle", "github_bounty", "intigriti"} <= names
+        # fiverr (2026-10-01) y mercor (2026-10-01: AI interview + pago por
+        # proyecto + Stripe sin cobertura AR) quedan fuera del discovery.
+        assert "fiverr" not in names, "el carril freelance vetado no debe entrar al discovery"
+        assert "mercor" not in names, "Mercor exige AI interview: fuera del discovery"
 
 
 class TestNegotiationApi:
@@ -416,12 +423,14 @@ class TestSourceTiers:
 
         adapters = build_default_adapters()
         by_name = {a.source.name: a.source for a in adapters}
-        # Only LIVE upstreams are registered now
+        # Only LIVE upstreams are registered now. Dework was dropped
+        # 2026-10-01: verified live that /v1/tasks and /open_tasks return
+        # 200 text/html with 0 bytes, so `resp.json()` raised and the channel
+        # silently fetched 0 (see `get_adapter_fetch_audit()` → DEAD).
         assert by_name["bugbounty"].tier == 1
-        assert by_name["dework"].tier == 1
-        assert by_name["fiverr"].tier == 1
         assert by_name["kaggle"].tier == 1
         assert by_name["github_bounty"].tier == 1
+        assert "dework" not in by_name
 
     def test_source_status_exposes_tier_and_cadence(self) -> None:
         from api.routers.direct_work import get_engine
@@ -581,6 +590,49 @@ class TestFastIncomeMode:
         resp = client.post("/direct-work/recommend", json=payload)
         assert resp.status_code == 200
         assert resp.json()["ranked"][0]["opportunity"]["id"] == "b-1"
+
+
+class TestCashflowJackpotModes:
+    """Cashflow vs jackpot split (§6/§15): both modes reachable, never blurred."""
+
+    def test_jackpot_mode_keeps_only_max_reward(self) -> None:
+        payload = {
+            "profile": profile_dict(),
+            "opportunities": [
+                op_dict(id="cash-1", payment=350.0, time_to_payout_days=3),
+                op_dict(
+                    id="jack-1",
+                    payment=50000.0,
+                    time_to_payout_days=180,
+                    evidence_gate_status="READY_FOR_HUMAN_REVIEW",
+                ),
+            ],
+            "mode": "jackpot",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        assert resp.status_code == 200
+        ids = [r["opportunity"]["id"] for r in resp.json()["ranked"]]
+        assert ids == ["jack-1"]  # floor drops cashflow; gate needs reviewed evidence
+
+    def test_near_guaranteed_mode_accepted(self) -> None:
+        payload = {
+            "profile": profile_dict(),
+            "opportunities": [op_dict(id="ng-1", payment=100.0, time_to_payout_days=2)],
+            "mode": "near_guaranteed",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        assert resp.status_code == 200
+        assert "ranked" in resp.json()
+
+    def test_unknown_mode_falls_back_balanced(self) -> None:
+        payload = {
+            "profile": profile_dict(),
+            "opportunities": [op_dict(id="u-1")],
+            "mode": "skynet",
+        }
+        resp = client.post("/direct-work/recommend", json=payload)
+        assert resp.status_code == 200
+        assert resp.json()["ranked"][0]["opportunity"]["id"] == "u-1"
 
 
 class TestMaxSuccessMode:
@@ -839,3 +891,90 @@ class TestCashflowRadarApi:
         body = response.json()
         assert set(body["buckets"]) == {"today", "week", "growth"}
         assert set(body["recommended_mix"]) == {"today", "week", "growth"}
+
+
+class TestMoonshotQueueApi:
+    """Cola moonshot: solo TASK_REWARD outcome-based ADVANCED/EXPERT sin experiencia, con plan."""
+
+    def _payload(self, **overrides) -> dict:
+        data: dict = {
+            "profile": profile_dict(),
+            "opportunities": [
+                op_dict(
+                    id="moon-big",
+                    title="Fix critical RCE in open-source router",
+                    platform="algora",
+                    category="dev_bounty",
+                    employment_type="bounty",
+                    payment=15000.0,
+                    experience_required="none",
+                ),
+                op_dict(
+                    id="moon-small",
+                    title="Update README typos",
+                    platform="opire",
+                    category="dev_bounty",
+                    employment_type="bounty",
+                    payment=50.0,
+                    experience_required="none",
+                ),
+                op_dict(
+                    id="moon-grant",
+                    title="Ecosystem grant for L2 tooling",
+                    platform="gitcoin",
+                    category="dev_bounty",
+                    employment_type="project",
+                    payment=20000.0,
+                    experience_required="none",
+                ),
+                op_dict(
+                    id="moon-senior",
+                    title="Staff compiler engineer",
+                    platform="opire",
+                    category="dev_bounty",
+                    employment_type="contract",
+                    payment=8000.0,
+                    experience_required="senior",
+                    interview_required=True,
+                ),
+            ],
+            "limit": 10,
+            "min_reward": 500.0,
+        }
+        data.update(overrides)
+        return data
+
+    def test_keeps_only_advanced_expert_task_rewards(self) -> None:
+        body = client.post("/direct-work/moonshot-queue", json=self._payload()).json()
+        ids = [item["opportunity"]["id"] for item in body["queue"]]
+        assert "moon-big" in ids
+        assert "moon-small" not in ids  # bajo min_reward / peldaño bajo
+        assert "moon-grant" not in ids  # project_funding, no es tarea
+        assert "moon-senior" not in ids  # exige experiencia/entrevista
+        for item in body["queue"]:
+            assert item["public_work"]["rung"] in ("advanced", "expert")
+            assert item["public_work"]["is_task_reward"] is True
+
+    def test_attaches_execution_plan(self) -> None:
+        body = client.post("/direct-work/moonshot-queue", json=self._payload()).json()
+        assert body["queue"], "se esperaba al menos un moonshot"
+        assert body["mode_effective"] in ("high_upside_90d", "balanced_fallback_evidence_thin")
+        plan = body["queue"][0]["execution_plan"]
+        assert plan is not None
+        assert "human_work_minutes" in plan
+        assert "automation_pct" in plan
+        assert "roadmap" in plan
+        assert body["queue"][0]["next_step"]
+
+    def test_empty_returns_empty_queue(self) -> None:
+        body = client.post(
+            "/direct-work/moonshot-queue",
+            json={"profile": profile_dict(), "opportunities": [], "min_reward": 10_000_000.0},
+        ).json()
+        assert body["count"] == 0
+        assert body["queue"] == []
+
+    def test_invalid_enum_stays_422(self) -> None:
+        bad = op_dict(id="bad", platform="no-such-platform")
+        resp = client.post("/direct-work/moonshot-queue", json={"profile": profile_dict(), "opportunities": [bad]})
+        assert resp.status_code == 422

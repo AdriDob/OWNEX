@@ -26,9 +26,10 @@ class UnifiedIncomeDashboard(BaseModel):
     """Unified income dashboard response."""
 
     generated_at: str
-    total_ev_hour: float
-    total_expected_value: float
-    total_probability: float
+    # UNKNOWN (None) ≠ 0.0: sin datos medidos no se informa una cifra.
+    total_ev_hour: float | None
+    total_expected_value: float | None
+    total_probability: float | None
     best_action: dict | None
     by_engine: dict
     recommendations: list[dict]
@@ -125,36 +126,43 @@ def _get_unified_ev():
 
 @router.get("/dashboard")
 async def get_unified_income_dashboard() -> UnifiedIncomeDashboard:
-    """Get unified income dashboard across all engines."""
+    """Unified income dashboard. REAL data; UNKNOWN donde no hay evidencia.
+
+    Antes devolvía 0.0 hardcodeado y listas vacías (stub). Ahora usa los
+    engines que ya instanciaba; el ranking EV queda UNKNOWN (no 0.0) hasta
+    que existan estrategias de entrada reales para el calculador.
+    """
+    import dataclasses
+
     from cores.trading.capital import get_capital_engine
     from cores.trading.risk import get_risk_engine
 
-    capital = get_capital_engine()
-    risk = get_risk_engine()
-
-    capital_state = capital.get_state()
-    risk_metrics = risk.metrics
-
-    # Get EV rankings from unified calculator
-    unified_ev = get_unified_ev_calculator()
-    rankings = unified_ev.calculate_all_engines([], [], [], {}, {})
+    capital_summary = get_capital_engine().get_summary()
+    # RiskMetrics es un dataclass (no dict): se serializa explícitamente.
+    raw_risk = getattr(get_risk_engine(), "metrics", None)
+    risk_metrics = (
+        dataclasses.asdict(raw_risk) if dataclasses.is_dataclass(raw_risk) and not isinstance(raw_risk, type) else {}
+    )
 
     return UnifiedIncomeDashboard(
         generated_at="",
-        total_ev_hour=0.0,
-        total_expected_value=0.0,
-        total_probability=0.0,
+        total_ev_hour=None,  # UNKNOWN: sin estrategias de entrada, no hay EV/h que informar
+        total_expected_value=None,
+        total_probability=None,
         best_action=None,
-        by_engine={},
+        by_engine={
+            "capital": capital_summary,
+            "risk": risk_metrics,
+        },
         recommendations=[],
     )
 
 
 @router.get("/ev-ranking")
 async def get_ev_ranking() -> UnifiedEVRanking:
-    """Get unified EV ranking across all engines."""
+    """EV ranking entre motores. Vacío honesto hasta que haya estrategias reales."""
     unified_ev = get_unified_ev_calculator()
-    rankings = unified_ev.calculate_all_engines([], [], [], {}, {})
+    rankings = unified_ev.calculate_all_engines([], [], [], {}, {})  # sin inputs → vacío real
     return UnifiedEVRanking(
         generated_at="",
         all_ranked=rankings.get("all_ranked", []),
@@ -165,27 +173,50 @@ async def get_ev_ranking() -> UnifiedEVRanking:
 
 @router.get("/best-action")
 async def get_one_best_action() -> OneBestAction:
-    """Get the single best action across all engines."""
-    # This would query the one_best_action engine
-    # For now, return a mock
-    return OneBestAction(
-        action_type="claim_opportunity",
-        title="Claim Dev Bounty: API Integration",
-        description="Claim the API integration bounty on Opire",
-        why_now="High EV/hour, zero barrier, payment in 3 days",
-        platform="opire",
-        opportunity_id="opire-123",
-        work_item_id=None,
-        estimated_human_hours=2.5,
-        expected_value_usd=850.0,
-        acceptance_probability=0.75,
-        cash_speed_days=3,
-        urgency="today",
-        prerequisites=["Opire account", "GitHub repo"],
-        url="https://opire.com/bounty/123",
-        next_step_instruction="1. Go to opire.com/bounty/123\n2. Click 'Claim'\n3. Submit PR within 48h",
-        metadata={},
-    )
+    """Get the single best action across all engines (real OBA, never mocked)."""
+    try:
+        from cores.direct_work_engine import one_best_action as oba_mod
+
+        oba = oba_mod.get_one_best_action()
+        d = oba.to_dict() if hasattr(oba, "to_dict") else {}
+        return OneBestAction(
+            action_type=str(d.get("action_type", "run_workbank_cycle")),
+            title=str(d.get("title") or "Sin acción disponible"),
+            description=str(d.get("description") or ""),
+            why_now=str(d.get("why_now") or ""),
+            platform=str(d.get("platform") or ""),
+            opportunity_id=d.get("opportunity_id"),
+            work_item_id=d.get("work_item_id"),
+            estimated_human_hours=float(d.get("estimated_human_hours") or 0),
+            expected_value_usd=float(d.get("expected_value_usd") or 0),
+            acceptance_probability=float(d.get("acceptance_probability") or 0),
+            cash_speed_days=d.get("cash_speed_days"),
+            urgency=str(d.get("urgency", "flexible")),
+            prerequisites=list(d.get("prerequisites") or []),
+            url=d.get("url"),
+            next_step_instruction=str(d.get("next_step_instruction") or ""),
+            metadata=dict(d.get("metadata") or {}),
+        )
+    except Exception:
+        logger.warning("unified-income: OBA unavailable, honest empty action", exc_info=True)
+        return OneBestAction(
+            action_type="run_workbank_cycle",
+            title="Sin acción disponible",
+            description="El motor no devolvió acción. Corré el ciclo del WorkBank.",
+            why_now="Sin datos",
+            platform="",
+            opportunity_id=None,
+            work_item_id=None,
+            estimated_human_hours=0.0,
+            expected_value_usd=0.0,
+            acceptance_probability=0.0,
+            cash_speed_days=None,
+            urgency="flexible",
+            prerequisites=[],
+            url=None,
+            next_step_instruction="POST /direct-work/workbank/cycle",
+            metadata={"empty": True},
+        )
 
 
 @router.post("/weekly-plan")
@@ -206,14 +237,18 @@ async def get_workbank_stats() -> WorkBankStats:
     from cores.direct_work_engine.workbank import get_workbank
 
     wb = get_workbank()
-    progress = wb.progress()
+    # `_summary()` es la fuente real de estos contadores. Antes se leía
+    # `progress()`, que devuelve {daily, weekly, monthly} con target/achieved/
+    # ready_total/pct — ninguna de las 5 keys pedidas existía, así que este
+    # endpoint reportaba 0/0/0/0 aunque el banco tuviera items reales.
+    summary = wb._summary()  # noqa: SLF001
 
     return WorkBankStats(
-        scanned=progress.get("scanned", 0),
-        ready_to_deliver=progress.get("ready_to_deliver", 0),
-        needs_access=progress.get("needs_access", 0),
-        delivered=progress.get("delivered", 0),
-        targets=progress.get("targets", {}),
+        scanned=int(summary.get("scanned", 0) or 0),
+        ready_to_deliver=int(summary.get("ready_to_deliver", 0) or 0),
+        needs_access=int(summary.get("needs_access", 0) or 0),
+        delivered=int(summary.get("delivered", 0) or 0),
+        targets=summary.get("targets", {}),
     )
 
 

@@ -13,6 +13,7 @@ from cores.direct_work_engine.feedback import LearningRecord
 from cores.opportunity.executors.auto_submit import SubmissionStatus
 from cores.revenue_tracker.execution_bridge import (
     WORK_PLATFORM_TO_PAYMENT,
+    record_bounty_paid,
     record_pipeline_outcome,
     record_submission_outcome,
     resolve_payment_platform,
@@ -257,3 +258,56 @@ class TestQueueSubmissionSync:
         sync = self._sync()
         sync._on_state_changed(item_id="q-3", new_state=ExecState.EXECUTING.value, payload={})
         assert "sub_exec_q-3" not in tracker.opportunities
+
+
+class TestRecordBountyPaid:
+    """Único camino submission → PAID. Sin evidencia, no hay PAID (Rule §39)."""
+
+    def _accepted_submission(self, tracker):
+        record_submission_outcome(
+            _FakeRecord(rid="sub-pay-1", platform="hackerone", status=SubmissionStatus.CONFIRMED),
+            {"title": "IDOR", "reward": 800.0, "category": "bug_bounty"},
+        )
+        assert tracker.opportunities["sub_sub-pay-1"].status == PaymentStatus.ACCEPTED
+
+    def test_paid_requires_amount(self, tracker):
+        self._accepted_submission(tracker)
+        with pytest.raises(ValueError):
+            record_bounty_paid("sub-pay-1", 0.0, "payout-1")
+
+    def test_paid_requires_reference(self, tracker):
+        self._accepted_submission(tracker)
+        with pytest.raises(ValueError):
+            record_bounty_paid("sub-pay-1", 500.0, "   ")
+
+    def test_paid_transitions_with_evidence(self, tracker):
+        self._accepted_submission(tracker)
+        opp_id = record_bounty_paid("sub-pay-1", 800.0, "h1-payout-xyz", platform="hackerone")
+        assert opp_id == "sub_sub-pay-1"
+        opp = tracker.opportunities["sub_sub-pay-1"]
+        assert opp.status == PaymentStatus.PAID
+        assert float(opp.amount) == 800.0
+
+    def test_paid_unknown_submission_returns_none(self, tracker):
+        assert record_bounty_paid("nope", 100.0, "ref-1") is None
+
+    def test_paid_feeds_feedback_with_real_amount(self, tracker):
+        import cores.direct_work_engine.reward_probability as rp
+
+        self._accepted_submission(tracker)
+        seen: list[tuple] = []
+
+        class _Sink:
+            def record_outcome(self, **kw):
+                seen.append(kw)
+
+        original = rp.get_personal_acceptance_probability
+        rp.get_personal_acceptance_probability = lambda: _Sink()
+        try:
+            record_bounty_paid("sub-pay-1", 900.0, "h1-payout-9", platform="hackerone")
+        finally:
+            rp.get_personal_acceptance_probability = original
+        assert len(seen) == 1
+        assert seen[0]["reward_usd"] == 900.0
+        assert seen[0]["result"] == "accepted"
+        assert seen[0]["evidence_quality"] == 1.0

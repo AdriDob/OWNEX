@@ -150,4 +150,4 @@ class TestTaxonomyGuardrails:
         """Spec item 14: las 38 categorías siguen siendo SSOT."""
         from cores.work_taxonomy import OpportunityCategory
 
-        assert len(OpportunityCategory) == 38
+        assert len(OpportunityCategory) == 40

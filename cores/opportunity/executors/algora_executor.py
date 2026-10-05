@@ -82,6 +82,15 @@ class AlgoraExecutor:
             await self._client.aclose()
             self._client = None
 
+    def _notify(self, event_type: str, **payload: Any) -> None:
+        """Publish a user-facing outcome. Never raises: bounty must survive."""
+        try:
+            from cores.notifications.emit import emit
+
+            emit(event_type, **payload)
+        except Exception as exc:
+            logger.debug("emit(%s) skipped: %s", event_type, exc)
+
     async def claim_issue(self, issue_url: str) -> ClaimResult:
         """Claim an Algora issue via API."""
         try:
@@ -148,8 +157,32 @@ class AlgoraExecutor:
 
         return repo_path
 
-    async def create_pr(self, repo_path: Path, issue_url: str, commit_message: str) -> PRResult:
-        """Create a PR for the claimed issue."""
+    async def create_pr(
+        self,
+        repo_path: Path,
+        issue_url: str,
+        commit_message: str,
+        approval_token: str | None = None,
+        require_approval: bool = True,
+    ) -> PRResult:
+        """Create a PR for the claimed issue.
+
+        Abrir un PR es una acción externa e irreversible bajo el nombre del
+        usuario, así que exige un token de aprobación de un solo uso, igual que
+        `PRBuilder.create_pr` (spec §23/§48/§79: NO HUMAN GATE -> NO IRREVERSIBLE
+        EXTERNAL ACTION). Antes empujeaba la rama y creaba el PR sin gate.
+        """
+        if require_approval:
+            from cores.automation.safety import consume_approval
+
+            if not consume_approval(approval_token, "coder:create_pr", str(repo_path)):
+                return PRResult(
+                    success=False,
+                    error=(
+                        "Requires human approval: PR push/open. Emití un token de "
+                        "aprobación después de revisar el diff."
+                    ),
+                )
         try:
             branch_res = subprocess.run(
                 ["git", "-C", str(repo_path), "rev-parse", "--abbrev-ref", "HEAD"],
@@ -221,8 +254,14 @@ class AlgoraExecutor:
         issue_url: str,
         code_changes: dict[str, str],  # file_path -> new_content
         commit_message: str,
+        approval_token: str | None = None,
+        require_approval: bool = True,
     ) -> dict[str, Any]:
-        """Execute full bounty: claim → apply changes → PR → await merge → payout."""
+        """Execute full bounty: claim → apply changes → PR → await merge → payout.
+
+        `approval_token`/`require_approval` se propagan al PR: sin token el
+        bounty se detiene en la etapa `pr` SIN crear nada externo (fail-closed).
+        """
         execution_id = f"algora-{uuid.uuid4().hex[:8]}"
         started_at = datetime.now(UTC).isoformat()
 
@@ -232,9 +271,19 @@ class AlgoraExecutor:
         claim = await self.claim_issue(issue_url)
         if not claim.success:
             logger.error(f"[{execution_id}] Claim failed: {claim.error}")
+            self._notify(
+                "devbounty:claim_failed",
+                id=execution_id,
+                message=f"No se pudo reclamar {issue_url}: {claim.error}",
+            )
             return {"success": False, "stage": "claim", "error": claim.error}
 
         logger.info(f"[{execution_id}] Issue claimed: {claim.claim_id}")
+        self._notify(
+            "devbounty:claimed",
+            id=execution_id,
+            message=f"Bounty reclamado: {issue_url} (claim {claim.claim_id})",
+        )
 
         # 2. Clone repo
         repo_url = claim.repo_url or issue_url.replace("/issues/", "/")
@@ -263,11 +312,18 @@ class AlgoraExecutor:
             return {"success": False, "stage": "code", "error": str(exc)}
 
         # 4. Create PR
-        pr = await self.create_pr(repo_path, issue_url, commit_message)
+        pr = await self.create_pr(
+            repo_path, issue_url, commit_message, approval_token=approval_token, require_approval=require_approval
+        )
         if not pr.success:
             return {"success": False, "stage": "pr", "error": pr.error}
 
         logger.info(f"[{execution_id}] PR created: {pr.pr_url}")
+        self._notify(
+            "devbounty:pr_created",
+            id=execution_id,
+            message=f"PR abierto para {issue_url}: {pr.pr_url}",
+        )
 
         if not pr.pr_url:
             return {"success": False, "stage": "pr", "error": "PR created but no URL returned"}
@@ -279,6 +335,11 @@ class AlgoraExecutor:
 
         if merged:
             logger.info(f"[{execution_id}] PR merged! Payout triggered automatically.")
+            self._notify(
+                "devbounty:merged_paid",
+                id=execution_id,
+                message=f"Bounty mergeado y pagado: {issue_url} ({pr.pr_url})",
+            )
             return {
                 "success": True,
                 "execution_id": execution_id,
@@ -294,6 +355,11 @@ class AlgoraExecutor:
             }
         else:
             logger.warning(f"[{execution_id}] PR not merged within timeout")
+            self._notify(
+                "devbounty:merge_pending",
+                id=execution_id,
+                message=f"PR sin mergear (timeout): {pr.pr_url}",
+            )
             return {
                 "success": False,
                 "execution_id": execution_id,

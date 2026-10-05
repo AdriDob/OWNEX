@@ -23,7 +23,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from cores.ai.model_router import get_model_router
-from cores.ai_router.failover import get_failover_engine
+from cores.ai.runtime.failover import get_failover_engine
 from cores.commander.audit import get_audit_logger
 from cores.copilot.providers.router import get_provider_router
 
@@ -234,12 +234,17 @@ class ContextEngine:
         """Build block from FailoverEngine."""
         try:
             fe = get_failover_engine()
+            # La API real de `FailoverEngine` (cores/ai/runtime/failover.py:23)
+            # expone `get_fallback_chain` y contadores de fallo/circuito. El
+            # bloque usaba `failover_chain` / `_history` / `get_history`, que
+            # no existen: el `try/except` se comía el error y el bloque
+            # "failover" salía siempre con error, sin que nadie lo notara.
             return ContextBlock(
                 source="failover",
                 data={
-                    "chain": fe.failover_chain,
-                    "history_count": len(fe._history),
-                    "last_switches": fe.get_history(limit=5),
+                    "failure_counts": dict(getattr(fe, "_failure_counts", {}) or {}),
+                    "circuit_open": [p for p, o in (getattr(fe, "_circuit_open", {}) or {}).items() if o],
+                    "providers_healthy": getattr(fe, "_health", None) is not None,
                 },
             )
         except Exception as e:

@@ -214,7 +214,7 @@ const commands: CommandItem[] = [
     action: async () => {
       const q = prompt('Buscar en memoria:')
       if (q) {
-        const res = await api.get(`/memory/query?q=${encodeURIComponent(q)}`)
+        const res = await api.get(`/knowledge/search?q=${encodeURIComponent(q)}&limit=10`)
         notifications.info(`${res.results?.length || 0} resultados`)
       }
     },
@@ -511,10 +511,13 @@ async function performGlobalSearch(q: string) {
       }
     } catch { /* skip */ }
     
-    // Search hypotheses
+    // Search hypotheses (listado real; filtro por texto en cliente)
     try {
-      const hypotheses = await api.get(`/hypotheses?search=${encodeURIComponent(q)}&limit=5`)
-      for (const h of (hypotheses.hypotheses || hypotheses || []).slice(0, 5)) {
+      const hypotheses = await api.get(`/offensive/hypotheses?max_results=20`)
+      const matched = (hypotheses.hypotheses || [])
+        .filter((h: any) => `${h.title || ''} ${h.name || ''} ${h.summary || ''}`.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 5)
+      for (const h of matched) {
         results.push({
           id: `search:hypothesis:${h.id}`,
           label: h.title || h.name || `Hypothesis ${h.id}`,
@@ -541,10 +544,13 @@ async function performGlobalSearch(q: string) {
       }
     } catch { /* skip */ }
     
-    // Search work items (queue)
+    // Search work items (workbank real; sin search server-side → filtro local)
     try {
-      const workItems = await api.get(`/direct-work/queue?search=${encodeURIComponent(q)}&limit=5`)
-      for (const w of (workItems.items || workItems || []).slice(0, 5)) {
+      const workItems = await api.get(`/direct-work/workbank`)
+      const matched = (workItems.items || [])
+        .filter((w: any) => `${w.title || ''} ${w.platform || ''}`.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 5)
+      for (const w of matched) {
         results.push({
           id: `search:work:${w.id}`,
           label: w.title || w.name || `Work Item ${w.id}`,
@@ -567,21 +573,6 @@ async function performGlobalSearch(q: string) {
           icon: Globe,
           category: 'Buscar',
           route: `/targets`,
-        })
-      }
-    } catch { /* skip */ }
-    
-    // Search scheduler jobs
-    try {
-      const jobs = await api.get(`/scheduler/jobs?search=${encodeURIComponent(q)}&limit=3`)
-      for (const j of (jobs.jobs || jobs || []).slice(0, 3)) {
-        results.push({
-          id: `search:job:${j.id}`,
-          label: j.name || j.id,
-          description: `Scheduler · ${j.status || 'active'} · ${j.schedule || ''}`,
-          icon: Clock,
-          category: 'Buscar',
-          route: `/operations/scheduler`,
         })
       }
     } catch { /* skip */ }

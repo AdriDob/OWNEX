@@ -196,6 +196,7 @@ from api.routers import (
     profile_kit,
     progressive_scaling,
     project_dashboard,
+    projects,
     pulse_app,
     pulse_cycle,
     qa_cycle,
@@ -224,7 +225,6 @@ from api.routers import (
     settings_unified,
     setup,
     solver,
-    projects,
     stability,
     supabase,
     sync,
@@ -235,7 +235,7 @@ from api.routers import (
     team,
     telegram_bot,
     terminal_ws,
-    trading,
+    today,
     training_pipeline,
     ultra_fast_income,
     unified_income,
@@ -574,6 +574,7 @@ app.include_router(availability.router)
 app.include_router(bounty_pipeline.router)
 app.include_router(dev_bounty.router)
 app.include_router(unified_income.router)
+app.include_router(today.router)
 app.include_router(agent_coordinator.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
@@ -618,7 +619,7 @@ app.include_router(project_dashboard.router)
 app.include_router(ws.router)
 app.include_router(wear_os.router)
 app.include_router(terminal_ws.router)
-app.include_router(trading.router)
+# trading.router se monta una sola vez abajo (línea ~685, bloque Trading Dashboard)
 app.include_router(patrimony.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
@@ -769,6 +770,9 @@ app.include_router(client_acquisition_router)
 from api.routers.content_factory import router as content_factory_router  # noqa: E402
 
 app.include_router(content_factory_router)
+from api.routers.internal_dev import router as internal_dev_router  # noqa: E402
+
+app.include_router(internal_dev_router)
 from api.routers.local_jobs import router as local_jobs_router  # noqa: E402
 
 app.include_router(local_jobs_router)
@@ -784,6 +788,12 @@ app.include_router(business_tools_router)
 from api.routers.economic_feedback import router as economic_feedback_router  # noqa: E402
 
 app.include_router(economic_feedback_router)
+from api.routers.economic_trajectory import router as economic_trajectory_router  # noqa: E402
+
+app.include_router(economic_trajectory_router)
+from api.routers.app_factory import router as app_factory_router  # noqa: E402
+
+app.include_router(app_factory_router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.
@@ -795,6 +805,11 @@ from cores.app_registry import get_app_registry  # noqa: E402
 registry = get_app_registry()
 registry.mount_routers(app)
 logger.info("[ORION] Core + app routers mounted")
+
+# El AuthMiddleware necesita saber qué paths están montados para distinguir
+# "endpoint que exige sesión" de "asset/SPA route que sirve el frontend".
+# Se registra después de `mount_routers`, cuando la lista ya está completa.
+AuthMiddleware._register_mounted(app)
 
 
 APP_VERSION = _APP_VERSION
@@ -857,9 +872,10 @@ def _get_db_size_mb() -> float:
     return 0.0
 
 
-@app.get("/api/version")
-async def get_version():
-    return {"version": APP_VERSION, "app": "OWNEX API", "build": APP_VERSION}
+# NOTE (ship-day 2026-09-28): el handler inline de /api/version se eliminó
+# — duplicaba api/routers/version.py (mismo path+método, inalcanzable por el
+# orden de registro de FastAPI) y su payload era subconjunto estricto del
+# ganador. El cliente (OnboardingWizard) lee solo `.version`, presente en ambos.
 
 
 @app.get("/api/stats")

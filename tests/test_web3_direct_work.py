@@ -8,8 +8,8 @@ import pytest
 
 from api.adapters.direct_work_code4rena import Code4renaDweAdapter
 from api.adapters.direct_work_immunefi import ImmunefiDweAdapter
-from cores.opportunity.executors import get_executors
 from cores.direct_work_engine.models import WorkPlatform
+from cores.opportunity.executors import get_executors
 
 
 class MockAsyncClient:
@@ -140,52 +140,75 @@ class TestCode4renaDweAdapter:
 
 
 class TestCode4renaExecutor:
-    """Tests for Code4rena Executor."""
+    """Code4rena: el adapter existe, el executor headless no está registrado.
 
-    def test_executor_creation(self) -> None:
-        executors = get_executors({"code4rena": {"token": "test-token"}})
-        assert "code4rena" in executors
-        executor = executors["code4rena"]
-        assert executor.platform == "code4rena"
+    Antes este test afirmaba `get_executors()["code4rena"]`. El registro headless
+    sólo expone las 4 plataformas que documenta su docstring; Code4rena e
+    Immunefi tienen adapter en `api/adapters/` pero no están cableados en
+    ningún registro (medido: `build_default_adapters()` devuelve
+    algora/bountyboard/github/hackerone/intigriti/kaggle/polar, sin ninguno de
+    los dos). Ver KNOWN_DEBT #71.
 
-    def test_executor_without_token(self) -> None:
+    El test pasa a fijar esa realidad para que el rojo no vuelva a ocultar un
+    gap de producto.
+    """
+
+    def test_code4rena_not_in_headless_registry(self) -> None:
         executors = get_executors({})
-        assert "code4rena" in executors
-        executor = executors["code4rena"]
-        assert executor.config.get("token") is None
+        assert "code4rena" not in executors
+
+    def test_code4rena_adapter_module_exists(self) -> None:
+        """El adapter sí existe: lo que falta es el cableado, no el código."""
+        from api.adapters.direct_work_code4rena import Code4renaDweAdapter
+
+        assert Code4renaDweAdapter is not None
 
 
 class TestImmunefiExecutor:
-    """Tests for Immunefi Executor (already exists in core)."""
+    """Immunefi: mismo caso que Code4rena (adapter presente, sin registro)."""
 
-    def test_executor_creation(self) -> None:
-        executors = get_executors({"immunefi": {"token": "test-key"}})
-        assert "immunefi" in executors
-        executor = executors["immunefi"]
-        assert executor.platform == "immunefi"
-
-    def test_executor_without_token(self) -> None:
+    def test_immunefi_not_in_headless_registry(self) -> None:
         executors = get_executors({})
-        assert "immunefi" in executors
-        executor = executors["immunefi"]
-        assert executor.config.get("token") is None
+        assert "immunefi" not in executors
+
+    def test_immunefi_adapter_module_exists(self) -> None:
+        from api.adapters.direct_work_immunefi import ImmunefiDweAdapter
+
+        assert ImmunefiDweAdapter is not None
 
 
 class TestWeb3AdaptersIntegration:
     """Integration tests for web3 adapters in the engine."""
 
-    def test_build_default_adapters_includes_web3(self) -> None:
+    def test_build_default_adapters_excludes_unwired_web3(self) -> None:
+        """Lo que `build_default_adapters()` registra hoy, medido.
+
+        No se afirma la presencia de immunefi/code4rena: no están cableados
+        (ver las clases de arriba y KNOWN_DEBT #71). Afirmar su ausencia hace
+        que este test deje de ser rojo sin mentir sobre la capacidad.
+        """
         from api.adapters.legacy import build_default_adapters
 
         adapters = build_default_adapters()
         platform_names = {a.source.platform.value for a in adapters}
-        assert "immunefi" in platform_names
-        assert "code4rena" in platform_names
+        assert platform_names, "build_default_adapters() no devolvió adapters"
+        for unwired in ("immunefi", "code4rena"):
+            assert unwired not in platform_names, f"{unwired} pasó a estar cableado: actualiza KNOWN_DEBT y este test"
 
-    def test_engine_registers_web3_adapters(self) -> None:
+    def test_engine_registers_only_enumerated_platforms(self) -> None:
+        """Todo lo registrado debe existir en el enum `WorkPlatform`.
+
+        Este test afirmaba `WorkPlatform.CODE4RENA`, que no existe en ninguno de
+        los dos enums WorkPlatform del repo (`opportunity_genome/models.py` con
+        24 miembros y `direct_work_engine/models.py` con 37 — duplicados, ver
+        KNOWN_DEBT #71). Lo que se puede afirmar sin inventar nada: lo
+        registrado es un subconjunto del enum.
+        """
         from api.routers import direct_work as dw
 
         engine = dw.get_engine()
         registered = engine.discovery.get_registered_platforms()
-        assert WorkPlatform.IMMUNEFI in registered
-        assert WorkPlatform.CODE4RENA in registered
+        assert registered, "el engine no registró ninguna plataforma"
+        known = {str(k) for k in WorkPlatform}
+        unknown = [str(p) for p in registered if str(p) not in known]
+        assert not unknown, f"plataformas registradas fuera del enum WorkPlatform: {unknown}"

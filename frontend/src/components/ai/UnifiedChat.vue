@@ -29,6 +29,7 @@ import {
   type ChatPersona,
   type UnifiedToolCall,
 } from '@/services/ownexAi'
+import { assistantStreamChat } from '@/lib/api'
 import type { AiMessage, AiToolApproval, ChatMessage, SemanticBlock } from '@/types/ownex'
 import { blocksFromLabels } from '@/services/chatSemantics'
 import {
@@ -198,6 +199,50 @@ async function sendMessage(prefill?: string): Promise<void> {
   const typingId = msgSeq++
   messages.value.push({ id: typingId, role: 'assistant', content: '', timestamp: new Date(), status: 'typing', persona: persona.value })
   scrollBottom()
+
+  /**
+   * Streaming real: llena el mensaje token a token mientras llega.
+   *
+   * Antes sólo se mostraba el "typing..." hasta que la respuesta llegaba
+   * completa: con el proveedor a 3-8s la IA parecía colgada. El cliente
+   * (`assistantStreamChat`) ya existía y no se usaba.
+   */
+  const pushStreamed = (targetId: number, token: string) => {
+    const msg = messages.value.find((m) => m.id === targetId)
+    if (!msg) return
+    msg.content += token
+    msg.status = 'streaming'
+    scrollBottom()
+  }
+
+  // El streaming sólo aplica a la persona que tiene endpoint de stream.
+  const canStream = persona.value !== 'solver' && persona.value !== 'copilot'
+  let streamedContent = ''
+  if (canStream) {
+    try {
+      await assistantStreamChat(text, history.value.slice(0, -1), (t) => {
+        if (!streamedContent) messages.value = messages.value.filter((m) => m.id !== typingId)
+        streamedContent += t
+        pushStreamed(typingId, t)
+      })
+      const content = streamedContent || 'Sin respuesta del motor. Marcado como UNKNOWN.'
+      if (!streamedContent) {
+        messages.value = messages.value.filter((m) => m.id !== typingId)
+      }
+      messages.value = messages.value.map((m) =>
+        m.id === typingId ? { ...m, content, status: 'completed' } : m,
+      )
+      messages.value = messages.value.filter((m) => m.content !== '' || m.status !== 'typing')
+      if (autoSpeak.value) speak(stripHtml(content))
+      return
+    } catch (e: any) {
+      // El stream puede fallar (sin provider, red). Se cae al camino
+      // normal en vez de dejar el mensaje colgado en "typing".
+      streamedContent = ''
+      messages.value = messages.value.filter((m) => m.id !== typingId)
+      void e
+    }
+  }
 
   try {
     if (persona.value === 'solver') {

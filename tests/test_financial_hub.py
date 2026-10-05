@@ -137,7 +137,10 @@ def client(_db_setup):
         originals[(id(mod), attr)] = getattr(mod, attr, None)
         setattr(mod, attr, _TestSession)
 
-    from api.routers.financial_hub import router
+    # El router se movió a `_archived/` en el polish 2026-09-28 (no está
+    # montado en `api/main.py`). El test sigue valorando la lógica: importa el
+    # módulo en su ubicación real en vez de romper la colección 40 veces.
+    from api.routers._archived.financial_hub import router
 
     app = FastAPI()
     app.include_router(router)

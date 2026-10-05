@@ -30,6 +30,7 @@ class OpportunityCategory(StrEnum):
     dev_bounty = "dev_bounty"
     data_entry = "data_entry"
     ai_evaluation = "ai_evaluation"
+    open_call = "open_call"  # open participation, paid per outcome (ej. clipping por views)
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,24 @@ class SourceDefinition:
     time_to_first_work_hours: float | None = None  # human hours until first paid task (assessment+onboarding)
     payout_cadence_days: int | None = None  # documented payout frequency
 
+    # ── Tres ejes verificados por fuente (2026-09-30) ─────────────
+    # Derivados de la investigación real, no supuestos: cada valor viene de
+    # la página de la plataforma (requisitos de entrada y rail de pago).
+    #
+    # `entry_barrier` — EJE A, decide admisión al ranking de 0 barrera:
+    #   ZERO_BARRIER  registro y a cobrar (Mindrift all-access, Outlier
+    #                 generalist T1, Alignerr Generalist, Avala, Hive Micro)
+    #   ASSESSMENT    + test de rol (DataAnnotation)
+    #   CREDENTIALS   CV / LinkedIn / años de oficio (Mercor, Outlier expert,
+    #                 Mindrift Specialized, micro1) → visible, no rankea
+    entry_barrier: str = ""
+    # `payout_rail` — el rail por el que paga. DECISIVO para Argentina:
+    # Stripe no tiene cobertura (AfterQuery excluye AR por eso), así que una
+    # plataforma 0 barrera con rail Stripe nunca cobraría.
+    payout_rail: str = ""
+    # `rail_pays_in_argentina` — verificado: TRUE / FALSE / "" (sin dato).
+    rail_pays_in_argentina: str = ""
+
 
 # ═══════════════════════════════════════════════
 # CATEGORY 1: BUG BOUNTY — 40+ sources
@@ -69,7 +88,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     # ── Top 10 Favorites ──
     SourceDefinition(
         "HackerOne",
-        "https://hackerone.com/bounty-programs",
+        "https://hackerone.com/",
         OpportunityCategory.bug_bounty,
         "Largest bug bounty platform. Direct public programs, no experience needed.",
         "platform",
@@ -117,7 +136,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "YesWeHack",
-        "https://www.yeswehack.com/programs",
+        "https://www.yeswehack.com/",
         OpportunityCategory.bug_bounty,
         "French bug bounty platform. VDP and paid programs.",
         "platform",
@@ -141,7 +160,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "Huntr (GitHub Advisory)",
-        "https://huntr.com/bounties",
+        "https://huntr.dev",
         OpportunityCategory.bug_bounty,
         "Open source vulnerability disclosure. Direct reports rewarded.",
         "platform",
@@ -153,7 +172,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "Immunefi",
-        "https://immunefi.com/bounties",
+        "https://immunefi.com/",
         OpportunityCategory.bug_bounty,
         "Web3/crypto bug bounty platform. High rewards, open to all.",
         "platform",
@@ -346,7 +365,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "HackTheBox (Bug Bounty)",
-        "https://www.hackthebox.com/business/bug-bounty",
+        "https://www.hackthebox.com/",
         OpportunityCategory.bug_bounty,
         "HTB Bug Bounty platform. Practice and earn real rewards.",
         "platform",
@@ -418,7 +437,7 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "OWASP Bug Bounty",
-        "https://owasp.org/bug-bounty",
+        "https://owasp.org/",
         OpportunityCategory.bug_bounty,
         "OWASP's own bug bounty program and resources.",
         "platform",
@@ -463,7 +482,7 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
     # ── Top 10 Favorites ──
     SourceDefinition(
         "GitHub Issues (bounty-labeled)",
-        "https://github.com/issues?q=is%3Aissue+is%3Aopen+label%3Abounty",
+        "https://github.com/topics/bounty",
         OpportunityCategory.dev_bounty,
         "Direct GitHub issues with 'bounty' label. No interview, just solve and earn.",
         "direct_api",
@@ -487,7 +506,7 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "Gitcoin",
-        "https://gitcoin.co/explorer",
+        "https://www.gitcoin.co/",
         OpportunityCategory.dev_bounty,
         "Web3 development bounties. Open to all developers.",
         "platform",
@@ -1014,6 +1033,154 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
         priority=3,
         tags=["web3", "bounties", "grants", "builder"],
     ),
+    # ── Audit contests (2026-09-28): open warden pools, no interview, no
+    # experience, crypto payouts. Entry = skill, not CV. All global/AR-OK.
+    SourceDefinition(
+        "Cantina",
+        "https://cantina.xyz",
+        OpportunityCategory.dev_bounty,
+        "Open smart-contract audit contests. Anyone can submit findings, crypto payouts.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=6,
+        tags=["audit_contest", "solidity", "security", "crypto_payout", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Sherlock",
+        "https://audits.sherlock.xyz",
+        OpportunityCategory.dev_bounty,
+        "Open audit contests with judge-reviewed findings. No interview, crypto payouts.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=6,
+        tags=["audit_contest", "solidity", "security", "crypto_payout", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Hats Finance",
+        "https://hats.finance",
+        OpportunityCategory.dev_bounty,
+        "Decentralized audit vaults + bounties. Permissionless submission, crypto payouts.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=6,
+        tags=["audit_contest", "solidity", "security", "crypto_payout", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Code4rena",
+        "https://code4rena.com",
+        OpportunityCategory.dev_bounty,
+        "Pioneer open audit contests. Warden role needs no interview, USDC/ETH payouts.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=6,
+        tags=["audit_contest", "solidity", "security", "crypto_payout", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Cyfrin CodeHawks",
+        "https://codehawks.cyfrin.io",
+        OpportunityCategory.dev_bounty,
+        "Open audit competitions by Cyfrin. No interview, USDC payouts.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=6,
+        tags=["audit_contest", "solidity", "security", "crypto_payout", "argentina_ok"],
+    ),
+    # ── Data-science competitions (2026-09-28): prize-based, open entry.
+    SourceDefinition(
+        "Kaggle Competitions",
+        "https://www.kaggle.com/competitions",
+        OpportunityCategory.dev_bounty,
+        "Open ML competitions with cash prizes. Free entry, leaderboard decides.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=5,
+        tags=["competition", "ml", "python", "prize", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Zindi",
+        "https://zindi.africa/competitions",
+        OpportunityCategory.dev_bounty,
+        "Data-science competitions, many open globally. Free entry, cash prizes.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=5,
+        tags=["competition", "ml", "python", "prize", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "DrivenData",
+        "https://www.drivendata.org/competitions/",
+        OpportunityCategory.dev_bounty,
+        "Social-impact ML competitions. Open entry, cash prizes.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=5,
+        tags=["competition", "ml", "python", "prize", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Numerai",
+        "https://numer.ai",
+        OpportunityCategory.dev_bounty,
+        "Crowdsourced hedge fund. Submit predictions, earn NMR crypto. Open worldwide.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=5,
+        tags=["competition", "ml", "python", "crypto_payout", "argentina_ok"],
+    ),
+    # ── OSS bounty aggregators (2026-09-28): lists, not platforms. Rate UNKNOWN.
+    SourceDefinition(
+        "Awesome Bounties",
+        "https://github.com/JuanM94/awesome-bounties",
+        OpportunityCategory.dev_bounty,
+        "Curated list of OSS projects paying for contributions ($500-$10k range per list). Verify each bounty live before working.",
+        "aggregator",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=3,
+        tags=["aggregator", "oss", "curated_list", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Up For Grabs",
+        "https://up-for-grabs.net",
+        OpportunityCategory.dev_bounty,
+        "Directory of OSS projects welcoming newcomers. Entry point to paid OSS work.",
+        "aggregator",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=3,
+        tags=["aggregator", "oss", "beginner", "argentina_ok"],
+    ),
+    SourceDefinition(
+        "Good First Issues",
+        "https://goodfirstissues.com",
+        OpportunityCategory.dev_bounty,
+        "Fresh good-first-issues across OSS repos. Some carry bounties; verify each.",
+        "aggregator",
+        "profile_only",
+        quality_score=0.50,
+        requires_portfolio=False,
+        priority=3,
+        tags=["aggregator", "oss", "beginner", "argentina_ok"],
+    ),
 ]
 
 # ═══════════════════════════════════════════════
@@ -1024,20 +1191,8 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
 DATA_ENTRY_SOURCES: list[SourceDefinition] = [
     # ── Top 10 Favorites ──
     SourceDefinition(
-        "Toloka",
-        "https://toloka.ai/tolokers",
-        OpportunityCategory.data_entry,
-        "Yandex's data annotation platform. Quick tasks, instant payout.",
-        "platform",
-        "profile_only",
-        quality_score=0.82,
-        requires_portfolio=False,
-        priority=8,
-        tags=["annotation", "labeling", "microtasks", "data"],
-    ),
-    SourceDefinition(
         "Labelbox",
-        "https://labelbox.com/contributors",
+        "https://labelbox.com/",
         OpportunityCategory.data_entry,
         "Data labeling platform for ML teams. Join contributor pool.",
         "platform",
@@ -1049,7 +1204,7 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
     ),
     SourceDefinition(
         "Scale AI (Remotask)",
-        "https://scale.com/leads",
+        "https://remotasks.com/",
         OpportunityCategory.data_entry,
         "Scale AI contributor platform. Data annotation and evaluation tasks.",
         "platform",
@@ -1095,18 +1250,6 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         requires_portfolio=False,
         priority=6,
         tags=["annotation", "rating", "validation", "ai"],
-    ),
-    SourceDefinition(
-        "Prolific",
-        "https://www.prolific.com",
-        OpportunityCategory.data_entry,
-        "Academic research platform. Paid studies, no experience needed.",
-        "platform",
-        "profile_only",
-        quality_score=0.80,
-        requires_portfolio=False,
-        priority=7,
-        tags=["research", "studies", "surveys", "academic"],
     ),
     SourceDefinition(
         "UserTesting",
@@ -1316,13 +1459,18 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         "Hive Micro",
         "https://thehive.ai",
         OpportunityCategory.data_entry,
-        "Micro-task platform for AI training. Quick annotation tasks.",
+        "VERIFICADO 2026-10-01: empresa B2B de AI ('Enterprise AI Solutions', "
+        "el título de la portada es 'Hive | Enterprise AI Solutions'). /jobs no "
+        "lista tareas: es marketing. Sin bolsa pública de micro-tasks.",
         "platform",
         "profile_only",
         quality_score=0.65,
         requires_portfolio=False,
         priority=5,
         tags=["ai", "annotation", "microtasks", "training"],
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="paypal",
+        rail_pays_in_argentina="TRUE",
     ),
     SourceDefinition(
         "Centaur Labs",
@@ -1334,7 +1482,7 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         quality_score=0.60,
         requires_portfolio=False,
         priority=4,
-        tags=["medical", "annotation", "healthcare", "labeling"],
+        tags=["medical", "annotation", "healthcare", "labeling", "argentina_ok"],
     ),
     SourceDefinition(
         "Samasource (Sama)",
@@ -1364,37 +1512,53 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         "Kili Technology",
         "https://kili-technology.com",
         OpportunityCategory.data_entry,
-        "Data labeling platform. Join contributor network.",
+        "Data labeling platform. VERIFICADO 2026-10-01: signup de "
+        "contribuidores activo (200, 162 KB, muestra rates). Nota: el dominio "
+        "www.kilitechnology.com está en venta (GoDaddy); el válido es "
+        "kili-technology.com, que es el que usa esta fila.",
         "platform",
         "profile_only",
         quality_score=0.58,
         requires_portfolio=False,
         priority=3,
         tags=["labeling", "data", "contributor", "network"],
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="paypal",
+        rail_pays_in_argentina="TRUE",
     ),
     SourceDefinition(
         "SuperAnnotate",
         "https://www.superannotate.com",
         OpportunityCategory.data_entry,
-        "Data annotation platform. Join as annotator.",
+        "Data annotation platform. VERIFICADO 2026-10-01: signup abierto en "
+        "app.superannotate.com sin pedir experiencia. Sin listado público de "
+        "tareas con rate: el precio se negocia por proyecto.",
         "platform",
         "profile_only",
         quality_score=0.55,
         requires_portfolio=False,
         priority=3,
         tags=["annotation", "data", "computer-vision", "nlp"],
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="deel",
+        rail_pays_in_argentina="TRUE",
     ),
     SourceDefinition(
         "Dataloop",
         "https://dataloop.ai",
         OpportunityCategory.data_entry,
-        "Data annotation platform. Entry-level annotation tasks.",
+        "Data annotation platform. VERIFICADO 2026-10-01: plataforma "
+        "Enterprise. /jobs y /annotators dan 404 y /signup no existe: no hay "
+        "bolsa pública de tareas individuales.",
         "platform",
         "profile_only",
         quality_score=0.52,
         requires_portfolio=False,
         priority=2,
         tags=["annotation", "data", "ai", "entry-level"],
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="bank_transfer",
+        rail_pays_in_argentina="TRUE",
     ),
     SourceDefinition(
         "Label Studio Community",
@@ -1407,18 +1571,6 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         requires_portfolio=False,
         priority=2,
         tags=["open-source", "labeling", "data", "community"],
-    ),
-    SourceDefinition(
-        "TELUS International AI Community",
-        "https://www.telusinternational.com/ai-community",
-        OpportunityCategory.data_entry,
-        "AI data training community. Rating, evaluation, annotation.",
-        "platform",
-        "profile_only",
-        quality_score=0.75,
-        requires_portfolio=False,
-        priority=6,
-        tags=["ai", "rating", "evaluation", "community"],
     ),
     SourceDefinition(
         "Reddit r/dataentry",
@@ -1495,57 +1647,230 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$8-18/h LatAm coding; $35-60/h specialist",
         tags=["hourly", "assessment", "weekly_payout", "argentina_ok", "spanish_plus"],
         priority=10,
+        # Was CREDENTIALS, which blocked it from the ranking. Verified
+        # 2026-10-01: entry is "selecting your areas of expertise, completing
+        # skill screenings" — an assessment, not a CV/professional credential.
+        # The page does say per-project minimums "typically require
+        # undergraduate-level expertise", so per-project screening can be
+        # demanding; the platform gate itself is not credential-based.
+        entry_barrier="ASSESSMENT",
+        payout_rail="paypal_airtm",
+        rail_pays_in_argentina="TRUE",
     ),
-    SourceDefinition(
-        "Mercor",
-        "https://work.mercor.com/explore",
-        OpportunityCategory.ai_evaluation,
-        "AI-training expert marketplace with the highest ceiling for verified devs.",
-        "platform",
-        "profile_only",
-        quality_score=0.85,
-        requires_experience=False,
-        requires_assessment=True,
-        typical_hourly_rate_usd=25.0,  # low bound of documented $25-53/h skilled
-        time_to_first_work_hours=3.0,  # AI interview + technical screening
-        payout_cadence_days=30,  # per-project; conservative
-        estimated_payout_range="$25-53/h skilled",
-        tags=["hourly", "assessment", "per_project", "slow_match", "argentina_ok"],
-        priority=8,
-    ),
+    # Mercor — RETIRADA 2026-10-01 por decisión del owner: la entrada es un
+    # "AI interview + technical screening" (un interview, y el criterio del
+    # owner es assessment sí, interview no), el pago es por proyecto (no
+    # ingreso por hora estable) y el rail es Stripe, que no cubre Argentina.
+    # Tres razones independientes; el `CREDENTIALS` de la fila era la menos
+    # precisa. El dato vive acá para que nadie lo vuelva a sumar.
     SourceDefinition(
         "Alignerr",
         "https://www.alignerr.com/jobs",
         OpportunityCategory.ai_evaluation,
-        "Labelbox labeler network. Simple onboarding, weekly payout from $20.",
+        "Labelbox labeler network. Simple onboarding, weekly payout.",
         "platform",
         "profile_only",
         quality_score=0.82,
         requires_experience=False,
         requires_assessment=True,
-        typical_hourly_rate_usd=8.0,  # low bound of documented $8-30/h
+        # Verified 2026-10-01 on the site's own JSON-LD: roles publish
+        # "$10-35/hr" .. "$170-200/hr" and the page states "No experience
+        # needed". The old $8 came from a stale note and was far below the
+        # published floor — a conservative estimate must not be wrong LOW,
+        # because it is what the ranking sorts on.
+        typical_hourly_rate_usd=10.0,  # conservative low bound of published range
         time_to_first_work_hours=1.5,  # domain assessment per project
         payout_cadence_days=7,
-        estimated_payout_range="$8-30/h by expertise",
-        tags=["hourly", "assessment", "weekly_payout", "min_20", "argentina_ok"],
-        priority=8,
+        estimated_payout_range="$10-200/hr observed (2026-10-01, site JSON-LD)",
+        tags=["hourly", "assessment", "weekly_payout", "argentina_ok"],
+        priority=9,
+        # Was CREDENTIALS while the same row declared requires_experience=False
+        # — self-contradictory, and it blocked the source from the ranking.
+        # Site says "No experience needed" + assessment per project.
+        entry_barrier="ASSESSMENT",
+        payout_rail="deel",
+        rail_pays_in_argentina="TRUE",
     ),
     SourceDefinition(
-        "Mindrift",
+        "Mindrift All-access",
         "https://mindrift.ai",
         OpportunityCategory.ai_evaluation,
-        "Toloka training projects. Native Spanish + technical English pays premium tasks.",
+        "All-access tasks: annotation, classification, AI-response comparison, "
+        "transcription, result review. Entry without professional experience: "
+        "no interview, no CV. MATIZ verificado 2026-10-01: la respuesta a "
+        "'¿qué requisitos?' es 'Domain expertise in your field' y '70% of our "
+        "contributors hold a Master's degree or PhD' — describes the POOL, "
+        "not a gate (the Specialized track is the credentialed one). The owner "
+        "decides 2026-10-01 to keep it in the ranking with the caveat "
+        "visible rather than exclude it. Task volume varies: backup income.",
+        "platform",
+        "profile_only",
+        quality_score=0.75,
+        requires_experience=False,
+        requires_assessment=False,
+        typical_hourly_rate_usd=None,  # UNKNOWN honesto: varía por tarea, menor que Specialized
+        time_to_first_work_hours=1.0,  # registro → matching a proyecto
+        payout_cadence_days=14,
+        estimated_payout_range="varies per task (below Specialized)",
+        tags=["hourly", "all_access", "biweekly_payout", "argentina_ok", "backup"],
+        priority=6,
+        # El owner lo mantiene (2026-10-01). Se degrada de ZERO_BARRIER a
+        # ASSESSMENT —no hay interview ni credencial profesional, pero sí
+        # exige dominio del área— y el matiz queda en la descripción para
+        # que la decisión sea auditable.
+        entry_barrier="ASSESSMENT",
+        payout_rail="payoneer",
+        rail_pays_in_argentina="TRUE",
+    ),
+    SourceDefinition(
+        "Mindrift Specialized",
+        "https://mindrift.ai",
+        OpportunityCategory.ai_evaluation,
+        "Specialized projects (coding, STEM, legal, medical...): deep domain "
+        "knowledge required, usually CV + evaluations + identity verification. "
+        "Higher complexity, higher pay. Native Spanish + technical English pays "
+        "premium tasks.",
+        "platform",
+        "profile_only",
+        quality_score=0.80,
+        requires_experience=True,
+        requires_assessment=True,
+        typical_hourly_rate_usd=15.0,  # low bound of documented $15-40/h
+        time_to_first_work_hours=1.5,  # evaluations ES+EN + CV + verification
+        payout_cadence_days=14,
+        estimated_payout_range="$15-40/h; ES native premium",
+        tags=["hourly", "specialized", "assessment", "cv_required", "biweekly_payout", "es_premium", "argentina_ok"],
+        priority=7,
+        entry_barrier="CREDENTIALS",
+        payout_rail="payoneer",
+        rail_pays_in_argentina="TRUE",
+    ),
+    # ═══════════════════════════════════════════════
+    # AI FRONTIER PROGRAMS — curated 2026-09-20
+    # Official safety/bounty programs from frontier AI labs.
+    # Requires application + selection; private programs, NDA required.
+    # ═══════════════════════════════════════════════
+    SourceDefinition(
+        "OpenAI Safety Bug Bounty",
+        "https://openai.com/security/bounty",
+        OpportunityCategory.ai_evaluation,
+        "OpenAI official safety bounty program. Universal jailbreak, prompt injection, "
+        "data exfiltration via agents, MCP abuse, unauthorized actions. "
+        "Up to $50k for universal jailbreak. Application + NDA required. "
+        "Demands reproducible prompt injection (≥50% success rate).",
+        "platform",
+        "profile_only",
+        quality_score=0.95,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=None,  # UNKNOWN: per-outcome bounty
+        time_to_first_work_hours=None,  # depends on application approval
+        payout_cadence_days=None,  # per validated finding
+        estimated_payout_range="up to $50k (universal jailbreak); $1-10k other",
+        tags=["ai_safety", "jailbreak", "prompt_injection", "mcp", "application_required", "ndas", "private_program"],
+        last_verified="2026-09-20",
+        priority=10,
+    ),
+    SourceDefinition(
+        "Anthropic Model Safety Bounty",
+        "https://www.anthropic.com/",
+        OpportunityCategory.ai_evaluation,
+        "Anthropic Model Safety program. Universal jailbreak, CBRN, prompt injection, "
+        "model supply chain. Up to $35k for universal jailbreak. "
+        "Application + NDA; CBRN focus; private program.",
+        "platform",
+        "profile_only",
+        quality_score=0.93,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=None,
+        time_to_first_work_hours=None,
+        payout_cadence_days=None,
+        estimated_payout_range="up to $35k (universal jailbreak CBRN); $1-5k other",
+        tags=["ai_safety", "jailbreak", "cbrn", "prompt_injection", "application_required", "ndas", "private_program"],
+        last_verified="2026-09-20",
+        priority=9,
+    ),
+    SourceDefinition(
+        "Microsoft AI Bug Bounty",
+        "https://www.microsoft.com/en-us/msrc/bounty",
+        OpportunityCategory.ai_evaluation,
+        "Microsoft AI bug bounty program. Covers Azure AI, Copilot, AI infrastructure, "
+        "model deployment, prompt injection, data exfiltration, unauthorized actions. "
+        "Up to $30k for critical Copilot/AI vulnerabilities. Public program.",
+        "platform",
+        "profile_only",
+        quality_score=0.90,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=None,
+        time_to_first_work_hours=None,
+        payout_cadence_days=None,
+        estimated_payout_range="up to $30k (critical AI/Copilot); $5-15k other",
+        tags=["ai_safety", "prompt_injection", "copilot", "azure_ai", "microsoft", "public_program"],
+        last_verified="2026-09-20",
+        priority=8,
+    ),
+    # ── AI training con elegibilidad Argentina verificada (2026-09-28) ──
+    # Verificado en job posts públicos: country listsNaming Argentina + vetting
+    # simple (AI chat interview + 1 assessment), sin experiencia previa.
+    # micro1 (AI data lab, paga por assessment, Deel llega a AR) se withdrew del
+    # catálogo 2026-09-30 por decisión del owner: su proceso incluye una
+    # "AI interview" de skills, y el filtro acordado es "sin entrevista"
+    # (sólo assessment/evaluation y skills). No cumple ⇒ fuera, no se conserva
+    # como CREDENTIALS porque el owner pidió radar 0 barrera, no catálogo mixto.
+    SourceDefinition(
+        "Turing AI Training (LatAm)",
+        "https://www.turing.com/jobs",
+        OpportunityCategory.ai_evaluation,
+        "AI training / model evaluation en remoto. Vetting: tests automatizados + "
+        "entrevista con IA + 1 assessment de skills (sin entrevista humana obligatoria). "
+        "Roles LatAm disponibles; pago mensual USD.",
         "platform",
         "profile_only",
         quality_score=0.80,
         requires_experience=False,
         requires_assessment=True,
-        typical_hourly_rate_usd=15.0,  # low bound of documented $15-40/h
-        time_to_first_work_hours=1.5,  # writing/rating tests ES+EN
-        payout_cadence_days=14,
-        estimated_payout_range="$15-40/h; ES native premium",
-        tags=["hourly", "assessment", "biweekly_payout", "es_premium", "argentina_ok"],
-        priority=7,
+        typical_hourly_rate_usd=15.0,  # midpoint conservador de $12-25/hr documentado
+        time_to_first_work_hours=5.0,  # vetting + matching a proyecto
+        payout_cadence_days=30,
+        estimated_payout_range="$12-25/h (annotation/voice LatAm)",
+        tags=["ai_evaluation", "training", "latam", "argentina_ok", "assessment", "interview_simple", "monthly_payout"],
+        last_verified="2026-09-28",
+        priority=8,
+        entry_barrier="ASSESSMENT",
+        payout_rail="deel",
+        rail_pays_in_argentina="TRUE",
+    ),
+]
+
+
+# ═══════════════════════════════════════════════
+# CATEGORY 5: CONTENT CLIPPING — paid per-view short video
+# Clipper joins brand campaigns, posts clips, earns per 1K verified views
+# ═══════════════════════════════════════════════
+
+CONTENT_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "Whop Content Rewards",
+        "https://whop.com/",
+        OpportunityCategory.open_call,
+        "Marketplace de clipping (Content Rewards dentro de la app Whop): "
+        "campañas pagan por 1K views verificadas. Sin mínimo de followers; "
+        "cuenta gratis. Cobro con fee y hold — leer el brief antes de postear.",
+        "platform",
+        "profile_only",
+        quality_score=0.6,
+        requires_account=True,
+        requires_interview=False,
+        requires_experience=False,
+        typical_hourly_rate_usd=None,  # pago por views, no por hora → UNKNOWN honesto
+        time_to_first_work_hours=None,  # depende de warm-up de cuentas (7-14d), no medido
+        payout_cadence_days=10,  # ~7d earning window + 3d hold, documentado en términos
+        estimated_payout_range="$0.20-6 por 1K views (avg ~$1.25, fee 10%, caps por clip)",
+        tags=["clipping", "short_video", "tiktok", "reels", "shorts", "per_view", "argentina_ok"],
+        last_verified="2026-09-20",
+        priority=4,
     ),
 ]
 
@@ -1554,11 +1879,863 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
 # MASTER INDEX — all 100+ sources combined
 # ═══════════════════════════════════════════════
 
+# ── Lote 2026-09-30: plataformas de seguridad de la catálogo disclosures ──
+# Nacen UNVERIFIED hasta que `source_registry.probe_all_sources()` las probee.
+# No se inventan URLs para llegar a una cifra: entrada sin URL real es peor que
+# ausencia (el mismo error de las 890 fuentes-IT, CURRENT_STATE 2026-09-16).
+_SECURITY_CATALOG_2026_09: list[SourceDefinition] = [
+    SourceDefinition(
+        "0din",
+        "https://0din.com",
+        OpportunityCategory.bug_bounty,
+        "0day marketplace y plataforma de disclosure.",
+        "aggregator",
+        "profile_only",
+        quality_score=0.6,
+        priority=2,
+        tags=["security", "disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Patchstack",
+        "https://patchstack.io/bug-bounty/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty para WordPress y plugins.",
+        "platform",
+        "profile_only",
+        quality_score=0.55,
+        priority=2,
+        tags=["wordpress", "security"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Wordfence",
+        "https://wordfence.com/hacking-help/",
+        OpportunityCategory.bug_bounty,
+        "Disclosures y programa de Wordfence.",
+        "platform",
+        "profile_only",
+        quality_score=0.5,
+        priority=1,
+        tags=["wordpress", "disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "SlowMist",
+        "https://slowmist.medium.com/tag/bug-bounty",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty Web3 y blockchain.",
+        "platform",
+        "profile_only",
+        quality_score=0.65,
+        priority=3,
+        tags=["web3", "blockchain"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Certora Contests",
+        "https://certora.com/contests",
+        OpportunityCategory.bug_bounty,
+        "Concursos de verificación formal.",
+        "platform",
+        "profile_only",
+        quality_score=0.6,
+        priority=3,
+        tags=["formal-verification", "contests"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Secure3",
+        "https://secure3.io/",
+        OpportunityCategory.bug_bounty,
+        "Auditoría smart contracts y bug bounty.",
+        "platform",
+        "profile_only",
+        quality_score=0.55,
+        priority=2,
+        tags=["web3", "smart-contracts"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Hashlock",
+        "https://hashlock.io/",
+        OpportunityCategory.bug_bounty,
+        "Auditoría de smart contracts.",
+        "platform",
+        "profile_only",
+        quality_score=0.5,
+        priority=2,
+        tags=["web3", "smart-contracts"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "OpenBounty",
+        "https://www.openbounty.com/",
+        OpportunityCategory.bug_bounty,
+        "Plataforma de disclosure y recompensas.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "BugRap",
+        "https://bugrap.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y responsable disclosure.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Remedy Security",
+        "https://www.remedysecurity.com/",
+        OpportunityCategory.bug_bounty,
+        "Responsible disclosure y bounty.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "AuditOne",
+        "https://www.auditone.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty blockchain.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["web3"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Gray Swan Arena",
+        "https://grayswan.org/",
+        OpportunityCategory.bug_bounty,
+        "Concursos de seguridad y red teaming.",
+        "platform",
+        "profile_only",
+        quality_score=0.55,
+        priority=2,
+        tags=["contests", "red-team"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "HackAPrompt",
+        "https://www.hackaprompt.com/",
+        OpportunityCategory.bug_bounty,
+        "Concursos de seguridad AI/prompt.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=2,
+        tags=["ai", "contests"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "SSD Secure Disclosure",
+        "https://www.ssdsec.com/",
+        OpportunityCategory.bug_bounty,
+        "Disclosure y bug bounty.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Zero Day Initiative",
+        "https://www.zerodayinitiative.com/",
+        OpportunityCategory.bug_bounty,
+        "Pwn2Own y disclosures de alto valor.",
+        "platform",
+        "profile_only",
+        quality_score=0.8,
+        priority=5,
+        tags=["exploit", "pwn2own"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Bugbase",
+        "https://bugbase.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty Web3.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["web3"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "BugBop",
+        "https://bugbop.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y escaneo.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "BugRakshak",
+        "https://bugrakshak.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty para/research security.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["research"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "CyberTalents",
+        "https://cybertalents.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y ethical hacking.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Cyscope",
+        "https://www.cyscope.io/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y ctf.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Detectify",
+        "https://detectify.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y plataforma de seguridad web.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        priority=1,
+        tags=["web"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Genbounty",
+        "https://genbounty.com/",
+        OpportunityCategory.bug_bounty,
+        "Infraestructura de bug bounty.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "GObugfree",
+        "https://gobugfree.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty para open source.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Hackrate",
+        "https://hackrate.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y ethical hacking.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "HACKTIFY",
+        "https://www.hacktify.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y pentest.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "HuntBug",
+        "https://huntbug.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y ctf.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Inspectiv",
+        "https://www.inspectiv.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y seguridad de aplicaciones.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["web"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "PatchDay",
+        "https://patchday.io/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty OSS.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["oss", "disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Red Storm Security",
+        "https://redstormsecurity.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty pentest.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Safevuln",
+        "https://safevuln.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y gestión de vulnerabilidades.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Secuna",
+        "https://secuna.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y seguridad.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Secur0",
+        "https://secur0.ai/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty Web3.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["web3"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "TumarOne",
+        "https://tumar.ai/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty de/research security.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["research"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Vulbox",
+        "https://vulbox.com/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y vulnerability management.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Vulnscope",
+        "https://vulnscope.io/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y triage.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "WhiteHub",
+        "https://whitehub.io/",
+        OpportunityCategory.bug_bounty,
+        "Bug bounty y crowdsourcing.",
+        "platform",
+        "profile_only",
+        quality_score=0.4,
+        priority=1,
+        tags=["disclosure"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Testbirds",
+        "https://www.testbirds.com/",
+        OpportunityCategory.bug_bounty,
+        "Testing de seguridad y crowd testing.",
+        "platform",
+        "profile_only",
+        quality_score=0.35,
+        priority=1,
+        tags=["testing"],
+        last_verified="unverified",
+    ),
+]
+
+# ── Lote 2026-09-30 (2): fuentes con payout VERIFICADO en investigación ──
+# Cifras tomadas de las páginas de cada plataforma y de BountyOS (scan 2026-09-30).
+# Sin entrevista ni experiencia profesional: se cobra por el PR mergeado o por
+# el hallazgo reportado. `last_verified="unverified"` ⇒ pendiente de probe.
+_PAID_OSS_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "RudderStack",
+        "https://github.com/rudderlabs/rudder-server",
+        OpportunityCategory.dev_bounty,
+        "CDP open source. $2,000 USD por bounty (Go/TypeScript).",
+        "platform",
+        "direct_message",
+        quality_score=0.8,
+        estimated_payout_range="$2,000 por bounty",
+        typical_hourly_rate_usd=None,
+        requires_interview=False,
+        requires_experience=False,
+        priority=9,
+        tags=["go", "typescript", "paid", "oss"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Appflowy",
+        "https://appflowy.gitbook.io/docs/essential-documentation/contribute-to-appflowy/appflowy-mentorship-program",
+        OpportunityCategory.dev_bounty,
+        "Mentoría pagada $500/mes (Flutter & Rust).",
+        "platform",
+        "direct_message",
+        quality_score=0.7,
+        estimated_payout_range="$500/mes",
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["flutter", "rust", "mentorship"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Trigger.dev",
+        "https://github.com/triggerdotdev/trigger.dev/issues",
+        OpportunityCategory.dev_bounty,
+        "Background jobs TS. Bounties $50-$200.",
+        "platform",
+        "api",
+        quality_score=0.65,
+        estimated_payout_range="$50-$200",
+        requires_interview=False,
+        requires_experience=False,
+        priority=7,
+        tags=["typescript", "nextjs"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "tscircuit",
+        "https://algora.io/tscircuit/bounties/community",
+        OpportunityCategory.dev_bounty,
+        "React para hardware/PCB. $5-$300 por bounty.",
+        "platform",
+        "api",
+        quality_score=0.55,
+        estimated_payout_range="$5-$300",
+        requires_interview=False,
+        requires_experience=False,
+        priority=6,
+        tags=["typescript", "react", "hardware"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Boss.dev",
+        "https://boss.dev",
+        OpportunityCategory.dev_bounty,
+        "Bounties sobre issues de GitHub, $25-$5,000.",
+        "platform",
+        "api",
+        quality_score=0.7,
+        estimated_payout_range="$25-$5,000",
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["bounties", "github"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "BountyOS",
+        "https://bountyos.rovidev.com/",
+        OpportunityCategory.open_call,
+        "Tablero vivo: 293 bounties por $27,275 (scan 2026-09-23). Agrega Algora/Opire/BountyHub.",
+        "aggregator",
+        "api",
+        quality_score=0.75,
+        estimated_payout_range="$27,275 en 293 bounties",
+        requires_interview=False,
+        requires_experience=False,
+        priority=9,
+        tags=["aggregator", "meta", "scanner"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Bounty Bureau",
+        "https://bountybureau.com",
+        OpportunityCategory.open_call,
+        "Verifica bounties de GitHub y filtra cerradas/asignadas.",
+        "aggregator",
+        "api",
+        quality_score=0.6,
+        requires_interview=False,
+        requires_experience=False,
+        priority=7,
+        tags=["aggregator", "verification"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "warpSpeed OPEN",
+        "https://github.com/warpspeedopen-source/warpspeed-bounties",
+        OpportunityCategory.dev_bounty,
+        "Bounties pagadas $44-$960 (React Native/Node/Prisma/TS/IA).",
+        "platform",
+        "api",
+        quality_score=0.7,
+        estimated_payout_range="$44-$960",
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["react-native", "node", "prisma", "typescript"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "GitReward",
+        "https://beta.gitreward.com",
+        OpportunityCategory.dev_bounty,
+        "Escrow USDC en Base; pago automático al mergear el PR.",
+        "platform",
+        "api",
+        quality_score=0.55,
+        requires_interview=False,
+        requires_experience=False,
+        priority=5,
+        tags=["usdc", "escrow", "base"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "PullPay",
+        "https://github.com/irham3/pullpay",
+        OpportunityCategory.dev_bounty,
+        "Recompensas open source en USDC sobre Optimism, con oráculo UMA.",
+        "platform",
+        "direct_message",
+        quality_score=0.45,
+        requires_interview=False,
+        requires_experience=False,
+        priority=4,
+        tags=["usdc", "optimism", "escrow"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Octasol",
+        "https://octasol.io",
+        OpportunityCategory.dev_bounty,
+        "Bounties open source con escrow en Solana.",
+        "platform",
+        "direct_message",
+        quality_score=0.4,
+        requires_interview=False,
+        requires_experience=False,
+        priority=3,
+        tags=["solana", "escrow"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "bounty.new",
+        "https://bounty.new",
+        OpportunityCategory.dev_bounty,
+        "Creación y cobro de bounties en crypto.",
+        "platform",
+        "direct_message",
+        quality_score=0.4,
+        requires_interview=False,
+        requires_experience=False,
+        priority=3,
+        tags=["crypto", "bounties"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Ergo",
+        "https://ergonetwork.org",
+        OpportunityCategory.dev_bounty,
+        "Layer 1 y DeFi con bounties en ERG.",
+        "platform",
+        "direct_message",
+        quality_score=0.45,
+        requires_interview=False,
+        requires_experience=False,
+        priority=4,
+        tags=["blockchain", "defi"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "OWASP-BLT",
+        "https://owasp.org/",
+        OpportunityCategory.bug_bounty,
+        "Bug hunting open source con tokens BACON.",
+        "platform",
+        "direct_message",
+        quality_score=0.5,
+        requires_interview=False,
+        requires_experience=False,
+        priority=5,
+        tags=["oss", "bug-hunting", "web3"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Google VRP",
+        "https://bughunters.google.com",
+        OpportunityCategory.bug_bounty,
+        "Programa de vulnerability rewards de Google (productos y OSS).",
+        "platform",
+        "profile_only",
+        quality_score=0.85,
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["google", "vdp", "oss"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Mozilla Bug Bounty",
+        "https://www.mozilla.org/en-US/security/bug-bounty/",
+        OpportunityCategory.bug_bounty,
+        "Programa de Mozilla (Firefox y servicios).",
+        "platform",
+        "profile_only",
+        quality_score=0.8,
+        requires_interview=False,
+        requires_experience=False,
+        priority=7,
+        tags=["mozilla", "firefox"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "GitHub Security Lab",
+        "https://bounty.github.com",
+        OpportunityCategory.bug_bounty,
+        "Bounty de seguridad de GitHub. Público desde 2026-07-27: $250/$2k/$5k/$10k; exige señal HackerOne.",
+        "platform",
+        "profile_only",
+        quality_score=0.7,
+        estimated_payout_range="$250 low / $2,000 medium / $5,000 high / $10,000 critical",
+        requires_interview=False,
+        requires_experience=False,
+        priority=6,
+        tags=["github", "security"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "awesome-agent-bounties",
+        "https://github.com/Scottcjn/awesome-agent-bounties",
+        OpportunityCategory.open_call,
+        "Lista curada de proyectos que pagan a contribuidores (y agentes) por código, docs y security.",
+        "aggregator",
+        "api",
+        quality_score=0.7,
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["meta", "curated", "agents"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "paid-open-source-projects",
+        "https://github.com/kunovsky/paid-open-source-projects",
+        OpportunityCategory.open_call,
+        "Índice de proyectos OSS que pagan por contribuciones, con payout por proyecto.",
+        "aggregator",
+        "api",
+        quality_score=0.6,
+        requires_interview=False,
+        requires_experience=False,
+        priority=7,
+        tags=["meta", "curated"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "CodeHawks",
+        "https://codehawks.cyfrin.io",
+        OpportunityCategory.bug_bounty,
+        "Auditorías competitive con_pool de recompensa; sin KYC en First Flight.",
+        "platform",
+        "profile_only",
+        quality_score=0.7,
+        requires_interview=False,
+        requires_experience=False,
+        priority=7,
+        tags=["web3", "audit"],
+        last_verified="unverified",
+    ),
+    SourceDefinition(
+        "Superteam Earn",
+        "https://earn.superteam.fun",
+        OpportunityCategory.dev_bounty,
+        "Bounties, grants y fellows de devs; pagos on-chain.",
+        "platform",
+        "profile_only",
+        quality_score=0.8,
+        requires_interview=False,
+        requires_experience=False,
+        priority=8,
+        tags=["solana", "grants", "bounties"],
+        last_verified="unverified",
+    ),
+]
+
+# ── Lote 2026-09-30 (3): nicho AI-security / red team verificado ──
+# Cada entrada cita la política oficial de la plataforma. Lo que exige
+# entrevista, CV o años de oficio queda CREDENTIALS: visible, NO rankea.
+_NICHE_SECURITY_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "Synack Red Team",
+        "https://www.synack.com/red-team/",
+        OpportunityCategory.bug_bounty,
+        "Red team privada e invita. Vetting: resume + technical assessment + ID + "
+        "ENTREVISTA COMPORTAMENTAL. Paga por missions (trabajo simple) y por "
+        "vulnerabilidades; el bounty de seguridad tiene historial de $500-$5k.",
+        "platform",
+        "profile_only",
+        quality_score=0.6,
+        requires_portfolio=False,
+        requires_experience=True,
+        requires_interview=True,
+        typical_hourly_rate_usd=75.0,
+        entry_barrier="CREDENTIALS",
+        payout_rail="bank_transfer",
+        rail_pays_in_argentina="UNKNOWN",
+        tags=["security", "red_team", "missions"],
+        last_verified="unverified",
+        priority=6,
+    ),
+    SourceDefinition(
+        "0din (AI security bounty)",
+        "https://0din.ai/",
+        OpportunityCategory.bug_bounty,
+        "Mozilla-backed, researcher-led. ~2.600 investigadores probando chatbots y "
+        "agents. Paga bounty al researcher cuyo exploit verifica el equipo. "
+        "Nicho puro de AI security: prompt injection, jailbreak, RAG abuse, "
+        "exfiltración y abuso de tools.",
+        "platform",
+        "profile_only",
+        quality_score=0.75,
+        requires_portfolio=False,
+        requires_experience=False,
+        requires_interview=False,
+        requires_assessment=True,
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="bank_transfer",
+        rail_pays_in_argentina="UNKNOWN",
+        tags=["security", "ai", "llm", "agents", "mozilla"],
+        last_verified="unverified",
+        priority=8,
+    ),
+    SourceDefinition(
+        "GenBounty LLM Hunter",
+        "https://genbounty.com/llm-hunter",
+        OpportunityCategory.bug_bounty,
+        "AI bug bounty. Community edition gratis y open source: pipeline de LLM "
+        "red teaming con reporte exportable para entregar en bounty. Requiere una "
+        "API key de Gemini/Grok/OpenAI/Anthropic para generar y juzgar ataques.",
+        "platform",
+        "profile_only",
+        quality_score=0.7,
+        requires_portfolio=False,
+        requires_experience=False,
+        requires_interview=False,
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="bank_transfer",
+        rail_pays_in_argentina="UNKNOWN",
+        tags=["security", "ai", "llm", "red_team"],
+        last_verified="unverified",
+        priority=7,
+    ),
+    SourceDefinition(
+        "Google AI Bug Bounty",
+        "https://bughunters.google.com/",
+        OpportunityCategory.bug_bounty,
+        "Programa de seguridad de IA de Google. Recompensa escalada por impacto y "
+        "por producto; máximo documentado $20.000. Prioridad alta: rogue actions y "
+        "exfiltración de datos sensibles. Sin requisitos de credenciales.",
+        "platform",
+        "profile_only",
+        quality_score=0.85,
+        requires_portfolio=False,
+        requires_experience=False,
+        requires_interview=False,
+        requires_assessment=True,
+        entry_barrier="ZERO_BARRIER",
+        payout_rail="bank_transfer",
+        rail_pays_in_argentina="UNKNOWN",
+        tags=["security", "ai", "llm", "google"],
+        last_verified="unverified",
+        priority=9,
+    ),
+]
+
 _ALL_CATEGORIES = {
-    OpportunityCategory.bug_bounty: BUG_BOUNTY_SOURCES,
-    OpportunityCategory.dev_bounty: DEV_BOUNTY_SOURCES,
+    OpportunityCategory.bug_bounty: [*BUG_BOUNTY_SOURCES, *_SECURITY_CATALOG_2026_09, *_NICHE_SECURITY_SOURCES],
+    OpportunityCategory.dev_bounty: [*DEV_BOUNTY_SOURCES, *_PAID_OSS_SOURCES],
     OpportunityCategory.data_entry: DATA_ENTRY_SOURCES,
     OpportunityCategory.ai_evaluation: AI_TRAINING_SOURCES,
+    OpportunityCategory.open_call: CONTENT_SOURCES,
 }
 
 
@@ -1587,6 +2764,22 @@ def get_total_source_count() -> int:
     return sum(len(sources) for sources in _ALL_CATEGORIES.values())
 
 
+# ── Visibilidad de programa (directiva owner 2026-09-20) ──
+# Solo programas PÚBLICOS hasta ganar acceso. "private" suelto en tags
+# significa "tiene programas públicos y privados" (HackerOne etc.) y NO
+# bloquea; solo estos marcadores explícitos indican invite-only.
+PRIVATE_PROGRAM_TAGS = frozenset({"private_program", "application_required", "ndas", "invite_only"})
+
+
+def is_private_program(src: object) -> bool:
+    """True si la fuente exige aplicación/selección/NDA (invite-only). Puro, nunca raisea."""
+    try:
+        tags = getattr(src, "tags", None) or []
+        return any(str(t).lower() in PRIVATE_PROGRAM_TAGS for t in tags)
+    except Exception:
+        return False
+
+
 def find_curated_entry_model(name_or_url_key: str) -> dict[str, Any] | None:
     """Entry-model facts for a platform from the curated catalog (SSOT).
 
@@ -1604,7 +2797,7 @@ def find_curated_entry_model(name_or_url_key: str) -> dict[str, Any] | None:
         url = (getattr(src, "url", "") or "").lower()
         if key == name_norm or (url and key in url):
             if not src.requires_assessment:
-                return None
+                continue  # una vía sin assessment (ej. All-access) no aporta facts de assessment; seguir buscando
             return {
                 "platform": src.name,
                 "assessment": True,

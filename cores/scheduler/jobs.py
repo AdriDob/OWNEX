@@ -139,6 +139,19 @@ def get_forge_jobs() -> list[JobDefinition]:
         )
     )
 
+    # Internal dev agent — propose-only cycle for the repo's own queue (daily 04:30).
+    # Read-only: picks oldest queued task, saves OpenCode proposal, parks for human approve.
+    jobs.append(
+        _cron_job(
+            job_id="forge_internal_dev_propose",
+            app_id="forge",
+            handler="cores.autonomy.internal_dev:run_internal_dev_propose_job",
+            cron="30 4 * * *",
+            args=[],
+            metadata={"cycle": "forge", "type": "internal_dev"},
+        )
+    )
+
     return jobs
 
 
@@ -330,6 +343,40 @@ def get_security_jobs() -> list[JobDefinition]:
         )
     )
 
+    # Change watch — baselines de superficie + alertas de delta cada 6h (P3)
+    jobs.append(
+        _cron_job(
+            job_id="security_change_watch",
+            app_id="security",
+            handler="cores.cycles.tasks:run_change_watch",
+            cron="0 */6 * * *",
+            metadata={"cycle": "security", "type": "change_watch"},
+        )
+    )
+
+    # Review digest — un aviso diario si la cola necesita ojos humanos (08:00)
+    jobs.append(
+        _cron_job(
+            job_id="security_review_digest",
+            app_id="security",
+            handler="cores.cycles.tasks:run_review_queue_digest",
+            cron="0 8 * * *",
+            metadata={"cycle": "security", "type": "review_digest"},
+        )
+    )
+
+    # AI scope watch — scope de programas AI frontier cada día (P(unique) alta
+    # ante asset nuevo: OpenAI/Anthropic/Microsoft). Handler sin DB.
+    jobs.append(
+        _cron_job(
+            job_id="security_ai_scope_watch",
+            app_id="security",
+            handler="cores.cycles.tasks:run_ai_scope_watch",
+            cron="0 7 * * *",
+            metadata={"cycle": "security", "type": "ai_scope_watch"},
+        )
+    )
+
     # NOTE (2026-09-09): coder_autopilot job removed — handler
     # cores.cycles.tasks_coder_autopilot:run_coder_autopilot was never
     # implemented (dead silent no-op). Re-add with a real runner
@@ -455,6 +502,17 @@ def get_direct_work_jobs() -> list[JobDefinition]:
                 "desc": "auto-completa tareas resueltas + refresca el tablero diario",
             },
         ),
+        _cron_job(
+            job_id="curated_sources_probe",
+            app_id="direct-work",
+            handler="cores.direct_work_engine.source_registry:run_source_probe_cycle",
+            cron="0 5 * * 0",
+            args=[],
+            metadata={
+                "type": "probe",
+                "desc": "verifica liveness de las fuentes curadas cada domingo (tri-estado + quarantine)",
+            },
+        ),
     ]
 
 
@@ -482,7 +540,7 @@ def get_investment_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="risk_guardian_check",
             app_id="investment",
-            handler="cores.investment.risk_guardian:get_risk_guardian",
+            handler="cores.investment.risk_guardian:run_risk_guardian_check",
             cron="*/15 * * * *",
             args=[],
             metadata={
@@ -649,208 +707,61 @@ def get_trading_jobs() -> list[JobDefinition]:
                 "desc": "paper loop memecoins cada 15m (scan+filtros+exits, sin fondos)",
             },
         ),
-        # ── AUTO-BACKTEST PIPELINE (8 phases from contracts) ───────────────
-        # Phase 1: Basic backtest (walk-forward)
         _cron_job(
-            job_id="trading_backtest_phase1",
+            job_id="trading_pump_radar",
             app_id="trading",
-            handler="cores.trading.lifecycle:start_backtest",
-            cron="*/12 * * * *",
+            handler="cores.trading.pump_radar:run_pump_radar_cycle_sync",
+            cron="*/5 * * * *",
             args=[],
             metadata={
                 "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_1_backtest",
-                "desc": "backtest basico walk-forward (30 dias minimos)",
+                "type": "radar",
+                "desc": "radar de pumps cada 5m (DexScreener → filtros hard → score, sin fondos)",
             },
         ),
-        # Phase 2: Out-of-sample validation
         _cron_job(
-            job_id="trading_backtest_phase2",
+            job_id="trading_dip_radar",
             app_id="trading",
-            handler="cores.trading.lifecycle:complete_backtest",
-            cron="*/12 * * * *",
+            handler="cores.trading.extra_radars:run_dip_radar_cycle_sync",
+            cron="*/7 * * * *",
             args=[],
             metadata={
                 "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_2_out_of_sample",
-                "desc": "validacion out-of-sample (90 dias minimos)",
+                "type": "radar",
+                "desc": "dip radar mean-reversion cada 7m (pump + retrace → oportunidad, sin fondos)",
             },
         ),
-        # Phase 3: Walk-forward analysis
         _cron_job(
-            job_id="trading_backtest_phase3",
+            job_id="trading_spread_radar",
             app_id="trading",
-            handler="cores.trading.lifecycle:complete_backtest",
-            cron="*/24 * * * *",
+            handler="cores.trading.extra_radars:run_spread_radar_cycle_sync",
+            cron="*/3 * * * *",
             args=[],
             metadata={
                 "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_3_walk_forward",
-                "desc": "walk-forward analysis (rolling windows)",
+                "type": "radar",
+                "desc": "spread CEX/DEX SOL cada 3m (Binance vs Jupiter, sin fondos)",
             },
         ),
-        # Phase 4: Monte Carlo simulation
-        _cron_job(
-            job_id="trading_backtest_phase4",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_backtest",
-            cron="0 4 * * 0",  # weekly Sunday
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_4_monte_carlo",
-                "desc": "monte carlo simulation (1000+ scenarios)",
-            },
-        ),
-        # Phase 5: Stress test (crash, liquidity drain)
-        _cron_job(
-            job_id="trading_backtest_phase5",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_backtest",
-            cron="0 5 * * 0",  # weekly Sunday
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_5_stress_test",
-                "desc": "stress test (black swan, liquidity crisis)",
-            },
-        ),
-        # Phase 6: Paper trading validation
-        _cron_job(
-            job_id="trading_backtest_phase6",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_backtest",
-            cron="0 6 * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "backtest",
-                "phase": "phase_6_paper",
-                "desc": "validacion en paper trading (30 dias minimos)",
-            },
-        ),
-        # Phase 7: Canary deployment (requires human approval gate)
-        _cron_job(
-            job_id="trading_backtest_phase7",
-            app_id="trading",
-            handler="cores.trading.lifecycle:start_canary",
-            cron="0 2 * * 1",  # Monday 02:00
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "canary",
-                "desc": "despliegue canary (aprobacion humana requerida)",
-            },
-        ),
-        # Phase 8: Live deployment (requires human approval gate)
-        _cron_job(
-            job_id="trading_backtest_phase8",
-            app_id="trading",
-            handler="cores.trading.lifecycle:start_live",
-            cron="0 3 * * 1",  # Monday 03:00
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "live",
-                "desc": "despliegue live trading (aprobacion humana requerida)",
-            },
-        ),
-        # ── AUTO-VALIDATION PIPELINE (8 validation phases) ──────────────────
-        # Validation: out-of-sample robustness
-        _cron_job(
-            job_id="trading_validation_oos",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_validation",
-            cron="*/24 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "validation",
-                "phase": "phase_2_out_of_sample",
-                "desc": "validacion robustez out-of-sample (consistency >= 0.4, DD < 30%)",
-            },
-        ),
-        # Validation: martingale check
-        _cron_job(
-            job_id="trading_validation_martingale",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_validation",
-            cron="*/24 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "validation",
-                "phase": "no_martingale",
-                "desc": "check no_martingale (PF >= 1.2, win_rate <= 90%)",
-            },
-        ),
-        # Validation: realistic slippage
-        _cron_job(
-            job_id="trading_validation_slippage",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_validation",
-            cron="*/24 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "validation",
-                "phase": "realistic_slippage",
-                "desc": "check realistic slippage (volume/trade >= 100 USD)",
-            },
-        ),
-        # Validation: survivorship bias
-        _cron_job(
-            job_id="trading_validation_survivorship",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_validation",
-            cron="0 1 * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "validation",
-                "phase": "survivorship_bias",
-                "desc": "check survivorship bias (age_days >= 180)",
-            },
-        ),
-        # Validation: minimum sample size
-        _cron_job(
-            job_id="trading_validation_sample",
-            app_id="trading",
-            handler="cores.trading.lifecycle:complete_validation",
-            cron="*/12 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "validation",
-                "phase": "sample_size",
-                "desc": "check sample size (total_trades >= 100)",
-            },
-        ),
+        # NOTE (2026-09-18): 8 jobs trading_backtest_phase1-8 removed — handlers
+        # "cores.trading.lifecycle:<bare>" solo existen como alias a
+        # *_handler(strategy, ...) con args requeridos; jobs con args=[]
+        # crasheaban cada ciclo (TypeError) ensuciando ledger+logs. Precedente
+        # 2026-09-09. El lifecycle sigue vía API/manual con Human Gate.
+        # Re-agregar SOLO con runner testeado (ver DECISIONS.md).
+        # NOTE (2026-09-18): 5 jobs trading_validation_* removed — mismo caso:
+        # handler "cores.trading.lifecycle:complete_validation" es alias a
+        # complete_validation_handler(strategy, passed); jobs con args=[]
+        # crasheaban cada ciclo. Re-agregar SOLO con runner testeado.
         # NOTE (2026-09-09): 5 trading jobs removed here (regime_detection,
         # auto_allocation, rebalance_daily, capital_ladder_check,
         # kill_switch_monitor) — handlers were never implemented as
         # module-level functions (dead silent no-ops). Re-add with real
         # runners (see DECISIONS.md). Kill-switch protection stays live
         # via trading_risk_check (CopyTradingEngine.risk_breached).
-        # ── PAPER TRADING AUTO-ADVANCE ───────────────────────────────────────
-        # Auto-advance paper→canary when win_rate > 55% and PF > 1.5 for 30 days
-        _cron_job(
-            job_id="trading_paper_auto_advance",
-            app_id="trading",
-            handler="cores.trading.lifecycle:start_paper_trading",
-            cron="*/8 * * * *",
-            args=[],
-            metadata={
-                "cycle": "trading",
-                "type": "paper_auto_advance",
-                "desc": "auto-advance paper trading a canary cuando metrics son favorables",
-            },
-        ),
+        # NOTE (2026-09-18): trading_paper_auto_advance removed — mismo caso
+        # (handler bare con args requeridos) y además el auto-advance a canary
+        # por cron contradice el Human Gate. El lifecycle sigue vía API/manual.
         # NOTE (2026-09-09): 3 trading jobs removed here (copy_optimization,
         # live_monitor, revenue_tracking) — handlers were never implemented
         # as module-level functions (dead silent no-ops). Re-add with real
@@ -936,6 +847,28 @@ def get_economic_feedback_jobs() -> list[JobDefinition]:
                 "cycle": "economic_feedback",
                 "type": "recalibrate",
                 "desc": "recalcula net/h realizado, P(CASH) real y reasignación diaria",
+            },
+        ),
+        _cron_job(
+            job_id="autopilot_kill_scale",
+            app_id="economic_feedback",
+            handler="cores.automation.kill_scale:run_autopilot_scheduler",
+            cron="45 6 * * *",
+            metadata={
+                "cycle": "economic_feedback",
+                "type": "autopilot",
+                "desc": "pausa canales muertos / mata productos solo con evidencia dura (reversible)",
+            },
+        ),
+        _cron_job(
+            job_id="daily_loop_run",
+            app_id="economic_feedback",
+            handler="cores.automation.daily_loop_tasks:run_daily_loop_scheduler",
+            cron="50 6 * * *",
+            metadata={
+                "cycle": "economic_feedback",
+                "type": "daily_loop",
+                "desc": "SELECT→PREPARE→GATE: parquea top-3 en A3 para solo-aprobar",
             },
         ),
     ]

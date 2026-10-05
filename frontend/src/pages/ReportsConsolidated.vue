@@ -4,6 +4,7 @@
  * Combines: ReportQueue + ReportCenter + ReportHistory
  */
 import { ref, computed } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { FileText, Clock, History, Plus, Send, Eye, Trash2, Check } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
@@ -30,8 +31,7 @@ const busyId = ref<string | null>(null)
 async function fetchReports() {
   loading.value = true
   try {
-    const res = await fetch('/api/reports')
-    const data = await res.json()
+    const data = await api.get<any>('/api/reports')
     reports.value = data.reports || []
   } catch (e: any) {
     error.value = e.message

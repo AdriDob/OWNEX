@@ -155,3 +155,65 @@ def test_render_unknown_platform_raises():
 
     with pytest.raises(ValueError, match="Unknown platform"):
         render_report("unknown_platform", {})
+
+
+def test_render_bacl_impact_specific():
+    md = render_report("hackerone", {"title": "BACL test", "vulnerability_type": "bacl", "severity": "high"})
+    assert "Cross-user" in md or "cross-tenant" in md
+
+
+def test_render_business_logic_impact_specific():
+    md = render_report(
+        "intigriti", {"title": "Flow test", "vulnerability_type": "business_logic", "severity": "critical"}
+    )
+    assert "financial impact" in md.lower()
+
+
+def test_render_prompt_injection_impact_specific():
+    md = render_report("hackerone", {"title": "PI test", "vulnerability_type": "prompt_injection", "severity": "high"})
+    assert "tool" in md.lower()
+
+
+class TestQuantifyImpact:
+    def test_explicit_users_win(self):
+        from cores.reports.templates import quantify_impact
+
+        q = quantify_impact(
+            {
+                "vulnerability_type": "idor",
+                "severity": "high",
+                "users_affected": 1200,
+                "reproduction_steps": ["a", "b", "c"],
+            }
+        )
+        assert q["users_scope"] == "measured"
+        assert q["has_numbers"] is True
+        assert q["reproducibility"] == "steps_documented"
+        assert "1200" in q["severity_argument"]
+
+    def test_mass_signals_and_data_classes(self):
+        from cores.reports.templates import quantify_impact
+
+        q = quantify_impact(
+            {
+                "vulnerability_type": "bacl",
+                "severity": "critical",
+                "description": "collection endpoint allows bulk enumeration of emails and session tokens",
+                "evidence": ["GET /api/users?cursor= enumerated 500 ids"],
+                "repro_rate": 1.0,
+            }
+        )
+        assert q["users_scope"] == "many_users"
+        assert "PII" in q["data_classes"]
+        assert "credentials" in q["data_classes"]
+        assert q["reproducibility"] == "measured_rate"
+        assert q["has_numbers"] is False  # inferred, not measured: honest flag
+        assert len(q["severity_argument"]) > 50
+
+    def test_unknown_when_no_evidence(self):
+        from cores.reports.templates import quantify_impact
+
+        q = quantify_impact({"vulnerability_type": "xss", "severity": "low", "description": "vague"})
+        assert q["users_scope"] == "unknown"
+        assert q["reproducibility"] == "unproven"
+        assert q["data_classes"] == []

@@ -686,14 +686,16 @@ def _init_copilot_handlers(bus: Any, app: Any) -> None:
     except Exception:
         pass
 
-    # Copilot API router
+    # Copilot API router (solo si api/main.py aún no lo montó: evita rutas duplicadas)
     try:
         from api.routers.copilot import router as copilot_router
         from cores.copilot.orion_context import get_orion_context
         from database import db as _db
 
         get_orion_context(db_factory=_db.SessionLocal)
-        app.include_router(copilot_router)
+        mounted = {getattr(r, "path", "") for r in app.routes}
+        if not any(str(p).startswith("/api/copilot/") for p in mounted):
+            app.include_router(copilot_router)
     except Exception:
         pass
 

@@ -576,6 +576,15 @@ class ScanScheduler:
                 adjustments = learner.get_adjustments()
             except Exception:
                 adjustments = {}
+            # Primicia P3: dominios con deltas recientes rinden más (best-effort)
+            try:
+                from cores.recon.change_monitor import fresh_domains_with_alerts
+
+                fresh = {host: 1.0 + min(count, 3) * 0.25 for host, count in fresh_domains_with_alerts().items()}
+            except Exception:
+                fresh = {}
+
+            target_intel_map: dict[int, TargetIntel] = {}
 
             target_intel_map: dict[int, TargetIntel] = {}
             for t in targets:
@@ -589,7 +598,7 @@ class ScanScheduler:
                     target_intel_map[t.id] = intel
 
             prioritizer = TargetPrioritizer()
-            priority, results = prioritizer.prioritize(targets, target_intel_map, adjustments)
+            priority, results = prioritizer.prioritize(targets, target_intel_map, adjustments, fresh)
 
             targets_with_priority = [(t, priority.get(t.id, 0.0)) for t in targets]
             targets_with_priority.sort(key=lambda x: -x[1])

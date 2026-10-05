@@ -39,6 +39,8 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { isUnauthenticated } from '@/lib/errors'
 
 interface Alert {
   id: string
@@ -63,8 +65,7 @@ let pollInterval: number | null = null
 
 const fetchAlerts = async () => {
   try {
-    const response = await fetch('/api/alerts/active')
-    const data = await response.json()
+    const data = await api.get<any>('/api/alerts/active')
     if (!data.alerts) return
     activeAlerts.value = data.alerts
 
@@ -77,17 +78,13 @@ const fetchAlerts = async () => {
       }
     })
   } catch (error) {
-    console.error('Failed to fetch alerts:', error)
+    if (!isUnauthenticated(error)) console.error('Failed to fetch alerts:', error)
   }
 }
 
 const dismissAlert = async (alertId: string) => {
   try {
-    await fetch(`/api/alerts/resolve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ alert_id: alertId }),
-    })
+    await api.post('/api/alerts/resolve', { alert_id: alertId })
     activeAlerts.value = activeAlerts.value.filter((a) => a.id !== alertId)
   } catch (error) {
     console.error('Failed to dismiss alert:', error)

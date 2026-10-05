@@ -32,19 +32,9 @@ class PolarAdapter(LegacyOpportunityDweAdapter):
     - For now: curated deep-links to active funded issues.
     """
 
-    CURATED_BOUNTIES = [
-        {
-            "id": "polar_rust_analyzer",
-            "name": "Rust Analyzer Performance Improvements",
-            "description": "Improve Rust language server performance. Bounty: $500-1,000. No interview.",
-            "url": "https://polar.sh/rust-analyzer/rust-analyzer",
-            "reward": 1000.0,
-            "effort_hours": 12.0,
-            "tags": ["rust", "language-server", "performance", "open_source"],
-            "difficulty": "hard",
-            "language": "rust",
-        },
-    ]
+    # Curated seeds vaciados 2026-09-16 (verificado: /rust-analyzer → 404).
+    # Sin URL 200 verificada por probe no hay seed.
+    CURATED_BOUNTIES: list[dict] = []
 
     def __init__(self, config: dict[str, Any] | None = None):
         # Polar doesn't have a legacy engine, so we pass None

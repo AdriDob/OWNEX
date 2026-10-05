@@ -10,7 +10,6 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 import SteamBigPictureSplash from '@/components/layout/SteamBigPictureSplash.vue'
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard.vue'
 import ToastContainer from '@/components/ToastContainer.vue'
-import CommandPalette from '@/components/ui/CommandPalette.vue'
 import CompareView from '@/components/ui/CompareView.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import InspectorPanel from '@/components/ui/InspectorPanel.vue'
@@ -171,7 +170,6 @@ onUnmounted(() => {
     <template v-else>
     <AppLayout :copilot-open="copilotOpen" @toggle-copilot="toggleCopilot" />
     <CopilotPanel :open="copilotOpen" @close="copilotOpen = false" />
-    <CommandPalette />
     <ContextMenu @action="handleContextAction" />
     <ToastContainer />
     <InspectorPanel />

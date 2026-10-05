@@ -11,18 +11,34 @@ from cores.learning.outcome_loop import (
 
 @pytest.fixture()
 def clean_learning():
-    """Provide a clean learning engine for each test."""
+    """Provide a clean learning engine for each test.
+
+    Mismo problema que `test_mission.py::clean_store`: el `drop_all` sin filtro
+    dejaba la base de tests sin ninguna tabla para el resto de la sesión
+    (pytest corre en orden alfabético, así que este archivo rompía todo lo que
+    venía después). Acotado a las tres tablas del outcome loop y siempre
+    reconstruido.
+    """
+    from cores.learning.outcome_loop import (
+        CalibrationMetrics,
+        OutcomeRecord,
+        PlatformTrustMetrics,
+    )
     from database.db import Base, engine
 
-    # Drop and recreate all tables
-    Base.metadata.drop_all(bind=engine)
+    tables = [
+        OutcomeRecord.__table__,
+        CalibrationMetrics.__table__,
+        PlatformTrustMetrics.__table__,
+    ]
+    Base.metadata.drop_all(bind=engine, tables=tables)
     Base.metadata.create_all(bind=engine)
 
     loop = get_outcome_learning_loop()
     yield loop
 
-    # Cleanup
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine, tables=tables)
+    Base.metadata.create_all(bind=engine)
 
 
 class TestOutcomeLearningLoop:

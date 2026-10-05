@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { isUnauthenticated } from '@/lib/errors'
 
 interface ModeInfo {
   name: string
@@ -55,11 +57,10 @@ const currentModeInfo = computed(() => modes[currentMode.value] || modes.lite)
 
 async function fetchMode() {
   try {
-    const res = await fetch('/api/settings/runtime/mode/primary')
-    const data = await res.json()
+    const data = await api.get<any>('/api/settings/runtime/mode/primary')
     currentMode.value = data.mode || 'lite'
   } catch (e) {
-    console.error('Failed to fetch mode:', e)
+    if (!isUnauthenticated(e)) console.error('Failed to fetch mode:', e)
   }
 }
 
@@ -68,11 +69,7 @@ async function setMode(mode: string) {
 
   loading.value = true
   try {
-    const res = await fetch('/api/settings/runtime/mode/primary', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode }),
-    })
+    const res = await api.put<any>('/api/settings/runtime/mode/primary', { mode })
     const data = await res.json()
     if (data.status === 'ok' || data.status === 'success') {
       currentMode.value = mode

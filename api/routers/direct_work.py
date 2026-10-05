@@ -383,6 +383,7 @@ class LearnRequest(BaseModel):
 class DiscoverRequest(BaseModel):
     limit: int = 20
     languages: list[str] | None = None  # e.g. ["rust", "go", "solidity"] — solo GitHub bounty
+    keywords: list[str] | None = None  # e.g. ["aws", "azure", "terraform"] — stack GitHub bounty
 
 
 class OpportunityOnlyRequest(BaseModel):
@@ -419,6 +420,13 @@ class DeliverPrepareRequest(BaseModel):
 class AnalysisCardRequest(BaseModel):
     opportunity: dict[str, Any]
     profile: dict[str, Any] | None = None
+
+
+class MoonshotQueueRequest(BaseModel):
+    profile: dict[str, Any]
+    opportunities: list[dict[str, Any]] = []
+    limit: int = 10
+    min_reward: float = 500.0
 
 
 class IncomeProjectionRequest(BaseModel):
@@ -550,6 +558,106 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     }
 
 
+@router.post("/moonshot-queue")
+async def direct_work_moonshot_queue(request: MoonshotQueueRequest) -> dict[str, Any]:
+    """Cola moonshot: tareas complejas públicas de alta recompensa, listas para ejecutar.
+
+    Combina lo que ya existe sin duplicar: recomienda en modo ``high_upside_90d``
+    con ``zero_experience_only`` (sin experiencia; a lo sumo una evaluación),
+    conserva solo TASK_REWARD outcome-based en peldaños ADVANCED/EXPERT con
+    pago >= ``min_reward``, y adjunta a cada item su plan de ejecución
+    (minutos humanos, % automatizado, EV) vía ``plan_execution``.
+
+    La cola es de lectura: para preparar la entrega, el daily_cycle del
+    WorkBank la convierte en items ready_to_deliver y
+    ``POST /direct-work/workbank/{id}/deliver/prepare`` genera el paquete.
+    """
+    from cores.direct_work_engine.execution_planner import plan_execution
+    from cores.direct_work_engine.public_work import RewardKind, enrich_ranked
+    from cores.direct_work_engine.recommendation import is_outcome_based
+
+    profile = _profile_from_dict(request.profile)
+    opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
+    if not opportunities:
+        opportunities = await get_engine().discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
+    ranked = get_engine().recommender.recommend(
+        opportunities,
+        profile,
+        limit=max(request.limit * 3, request.limit),
+        mode="high_upside_90d",
+        zero_experience_only=True,
+    )
+    mode_effective = "high_upside_90d"
+    if not ranked:
+        # El evidence gate de high_upside_90d exige evidencia previa; con
+        # opps frescas la cola quedaría vacía siempre. Fallback honesto a
+        # balanced (misma elegibilidad, incertidumbre etiquetada UNKNOWN).
+        ranked = get_engine().recommender.recommend(
+            opportunities,
+            profile,
+            limit=max(request.limit * 3, request.limit),
+            mode="balanced",
+            zero_experience_only=True,
+        )
+        mode_effective = "balanced_fallback_evidence_thin"
+    queue: list[dict[str, Any]] = []
+    for r in ranked:
+        try:
+            block = enrich_ranked(r)
+        except Exception:
+            continue
+        if block.get("rung") not in ("advanced", "expert"):
+            continue
+        if block.get("reward_kind") != RewardKind.TASK_REWARD.value:
+            continue
+        try:
+            if not is_outcome_based(r.opportunity.employment_type):
+                continue
+        except Exception:
+            continue
+        try:
+            payment = float(getattr(r.opportunity, "payment", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if payment < request.min_reward:
+            continue
+        item = _ranked_to_dict(r)
+        try:
+            plan = plan_execution(
+                _opportunity_to_dict(r.opportunity),
+                success_probability=float(r.acceptance_probability),
+            )
+            item["execution_plan"] = plan.to_dict()
+        except Exception:
+            item["execution_plan"] = None
+        item["next_step"] = (
+            "WorkBank daily_cycle lo prepara como ready_to_deliver; "
+            "luego POST /direct-work/workbank/{id}/deliver/prepare genera el paquete."
+        )
+        queue.append(item)
+        if len(queue) >= request.limit:
+            break
+    return {
+        "queue": queue,
+        "count": len(queue),
+        "mode": "high_upside_90d",
+        "mode_effective": mode_effective,
+        "filters": {
+            "zero_experience_only": True,
+            "rungs": ["advanced", "expert"],
+            "reward_kind": RewardKind.TASK_REWARD.value,
+            "outcome_based_only": True,
+            "min_reward": request.min_reward,
+        },
+    }
+
+
 @router.post("/discover")
 async def direct_work_discover(request: DiscoverRequest) -> dict[str, Any]:
     """Run a live scan of registered sources and return scored opportunities.
@@ -558,21 +666,28 @@ async def direct_work_discover(request: DiscoverRequest) -> dict[str, Any]:
     registered adapters, score them by Zero Barrier, and return the top N.
 
     ``languages`` (e.g. ["rust", "go", "solidity"]) restricts the GitHub
-    bounty scan server-side via ``language:`` qualifiers; other sources
-    scan unchanged (None = current behavior).
+    bounty scan server-side via ``language:`` qualifiers; ``keywords``
+    (e.g. ["aws", "terraform"]) restricts by stack as free-text OR-group;
+    other sources scan unchanged (None = current behavior).
     """
     engine = get_engine()
-    if request.languages:
+    if request.languages or request.keywords:
         others = [p for p in engine.discovery.get_registered_platforms() if p != WorkPlatform.GITHUB]
         opportunities = await engine.discovery.discover_all(platforms=others)
         gh = engine.discovery.adapters.get(WorkPlatform.GITHUB)
         if gh is not None:
             try:
                 try:
-                    opportunities += await gh.fetch_opportunities(languages=request.languages)
+                    opportunities += await gh.fetch_opportunities(
+                        languages=request.languages, keywords=request.keywords
+                    )
                 except TypeError:
-                    # Adapter registrado sin soporte de idiomas: scan estándar.
-                    opportunities += await gh.fetch_opportunities()
+                    try:
+                        # Adapter registrado sin soporte de keywords: solo idiomas.
+                        opportunities += await gh.fetch_opportunities(languages=request.languages)
+                    except TypeError:
+                        # Adapter sin filtros: scan estándar.
+                        opportunities += await gh.fetch_opportunities()
             except Exception as exc:
                 logger.warning("GitHub language scan failed: %s", exc)
     else:
@@ -644,6 +759,21 @@ async def direct_work_purge_fixtures() -> dict[str, Any]:
     oportunidades LIVE reales si hay credenciales.
     """
     purged = get_workbank().purge_fixtures()
+    return {"purged": purged, "count": len(purged)}
+
+
+@router.post("/workbank/purge-bug-bounty-programs")
+async def direct_work_purge_bug_bounty_programs() -> dict[str, Any]:
+    """Purga del WorkBank los *programas* de bug bounty (no son tareas entregables).
+
+    El `daily_cycle` ya no los admite desde la corrección de honestidad, pero
+    los añadidos antes conservaban `access_status="public"` y sus max bounties
+    publicados inflaban `pendiente_usd` a ~$3.97M de pipeline inexistente.
+
+    Sólo elimina datos derivados del discovery (reproducibles con el próximo
+    ciclo) y nunca toca nada `delivered`.
+    """
+    purged = get_workbank().purge_bug_bounty_programs()
     return {"purged": purged, "count": len(purged)}
 
 
@@ -1651,6 +1781,27 @@ async def direct_work_sources_opt(request: SourceOptRequest) -> dict[str, Any]:
     if not ok:
         raise HTTPException(status_code=404, detail=f"fuente desconocida: {request.name}")
     return {"name": request.name.strip(), "enabled": bool(request.enabled)}
+
+
+class SourceUnlockRequest(BaseModel):
+    name: str
+
+
+@router.post("/sources/unlock-private")
+async def direct_work_sources_unlock_private(request: SourceUnlockRequest) -> dict[str, Any]:
+    """Desbloqueo explícito humano de un programa privado (acceso ganado).
+
+    404 si no existe o si no es privado. Sin este unlock, las privadas
+    quedan fuera del ranking, del radar DISCOVER y del daily brief.
+    """
+    from cores.direct_work_engine.source_registry import unlock_private_source
+
+    if not request.name.strip():
+        raise HTTPException(status_code=422, detail="name vacío")
+    ok = unlock_private_source(request.name.strip())
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"fuente desconocida o no privada: {request.name}")
+    return {"name": request.name.strip(), "unlocked": True}
 
 
 @router.post("/sources/probe")

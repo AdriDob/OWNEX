@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import pytest
 
-from cores.opportunity.mercenary_filter import (
-    OpportunityCategory as MercenaryCategory,
-)
 from cores.direct_work_engine.models import OpportunityCategory
 from cores.opportunity.engine import OpportunityCategory as EngineOpportunityCategory
 from cores.opportunity.global_sources import OpportunityCategory as GlobalSourceCategory
+from cores.opportunity.mercenary_filter import (
+    OpportunityCategory as MercenaryCategory,
+)
 from cores.work_taxonomy import (
     ENGINE_TO_CANONICAL,
     GLOBAL_SOURCE_TO_CANONICAL,
@@ -80,7 +80,7 @@ class TestContract:
     def test_mappings_are_total_and_nonempty(self) -> None:
         assert len(ENGINE_TO_CANONICAL) == len(EngineOpportunityCategory) == 11
         # 2026-08-25: ai_evaluation family added to the curated catalog.
-        assert len(GLOBAL_SOURCE_TO_CANONICAL) == len(GlobalSourceCategory) == 4
+        assert len(GLOBAL_SOURCE_TO_CANONICAL) == len(GlobalSourceCategory) == 5
         assert len(MERCENARY_TO_CANONICAL) == len(MercenaryCategory) == 11
 
 

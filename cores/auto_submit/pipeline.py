@@ -306,6 +306,28 @@ class AutoSubmitPipeline:
                 return self._queue_for_review(finding, platform, total, classification, "blocked_by_global_setting")
 
             if should_auto_submit:
+                # Submit gate: maximiza tasa de aceptación (scope + repro medida +
+                # dedupe). Solo al path automático; aprobación manual/bypass mandan.
+                if submit_reason == "elite_auto_approve":
+                    try:
+                        from cores.auto_submit.submit_gate import submit_gate_for_finding
+
+                        gate = submit_gate_for_finding(finding_id)
+                        if not gate.allow_submit:
+                            logger.info(
+                                "[AUTO-SUBMIT] Submit gate parked finding %s: %s",
+                                finding_id,
+                                gate.parked_reason,
+                            )
+                            return self._queue_for_review(
+                                finding,
+                                platform,
+                                total,
+                                classification,
+                                f"submit_gate: {gate.parked_reason}",
+                            )
+                    except Exception as exc:
+                        logger.warning("[AUTO-SUBMIT] Submit gate error (fail-open): %s", exc)
                 # Check rate limit
                 max_per_hour = thresholds.get("max_submissions_per_hour", _MAX_SUBMISSIONS_PER_HOUR)
                 within_limit, rate_msg = _check_rate_limit(max_per_hour)

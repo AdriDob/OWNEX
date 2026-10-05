@@ -236,6 +236,28 @@ _NEAR_GUARANTEED_CONFIG = RecommenderConfig(
 
 NEAR_GUARANTEED_RECOMMENDER_CONFIG = _NEAR_GUARANTEED_CONFIG
 
+# JACKPOT Mode — pure moonshot: maximum payout, extreme difficulty,
+# ultra-low acceptance. Pure upside hunting for Microsoft Hyper-V ($250k),
+# Chrome RCE ($250k), OpenAI Bio ($50k), etc. Only for dedicated moonshot
+# time allocation (5-10% of total time). Never default, always explicit.
+_JACKPOT_CONFIG = RecommenderConfig(
+    weight_expected_value=0.05,
+    weight_acceptance_probability=0.05,
+    weight_zero_barrier=0.05,
+    weight_compatibility=0.10,
+    weight_speed=0.05,
+    weight_reputation=0.10,
+    upside_boost=True,
+    min_expected_value=10000.0,
+    min_acceptance_probability=0.01,
+    min_zero_barrier_score=0.0,
+    enforce_evidence_gate=True,
+    max_per_platform=1,
+    max_per_category=1,
+)
+
+JACKPOT_RECOMMENDER_CONFIG = _JACKPOT_CONFIG
+
 # Country aliases for eligibility matching (lowercase, stripped).
 _COUNTRY_ALIASES = {
     "ar": "argentina",
@@ -457,6 +479,8 @@ class IntelligentRecommender:
             self.config = _ZERO_FIRST_CONFIG
         elif mode == "near_guaranteed":
             self.config = _NEAR_GUARANTEED_CONFIG
+        elif mode == "jackpot":
+            self.config = _JACKPOT_CONFIG
         else:
             self.config = DEFAULT_RECOMMENDER_CONFIG
         effective_region = region if region is not None else getattr(profile, "country", None)

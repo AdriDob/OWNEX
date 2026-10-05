@@ -9,6 +9,13 @@ import type { OrionContext } from '@/types'
 const AUTH_KEY = 'CATEYE-token'
 const SESSION_EXPIRES_KEY = 'CATEYE-session-expires'
 
+/** Lee una cookie NO httpOnly (las de credenciales no se leen aquí a propósito). */
+function readCookie(name: string): string {
+  if (typeof document === 'undefined') return ''
+  const hit = document.cookie.split('; ').find((c) => c.startsWith(`${name}=`))
+  return hit ? decodeURIComponent(hit.slice(name.length + 1)) : ''
+}
+
 export function getToken(): string | null {
   try {
     return localStorage.getItem(AUTH_KEY)
@@ -135,6 +142,13 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     headers['Authorization'] = `Bearer ${token}`
   }
 
+  // CSRF double-submit (2026-10-05): el backend exige que todo POST/PUT/
+  // DELETE/PATCH reenvíe el token de la cookie `csrf-token` en este header.
+  // Nadie lo mandaba, así que cada escritura devolvía 403 y el loop de
+  // trabajo (aprobar, enviar, resolver) estaba roto en el navegador.
+  const csrf = readCookie('csrf-token')
+  if (csrf) headers['X-CSRF-Token'] = csrf
+
   _activeRequests++
   notifyLoading()
 
@@ -147,6 +161,20 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     })
 
     if (res.status === 401) {
+      // Un 401 SIN token enviado significa "todavía no autenticado" (p.ej. una
+      // request que salió antes de que autoLogin terminara), NO "sesión
+      // expirada". Borrar la sesión en ese caso mataba el token que autoLogin
+      // acababa de guardar y convertía UN 401 inicial en 30: el resto de la app
+      // requests 401 en cascada y la UI queda en "SIN CONEXIÓN".
+      //
+      // (2026-10-05) El mensaje también distinguía mal: sin token decíamos
+      // "Sesión expirada", que es falso — nunca hubo sesión. Con el gate de
+      // auth cerrado (las rutas root-mounted ahora exigen credencial) eso
+      // producía `console.error` en cada carga inicial sin sesión, y el smoke
+      // de Playwright lo leía como error de runtime de la app.
+      if (!token) {
+        throw new ApiError(401, 'No autenticado.')
+      }
       clearSession()
       window.dispatchEvent(new CustomEvent('auth:unauthorized'))
       throw new ApiError(401, 'Sesión expirada. Reautenticación requerida.')
@@ -191,7 +219,7 @@ export const api = {
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
-import type { ErrorResponse, LoginResponse } from '@/types'
+import type { DeviceLoginEnvelope, ErrorResponse } from '@/types'
 
 // ── Additional types for API responses ──
 
@@ -212,8 +240,9 @@ interface FindingsResponse {
 
 // ── Auth API (no token needed) ──
 
+/** Device login. El backend responde con el envelope CATEYE/v1: el token está en `data.token`. */
 export async function login(deviceId: string, deviceInfo?: string) {
-  return api.post<{ session: LoginResponse }>('/auth/login', { device_id: deviceId, device_info: deviceInfo }, true)
+  return api.post<DeviceLoginEnvelope>('/auth/login', { device_id: deviceId, device_info: deviceInfo }, true)
 }
 
 export async function checkLicense() {
@@ -865,16 +894,28 @@ export async function assistantStreamChat(
     const lines = buffer.split('\n')
     buffer = lines.pop() || ''
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        const data = line.slice(6).trim()
-        if (data === '[DONE]') return
+      if (!line.startsWith('data: ')) continue
+      const data = line.slice(6).trim()
+      if (data === '[DONE]') return
+      // El backend emite SSE **texto plano** (`data: <token>`, ver
+      // api/routers/assistant.py:113), NO JSON. Este cliente hacía
+      // `JSON.parse(data)` sobre cada token: fallaba siempre y el `catch`
+      // lo descartaba, así que el streaming NUNCA mostró nada y la IA
+      // parecía muerta. Se acepta texto plano y, por si algún provider
+      // emitiera JSON, también `{token: "..."}`.
+      if (!data) continue
+      let token = data
+      if (data.startsWith('{')) {
         try {
-          const parsed = JSON.parse(data)
-          if (parsed.token) onToken(parsed.token)
+          const parsed = JSON.parse(data) as { token?: string }
+          // Si es JSON válido pero SIN campo `token`, el texto es el
+          // contenido: descartarlo perdería el mensaje entero.
+          token = typeof parsed.token === 'string' ? parsed.token : data
         } catch {
-          /* ignore partial */
+          token = data
         }
       }
+      if (token) onToken(token)
     }
   }
 }

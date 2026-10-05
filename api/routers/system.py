@@ -1,4 +1,9 @@
+import os
+import re
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from cores.confidence import audit_findings, audit_single, audit_verdicts
 from cores.replay import build_replay, list_replay_targets
@@ -371,3 +376,110 @@ def stop_daemon():
         return {"success": False, "message": "Daemon process not found"}
     except Exception as e:
         return {"success": False, "message": f"Error stopping daemon: {e}"}
+
+
+# ── Configuración pendiente: check y escritura ────────────────────────────
+# El panel ya existía y sólo LEÍA. Sin estos dos endpoints el owner no puede
+# "colocar la setting" desde la UI ni comprobar si lo que puso funciona.
+
+_CREDENTIALS_FILE = Path("~/.config/ownex/opportunity.env").expanduser()
+# Valores que no son llaves: se permiten pero nunca se devuelven al cliente.
+_SECRETISH = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|PRIVATE)", re.IGNORECASE)
+
+
+class ConfigCheckRequest(BaseModel):
+    env: str
+
+
+class ConfigSetRequest(BaseModel):
+    env: str
+    value: str
+
+
+def _is_secret(env: str) -> bool:
+    return bool(_SECRETISH.search(env))
+
+
+def _write_env(env: str, value: str) -> None:
+    """Escribe UNA variable en opportunity.env preservando el resto del fichero."""
+    _CREDENTIALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    lines: list[str] = []
+    if _CREDENTIALS_FILE.exists():
+        lines = _CREDENTIALS_FILE.read_text(encoding="utf-8").splitlines()
+
+    replaced = False
+    for i, line in enumerate(lines):
+        if line.split("=", 1)[0].strip() == env:
+            lines[i] = f"{env}={value}"
+            replaced = True
+    if not replaced:
+        lines.append(f"{env}={value}")
+
+    body = "\n".join(lines).rstrip() + "\n"
+    # 0600: el fichero contiene llaves. NoReadable por grupo ni por otros.
+    _CREDENTIALS_FILE.write_text(body, encoding="utf-8")
+    _CREDENTIALS_FILE.chmod(0o600)
+
+
+@router.post("/capabilities/check")
+def check_capability_env(req: ConfigCheckRequest) -> dict[str, object]:
+    """Verifica una variable y devuelve POR QUÉ, no sólo sí/no.
+
+    `usable` es distinto de `present`: una clave puesta con valor 'changeme' no
+    es usable, y el panel necesita poder decirlo.
+    """
+    from cores.setup.capability_config import check_env
+
+    env = req.env.strip()
+    if not env:
+        raise HTTPException(status_code=400, detail="env vacío")
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*", env):
+        raise HTTPException(status_code=400, detail=f"nombre de variable inválido: {env}")
+    return check_env(env).to_dict()
+
+
+@router.post("/capabilities/check-all")
+def check_all_capability_envs() -> dict[str, object]:
+    """Estado de toda la configuración pendiente, para pintar el panel de golpe."""
+    from cores.setup.capability_config import check_all
+
+    results = [r.to_dict() for r in check_all()]
+    return {
+        "results": results,
+        "total": len(results),
+        "usable": sum(1 for r in results if r["usable"]),
+    }
+
+
+@router.post("/capabilities/set")
+def set_capability_env(req: ConfigSetRequest) -> dict[str, object]:
+    """Escribe una variable y la verifica en el acto.
+
+    No devuelve el valor: una llave nunca sale por la API. Y el fichero queda
+    en 0600 porque contiene secretos.
+    """
+    from cores.setup.capability_config import check_env
+
+    env = req.env.strip()
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*", env):
+        raise HTTPException(status_code=400, detail=f"nombre de variable inválido: {env}")
+
+    value = req.value.strip()
+    if not value:
+        raise HTTPException(status_code=400, detail="valor vacío")
+    if any(ch in value for ch in "\n\r"):
+        raise HTTPException(status_code=400, detail="el valor no puede contener saltos de linea")
+
+    _write_env(env, value)
+
+    # Se aplica al proceso actual para que el check sea inmediato, no al reiniciar.
+    os.environ[env] = value
+    result = check_env(env).to_dict()
+    return {
+        "saved": True,
+        "path": str(_CREDENTIALS_FILE),
+        "env": env,
+        "usable": result["usable"],
+        "detail": result["detail"],
+        "where": result["where"],
+    }

@@ -2799,6 +2799,40 @@
         "tests": [
           "tests/test_quick_capture.py:9"
         ]
+      },
+      {
+        "id": "app_factory_validation",
+        "name": "App Factory Validation — NEXA vs FOCUS demand experiment (pre-BUILD)",
+        "status": "ready_to_deploy",
+        "detail": "Landing NEXA/FOCUS + Analytics JSONL + Demand Score + Verdict + API + Frontend card",
+        "files": [
+          "cores/app_factory/experiments.py",
+          "cores/app_factory/__init__.py",
+          "api/routers/app_factory.py",
+          "api/main.py (mount)",
+          "frontend/src/services/ownexData.ts",
+          "frontend/src/pages/Mission.vue",
+          "app-validation/experiments/nexa/",
+          "app-validation/experiments/focus/",
+          "app-validation/experiments/shared/analytics.js"
+        ],
+        "tests": [
+          "tests/test_direct_work_engine.py",
+          "tests/test_direct_work_api.py",
+          "tests/test_scheduler_jobs.py",
+          "tests/test_mission_hub.py"
+        ],
+        "metrics": [
+          "landing_view",
+          "demo_started",
+          "goal_created",
+          "plan_generated",
+          "plan_saved",
+          "return_visit",
+          "price_intent",
+          "email_signup"
+        ],
+        "decision_rule": "Demand Score ≥40 + emails≥5 → BUILD; views≥100 + score<15 → KILL"
       }
     ]
   }

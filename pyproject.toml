@@ -15,6 +15,7 @@ exclude = ["extensions.*.*"]
 target-version = "py311"
 line-length = 120
 indent-width = 4
+exclude = ["api/routers/_archived"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]

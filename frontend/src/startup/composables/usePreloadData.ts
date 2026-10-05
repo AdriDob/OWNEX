@@ -3,6 +3,7 @@
    Ensures dashboard has data ready before first render.
    ══════════════════════════════════════════════════════════ */
 
+import { api } from '@/lib/api'
 import { ref } from 'vue'
 import type { ServiceCheck, SystemSpecs } from '@/shared/types'
 
@@ -17,7 +18,8 @@ export interface PreloadCache {
     checks: ServiceCheck[]
     specs: SystemSpecs | null
   } | null
-  summary: {
+  /** @deprecated sin consumidor y sin endpoint en backend (404 por arranque). */
+  summary?: {
     revenue_today: number
     revenue_week: number
     throughput: number
@@ -40,16 +42,18 @@ export function usePreloadData() {
     error.value = null
 
     // Fetch all endpoints in parallel; don't block on failures
+    // NOTE (ship-day 2026-09-28): se quitó `/api/dashboard/summary` — ese
+    // router fue archivado y el endpoint NUNCA existió en él (solo /status,
+    // /models, /ws/logs). Era un 404 en cada arranque y `cache.summary` no lo
+    // consumía nadie. Restaurarlo por el llamador sería inventar contrato.
     const results = await Promise.allSettled([
-      fetch('/api/system/health').then((r) => (r.ok ? r.json() : null)),
-      fetch('/api/system/readiness').then((r) => (r.ok ? r.json() : null)),
-      fetch('/api/dashboard/summary').then((r) => (r.ok ? r.json() : null)),
+      api.get<any>('/api/system/health').catch(() => null),
+      api.get<any>('/api/system/readiness').catch(() => null),
     ])
 
     cache.value = {
       health: results[0].status === 'fulfilled' ? results[0].value : null,
       readiness: results[1].status === 'fulfilled' ? results[1].value : null,
-      summary: results[2].status === 'fulfilled' ? results[2].value : null,
     }
 
     if (results.every((r) => r.status === 'rejected')) {

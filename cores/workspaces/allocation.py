@@ -20,6 +20,11 @@ logger = logging.getLogger("ownex.workspaces.allocation")
 # PRIMARY engines split evenly; UPSIDE only with explicit opt-in (never by default).
 _COLD_START_PRIMARY = (WorkspaceType.BUG_BOUNTY, WorkspaceType.DEV_BOUNTY, WorkspaceType.AI_TRAINING)
 _ADMIN_RESERVE = 0.05  # 5% admin always
+# Directiva owner 2026-09-20: bug bounty priorizado aun con varianza, hasta evidencia.
+# SOLO cold-start (0 PAID en todos lados): bug_bounty 50%, resto PRIMARY parejo.
+# Con el 1er PAID medido, el modo measured gobierna por $/h realizado (doctrina intacta).
+_COLD_START_BOUNTY_WS = WorkspaceType.BUG_BOUNTY
+_COLD_START_BOUNTY_SHARE = 0.50
 
 
 @dataclass
@@ -135,21 +140,51 @@ def allocate_daily_hours(
         if not primaries:
             primaries = ranked[:3]
         alloc.mode = "cold_start"
-        alloc.note = "Sin PAID medidos: reparto parejo en motores PRIMARY hasta evidencia"
-        per = productive // len(primaries) if primaries else productive
-        assigned = 0
-        for i, e in enumerate(primaries):
-            mins = productive - assigned if i == len(primaries) - 1 else per
-            assigned += mins
+        bounty = next((e for e in primaries if e.workspace == _COLD_START_BOUNTY_WS.value), None)
+        if bounty is not None and len(primaries) > 1:
+            alloc.note = "Sin PAID: bug_bounty 50% (prioridad owner, varianza aceptada), resto PRIMARY parejo"
+            bmins = int(productive * _COLD_START_BOUNTY_SHARE)
             alloc.slices.append(
                 WorkspaceSlice(
-                    workspace=e.workspace,
-                    minutes=mins,
-                    share=round(mins / productive, 3) if productive else 0.0,
-                    why="Cold-start: PRIMARY parejo hasta primer PAID",
+                    workspace=bounty.workspace,
+                    minutes=bmins,
+                    share=round(bmins / productive, 3) if productive else 0.0,
+                    why="Prioridad owner bug-bounty (varianza aceptada) hasta primer PAID",
                     ev_per_hour=None,
                 )
             )
+            rest = [e for e in primaries if e is not bounty]
+            remaining = productive - bmins
+            per = remaining // len(rest) if rest else remaining
+            assigned = bmins
+            for i, e in enumerate(rest):
+                mins = remaining - (assigned - bmins) if i == len(rest) - 1 else per
+                assigned += mins
+                alloc.slices.append(
+                    WorkspaceSlice(
+                        workspace=e.workspace,
+                        minutes=mins,
+                        share=round(mins / productive, 3) if productive else 0.0,
+                        why="Cold-start: PRIMARY parejo hasta primer PAID",
+                        ev_per_hour=None,
+                    )
+                )
+        else:
+            alloc.note = "Sin PAID medidos: reparto parejo en motores PRIMARY hasta evidencia"
+            per = productive // len(primaries) if primaries else productive
+            assigned = 0
+            for i, e in enumerate(primaries):
+                mins = productive - assigned if i == len(primaries) - 1 else per
+                assigned += mins
+                alloc.slices.append(
+                    WorkspaceSlice(
+                        workspace=e.workspace,
+                        minutes=mins,
+                        share=round(mins / productive, 3) if productive else 0.0,
+                        why="Cold-start: PRIMARY parejo hasta primer PAID",
+                        ev_per_hour=None,
+                    )
+                )
 
     alloc.slices.append(
         WorkspaceSlice(

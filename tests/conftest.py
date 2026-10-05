@@ -121,6 +121,59 @@ def _set_license_key() -> None:
         os.environ["CATEYE_LICENSE_PUBLIC_KEY"] = b64encode(key.public_key().public_bytes_raw()).decode()
 
 
+# ── Auth para tests que pegan a rutas montadas en RAÍZ ─────────────
+
+# `AuthMiddleware` exige sesión en las rutas montadas en raíz desde el fix del
+# gate de auth (KNOWN_DEBT #32, 2026-10-04) — y desde el 2026-10-05 también en
+# las que tienen parámetro de path, que antes se colaban sin credencial.
+# `test_mission_hub.py`, `test_mobile_copilot.py` y `test_night_session_fixes.py`
+# seguían pegando a `/mission-hub/*` y `/mobile/*` sin autenticar: tests que
+# medían el 401 en vez del endpoint.
+#
+# El fixture replica el flujo real del navegador (login → cookie de sesión),
+# no una backdoor: si el gate se rompe, vuelven a fallar en vez de pasar.
+
+
+@pytest.fixture(scope="session")
+def ownex_login():
+    """Devuelve un callable que autentica un `TestClient` como el cliente real.
+
+    Usa el login por `device_id` (`/api/auth/login`) y deja la cookie
+    `ownex-session` en el jar del cliente — el mismo camino que sigue el
+    navegador. El token se cachea a nivel sesión y se reintenta ante 429: el
+    login está rate-limited, así que un fixture function-scoped queloguea en
+    cada test se autobloquea (medido: 7 errores 429 en test_mission_hub.py).
+    """
+    import time
+
+    from api.middleware.auth_middleware import SESSION_COOKIE
+
+    cache: dict[str, str] = {}
+
+    def _login(client) -> str:
+        if "token" not in cache:
+            last = ""
+            for _ in range(6):
+                resp = client.post(
+                    "/api/auth/login",
+                    json={"device_id": "pytest-suite", "device_info": {"kind": "pytest"}},
+                )
+                if resp.status_code == 200:
+                    cache["token"] = resp.json().get("data", {}).get("token", "")
+                    break
+                last = f"{resp.status_code}: {resp.text[:200]}"
+                if resp.status_code == 429:
+                    time.sleep(1.5)
+                    continue
+                break
+            if not cache.get("token"):
+                pytest.fail(f"login de tests falló con {last}")
+        client.cookies.set(SESSION_COOKIE, cache["token"])
+        return cache["token"]
+
+    return _login
+
+
 # ── Path fixtures ─────────────────────────────────────────────────
 
 

@@ -45,12 +45,11 @@ const riskConfig = reactive({
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await fetch('/api/atlas/health')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    await api.get('/api/atlas/health')
     // Load connector info from manifest
-    const coreRes = await fetch('/api/core/apps')
-    if (coreRes.ok) {
-      const apps = await coreRes.json()
+    const coreApps = await api.get<any[]>('/api/core/apps')
+    if (coreApps) {
+      const apps = coreApps
       const atlasApp = apps.find((a: any) => a.id === 'atlas')
       if (atlasApp?.providers) {
         connectors.value = atlasApp.providers.map((pid: string) => ({

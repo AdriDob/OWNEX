@@ -14,17 +14,30 @@ from cores.mission.store import (
 
 @pytest.fixture()
 def clean_store():
-    """Provide a clean mission store for each test."""
+    """Provide a clean mission store for each test.
+
+    Antes hacía `Base.metadata.drop_all(bind=engine)` sin filtro y sin recrear:
+    dejaba la base de tests SIN NINGUNA tabla para el resto de la sesión. Como
+    pytest corre en orden alfabético, todo lo que empieza por "test_m..." o
+    posterior heredaba `no such table: tasks` / `event_bus_history` /
+    `memory_records` / `reports` (19 tests). Esos tests PASABAN aislados: no
+    estaban rotos, se ejecutaban después de que este fixture destruyera el
+    schema.
+
+    Ahora el drop se limita a las tablas del mission store y siempre se
+    recrean.
+    """
+    from cores.mission.store import MissionCheckpointModel, MissionModel
     from database.db import Base, engine
 
-    # Drop and recreate tables
-    Base.metadata.drop_all(bind=engine)
+    tables = [MissionModel.__table__, MissionCheckpointModel.__table__]
+    Base.metadata.drop_all(bind=engine, tables=tables)
     Base.metadata.create_all(bind=engine)
 
     store = get_mission_store()
     yield store
-    # Cleanup
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine, tables=tables)
+    Base.metadata.create_all(bind=engine)
 
 
 @pytest.fixture()
@@ -293,7 +306,7 @@ class TestMissionLifecycle:
             ("learning", 7, {"lessons": 3}),
         ]
 
-        for i, (stage, order, result_data) in enumerate(stages):
+        for _i, (stage, order, result_data) in enumerate(stages):
             result = controller.advance_stage(mid, stage, order, result_data)
             assert result.success
             assert result.mission.current_stage == stage

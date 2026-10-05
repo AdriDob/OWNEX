@@ -78,14 +78,14 @@ jobs:
             --ignore=tests/test_vision_gateway.py \
             --ignore=tests/test_scheduler.py \
             --ignore=tests/test_api_endpoints.py \
-            --cov=cores --cov=core --cov-report=term-missing:skip-covered \
+            --cov=cores --cov-report=term-missing:skip-covered \
             --cov-fail-under=80 \
             --timeout=60 -q tests/
 
   test-frontend:
-    name: Frontend (lint + build)
+    name: Frontend (typecheck + unit + build + e2e)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: frontend
@@ -99,13 +99,61 @@ jobs:
       - run: npm ci --silent
         working-directory: ${{ github.workspace }}
       - run: npm run lint --if-present
+      # typecheck + unit tests: ambos eran 0 jobs en CI antes de esta auditoría,
+      # por eso 6 archivos con identificadores sin importar y el contrato de
+      # auth roto pudieron llegar a producción sin ser detectados.
+      - run: npx vue-tsc --noEmit
+      - run: npm run test
       - run: npm run build --if-present
+      - run: 'test -f dist/index.html && echo "frontend/dist/index.html: OK"'
+
+  test-e2e:
+    name: E2E (Playwright contra dev server)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Requiere el backend en :8000: los flujos críticos leen /today,
+    # /direct-work/revenue-ledger y /api/health.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -q
+      - run: npm ci --silent
+      - name: Start backend
+        run: |
+          nohup uvicorn api.main:app --port 8000 --host 127.0.0.1 > /tmp/backend.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:8000/api/health > /dev/null; then
+              echo "backend ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "backend failed to start"; tail -50 /tmp/backend.log; exit 1
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E
+        run: npx playwright test --reporter=list
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   verify:
     name: Verify System
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [lint, typecheck, test-fast, test-core, test-frontend]
+    needs: [lint, typecheck, test-fast, test-core, test-frontend, test-e2e]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

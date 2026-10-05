@@ -169,31 +169,45 @@ export function getHostBase(): string {
 
 /**
  * Routers mounted WITHOUT the /api prefix on the backend
- * (api/main.py mounts mobile/direct-work/wear-os at root level; also
- * first-money / result-based / platform-guides / finance / life-management
- * / devin / fiverr / mission-hub / career / voice / oar / supabase /
- * productivity / remote / version-backup / onboarding / zero-barrier /
- * opensource / dev-bounty / decision / enhanced-personalization /
- * revenue-timeline / webhook — §17 contract audit 2026-09-15).
+ * (api/main.py mounts these at root level — §17 contract audit 2026-09-15,
+ * extended 2026-09-28 to all 27 after finding Mission/Career/OAR/Voice 404).
  * Calls to these namespaces must not be double-prefixed.
+ * NOTE: `/auth` is deliberately EXCLUDED — auth_user.py serves /auth/* at
+ * root but frontend auth flows target auth.py/auth_users.py under /api/auth/*.
+ */
+/**
+ * Namespaces que el backend sirve en RAÍZ, no bajo `/api`.
+ *
+ * MEDIDO 2026-10-05 con HTTP real (no leyendo el código): de los 27 que
+ * estaban aquí, **25 devolvían 404 en raíz** y sólo 2 respondían:
+ * `/platform-guides` y `/today`.
+ *
+ * La lista estaba inflada, y como `resolveApiUrl` normaliza `/api/x` → `x` y
+ * después decide, el efecto era peor que "no-op": **incluso las llamadas con
+ * `/api/` explícito terminaban en raíz y daban 404.** 8 llamadas rotas
+ * (6 de `dev-bounty`, 2 de `wear-os`), 355 no afectadas.
+ *
+ * Regla: *esta lista es un inventario de dónde monta el backend, no una
+ * lista de deseos.* Si agregás un namespace acá sin verificar que el backend
+ * lo sirve en raíz, estás creando 404s silenciosos.
+ *
+ * Verificá con: `python scripts/audit_frontend_contract.py --list`
  */
 const ROOT_MOUNTED_PREFIXES = [
-  '/direct-work',
-  '/mobile',
-  '/wear-os',
-  '/first-money',
-  '/result-based',
   '/platform-guides',
+  '/today',
 ]
 
 /** Resolve a frontend API path to the full correct URL. */
 export function resolveApiUrl(path: string): string {
-  const isRootMounted = ROOT_MOUNTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
+  // Normalize FIRST so both `/ns/...` and legacy `/api/ns/...` call styles
+  // resolve identically (controlPanel.ts still uses explicit /api/ prefixes).
+  const clean = path.startsWith('/api/') ? path.slice(4) : path
+  const isRootMounted = ROOT_MOUNTED_PREFIXES.some((p) => clean === p || clean.startsWith(`${p}/`))
   if (!isTauri && !isRootMounted) {
-    return `/api${path.startsWith('/api/') ? path.slice(4) : path}`
+    return `/api${clean}`
   }
   const base = getHostBase()
-  const clean = path.startsWith('/api/') ? path.slice(4) : path
   // Root-mounted namespaces hit the host directly; everything else under /api.
   if (isRootMounted) return `${base}${clean}`
   return `${base}/api${clean}`

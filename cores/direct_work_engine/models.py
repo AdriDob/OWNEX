@@ -282,6 +282,11 @@ class WorkPlatform(StrEnum):
     GITHUB = "github"
     OUTLIER = "outlier"
     MINDRIFT = "mindrift"
+    # AI-evaluation platforms with a published, zero-experience entry path
+    # (2026-10-01). MERCOR/TURING were already in `global_sources` as
+    # catalog data with no adapter able to surface them.
+    MERCOR = "mercor"
+    TURING = "turing"
     LINKEDIN = "linkedin"
     WORKANA = "workana"
     OPYRE_MICROTASK = "opyre_microtask"
@@ -349,6 +354,23 @@ class ExperienceLevel(StrEnum):
     JUNIOR = "junior"
     MID = "mid"
     SENIOR = "senior"
+
+
+class AIPolicy(StrEnum):
+    """Qué asistencia de IA permite el proyecto (vNext §8). UNKNOWN = no asumir."""
+
+    ALLOWED = "allowed"
+    LIMITED = "limited"
+    PROHIBITED = "prohibited"
+    UNKNOWN = "unknown"
+
+
+class AutomationLevel(StrEnum):
+    """Qué automatización permite la plataforma (vNext §1). UNKNOWN → NO AUTO-ACTION."""
+
+    ALLOWED = "allowed"
+    RESTRICTED = "restricted"
+    UNKNOWN = "unknown"
 
 
 class BarrierLevel(StrEnum):
@@ -536,6 +558,11 @@ class Opportunity:
     time_to_first_work_hours: float | None = None
     rate_source: str = "unknown"  # platform | ownex_history | unknown
 
+    # vNext eligibility (additive, 2026-09-28): AI assistance + automation level.
+    # Defaults UNKNOWN = no asumir permiso (ver AI_POLICY / AUTOMATION_*).
+    ai_policy: AIPolicy = AIPolicy.UNKNOWN
+    automation_level: AutomationLevel = AutomationLevel.UNKNOWN
+
     # Zero Barrier Score (populated by scorer)
     zero_barrier_score: ZeroBarrierScore | None = None
 
@@ -604,6 +631,39 @@ class Opportunity:
             and not self.portfolio_required
             and self.effective_experience_requirement in ZERO_EXPERIENCE_REQUIREMENTS
         )
+
+
+def country_access_for(opp: Opportunity, user_country: str = "argentina") -> str:
+    """VERIFIED | CONDITIONAL | UNKNOWN (vNext §6). Puro, sin I/O.
+
+    VERIFIED solo con match explícito en allowed_countries. CONDITIONAL si
+    exige VPN (el humano decide legalidad/riesgo). Todo lo demás UNKNOWN.
+    """
+    allowed = [c.strip().lower() for c in (opp.allowed_countries or []) if c and c.strip()]
+    you = (user_country or "").strip().lower()
+    if you and you in allowed:
+        return "VERIFIED"
+    if opp.vpn_required:
+        return "CONDITIONAL"
+    return "UNKNOWN"
+
+
+def payment_access_for(opp: Opportunity, has_configured_rail: bool = False) -> str:
+    """VERIFIED | UNKNOWN. El rail lo resuelve el caller (payment_compat).
+
+    Sin rail configurado no hay cobrabilidad afirmable: UNKNOWN, jamás True.
+    """
+    return "VERIFIED" if has_configured_rail else "UNKNOWN"
+
+
+def can_auto_act(opp: Opportunity) -> bool:
+    """UNKNOWN → NO AUTO-ACTION (un ban optimiza ingresos a cero)."""
+    return opp.automation_level == AutomationLevel.ALLOWED
+
+
+def ai_assist_allowed(opp: Opportunity) -> bool:
+    """True solo con AI_POLICY explícito ALLOWED. LIMITED/PROHIBITED/UNKNOWN → humano decide."""
+    return opp.ai_policy == AIPolicy.ALLOWED
 
 
 @dataclass(slots=True)

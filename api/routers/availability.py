@@ -137,7 +137,6 @@ async def add_available_block(request: AvailableBlockRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(e)) from None
 
 
-@router.get("/max-task-hours")
-async def get_max_task_hours_endpoint(horizon: str = "today") -> dict[str, Any]:
-    """Alias for /max-task-hours."""
-    return await get_max_task_hours(horizon)
+# NOTE (ship-day 2026-09-28): el alias duplicado de /max-task-hours se
+# eliminó — FastAPI resuelve por orden de registro, así que el segundo handler
+# era inalcanzable por HTTP (código muerto, cero cambio de comportamiento).

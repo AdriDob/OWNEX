@@ -231,9 +231,16 @@ class TestOpportunityEngineE2E:
 
         engine = OpportunityOrchestrator()
         assert engine is not None
-        assert hasattr(engine, "forge_adapters")
-        assert hasattr(engine, "pulse_adapters")
-        assert len(engine.forge_adapters) >= 1
+        # `forge_adapters` / `pulse_adapters` pertenecían al
+        # OpportunityOrchestrator original (core/, borrado el 2026-09-14).
+        # Hoy la clase es un wrapper de compatibilidad sobre
+        # `OpportunityEngine` (engine.py:855-862), que es el canónico: sus
+        # adapters se resuelven por el registry, no como atributo del
+        # orquestador. El test debe verificar la API que existe.
+        assert hasattr(engine, "_engine")
+        assert engine._engine is not None
+        assert hasattr(engine, "execute_cycle")
+        assert hasattr(engine._engine, "get_all")
 
     def test_4_opportunity_scored_dataclass(self):
         from cores.opportunity.models import ScoredOpportunity, UnifiedScore
@@ -289,7 +296,13 @@ class TestExecutionLayerE2E:
 
         config = CoderAgentConfig()
         assert config is not None
-        assert hasattr(config, "model")
+        # `config.model` pineaba un campo que la arquitectura eliminó: el
+        # modelo se resuelve por OAR (`cores/ai/runtime/`, routing + failover)
+        # dentro de `CodeGenerator._llm_complete`, no como campo del config
+        # del agente. Un test que exige un campo inexistente sólo documenta
+        # que el test quedó viejo.
+        assert hasattr(config, "require_approval_for_pr")
+        assert config.require_approval_for_pr is True, "el PR exige aprobación humana"
 
     def test_2_evolution_cycle_works(self):
         """Real: evolution engine cycle detects issues."""

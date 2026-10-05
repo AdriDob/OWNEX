@@ -48,19 +48,32 @@ async def get_discovery_status() -> dict[str, Any]:
 
 @router.post("/discover")
 async def discover_sources(limit: int = 50) -> dict[str, Any]:
-    """Trigger infinite source discovery scan."""
-    try:
-        discovery = get_infinite_source_discovery()
-        opportunities = discovery.discover_sources(limit=limit)
-        return {
-            "status": "discovery_complete",
-            "discovered_count": len(opportunities),
-            "opportunities": [opp.to_dict() for opp in opportunities],
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
-    except Exception as e:
-        logger.error(f"Failed to discover sources: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to discover sources: {str(e)}") from e
+    """Trigger infinite source discovery scan.
+
+    DESHABILITADO 2026-10-05. Las 7 "fuentes" de
+    `cores/financial_intelligence/infinite_source_discovery.py` no hacen
+    ninguna llamada de red: devuelven listas **simuladas** con URLs
+    inventadas (`linkedin.com/jobs/view/123`, `fiverr.com/gig/123`) y rates
+    inventados. Este endpoint devolvía ese trabajo ficticio con formato de
+    oportunidad real, y `ultra_fast_income` lo consumía para armar planes de
+    ingreso. Es la misma clase de mentira que el pipeline de $5.810 y el
+    `UNKNOWN` renderizado como `$0`: un número que parece dinero y no lo es.
+
+    Se responde **410 Gone**: `error_handling.py:77` oculta el `detail` de
+    todo 5xx por política de seguridad (correcto), así que un 503/501
+    llegaba al usuario como "Internal server error" y no se enteraba de la
+    decisión. 410 es 4xx — el `detail` llega — y además es el código
+    correcto: el recurso **existe pero se retiró** de forma permanente.
+    """
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Discovery automática deshabilitada: las fuentes de infinite-source son "
+            "simuladas (URLs y rates inventados), no scraping real. Usá los "
+            "adapters verificados (WorkBank / Mercor / Intigriti) o escribí un "
+            "adapter nuevo que valide el pago contra la fuente."
+        ),
+    )
 
 
 @router.get("/opportunities")

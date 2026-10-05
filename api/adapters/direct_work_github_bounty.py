@@ -26,6 +26,50 @@ logger = logging.getLogger("ownex.api.direct_work.adapters.github_bounty")
 
 GITHUB_API_BASE = "https://api.github.com"
 
+#: Upper bound for a published bounty, USD. A bare number pasted into a label
+#: or body is not money: "bounty 9999...9" (82 digits) once inflated the
+#: WorkBank pipeline to $1e82. Above the observed market ceiling the figure
+#: is UNKNOWN (0.0), never a truncated invention.
+_MAX_SANE_REWARD_USD: float = 10_000_000.0
+
+#: A currency marker is REQUIRED: a bare year or id is not money.
+_REWARD_LABEL_RE = re.compile(
+    r"(?:bounty|reward|prize|payout)\s*(?:of|for|is|:|=|-|–|—)?\s*"
+    r"(?:\$|usd\b)?\s*(\d+(?:,\d{3})*(?:\.\d+)?)\s*([kKmM])?\b",
+    re.IGNORECASE,
+)
+#: Same shape, but body/title prose is often "bounty of $500".
+_REWARD_BODY_RE = re.compile(
+    r"(?:bounty|reward|prize|payout)\s*(?:of|for|is|:|=|-|–|—)?\s*"
+    r"(?:\$|usd\b)?\s*(\d+(?:,\d{3})*(?:\.\d+)?)\s*([kKmM])?\b",
+    re.IGNORECASE,
+)
+#: "k"/"m" mean thousands/millions: "$3k" is 3000, not 3.
+_AMOUNT_SUFFIX = {"k": 1_000.0, "m": 1_000_000.0}
+
+
+def _sane_reward(value: float) -> float:
+    """Keep 0.0 .. $10M; anything else is UNKNOWN, not a truncated number."""
+    return value if 0.0 <= value <= _MAX_SANE_REWARD_USD else 0.0
+
+
+def _first_amount(rx: re.Pattern[str], text: str) -> float:
+    """Primer monto con marcador de moneda. Sin marcador ⇒ 0.0 (UNKNOWN)."""
+    for match in rx.finditer(text):
+        groups = match.groups()
+        raw = next((g for g in groups if g and g[0].isdigit()), None)
+        suffix = groups[-1] if len(groups) > 1 else None
+        if raw is None:
+            continue
+        try:
+            amount = float(raw.replace(",", ""))
+        except (ValueError, IndexError):
+            continue
+        if suffix:
+            amount *= _AMOUNT_SUFFIX.get(suffix.lower(), 1.0)
+        return _sane_reward(amount)
+    return 0.0
+
 
 class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
     """Discovers bounty-labeled GitHub issues via GitHub Search API."""
@@ -74,23 +118,51 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
                 seen.append(name)
         return seen[: GitHubBountyDweAdapter.MAX_LANGUAGES_PER_SCAN]
 
-    def _build_queries(self, languages: list[str] | None = None) -> list[str]:
-        """Bounty queries, optionally restricted with `language:` qualifiers.
+    def _normalize_keywords(self, keywords: list[str] | None) -> list[str]:
+        """Sanitize + dedupe + cap the stack keywords (max 5).
 
-        GitHub ANDs qualifiers, so each language needs its own queries.
+        Only characters valid inside a GitHub search term survive; the
+        result is lowercase and order-preserving.
+        """
+        if not keywords:
+            return []
+        out: list[str] = []
+        for raw in keywords:
+            cleaned = re.sub(r"[^a-z0-9._#-]+", " ", str(raw).lower()).strip()
+            cleaned = cleaned.replace(" ", "")
+            if not cleaned:
+                continue
+            if cleaned not in out:
+                out.append(cleaned)
+            if len(out) >= 5:
+                break
+        return out
+
+    def _build_queries(self, languages: list[str] | None = None, keywords: list[str] | None = None) -> list[str]:
+        """Bounty queries, restricted by `language:` and/or a keyword OR-group.
+
+        GitHub ANDs qualifiers, so each language needs its own queries. The
+        keyword group is a single OR-group appended to each base, so adding
+        stack keywords costs **zero** extra queries.
         """
         langs = self._normalize_languages(languages)
+        kws = self._normalize_keywords(keywords if keywords is not None else self._config.get("keywords"))
+        group = f"({' OR '.join(kws)})" if kws else ""
         if not langs:
-            return list(self._BOUNTY_QUERIES)
-        return [f"{base} language:{lang}" for lang in langs for base in self._BASE_LABEL_QUERIES]
+            return [f"{base}{group}" for base in self._BOUNTY_QUERIES]
+        return [f"{base} language:{lang}{group}" for lang in langs for base in self._BASE_LABEL_QUERIES]
 
-    async def fetch_opportunities(self, languages: list[str] | None = None) -> list:
+    async def fetch_opportunities(self, languages: list[str] | None = None, keywords: list[str] | None = None) -> list:
         """Search GitHub for bounty issues via Search API.
 
         ``languages`` (e.g. ["rust", "go", "solidity"]) restricts server-side
-        via ``language:`` qualifiers. ``None`` = current behavior (unchanged).
+        via ``language:`` qualifiers. ``keywords`` filters by stack as an
+        OR-group, at no extra query cost.
         """
-        queries = self._build_queries(languages if languages is not None else self._config.get("languages"))
+        queries = self._build_queries(
+            languages if languages is not None else self._config.get("languages"),
+            keywords if keywords is not None else self._config.get("keywords"),
+        )
         opportunities: list = []
 
         for query in queries:
@@ -160,7 +232,11 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
 
             # Parse labels for bounty amount
             labels = [label.get("name", "").lower() for label in issue.get("labels", [])]
-            reward = self._extract_reward(labels, issue.get("body", ""))
+            reward = self._extract_reward(
+                labels,
+                issue.get("body", ""),
+                title=issue.get("title", ""),
+            )
 
             # Estimate difficulty from labels/complexity
             difficulty = self._estimate_difficulty(labels, issue.get("body", ""))
@@ -206,29 +282,26 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
             logger.warning(f"Error converting GitHub issue: {e}")
             return None
 
-    def _extract_reward(self, labels: list[str], body: str) -> float:
-        """Extract bounty amount from labels or issue body."""
-        # Check labels first
+    def _extract_reward(self, labels: list[str], body: str, title: str = "") -> float:
+        """Reward amount. UNKNOWN (0.0) unless a CURRENCY marker is present.
+
+        Fuentes, en orden: labels → título → body. El título importa porque
+        muchas plataformas escriben ahí el monto ("[PAID BOUNTY - $2k]").
+
+        Un año pegado al nombre de un label NO es dinero: "hacktoberfest2025"
+        devolvía $2.025. Y un número absurdo pegado a "bounty" (82 dígitos)
+        devolvía $1e82. Ambos ⇒ 0.0.
+        """
         for label in labels:
-            # Patterns: $500, $500.00, 500 USD, 500$, bounty:500
-
-            matches = re.findall(r"\$?(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:usd|usd)?", label, re.IGNORECASE)
-            if matches:
-                try:
-                    return float(matches[0].replace(",", ""))
-                except (ValueError, IndexError):
-                    pass
-
-        # Fallback: check body for bounty mentions
+            amount = _first_amount(_REWARD_LABEL_RE, label)
+            if amount > 0.0:
+                return amount
+        if title:
+            amount = _first_amount(_REWARD_BODY_RE, title)
+            if amount > 0.0:
+                return amount
         if body:
-            matches = re.findall(r"(?:bounty|reward|prize).*?\$?(\d+(?:,\d{3})*(?:\.\d{2})?)", body, re.IGNORECASE)
-            if matches:
-                try:
-                    return float(matches[0].replace(",", ""))
-                except (ValueError, IndexError):
-                    pass
-
-        # Default: unknown reward
+            return _first_amount(_REWARD_BODY_RE, body)
         return 0.0
 
     def _estimate_difficulty(self, labels: list[str], body: str) -> DifficultyLevel:
@@ -280,3 +353,41 @@ class GitHubBountyDweAdapter(BaseDiscoveryAdapter):
 def build_github_bounty_adapter() -> GitHubBountyDweAdapter:
     """Factory for the GitHub Bounty adapter."""
     return GitHubBountyDweAdapter()
+
+
+async def repos_without_paid_evidence(repo_keys: list[str], client: httpx.AsyncClient | None = None) -> dict[str, str]:
+    """Repos whose bounty history shows **no merged PR**, mapped to the reason.
+
+    A bounty board that promises "$960 al mergear" and has never merged a
+    single PR has not paid anyone. Measured 2026-10-01: the four repos the
+    discovery surfaced had 0 merged PRs across 30+ closed PRs each.
+
+    Returns ONLY repos with zero evidence of payment, so the caller can
+    exclude them without hiding the ones that do pay.
+    """
+    owns = client is None
+    client = client or httpx.AsyncClient(timeout=20, headers={"Accept": "application/vnd.github+json"})
+    out: dict[str, str] = {}
+    try:
+        for key in repo_keys:
+            owner, _, repo = key.partition("/")
+            if not owner or not repo:
+                continue
+            resp = await client.get(
+                f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls", params={"state": "closed", "per_page": 30}
+            )
+            if resp.status_code != 200:
+                continue  # unknown ⇒ do not accuse
+            pulls = resp.json()
+            merged = sum(1 for p in pulls if p.get("merged_at"))
+            if pulls and merged == 0:
+                out[key] = (
+                    f"sin evidencia de pago: {len(pulls)} PRs cerradas, 0 mergeadas "
+                    f"(verificado en GitHub API el 2026-10-01)"
+                )
+    except Exception as exc:  # noqa: BLE001 — never break discovery
+        logger.debug("pago-evidence probe failed: %s", exc)
+    finally:
+        if owns:
+            await client.aclose()
+    return out

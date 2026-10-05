@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -115,11 +116,31 @@ class TestMindriftClaimTopLevel:
                 assert result.success is True
 
     def test_claim_finds_first_available(self):
+        # Contrato nuevo (UNKNOWN → NO AUTO-ACTION): sin opt-in se rehúsa sin red.
+        with patch("httpx.AsyncClient") as mock_http:
+            mock_http.return_value = _MockClient()
+            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com"}, clear=False):
+                os.environ.pop("MINDRIFT_AUTOCLAIM", None)
+                result = asyncio.run(claim())
+                assert result.success is False
+                assert result.error is not None and "auto-claim disabled" in result.error
+                mock_http.return_value.post.assert_not_called()
+
+    def test_claim_first_available_with_explicit_opt_in(self):
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.get.return_value = _mock_response(200, [{"id": "t1"}, {"id": "t2"}])
             mock_http.return_value.post.return_value = _mock_response(201, {"task_id": "t1"})
             with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com"}):
+                result = asyncio.run(claim(allow_auto=True))
+                assert result.success is True
+
+    def test_claim_first_available_with_env_opt_in(self):
+        with patch("httpx.AsyncClient") as mock_http:
+            mock_http.return_value = _MockClient()
+            mock_http.return_value.get.return_value = _mock_response(200, [{"id": "t1"}])
+            mock_http.return_value.post.return_value = _mock_response(201, {"task_id": "t1"})
+            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com", "MINDRIFT_AUTOCLAIM": "1"}):
                 result = asyncio.run(claim())
                 assert result.success is True
 
@@ -127,7 +148,67 @@ class TestMindriftClaimTopLevel:
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.get.return_value = _mock_response(200, [])
-            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com"}):
-                result = asyncio.run(claim())
+            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com", "MINDRIFT_AUTOCLAIM": "1"}):
+                result = asyncio.run(claim(allow_auto=True))
                 assert result.success is False
                 assert result.error is not None and "No open tasks" in result.error
+
+
+class TestWatchLevels:
+    def test_levels_declare_read_only_default(self):
+        from cores.opportunity.executors.mindrift_executor import WATCH_LEVELS
+
+        assert WATCH_LEVELS["list_tasks"] == "ALLOWED"
+        assert WATCH_LEVELS["claim_first_open"] == "RESTRICTED"
+        assert WATCH_LEVELS["auto_submit"] == "RESTRICTED"
+
+
+class _FakeExecutor:
+    def __init__(self, tasks, token="t"):
+        self._tasks = tasks
+        self.token = token
+        self.claimed: list[str] = []
+
+    async def get_tasks(self, status="open"):
+        from cores.opportunity.executors import ExecutionResult
+
+        return ExecutionResult(True, "get_tasks", status, data={"tasks": self._tasks})
+
+    async def claim_task(self, task_id: str):
+        self.claimed.append(task_id)
+        from cores.opportunity.executors import ExecutionResult
+
+        return ExecutionResult(True, "claim_task", task_id)
+
+
+class TestWatchNewTasks:
+    def test_reports_only_unseen_and_never_claims(self, tmp_path):
+        from cores.opportunity.executors.mindrift_executor import watch_new_tasks
+
+        store = tmp_path / "seen.json"
+        fake = _FakeExecutor([{"id": "a", "title": "T1", "reward": 10}, {"id": "b", "title": "T2"}])
+        first = asyncio.run(watch_new_tasks(store, executor=fake))
+        assert first["configured"] is True and first["open"] == 2
+        assert [t["id"] for t in first["new_tasks"]] == ["a", "b"]
+        second = asyncio.run(watch_new_tasks(store, executor=fake))
+        assert second["new_tasks"] == [] and second["open"] == 2
+        assert fake.claimed == []
+
+    def test_without_token_reports_not_configured(self, tmp_path):
+        from cores.opportunity.executors.mindrift_executor import watch_new_tasks
+
+        out = asyncio.run(watch_new_tasks(tmp_path / "s.json", executor=_FakeExecutor([], token="")))
+        assert out == {
+            "configured": False,
+            "open": 0,
+            "new_tasks": [],
+            "note": "Set MINDRIFT_EMAIL (or vault token) to enable watching.",
+        }
+
+    def test_corrupt_store_starts_empty(self, tmp_path):
+        from cores.opportunity.executors.mindrift_executor import watch_new_tasks
+
+        store = tmp_path / "s.json"
+        store.write_text("{broken", encoding="utf-8")
+        out = asyncio.run(watch_new_tasks(store, executor=_FakeExecutor([{"id": "z"}])))
+        assert [t["id"] for t in out["new_tasks"]] == ["z"]

@@ -528,5 +528,39 @@
     "disconnected": "Disconnected",
     "shell": "Shell",
     "command": "Command"
+  },
+  "command_center": {
+    "title": "Command Center",
+    "now": "NOW",
+    "money": "MONEY",
+    "status": "STATUS",
+    "next_action": "NEXT ACTION",
+    "top_opportunity": "TOP OPPORTUNITY",
+    "blockers": "BLOCKERS",
+    "no_blockers": "No blockers: you can move forward",
+    "net_per_hour": "Net / human hour",
+    "realized": "Realized",
+    "pending": "Pending",
+    "expected": "Expected",
+    "pipeline": "In flight",
+    "no_measurement": "No measurement yet",
+    "make_now": "DO IT NOW",
+    "view_all": "View all"
+  },
+  "daily": {
+    "digest": "Daily digest",
+    "best_action": "Best action today",
+    "priorities": "Priorities",
+    "decisions": "Pending decisions",
+    "nothing_pending": "Nothing pending: the system is working on its own",
+    "queue": "Review queue",
+    "queue_hint": "Approve or discard what the system prepared",
+    "days_left_7mo": "{days} days left of the 7-month plan",
+    "no_paid_yet": "No payouts yet: the plan is still calibrating"
+  },
+  "language_ui": {
+    "switch": "Language",
+    "switch_hint": "Spanish by default. Change it whenever you want.",
+    "switched": "Language changed to {lang}"
   }
 }

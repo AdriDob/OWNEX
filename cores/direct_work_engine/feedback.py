@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from cores.direct_work_engine.models import OpportunityCategory, UserProfile
 
@@ -49,6 +50,10 @@ class LearningRecord:
     paid: bool = False
     net_amount: float | None = None
     fees: float = 0.0
+    # P-CALIBRATION (2026-09-28): técnica y programa para calibrar P(accept)
+    # real por slice. Vacíos = sin dato (el slice cae a global o UNKNOWN).
+    technique: str = ""  # ej. direct_override | tool_hijack | prompt_injection
+    program: str = ""  # ej. openai_safety | anthropic_safety | microsoft_ai
 
 
 def apply_learning(profile: UserProfile, records: list[LearningRecord]) -> UserProfile:
@@ -156,3 +161,56 @@ def _rates(records: list[LearningRecord], key: Callable[[LearningRecord], str]) 
         if record.accepted:
             accepted_counts[k] = accepted_counts.get(k, 0) + 1
     return {k: round(accepted_counts.get(k, 0) / total, 3) for k, total in totals.items() if total > 0}
+
+
+def calibrate(records: list[LearningRecord]) -> dict[tuple[str, str], dict[str, Any]]:
+    """P(accept) real por (technique, program) desde outcomes verificados.
+
+    Retorna {(technique, program): {attempts, successes, rate, verdict}}.
+    verdict: UNKNOWN (<3 intentos), THIN (3-9), MEASURED (≥10).
+    Sin records → {} (UNKNOWN honesto, jamás 0 inventado como tasa).
+    Puro, sin I/O.
+    """
+    buckets: dict[tuple[str, str], list[int]] = {}
+    for record in records:
+        key = ((record.technique or "").strip(), (record.program or "").strip())
+        slot = buckets.setdefault(key, [0, 0])
+        slot[0] += 1
+        if record.accepted:
+            slot[1] += 1
+    out: dict[tuple[str, str], dict[str, Any]] = {}
+    for key, slot in buckets.items():
+        attempts: int = slot[0]
+        successes: int = slot[1]
+        rate: float = round(successes / attempts, 3) if attempts else 0.0
+        verdict = "MEASURED" if attempts >= 10 else ("THIN" if attempts >= 3 else "UNKNOWN")
+        out[key] = {"attempts": attempts, "successes": successes, "rate": rate, "verdict": verdict}
+    return out
+
+
+def p_accept_estimate(records: list[LearningRecord], technique: str = "", program: str = "") -> float | None:
+    """Mejor estimación honesta de P(accept) para un slice.
+
+    1) slice exacto (technique, program) si tiene intentos;
+    2) slice por technique si tiene intentos;
+    3) global si hay records;
+    4) None (UNKNOWN) si no hay nada.
+    """
+    table = calibrate(records)
+    if not table:
+        return None
+    exact = table.get((technique.strip(), program.strip()))
+    if exact is not None:
+        attempts = int(exact.get("attempts", 0))
+        if attempts > 0:
+            return float(exact.get("rate", 0.0))
+    if technique.strip():
+        tech_attempts = sum(int(v.get("attempts", 0)) for (t, _), v in table.items() if t == technique.strip())
+        tech_success = sum(int(v.get("successes", 0)) for (t, _), v in table.items() if t == technique.strip())
+        if tech_attempts > 0:
+            return round(tech_success / tech_attempts, 3)
+    total_attempts = sum(int(v.get("attempts", 0)) for v in table.values())
+    if total_attempts <= 0:
+        return None
+    total_success = sum(int(v.get("successes", 0)) for v in table.values())
+    return round(total_success / total_attempts, 3)

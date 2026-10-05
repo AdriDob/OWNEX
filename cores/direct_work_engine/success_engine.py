@@ -93,6 +93,13 @@ CATEGORY_BASE_ACCEPTANCE: dict[str, float] = {
     "hackathon": 0.25,
     "competition": 0.15,
     "competitions": 0.15,
+    # Employment: selection funnel (CV + interview), lowest acceptance of the
+    # set — not because the work is harder but because there are fewer slots.
+    # Below "general" (0.40) on purpose: a default would over-promise.
+    "employment": 0.05,
+    # Open call: paid per accepted outcome with no selection step, so acceptance
+    # is high — but only once the deliverable passes review, never 1.0.
+    "open_call": 0.55,
     "general": 0.40,
 }
 

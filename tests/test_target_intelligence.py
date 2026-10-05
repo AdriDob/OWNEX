@@ -312,3 +312,152 @@ class TestPrioritizer:
 
         assert "validate" in plan.phases_to_run
         assert "report" in plan.phases_to_run
+
+
+class TestFreshBoost:
+    def test_fresh_domain_sube_prioridad(self, mock_intel):
+        from unittest.mock import patch
+
+        from cores.priority.ev_engine import EVResult
+        from cores.target_intelligence.prioritizer import TargetPrioritizer
+
+        target = make_target(1)
+        target.domain = "fresh.test"
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            prioritizer = TargetPrioritizer()
+            _, base = prioritizer.prioritize([target], {1: mock_intel}, {})
+            _, boosted = prioritizer.prioritize([target], {1: mock_intel}, {}, {"fresh.test": 1.5})
+        assert boosted[0].priority_score > base[0].priority_score
+        assert boosted[0].priority_score <= 10.0
+
+    def test_sin_boost_no_cambia(self, mock_intel):
+        from unittest.mock import patch
+
+        from cores.priority.ev_engine import EVResult
+        from cores.target_intelligence.prioritizer import TargetPrioritizer
+
+        target = make_target(2)
+        target.domain = "old.test"
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            prioritizer = TargetPrioritizer()
+            _, base = prioritizer.prioritize([target], {2: mock_intel}, {})
+            _, same = prioritizer.prioritize([target], {2: mock_intel}, {}, None)
+        assert same[0].priority_score == base[0].priority_score
+
+
+class TestBigScopeBoost:
+    def _evd(self, mock_intel, monkeypatch):
+        from unittest.mock import patch
+
+        from cores.priority.ev_engine import EVResult
+
+        return patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        )
+
+    def test_wildcard_real_bool_boosts(self, mock_intel, monkeypatch):
+        from unittest.mock import patch
+
+        from cores.priority.ev_engine import EVResult
+        from cores.target_intelligence.prioritizer import TargetPrioritizer
+
+        target = make_target(1)
+        target.domain = "x.test"
+        target.is_wildcard = True
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            _, boosted = TargetPrioritizer().prioritize([target], {1: mock_intel}, {})
+        target.is_wildcard = False
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            _, base = TargetPrioritizer().prioritize([target], {1: mock_intel}, {})
+        assert boosted[0].priority_score > base[0].priority_score
+
+    def test_tier_giants_boost(self, mock_intel):
+        from unittest.mock import patch
+
+        from cores.priority.ev_engine import EVResult
+        from cores.target_intelligence.prioritizer import TargetPrioritizer
+
+        target = make_target(1)
+        target.domain = "x.test"
+        mock_intel.program_url = "https://hackerone.com/google"
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            _, boosted = TargetPrioritizer().prioritize([target], {1: mock_intel}, {})
+        mock_intel.program_url = "https://example.com/pequeno"
+        with patch(
+            "cores.target_intelligence.prioritizer.compute_ev",
+            return_value=EVResult(
+                expected_value=100.0,
+                estimated_reward=1000,
+                acceptance_probability=0.3,
+                speed_multiplier=1.0,
+                confidence=0.5,
+                reasoning="t",
+                breakdown={},
+            ),
+        ):
+            _, base = TargetPrioritizer().prioritize([target], {1: mock_intel}, {})
+        assert boosted[0].priority_score > base[0].priority_score

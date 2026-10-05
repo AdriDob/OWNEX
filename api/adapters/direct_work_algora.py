@@ -32,41 +32,10 @@ class AlgoraAdapter(LegacyOpportunityDweAdapter):
     - For now: curated deep-links to active bounties.
     """
 
-    CURATED_BOUNTIES = [
-        {
-            "id": "algora_rudderstack_go",
-            "name": "RudderStack Go SDK Improvements",
-            "description": "Improve Go SDK for event streaming. Bounty: $2,000. No interview, PR-based.",
-            "url": "https://algora.io/issues/rudderstack/rudderstack-go-sdk",
-            "reward": 2000.0,
-            "effort_hours": 8.0,
-            "tags": ["go", "golang", "sdk", "backend", "open_source"],
-            "difficulty": "medium",
-            "language": "go",
-        },
-        {
-            "id": "algora_appflowy_flutter",
-            "name": "AppFlowy Flutter Bug Fixes",
-            "description": "Fix critical bugs in Flutter productivity app. Bounty: $500. No interview.",
-            "url": "https://algora.io/issues/AppFlowy/AppFlowy",
-            "reward": 500.0,
-            "effort_hours": 6.0,
-            "tags": ["flutter", "dart", "mobile", "ui", "open_source"],
-            "difficulty": "easy",
-            "language": "dart",
-        },
-        {
-            "id": "algora_trigger_dev",
-            "name": "Trigger.dev TypeScript Improvements",
-            "description": "Improve Next.js/TypeScript background job system. Bounty: $200. No interview.",
-            "url": "https://algora.io/issues/triggerdotdev/trigger.dev",
-            "reward": 200.0,
-            "effort_hours": 4.0,
-            "tags": ["typescript", "nextjs", "backend", "api", "open_source"],
-            "difficulty": "easy",
-            "language": "typescript",
-        },
-    ]
+    # Curated seeds vaciados 2026-09-16 (verificado: las 3 /issues/* → 404;
+    # algora.io vive pero el scheme de issues murió). Sin URL 200 verificada
+    # por probe no hay seed. El adapter sigue vivo para fetch real con token.
+    CURATED_BOUNTIES: list[dict] = []
 
     def __init__(self, config: dict[str, Any] | None = None):
         # Algora doesn't have a legacy engine, so we pass None

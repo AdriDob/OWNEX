@@ -154,9 +154,7 @@ class TestToolMatrix:
         from cores.offensive.reasoners.prompt_injection import build_tool_matrix, discover_ai_surface
 
         eps = [
-            EndpointInfo(
-                path="/v1/agent/run", method="POST", params={}, body={"input": "x", "code_execution": True}
-            )
+            EndpointInfo(path="/v1/agent/run", method="POST", params={}, body={"input": "x", "code_execution": True})
         ]
         surface = discover_ai_surface(eps)
         cases = build_tool_matrix(surface)
@@ -176,11 +174,7 @@ class TestRagPlaybook:
     def test_playbook_stages(self):
         from cores.offensive.reasoners.prompt_injection import discover_ai_surface, rag_poisoning_playbook
 
-        eps = [
-            EndpointInfo(
-                path="/api/kb/ask", method="POST", params={"question": "x"}, body={"ingest": False}
-            )
-        ]
+        eps = [EndpointInfo(path="/api/kb/ask", method="POST", params={"question": "x"}, body={"ingest": False})]
         steps = rag_poisoning_playbook(discover_ai_surface(eps))
         assert len(steps) == 1
         assert len(steps[0]["stages"]) == 5

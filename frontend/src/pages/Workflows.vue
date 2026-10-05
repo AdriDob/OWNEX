@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Activity, CheckCircle2, Clock, FileText, Loader2, Play, Plus, RefreshCw, Workflow, XCircle } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -40,14 +41,15 @@ const tabLabel = computed(() => (activeTab.value === 'templates' ? 'Plantillas' 
 async function fetchAll() {
   loading.value = true
   try {
-    const [tRes, rRes] = await Promise.all([fetch('/api/core/workflows/templates'), fetch('/api/core/workflows/runs')])
-    if (tRes.ok) {
-      const d = await tRes.json()
-      templates.value = d.templates || []
+    const [tData, rData] = await Promise.all([
+      api.get<any>('/api/core/workflows/templates'),
+      api.get<any>('/api/core/workflows/runs'),
+    ])
+    if (tData) {
+      templates.value = tData.templates || []
     }
-    if (rRes.ok) {
-      const d = await rRes.json()
-      runs.value = d.runs || []
+    if (rData) {
+      runs.value = rData.runs || []
     }
   } catch {
     toast.error('Error', 'No se pudieron cargar workflows')
@@ -59,24 +61,19 @@ async function fetchAll() {
 async function createRun(templateFile: string) {
   creating.value = templateFile
   try {
-    const res = await fetch('/api/core/workflows/runs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template_file: templateFile, target: targetInput.value }),
+    await api.post('/api/core/workflows/runs', {
+      template_file: templateFile,
+      target: targetInput.value,
     })
-    if (res.ok) {
-      toast.success('Workflow', 'Ejecución creada')
-      targetInput.value = ''
-      selectedTemplate.value = null
-      showNewDialog.value = false
-      await fetchAll()
-      activeTab.value = 'runs'
-    } else {
-      const err = await res.json()
-      toast.error('Error', err.error || 'No se pudo crear')
-    }
-  } catch {
-    toast.error('Error', 'Error de conexión')
+    toast.success('Workflow', 'Ejecución creada')
+    targetInput.value = ''
+    selectedTemplate.value = null
+    showNewDialog.value = false
+    await fetchAll()
+    activeTab.value = 'runs'
+  } catch (e: unknown) {
+    const err = e as { message?: string }
+    toast.error('Error', err.message || 'No se pudo crear')
   } finally {
     creating.value = null
   }

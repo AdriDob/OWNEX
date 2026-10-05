@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from typing import Any
 
@@ -11,6 +12,7 @@ from .adapters import (
     create_cerebras_adapter,
     create_deepinfra_adapter,
     create_fcc_adapter,
+    create_freellmapi_adapter,
     create_groq_adapter,
     create_lmstudio_adapter,
     create_nvidia_adapter,
@@ -58,6 +60,12 @@ class ProviderRegistry:
             "cerebras": lambda: create_cerebras_adapter(),
             "lmstudio": lambda: create_lmstudio_adapter(),
         }
+
+        # FreeLLMAPI es opt-in: sólo existe si el self-hosted está configurado.
+        # Nunca se registra por defecto (si no, cada health check pagaría un
+        # timeout contra un localhost sin servidor).
+        if os.environ.get("FREELLMAPI_BASE_URL"):
+            self._provider_factories["freellmapi"] = lambda: create_freellmapi_adapter()
 
     def register_factory(self, provider_id: str, factory: Callable[[], AIProviderProtocol]) -> None:
         """Register a provider factory for lazy initialization."""

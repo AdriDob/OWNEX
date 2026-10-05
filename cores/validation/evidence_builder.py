@@ -100,6 +100,52 @@ class EvidenceBuilder:
             "python_command": self._build_python(spec, "probe"),
         }
 
+    def build_ai_agent_transcript(
+        self,
+        turns: list[dict[str, Any]],
+        endpoint: str = "",
+        program: str = "",
+        repro_rate: float | None = None,
+        impact: str = "",
+    ) -> dict[str, Any]:
+        """Transcript de agente-IA en el formato que piden los programas frontier.
+
+        OpenAI/Anthropic exigen: scope autorizado, prompt benigno fijo +
+        instrucción inyectada, transcript completo y tasa de reproducción.
+        Auth-bearing headers de los turns se redactan igual que en curl.
+        Puro: turns es lista de {input, output} (ej. ai_lab.run_chain).
+        """
+        clean_turns: list[dict[str, str]] = []
+        for i, t in enumerate(turns or []):
+            clean_turns.append(
+                {
+                    "turn": str(i + 1),
+                    "input": str(t.get("input", ""))[:2000],
+                    "output": str(t.get("output", ""))[:2000],
+                }
+            )
+        lines = [
+            f"Scope: authorized target {endpoint or '(see report)'} — program: {program or 'unspecified'}.",
+            f"Fixed benign prompt + injected instruction per turn below ({len(clean_turns)} turns).",
+        ]
+        for t in clean_turns:
+            lines.append(f"[turn {t['turn']}] IN> {t['input']}")
+            lines.append(f"[turn {t['turn']}] OUT> {t['output']}")
+        if repro_rate is not None:
+            lines.append(f"Reproducibility: {repro_rate:.0%} over repeated runs (fresh session each).")
+        return {
+            "endpoint": endpoint,
+            "program": program,
+            "turns": clean_turns,
+            "turn_count": len(clean_turns),
+            "repro_rate": repro_rate,
+            "repro_gate": "PASS"
+            if repro_rate is not None and repro_rate >= 0.5
+            else ("UNKNOWN" if repro_rate is None else "FAIL"),
+            "impact": impact,
+            "transcript_md": "\n".join(lines),
+        }
+
     def _build_curl(self, spec: RequestSpec, auth_label: str, comparison: ComparisonResult | None = None) -> str:
         """Reproducible curl built from the REQUEST spec (never response headers).
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -123,6 +124,20 @@ def seed_ranked_suppliers() -> list[Supplier]:
             verified=False,
             reseller_program=True,
             notes="Paga al vender+cobrar PERO exige suscripción para el catálogo (plan NubeDrop gratis solo parcial) → FUTURE, no $0 total. Verificar CaufyPrint POD desde 1 unidad como vía $0.",
+        ),
+        Supplier(
+            id="caufyprint_pod",
+            name="CaufyPrint POD",
+            type=SupplierType.PRINT_ON_DEMAND,
+            website="https://caufy.com.ar",
+            capital_required_usd=Decimal("0"),
+            monthly_cost_usd=Decimal("0"),
+            fulfillment="provider",
+            fee_model="none",
+            stock_sync=False,
+            verified=False,
+            reseller_program=False,
+            notes="POD desde 1 unidad (diseño propio gratis, imprimen+despachan ellos). FUTURE hasta verificar por WA: 1 unidad real + quién financia impresión + tiempos + devoluciones + fotos.",
         ),
         # ── Droppinglabel IG $0 (verificado 2026-09-17: sitios vivos por probe) ──
         # Todos nacen verified=False → gate FUTURE hasta confirmar las 5 preguntas
@@ -550,10 +565,8 @@ class EcommerceEngine:
         self._carts: dict[str, AbandonedCart] = {}
         self._initialized = False
         # Load persisted suppliers if any (100 AR Meli-only)
-        try:
+        with contextlib.suppress(Exception):
             self._load_suppliers()
-        except Exception:
-            pass
 
     def _load_suppliers(self):
         import json as _json
@@ -576,16 +589,12 @@ class EcommerceEngine:
                     raw["commission_rate"] = __import__("decimal").Decimal(str(raw.get("commission_rate", "0")))
                 except Exception:
                     raw["commission_rate"] = __import__("decimal").Decimal("0")
-                try:
+                with contextlib.suppress(Exception):
                     raw["capital_required_usd"] = __import__("decimal").Decimal(
                         str(raw.get("capital_required_usd", "0"))
                     )
-                except Exception:
-                    pass
-                try:
+                with contextlib.suppress(Exception):
                     raw["monthly_cost_usd"] = __import__("decimal").Decimal(str(raw.get("monthly_cost_usd", "0")))
-                except Exception:
-                    pass
                 try:
                     raw["fee_pct"] = float(raw.get("fee_pct", 0.0) or 0.0)
                 except Exception:
@@ -686,10 +695,8 @@ class EcommerceEngine:
     def add_supplier(self, supplier: Supplier) -> Supplier:
         self._suppliers[supplier.id] = supplier
         logger.info("Added supplier: %s (%s)", supplier.name, supplier.id)
-        try:
+        with contextlib.suppress(Exception):
             self._save_suppliers()
-        except Exception:
-            pass
         return supplier
 
     def get_supplier(self, supplier_id: str) -> Supplier | None:
@@ -709,10 +716,8 @@ class EcommerceEngine:
             if hasattr(supplier, key):
                 setattr(supplier, key, value)
         supplier.updated_at = datetime.now(UTC)
-        try:
+        with contextlib.suppress(Exception):
             self._save_suppliers()
-        except Exception:
-            pass
         return supplier
 
     async def sync_supplier_catalog(self, supplier_id: str, limit: int = 50) -> dict[str, Any]:

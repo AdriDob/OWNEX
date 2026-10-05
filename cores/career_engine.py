@@ -56,6 +56,12 @@ CATEGORY_REQUIRED_SKILLS: dict[OpportunityCategory, set[str]] = {
     OpportunityCategory.BLOCKCHAIN_DEVELOPMENT: {"solidity", "web3", "ethereum", "cryptography"},
     OpportunityCategory.SMART_CONTRACTS: {"solidity", "ethereum", "hardhat", "security"},
     OpportunityCategory.COMPETITIONS: {"algorithms", "problem_solving", "data_structures", "git"},
+    # Employment: the barrier IS hiring, so the skills are the ones a recruiter
+    # screens for (proof of work), not the ones the job itself needs.
+    OpportunityCategory.EMPLOYMENT: {"interview_prep", "resume", "system_design", "git"},
+    # Open call (paid per outcome, no selection): the deliverable is the work
+    # itself plus the ability to prove it.
+    OpportunityCategory.OPEN_CALL: {"content_creation", "editing", "proof_of_work", "time_tracking"},
 }
 
 # Common interview questions per category (realistic, official-style).

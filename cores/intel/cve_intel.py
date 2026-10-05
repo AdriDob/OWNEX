@@ -217,3 +217,74 @@ async def prioritize_cves(tech_stack: list[str]) -> list[CVEResult]:
                 )
     results.sort(key=lambda r: r.priority_score, reverse=True)
     return results
+
+
+CUSTOM_TEMPLATES_DIRNAME = "nuclei_custom"
+
+
+def _template_yaml(cve: CVEResult) -> str:
+    """Esqueleto YAML nuclei para un CVE (draft: lo revisa un humano antes de usar)."""
+    sev = {"Critical": "critical", "High": "high", "Medium": "medium"}.get(cve.priority_label, "low")
+    safe_id = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in cve.id)
+    return f"""id: custom-{safe_id.lower()}
+
+info:
+  name: "[CUSTOM-DRAFT] {cve.id} ({cve.tech})"
+  author: ownex
+  severity: {sev}
+  description: "{cve.description[:200]}"
+  reference:
+    - {cve.url}
+  metadata:
+    draft: true
+    cve-id: {cve.id}
+    epss: {cve.epss}
+
+# TODO(humano): completar matchers contra la versión/tecnología afectada.
+# Ver fix sugerido: {cve.fix[:160]}
+http:
+  - raw:
+      - |
+        GET / HTTP/1.1
+        Host: {{{{Hostname}}}}
+
+    matchers:
+      - type: status
+        status:
+          - 200
+"""
+
+
+def suggest_custom_templates(
+    cves: list[CVEResult],
+    out_dir: str | None = None,
+    min_priority: float = 6.0,
+) -> dict:
+    """Genera esqueletos de plantillas nuclei desde CVEs priorizados (P2).
+
+    Solo CVEs con priority_score >= min_priority. Nunca raisea ni sobrescribe
+    plantillas ya editadas por humanos (solo crea las que faltan).
+    """
+    import os
+    from pathlib import Path
+
+    try:
+        dest = Path(out_dir) if out_dir else Path(os.environ.get("OWNEX_DATA_DIR", "data")) / CUSTOM_TEMPLATES_DIRNAME
+        dest.mkdir(parents=True, exist_ok=True)
+        created: list[str] = []
+        for cve in cves or []:
+            try:
+                if float(getattr(cve, "priority_score", 0) or 0) < min_priority:
+                    continue
+                safe_id = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(cve.id))
+                target = dest / f"custom-{safe_id.lower()}.yaml"
+                if target.exists():
+                    continue  # editada o ya generada: no pisar trabajo humano
+                target.write_text(_template_yaml(cve), encoding="utf-8")
+                created.append(target.name)
+            except Exception:
+                continue
+        return {"success": True, "dir": str(dest), "created": created}
+    except Exception as exc:
+        logger.warning("cve_intel: suggest_custom_templates falló: %s", exc)
+        return {"success": False, "error": "suggest_failed"}

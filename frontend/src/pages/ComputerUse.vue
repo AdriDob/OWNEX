@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { api } from '@/lib/api'
 
 const apiBase = import.meta.env.VITE_API_BASE || ''
 
@@ -87,8 +88,7 @@ onUnmounted(() => stopPreview())
 // ── API calls ──────────────────────────────────────────────────
 async function fetchStatus() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/status`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/status')
     status.value = data.status === 'ok' ? data.tool : null
   } catch (e: any) {
     error.value = e.message
@@ -97,8 +97,7 @@ async function fetchStatus() {
 
 async function fetchLearningStats() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/learning/stats`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/learning/stats')
     learningStats.value = data.platforms || []
   } catch (e: any) {
     error.value = e.message
@@ -107,8 +106,7 @@ async function fetchLearningStats() {
 
 async function captureScreenshot() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/screenshot`, { method: 'POST' })
-    const data = await res.json()
+    const data = await api.post<any>('/api/copilot/computer-use/screenshot')
     if (data.status === 'ok' && data.analysis?.screenshot_path) {
       currentScreenshot.value = data.analysis.screenshot_path
       screenshotTimestamp.value = Date.now()
@@ -167,8 +165,7 @@ async function fetchRecords() {
 
 async function fetchHistory() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/history?limit=10`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/history?limit=10')
     historySessions.value = data.sessions || []
   } catch (e: any) {
     // silent
@@ -179,8 +176,7 @@ async function selectSession(session: HistorySession) {
   selectedSession.value = session
   currentSlide.value = 0
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/history/${session.session_id}/screenshots`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/history/${session.session_id}/screenshots')
     sessionScreenshots.value = data.screenshots || []
     if (sessionScreenshots.value.length > 0) {
       currentScreenshot.value = sessionScreenshots.value[0].path

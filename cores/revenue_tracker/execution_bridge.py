@@ -13,6 +13,10 @@ Rules (Economic Rule §39, enforced by tests):
 - Idempotent: re-recording the same execution is a no-op status refresh.
 
 Callers MUST guard with try/except: revenue recording never breaks delivery.
+
+Closed loop (2026-09-28): ``record_bounty_paid()`` is the ONLY path from a
+submission to PAID, and it demands evidence (amount > 0 + payout reference).
+Accepted != paid stays enforced everywhere else.
 """
 
 from __future__ import annotations
@@ -256,6 +260,59 @@ def record_submission_outcome(record: Any, opportunity: dict[str, Any] | None = 
             )
     except Exception:  # noqa: BLE001
         pass
+    return opp_id
+
+
+def record_bounty_paid(
+    submission_id: str,
+    amount_usd: float,
+    payout_ref: str,
+    platform: str = "",
+    program: str = "",
+) -> str | None:
+    """ÚNICO camino de submission → PAID. Exige evidencia (monto + referencia).
+
+    Reglas:
+    - ``amount_usd <= 0`` o ``payout_ref`` vacío → no PAID (ValueError → 422).
+    - Nunca inventa: sin evidencia devuelve None, jamás toca el tracker.
+    - Tras el PAID, alimenta el feedback con paid=True (no solo accepted) para
+      que ``calibrate()``/``p_accept_estimate()`` vean cash, no promesas.
+    """
+    if not (amount_usd and amount_usd > 0):
+        raise ValueError("PAID exige amount_usd > 0 (sin monto no hay cobro)")
+    if not (payout_ref or "").strip():
+        raise ValueError("PAID exige payout_ref (evidencia del pago)")
+
+    from cores.revenue_tracker.revenue_tracker import PaymentStatus, get_revenue_tracker
+
+    opp_id = f"sub_{submission_id}"
+    tracker = get_revenue_tracker()
+    if opp_id not in tracker.opportunities:
+        return None
+    tracker.update_opportunity_status(
+        opp_id,
+        PaymentStatus.PAID,
+        {"payout_ref": payout_ref.strip(), "paid_amount_usd": float(amount_usd), "source": "bounty_paid"},
+    )
+    # Feedback: mismo sink que el path CONFIRMED, ahora con el monto REAL
+    # cobrado (reward_usd) para que la calibración vea cash, no promesas.
+    try:
+        from cores.direct_work_engine.reward_probability import (
+            get_personal_acceptance_probability,
+            niche_for_category,
+        )
+
+        get_personal_acceptance_probability().record_outcome(
+            platform=str(platform or "").strip().lower(),
+            program=str(program or "").strip().lower(),
+            niche=niche_for_category("bug_bounty"),
+            result="accepted",
+            evidence_quality=1.0,
+            reward_usd=float(amount_usd),
+            opportunity_id=opp_id,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("record_bounty_paid: feedback no alimentado: %s", exc)
     return opp_id
 
 

@@ -32,30 +32,9 @@ class BountyBoardAdapter(LegacyOpportunityDweAdapter):
     - For now: curated deep-links to representative bounties.
     """
 
-    CURATED_BOUNTIES = [
-        {
-            "id": "bountyboard_expensify_js",
-            "name": "Expensify React Native Improvements",
-            "description": "Fix React Native issues in expense tracking app. Bounty: $250-500. No interview.",
-            "url": "https://bountyboard.dev/expenses/expensify",
-            "reward": 500.0,
-            "effort_hours": 8.0,
-            "tags": ["react", "react-native", "javascript", "mobile", "open_source"],
-            "difficulty": "medium",
-            "language": "javascript",
-        },
-        {
-            "id": "bountyboard_tscircuit_react",
-            "name": "tscircuit TypeScript/React Circuit Editor",
-            "description": "Improve circuit editor for TypeScript. Bounty: $5-300. No interview.",
-            "url": "https://bountyboard.dev/tscircuit/tscircuit",
-            "reward": 300.0,
-            "effort_hours": 6.0,
-            "tags": ["typescript", "react", "circuit", "editor", "open_source"],
-            "difficulty": "medium",
-            "language": "typescript",
-        },
-    ]
+    # Curated seeds vaciados 2026-09-16 (verificado: bountyboard.dev caído
+    # entero). Sin URL 200 verificada por probe no hay seed.
+    CURATED_BOUNTIES: list[dict] = []
 
     def __init__(self, config: dict[str, Any] | None = None):
         # BountyBoard doesn't have a legacy engine, so we pass None

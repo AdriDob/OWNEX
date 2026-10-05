@@ -294,8 +294,8 @@
 
 <script setup lang="ts">
 import { Activity, AlertTriangle, Archive, RefreshCw, Shield, Trash2, X } from '@lucide/vue'
-import axios from 'axios'
 import { computed, onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 
 const loading = ref(false)
 const backups = ref<any[]>([])
@@ -312,8 +312,8 @@ const hasBackups = computed(() => backups.value.length > 0)
 const refreshCurrentVersion = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/version-backup/current-version')
-    currentVersion.value = response.data
+    const data = await api.get<any>('/version-backup/current-version')
+    currentVersion.value = data
   } catch (error) {
     console.error('Failed to fetch current version:', error)
   } finally {
@@ -324,8 +324,8 @@ const refreshCurrentVersion = async () => {
 const refreshBackups = async () => {
   loading.value = true
   try {
-    const response = await axios.get('/api/version-backup/backups')
-    backups.value = response.data.backups || []
+    const data = await api.get<any>('/version-backup/backups')
+    backups.value = data.backups || []
   } catch (error) {
     console.error('Failed to fetch backups:', error)
   } finally {
@@ -336,11 +336,11 @@ const refreshBackups = async () => {
 const createBackup = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/version-backup/backup', {
+    const data = await api.post<any>('/version-backup/backup', {
       notes: backupNotes.value,
     })
 
-    if (response.data.success) {
+    if (data.success) {
       showCreateBackupModal.value = false
       backupNotes.value = ''
       await refreshBackups()
@@ -355,8 +355,8 @@ const createBackup = async () => {
 const verifyBackup = async (backup: any) => {
   loading.value = true
   try {
-    const response = await axios.get(`/api/version-backup/backup/${encodeURIComponent(backup.backup_path)}/verify`)
-    verificationResult.value = response.data
+    const data = await api.get<any>(`/version-backup/backup/${encodeURIComponent(backup.backup_path)}/verify`)
+    verificationResult.value = data
     showVerificationModal.value = true
   } catch (error) {
     console.error('Failed to verify backup:', error)
@@ -375,12 +375,12 @@ const openRollbackModal = (backup: any) => {
 const rollbackToVersion = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/version-backup/rollback', {
+    const data = await api.post<any>('/version-backup/rollback', {
       version: selectedBackup.value?.version,
       git_commit: selectedBackup.value?.git_commit,
     })
 
-    if (response.data.success) {
+    if (data.success) {
       showRollbackModal.value = false
       await refreshBackups()
       await refreshCurrentVersion()
@@ -397,9 +397,9 @@ const restoreLatest = async () => {
 
   loading.value = true
   try {
-    const response = await axios.post('/api/version-backup/restore-latest')
+    const data = await api.post<any>('/version-backup/restore-latest')
 
-    if (response.data.success) {
+    if (data.success) {
       await refreshBackups()
       await refreshCurrentVersion()
     }

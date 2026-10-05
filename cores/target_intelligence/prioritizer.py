@@ -164,6 +164,7 @@ class TargetPrioritizer:
         targets: list[Any],
         target_intel_map: dict[int, Any],
         adjustments: dict[str, float] | None = None,
+        fresh_boost: dict[str, float] | None = None,
     ) -> tuple[dict[int, float], list[PriorityResult]]:
         self._load_metrics()
         priority_dict: dict[int, float] = {}
@@ -189,6 +190,37 @@ class TargetPrioritizer:
             )
 
             adjusted_ev = ev.expected_value * tech_adjustment * surface
+            # F1 big-scope: wildcards = periferia donde la competencia no mira.
+            # Boost acotado ×1.25; solo bool real (None/desconocido = sin cambio).
+            try:
+                _wild = getattr(tgt, "is_wildcard", False)
+                if type(_wild) is bool and _wild:
+                    adjusted_ev *= 1.25
+            except (TypeError, ValueError, AttributeError):
+                pass
+            # F1 payout-tiers: tablas máximas PUBLICADAS para critical
+            # (2026-09, verificar en cada programa). Solo ordenan, jamás fijan
+            # el payout esperado: TIER_1 ×1.3, TIER_2 ×1.15.
+            try:
+                prog = str(getattr(intel, "program_url", "") or "").lower()
+                if any(g in prog for g in ("google", "meta", "facebook")):
+                    adjusted_ev *= 1.3
+                elif any(g in prog for g in ("microsoft", "shopify", "gitlab", "uber", "yahoo")):
+                    adjusted_ev *= 1.15
+            except (TypeError, ValueError, AttributeError):
+                pass
+            # Primicia P3: dominios con alertas de cambio recientes rinden más
+            # (menos duplicados). Boost acotado [1.0, 2.0], None = sin cambio.
+            try:
+                domain = str(getattr(tgt, "domain", "") or "").lower().strip()
+                boost = 1.0
+                for host, mult in (fresh_boost or {}).items():
+                    h = str(host or "").lower().strip()
+                    if h and (domain == h or domain.endswith("." + h) or h.endswith("." + domain)):
+                        boost = max(boost, min(max(float(mult), 1.0), 2.0))
+                adjusted_ev *= boost
+            except (TypeError, ValueError, AttributeError):
+                pass
             plan = self._build_attack_plan(intel)
             usd_per_hour = round(reward / max(plan.estimated_hours, 0.5), 2)
 

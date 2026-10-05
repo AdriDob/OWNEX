@@ -52,16 +52,25 @@ class StrictFilter:
         """Return the list of rejection reasons for an opportunity (empty = approved)."""
         reasons: list[str] = []
 
-        # Unclear / fake payment
+        # Unclear / fake payment.
+        # A published HOURLY rate is a real, comparable payment: AI-evaluation
+        # roles (Mercor/Turing/Outlier) are contracts, so `payment` is 0 by
+        # construction and the money lives in `hourly_rate_usd`. Treating that
+        # as "no reward published" would reject every legitimate $-/h role;
+        # treating it as free work would rank unpriced bounties. It is neither.
+        has_published_rate = bool(getattr(opp, "hourly_rate_usd", None) or 0) > 0
         if opp.payment < 0:
             reasons.append("unclear_payment: reward value is negative")
-        elif opp.payment == 0:
+        elif opp.payment == 0 and not has_published_rate:
             reasons.append("unclear_payment: no reward published")
+        elif opp.payment == 0:
+            pass  # priced by rate/hour — see note above
         elif opp.payment < _MIN_CREDIBLE_REWARD_USD:
             reasons.append(f"unclear_payment: reward below credible minimum (${_MIN_CREDIBLE_REWARD_USD:.0f})")
 
         # Unpaid mandatory work: significant effort with no compensation.
-        if opp.payment <= 0 and opp.estimated_time_hours >= 4:
+        # Same reasoning as above: a published hourly rate IS compensation.
+        if opp.payment <= 0 and not has_published_rate and opp.estimated_time_hours >= 4:
             reasons.append("unpaid_mandatory_work: 4+h expected with no reward")
 
         # Impossible country restrictions: OWNEX targets remote, open-world work.

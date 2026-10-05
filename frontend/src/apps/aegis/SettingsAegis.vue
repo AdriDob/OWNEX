@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Plus, Shield, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 
@@ -14,9 +15,8 @@ const loading = ref(true)
 
 async function fetchTargets() {
   try {
-    const res = await fetch('/api/aegis/targets?limit=50')
-    if (res.ok) {
-      const data = await res.json()
+    const data = await api.get<any>('/api/aegis/targets?limit=50')
+    if (data) {
       targets.value = data.targets || []
     }
   } catch {
@@ -29,10 +29,9 @@ async function fetchTargets() {
 async function addTarget() {
   if (!newName.value.trim()) return
   try {
-    const res = await fetch('/api/aegis/targets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName.value.trim(), domain: newDomain.value.trim() || null }),
+    const res = await api.post<any>('/api/aegis/targets', {
+      name: newName.value.trim(),
+      domain: newDomain.value.trim() || null,
     })
     if (res.ok) {
       toast.success('Target creado', `${newName.value} agregado a AEGIS`)

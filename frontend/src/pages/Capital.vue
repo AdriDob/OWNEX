@@ -19,6 +19,7 @@ import {
   Gauge,
   Gem,
   Layers,
+  Link2,
   Loader2,
   MoreHorizontal,
   PieChart,
@@ -54,6 +55,7 @@ import KPIBlock from '@/components/ui/KPIBlock.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import Modal from '@/components/ui/Modal.vue'
 import Select from '@/components/ui/Select.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
 import { useToast } from '@/composables/useToast'
 import type { EVTarget, PlatformStatus, RevenueMetricsData } from '@/lib/api'
 import { api, getEVRankedTargets, getPlatformsStatus, getRevenueMetrics } from '@/lib/api'
@@ -772,7 +774,11 @@ function copyToClipboard(text: string) {
               }))"
               :empty-message="''"
             />
-            <EmptyState v-else icon="Link2" title="Sin plataformas" description="Conecta HackerOne, Bugcrowd, Intigriti en Settings" />
+            <EmptyState v-else title="Sin plataformas" description="Conecta HackerOne, Bugcrowd, Intigriti en Settings">
+              <template #icon>
+                <Link2 class="h-8 w-8 text-[var(--ownex-text-muted)]" />
+              </template>
+            </EmptyState>
           </CardContent>
         </Card>
 

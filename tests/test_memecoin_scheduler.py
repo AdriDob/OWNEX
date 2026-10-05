@@ -84,7 +84,9 @@ class TestPaperCycle:
             adapter=FakeAdapter([token()], {MINT: rug()}),
             store=loop_store,
             kill=KillSwitchManager(),
-            config=PaperConfig(position_sol=1.0, max_open_positions=3, daily_loss_limit_sol=5.0),
+            config=PaperConfig(
+                position_sol=1.0, max_open_positions=3, daily_loss_limit_sol=5.0, use_pumpfun_launches=False
+            ),
             max_new=3,
         )
         assert summary["entered"] == [MINT]

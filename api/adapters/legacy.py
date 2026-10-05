@@ -59,6 +59,10 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
         )
         super().__init__(source)
 
+    @property
+    def name(self) -> str:
+        return self.source.name
+
     async def fetch_opportunities(self) -> list[Opportunity]:
         raw_opps = await self._legacy.fetch_opportunities()
         return [self._convert(raw) for raw in raw_opps]
@@ -197,8 +201,8 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     Only LIVE upstreams are registered. Dead upstreams (Opire, IssueHunt,
     Immunefi, Code4rena, Superteam, Workana, OpenCollective, AR job boards,
     Pulse AI adapters) are excluded — they return [] and pollute the radar.
-    Live: bug bounty (public datasets), Dework (public API), Fiverr (internal),
-    Open Source bounties (Algora, BountyBoard, Polar), Kaggle, GitHub bounty search.
+    Live: bug bounty (public datasets), Fiverr (internal), Open Source
+    bounties (Algora, BountyBoard, Polar), Kaggle, GitHub bounty search.
     """
     adapters: list[BaseDiscoveryAdapter] = []
 
@@ -211,21 +215,29 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build bugbounty adapters: %s", exc)
 
-    # Dework — DAO/web3 bounties. Public API alive (200 on /v1/tasks).
+    # Dework — EXCLUIDO 2026-10-01. El comentario anterior decía "API alive
+    # (200 on /v1/tasks)"; el audit de abajo decía DEAD. Verifiqué en vivo:
+    # ambos endpoints devuelven 200 con `content-type: text/html` y **0 bytes**
+    # ⇒ no hay API. `resp.json()` lanzaba, el `except` lo tragaba con
+    # logger.debug y el canal fetchaba 0 en silencio. Registrar un upstream
+    # muerto contradice la regla de este mismo builder ("only LIVE upstreams")
+    # y quema requests en cada ciclo. La auditoría DEAD es la que dice la
+    # verdad; se conserva como evidencia para cuando el upstream vuelva.
+
+    # Fiverr — RETIRADO 2026-10-01 por decisión del owner: "no quiero
+    # trabajar en fiverr ni en freelance". El motor de gigs sigue en el
+    # árbol (`cores/fiverr/`), pero deja de entrar al discovery: un carril
+    # que el dueño vetó no debe aparecer en el plan diario ni en el banco.
+
+    # Bug bounty directory — public program pages with per-program payouts
+    # (Intigriti verified 2026-10-01). Reaches the highest-density lane in
+    # the catalog: 77 bug-bounty sources, zero experience, no interview.
     try:
-        from api.adapters.direct_work_dework import build_dework_adapter
+        from api.adapters.direct_work_bug_bounty_directory import build_bug_bounty_directory_adapters
 
-        adapters.append(build_dework_adapter())
+        adapters.extend(build_bug_bounty_directory_adapters())
     except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build dework adapter: %s", exc)
-
-    # Fiverr — internal engine (solution-based gigs, no external API).
-    try:
-        from api.adapters.direct_work_fiverr import FiverrDweAdapter
-
-        adapters.append(FiverrDweAdapter())
-    except Exception as exc:  # pragma: no cover
-        logger.warning("Could not build fiverr adapter: %s", exc)
+        logger.warning("Could not build bug_bounty_directory adapter: %s", exc)
 
     # Kaggle competitions — paid data science, outcome-based, zero barrier.
     try:
@@ -242,6 +254,12 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         adapters.append(build_github_bounty_adapter())
     except Exception as exc:  # pragma: no cover
         logger.warning("Could not build github_bounty adapter: %s", exc)
+
+    # AI-evaluation platforms — RETIRADO 2026-10-01 (Mercor).
+    # El owner decidió que assessment sí, interview no; Mercor exige "AI
+    # interview + technical screening" y paga por proyecto (no por hora
+    # estable). El adapter queda en el archivo pero fuera del registro: si
+    # el owner cambia de opinión, una línea lo reactiva.
 
     # Algora.io — GitHub bounties with automatic payment, zero barrier.
     try:
@@ -268,3 +286,53 @@ def build_default_adapters() -> list[BaseDiscoveryAdapter]:
         logger.warning("Could not build polar adapter: %s", exc)
 
     return adapters
+
+
+# ── Fetch audit (honest mode per adapter, probed, never invented) ──
+# Modes: LIVE (fetch real hoy) · STATIC (seeds curados, hoy vacíos) ·
+# INTERNAL (motor interno, sin fetch externo) · DEGRADED (fetch parcial).
+
+_ADAPTER_FETCH_AUDIT: dict[str, dict[str, str]] = {
+    "bugbounty": {
+        "mode": "LIVE",
+        "evidence": "datasets públicos H1/BC/Inti/YWH sin auth (probe 2026-09-11)",
+    },
+    "dework": {
+        # Corregido 2026-09-30: el audit decía LIVE por un probe del 2026-09-11
+        # que hoy ya no se reproduce. Los endpoints devuelven 200 con
+        # `content-type: text/html` y cuerpo vacío ⇒ `resp.json()` lanza y el
+        # `except` lo traga con logger.debug, así que el canalFetch 0 en
+        # silencio desde entonces. No hay API pública: upstream caído.
+        "mode": "DEAD",
+        "evidence": "v1/tasks y open_tasks → 200 text/html vacío (probe 2026-09-30)",
+    },
+    "intigriti": {
+        "mode": "LIVE",
+        "evidence": "directorio público de programas con rango por programa (probe 2026-10-01)",
+    },
+    "kaggle": {
+        "mode": "LIVE",
+        "evidence": "competitions públicas, auth opcional",
+    },
+    "github_bounty": {
+        "mode": "LIVE",
+        "evidence": "GitHub Search API pública (10 req/min sin token)",
+    },
+    "algora": {
+        "mode": "STATIC",
+        "evidence": "seeds vaciados 2026-09-16 (issues 404); fetch real con token",
+    },
+    "bountyboard": {
+        "mode": "STATIC",
+        "evidence": "seeds vaciados 2026-09-16 (bountyboard.dev caído)",
+    },
+    "polar": {
+        "mode": "STATIC",
+        "evidence": "seeds vaciados 2026-09-16 (/rust-analyzer 404)",
+    },
+}
+
+
+def get_adapter_fetch_audit() -> dict[str, dict[str, str]]:
+    """Audit table: every registered adapter has a LIVE/STATIC/INTERNAL/DEGRADED entry."""
+    return {k: dict(v) for k, v in _ADAPTER_FETCH_AUDIT.items()}

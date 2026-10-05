@@ -5,6 +5,12 @@ from cores.observability.engine import (
     ObservabilityEventType,
     get_obs_engine,
 )
+from cores.observability.timing import (
+    get_metrics,
+    record,
+    reset_metrics,
+    timer,
+)
 
 __all__ = [
     "ObservabilityEngine",
@@ -12,4 +18,8 @@ __all__ = [
     "ObservabilityEventType",
     "EventSeverity",
     "get_obs_engine",
+    "get_metrics",
+    "record",
+    "reset_metrics",
+    "timer",
 ]

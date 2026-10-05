@@ -1552,3 +1552,169 @@ para parsear. Verifica por HTTP real.
 > Y al escribir un guard de contrato: **replicá el resolver del consumidor.**
 > Comparar el path crudo convierte un guard en ruido, y ruido entrena a
 > ignorarlo.
+
+## 67. BUG P0 (corregido 2026-10-05): 51 rutas root-mounted con parámetro de path SIN auth
+
+**Causa raíz.** `AuthMiddleware._register_mounted()` guardaba el path **con
+plantilla** (`/direct-work/workbank/{item_id}/deliver/approve`) y el dispatch lo
+comparaba contra el path **concreto** de la request
+(`/direct-work/workbank/1/deliver/approve`). Nunca coinciden, así que la rama
+"asset o SPA route" se los llevaba a todos: `path not in _MOUNTED_PATHS` era
+`True` y pasaban **sin credencial**.
+
+**Medido en vivo, anónimo, antes del fix:**
+
+| Ruta | Código | Lectura |
+|---|---:|---|
+| `GET /mobile/reject/1` | **405** | llegó al router: auth evitada |
+| `GET /today` | 401 | correcto (ruta sin parámetro) |
+
+51 rutas afectadas, entre ellas `POST /mobile/approve/{approval_id}`,
+`POST /mobile/reject/{approval_id}` y
+`POST /direct-work/workbank/{item_id}/deliver/approve` — **aprobar y rechazar
+entregas en nombre del owner**.
+
+**Fix:** `_is_mounted()` matchea contra `route.path_regex` (anclado
+`^…$` en Starlette), indexado por el primer segmento literal para no recorrer
+1857 regex por request. `tests/test_auth_root_mounted_gate.py` (15 tests) pinaba
+las 4 propiedades. A prueba de fallo: reintroducir el `in` sobre
+`_MOUNTED_PATHS` ⇒ 2 tests caen.
+
+**Los 4 checks de #32 verificados además en vivo:** los 5 exentos de
+`PUBLIC_PATHS` siguen en 200; `/auth/*` y `/api/ws` siguen abiertos; el cliente
+real manda `Authorization: Bearer` desde localStorage (`frontend/src/lib/api.ts:140-143`),
+no depende de la cookie `SameSite=Lax`; y `POST /direct-work/workbank/1/deliver/approve`
+con Bearer + cookie + header csrf → **404 "item not found"** (pasó auth Y CSRF y
+llegó al handler).
+
+## 68. BUG P0 de revenue (corregido 2026-10-05): `promoter.promote()` crasheaba siempre
+
+**El flujo validation → Finding estaba muerto.** `PromotionEngine.promote()`
+instanciaba `ConfidenceEngine()` — alias de `ConfidenceScorer` (`confidence.py`),
+cuyo `calculate()` exige `results + validation + endpoint_signals` — y lo
+llamaba con **un** `ValidationResult` ⇒ `TypeError` en cada llamada. En
+`promoter.py:66`, verificado en la traza de `test_promoter_creates_finding_with_db_session`.
+
+`ValidationEngine.run()` tenía la misma llamada (para el log de confianza), así
+que **run() también moría antes de promover**.
+
+**Por qué estabaoculto:** los 11 tests que lo probaban figuraban como
+"baseline documentado" en #36. Eran la especificación de un módulo sin
+implementar, no tests viejos.
+
+**Causa de fondo:** half-migración. Hay **dos** `ConfidenceScore` — `models.py`
+(`should_promote`/`reproducible`/`rejection_risk`, la que el promoter y el
+bridge necesitan) y `confidence.py` (`score`/`breakdown`/`level`) — sobre dos
+dominios distintos (`ValidationResult` vs `ComparisonResult`+`ValidationReport`).
+La de `models.py` **nunca se construía en producción**: sólo en tests.
+
+**Fix:** `ConfidenceScore.from_validation_result()` en `models.py` — pesos
+explícitos que suman 1.0 (`_W_SIGNAL .40 / _W_IMPACT .30 / _W_REPRODUCIBLE .20 /
+_W_CONSISTENCY .10`), `SIGNALS_TARGET = 3`, y **sin baseline o sin probes
+devuelve 0 con el gap explícito, nunca un score inventado**. El promoter y el
+engine usan la misma función (una sola fuente de verdad para el log y la
+decisión). `tests/test_validation_engine.py` **35/35**.
+
+> **Deuda que queda (NO automatizable aquí):** `ConfidenceEngine = ConfidenceScorer`
+> sigue siendo un alias mentiroso en `confidence.py:235`, con el comentario
+> "the interface has changed significantly". Debe borrarse cuando se migrate el
+> resto del dominio viejo.
+
+## 69. Dos fixtures destruían el schema de la base de tests (corregido 2026-10-05)
+
+`tests/test_mission.py::clean_store` y
+`tests/test_learning_outcome_loop.py::clean_learning` hacían
+`Base.metadata.drop_all(bind=engine)` **sin filtro `tables=`** y sin recrear en
+el teardown: dejaban la base **sin ninguna tabla** para el resto de la sesión.
+
+Como pytest corre en orden alfabético, todo lo que empieza por `test_m…` o
+posterior heredaba `no such table: tasks` / `event_bus_history` /
+`targets_intel` / `memory_records` / `reports` — **19 tests**. Todos pasaban
+aislados (14+45+10+10+16+12), lo que los hacía parecer bugs propios.
+
+**Fix:** drop acotado a las tablas de cada módulo + `create_all` siempre.
+
+## 70. `test_csrf_double_submit.py` filtraba `CATEYE_CSRF_DISABLED` al resto de la sesión
+
+El fixture hacía `os.environ.pop("CATEYE_CSRF_DISABLED")` **global y sin
+teardown**. `tests/conftest.py:11` lo desactiva para toda la suite con
+`setdefault`; al terminar ese módulo el resto corría con CSRF activo y heredaba
+**403 en todos sus POST** (3 tests de `test_evidence_composer.py`, que pasa
+37/37 aislado). **Fix:** restore en el `finally` del yield.
+
+## 71. Code4rena e Immunefi tienen adapter pero NO están registrados en ningún lado
+
+**Medido:** `build_default_adapters()` devuelve
+`algora, bountyboard, github, hackerone, intigriti, kaggle, polar`.
+`get_executors()` devuelve `freelancer, issuehunt, mindrift, opire`.
+**Ni `immunefi` ni `code4rena` aparecen en ninguno de los dos**, pese a que
+`api/adapters/direct_work_code4rena.py` y `direct_work_immunefi.py` existen.
+
+Además `WorkPlatform.CODE4RENA` **no existe**: hay **dos enums `WorkPlatform`**
+divergentes — `cores/opportunity_genome/models.py` (24 miembros) y
+`cores/direct_work_engine/models.py` (37). Viola "One Source of Truth" y
+"Consistency" (AGENTS.md §8).
+
+**No se cablearon a propósito:** son carriles de ingreso y la decisión es del
+owner (¿vivos o se borran?), no un fix mecánico. Los tests ahora **pinan la
+realidad** (`assert "code4rena" not in executors` + que el adapter exista), así
+que si alguien los cablea el test cae y obliga a actualizar esta entrada.
+
+## 72. La consolidación estuvo 4 días sin commitear porque el hook la rechazaba
+
+**Corrección a una hipótesis de esta sesión:** `make check` NO corre ruff
+(`Makefile:117` es `check: typecheck-fast test-fast`, pese a que AGENTS.md lo
+describe como "ruff + typecheck + fast tests"). Eso era cierto y leda a pensar
+que el lint no gatingaba nada.
+
+**Falso:** `.pre-commit-config.yaml` sí corre 4 hooks — `ruff`, `ruff-format`,
+`pytest` (suite fast) y `frontend-build` (vue-tsc + vite build). El commit de
+la consolidación **falló** con 31 errores de ruff en archivos que nadie había
+tocado en esta sesión:
+
+  1× B904 · 11× F841 · 2× F822 · 5× SIM105 · 3× E722 (scripts/generate_profile_header.py)
+
+**Dos de los F822 eran bugs reales**, no lint: `__all__` de
+`cores/direct_work_engine/reward_probability.py` declaraba
+`EXTERNAL_REWARD_PRIORS` y `RewardPrior`, que **no existen** — `from module
+import *` reventaba con AttributeError. El real es `DEFAULT_EXTERNAL_PRIORS`
+(y no estaba exportado); `RewardPrior` es el nombre viejo de `ExternalPrior`,
+que ya estaba en la lista: entrada duplicada de un rename.
+
+Los 11 F841 del mismo módulo eran restos de un refactor a medias (el autor
+inlineó las expresiones y dejó las variables). Borrarlos no cambia
+comportamiento. **Lo que NO se hizo:** `evidence_quality` (media de las
+registros personales) se calculaba y quedaba sin usar — huele a check de gate
+que nunca se cableó, pero inventar ese check es decisión de producto.
+
+## 73. `git commit` con el hook borra trabajo no commiteado (2026-10-05)
+
+**Costo real de esta sesión, medido:** al commitear en dos partes (la
+consolidación staged, mis 17 archivos unstaged para separarlos), el hook
+empezó con *"Stashing unstaged files to ~/.cache/pre-commit/patch…txt"*,
+`ruff` falló, y el restore **dejó los 17 archivos en estado parcial**:
+
+- `api/middleware/auth_middleware.py` → volvió a la versión de 83 líneas (sin
+  `_is_mounted`): el fix del bypass P0, desaparecido.
+- `cores/validation/promoter.py` → quedó un **stub de 11 líneas** con una clase
+  `SystemComponent` que no existe en HEAD ni en el árbol: 277 líneas →
+  11. Recuperado con `git checkout HEAD --`.
+- `cores/validation/models.py` → perdió las 4 líneas preexistentes que añadían
+  `VulnType.{PROMPT_INJECTION,DESERIALIZATION,OAUTH,BACL}` (28 referencias en
+  el repo, y `economic_scorer.py:51` las usa a nivel de módulo ⇒ el import
+  reventaba). Recuperadas tras medir cuáles faltaban.
+- `tests/test_verdict_learner.py` → 4 de 13 sustituciones aplicadas.
+
+El parche de recuperación fue borrado por pre-commit antes de poder usarlo, y
+`git stash list` no mostraba entrada: **el trabajo no commiteado no es
+recuperable por git tras un commit fallido con este hook.**
+
+**Regla permanente,mismo criterio que KNOWN_DEBT #44:**
+
+> Nada de `git commit` con archivos sin commitar en el árbol. Stageá todo y
+> commiteá en una unidad, o pasá `--no-verify` con el motivo escrito. El hook
+> stashea y su restore no es de fiar.
+
+Y la defensa que no falla: **verificar por comportamiento, no por diff.**
+`git diff` de promoter.py mostraba cambios; `promoter.py` era un stub. Lo que
+lo delató fue `35 passed` → `ImportError`.

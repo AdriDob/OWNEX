@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { BarChart, DoughnutChart } from '@/components/charts'
 import Card from '@/components/ui/Card.vue'
+import DataTable, { type Column } from '@/components/ui/DataTable.vue'
 import Select from '@/components/ui/Select.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import { api } from '@/lib/api'
@@ -37,6 +38,15 @@ onMounted(async () => {
 const keys = computed(() => Object.keys(surfaces.value))
 const currentKey = computed(() => selected.value || keys.value[0] || '')
 const currentEndpoints = computed(() => surfaces.value[currentKey.value] || [])
+
+// Tabla densa: 9.922 endpoints en el árbol no se renderizan como cards.
+// `dense` + virtualización (>200 filas) + búsqueda por path/método/vector.
+const endpointColumns: Column<Endpoint>[] = [
+  { key: 'path', label: 'Path', sortable: true },
+  { key: 'method', label: 'Método', sortable: true, width: '90px' },
+  { key: 'risk_score', label: 'Riesgo', sortable: true, align: 'right', width: '80px' },
+  { key: 'vector', label: 'Vector', sortable: true },
+]
 
 function formatLabel(k: string) {
   return k.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
@@ -101,37 +111,40 @@ function formatLabel(k: string) {
         class="max-w-xs"
       />
 
-      <Card v-if="currentEndpoints.length === 0" class="p-6 text-center text-xs text-muted-foreground">
-        No endpoints in this category
-      </Card>
-
-      <Card v-else class="animate-in overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead>
-            <tr class="border-b border-border/20 text-left text-muted-foreground">
-              <th class="px-4 py-3 font-semibold">Path</th>
-              <th class="px-4 py-3 font-semibold">Method</th>
-              <th class="px-4 py-3 font-semibold">Risk</th>
-              <th class="px-4 py-3 font-semibold">Vector</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="ep in currentEndpoints" :key="ep.id"
-              class="cursor-pointer border-t border-border/10 transition-colors hover:bg-surface/30"
-              @click="router.push(`/endpoint/${ep.id}`)"
-            >
-              <td class="px-4 py-3 font-mono text-foreground">{{ ep.path }}</td>
-              <td class="px-4 py-3"><span class="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">{{ ep.method }}</span></td>
-              <td class="px-4 py-3">
-                <span class="font-semibold" :class="ep.risk_score > 70 ? 'text-destructive' : ep.risk_score > 40 ? 'text-warning' : 'text-muted-foreground'">
-                  {{ Math.round(ep.risk_score) }}
-                </span>
-              </td>
-              <td class="px-4 py-3 text-muted-foreground">{{ ep.vector }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </Card>
+      <DataTable
+        :columns="endpointColumns"
+        :items="currentEndpoints"
+        :loading="false"
+        searchable
+        dense
+        virtualize-over="200"
+        row-key="id"
+        search-placeholder="Buscar path, método o vector..."
+        empty-title="Sin endpoints en esta categoría"
+        :row-click="(ep: Endpoint) => router.push(`/endpoint/${ep.id}`)"
+        class="animate-in"
+      >
+        <template #cell-path="{ item }">
+          <span class="font-mono text-foreground">{{ item.path }}</span>
+        </template>
+        <template #cell-method="{ item }">
+          <span class="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">{{ item.method }}</span>
+        </template>
+        <template #cell-risk_score="{ item }">
+          <span
+            class="font-semibold"
+            :class="
+              item.risk_score > 70
+                ? 'text-destructive'
+                : item.risk_score > 40
+                  ? 'text-warning'
+                  : 'text-muted-foreground'
+            "
+          >
+            {{ Math.round(item.risk_score) }}
+          </span>
+        </template>
+      </DataTable>
     </template>
   </div>
 </template>

@@ -41,7 +41,7 @@ describe('useCompanion', () => {
 
     expect(status.value).toEqual({ cpu: 50, memory: 60, disk: 30 })
     expect(lastPoll.value).not.toBeNull()
-    expect(fetch).toHaveBeenCalledWith('/api/mobile/status')
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/mobile/status')
   })
 
   it('should start polling at given interval', async () => {

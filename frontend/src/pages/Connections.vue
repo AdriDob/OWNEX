@@ -31,6 +31,7 @@ import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import type { PayoutAccount, PlatformAccount, SubmissionRecord, Withdrawal } from '@/lib/api'
 import { api } from '@/lib/api'
 
@@ -171,27 +172,27 @@ async function loadData() {
   }
 }
 
+// El backend no expone sync por provider: el sync real corre en el scheduler.
+// Este botón refresca el estado real (accounts/withdrawals/platforms) bajo demanda.
 async function syncAll() {
   syncing.value = true
   syncError.value = null
   try {
-    await api.post('/connections/sync-all', {})
     await loadData()
     lastSyncAll.value = new Date().toISOString()
   } catch (e: any) {
-    syncError.value = e?.message || 'Error al sincronizar plataformas'
+    syncError.value = e?.message || 'Error al refrescar conexiones'
   } finally {
     syncing.value = false
   }
 }
 
-async function syncPlatform(provider: string) {
-  syncingPlatform.value = provider
+async function syncPlatform(_provider: string) {
+  syncingPlatform.value = _provider
   try {
-    await api.post(`/connections/sync/${provider}`, {})
     await loadData()
   } catch {
-    /* per-platform sync error handled silently */
+    /* error por plataforma se maneja con el estado de la vista */
   } finally {
     syncingPlatform.value = null
   }
@@ -379,7 +380,7 @@ function formatMoney(n: number | null | undefined) {
             class="flex items-center gap-1"
           >
             <RefreshCw :class="['h-3 w-3', syncing ? 'animate-spin' : '']" />
-            {{ syncing ? 'Sincronizando...' : 'Sync All' }}
+            {{ syncing ? 'Actualizando...' : 'Actualizar' }}
           </Button>
         </div>
       </div>
@@ -490,10 +491,10 @@ function formatMoney(n: number | null | undefined) {
                       {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_sync?.slice(0, 10) || accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_checked?.slice(0, 10) || '—' }}
                     </p>
                     <button
-                      aria-label="Syncplatform(Platform.Tolowercase" @click="syncPlatform(platform.toLowerCase())"
+                      :aria-label="`Actualizar ${platform}`" @click="syncPlatform(platform.toLowerCase())"
                       :disabled="syncingPlatform === platform.toLowerCase()"
                       class="text-muted-foreground/50 hover:text-foreground transition-colors"
-                      title="Sincronizar ahora"
+                      title="Actualizar ahora"
                     >
                       <RefreshCw :class="['h-3 w-3', syncingPlatform === platform.toLowerCase() ? 'animate-spin' : '']" />
                     </button>

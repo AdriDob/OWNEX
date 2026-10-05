@@ -355,17 +355,30 @@ async def create_autonomous_workflow(
     config: dict[str, Any] | None = None,
 ) -> AutonomousWorkflow:
     """Create workflow with default executors."""
-    from cores.opportunity.executors.algora_executor import AlgoraExecutor
+    from cores.opportunity.executors.algora_executor import AlgoraConfig, AlgoraExecutor
     from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
 
+    cfg = config or {}
+    # `AlgoraExecutor` exige un `AlgoraConfig` (su docstring en
+    # `executors/__init__.py` dice literalmente "never a plain dict"); pasarle
+    # `None` reventaba con `AttributeError: 'NoneType' has no attribute
+    # 'work_dir'` al construir el workflow. El token llega por config; vacío
+    # significa "sin token" y el executor falla cerrado más tarde, no aquí.
+    algora_cfg = cfg.get("algora")
+    if not isinstance(algora_cfg, AlgoraConfig):
+        algora_cfg = AlgoraConfig(
+            github_token=str(algora_cfg.get("github_token", "") or "") if isinstance(algora_cfg, dict) else "",
+            algora_api_key=str(algora_cfg.get("algora_api_key", "") or "") if isinstance(algora_cfg, dict) else None,
+        )
+
     executors = {
-        "algora": AlgoraExecutor(config.get("algora") if config else None),
-        "freelancer": FreelancerExecutor(config.get("freelancer") if config else None),
+        "algora": AlgoraExecutor(algora_cfg),
+        "freelancer": FreelancerExecutor(cfg.get("freelancer")),
         # Add more as implemented
     }
 
     return AutonomousWorkflow(
         personal=personal,
         executors=executors,
-        config=config or {},
+        config=cfg,
     )

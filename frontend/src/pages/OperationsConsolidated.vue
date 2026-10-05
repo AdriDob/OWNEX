@@ -4,9 +4,13 @@
  * Combines: OperationsDashboard + HealthCenter + Settings
  */
 import { ref, computed, onMounted } from 'vue'
+import { api } from '@/lib/api'
 import { useRouter } from 'vue-router'
-import { Activity, HeartPulse, Settings, Zap, RefreshCw, Database } from '@lucide/vue'
+import { Activity, FolderTree, HeartPulse, Settings, Workflow, Zap, RefreshCw, Database } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
+import ExecutionPanel from '@/components/system/ExecutionPanel.vue'
+import WorkBankList from '@/components/work/WorkBankList.vue'
+import BestActionCard from '@/components/work/BestActionCard.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
 
 const router = useRouter()
@@ -19,14 +23,20 @@ const loading = ref(true)
 async function fetchStatus() {
   loading.value = true
   try {
-    const res = await fetch('/api/system/status')
-    systemStatus.value = await res.json()
+    systemStatus.value = await api.get<any>('/api/system/status')
   } catch { /* silent */ }
   loading.value = false
 }
 
 const tabs = computed(() => [
   { id: 'overview', label: 'Panel', icon: Activity },
+  // Supervisión: qué está corriendo la cola de ejecución y cuántonets
+  // hay de caja real. Antes estas capacidades (execution_queue,
+  // economic_feedback) no tenían UI y eran invisibles.
+  { id: 'execution', label: 'Ejecución', icon: Workflow },
+  // El banco producía trabajo real pero no había UI que lo listara:
+  // /operations/work-room/:id no tenía entrada desde la interfaz.
+  { id: 'workbank', label: 'Trabajo', icon: FolderTree },
   { id: 'health', label: 'Health', icon: HeartPulse },
   { id: 'settings', label: 'Settings', icon: Settings },
 ])
@@ -111,6 +121,19 @@ onMounted(fetchStatus)
               <RefreshCw class="h-3.5 w-3.5" /> Pipelines
             </button>
           </div>
+        </div>
+      </template>
+
+      <!-- Ejecución (cola + caja real) -->
+      <template #execution>
+        <ExecutionPanel />
+      </template>
+
+      <!-- Trabajo: qué hacer ahora + cola del banco + entrada al Work Room -->
+      <template #workbank>
+        <div class="space-y-4">
+          <BestActionCard />
+          <WorkBankList />
         </div>
       </template>
 

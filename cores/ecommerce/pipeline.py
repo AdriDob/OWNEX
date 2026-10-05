@@ -58,6 +58,93 @@ _STOPWORDS = {
 class SourcingEngine:
     """Supplier margin analysis (pure math, no network)."""
 
+    @staticmethod
+    def _margin_floor(fixed: float, fee_rate: float, plat_rate: float, tax_rate: float, margin_pct: float) -> float:
+        """Precio mínimo tal que el margen tras fees porcentuales >= margin_pct."""
+        denom = 1.0 - fee_rate - plat_rate - tax_rate - (float(margin_pct) / 100.0)
+        if denom <= 0:
+            denom = 1.0 - fee_rate - plat_rate - tax_rate - (VIABLE_MARGIN_PCT / 100.0)
+        return fixed / denom if denom > 0 else fixed * 1.35
+
+    def price_bands(
+        self,
+        cost_usd: float,
+        competitor_prices: list[float] | None = None,
+        shipping_usd: float = 0.0,
+        marketplace_fee_pct: float = 13.0,
+        platform_fee_pct: float = 0.0,
+        tax_pct: float = 0.0,
+        other_costs_usd: float = 0.0,
+        target_margin_pct: float = 35.0,
+        premium_margin_pct: float = 50.0,
+    ) -> dict[str, Any]:
+        """4 bandas: MÍNIMO (piso VIABLE 25%) / COMPETITIVO (95% del mínimo rival)
+        / OBJETIVO (margen target) / PREMIUM (50%). Cada banda trae su veredicto
+        real vía score_supplier_offer. Competitivo = None honesto sin rivales.
+        """
+        try:
+            cost = float(cost_usd)
+        except (TypeError, ValueError):
+            cost = 0.0
+        if cost <= 0:
+            return {"success": False, "error": "invalid_cost", "bands": {}}
+        fee_rate = float(marketplace_fee_pct or 13.0) / 100.0
+        plat_rate = float(platform_fee_pct or 0.0) / 100.0
+        tax_rate = float(tax_pct or 0.0) / 100.0
+        try:
+            other = max(0.0, float(other_costs_usd or 0.0))
+        except (TypeError, ValueError):
+            other = 0.0
+        fixed = cost + float(shipping_usd or 0.0) + other
+        kw: dict[str, Any] = {
+            "cost_usd": cost,
+            "shipping_usd": float(shipping_usd or 0.0),
+            "marketplace_fee_pct": float(marketplace_fee_pct or 13.0),
+            "platform_fee_pct": float(platform_fee_pct or 0.0),
+            "tax_pct": float(tax_pct or 0.0),
+            "other_costs_usd": other,
+        }
+        comps = [float(p) for p in (competitor_prices or []) if isinstance(p, (int, float)) and p > 0]
+
+        def _band(price: float, label: str) -> dict[str, Any]:
+            price = round(max(price, 0.01), 2)
+            scored = self.score_supplier_offer(sale_price_usd=price, **kw)
+            return {
+                "label": label,
+                "price_usd": price,
+                "verdict": scored["verdict"],
+                "margin_pct": scored["margin_pct"],
+                "margin_usd": scored["margin_usd"],
+            }
+
+        bands: dict[str, Any] = {
+            "minimo": _band(
+                self._margin_floor(fixed, fee_rate, plat_rate, tax_rate, VIABLE_MARGIN_PCT), "MÍNIMO RENTABLE"
+            ),
+            "objetivo": _band(
+                self._margin_floor(
+                    fixed, fee_rate, plat_rate, tax_rate, max(VIABLE_MARGIN_PCT, float(target_margin_pct or 35.0))
+                ),
+                "OBJETIVO",
+            ),
+            "premium": _band(
+                self._margin_floor(
+                    fixed, fee_rate, plat_rate, tax_rate, max(VIABLE_MARGIN_PCT, float(premium_margin_pct or 50.0))
+                ),
+                "PREMIUM",
+            ),
+        }
+        if comps:
+            bands["competitivo"] = _band(min(comps) * 0.95, "COMPETITIVO")
+        else:
+            bands["competitivo"] = {
+                "label": "COMPETITIVO",
+                "price_usd": None,
+                "verdict": "UNKNOWN",
+                "note": "sin rivales observados",
+            }
+        return {"success": True, "bands": bands}
+
     def score_supplier_offer(
         self,
         cost_usd: float,
@@ -141,11 +228,8 @@ class SourcingEngine:
             other = max(0.0, float(other_costs_usd or 0.0))
         except (TypeError, ValueError):
             other = 0.0
-        denom = 1.0 - fee_rate - plat_rate - tax_rate - (target / 100.0)
-        if denom <= 0:
-            denom = 1.0 - fee_rate - plat_rate - tax_rate - (VIABLE_MARGIN_PCT / 100.0)
         fixed = cost + float(shipping_usd or 0.0) + other
-        floor = fixed / denom if denom > 0 else fixed * 1.35
+        floor = self._margin_floor(fixed, fee_rate, plat_rate, tax_rate, target)
         comps = [float(p) for p in (competitor_prices or []) if isinstance(p, (int, float)) and p > 0]
         if comps:
             suggested = max(floor, min(comps) * 0.95)
@@ -174,6 +258,16 @@ class SourcingEngine:
             "verdict": scored["verdict"],
             "margin_pct": scored["margin_pct"],
             "margin_usd": scored["margin_usd"],
+            "bands": self.price_bands(
+                cost_usd=cost,
+                competitor_prices=competitor_prices,
+                shipping_usd=float(shipping_usd or 0.0),
+                marketplace_fee_pct=float(marketplace_fee_pct or 13.0),
+                platform_fee_pct=float(platform_fee_pct or 0.0),
+                tax_pct=float(tax_pct or 0.0),
+                other_costs_usd=other,
+                target_margin_pct=target,
+            )["bands"],
             "net_usd": scored["net_usd"],
             "platform_fee_usd": scored["platform_fee_usd"],
             "tax_usd": scored["tax_usd"],
@@ -782,6 +876,61 @@ def run_ecommerce_review_request() -> dict[str, Any]:
         return {"success": False, "error": "review_failed"}
 
 
+def get_design_queue_items() -> list[dict[str, Any]]:
+    """Productos ACTIVE como items del pack/cola (misma fuente en API y job)."""
+    from cores.ecommerce.engine import get_ecommerce_engine
+    from cores.ecommerce.outreach import niche_for
+
+    engine = get_ecommerce_engine()
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "sale_price_usd": float(p.sale_price_usd or 0),
+            "niche": niche_for(p.supplier_id, f"{p.name} {p.category}"),
+        }
+        for p in engine.list_products(status=ProductStatus.ACTIVE)[:24]
+    ]
+
+
+def run_ecommerce_design_pack() -> dict[str, Any]:
+    """Rebuild semanal de la cola de publicación (lunes 07:00, nunca raisea).
+
+    Seguro por diseño: si no hay productos ACTIVE no toca la cola (nunca
+    destruye publicados); con catálogo, rebuild preserva los ya publicados.
+    """
+    try:
+        from cores.ecommerce.publish_queue import get_publish_queue
+
+        items = get_design_queue_items()
+        queue = get_publish_queue()
+        if not items:
+            state = queue.to_dict()
+            return {"success": True, "rebuilt": False, "reason": "no_active_products", **state}
+        out = queue.rebuild(items)
+        return {"success": True, "rebuilt": True, **out}
+    except Exception as exc:
+        logger.warning("ecommerce design pack failed: %s", exc)
+        return {"success": False, "error": "design_pack_failed"}
+
+
+def run_ecommerce_storefront_refresh() -> dict[str, Any]:
+    """Regenera droppinglabel_index.html desde ACTIVE (diario 07:15, nunca raisea).
+
+    Idempotente y seguro: con 0 ACTIVE escribe el vacío honesto (jamás
+    vidriera con precios inventados); solo escribe en data-dir ($0 fijo).
+    """
+    try:
+        from cores.ecommerce.engine import get_ecommerce_engine
+        from cores.ecommerce.storefront import build_storefront_file
+
+        out = build_storefront_file(get_ecommerce_engine())
+        return {"success": bool(out.get("success")), **out}
+    except Exception as exc:
+        logger.warning("ecommerce storefront refresh failed: %s", exc)
+        return {"success": False, "error": "storefront_refresh_failed"}
+
+
 def get_ecommerce_jobs() -> list:
     """Job definitions for the ecommerce cycle (imported lazily by scheduler)."""
     from cores.scheduler.jobs import _cron_job
@@ -826,5 +975,21 @@ def get_ecommerce_jobs() -> list:
             cron="0 10 * * *",
             args=[],
             metadata={"cycle": "ecommerce", "type": "engagement", "desc": "pide reviews 10d post-entrega 10:00"},
+        ),
+        _cron_job(
+            job_id="ecommerce_design_pack",
+            app_id="ecommerce",
+            handler="cores.ecommerce.pipeline:run_ecommerce_design_pack",
+            cron="0 7 * * 1",
+            args=[],
+            metadata={"cycle": "ecommerce", "type": "content", "desc": "rebuild cola IG lunes 07:00 (seguro)"},
+        ),
+        _cron_job(
+            job_id="ecommerce_storefront_refresh",
+            app_id="ecommerce",
+            handler="cores.ecommerce.pipeline:run_ecommerce_storefront_refresh",
+            cron="15 7 * * *",
+            args=[],
+            metadata={"cycle": "ecommerce", "type": "content", "desc": "vidriera HTML diaria 07:15 (idempotente)"},
         ),
     ]

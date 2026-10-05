@@ -16,7 +16,17 @@ const RUNGS = [
   { id: 'expert', label: 'Experto' },
 ] as const
 
-const MODES = ['secure_plus_upside', 'secure_income', 'balanced', 'fast_income', 'max_success', 'max_income'] as const
+const MODES = [
+  'secure_plus_upside',
+  'secure_income',
+  'near_guaranteed',
+  'balanced',
+  'fast_income',
+  'max_success',
+  'max_income',
+  'high_upside_90d',
+  'jackpot',
+] as const
 
 const mode = ref<string>('secure_plus_upside')
 const ranked = ref<DirectWorkRanked[]>([])

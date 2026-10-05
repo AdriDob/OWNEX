@@ -300,19 +300,46 @@ def capital_snapshot() -> dict[str, Any]:
     truth.get_state()
 
     # ── WorkBank income (direct work) ────────────────────────────
-    work_income = {"entregado_usd": 0.0, "pendiente_usd": 0.0, "total_usd": 0.0}
+    # ── WorkBank amounts (direct work) ───────────────────────────
+    # AVISO DE SEMÁNTICA: estos montos son PIPELINE, no caja realizada.
+    # `delivered` significa entregado, NO pagado: PAID sólo existe en el
+    # RevenueTracker (spec §14). Por eso el bloque lleva `es_pipeline_no_cash`
+    # y `realizado_usd` en 0.0 — leer `total_usd` como ingreso cobrado sería
+    # falso. Antes esto leía `get_work_bank` (módulo inexistente → ImportError
+    # tragado) y claves `delivered_usd`/`ready_usd` que tampoco existen, así
+    # que reportaba 0.0 siempre, incluso con items reales en el banco.
+    work_income = {
+        "entregado_usd": 0.0,
+        "pendiente_usd": 0.0,
+        "total_usd": 0.0,
+        "realizado_usd": 0.0,
+        "es_pipeline_no_cash": True,
+    }
     try:
-        from cores.direct_work_engine.workbank import get_work_bank
+        from cores.direct_work_engine.workbank import get_workbank
 
-        wb = get_work_bank()
-        progress = wb.progress()
+        items = get_workbank().to_dict().get("items", [])
+        entregado = round(
+            sum(float(i.get("reward") or 0.0) for i in items if i.get("status") == "delivered"),
+            2,
+        )
+        pendiente = round(
+            sum(
+                float(i.get("reward") or 0.0)
+                for i in items
+                if i.get("status") == "ready_to_deliver" or i.get("ready_to_deliver")
+            ),
+            2,
+        )
         work_income = {
-            "entregado_usd": round(progress.get("delivered_usd", 0.0), 2),
-            "pendiente_usd": round(progress.get("ready_usd", 0.0), 2),
-            "total_usd": round(progress.get("delivered_usd", 0.0) + progress.get("ready_usd", 0.0), 2),
+            "entregado_usd": entregado,
+            "pendiente_usd": pendiente,
+            "total_usd": round(entregado + pendiente, 2),
+            "realizado_usd": 0.0,
+            "es_pipeline_no_cash": True,
         }
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("financial_truth: workbank amounts unavailable: %s", exc)
 
     # ── Investment portfolio (InvestmentManager) ──────────────────
     investment = {"total_usd": 0.0, "estrategias": []}

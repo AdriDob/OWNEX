@@ -92,6 +92,40 @@ class TestAllocation:
     def test_to_dict(self) -> None:
         assert "slices" in allocate_daily_hours(120).to_dict()
 
+    def test_cold_start_prioriza_bug_bounty(self, monkeypatch) -> None:
+        import cores.workspaces.allocation as alloc_mod
+        from cores.workspaces.economics import WorkspaceEconomics
+
+        def _fake_rank(**kwargs):
+            return [
+                WorkspaceEconomics(workspace=w, role="primary", eligible=True, outcomes=0)
+                for w in ("bug_bounty", "dev_bounty", "ai_training")
+            ]
+
+        monkeypatch.setattr(alloc_mod, "rank_workspaces", _fake_rank)
+        alloc = allocate_daily_hours(240)
+        assert alloc.mode == "cold_start"
+        by_ws = {s.workspace: s for s in alloc.slices if s.workspace != "admin"}
+        productive = 240 - sum(s.minutes for s in alloc.slices if s.workspace == "admin")
+        assert by_ws["bug_bounty"].minutes == int(productive * 0.50)
+        assert sum(s.minutes for s in alloc.slices) == 240
+        assert "varianza aceptada" in by_ws["bug_bounty"].why
+
+    def test_cold_start_sin_bounty_reparte_parejo(self, monkeypatch) -> None:
+        import cores.workspaces.allocation as alloc_mod
+        from cores.workspaces.economics import WorkspaceEconomics
+
+        def _fake_rank(**kwargs):
+            return [
+                WorkspaceEconomics(workspace=w, role="primary", eligible=True, outcomes=0)
+                for w in ("dev_bounty", "ai_training")
+            ]
+
+        monkeypatch.setattr(alloc_mod, "rank_workspaces", _fake_rank)
+        alloc = allocate_daily_hours(200)
+        by_ws = {s.workspace: s for s in alloc.slices if s.workspace != "admin"}
+        assert by_ws["dev_bounty"].minutes == by_ws["ai_training"].minutes
+
 
 class TestLoops:
     def test_daily_loop_never_raises(self) -> None:

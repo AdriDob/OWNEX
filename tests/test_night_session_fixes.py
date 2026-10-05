@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture()
-def mission_client(monkeypatch, tmp_path):
+def mission_client(monkeypatch, tmp_path, ownex_login):
     monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("CATEYE_CSRF_DISABLED", "1")
     from cores.levels import reset_progression_engine
@@ -21,7 +21,11 @@ def mission_client(monkeypatch, tmp_path):
     reset_progression_engine()
     import api.main as main
 
-    return TestClient(main.app, raise_server_exceptions=False)
+    c = TestClient(main.app, raise_server_exceptions=False)
+    # `/mission-hub/*` y `/direct-work/*` se montan en RAÍZ y el gate de auth
+    # exige sesión desde KNOWN_DEBT #32.
+    ownex_login(c)
+    return c
 
 
 class TestMissionHubUsesRealOBA:

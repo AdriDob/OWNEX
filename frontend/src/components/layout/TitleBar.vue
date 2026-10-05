@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 
@@ -146,6 +147,9 @@ onMounted(() => {
         :status="notifications.wsConnected ? 'OPERATIVO' : 'FUERA DE LÍNEA'"
         :reason="notifications.wsConnected ? 'WebSocket conectado' : 'WebSocket desconectado'"
       />
+
+      <!-- Language (es por defecto, cambio a 1 clic) -->
+      <LanguageSwitcher />
 
       <!-- Theme mode toggle -->
       <ThemeToggle />

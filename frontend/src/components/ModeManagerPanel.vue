@@ -154,6 +154,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 
 interface Mode {
   mode_key: string
@@ -236,14 +237,16 @@ function hasConflict(mode: Mode): boolean {
 
 async function refreshModes() {
   try {
-    const [availableRes, activeRes, historyRes] = await Promise.all([
-      fetch('/api/modes/available'),
-      fetch('/api/modes/active'),
-      fetch('/api/modes/history'),
+    // Vía `api`: `fetch()` crudo no manda Authorization ni resuelve el puerto
+    // del sidecar, así que devolvía 401 tras el gate de auth del 2026-10-04.
+    const [available, active, past] = await Promise.all([
+      api.get<any>('/api/modes/available'),
+      api.get<any>('/api/modes/active'),
+      api.get<any>('/api/modes/history'),
     ])
-    availableModes.value = await availableRes.json()
-    activeModes.value = (await activeRes.json()).active_modes
-    history.value = (await historyRes.json()).history
+    availableModes.value = available
+    activeModes.value = active.active_modes
+    history.value = past.history
   } catch (error) {
     console.error('Failed to refresh modes:', error)
   }
@@ -253,11 +256,7 @@ async function toggleMode(mode: Mode) {
   if (mode.active) {
     // Deactivate
     try {
-      await fetch(`/api/modes/set`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode_key: mode.mode_key, force: true }),
-      })
+      await api.post('/api/modes/set', { mode_key: mode.mode_key, force: true })
       await refreshModes()
     } catch (error) {
       console.error('Failed to deactivate mode:', error)
@@ -292,12 +291,7 @@ async function toggleMode(mode: Mode) {
 
 async function activateMode(modeKey: string) {
   try {
-    const response = await fetch('/api/modes/set', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode_key, force: false }),
-    })
-    const result = await response.json()
+    const result = await api.post<any>('/api/modes/set', { mode_key, force: false })
 
     if (result.status === 'conflict') {
       conflictModalMode.value = availableModes.value[modeKey]
@@ -316,11 +310,7 @@ async function forceActivate() {
   if (!conflictModalMode.value) return
 
   try {
-    await fetch('/api/modes/set-force', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode_key: conflictModalMode.value.mode_key, force: true }),
-    })
+    await api.post('/api/modes/set-force', { mode_key: conflictModalMode.value.mode_key, force: true })
     showConflictModal.value = false
     await refreshModes()
   } catch (error) {

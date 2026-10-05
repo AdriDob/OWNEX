@@ -222,8 +222,8 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
         "mindrift": [
             {
                 "id": "create_account",
-                "title": "Crear cuenta en mindrift.ai",
-                "detail": "Cargá dominios técnicos + ambos idiomas. El español nativo abre tareas específicas mejor pagas.",
+                "title": "Crear cuenta en mindrift.ai (vía All-access)",
+                "detail": "Cargá dominios técnicos + ambos idiomas. La vía All-access (anotación, clasificación, comparación, transcripción) no pide experiencia, título, CV, entrevista ni assessment. El español nativo abre tareas específicas mejor pagas.",
                 "est_minutes": 10,
                 "fields": {
                     "domains": "Software development, security",
@@ -232,8 +232,8 @@ def _steps_catalog() -> dict[str, list[dict[str, Any]]]:
             },
             {
                 "id": "writing_tests",
-                "title": "Pruebas de escritura/rating ES + EN",
-                "detail": "Evalúan calidad de escritura y capacidad de seguir rubrics al pie de la letra.",
+                "title": "Evaluaciones ES + EN (solo vía Specialized)",
+                "detail": "Solo si vas por proyectos Specialized (coding/STEM/etc.): evalúan calidad y rubrics + piden CV y verificación de identidad. Pagan más, pero NO son sin experiencia.",
                 "est_minutes": 35,
                 "fields": {},
             },
@@ -656,6 +656,83 @@ class ApplicationAssistant:
                 results.append(self.get_onboarding(meta["key"], allow_interview_paths=allow_interview_paths))
         return results
 
+    # ── All-access entry (vía segura sin experiencia profesional) ──
+
+    # Mercor fuera: su única vía curada exige entrevista IA por video
+    # (ai_interview) + CV. Sin path sin-entrevista en datos → no entra acá.
+    # Sigue en el catálogo general con opt-in (allow_interview_paths=True).
+    ALL_ACCESS_PLATFORMS: tuple[str, ...] = ("outlier", "alignerr", "mindrift")
+
+    @staticmethod
+    def _entry_verdict(all_steps: list[dict[str, Any]]) -> dict[str, Any]:
+        """Veredicto de entrada derivado de los steps (nunca inventado).
+
+        ALL_ACCESS_OK: ningún step exige CV/entrevista (solo registro +
+        assessments de habilidad). NEEDS_CV / NEEDS_INTERVIEW en caso contrario.
+        """
+        requires = {str(s.get("requires") or "") for s in all_steps}
+        if "interview" in requires:
+            return {
+                "verdict": "NEEDS_INTERVIEW",
+                "experience_required": True,
+                "note": "Pide entrevista (opt-in). No es entrada 100% segura sin proceso.",
+            }
+        if "cv" in requires:
+            return {
+                "verdict": "NEEDS_CV",
+                "experience_required": False,
+                "note": "Pide CV pero sin entrevista: assessments de habilidad deciden. Entrada segura con CV listo.",
+            }
+        return {
+            "verdict": "ALL_ACCESS_OK",
+            "experience_required": False,
+            "note": "Sin experiencia profesional, sin CV, sin entrevista. Solo registro + assessments de habilidad.",
+        }
+
+    def get_all_access_entry(self) -> dict[str, Any]:
+        """Vía all-access ordenada por seguridad: qué hacer en cada web para entrar 100% seguro.
+
+        Solo AI sin entrevista (outlier/alignerr/mindrift). Mercor queda fuera:
+        su única vía curada exige entrevista IA por video + CV. Orden:
+        ALL_ACCESS_OK primero, luego NEEDS_CV; desempate por minutos totales
+        visibles. Los minutos y pasos salen del catálogo real.
+        """
+        entries = []
+        for meta in _platform_catalog():
+            key = meta["key"]
+            if key not in self.ALL_ACCESS_PLATFORMS:
+                continue
+            verdict = self._entry_verdict(_steps_catalog().get(key, []))
+            ob = self.get_onboarding(key)  # vista default: pasos CV/entrevista ocultos
+            total_minutes = sum(int(s.get("est_minutes") or 0) for s in ob["checklist"])
+            entries.append(
+                {
+                    "platform": key,
+                    "name": meta.get("name", key),
+                    "url": meta.get("url", ""),
+                    "verdict": verdict["verdict"],
+                    "experience_required": verdict["experience_required"],
+                    "verdict_note": verdict["note"],
+                    "pay_range": meta.get("pay_range", ""),
+                    "payout": meta.get("payout", ""),
+                    "why": meta.get("why", ""),
+                    "status": ob["status"],
+                    "readiness_pct": ob["readiness_pct"],
+                    "total_minutes": total_minutes,
+                    "steps": ob["checklist"],
+                    "next_action": ob["next_action"],
+                }
+            )
+        rank = {"ALL_ACCESS_OK": 0, "NEEDS_CV": 1, "NEEDS_INTERVIEW": 2}
+        entries.sort(key=lambda e: (rank.get(e["verdict"], 9), e["total_minutes"]))
+        return {
+            "generated_at": _now_iso(),
+            "note": "Entrada segura = sin experiencia profesional. Assessments de habilidad sí (son la puerta, no la barrera).",
+            "safest_first": entries[0]["platform"] if entries else None,
+            "total_minutes_all": sum(e["total_minutes"] for e in entries),
+            "entries": entries,
+        }
+
     def get_platform_ranking(self) -> list[dict[str, Any]]:
         """Rank platforms by readiness × pay — where should the user work NOW?"""
         ranked = []
@@ -693,6 +770,112 @@ class ApplicationAssistant:
             )
         ranked.sort(key=lambda r: r.get("effective_rate_usd_h") or 0, reverse=True)
         return ranked
+
+    # ── Assessment prep-packs (P1 vNext) ──
+    # Qué evalúa cada assessment + checklist de preparación + intentos.
+    # Contenido HONESTO y genérico: áreas de habilidad y método, jamás
+    # respuestas filtradas ni atajos. Rendirlo sigue siendo 100% humano.
+
+    _PREP_PACKS: dict[str, dict[str, Any]] = {
+        "coding_assessment": {
+            "evaluates": [
+                "lectura de consignas",
+                "código Python/JS",
+                "evaluación de outputs",
+                "criterio bajo presión de tiempo",
+            ],
+            "checklist": [
+                "repasar Python base 45 min",
+                "practicar explicar código en voz alta",
+                "leer CADA consigna completa antes de responder",
+                "bloquear 60 min sin distracciones",
+            ],
+            "est_minutes": 45,
+        },
+        "domain_assessment": {
+            "evaluates": ["conocimiento del dominio elegido", "criterio con rubrics", "idioma técnico ES+EN"],
+            "checklist": [
+                "elegir 1 dominio donde ya sabés",
+                "repasar vocabulario técnico en inglés",
+                "practicar seguir una rubric al pie de la letra",
+            ],
+            "est_minutes": 30,
+        },
+        "writing_tests": {
+            "evaluates": ["calidad de escritura", "seguimiento de rubrics", "comparación de respuestas"],
+            "checklist": [
+                "escribir 1 párrafo técnico de muestra",
+                "practicar puntuar 2 respuestas con criterios",
+                "revisar gramática ES e inglesa",
+            ],
+            "est_minutes": 30,
+        },
+        "ai_interview": {
+            "evaluates": ["experiencia verificable", "comunicación", "encaje de dominio"],
+            "checklist": [
+                "CV y LinkedIn consistentes",
+                "2 proyectos contables en 60 segundos",
+                "ambiente con cámara/mic probados",
+            ],
+            "est_minutes": 30,
+        },
+        "technical_screening": {
+            "evaluates": ["screening técnico general", "disponibilidad y encaje"],
+            "checklist": ["stack y seniority declarados con honestidad", "horarios disponibles claros"],
+            "est_minutes": 15,
+        },
+    }
+
+    def get_prep_pack(self, platform_key: str, step_id: str) -> dict[str, Any]:
+        """Pack de preparación + seeds del perfil + intentos previos. {} si el paso no es assessment."""
+        if platform_key not in {m["key"] for m in _platform_catalog()}:
+            raise KeyError(f"plataforma desconocida: {platform_key}")
+        pack = self._PREP_PACKS.get(step_id)
+        if pack is None:
+            return {}
+        state = self._load_state()
+        attempts = [a for a in state.get(platform_key, {}).get("attempts", []) if a.get("step_id") == step_id]
+        return {
+            "platform": platform_key,
+            "step_id": step_id,
+            "evaluates": list(pack["evaluates"]),
+            "checklist": list(pack["checklist"]),
+            "est_minutes": pack["est_minutes"],
+            "suggested_answers": self._seed_answers(),
+            "prior_attempts": attempts,
+        }
+
+    def record_attempt(self, platform_key: str, step_id: str, passed: bool | None, notes: str = "") -> dict[str, Any]:
+        """Registra un intento de assessment (pasado=True/False, None=sin resultado aún)."""
+        if platform_key not in {m["key"] for m in _platform_catalog()}:
+            raise KeyError(f"plataforma desconocida: {platform_key}")
+        if step_id not in self._PREP_PACKS:
+            raise KeyError(f"paso sin prep-pack (no es assessment): {step_id}")
+        if passed is not None and not isinstance(passed, bool):
+            raise ValueError("passed debe ser True, False o None")
+        state = self._load_state()
+        entry = self._platform_state(state, platform_key)
+        attempts = entry.setdefault("attempts", [])
+        attempts.append({"step_id": step_id, "passed": passed, "notes": notes[:500], "at": _now_iso()})
+        entry["updated_at"] = _now_iso()
+        self._save_state(state)
+        return {"success": True, "platform": platform_key, "step": step_id, "attempts": len(attempts)}
+
+    def attempt_summary(self, platform_key: str | None = None) -> dict[str, Any]:
+        """Resumen de intentos por assessment: {step_id: {attempts, passed}}. Sin datos → {}."""
+        state = self._load_state()
+        keys = [platform_key] if platform_key else [m["key"] for m in _platform_catalog()]
+        out: dict[str, Any] = {}
+        for key in keys:
+            per_step: dict[str, dict[str, int]] = {}
+            for a in state.get(key, {}).get("attempts", []):
+                slot = per_step.setdefault(a.get("step_id", "?"), {"attempts": 0, "passed": 0})
+                slot["attempts"] += 1
+                if a.get("passed") is True:
+                    slot["passed"] += 1
+            if per_step:
+                out[key] = per_step
+        return out
 
     # ── Resumen ──
 

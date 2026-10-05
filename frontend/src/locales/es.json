@@ -528,5 +528,39 @@
     "disconnected": "Desconectado",
     "shell": "Shell",
     "command": "Comando"
+  },
+  "command_center": {
+    "title": "Centro de Mando",
+    "now": "AHORA",
+    "money": "PLATA",
+    "status": "ESTADO",
+    "next_action": "SIGUIENTE ACCIÓN",
+    "top_opportunity": "MEJOR OPORTUNIDAD",
+    "blockers": "BLOQUEOS",
+    "no_blockers": "Sin bloqueos: podés avanzar",
+    "net_per_hour": "Neto / hora humana",
+    "realized": "Cobrado",
+    "pending": "Pendiente",
+    "expected": "Esperado",
+    "pipeline": "En curso",
+    "no_measurement": "Sin medición todavía",
+    "make_now": "HACER AHORA",
+    "view_all": "Ver todo"
+  },
+  "daily": {
+    "digest": "Resumen diario",
+    "best_action": "Mejor acción de hoy",
+    "priorities": "Prioridades",
+    "decisions": "Decisiones pendientes",
+    "nothing_pending": "Nada pendiente: el sistema trabaja solo",
+    "queue": "Cola de revisión",
+    "queue_hint": "Aprobar o descartar lo que el sistema preparó",
+    "days_left_7mo": "Faltan {days} días del plan de 7 meses",
+    "no_paid_yet": "Todavía sin cobros: el plan está calibrándose"
+  },
+  "language_ui": {
+    "switch": "Idioma",
+    "switch_hint": "Español por defecto. Cambiá cuando quieras.",
+    "switched": "Idioma cambiado a {lang}"
   }
 }

@@ -1,4 +1,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { isUnauthenticated } from '@/lib/errors'
 
 export type PrimaryMode = 'lite' | 'full' | 'capital'
 
@@ -83,13 +85,12 @@ const initialized = ref(false)
 export function usePrimaryMode() {
   async function fetchMode() {
     try {
-      const res = await fetch('/api/settings/runtime/mode/primary')
-      const data = await res.json()
+      const data = await api.get<any>('/api/settings/runtime/mode/primary')
       if (data.mode && data.mode in MODE_CONFIGS) {
         currentMode.value = data.mode as PrimaryMode
       }
     } catch (e) {
-      console.error('Failed to fetch mode:', e)
+      if (!isUnauthenticated(e)) console.error('Failed to fetch mode:', e)
     } finally {
       initialized.value = true
     }
@@ -100,11 +101,7 @@ export function usePrimaryMode() {
 
     loading.value = true
     try {
-      const res = await fetch('/api/settings/runtime/mode/primary', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode }),
-      })
+      const res = await api.put<any>('/api/settings/runtime/mode/primary', { mode })
       const data = await res.json()
       if (data.status === 'ok' || data.status === 'success') {
         currentMode.value = mode

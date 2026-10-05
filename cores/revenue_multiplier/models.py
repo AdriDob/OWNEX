@@ -53,7 +53,7 @@ class Finding:
     evidence: str = ""
     confidence: float = 0.0
     raw_output: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -67,7 +67,7 @@ class TradeSignal:
     quantity: Decimal
     reason: str = ""
     strategy: str = ""
-    timestamp: datetime = field(default_factory=datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -77,7 +77,7 @@ class RevenueEvent:
     amount: Decimal
     currency: str = "USD"
     description: str = ""
-    timestamp: datetime = field(default_factory=datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -91,7 +91,7 @@ class CapitalState:
     daily_pnl: Decimal = Decimal("0")
     weekly_pnl: Decimal = Decimal("0")
     total_pnl: Decimal = Decimal("0")
-    timestamp: datetime = field(default_factory=datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -109,4 +109,4 @@ class RevenueReport:
     winning_trades: int = 0
     win_rate: float = 0.0
     estimated_yearly: Decimal = Decimal("0")
-    generated_at: datetime = field(default_factory=datetime.now(UTC))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))

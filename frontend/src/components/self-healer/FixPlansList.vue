@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import ApprovalBadge from '@/components/ui/ApprovalBadge.vue'
 
 const props = defineProps<{
   plans: any[]

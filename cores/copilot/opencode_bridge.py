@@ -16,6 +16,18 @@ DEFAULT_MODEL = "opencode/deepseek-v4-flash-free"
 DEFAULT_TIMEOUT_S = 300
 OUTPUT_TAIL_CHARS = 3000
 
+# Side-by-side v1/v2: el binario se elige por env, default v1 estable.
+# OPENCODE_BINARY=opencode (default, producción) | opencode2 (beta, observación).
+# El contrato (run/propose/implement + runs dir + diffs) queda igual.
+
+
+def resolve_opencode_binary(explicit: str | None = None) -> str:
+    """Binario opencode a usar: explícito > env OPENCODE_BINARY > default v1."""
+    if explicit:
+        return explicit
+    return os.environ.get("OPENCODE_BINARY", "opencode").strip() or "opencode"
+
+
 # Disciplina obligatoria antepuesta a todo task con escritura (fase execute).
 # La constitución completa vive en .ai/AGENT_CHARTER.md del repo (cwd del run).
 AGENT_LOOP_PREAMBLE = """\
@@ -62,8 +74,8 @@ class OpenCodeBridge:
       - Run tests
     """
 
-    def __init__(self) -> None:
-        self._binary = "opencode"
+    def __init__(self, binary: str | None = None) -> None:
+        self._binary = resolve_opencode_binary(binary)
         self._project_dir = PROJECT_DIR
 
     def _record_run_dir(self, run_id: str) -> Path:
@@ -114,6 +126,7 @@ class OpenCodeBridge:
                 "task": task[:200],
                 "mode": mode,
                 "model": model,
+                "binary": self._binary,
                 "success": result.returncode == 0,
                 "output": self._tail(result.stdout),
                 "output_truncated": len(result.stdout) > OUTPUT_TAIL_CHARS,

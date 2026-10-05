@@ -103,6 +103,7 @@ class QuickCaptureEngine:
             ("issuehunt.io", "issuehunt"),
             ("algora.io", "algora"),
             ("freelancer.com", "freelancer"),
+            ("joinstellar.ai", "stellar"),
         ]
         for needle, name in table:
             if needle in h:

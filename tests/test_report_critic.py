@@ -204,3 +204,116 @@ def test_full_coverage_ready_report():
         }
     )
     assert result.score >= result.max_score * 0.7, f"Score {result.score}/{result.max_score} too low for ready report"
+
+
+def _complete_finding():
+    return {
+        "title": "BACL cross-tenant read on /api/orders/{id}",
+        "description": "Authenticated low-role caller reads orders of other tenants by iterating numeric IDs. "
+        "Confirmed with two own accounts on 2026-09-28; responses diff field by field.",
+        "vulnerability_type": "bacl",
+        "severity": "high",
+        "asset_type": "URL",
+        "cvss_score": 7.5,
+        "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
+        "cwe": "CWE-639",
+        "remediation": "Enforce per-object authorization checks against the caller tenant on every read path.",
+        "reproduction_steps": [
+            "Create accounts A (low) and B (owner) in scope program.",
+            "As B, create order and note its numeric ID.",
+            "As A, GET /api/orders/<B-id> and observe B data in response.",
+            "Repeat headerless and with tampered tenant_id param.",
+        ],
+        "poc": {"curl": "curl -H 'Authorization: Bearer A' https://t/api/orders/123"},
+        "evidence": ["resp_a_vs_b.diff", "transcript_a.json", "transcript_b.json"],
+        "impact": "Cross-tenant order disclosure affecting every tenant; payment data in scope.",
+    }
+
+
+def test_gate_go_complete_finding():
+    critic = ReportCritic()
+    g = critic.gate(_complete_finding(), "hackerone")
+    assert g["verdict"] == "GO"
+    assert g["reasons"] == []
+    assert g["impact"]["reproducibility"] in ("measured_rate", "steps_documented")
+
+
+def test_gate_hold_empty_finding():
+    critic = ReportCritic()
+    g = critic.gate({"title": "x"}, "hackerone")
+    assert g["verdict"] == "HOLD"
+    assert any("poc_curl" in r or "evidence_exists" in r or "reproduction_steps" in r for r in g["reasons"])
+    assert len(g["suggestions"]) > 0
+
+
+def test_gate_hold_unproven_impact():
+    critic = ReportCritic()
+    f = _complete_finding()
+    f["reproduction_steps"] = ["only one"]
+    f["poc"] = {}
+    g = critic.gate(f, "hackerone")
+    assert g["verdict"] == "HOLD"
+
+
+def test_impact_quantified_passes_with_scale():
+    critic = ReportCritic()
+    result = critic.evaluate(
+        {
+            "title": "SSRF reaches cloud metadata",
+            "description": "x" * 100,
+            "vulnerability_type": "ssrf",
+            "severity": "critical",
+            "reproduction_steps": ["Step 1", "Step 2", "Step 3"],
+            "poc": {"curl": "curl test"},
+            "evidence": ["test"],
+            "impact": "An attacker reads cloud credentials affecting all 2M users in production with direct financial impact.",
+            "cvss_score": 9.0,
+            "cwe_id": "CWE-918",
+            "remediation": "remediation advice here",
+        }
+    )
+    names = {c.name: c for c in result.checks}
+    assert "impact_quantified" in names
+    assert names["impact_quantified"].passed is True
+
+
+def test_impact_quantified_fails_without_scale_high():
+    critic = ReportCritic()
+    result = critic.evaluate(
+        {
+            "title": "SSRF reaches cloud metadata",
+            "description": "x" * 100,
+            "vulnerability_type": "ssrf",
+            "severity": "high",
+            "reproduction_steps": ["Step 1", "Step 2", "Step 3"],
+            "poc": {"curl": "curl test"},
+            "evidence": ["test"],
+            "impact": "An attacker might access something bad somewhere somehow.",
+            "cvss_score": 7.0,
+            "cwe_id": "CWE-918",
+            "remediation": "remediation advice here",
+        }
+    )
+    names = {c.name: c for c in result.checks}
+    assert names["impact_quantified"].passed is False
+    assert any("scale" in s for s in result.suggestions)
+
+
+def test_impact_quantified_absent_for_low():
+    critic = ReportCritic()
+    result = critic.evaluate(
+        {
+            "title": "Test",
+            "description": "x" * 100,
+            "vulnerability_type": "xss",
+            "severity": "low",
+            "reproduction_steps": ["Step 1", "Step 2", "Step 3"],
+            "poc": {"curl": "curl test"},
+            "evidence": ["test"],
+            "impact": "business impact",
+            "cvss_score": 3.0,
+            "cwe_id": "CWE-79",
+            "remediation": "remediation advice here",
+        }
+    )
+    assert "impact_quantified" not in {c.name for c in result.checks}
