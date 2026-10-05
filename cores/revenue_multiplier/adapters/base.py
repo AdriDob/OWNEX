@@ -13,6 +13,28 @@ logger = logging.getLogger("orion.revenue.adapter")
 
 
 class ToolAdapter(abc.ABC):
+    # Confianza = evidencia OBSERVABLE en la salida de la herramienta, no el
+    # nombre de la herramienta. Antes cada adapter usaba una constante
+    # (sqlmap 0.8, xsstrike 0.7, subfinder 0.6, ffuf 0.4, katana/gau 0.3),
+    # y el orchestrator reporta al bounty todo finding con
+    # confidence >= min_confidence_for_report (0.65). Eso significa que un
+    # finding de sqlmap pasaba el gate POR EL HECHO de venir de sqlmap, sin
+    # ninguna evidencia. Un numero constante que decide si se reporta un
+    # bounty no es una metrica: es un sesgo.
+    #
+    # La escala: `severity` del scanner es la unica senal de riesgo que
+    # estos tools emiten de forma comparable. Nuclei la da clasificada;
+    # ffuf/subfinder/katana/gau no la dan, y por eso arrancan en `base`
+    # (bajo el gate) en vez de inventar una alta.
+    _SEVERITY_CONFIDENCE: dict[str, float] = {
+        "critical": 0.75,
+        "high": 0.70,
+        "medium": 0.55,
+        "low": 0.40,
+        "info": 0.30,
+    }
+    _BASE_CONFIDENCE = 0.30  # sin severity: bajo el gate de reporte
+
     def __init__(self, binary: str = "") -> None:
         self._binary = binary
 
@@ -22,6 +44,16 @@ class ToolAdapter(abc.ABC):
     @property
     @abc.abstractmethod
     def name(self) -> str: ...
+
+    def _confidence_for(self, severity: str | None) -> float:
+        """Confianza derivada de la severity que reporta el scanner.
+
+        Severidad desconocida o ausente ⇒ `_BASE_CONFIDENCE` (bajo el gate de
+        reporte). Preferimos un número honesto y bajo a uno alto y falso.
+        """
+        if not severity:
+            return self._BASE_CONFIDENCE
+        return self._SEVERITY_CONFIDENCE.get(str(severity).lower(), self._BASE_CONFIDENCE)
 
     def _execute(self, cmd: list[str], timeout: int = 300) -> str:
         try:
@@ -80,7 +112,7 @@ class NucleiAdapter(ToolAdapter):
                         target=target,
                         endpoint=data.get("matched-at", ""),
                         evidence=json.dumps(data.get("extracted-results", {})),
-                        confidence=0.7 if data.get("info", {}).get("severity") in ("critical", "high") else 0.5,
+                        confidence=self._confidence_for(data.get("info", {}).get("severity")),
                         raw_output=data,
                     )
                 )
@@ -111,7 +143,7 @@ class KatanaAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"Crawled: {line.strip()[:80]}",
-                confidence=0.3,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -156,7 +188,7 @@ class FfufAdapter(ToolAdapter):
                             tool="ffuf",
                             target=target,
                             endpoint=data.get("url", ""),
-                            confidence=0.4,
+                            confidence=self._BASE_CONFIDENCE,
                             raw_output=data,
                         )
                     )
@@ -182,7 +214,7 @@ class SubfinderAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"Subdomain: {line.strip()}",
-                confidence=0.6,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -206,7 +238,7 @@ class GauAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"URL: {line.strip()[:80]}",
-                confidence=0.3,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -246,11 +278,10 @@ class SqlmapAdapter(ToolAdapter):
                 Finding(
                     title="SQL Injection detected",
                     description="sqlmap identified an injection point",
-                    severity="critical",
                     tool="sqlmap",
                     target=target,
                     endpoint=target,
-                    confidence=0.8,
+                    confidence=self._confidence_for("critical"),
                     raw_output={"output_preview": output[:500]},
                 )
             )
@@ -281,7 +312,7 @@ class XSStrikeAdapter(ToolAdapter):
                     tool="xsstrike",
                     target=target,
                     endpoint=target,
-                    confidence=0.7,
+                    confidence=self._confidence_for("high"),
                     raw_output={"output_preview": output[:500]},
                 )
             )
@@ -385,7 +416,7 @@ class GitleaksAdapter(ToolAdapter):
                             target=target,
                             endpoint=data.get("File", ""),
                             evidence=data.get("Secret", "")[:50],
-                            confidence=0.8,
+                            confidence=self._confidence_for("high"),
                             raw_output=data,
                         )
                     )
