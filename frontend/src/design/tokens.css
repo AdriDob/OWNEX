@@ -147,7 +147,7 @@
      Z-INDEX SCALE
      ═══════════════════════════════════════════════════════════════════ */
 
-  --z-status-bar: 50;
+--z-status-bar: 50;
   --z-sidebar: 40;
   --z-overlay: 60;
   --z-modal: 70;
@@ -156,9 +156,73 @@
   --z-splash: 200;
   --z-command-palette: 100;
 
+  /* ── Component-scoped runtime tokens (defaults; overridden inline by JS) ── */
+  --badge-color:           var(--ownex-accent);
+  --badge-color-rgb:       0, 213, 255;
+  --confidence-color:      var(--ownex-accent);
+  --cycle-color:           var(--ownex-cycle-security);
+  --cycle-color-rgb:       245, 245, 245;
+  --cycle-atlas:           var(--ownex-cycle-atlas);
+  --cycle-forge:           var(--ownex-cycle-forge);
+  --cycle-pulse:           var(--ownex-cycle-pulse);
+  --cycle-security:        var(--ownex-cycle-security);
+  --cycle-vault:           var(--ownex-cycle-vault);
+  --mode-color:            var(--ownex-accent);
+  --mode-color-alpha:      0.15;
+  --entry-color:           var(--ownex-gold);
+  --entry-color-rgb:       180, 83, 9;
+  --section-color:         var(--ownex-text-primary);
+
+  /* ── Animation / transform helpers (runtime-set) ── */
+  --animationDuration:     200ms;
+  --animationDelay:        0ms;
+  --opacity:               1;
+  --from-x:                0;
+  --to-x:                  0;
+  --height-auto:           auto;
+
+  /* ── Font weight alias (runtime-set in some components) ── */
+  --font-semibold:         var(--font-weight-semibold);
+
+  /* ── OWNEX alias tokens used by legacy components ── */
+  --ownex-bg:              var(--ownex-bg-deep);
+  --ownex-bg-elevated:     var(--ownex-bg-surface);
+  --ownex-border:          var(--ownex-bg-glass-border);
+  --ownex-border-light:    rgba(255, 255, 255, 0.06);
+  --ownex-cyan:            var(--ownex-accent);
+  --ownex-fg:              var(--ownex-text-primary);
+  --ownex-glow:            rgba(255, 255, 255, 0.06);
+  --ownex-line:            var(--ownex-bg-glass-border);
+  --ownex-muted:           var(--ownex-text-secondary);
+  --ownex-primary:         var(--ownex-blue);
+  --ownex-primary-hover:   color-mix(in srgb, var(--ownex-blue) 80%, white);
+  --ownex-red:             var(--ownex-danger);   /* alias legacy; no new red */
+
+  /* ── Border aliases (shadcn compatibility) ── */
+  --border:           var(--ownex-bg-glass-border);
+  --border-active:    var(--ownex-accent);
+  --border-subtle:    rgba(255, 255, 255, 0.04);
+
+  /* ── Loop/index helper (runtime-set in v-for) ── */
+  --i:                0;
+
+  /* ── Text scale aliases (for components expecting --text-*) ── */
+  --text-xs:   0.6875rem;  /* 11px — caption */
+  --text-sm:   0.75rem;    /* 12px — label */
+  --text-base: 0.875rem;   /* 14px — body */
+  --text-lg:   1rem;       /* 16px — body large */
+  --text-xl:   1.125rem;   /* 18px — subheading */
+  --text-2xl:  1.25rem;    /* 20px — heading */
+
+  /* ── Shadow alias ── */
+  --shadow-1:  var(--shadow-sm);
+
+  /* ── Status alias ── */
+  --status-success: var(--ownex-green);
+
   /* ═══════════════════════════════════════════════════════════════════
      DENSITY MODES
-     ═══════════════════════════════════════════════════════════════════ */
+     ════════════════════════════════════════════════════════════════════ */
 
   --density-compact: 0.75;
   --density-default: 1;
@@ -189,6 +253,40 @@
 
 :root {
   /* ═══════════════════════════════════════════════════════════════════
+     PALETA NATIVA (reciclada de desktop/native/ui/tokens.py)
+     ───────────────────────────────────────────────────────────────────
+     Origen: el tema Qt del desktop PySide6 declaraba una paleta Tesla más
+     completa que el set original del frontend. Se portan los valores que
+     faltaban, con NOMBRE SEMÁNTICO (no una copia del nombre de PySide6) para
+     no crear una segunda fuente de verdad: estos tokens son alias de rol, y
+     `desktop/native/ui/tokens.py` sigue siendo el origen del tema nativo.
+
+     Por qué importa: son las superficies y acentos que el desktop ya
+     usaba y el web no tenía, así que el mismo producto se veía distinto
+     según dónde lo abrieras. ══════════════════════════════════════════ */
+  --ownex-space-black: #05060A;  /* fondo base absoluto (más profundo que #050505) */
+  --ownex-deep-blue:   #1E40FF;  /* acento de inteligencia / acción primaria */
+  --ownex-emerald:     #00E39A;  /* progreso y éxito (no-danger) */
+  --ownex-decision:    #FF7A1A;  /* acción de decisión humana (Human Gate) */
+  --ownex-surface:     #111318;  /* superficie elevada */
+  --ownex-surface-alt: #1F2229;  /* superficie elevada-alt */
+  --ownex-stroke:      #2A2E37;  /* borde/stroke */
+  --ownex-muted-text:  #8B8D98;  /* texto secundario */
+  --ownex-text:        #F6F8FB;  /* texto primario sobre negro */
+
+  /* Aliases de rol — usar estos, no los crudos de arriba. */
+  --color-native-bg:        var(--ownex-space-black);
+  --color-native-surface:   var(--ownex-surface);
+  --color-native-border:    var(--ownex-stroke);
+  --color-native-text:      var(--ownex-text);
+  --color-native-text-dim:  var(--ownex-muted-text);
+  --color-native-action:    var(--ownex-deep-blue);
+  --color-native-decision:  var(--ownex-decision);
+  --color-native-progress:  var(--ownex-emerald);
+}
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════════
      SEMANTIC ALIASES — stable contract for components (F1 design system)
      Components consume THESE; raw --ownex-* stay as implementation detail.
      ═══════════════════════════════════════════════════════════════════ */
@@ -215,6 +313,38 @@
   /* Numeric (money/metrics): mono + tabular figures so digits align */
   --font-numeric: var(--font-mono);
   --font-numeric-features: 'tnum' 1, 'lnum' 1;
+
+  /* ── Economic semantics (2026-09-20): un solo significado por color en
+     toda la app. Solo alias de tokens existentes — cero hex nuevos, cero
+     rojo (directiva owner). El gradiente sólido→apagado = certeza→estimación:
+     REALIZED siempre sólido, PROJECTED siempre apagado. Nunca mezclar
+     "podrías ganar" con "recibiste". ── */
+  --color-money-realized:  var(--ownex-green);
+  --color-money-pending:   var(--ownex-yellow);
+  --color-money-expected:  var(--ownex-text-secondary);
+  --color-money-projected: var(--ownex-text-muted);
+
+  /* ── Work states ── */
+  --color-work-now:      var(--ownex-accent);
+  --color-work-next:     var(--ownex-text-primary);
+  --color-work-waiting:  var(--ownex-yellow);
+  --color-work-done:     var(--ownex-green);
+
+  /* ── Opportunity lifecycle ── */
+  --color-opp-discovered:  var(--ownex-text-secondary);
+  --color-opp-qualified:   var(--ownex-text-primary);
+  --color-opp-recommended: var(--ownex-gold);
+  --color-opp-ready:       var(--ownex-green);
+  --color-opp-running:     var(--ownex-accent);
+  --color-opp-submitted:   var(--ownex-yellow);
+  --color-opp-paid:        var(--ownex-green);
+
+  /* ── System health ── */
+  --color-sys-healthy:   var(--ownex-green);
+  --color-sys-degraded:  var(--ownex-yellow);
+  --color-sys-offline:   var(--ownex-text-muted);
+  --color-sys-attention: var(--ownex-gold);
+  --color-sys-blocked:   var(--ownex-danger);
 }
 
 /* Money & metric values — apply with .money or font-numeric token */
