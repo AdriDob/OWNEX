@@ -1445,20 +1445,100 @@ export async function fetchValidTransitions(current: string): Promise<string[]> 
 
 // ── Capital Snapshot (SSOT de patrimonio) ──
 
+/**
+ * Forma REAL de `GET /api/financial/capital/snapshot`
+ * (api/routers/financial_truth.py:397-412).
+ *
+ * Antes se declaraba una forma que ningún campo del backend emitía
+ * (`bounty`, `work_income`, `investment`, `atlas`, `crypto`, `total_usd`,
+ * `expected_cash` como array, `payment_compat.{compatible,total}`) y todos
+ * los campos eran opcionales: `vue-tsc` no daba error y la UI renderizaba $0.
+ * `expected_cash` y `payment_compat` son DICTS, no arrays.
+ */
+export interface CapitalSnapshotWire {
+  patrimonio_total?: number
+  breakdown?: {
+    bounty_platforms?: Record<string, unknown>
+    crypto?: Record<string, unknown>
+    takenos?: Record<string, unknown>
+    atlas_inversiones?: Record<string, unknown>
+    workbank_ingresos?: Record<string, unknown>
+    inversiones?: Record<string, unknown>
+  }
+  liquidez?: Record<string, unknown>
+  expected_cash?: Record<string, { fecha_estimada?: string; confianza?: string; cuentas_disponibles?: number; nota?: string }>
+  payment_compat?: { total_cuentas?: number; por_funcion?: Record<string, unknown> }
+  ingresos_mes?: Record<string, unknown>
+  objetivo_libertad?: Record<string, unknown>
+  timestamp?: string
+}
+
+/** Vista del frontend. Todo número ausente es UNKNOWN (null), nunca 0. */
 export interface CapitalSnapshot {
   generated_at?: string
-  bounty?: { pagado_usd?: number; pendiente_usd?: number }
-  work_income?: { entregado_usd: number; pendiente_usd: number; total_usd: number }
-  investment?: { total_usd: number; estrategias: Array<{ name?: string; value?: number }> }
-  atlas?: { total_usd?: number }
-  crypto?: { total_usd?: number }
-  expected_cash?: Array<{ rail?: string; amount_usd?: number; date?: string }>
-  payment_compat?: { compatible?: number; total?: number }
-  total_usd?: number
+  total_usd?: number | null
+  bounty?: { pagado_usd?: number; pendiente_usd?: number } | null
+  work_income?: { entregado_usd?: number; pendiente_usd?: number; total_usd?: number } | null
+  investment?: { total_usd?: number; estrategias?: Array<{ name?: string; value?: number }> } | null
+  atlas?: { total_usd?: number } | null
+  crypto?: { total_usd?: number } | null
+  expected_cash?: { total?: number; by_rail?: Array<{ rail?: string; amount_usd?: number; date?: string }> } | null
+  payment_compat?: { total?: number; por_funcion?: Record<string, unknown> } | null
+}
+
+function _num(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+function _sumRecord(rec: Record<string, unknown> | undefined, key: string): number | null {
+  if (!rec) return null
+  const v = _num(rec[key])
+  return v
+}
+
+/**
+ * Traduce el wire real a la vista del frontend. Un campo que el backend no
+ * manda queda `null` = UNKNOWN, que la UI muestra como `—`. Antes esos mismos
+ * campos se renderizaban como $0 (UNKNOWN declarado como cero).
+ */
+function _mapCapitalSnapshot(wire: CapitalSnapshotWire): CapitalSnapshot {
+  const b = wire.breakdown ?? {}
+  const rails = Object.entries(wire.expected_cash ?? {}).map(([rail, info]) => ({
+    rail,
+    amount_usd: undefined as number | undefined,
+    date: info?.fecha_estimada,
+  }))
+  return {
+    generated_at: wire.timestamp,
+    total_usd: _num(wire.patrimonio_total),
+    bounty: b.bounty_platforms
+      ? {
+          pagado_usd: _sumRecord(b.bounty_platforms, 'pagado_usd') ?? undefined,
+          pendiente_usd: _sumRecord(b.bounty_platforms, 'pendiente_usd') ?? undefined,
+        }
+      : null,
+    work_income: b.workbank_ingresos
+      ? {
+          entregado_usd: _sumRecord(b.workbank_ingresos, 'entregado_usd') ?? undefined,
+          pendiente_usd: _sumRecord(b.workbank_ingresos, 'pendiente_usd') ?? undefined,
+          total_usd: _sumRecord(b.workbank_ingresos, 'total_usd') ?? undefined,
+        }
+      : null,
+    investment: b.inversiones
+      ? { total_usd: _sumRecord(b.inversiones, 'total_usd') ?? undefined, estrategias: [] }
+      : null,
+    atlas: b.atlas_inversiones ? { total_usd: _sumRecord(b.atlas_inversiones, 'total_usd') ?? undefined } : null,
+    crypto: b.crypto ? { total_usd: _sumRecord(b.crypto, 'total_usd') ?? undefined } : null,
+    expected_cash: wire.expected_cash ? { by_rail: rails } : null,
+    payment_compat: wire.payment_compat
+      ? { total: _num(wire.payment_compat.total_cuentas) ?? undefined, por_funcion: wire.payment_compat.por_funcion }
+      : null,
+  }
 }
 
 export async function fetchCapitalSnapshot(): Promise<CapitalSnapshot> {
-  return api.get<CapitalSnapshot>('/financial/capital/snapshot')
+  const wire = await api.get<CapitalSnapshotWire>('/financial/capital/snapshot')
+  return _mapCapitalSnapshot(wire ?? {})
 }
 
 // ── AI Providers (settings/ai + OAR + resilience) ──
@@ -1791,19 +1871,6 @@ export interface StrategyScore {
   sharpe: number
   max_drawdown: number
   win_rate: number
-}
-
-export interface CapitalSnapshot {
-  generated_at: string
-  total_usd: number
-  bounty: { pagado_usd: number; pendiente_usd: number }
-  work_income: { entregado_usd: number; pendiente_usd: number; total_usd: number }
-  investment: { total_usd: number; estrategias: any[] }
-  atlas: { total_usd: number }
-  crypto: { total_usd: number }
-  expected_cash: { total: number; by_rail: Array<{ rail: string; amount_usd: number; date: string }> }
-  payment_compat: { compatible: number; total: number }
-  work_income: { by_strategy: Array<any> }
 }
 
 export interface RiskSummary {
@@ -2284,7 +2351,6 @@ export interface MilestoneTrackerState {
     priority: number
     url: string | null
   } | null
-  total_earned_usd: number
 }
 
 export interface MilestoneTrackerResponse {
@@ -2301,14 +2367,12 @@ export interface MilestoneTrackerResponse {
   }>
   closest_engine: { engine: string; label: string; usd_to_milestone: number; next_action: string; action_url: string | null } | null
   daily_action: { engine: string; title: string; description: string; estimated_minutes: number; impact_usd: number; priority: number; url: string | null } | null
-  total_earned_usd: number
 }
 
 export async function fetchMilestoneTracker(): Promise<MilestoneTrackerState> {
   const data = await api.get<MilestoneTrackerResponse>('/first-money/milestone-tracker')
   // Normalize: ensure all expected fields are present
   return {
-    total_earned_usd: data.total_earned_usd ?? 0,
     next_milestone: data.next_milestone ?? { milestone: '100', label: '$100', usd_needed: 100, pct_complete: 0 },
     milestones: data.milestones ?? [],
     engine_proximities: data.engine_proximities ?? [],
@@ -2731,12 +2795,167 @@ export interface HubWorkspace {
   linked: { tasks: number; opportunities: number; revenue: number }
 }
 
+export interface FactoryExperiment {
+  demand_score: number | null
+  verdict: string
+  views: number
+  plans: number
+  saves: number
+  emails: number
+}
+
+export interface HubNextAction {
+  title: string
+  why?: string
+  est_minutes?: number
+  url?: string
+  endpoint?: string
+  command?: string
+  life_goal?: string
+  reallocation_hint?: unknown
+}
+
+export interface HubEconomics {
+  money_per_human_hour: number | null
+  automation_ratio: number | null
+  paid_usd: number
+  pipeline_usd: number
+  human_hours: number | null
+}
+
 export interface HunterOverview {
   mission: HubMission
   levels: HubLevels
   workspaces: HubWorkspace[]
-  next_action: string
+  next_action: HubNextAction
   target_usd: number
+  economics?: HubEconomics | null
+  factory?: Record<string, FactoryExperiment>
+  money_loop?: MoneyLoopBlock | null
+}
+
+export async function fetchAppFactoryOverview(): Promise<{
+  generated_at: string | null
+  total_events: number
+  experiments: Record<string, { counts: Record<string, number>; emails: number; demand_score: number | null; verdict: string }>
+}> {
+  return api.get('/app-factory/overview')
+}
+
+// ── Economic Trajectory (REAL / PIPELINE / SCENARIO) ──
+// Las 3 capas nunca se suman: solo paid/net es cash medido.
+
+export interface TrajectoryPeriod {
+  period: string
+  realized_cash: number
+  paid_outcomes: number
+  accepted_outcomes: number
+  attempts: number
+  pipeline_value: number
+  speculative_value: number
+  hours_used: number
+  net_cash_per_hour: number | null
+}
+
+export interface TrajectoryChannel {
+  channel: string
+  attempts: number
+  accepted: number
+  awarded: number
+  paid: number
+  cash: number
+  average_cash: number | null
+  cash_per_hour: number | null
+  acceptance_rate: number | null
+  validation: string
+}
+
+export interface EconomicTrajectory {
+  generated_at: string
+  available_hours_per_week: number
+  real: { d90: TrajectoryPeriod; d180: TrajectoryPeriod; d365: TrajectoryPeriod; net_cash_per_hour: number | null }
+  pipeline: TrajectoryPeriod
+  speculative: { value: number; counted_as_cash: boolean; label: string }
+  calibration: { level: number; label: string; paid_outcomes: number; net_cash_per_hour: number | null; note: string }
+  channels: TrajectoryChannel[]
+  scenarios: { kind: string; label: string; is_forecast: boolean; horizons: Record<string, Record<string, number[]>> }
+  alerts: string[]
+  source_error: string | null
+}
+
+export interface MoneyLoopBlock {
+  stages: { targets_active: number; findings: Record<string, number>; reports: Record<string, number> }
+  pending_validations: { total: number; counts: Record<string, number>; top: { label: string; reason: string } | null }
+  funnel: { outcomes: number; paid: number; net_usd: number; net_per_hour: number | null; as_of: string | null; state: string }
+}
+
+/**
+ * FIRST PAID — superficie canónica del objetivo económico principal.
+ * UNA sola llamada: estado real (READY, PAID, P(CASH)) + el próximo paso
+ * humano con su endpoint. `p_cash_state` llega como texto honesto
+ * ("UNKNOWN (sin PAID propio todavía)") y NO se convierte a número.
+ */
+export interface TodayPlan {
+  generated_at: string
+  who?: Record<string, unknown>
+  state: {
+    paid_outcomes: number
+    p_cash_state: string
+    ready_to_deliver: number
+    ready_to_deliver_usd: number
+    review_queue: number
+    payout_rails_configured: number
+    config_complete_pct: number
+    day1_ok: boolean
+  }
+  automatic?: unknown[]
+  your_plan?: TodayStep[]
+  money: { expected_now_usd: number; paid_usd: number; label: string }
+  next_step: TodayStep
+}
+
+export interface TodayStep {
+  id: string
+  owner: string
+  title: string
+  why: string
+  endpoint: string
+  url: string
+  est_minutes: number
+  blocks: string
+  done: boolean
+  badge: string
+}
+
+/** FIRST PAID: 1 llamada. Degrada honestamente a null si el backend no responde. */
+export async function fetchTodayPlan(): Promise<TodayPlan | null> {
+  try {
+    return await api.get<TodayPlan>('/today')
+  } catch {
+    return null
+  }
+}
+
+export async function fetchEconomicTrajectory(hours?: { d90?: number; d180?: number; d365?: number }): Promise<EconomicTrajectory> {
+  const parts: string[] = []
+  if (hours?.d90) parts.push(`hours_d90=${hours.d90}`)
+  if (hours?.d180) parts.push(`hours_d180=${hours.d180}`)
+  if (hours?.d365) parts.push(`hours_d365=${hours.d365}`)
+  const qs = parts.length ? `?${parts.join('&')}` : ''
+  return api.get<EconomicTrajectory>(`/economic-trajectory/trajectory${qs}`)
+}
+
+export async function fetchEconomicGap(targetMonthly: number): Promise<{
+  target_monthly: number
+  realized: number
+  verifiable_pending: number
+  speculative_excluded: boolean
+  gap: number
+  required_cash_per_hour: number | null
+  is_math: boolean
+  note: string
+}> {
+  return api.get(`/economic-trajectory/gap?target_monthly=${targetMonthly}`)
 }
 
 export async function fetchHunterOverview(targetUsd?: number): Promise<HunterOverview> {
