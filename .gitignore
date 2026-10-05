@@ -138,3 +138,7 @@ test-results-prod/
 playwright-report/
 blob-report/
 .playwright/
+
+# Binario compilado de PyInstaller (248 MiB): artefacto de build, no fuente.
+# El CI genera el instalador; la release se descarga de los artefactos.
+dist-pyinstaller/
