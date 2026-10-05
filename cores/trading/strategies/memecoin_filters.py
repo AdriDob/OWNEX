@@ -45,13 +45,63 @@ def _num(value: Any) -> float | None:
         return None
 
 
+def normalize_pair(pair: dict[str, Any]) -> dict[str, Any]:
+    """Aplana un par de DexScreener a las claves que lee `evaluate_pair`.
+
+    DexScreener devuelve anidado:
+        {"liquidity": {"usd": 30000}, "volume": {"h24": 120000},
+         "priceChange": {"h24": 88.5}, "pairCreatedAt": 1700000000000}
+
+    `evaluate_pair` leía `pair["liquidity_usd"]` (plano), así que los radares
+    —que le pasaban el dict CRUDO—leansaban `None` en las tres reglas duras y
+    `passed_filters` era False SIEMPRE. El bug: los filtros nunca pasaban, y
+    ningún test lo cubría (`rg passed_filters tests/` → 0).
+
+    `memecoin_adapter` ya normalizaba antes de llamar, por eso ese path sí
+    funcionaba y el radar no. Ahora ambos formatos son válidos.
+    """
+    out: dict[str, Any] = dict(pair)
+
+    liq = _num((pair.get("liquidity") or {}).get("usd"))
+    if liq is not None:
+        out["liquidity_usd"] = liq
+
+    vol = _num((pair.get("volume") or {}).get("h24"))
+    if vol is not None:
+        out["volume_h24"] = vol
+
+    # DexScreener: pairCreatedAt en ms epoch
+    created = pair.get("pairCreatedAt")
+    if created is not None:
+        out["pair_created_at"] = created
+
+    chg = _num((pair.get("priceChange") or {}).get("h24"))
+    if chg is not None:
+        out["price_change_h24"] = chg
+
+    base = pair.get("baseToken") or {}
+    if isinstance(base, dict):
+        if base.get("address"):
+            out["mint"] = base["address"]
+        if base.get("symbol"):
+            out["symbol"] = base["symbol"]
+
+    # Si ya venían planas (memecoin_adapter), no romperlas.
+    return out
+
+
 def evaluate_pair(
     pair: dict[str, Any],
     rug: dict[str, Any] | None,
     config: FilterConfig | None = None,
     now_ms: int | None = None,
 ) -> FilterVerdict:
-    """Evaluate one DexScreener pair (+ optional RugCheck) against hard rules."""
+    """Evaluate one DexScreener pair (+ optional RugCheck) against hard rules.
+
+    Acepta tanto el dict CRUDO de DexScreener (anidado) como el plano que ya
+    produce `memecoin_adapter`. Ver `normalize_pair`.
+    """
+    pair = normalize_pair(pair)
     cfg = config or FilterConfig()
     reasons: list[str] = []
     warnings: list[str] = []
