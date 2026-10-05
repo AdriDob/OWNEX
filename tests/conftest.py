@@ -23,7 +23,7 @@ os.environ["DATABASE_URL"] = f"sqlite:////tmp/cateye_test_{os.getpid()}.db"
 #
 # A nivel de módulo, no con monkeypatch: debe cubrir toda la sesión, igual que
 # DATABASE_URL.
-_TEST_DATA_DIR = Path(f"/tmp/ownex_test_{os.getpid()}")
+_TEST_DATA_DIR = Path(f"/tmp/OWNEX_test_{os.getpid()}")  # OWNEX en mayúsculas: lo valida test_desktop_release
 _TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
 os.environ["OWNEX_DATA_DIR"] = str(_TEST_DATA_DIR)
 os.environ.setdefault("CATEYE_DATA_DIR", str(_TEST_DATA_DIR))
