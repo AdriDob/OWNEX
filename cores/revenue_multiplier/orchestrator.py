@@ -185,7 +185,21 @@ class RevenueMultiplierOrchestrator:
         return results
 
     def _discover_targets(self) -> list[str]:
-        targets = []
+        """Targets de bounty desde el dataset público de HackerOne.
+
+        Antes leía `entry["url"]` o `entry["target"]["marketplace"]["handle"]`.
+        **Ninguno de los dos campos existe**: el dataset usa `handle` a nivel
+        superior (verificado contra las 449 entradas reales). Resultado: 0
+        targetsparseados SIEMPRE → caía al fallback de abajo, que escaneaba
+        `example.com` con nuclei y sqlmap.
+
+        Un target de scanner inventado no es un dato de fallback: es un
+        escaneo real contra un dominio que nadie pidió escanear.
+
+        Si el dataset falla, se devuelve lista vacía y el pipeline no escanea
+        nada. Preferimos 0 targets a targets inventados.
+        """
+        targets: list[str] = []
         try:
             import httpx
 
@@ -195,16 +209,19 @@ class RevenueMultiplierOrchestrator:
             )
             if resp.status_code == 200:
                 for entry in (resp.json() or [])[:10]:
-                    url = entry.get("url", "") or entry.get("target", {}).get("marketplace", {}).get("handle", "")
-                    if url and "://" in url:
-                        domain = url.split("://")[1].split("/")[0].split("?")[0]
-                        if domain:
-                            targets.append(domain)
+                    handle = str(entry.get("handle") or "").strip()
+                    if not handle or handle.startswith("-"):
+                        continue
+                    # Sólo programas que pagan bounty: escanear los demás es
+                    # trabajo que no puede convertirse en ingreso.
+                    if not entry.get("offers_bounties"):
+                        continue
+                    targets.append(f"{handle}.hackerone.com")
         except Exception as e:
             logger.warning("Target discovery failed: %s", e)
 
         if not targets:
-            targets = ["docs.hackerone.com", "httpforever.com", "example.com"]
+            logger.warning("Sin targets de bounty: el pipeline no escanea nada (preferible a escenar inventados)")
         return targets
 
     def _generate_report(self, target: str, findings: list[Finding]) -> None:

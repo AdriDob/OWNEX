@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -77,7 +78,15 @@ async def activate_max_revenue(data: dict[str, Any] | None = None):
         else:
             rm = get_revenue_multiplier()
 
-        result = rm.activate_max_revenue_mode()
+        # El orchestrator es SÍNCRONO y bloquea: `subprocess.run` de nuclei,
+        # sqlmap y compañía con timeouts de hasta 900s por tool, más llamadas
+        # de red. Llamarlo directo desde este `async def` congelaba el event
+        # loop DEL SERVER ENTERO: no sólo esta request, sino todas las demás
+        # (health, WS, copilot) durante los minutos que durara el escaneo.
+        #
+        # `asyncio.to_thread` lo mueve a un hilo del pool: el loop sigue
+        # respondiendo y la request espera su resultado igual que antes.
+        result = await asyncio.to_thread(rm.activate_max_revenue_mode)
         return {"success": True, "result": result}
     except Exception as e:
         logger.exception("Failed to activate MAX REVENUE MODE")
