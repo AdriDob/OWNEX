@@ -48,17 +48,69 @@ class TokenPrice:
     price_change_24h: float = 0.0
 
 
+# RPCs publicos de Solana: si el caller dejo uno de estos Y hay key de Helius,
+# preferimos Helius (el publico limita por IP y puede dar 429 en un swap).
+_PUBLIC_RPC_URLS: frozenset[str] = frozenset(
+    {
+        "https://api.mainnet-beta.solana.com",
+        "https://solana-mainnet.g.alchemy.com/v2/demo",
+        "https://rpc.ankr.com/solana",
+        "https://solana-rpc.publicnode.com",
+        "http://localhost:8899",
+    }
+)
+
+
 class JupiterClient:
     def __init__(
         self,
         rpc_url: str = "https://api.mainnet-beta.solana.com",
         jupiter_api_url: str = "https://quote-api.jup.ag/v6",
         helius_api_key: str = "",
+        skip_preflight: bool = False,
     ) -> None:
-        self._rpc_url = rpc_url
+        # Preflight ON por defecto: simular la tx es local y gratis, evitarla
+        # cuesta fees reales. Ver `send_transaction`.
+        self._skip_preflight = skip_preflight
         self._jupiter_url = jupiter_api_url.rstrip("/")
         self._helius_api_key = helius_api_key
+        # `helius_api_key` se recibía y se guardaba pero NUNCA se usaba: el RPC
+        # quedaba siempre en `api.mainnet-beta.solana.com`, que rate-limita
+        # fuerte y puede rechazar `sendTransaction`. Con la key de Helius
+        # configurada, el RPC con y sin key prioriza el endpoint de Helius.
+        self._rpc_url = self._resolve_rpc_url(rpc_url, helius_api_key)
         self._http = httpx.Client(timeout=30)
+
+    @staticmethod
+    def _resolve_rpc_url(rpc_url: str, helius_api_key: str) -> str:
+        """Endpoint RPC efectivo.
+
+        Prioriza Helius si hay key: `api.mainnet-beta.solana.com` limita por
+        IP y en un flujo de swaps puede devolver 429 justo cuando más se
+        necesita (construir, firmar y enviar la tx). Con Helius se levanta el
+        límite y además da más throughput.
+
+        Regla: una key que se recibe y se guarda pero no se usa es
+        configuración muerta que además promete un rendimiento que no llega.
+        """
+        configured = (rpc_url or "").strip().lower()
+        # Si el caller YA pasó un RPC dedicado (no el público), respetarlo:
+        # Helius no debe pisar una preferencia explícita del operador.
+        if configured and configured not in _PUBLIC_RPC_URLS:
+            return rpc_url
+        if helius_api_key:
+            return f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
+        return rpc_url
+
+    @property
+    def rpc_url(self) -> str:
+        """RPC efectivo (expuesto para diagnóstico)."""
+        return self._rpc_url
+
+    @property
+    def using_paid_rpc(self) -> bool:
+        """True si estamos usando Helius en vez del RPC público."""
+        return "helius" in self._rpc_url
 
     def quote(
         self,
@@ -152,7 +204,24 @@ class JupiterClient:
 
         return tx
 
-    def send_transaction(self, signed_tx_b64: str, skip_preflight: bool = True) -> str | None:
+    def send_transaction(self, signed_tx_b64: str, skip_preflight: bool | None = None) -> str | None:
+        """Envía la tx firmada por JSON-RPC `sendTransaction`.
+
+        `skip_preflight` decide si el RPC **simula** la transacción antes de
+        aceptarla. Venía hardcodeado en `True`, y eso es una pérdida de dinero
+        silenciosa: con el preflight apagado, una tx inválida (slippage vencido,
+        cuenta sin lamports, mint inválido) se incluye igual, cobra la fee de
+        la red y se descarta. El owner paga fees por transacciones que nunca
+        pudieron ejecutarse.
+
+        Por defecto ahora es `False` (preflight ON). El preflight es una
+        simulación local que no cuesta fees y evita quemarlas.
+
+        `None` = usar el default del cliente (configurable por instancia).
+        `True`/`False` = override explícito para esa llamada.
+        """
+        if skip_preflight is None:
+            skip_preflight = self._skip_preflight
         tx_bytes = base64.b64decode(signed_tx_b64)
         payload = {
             "jsonrpc": "2.0",
