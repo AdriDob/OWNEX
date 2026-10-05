@@ -21,3 +21,15 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+
+      # Frontend gate. Existe porque `vue-tsc` NO alcanza (medido 2026-10-05:
+      # un `v-else` sin su `v-if`, un `})` huérfano y un import sin instalar
+      # dieron 0 errores de tipos y pasaron los 202 tests; sólo `vite build`
+      # los cazó). CI ya corre el build (ci.yml) pero se salta con
+      # --no-verify, que es exactamente como entraron esos tres.
+      - id: frontend-build
+        name: frontend (vue-tsc + vite build)
+        entry: bash -c 'cd frontend && npx vue-tsc --noEmit && npx vite build'
+        language: system
+        files: ^frontend/(src/.*\.(vue|ts)|package\.json|tsconfig.*\.json|vite\.config\.ts)$
+        pass_filenames: false

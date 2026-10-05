@@ -36,6 +36,7 @@ import {
   fetchDirectWorkWorkBank,
   fetchDirectWorkDailyBrief,
 } from '@/services/ownexData'
+import ProviderHealthPanel from '@/components/ai/ProviderHealthPanel.vue'
 
 const emit = defineEmits<{
   answered: [messageId: number]
@@ -566,6 +567,8 @@ defineExpose({ sendMessage, askAboutAction, requestToolExecution })
         <Trash2 class="h-4 w-4" />
       </button>
     </header>
+
+    <ProviderHealthPanel class="mx-4 mt-3 shrink-0" />
 
     <div ref="messagesEl" class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4" role="log" aria-live="polite">
       <div v-if="messages.length === 0" class="mx-auto max-w-md py-8 text-center">
