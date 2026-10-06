@@ -20,12 +20,10 @@ export default defineConfig({
       // ROOT_MOUNTED_PREFIXES en src/lib/backend.ts (guard: test_frontend_api_contract.py)
         ...Object.fromEntries(
           [
-            '/career', '/decision', '/dev-bounty', '/devin', '/direct-work',
-            '/enhanced-personalization', '/finance', '/first-money', '/fiverr',
-            '/life-management', '/mission-hub', '/mobile', '/oar', '/onboarding',
-            '/opensource', '/platform-guides', '/productivity', '/remote',
-            '/result-based', '/revenue-timeline', '/supabase', '/today',
-            '/version-backup', '/voice', '/wear-os', '/webhook', '/zero-barrier',
+            // Debe coincidir con ROOT_MOUNTED_PREFIXES de lib/backend.ts.
+            // Si un namespace no está en esa lista, el front lo pide bajo
+            // /api y este proxy sobra: `/api` ya cubre todo.
+            '/direct-work', '/platform-guides', '/result-based', '/today', '/wear-os',
           ].map((p) => [p, { target: 'http://127.0.0.1:8000', changeOrigin: true }]),
         ),
     },

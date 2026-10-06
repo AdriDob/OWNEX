@@ -194,8 +194,11 @@ export function getHostBase(): string {
  * Verificá con: `python scripts/audit_frontend_contract.py --list`
  */
 const ROOT_MOUNTED_PREFIXES = [
+  '/direct-work',
   '/platform-guides',
+  '/result-based',
   '/today',
+  '/wear-os',
 ]
 
 /** Resolve a frontend API path to the full correct URL. */

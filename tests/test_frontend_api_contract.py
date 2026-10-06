@@ -116,8 +116,12 @@ def test_root_mounted_prefixes_cover_real_backend_routers() -> None:
         for match in re.findall(r"api\.(?:get|post|put|patch|delete)\(['\"]([^'\"?]+)", text):
             if match.startswith("/api/"):
                 continue  # explícito: no depende de la lista
-            clean = match[4:] if match.startswith("/api/") else match
-            if any(clean == p or clean.startswith(p + "/") for p in backend):
+            clean = (match[4:] if match.startswith("/api/") else match).rstrip("/") or "/"
+            # ¿el backend monta este path en raíz?
+            en_raiz = any(clean == r.rstrip("/") or clean.startswith(r.rstrip("/") + "/") for r in backend)
+            # ¿y NO está en la lista del front?
+            declarado = any(clean == p.rstrip("/") or clean.startswith(p.rstrip("/") + "/") for p in front)
+            if en_raiz and not declarado:
                 sin_declarar.add(clean)
 
     assert not sin_declarar, (
