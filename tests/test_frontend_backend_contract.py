@@ -10,7 +10,7 @@ front** (`frontend/src/lib/backend.ts::resolveApiUrl`):
 
 Los 39 caen en pantallas que el owner ve: `DashboardAegis`, `SettingsAtlas`,
 `ModeManagerPanel`, `CopilotConsolidated`, `ProfileConsolidated`,
-`QuickCapture`, `SecurityConsolidated`, `TradingConsolidated` (vía trading-lab).
+`QuickCapture`, `SecurityConsolidated`.
 
 Es la misma clase que #61 (Jupiter: la API migró y devolvía su valor por
 defecto) y #62 (SpoofCheck: host muerto, `None` en silencio). La diferencia es
@@ -173,6 +173,9 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     ),
     "/api/odyssey/analytics/roi": ("app-sin-backend", "DashboardOdyssey: ROI nunca existio"),
     "/api/odyssey/analytics/performance": ("app-sin-backend", "DashboardOdyssey: performance nunca existio"),
+    # ── trading-lab: ELIMINADO 2026-10-05. Los 6 endpoints nunca existieron
+    #     y sus 6 funciones tenian 0 consumidores. Codigo muerto borrado de
+    #     ownexData.ts (162 lineas). Ver #24 y #63.
     # ── Drift: el contrato se movió ──
     "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
     "/api/hypotheses": ("drift", "las hipótesis viven bajo /api/security"),
@@ -187,12 +190,6 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     "/api/identity": ("drift", "sin endpoint de identidad"),
     "/api/quick-capture": ("drift", "captura rápida sin endpoint"),
     "/api/system/readiness": ("drift", "readiness no está en /api/system"),
-    "/api/trading-lab/dashboard": ("drift", "trading-lab: 8 funciones sin API (ver #24)"),
-    "/api/trading-lab/engines": ("drift", "trading-lab: engines sin API"),
-    "/api/trading-lab/risk/summary": ("drift", "trading-lab: risk sin API"),
-    "/api/trading-lab/strategies/rankings": ("drift", "trading-lab: rankings sin API"),
-    "/api/trading-lab/validation/status": ("drift", "trading-lab: validation sin API"),
-    "/api/trading-lab/capital/snapshot": ("drift", "trading-lab: capital sin API"),
     "/platform-guides": ("drift", "platform-guides sin endpoint raíz"),
 }
 
