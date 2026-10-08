@@ -1976,3 +1976,31 @@ CALL = re.compile(r"""api\.(get|post|put|patch|delete)(?:<[^>]*>)?\(\s*[`'"]([^`
 El allowlist `CONOCIDOS_ROTOS` queda **vacío**, y `test_no_quedan_404_conocidos` lo verifica: un 404 nuevo se arregla, no se anota. Con 39 entradas documentadas el guard informaba sin ecar; desde que están las 39 cerradas, anotar una es rendirse.
 
 **Regla permanente:** *una regex de scanner es código, y el código duplicado se desincroniza.* Un guard se endurece en los dos sitios donde vive, o en ninguno. Y: *preferí composition a endpoints nuevos* — la tab Executive no necesitó un endpoint, necesitó 3 llamadas a endpoints que ya existían.
+
+## 77. La suite completa tiene 42 fallos preexistentes — y uno es un test de una feature que no existe (2026-10-08) — P2
+
+Medido con la suite completa, comparando `aeb4cf5e` (antes de este trabajo) contra `fbd21480` (después), en worktree separado:
+
+```
+aeb4cf5e : 42 failed, 6115 passed, 12 skipped, 1 error   (11m35s)
+fbd21480 : 42 failed, 6139 passed,  8 skipped, 1 error   (15m36s)
+```
+
+**Mismo número de fallos antes y después ⇒ este trabajo no introduce ninguna regresión.** La composición varía entre corridas (los 5 que "aparecen" en una y no en la otra fallan igual al correrlos aislados): son **order/state pollution**, no código. Causas medidas en los mensajes: `429 Too many requests` en el login (rate limit real, compartido), timeouts de red (`test_vision_gateway`), y estado compartido en `catseye_test.db`.
+
+**Agrupados por causa:**
+
+| Grupo | Nº | Síntoma |
+|---|---|---|
+| `test_chain_analyzer` | 2 | `ValidationPromoter` **no tiene** `_annotate_chain_hypotheses` |
+| `test_scheduler::TestScanSchedulerAdaptive` | 6 | cooldown/prioridad del recon |
+| `test_secure_income::TestSecurePresets` | 5 | presets de income seguro |
+| `test_opportunity_cycle::TestExecuteCycleIntegrity` | 4 | integridad del ciclo |
+| `test_payment_compat` | 2 | red crypto real (`USDC` no viable offline) |
+| resto (`credentials_vault`, `direct_work_algora`, `high_confidence_90`, `income_plan`, `knowledge_bridge`, `maximum_potential`, `prompt_guard`, `reward_not_fabricated`, `self_healer`, `vision_gateway`, `worker_core_e2e_golden`, `command_center`, `oar_api`) | ~21 | varios |
+
+**El caso interesante — `test_chain_analyzer.py`:** el test se agregó el 2026-10-05 (commit `b5e22ae1`) y llama a un método privado que **nunca se implementó** en `cores/validation/promoter.py`. Es la misma clase que el resto de este trabajo, vista desde el test: **un test que afirma comportamiento inexistente es una afirmación, no una verificación.** O se implementa `_annotate_chain_hypotheses`, o el test se borra; dejarlo es dejar una spec muda.
+
+**Nota de proceso:** la regresión se descartó con un worktree en `aeb4cf5e` corriendo la suite completa y comparando, no con "en mi área todo pasa". Lo segundo no habría detectado ni un solo fallo nuevo de los que dependían del orden.
+
+**Regla permanente:** *`make check` es necesario y no suficiente.* Verifica el scope AUD; una suite completa comparada contra la base es lo que prueba que no rompiste nada.
