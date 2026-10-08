@@ -513,11 +513,24 @@ class AutoSubmitEngine:
                     # El pipeline ya envío y ya registró el outcome en
                     # RevenueTracker. Volver a hacerlo aquí sería doble
                     # envío y doble revenue.
-                    record.status = (
-                        SubmissionStatus.CONFIRMED
-                        if getattr(result, "verdict", "") == "submitted"
-                        else SubmissionStatus.SUBMITTED
-                    )
+                    # El pipeline es fail-closed: si el PR falla (por falta de
+                    # aprobación, por tests en rojo) devuelve `failed` y nunca
+                    # llega a enviar. Esa salida NO es un envío.
+                    # El mapeo anterior caía a SUBMITTED en cualquier verdict
+                    # distinto de "submitted" — o sea, un fallo quedaba
+                    # registrado como enviado. Es el bug que este mismo commit
+                    # arregla en otro sitio, reintroducido aquí.
+                    verdict = str(getattr(result, "verdict", "") or "")
+                    if verdict == "submitted":
+                        record.status = SubmissionStatus.SUBMITTED
+                    else:
+                        record.status = SubmissionStatus.FAILED
+                        record.last_error = str(getattr(result, "error", "") or f"pipeline verdict={verdict}")
+                        record.metadata["blocked_by"] = "pipeline_failed"
+                        record.metadata["blocked_note"] = (
+                            "DevBountyPipeline no llegó a enviar. El verdict y el error "
+                            "quedan registrados; esto NO es un envío."
+                        )
                     record.metadata["pipeline_reference"] = getattr(result, "pr_url", None) or getattr(
                         result, "submission_id", None
                     )

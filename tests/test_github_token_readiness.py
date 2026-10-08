@@ -443,7 +443,9 @@ def test_code_bounty_is_delegated_not_scaffolded(tmp_path) -> None:
     assert record.metadata.get("delegated_to") == "dev_bounty_pipeline"
     assert called.get("repo_url") == "https://github.com/o/r"
     assert called.get("issue_number") == 42
-    assert record.status is SubmissionStatus.CONFIRMED
+    # submitted != confirmed: el pipeline envió; que la plataforma acepte es
+    # otro hecho, y este codigo no lo sabe.
+    assert record.status is SubmissionStatus.SUBMITTED
 
 
 def test_delegation_failure_blocks_instead_of_falling_back_to_scaffold(tmp_path) -> None:
@@ -482,3 +484,47 @@ def test_delegation_failure_blocks_instead_of_falling_back_to_scaffold(tmp_path)
     assert record.metadata.get("blocked_by") == "delegation_failed"
     assert record.status is SubmissionStatus.READY
     assert "delegacion fallida" in (record.last_error or "")
+
+
+def test_failed_pipeline_is_not_recorded_as_submitted(tmp_path) -> None:
+    """Un pipeline `failed` NO es un envío.
+
+    El pipeline es fail-closed: si el PR falla (aprobación humana ausente,
+    tests en rojo) devuelve `failed` y nunca llega a la Fase 6. El mapeo
+    inicial caía a SUBMITTED en cualquier verdict distinto de "submitted", o
+    sea que un fallo quedaba registrado como enviado — el mismo bug que este
+    archivo ya cubre en el camino directo, reintroducido por la cesión.
+    """
+    import asyncio
+
+    import cores.autonomy.dev_bounty_pipeline as pipeline_mod
+    from cores.opportunity.executors.auto_submit import AutoSubmitEngine, SubmissionStatus
+
+    class _Res:
+        def __init__(self):
+            self.verdict = "failed"
+            self.error = "Failed to create PR: Requires human approval"
+            self.pr_url = None
+            self.submission_id = None
+
+    class _Pipe:
+        async def execute_dev_bounty(self, **kw):
+            return _Res()
+
+    original = pipeline_mod.get_dev_bounty_pipeline
+    pipeline_mod.get_dev_bounty_pipeline = lambda: _Pipe()  # type: ignore[assignment]
+    try:
+        engine = AutoSubmitEngine(dlq_path=str(tmp_path / "dlq"), queue_path=str(tmp_path / "q.json"))
+        record = asyncio.run(
+            engine.submit_workbank_item(
+                "x",
+                "github",
+                {"title": "T", "url": "https://github.com/o/r/issues/1", "description": "D"},
+            )
+        )
+    finally:
+        pipeline_mod.get_dev_bounty_pipeline = original  # type: ignore[assignment]
+
+    assert record.status is SubmissionStatus.FAILED, f"quedó en {record.status}, se esperaba FAILED"
+    assert record.metadata.get("blocked_by") == "pipeline_failed"
+    assert "Requires human approval" in (record.last_error or "")
