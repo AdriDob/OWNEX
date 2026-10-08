@@ -100,23 +100,29 @@ class OllamaAdapter(AIProviderProtocol):
                 uptime_seconds=time.monotonic() - self._start_time,
             )
 
-    def _format_messages(self, messages: list[dict[str, str]]) -> str:
-        parts = []
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if role == "system":
-                parts.append(f"System: {content}")
-            elif role == "user":
-                parts.append(f"User: {content}")
-            elif role == "assistant":
-                parts.append(f"Assistant: {content}")
-        parts.append("Assistant: ")
-        return "\n".join(parts)
+    @staticmethod
+    def _split_messages(
+        messages: list[dict[str, str]],
+    ) -> tuple[str, str]:
+        """Separa el system prompt del resto. NO se aplana a un solo string.
+
+        Aplanar con el prefijo "System:" hace que qwen (chino por defecto)
+        responda en chino — medido: "di OK" da español, pero
+        "System: X\nUser: di OK\nAssistant: " da chino. Ollama tiene campo
+        `system` propio, así que se usa en vez de simular el rol.
+        """
+        system = "\n\n".join(m["content"] for m in messages if m.get("role") == "system")
+        turns = [
+            f"{'User' if m.get('role') == 'user' else 'Assistant'}: {m.get('content', '')}"
+            for m in messages
+            if m.get("role") != "system"
+        ]
+        turns.append("Assistant:")
+        return system, "\n\n".join(turns)
 
     async def chat(self, request: AIRequest) -> AIResponse:
         start = time.monotonic()
-        prompt = self._format_messages(request.messages)
+        system, prompt = self._split_messages(request.messages)
 
         try:
             import urllib.request
@@ -165,7 +171,9 @@ class OllamaAdapter(AIProviderProtocol):
             )
 
     async def chat_stream(self, request: AIRequest) -> AsyncGenerator[str, None]:
-        prompt = self._format_messages(request.messages)
+        # Mismo motivo que en chat(): aplanar con "System:" hace que qwen
+        # responda en chino. El system va en su campo.
+        system, prompt = self._split_messages(request.messages)
         try:
             import urllib.request
 
