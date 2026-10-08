@@ -2056,3 +2056,25 @@ GET /api/pillars/startup-plan
 **11 guards** en `tests/test_pillars_projections.py`, incluido `test_los_hechos_de_mercado_siguen_declarados`: el fix no puede degenerar en "borrar el dato", sólo en "dejar de afirmar lo que no tiene base".
 
 **Regla permanente:** *un agregado de proyecciones no medidas es una medición con puntos decimales.* Y: *`0` y `None` son afirmaciones distintas* — `0` = medido y dio cero; `None` = no medido. Confundirlas es oculdar una alarma o inventar un resultado.
+
+## 79. `/api/pillars` NO tiene consumidor en la UI — y eso es lo correcto (2026-10-08) — NOTA
+
+Al cerrar #78, el siguiente pensamiento era "exponer el dashboard de pillars
+en la pantalla de Income, que ahora tiene los números correctos".
+
+**No se hizo, a propósito.** Un panel de income que muestra
+`total_monthly_potential: null` y `combined_ev_per_hour: null` no informa
+nada: es un tableau de "UNKNOWN" con formato. `PRODUCTION_RULES` §11 dice que
+todo elemento de UI debe comunicar estado, información, acción, consecuencia
+o navegación, y que si no hace ninguna de las cinco se elimina.
+
+La pantalla queda así a propósito: **el número que se muestra es el medido.**
+`IncomeHome.vue` muestra `total_earned`, `pending_amount` y
+`ev_per_human_hour_usd`, que salen de payouts y acciones registrados — todos
+verificados contra el backend. Ninguno se proyecta.
+
+Lo que sí falta, y es deuda real de schema (no de UI): el revenue loop no
+guarda el payout **por pillar**, así que no hay forma de responder "¿en cuál
+de los 5 pillars me conviene poner el tiempo?". Arreglarlo es agregar el
+campo y la métrica que lo use — en ese orden, y con la métrica ya midiendo,
+no antes.
