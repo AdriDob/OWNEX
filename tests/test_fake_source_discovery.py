@@ -91,3 +91,149 @@ def test_http_exception_conserva_su_detalle(client):
     r = client.get("/api/does-not-exist-xyz", headers={"Authorization": f"Bearer {tok}"})
     assert r.status_code == 404
     assert r.json().get("detail") == "Not Found", "el detail de un 4xx no puede genéricizarse"
+
+
+# ══════════════════════════════════════════════════════════════════
+# `acceptance_rate: 0.0` con 960 registros SIN clasificar
+# ══════════════════════════════════════════════════════════════════
+
+
+def test_acceptance_rate_es_unknown_sin_outcomes_clasificados():
+    """Con 0 clasificados la tasa es UNKNOWN (None), no 0.0.
+
+    Medido 2026-10-08: el resumen reportaba `acceptance_rate: 0.0`
+    sobre 960 registros cuyo outcome es `"unknown"`. Leído por el owner
+    eso dice "rechazaste el 100%" cuando en realidad nadie evaluó nada.
+    Es KNOWN_DEBT #34 (UNKNOWN renderizado como 0) en otro endpoint.
+    """
+    from cores.opportunity.feedback import FeedbackLoop
+
+    loop = FeedbackLoop()
+    loop.get_feedback_history = lambda **kw: [  # type: ignore[method-assign]
+        {"outcome": "unknown", "category": "c", "platform": "p"},
+        {"outcome": "unknown", "category": "c", "platform": "p"},
+    ]
+    s = loop.get_feedback_summary()
+    assert s["total_feedback"] == 2
+    assert s["classified"] == 0
+    assert s["acceptance_rate"] is None, "sin outcomes clasificados la tasa es UNKNOWN"
+    assert "0/0" in s["acceptance_rate_basis"]
+
+
+def test_acceptance_rate_real_cuando_hay_clasificados():
+    from cores.opportunity.feedback import FeedbackLoop
+
+    loop = FeedbackLoop()
+    loop.get_feedback_history = lambda **kw: [  # type: ignore[method-assign]
+        {"outcome": "accepted", "category": "c", "platform": "p"},
+        {"outcome": "rejected", "category": "c", "platform": "p"},
+    ]
+    s = loop.get_feedback_summary()
+    assert s["acceptance_rate"] == 0.5
+    assert s["classified"] == 2
+
+
+def test_los_fixtures_de_test_no_cuentan_como_aprendizaje():
+    """960 registros `test-*` no son 960 resultados: no aprendió nada.
+
+    Medido 2026-10-08: los 960 registros del store tienen TODOS clave
+    `test-opp-N`, y el resumen reportaba `acceptance_rate: 0.667` — una
+    tasa de aceptación compuesta enteramente por datos de prueba. Sin
+    este filtro, el sistema afirma aprender de trabajo que nunca hizo.
+    """
+    from cores.opportunity.feedback import FeedbackLoop
+
+    loop = FeedbackLoop()
+    loop.get_feedback_history = lambda **kw: [  # type: ignore[method-assign]
+        {"outcome": "accepted", "category": "web3", "_store_key": "test-opp-1"},
+        {"outcome": "accepted", "category": "web3", "_store_key": "test-opp-2"},
+        {"outcome": "rejected", "category": "platform", "_store_key": "test-opp-3"},
+        {"outcome": "rejected", "category": "platform", "_store_key": "algo-real-1"},
+    ]
+    s = loop.get_feedback_summary()
+    assert s["total_feedback"] == 1, "sólo el registro real cuenta"
+    assert s["excluded_fixtures"] == 3, "los 3 fixtures se declaran aparte"
+    assert s["acceptance_rate"] == 0.0, "1 real rechazado ⇒ 0.0 es un dato verdadero"
+
+
+def test_fixture_no_es_aprendizaje_pero_sigue_visible():
+    """El dato real no se pierde: UNKNOWN con el conteo de fixtures a la vista."""
+    from cores.opportunity.feedback import FeedbackLoop
+
+    loop = FeedbackLoop()
+    loop.get_feedback_history = lambda **kw: [  # type: ignore[method-assign]
+        {"outcome": "accepted", "_store_key": "test-opp-1"},
+    ]
+    s = loop.get_feedback_summary()
+    assert s["acceptance_rate"] is None, "sin feedback real la tasa es UNKNOWN"
+    assert s["excluded_fixtures"] == 1, "y se dice cuántos se descartaron y por qué"
+
+
+# ══════════════════════════════════════════════════════════════════
+# auto-apply: 2 plataformas "postulaban" sin enviar nada
+# ══════════════════════════════════════════════════════════════════
+
+
+def test_auto_apply_no_afirma_un_envio_que_no_ocurrio():
+    """`_apply_indeed`/`_apply_fiverr` devolvían SUBMITTED sin enviar nada.
+
+    Medido 2026-10-08: ambas hacían `time.sleep(...)` y retornaban
+    `ApplyStatus.SUBMITTED` con `submitted_at` puesto, sin contactar a
+    ninguna API. El registro se leía como una postulación real.
+    Misma clase de mentira que `infinite-sources`.
+    """
+    from cores.financial_intelligence.auto_apply import ApplyStatus, AutoApplySystem
+
+    s = AutoApplySystem()
+    for platform in ("_apply_indeed", "_apply_fiverr"):
+        rec = getattr(s, platform)({"id": "x", "title": "Job"})
+        assert rec.status is ApplyStatus.MANUAL_REQUIRED, f"{platform} debe pedir acción manual"
+        assert rec.submitted_at is None, f"{platform} no puede poner fecha de envío"
+        assert "no implementado" in (rec.error_message or "").lower()
+
+
+def test_auto_apply_no_tiene_fiverr_por_default():
+    """Veto del owner (2026-08-08): *"no quiero trabajar en fiverr ni en freelance"*.
+
+    Fiverr seguía en `enabled_platforms` por default, o sea que el veto no
+    estaba aplicado donde importa: en la lista desde la que se postula.
+    Upwork ya se había purgeado el 2026-09-13; faltaba Fiverr.
+    """
+    from cores.financial_intelligence.auto_apply import AutoApplyConfig
+
+    platforms = AutoApplyConfig().enabled_platforms
+    assert "fiverr" not in platforms
+    for vetoed in ("upwork", "workana", "freelancer"):
+        assert vetoed not in platforms, f"{vetoed} también está vetado"
+
+
+# ══════════════════════════════════════════════════════════════════
+# llm_scanner: fabricaba lo que un modelo respondió
+# ══════════════════════════════════════════════════════════════════
+
+
+def test_llm_scanner_sin_garak_no_fabrica_checks_de_seguridad():
+    """Sin Garak, `NOT_SCANNED` con 0 checks y score None.
+
+    Antes devolvía `SIMULATED_CHECKS`, que incluía `model_response`
+    inventados — es decir, **fabricaba la conversación del modelo** con el
+    endpoint del usuario, y calculaba `score` y severidad sobre checks que
+    nunca se ejecutaron. `api/routers/intel.py` está montado: un
+    "3 fallos altos, 34%" de un escaneo inexistente se lee como un
+    veredicto de seguridad.
+    """
+    import asyncio
+
+    from cores.intel.llm_scanner import scan_llm_endpoint
+
+    result = asyncio.run(scan_llm_endpoint("https://api.ejemplo.com/chat"))
+
+    if result.model == "NOT_SCANNED":
+        assert result.checks == [], "no puede devolver checks si no escaneó"
+        assert result.summary["score"] is None, "score inventado"
+        assert result.summary["status"] == "NOT_SCANNED"
+        assert result.summary["high_severity"] is None
+        assert "Garak" in result.methodology, "el motivo tiene que decir cómo escanear de verdad"
+    else:
+        # Garak presente: los checks son reales, no simulados.
+        assert result.methodology == "Garak real execution"

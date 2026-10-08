@@ -1647,13 +1647,13 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$8-18/h LatAm coding; $35-60/h specialist",
         tags=["hourly", "assessment", "weekly_payout", "argentina_ok", "spanish_plus"],
         priority=10,
-        # Was CREDENTIALS, which blocked it from the ranking. Verified
-        # 2026-10-01: entry is "selecting your areas of expertise, completing
-        # skill screenings" — an assessment, not a CV/professional credential.
-        # The page does say per-project minimums "typically require
-        # undergraduate-level expertise", so per-project screening can be
-        # demanding; the platform gate itself is not credential-based.
-        entry_barrier="ASSESSMENT",
+        # VERIFICADO 2026-10-08 en outlier.ai: *"minimum qualifications
+        # typically require undergraduate-level expertise"*; lo preferido es
+        # posgrado. Antes decía ASSESSMENT (lo subí yo el 2026-10-01 leyendo
+        # "skill screenings") y eso era demasiado permisivo: la plataforma SÍ
+        # pide credencial académica mínima. La entrada real es un assessment,
+        # pero el umbral de conocimientos es de grado universitario.
+        entry_barrier="CREDENTIALS",
         payout_rail="paypal_airtm",
         rail_pays_in_argentina="TRUE",
     ),
@@ -1714,11 +1714,12 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="varies per task (below Specialized)",
         tags=["hourly", "all_access", "biweekly_payout", "argentina_ok", "backup"],
         priority=6,
-        # El owner lo mantiene (2026-10-01). Se degrada de ZERO_BARRIER a
-        # ASSESSMENT —no hay interview ni credencial profesional, pero sí
-        # exige dominio del área— y el matiz queda en la descripción para
-        # que la decisión sea auditable.
-        entry_barrier="ASSESSMENT",
+        # VERIFICADO en la página 2026-10-01: *"Domain expertise in your field"*
+        # y *"70% of our contributors hold a Master's degree or PhD"*. El owner la
+        # mantiene en el radar, pero la etiqueta debe decir lo que la página
+        # dice: el gate sólo lee `entry_barrier`, así que dejarlo en ASSESSMENT
+        # con el matiz en la descripción era decorativo — la admitía igual.
+        entry_barrier="CREDENTIALS",
         payout_rail="payoneer",
         rail_pays_in_argentina="TRUE",
     ),

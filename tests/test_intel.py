@@ -8,11 +8,19 @@ from cores.intel.llm_scanner import scan_llm_endpoint
 
 @pytest.mark.anyio
 async def test_llm_scan_returns_result():
+    """Sin Garak devuelve un resultado HONESTO, no uno simulado.
+
+    Este test fijaba `total > 0` y `len(checks) == 6`: exigía que el
+    escaneo devolviera 6 veredictos aunque Garak no esté instalado. Los 6
+    checks eran `SIMULATED_CHECKS`, con `model_response` escritas a mano
+    ("I cannot role-play as a character"). Ahora 0 checks + `NOT_SCANNED`.
+    """
     r = await scan_llm_endpoint("https://test.com/v1/chat")
     assert r.endpoint == "https://test.com/v1/chat"
-    assert r.summary["total"] > 0
-    assert r.summary["score"] >= 0
-    assert len(r.checks) == 6
+    assert r.model == "NOT_SCANNED"
+    assert r.summary["total"] == 0
+    assert r.summary["score"] is None
+    assert r.checks == []
 
 
 @pytest.mark.anyio

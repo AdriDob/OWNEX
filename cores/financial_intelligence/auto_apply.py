@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import json
 import logging
-import random
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -36,6 +35,10 @@ class ApplyStatus(StrEnum):
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     ERROR = "error"
+    # 2026-10-08: el envío a plataformas sin cliente real NO se simula.
+    # Antes `_apply_indeed`/`_apply_fiverr` devolvían SUBMITTED sin haber
+    # contactado a nadie, y el registro se leía como una postulación real.
+    MANUAL_REQUIRED = "manual_required"
 
 
 @dataclass
@@ -51,11 +54,16 @@ class AutoApplyConfig:
     random_user_agents: list[str] = field(default_factory=list)
     rotate_ip_addresses: bool = False
 
-    # Auto-apply enabled platforms (Upwork removed per owner, purge 2026-09-13)
+    # Auto-apply enabled platforms.
+    #
+    # 2026-10-08 (owner): el carril freelance completo quedó vetado —
+    # *"no quiero trabajar en fiverr ni en freelance"*. Fiverr seguía en la
+    # lista por default (y en la ruta de aplicación), o sea que el veto no
+    # estaba aplicado donde importa: donde se postula. Upwork ya se había
+    # purgeado el 2026-09-13; faltaba Fiverr.
     enabled_platforms: list[str] = field(
         default_factory=lambda: [
             "indeed",
-            "fiverr",
         ]
     )
 
@@ -180,86 +188,54 @@ class AutoApplySystem:
         return record
 
     def _apply_indeed(self, opportunity: dict[str, Any]) -> ApplicationRecord:
-        """Apply via Indeed API (Indeed Easy Apply)."""
-        app_id = f"indeed_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        """NO IMPLEMENTADO — devuelve un registro que dice que NO se envió.
 
-        try:
-            # Simulated API call (in production, use Indeed API)
-            logger.info(f"Applying to Indeed job: {opportunity['title']}")
+        Antes simulaba la postulación: `time.sleep(...)` y devolvía
+        `ApplyStatus.SUBMITTED` sin contactar a ninguna API. Es la misma
+        clase de mentira que `infinite-sources` y que el pipeline de
+        $5.810: un registro que afirma un envío que no ocurrió.
 
-            # Simulate application
-            time.sleep(random.uniform(2, 5))
-
-            return ApplicationRecord(
-                id=app_id,
-                platform="indeed",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.SUBMITTED,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=None,
-            )
-        except Exception as e:
-            logger.error(f"Indeed API error: {e}")
-            self._alert_system.create_error_alert(
-                component="Indeed Auto-Apply",
-                error_message=f"Failed to apply to {opportunity['title']}: {str(e)}",
-                context={"opportunity": opportunity, "error": str(e)},
-            )
-            return ApplicationRecord(
-                id=app_id,
-                platform="indeed",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.ERROR,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=str(e),
-            )
+        Sin cliente real de indeed, el resultado honesto es
+        `MANUAL_REQUIRED` con la instrucción de hacerlo a mano.
+        """
+        app_id = "indeed_manual_" + datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        logger.warning("auto-apply a indeed NO implementado: registro manual, sin enviar nada")
+        return ApplicationRecord(
+            id=app_id,
+            platform="indeed",
+            opportunity_id=opportunity.get("id", ""),
+            opportunity_title=opportunity["title"],
+            status=ApplyStatus.MANUAL_REQUIRED,
+            submitted_at=None,
+            responded_at=None,
+            response_message=None,
+            error_message=("Envío no implementado: sin cliente real de indeed. Postular a mano."),
+        )
 
     def _apply_fiverr(self, opportunity: dict[str, Any]) -> ApplicationRecord:
-        """Apply via Fiverr API (gig offer)."""
-        app_id = f"fiverr_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}"
+        """NO IMPLEMENTADO — devuelve un registro que dice que NO se envió.
 
-        try:
-            # Simulated API call (in production, use Fiverr API)
-            logger.info(f"Submitting offer to Fiverr gig: {opportunity['title']}")
+        Antes simulaba la postulación: `time.sleep(...)` y devolvía
+        `ApplyStatus.SUBMITTED` sin contactar a ninguna API. Es la misma
+        clase de mentira que `infinite-sources` y que el pipeline de
+        $5.810: un registro que afirma un envío que no ocurrió.
 
-            # Simulate offer submission
-            time.sleep(random.uniform(1, 3))
-
-            return ApplicationRecord(
-                id=app_id,
-                platform="fiverr",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.SUBMITTED,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=None,
-            )
-        except Exception as e:
-            logger.error(f"Fiverr API error: {e}")
-            self._alert_system.create_error_alert(
-                component="Fiverr Auto-Apply",
-                error_message=f"Failed to submit offer to {opportunity['title']}: {str(e)}",
-                context={"opportunity": opportunity, "error": str(e)},
-            )
-            return ApplicationRecord(
-                id=app_id,
-                platform="fiverr",
-                opportunity_id=opportunity.get("id", ""),
-                opportunity_title=opportunity["title"],
-                status=ApplyStatus.ERROR,
-                submitted_at=datetime.now(UTC).isoformat(),
-                responded_at=None,
-                response_message=None,
-                error_message=str(e),
-            )
+        Sin cliente real de fiverr, el resultado honesto es
+        `MANUAL_REQUIRED` con la instrucción de hacerlo a mano.
+        """
+        app_id = "fiverr_manual_" + datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+        logger.warning("auto-apply a fiverr NO implementado: registro manual, sin enviar nada")
+        return ApplicationRecord(
+            id=app_id,
+            platform="fiverr",
+            opportunity_id=opportunity.get("id", ""),
+            opportunity_title=opportunity["title"],
+            status=ApplyStatus.MANUAL_REQUIRED,
+            submitted_at=None,
+            responded_at=None,
+            response_message=None,
+            error_message=("Envío no implementado: sin cliente real de fiverr. Postular a mano."),
+        )
 
     def _create_manual_apply_record(self, opportunity: dict[str, Any]) -> ApplicationRecord:
         """Create a manual apply record for platforms without API."""

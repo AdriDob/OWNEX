@@ -17,6 +17,23 @@ from cores.memory.memory_store import MemoryStore
 logger = logging.getLogger("ownex.opportunity.feedback")
 
 _FEEDBACK_CATEGORY = "opportunity_feedback"
+
+#: Prefijos de clave que identifican fixtures de test en el store de feedback.
+#: Los tests escriben con `key="test-opp-N"` contra el mismo store que la
+#: producción, así que un resumen sin filtrar reporta tasas de aprendizaje
+# que no existen.
+_FEEDBACK_FIXTURE_PREFIXES = ("test-", "test_", "fixture-", "demo-", "sample-")
+
+
+def _is_fixture(record: dict[str, Any]) -> bool:
+    """True si el registro proviene de un test y no de trabajo real."""
+    key = str(record.get("_store_key") or record.get("key") or "")
+    inner = record.get("details")
+    if not key and isinstance(inner, dict):
+        key = str(inner.get("opportunity_id") or inner.get("key") or "")
+    return key.startswith(_FEEDBACK_FIXTURE_PREFIXES)
+
+
 _MEMORY_STORE = MemoryStore()
 
 
@@ -115,10 +132,15 @@ class FeedbackLoop:
             extracted = []
             for r in results:
                 if "details" in r:
-                    extracted.append(r["details"])
+                    detail = dict(r["details"])
+                    # Se propaga la clave del registro externo: es lo único
+                    # que distingue un fixture (`test-opp-N`) de feedback
+                    # real. Sin esto el resumen no puede filtrarlos.
+                    detail.setdefault("_store_key", str(r.get("key") or ""))
+                    extracted.append(detail)
                 else:
                     # If for some reason there's no details key, use the record itself
-                    extracted.append(r)
+                    extracted.append(dict(r))
 
             if category:
                 extracted = [r for r in extracted if r.get("category") == category]
@@ -235,16 +257,38 @@ class FeedbackLoop:
         """Get summary statistics of all feedback."""
         history = self.get_feedback_history(limit=1000)
 
+        # Los fixtures de test escriben en el mismo store que la producción
+        # (las claves son `test-opp-N`). Medido 2026-10-08: los **960**
+        # registros eran 100% `test-*`, y el resumen reportaba
+        # `acceptance_rate: 0.667` — una tasa de aceptación compuesta
+        # enteramente por datos de prueba. learning real no es.
+        real = [h for h in history if not _is_fixture(h)]
+        fixtures = len(history) - len(real)
+        history = real
+
         total = len(history)
-        accepted = sum(1 for h in history if h.get("details", {}).get("outcome") == FeedbackOutcome.ACCEPTED.value)
-        rejected = sum(1 for h in history if h.get("details", {}).get("outcome") == FeedbackOutcome.REJECTED.value)
-        skipped = sum(1 for h in history if h.get("details", {}).get("outcome") == FeedbackOutcome.SKIPPED.value)
+
+        # `get_feedback_history()` YA devuelve el `details` interno
+        # (línea 117-119: `extracted.append(r["details"])`). Leer
+        # `h["details"]["outcome"]` sobre eso devuelve `{}` siempre ⇒ los
+        # 960 registros se contaban como "unknown" y el resumen reportaba
+        # 0 aceptados / 0 rechazados / 0 saltados aunque el store tuviera
+        # los outcomes. Doble extracción.
+        def _outcome(record: dict[str, Any]) -> str:
+            inner = record.get("details")
+            source = inner if isinstance(inner, dict) else record
+            return str(source.get("outcome") or "")
+
+        accepted = sum(1 for h in history if _outcome(h) == FeedbackOutcome.ACCEPTED.value)
+        rejected = sum(1 for h in history if _outcome(h) == FeedbackOutcome.REJECTED.value)
+        skipped = sum(1 for h in history if _outcome(h) == FeedbackOutcome.SKIPPED.value)
 
         by_category: dict[str, dict[str, int]] = {}
         by_platform: dict[str, dict[str, int]] = {}
 
         for h in history:
-            details = h.get("details", {})
+            inner = h.get("details")
+            details = inner if isinstance(inner, dict) else h
             cat = details.get("category", "unknown")
             plat = details.get("platform", "unknown")
             outcome = details.get("outcome", "unknown")
@@ -264,12 +308,22 @@ class FeedbackLoop:
                 by_category[cat]["skipped"] += 1
                 by_platform[plat]["skipped"] += 1
 
+        # `accepted / max(total, 1)` devolvía 0.0 con 960 registros cuyo
+        # outcome es "unknown" (ninguno clasificado todavía). Eso afirma
+        # "rechazaste el 100%", cuando la verdad es "no sabemos". Es la
+        # clase de mentira de KNOWN_DEBT #34 (UNKNOWN renderizado como 0).
+        classified = accepted + rejected + skipped
         return {
             "total_feedback": total,
+            "classified": classified,
+            "excluded_fixtures": fixtures,
             "accepted": accepted,
             "rejected": rejected,
             "skipped": skipped,
-            "acceptance_rate": round(accepted / max(total, 1), 3),
+            # None = UNKNOWN (no hay outcomes todavía); 0.0 sólo sería verdad
+            # si clasificados > 0 y ninguno fue aceptado.
+            "acceptance_rate": round(accepted / classified, 3) if classified else None,
+            "acceptance_rate_basis": (f"{accepted}/{classified} clasificados de {total} registrados"),
             "by_category": by_category,
             "by_platform": by_platform,
         }

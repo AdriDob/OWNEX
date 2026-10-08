@@ -12,6 +12,16 @@ from typing import Any
 
 logger = logging.getLogger("ownex.adapters.ai_tasks")
 
+#: Plataformas cuya entrada exige credencial ACADÉMICA, verificado en la
+#: página de cada una el 2026-10-08:
+#:   · Outlier  — "minimum qualifications typically require undergraduate-level
+#:     expertise"; lo preferido es posgrado.
+#:   · Mindrift — "70% of our contributors hold a Master's degree or PhD" y
+#:     pide "domain expertise in your field".
+#: No confundir con la dificultad de la tarea: un task "easy" en Outlier
+#: igual pasa por el filtro de grado.
+_CREDENTIAL_PLATFORMS = frozenset({"outlier", "mindrift"})
+
 
 @dataclass
 class AITaskOpportunity:
@@ -39,6 +49,24 @@ class AITaskOpportunity:
 
     @property
     def barrier(self) -> str:
+        """Barrera de entrada REAL, derivada de la plataforma (verificada).
+
+        Antes devolvía `"$0"` fijo y el router lo publica como `barrier` en
+        `/api/pillars/ai-tasks/summary`: afirmaba barrera cero para Outlier,
+        cuya página dice *"minimum qualifications typically require
+        undergraduate-level expertise"* (verificado 2026-10-08).
+
+        La fuente es la plataforma, NO `qualification_difficulty` (que es
+        dificultad de la tarea: un task "hard" no implica doctorado, y uno
+        "easy" en Outlier igual pide grado).
+
+        Se mantiene el string `$0` para las que no piden nada porque el
+        contrato del endpoint y sus consumidores lo esperan.
+        """
+        if self.platform in _CREDENTIAL_PLATFORMS:
+            return "assessment + credencial académica"
+        if self.qualification_needed:
+            return "assessment"
         return "$0"
 
     def to_dict(self) -> dict[str, Any]:
@@ -238,20 +266,61 @@ class AITasksOrchestrator:
         return all_opps
 
     def get_summary(self) -> dict[str, Any]:
-        """Get summary of AI tasks landscape."""
+        """Resumen del landscape de AI tasks.
+
+        Reconciliado 2026-10-08. Antes todo el bloque era literal:
+        `barrier: "$0"`, `avg_pay_rate: 24.0`, `pay_range: "$12-45/hour"` y
+        `monthly_potential: "$1,000 - $5,000"` para las cuatro plataformas,
+        sin ninguna base de cálculo. **Dos de ellas piden credencial
+        académica** (verificado en sus páginas ese día):
+
+            · Outlier  — "minimum qualifications typically require
+              undergraduate-level expertise"; lo preferido es posgrado.
+            · Mindrift — "70% of our contributors hold a Master's or PhD".
+
+        La barrera se deriva de la plataforma (es un dato verificable). El
+        pay y el potencial mensual quedan `None` = UNKNOWN: dependen de
+        horas disponibles y de la tasa de aceptación real, que todavía no
+        existen. Afirmarlos era la forma más cara de mentir sobre
+        ingresos.
+        """
+        # `fetch_all` es async (hace red), así que un GET sincrónico no puede
+        # depender de él: el resumen se arma con lo declarado por cada adapter
+        # (`PLATFORM` + barrera verificada), no con números inventados.
+        platforms = sorted({a.PLATFORM for a in self.adapters})
+        credential = [p for p in platforms if p in _CREDENTIAL_PLATFORMS]
+        open_barrier = [p for p in platforms if p not in _CREDENTIAL_PLATFORMS]
+
+        if credential and open_barrier:
+            barrier = (
+                f"mixto: {', '.join(open_barrier)} assessment sin credencial; "
+                f"{', '.join(credential)} piden credencial académica"
+            )
+        elif credential:
+            barrier = "assessment + credencial académica"
+        else:
+            barrier = "assessment"
+
         return {
-            "platforms": ["outlier", "scale_ai", "alignerr", "mindrift"],
+            "platforms": platforms,
             "total_platforms": len(self.adapters),
-            "avg_pay_rate": 24.0,
-            "pay_range": "$12-45/hour",
-            "barrier": "$0",
+            "avg_pay_rate": None,
+            "pay_range": (
+                "UNKNOWN: se calcula con fetch_all (async). Verificado 2026-10-08 en "
+                "alignerr.com/jobs: $10-35/hr, $15-35/hr, $150/hr publicados."
+            ),
+            "barrier": barrier,
             "qualification": "Required (online test)",
             "portfolio": "Not required",
             "interview": "Not required",
             "country": "Global (most platforms)",
             "skill_requirements": ["reasoning", "attention to detail", "python helpful"],
             "time_to_first_pay": "1-2 weeks after qualification",
-            "monthly_potential": "$1,000 - $5,000",
+            "monthly_potential": None,
+            "monthly_potential_note": (
+                "UNKNOWN: depende de horas disponibles y tasa de aceptación real. "
+                "Antes afirmaba $1,000-$5,000 sin base de cálculo."
+            ),
         }
 
 

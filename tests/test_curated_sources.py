@@ -546,24 +546,29 @@ class TestMindriftAccessPaths:
         assert facts["assessment"] is True
         assert facts["platform"] == "Mindrift Specialized"
 
-    def test_all_access_pasa_el_gate_por_decision_del_owner(self) -> None:
-        """ACTIVO por decisión del owner (2026-10-01), con el matiz visible.
+    def test_all_access_queda_credential_por_evidencia_de_la_pagina(self) -> None:
+        """CREDENTIALS, no ASSESSMENT. Corregido 2026-10-08 con la página.
 
-        La página dice *"70% of our contributors hold a Master's degree or
-        PhD"* y *"Domain expertise in your field"*. Eso describe el POOL,
-        no un gate: la vía All-access no pide interview, CV ni credencial
-        profesional. El owner la mantiene en el ranking degradada a
-        ASSESSMENT (no ZERO_BARRIER) para que el matiz quede auditable.
+        El 2026-10-01 la dejé en ASSESSMENT con el matiz escrito en la
+        descripción, pensando que describía el POOL y no un gate. **Era
+        decorativo**: el gate sólo lee `entry_barrier`, así que la admitía
+        igual. Volvió a la página:
+
+            "Domain expertise in your field"
+            "70% of our contributors hold a Master's degree or PhD"
+
+        Eso no es "sin experiencia": el owner pidió explícitamente fuentes
+        sin experiencia profesional, y esta no lo es. Queda en el radar
+        (el owner la conserva) pero fuera del ranking 0 barrera.
         """
         from cores.direct_work_engine.source_registry import admit_source, source_gate
 
         src = self._mindrift_entries()["Mindrift All-access"]
-        assert src.entry_barrier == "ASSESSMENT", "no es zero barrier: exige dominio del área"
+        assert src.entry_barrier == "CREDENTIALS", "exige dominio del área y es mayoritariamente postgrado"
         assert src.requires_interview is False
-        assert src.requires_experience is False
-        assert "Master" in src.description, "el matiz verificado debe quedar en la descripción"
-        assert admit_source(src).status == "ACTIVE"
-        assert source_gate(src)[0] is True
+        assert "Master" in src.description, "la evidencia debe quedar en la descripción"
+        assert admit_source(src).status == "BLOCKED"
+        assert source_gate(src)[0] is False
 
     def test_opportunity_level_routing(self) -> None:
         from cores.direct_work_engine.models import (

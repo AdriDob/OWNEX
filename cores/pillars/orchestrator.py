@@ -112,10 +112,21 @@ class FivePillarOrchestrator:
             PillarSummary(
                 name="AI Tasks",
                 pillar_id=2,
-                platforms=["Outlier", "Scale AI", "Alignerr", "Mindrift"],
-                avg_pay_rate=24.0,
-                pay_range="$12 - $45/hour",
-                barrier="$0",
+                # Reconciliado 2026-10-08 contra verificación en la página de
+                # cada plataforma. Antes decía `barrier="$0"` para las cuatro,
+                # lo cual era FALSO para dos de ellas:
+                #   · Outlier  → "minimum qualifications typically require
+                #     undergraduate-level expertise" (credential)
+                #   · Mindrift → "70% of our contributors hold a Master's or
+                #     PhD" (credential)
+                #   · Alignerr → "No experience needed" (assessment real)
+                # La barrera declarada ahora distingue las que sí se pueden
+                # tomar sin credencial, en vez de promediar una afirmación
+                # falsa sobre cuatro.
+                platforms=["Alignerr", "Outlier", "Mindrift"],
+                avg_pay_rate=10.0,
+                pay_range="$10 - $200/hour (Alignerr publica $10-35, $15-35, $150)",
+                barrier="Mixto: Alignerr $0 (assessment); Outlier y Mindrift piden grado",
                 monthly_potential_low=1000,
                 monthly_potential_high=5000,
                 hours_per_day=1.0,

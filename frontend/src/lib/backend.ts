@@ -194,11 +194,26 @@ export function getHostBase(): string {
  * Verificá con: `python scripts/audit_frontend_contract.py --list`
  */
 const ROOT_MOUNTED_PREFIXES = [
+  // Namespaces que el backend monta SIN prefijo /api (verificado contra
+  // app.routes el 2026-10-08) y a los que el front llama sin /api.
+  // La lista estaba recortada (5 de 13): /career, /first-money, /mission-hub,
+  // /oar, /revenue-timeline, /version-backup, /voice y /zero-barrier iban a
+  // /api/... y devolvían 404. Medido: /mobile/status pedía /api/mobile/status
+  // y esa ruta no existe.
+  '/career',
   '/direct-work',
+  '/first-money',
+  '/mission-hub',
+  '/mobile',
+  '/oar',
   '/platform-guides',
   '/result-based',
+  '/revenue-timeline',
   '/today',
+  '/version-backup',
+  '/voice',
   '/wear-os',
+  '/zero-barrier',
 ]
 
 /** Resolve a frontend API path to the full correct URL. */

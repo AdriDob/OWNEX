@@ -68,7 +68,17 @@ def _frontend_calls_root_paths() -> set[str]:
     for pattern in ("*.ts", "*.vue"):
         for f in (FRONTEND / "src").rglob(pattern):
             text = f.read_text(encoding="utf-8", errors="ignore")
-            for match in re.findall(r"api\.(?:get|post|put|patch|delete)\(['\"]([^'\"?]+)", text):
+            # Tolerante a genéricos de TypeScript: `api.get<Foo>('/x')`.
+            # La versión anterior exigía `get(` seguido de comilla, así que
+            # NINGUNA llamada con tipo genérico se revisaba — y `/mobile/status`
+            # (que daba 404) pasó inadvertido. El comentario de este bloque
+            # decía "el front llama estos paths" revisando en realidad un
+            # subconjunto.
+            # `[^(]*` y no `[^>]*`: los genéricos anidados
+            # (`api.get<Record<string, any>>('/x')`) contienen un `>` interno y
+            # el patrón anterior los descartaba en silencio.
+            pattern = r"api\.(?:get|post|put|patch|delete)(?:\s*<[^(]*>)?\s*\(['\"]([^'\"?]+)"
+            for match in re.findall(pattern, text):
                 clean = match[4:] if match.startswith("/api/") else match
                 if clean.startswith(prefixes):
                     calls.add(match)
@@ -113,7 +123,17 @@ def test_root_mounted_prefixes_cover_real_backend_routers() -> None:
         if f.suffix not in (".ts", ".vue") or "node_modules" in str(f):
             continue
         text = f.read_text(encoding="utf-8", errors="ignore")
-        for match in re.findall(r"api\.(?:get|post|put|patch|delete)\(['\"]([^'\"?]+)", text):
+        # Tolerante a genéricos de TypeScript: `api.get<Foo>('/x')`.
+        # La versión anterior exigía `get(` seguido de comilla, así que
+        # NINGUNA llamada con tipo genérico se revisaba — y `/mobile/status`
+        # (que daba 404) pasó inadvertido. El comentario de este bloque
+        # decía "el front llama estos paths" revisando en realidad un
+        # subconjunto.
+        # `[^(]*` y no `[^>]*`: los genéricos anidados
+        # (`api.get<Record<string, any>>('/x')`) contienen un `>` interno y
+        # el patrón anterior los descartaba en silencio.
+        pattern = r"api\.(?:get|post|put|patch|delete)(?:\s*<[^(]*>)?\s*\(['\"]([^'\"?]+)"
+        for match in re.findall(pattern, text):
             if match.startswith("/api/"):
                 continue  # explícito: no depende de la lista
             clean = (match[4:] if match.startswith("/api/") else match).rstrip("/") or "/"
