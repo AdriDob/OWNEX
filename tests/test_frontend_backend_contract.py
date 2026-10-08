@@ -189,8 +189,6 @@ class TestElGuardReplicaElResolver:
 #
 CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     # ── Apps sin backend: la UI existe, la API nunca existió ──
-    "/wear-os/approvals/pending": ("drift", "el back sirve /wear-os/approvals, no /approvals/pending"),
-    "/wear-os/approval-request": ("drift", "el back sirve /wear-os/approval/{id} (raiz), no /request"),
     "/api/odyssey/analytics/summary": (
         "app-sin-backend",
         "DashboardOdyssey: analytics nunca existio; pantalla sin backend",
@@ -200,10 +198,12 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     # ── trading-lab: ELIMINADO 2026-10-05. Los 6 endpoints nunca existieron
     #     y sus 6 funciones tenian 0 consumidores. Codigo muerto borrado de
     #     ownexData.ts (162 lineas). Ver #24 y #63.
+    # ── wear-os approvals, files/list, profile-kit: ELIMINADO 2026-10-05.
+    #     0 consumidores + endpoints inexistentes. Codigo muerto borrado de
+    #     ownexData.ts (58 lineas) y controlPanel.ts (6 lineas). Ver #63/#64.
     # ── Drift: el contrato se movió ──
     "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
     "/api/hypotheses": ("drift", "las hipótesis viven bajo /api/security"),
-    "/api/files/list": ("drift", "workspace: sin listar archivos"),
     "/api/knowledge": ("drift", "knowledge: sin endpoint raíz"),
     "/api/learning/progress": ("drift", "progreso de aprendizaje sin endpoint"),
     "/api/mission/status": ("drift", "el estado de misión cambió de namespace"),

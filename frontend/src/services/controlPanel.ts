@@ -220,13 +220,6 @@ export async function resolveActionRequired(id: string): Promise<{ success: bool
     .catch(() => ({ success: false }))
 }
 
-// ── File Manager ──
-
-export async function listUserFiles(): Promise<string[]> {
-  const res = await api.get<{ files?: string[] }>('/api/files/list').catch(() => null)
-  return res?.files || []
-}
-
 // ── Startup Checks ──
 
 export interface StartupCheckResult {

@@ -791,7 +791,6 @@ export async function fetchSourceIntel(options?: {
 }
 
 
-
 // ── Income Projector ──
 
 export interface IncomeProjectionRequest {
@@ -982,25 +981,6 @@ export async function sendWearOSNotification(payload: {
   action_type?: string
 }): Promise<WearOSNotification> {
   return api.post<WearOSNotification>('/wear-os/notification', payload)
-}
-
-export async function fetchWearOSPendingApprovals(): Promise<WearOSApproval[]> {
-  return api.get<WearOSApproval[]>('/wear-os/approvals/pending')
-}
-
-export async function requestWearOSApproval(payload: {
-  title: string
-  description: string
-  workflow_id?: string
-}): Promise<WearOSApproval> {
-  return api.post<WearOSApproval>('/wear-os/approval-request', payload)
-}
-
-export async function respondWearOSApproval(
-  requestId: string,
-  approved: boolean,
-): Promise<{ success: boolean; approved: boolean }> {
-  return api.post<{ success: boolean; approved: boolean }>(`/wear-os/approval/${requestId}/respond`, { approved })
 }
 
 export async function clearWearOSNotifications(days = 7): Promise<{ success: boolean; cleared_count: number }> {
@@ -1257,45 +1237,6 @@ export async function fetchDailyCompanion(
 }
 
 // ── Profile Kit ──
-
-export interface ProfileKitProfile {
-  name: string
-  country: string
-  skills: string[]
-  experience_level: string
-  availability_hours: number
-  github_url: string
-  linkedin_url: string
-  portfolio_url: string
-}
-
-export interface ProfileKitField {
-  key: string
-  label: string
-  text: string
-}
-
-export interface ProfileKitStatus {
-  saved: boolean
-  available_platforms: string[]
-  profile: ProfileKitProfile
-}
-
-export interface ProfileKitResponse {
-  kits: Record<string, Record<string, ProfileKitField[]>>
-}
-
-export async function fetchProfileKitStatus(): Promise<ProfileKitStatus> {
-  return api.get<ProfileKitStatus>('/api/profile-kit/')
-}
-
-export async function saveProfileKit(profile: ProfileKitProfile): Promise<{ success: boolean; saved: ProfileKitProfile }> {
-  return api.post<{ success: boolean; saved: ProfileKitProfile }>('/api/profile-kit/', profile)
-}
-
-export async function generateProfileKit(profile: ProfileKitProfile): Promise<ProfileKitResponse> {
-  return api.post<ProfileKitResponse>('/api/profile-kit/generate', profile)
-}
 
 // ── Outlook Calendar + Microsoft To Do Sync ──
 
