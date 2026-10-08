@@ -111,6 +111,69 @@ async function load() {
   }
 }
 
+  // ── Escribir y verificar (endpoints /system/capabilities/set y /check) ──
+  const drafts = ref<Record<string, string>>({})
+  const busy = ref<Record<string, boolean>>({})
+  const results = ref<Record<string, { usable: boolean; detail: string }>>({})
+  const whereCache = ref<Record<string, string>>({})
+
+  function whereFor(env: string): string {
+    return whereCache.value[env] ?? ''
+  }
+
+  /** Pide la instruccion real (enlace + pasos) al backend, una sola vez. */
+  async function onWhereToggle(ev: Event, env: string): Promise<void> {
+    if (!(ev.target as HTMLDetailsElement).open || whereCache.value[env]) return
+    try {
+      const r = await api.post<{ where: string }>('/system/capabilities/check', { env })
+      whereCache.value = { ...whereCache.value, [env]: r.where }
+    } catch {
+      whereCache.value = { ...whereCache.value, [env]: 'Sin instrucciones para esta variable.' }
+    }
+  }
+
+  /** Guarda y verifica en una ida: `set` ya devuelve el resultado del check. */
+  async function save(env: string): Promise<void> {
+    const value = (drafts.value[env] ?? '').trim()
+    if (!value || busy.value[env]) return
+    busy.value = { ...busy.value, [env]: true }
+    try {
+      const r = await api.post<{ usable: boolean; detail: string }>('/system/capabilities/set', {
+        env,
+        value,
+      })
+      results.value = { ...results.value, [env]: { usable: r.usable, detail: r.detail } }
+      if (r.where) whereCache.value = { ...whereCache.value, [env]: r.where }
+      drafts.value = { ...drafts.value, [env]: '' }
+      await load()
+    } catch (e) {
+      results.value = {
+        ...results.value,
+        [env]: { usable: false, detail: e instanceof Error ? e.message : 'no se pudo guardar' },
+      }
+    } finally {
+      busy.value = { ...busy.value, [env]: false }
+    }
+  }
+
+  /** Sólo comprueba: sirve para variables ya puestas en el fichero. */
+  async function check(env: string): Promise<void> {
+    if (busy.value[env]) return
+    busy.value = { ...busy.value, [env]: true }
+    try {
+      const r = await api.post<{ usable: boolean; detail: string }>('/system/capabilities/check', { env })
+      results.value = { ...results.value, [env]: { usable: r.usable, detail: r.detail } }
+      if (r.where) whereCache.value = { ...whereCache.value, [env]: r.where }
+    } catch (e) {
+      results.value = {
+        ...results.value,
+        [env]: { usable: false, detail: e instanceof Error ? e.message : 'no se pudo comprobar' },
+      }
+    } finally {
+      busy.value = { ...busy.value, [env]: false }
+    }
+  }
+
 onMounted(load)
 </script>
 
@@ -189,21 +252,74 @@ onMounted(load)
 
           <!-- Variables faltantes -->
           <ul v-if="c.missing_required.length || c.missing_optional.length" class="mt-2 space-y-1.5">
-            <li
-              v-for="r in c.requirements.filter((x) => !x.present)"
-              :key="r.env"
-              class="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
-            >
-              <div class="flex flex-wrap items-baseline gap-x-2">
-                <code class="font-[var(--font-numeric)] text-[var(--text-label)] text-[var(--color-text-primary)]">
-                  {{ r.env }}
-                </code>
-                <span class="text-[var(--text-caption)] text-[var(--color-text-muted)]">
-                  {{ r.optional ? 'opcional' : 'requerida' }} · {{ r.where }}
-                </span>
-              </div>
-              <p class="mt-0.5 text-[var(--text-caption)] text-[var(--color-text-muted)]">{{ r.without }}</p>
-            </li>
+              <li
+                v-for="r in c.requirements.filter((x) => !x.present)"
+                :key="r.env"
+                class="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2"
+              >
+                <div class="flex flex-wrap items-baseline gap-x-2">
+                  <code class="font-[var(--font-numeric)] text-[var(--text-label)] text-[var(--color-text-primary)]">
+                    {{ r.env }}
+                  </code>
+                  <span class="text-[var(--text-caption)] text-[var(--color-text-muted)]">
+                    {{ r.optional ? 'opcional' : 'requerida' }}
+                  </span>
+                </div>
+                <p class="mt-0.5 text-[var(--text-caption)] text-[var(--color-text-muted)]">{{ r.without }}</p>
+
+                <!-- Donde conseguirla: enlace + pasos. `r.where` en el snapshot
+                     es generico ("Variables de entorno"); la instruccion real
+                     vive en KEY_SOURCES y llega en la respuesta de /check. -->
+                <details class="mt-1.5" @toggle="onWhereToggle($event, r.env)">
+                  <summary class="cursor-pointer text-[var(--text-caption)] text-[var(--color-text-primary)]">
+                    Donde conseguirla
+                  </summary>
+                  <p
+                    v-if="whereFor(r.env)"
+                    class="mt-1 whitespace-pre-line text-[var(--text-caption)] text-[var(--color-text-muted)]"
+                  >
+                    {{ whereFor(r.env) }}
+                  </p>
+                  <p v-else class="mt-1 text-[var(--text-caption)] text-[var(--color-text-muted)]">
+                    cargando…
+                  </p>
+                </details>
+
+                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                  <input
+                    v-model="drafts[r.env]"
+                    type="password"
+                    autocomplete="off"
+                    spellcheck="false"
+                    :placeholder="r.env"
+                    class="min-w-0 flex-1 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-transparent px-2 py-1 text-[var(--text-label)] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-text-primary)]"
+                  />
+                  <button
+                    type="button"
+                    :disabled="busy[r.env] || !(drafts[r.env] ?? '').trim()"
+                    @click="save(r.env)"
+                    class="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 py-1 text-[var(--text-caption)] text-[var(--color-text-primary)] disabled:opacity-40"
+                  >
+                    {{ busy[r.env] ? '…' : 'Guardar' }}
+                  </button>
+                  <button
+                    type="button"
+                    :disabled="busy[r.env]"
+                    @click="check(r.env)"
+                    class="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-2 py-1 text-[var(--text-caption)] text-[var(--color-text-muted)] disabled:opacity-40"
+                  >
+                    {{ busy[r.env] ? '…' : 'Check' }}
+                  </button>
+                </div>
+
+                <p
+                  v-if="results[r.env]"
+                  class="mt-1 text-[var(--text-caption)]"
+                  :class="results[r.env].usable ? 'text-[var(--color-sys-healthy)]' : 'text-[var(--color-sys-degraded)]'"
+                >
+                  {{ results[r.env].usable ? '✓' : '✗' }} {{ results[r.env].detail }}
+                </p>
+              </li>
           </ul>
         </div>
       </div>
@@ -213,7 +329,8 @@ onMounted(load)
       v-if="snap"
       class="border-t border-[var(--color-border)] px-4 py-3 text-[var(--text-caption)] text-[var(--color-text-muted)]"
     >
-      {{ snap.note }}. Para setearlas: editá el archivo de entorno del sistema y reiniciá el backend.
+      {{ snap.note }}. Ponelas acá mismo: cada variable trae dónde conseguirla,
+        un campo para escribirla, y un Check que dice si funciona.
     </p>
   </section>
 </template>
