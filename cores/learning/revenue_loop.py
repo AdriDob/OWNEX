@@ -296,21 +296,38 @@ class RevenueLearningLoop:
         return [self.daily[d] for d in sorted_dates[:days]]
 
     def get_totals(self) -> dict[str, Any]:
-        """Get total metrics across all time."""
+        """Totales históricos + las tasas derivadas.
+
+        Las **tasas** (`avg_ev_per_hour`, `avg_revenue_per_hour`,
+        `ev_accuracy`) son `None` mientras no haya minutos registrados: el
+        código usaba `max(total_minutes, 1)` y devolvía `0.0`, o sea
+        **"ganás $0 por hora"** cuando en realidad no hay ni una acción
+        registrada. Medido 2026-10-08: `total_actions == 0`.
+
+        Es la misma clase que `accepted / max(total, 1)` en el feedback loop
+        (KNOWN_DEBT #34 y #69): un denominador de relleno convierte "no lo
+        sé" en un cero medido, y el cero se lee como un mal resultado en
+        lugar de como una medición ausente.
+
+        Los contadores (`total_*`) siguen siendo 0: un contador de 0 es
+        verdad. Lo que no es verdad es la tasa derivada de "nada".
+        """
         total_minutes = sum(a.human_minutes for a in self.actions)
         total_ev = sum(a.expected_value for a in self.actions)
         total_revenue = sum(a.actual_revenue for a in self.actions)
         total_actions = len(self.actions)
 
+        measured = total_minutes > 0
         return {
             "total_human_minutes": round(total_minutes, 1),
             "total_human_hours": round(total_minutes / 60, 2),
             "total_actions": total_actions,
             "total_expected_value": round(total_ev, 2),
             "total_actual_revenue": round(total_revenue, 2),
-            "avg_ev_per_hour": round((total_ev / max(total_minutes, 1)) * 60, 2),
-            "avg_revenue_per_hour": round((total_revenue / max(total_minutes, 1)) * 60, 2),
-            "ev_accuracy": round(total_revenue / max(total_ev, 1), 2),
+            "avg_ev_per_hour": round((total_ev / total_minutes) * 60, 2) if measured else None,
+            "avg_revenue_per_hour": round((total_revenue / total_minutes) * 60, 2) if measured else None,
+            "ev_accuracy": round(total_revenue / total_ev, 2) if total_ev > 0 else None,
+            "rates_status": "MEASURED" if measured else "UNKNOWN: no hay minutos registrados",
         }
 
     def get_dashboard(self) -> dict[str, Any]:
@@ -335,8 +352,14 @@ class RevenueLearningLoop:
             "pending_actions": len(pending),
             "recent_learnings": recent_learnings,
             "metrics": {
-                "human_minutes_per_day": round(totals["total_human_minutes"] / max(len(self.daily), 1), 1),
+                # `max(len(self.daily), 1)` rellenaba el denominador a 1 y
+                # devolvía 0.0 min/día sin días registrados. Sin días, la
+                # tasa es UNKNOWN.
+                "human_minutes_per_day": (
+                    round(totals["total_human_minutes"] / len(self.daily), 1) if self.daily else None
+                ),
                 "revenue_per_human_hour": totals["avg_revenue_per_hour"],
+                "status": totals["rates_status"],
             },
         }
 

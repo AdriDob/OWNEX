@@ -89,19 +89,29 @@ async def get_daily(days: int = 30):
 
 @router.get("/metrics")
 async def get_key_metrics():
-    """Get the two key metrics: HUMAN_MINUTES/DAY and $PAID/HOUR."""
+    """Get the two key metrics: HUMAN_MINUTES/DAY and $PAID/HOUR.
+
+    Las tasas son `null` cuando no hay base para calcularlas. Antes
+    `max(daily_count, 1)` y `max(minutes, 1)` devolvían `0.0` y la respuesta
+    decía "0 minutos por día, $0 por hora" sin que existiera ni una acción
+    registrada. Un 0 en una tasa derivada es un resultado medido; acá no
+    había medición.
+    """
     from cores.learning.revenue_loop import get_revenue_loop
 
     loop = get_revenue_loop()
     totals = loop.get_totals()
-    daily_count = max(len(loop.daily), 1)
+    daily_count = len(loop.daily)
+    minutes = totals["total_human_minutes"]
+    hours = totals["total_human_hours"]
 
     return {
-        "human_minutes_per_day": round(totals["total_human_minutes"] / daily_count, 1),
-        "human_hours_per_day": round(totals["total_human_hours"] / daily_count, 2),
+        "human_minutes_per_day": round(minutes / daily_count, 1) if daily_count else None,
+        "human_hours_per_day": round(hours / daily_count, 2) if daily_count else None,
         "revenue_per_human_hour": totals["avg_revenue_per_hour"],
         "ev_per_human_hour": totals["avg_ev_per_hour"],
         "total_revenue": totals["total_actual_revenue"],
         "total_actions": totals["total_actions"],
         "ev_accuracy": totals["ev_accuracy"],
+        "rates_status": totals["rates_status"],
     }

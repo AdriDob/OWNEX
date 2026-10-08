@@ -2004,3 +2004,55 @@ fbd21480 : 42 failed, 6139 passed,  8 skipped, 1 error   (15m36s)
 **Nota de proceso:** la regresión se descartó con un worktree en `aeb4cf5e` corriendo la suite completa y comparando, no con "en mi área todo pasa". Lo segundo no habría detectado ni un solo fallo nuevo de los que dependían del orden.
 
 **Regla permanente:** *`make check` es necesario y no suficiente.* Verifica el scope AUD; una suite completa comparada contra la base es lo que prueba que no rompiste nada.
+
+## 78. `/api/pillars` anunciaba $39.000/mes y $222/hora sin un solo dato (2026-10-08) — RESUELTO
+
+El cuarto caso de la misma clase (#69 feedback, #70 auto-apply, #71 llm_scanner), y el más caro: **es el endpoint de "cuánto voy a ganar"**.
+
+### Lo que emitía
+
+```
+GET /api/pillars/dashboard
+  total_monthly_potential : "$5,000 - $39,000"
+  combined_ev_per_hour    : "$222"
+  next_best_pillar        : "AI Tasks"
+  recommendations[0]      : "Start with AI Tasks — fastest time to first pay (1-2 weeks)"
+GET /api/pillars/startup-plan
+  day_1 expected_income "$0-30" · day_2 "$10-30" · day_3 "$0-50"
+  day_4 "$0" · day_5 "$20-80" · day_6_7 "$50-150"     (≈ $80-$310 la semana 1)
+```
+
+**De dónde salía cada número:**
+
+| Número | Origen real |
+|---|---|
+| `total_monthly_potential` | suma de 5 `monthly_potential_low/high` **escritos a mano** |
+| `combined_ev_per_hour` | punto medio de esos inventos ÷ (`hours_per_day` inventados × 22) |
+| `next_best_pillar` | `max()` de un dict literal `{"AI Tasks": 95, "QA": 85, ...}` |
+| `avg_pay_rate` (5 valores) | literales: 75.0, 10.0, 50.0, 18.0, 13.0 |
+| `expected_income` (6 valores) | literales |
+
+**Medido el mismo día:** `RevenueLearningLoop.get_totals()` → `total_actions: 0`. **Cero acciones registradas.** No había nada que proyectar.
+
+### El consejo además era **equivocado**
+
+`next_best_pillar = "AI Tasks"` y `recommendations[0] = "Start with AI Tasks"`. Pero 2 de las 4 plataformas de AI Tasks piden credencial académica (verificado 2026-10-08, #67/#76): Outlier *"minimum qualifications typically require undergraduate-level expertise"* y Mindrift *"70% of our contributors hold a Master's or PhD"*. La recomendación mandaba al pillar con barrera real a hacer lo que el propio sistema acababa de marcar como bloqueado.
+
+### Fix: separar hecho de proyección
+
+- **Hecho de mercado** (verificable en la página de cada plataforma) **se sigue declarando**: `pay_range`, `platforms`, `barrier`, `skill_requirements`, y las `actions` del startup plan. `pay_range` ahora lo dice: *"(rango publicado, no un promedio)"*.
+- **Proyección** (depende de horas disponibles y de la tasa de aceptación **real**, que no existe): `avg_pay_rate`, `monthly_potential_*`, `expected_income` → `None` + `*_status`/`*_note` con el motivo a la vista.
+- `total_monthly_potential` sólo se calcula si **los 5** pillars tienen proyección: sumar rangos donde faltan 2 de 5 da un total que se lee como completo.
+- `combined_ev_per_hour` sale ahora de `_measured_revenue_per_hour()`, que lee `RevenueLearningLoop`. `None` si nunca se registró una acción.
+- `next_best_pillar` = `None`. Rankear exige el payout **por pillar**, y el revenue loop no guarda esa dimensión (registra `opportunity_id`, `action_type`, `title`, `expected_value`, `actual_revenue`). Agregar el campo para después devolver un número es deuda de esquema comprada con una afirmación. El método `_get_next_best_pillar()` —que sólo podía devolver `None`— se borró.
+- Las recomendaciones dejaron de ser "hacé esto" y pasaron a declarar el estado real, incluida la barrera real de AI Tasks.
+
+### Bonus, mismo patrón por tercera vez: `revenue_loop` decía `$0/hora`
+
+`get_totals()` usaba `max(total_minutes, 1)` y devolvía `avg_revenue_per_hour: 0.0` con cero acciones — **"ganás $0 por hora"**, que es un resultado, no una medición. Igual que `accepted / max(total, 1)` (#69). Ahora las tasas son `None` con `rates_status`, en `get_totals()`, `get_dashboard()` y `/api/learning/metrics`.
+
+**Y el detalle fino que un test cazó:** con 60 minutos registrados y 0 cobrado, `avg_revenue_per_hour` es **`0.0`, no `None`** — se trabajó una hora y se cobró cero; eso es una medición verdadera con valor cero. `None` es sólo para "no hubo medición". Mi primer test afirmaba lo contrario; el código tenía razón y el test estaba mal.
+
+**11 guards** en `tests/test_pillars_projections.py`, incluido `test_los_hechos_de_mercado_siguen_declarados`: el fix no puede degenerar en "borrar el dato", sólo en "dejar de afirmar lo que no tiene base".
+
+**Regla permanente:** *un agregado de proyecciones no medidas es una medición con puntos decimales.* Y: *`0` y `None` son afirmaciones distintas* — `0` = medido y dio cero; `None` = no medido. Confundirlas es oculdar una alarma o inventar un resultado.

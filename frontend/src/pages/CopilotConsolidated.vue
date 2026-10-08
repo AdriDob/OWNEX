@@ -52,12 +52,17 @@ const learningRows = computed(() => {
   if (!d) return []
   const totals = d.totals ?? {}
   const metrics = d.metrics ?? {}
+  // Las tasas llegan `null` cuando el backend no tiene base para calcularlas
+  // (0 acciones registradas). `?? 0` las volvería "cero", que es un
+  // resultado medido; acá no hay medición.
+  const rate = (v: number | null | undefined, prefix = '') =>
+    v === null || v === undefined ? '—' : `${prefix}${v}`
   return [
-    { label: 'Minutos humanos', value: `${totals.total_human_minutes ?? 0} min` },
+    { label: 'Minutos humanos', value: rate(totals.total_human_minutes) },
     { label: 'Acciones registradas', value: String(totals.total_actions ?? 0) },
-    { label: 'Minutos humanos / día', value: String(metrics.human_minutes_per_day ?? 0) },
-    { label: 'Ingreso / hora humana', value: `$${metrics.revenue_per_human_hour ?? 0}` },
-    { label: 'Revenue real acumulado', value: `$${totals.total_actual_revenue ?? 0}` },
+    { label: 'Minutos humanos / día', value: rate(metrics.human_minutes_per_day) },
+    { label: 'Ingreso / hora humana', value: rate(metrics.revenue_per_human_hour, '$') },
+    { label: 'Revenue real acumulado', value: rate(totals.total_actual_revenue, '$') },
     { label: 'Acciones pendientes', value: String(d.pending_actions ?? 0) },
     { label: 'Envíos', value: String(d.today?.submissions ?? 0) },
     { label: 'Aceptados', value: String(d.today?.accepted ?? 0) },
