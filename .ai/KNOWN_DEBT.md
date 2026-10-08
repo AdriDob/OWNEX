@@ -1,4 +1,4 @@
-> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 57 de 49.
+> **Rotas entradas resueltas**: el histórico completo está en `.ai/archive/KNOWN_DEBT.md` (11,832 B, 9 secciones). Este archivo conserva 65 de 50.
 > **Regla**: grepeá `.ai/archive/KNOWN_DEBT.md` antes de contradecir una regla histórica.
 
 ## 32. Auth bypass en los 28 namespaces root-mounted (2026-09-30) — P0 seguridad, decisión del owner
@@ -1718,3 +1718,63 @@ recuperable por git tras un commit fallido con este hook.**
 Y la defensa que no falla: **verificar por comportamiento, no por diff.**
 `git diff` de promoter.py mostraba cambios; `promoter.py` era un stub. Lo que
 lo delató fue `35 passed` → `ImportError`.
+
+## 64. 20 endpoints 404: 6 arreglados, 156 líneas muertas, y 14 "drift" que NO son renombres (2026-10-05)
+
+Continuación de #63. Los 39 endpoints se-working de uno en uno.
+
+### Lo que se arregló
+
+| Qué | Commit |
+|---|---|
+| 6 de `dev-bounty` | otro flujo (`4daef0f9`): llamadas a `/api/` explícito |
+| 7 de AEGIS + 1 de ATLAS | `6197f4be`: la capacidad existía con otro nombre |
+| 6 de `trading-lab` | `95a20f1d`: **código muerto borrado** |
+
+**AEGIS/ATLAS (8).** `/api/aegis/*` y `/api/atlas/health` no existen, pero
+`/api/targets`, `/api/findings`, `/api/scans/runs` y `/api/core/apps` sí.
+Y un segundo bug más grave: **`api.get()` devuelve el JSON ya parseado**
+(`lib/api.ts`: `return res.json()`), pero el código hacía `res.value.ok` y
+`res.value.json()` sobre un objeto parseado. Aunque el endpoint hubiera
+existido, la lectura estaba mal.
+
+**trading-lab (6 endpoints, 156 líneas).** No era deuda: era basura. 6 funciones
+exportadas con **0 consumidores** que llamaban a endpoints inexistentes.
+Borradas de `ownexData.ts`, con un marcador que explica por qué. No se tocó
+`fetchCapitalSnapshot` (vivo, 3 consumidores, endpoint real).
+
+**El guard se usó como herramienta**: antes de borrar, los 6 estaban en el
+allowlist; después, `test_los_conocidos_existen_de_verdad_en_el_front` falló
+diciendo "estas entradas ya no las llama nadie". Un guard que no falla cuando
+le cambian el sujeto no está midiendo.
+
+### Por qué NO renombré los 14 "drift"
+
+Se buscó un equivalente con otro nombre para cada uno. Resultado medido:
+
+| El front pide | Lo que encontré | Veredicto |
+|---|---|---|
+| `/api/knowledge` | `/api/knowledge-graph/nodes` | ✅ existe, distinto contrato |
+| `/api/identity` | `/api/identity-center` | ✅ existe |
+| `/api/modes/active` | `/api/mission/active` | ❌ **son misiones, no modos** |
+| `/api/mission/status` | `/api/mission/active` | ⚠️ parcial: no trae `health`/`nextAction` |
+| `/api/profile-kit` | `/api/learning/profile` | ❌ perfil de aprendizaje |
+| `/api/learning/progress` | `/api/config/progress` | ❌ otra cosa |
+| `/api/files/list` | `/api/files/browse` | ❌ browse de archivo |
+| `/api/quick-capture` | — | ❌ no existe |
+| `/api/system/readiness` | — | ❌ no existe |
+| `/api/cycles/security/executive` | — | ❌ no existe |
+
+> **Mapear un path a un endpoint con otro contrato es exactamente el bug que
+> se acaba de arreglar en AEGIS.** `{items}` leído como `{targets}` es el mismo
+> error de nuevo. Renombrar `/api/modes/active` → `/api/mission/active`
+> haría que la pantalla de modos mostrara misiones.
+
+Cada uno necesita que alguien confirme que el endpoint destino sirve lo que la
+pantalla promete. Eso es decisión de producto, no de un guard.
+
+### Regla permanente
+
+> *Un "drift" no se arregla renombrando: se arregla confirmando que el endpoint
+> destino sirve lo que la pantalla promete.* Si el destino tiene otro contrato,
+> el rename es un 404 nuevo con nombre viejo.

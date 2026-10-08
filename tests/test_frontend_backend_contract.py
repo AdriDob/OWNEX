@@ -163,6 +163,30 @@ class TestElGuardReplicaElResolver:
 # owner ve vacía. Cerrarlas es decisión de producto, endpoint por endpoint.
 # ══════════════════════════════════════════════════════════════════
 
+# NOTA sobre "drift" (auditado 2026-10-05, 1 a 1 contra la app real):
+#
+# Se buscó un equivalente con otro nombre para cada uno. Resultado:
+#
+#   CON EQUIVALENTE REAL pero contrato distinto:
+#     /api/knowledge       -> /api/knowledge-graph/nodes   (params type/name/limit)
+#     /api/identity        -> /api/identity-center        (sin params)
+#
+#   SIN EQUIVALENTE (lo que se parece, es otra cosa):
+#     /api/modes/active    -> /api/mission/active  son MISIONES, no modos
+#     /api/mission/status  -> /api/mission/active  parcial: no trae health/nextAction
+#     /api/profile-kit     -> /api/learning/profile  distinto (perfil de aprendizaje)
+#     /api/learning/progress -> /api/config/progress, /api/life/goals/{id}/progress
+#     /api/files/list      -> /api/files/browse  distinto (browse de archivo)
+#     /api/knowledge       -> /api/core/knowledge/nodes (otra forma del mismo grafo)
+#     /api/quick-capture   -> no hay captura rápida en el backend
+#     /api/system/readiness -> no hay endpoint de readiness
+#     /api/cycles/security/executive -> no hay resumen ejecutivo de security
+#
+# DECISIÓN: no se renombraron. Mapear un path a un endpoint con OTRO contrato
+# es exactamente el bug que se acaba de arreglar en AEGIS (`{items}` leido como
+# `{targets}`). Cada uno de estos necesita que alguien confirme que el
+# endpoint destino sirve lo que la pantalla promete.
+#
 CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     # ── Apps sin backend: la UI existe, la API nunca existió ──
     "/wear-os/approvals/pending": ("drift", "el back sirve /wear-os/approvals, no /approvals/pending"),
