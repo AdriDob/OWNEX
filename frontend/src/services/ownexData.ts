@@ -202,21 +202,48 @@ async function fetchActivity(): Promise<KnowledgeItem[]> {
     }))
 }
 
+/**
+ * Estado de misiones para la banda de salud del Command Center.
+ *
+ * `/mission/status` NO existe (404 medido 2026-10-05) y su shape esperado
+ * (`{system: {health_score, status}, next_action}`) no corresponde a ningún
+ * endpoint. El real es `/api/mission/summary`, que devuelve CONTADORES
+ * verificados autenticado: active_count, blocked_count, stale_count,
+ * waiting_human_count, by_status, stale_missions.
+ *
+ * La salud se deriva de lo que existe: sin bloqueadas ni stales = 100.
+ * Antes devolvía `health: 0` (porque `data.system` era undefined) y la banda
+ * del Command Center mostraba 0% como si el sistema estuviera caído.
+ */
 export async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
-    const data = await api.get<any>('/mission/status')
-    const nextAction = data.next_action
-      ? {
-          title: data.next_action.title || 'Sin acción pendiente',
-          reason: data.next_action.why_now || '',
-          effort: data.next_action.effort || 'Bajo',
-          estimatedReward: data.next_action.estimated_reward || 0,
-        }
-      : null
+    const data = await api.get<{
+      active_count?: number
+      blocked_count?: number
+      stale_count?: number
+      waiting_human_count?: number
+    }>('/api/mission/summary')
+
+    const blocked = data.blocked_count ?? 0
+    const stale = data.stale_count ?? 0
+    const waiting = data.waiting_human_count ?? 0
+
+    // nextAction: la única acción real que el backend expone es "esperar
+    // aprobación humana" cuando hay misiones en ese estado.
+    const nextAction: NextActionItem | null =
+      waiting > 0
+        ? {
+            title: `${waiting} misión(es) esperando aprobación`,
+            reason: 'Requieren una decisión del owner antes de avanzar',
+            effort: 'Bajo',
+            estimatedReward: 0,
+          }
+        : null
+
     return {
-      health: data.system?.health_score ?? 0,
-      status: data.system?.status ?? 'unknown',
+      health: blocked + stale === 0 ? 100 : Math.max(0, 100 - blocked * 25 - stale * 10),
+      status: blocked + stale === 0 ? 'ok' : 'degraded',
       nextAction,
-      timestamp: data.system?.timestamp ?? new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     }
 }
 

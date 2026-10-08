@@ -218,18 +218,15 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     #     NO estaban rotas: mi propio guard las contaba como 404 por comparar
     #     paths con barra final contra declarados sin ella. False negative del
     #     audit, no deuda del front.
-    # ── modes/{active,history,set-force}: SIN equivalente verificado. Existen
-    #     /api/modes/{available,current,nav,recommend,set} pero sus SHAPES no
-    #     se pudieron confirmar sin sesion (todo el router exige auth), y el
-    #     panel lee active.active_modes y past.history. No se renombró a ciegas:
-    #     mapear sin ver el shape es el bug de AEGIS otra vez.
+    # ── modes/*: ARREGLADO 2026-10-05 con sesion real.
+    #     /api/modes/{active,history,set-force} NO existen. El panel ahora usa
+    #     /api/modes/current ({current_mode, available_modes, config}) y
+    #     /api/modes/set con el body REAL {mode} — antes mandaba
+    #     {mode_key, force}, que da 422: cambiar de modo nunca funciono.
     # ── Drift: el contrato se movió ──
     "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
     "/api/learning/progress": ("drift", "progreso de aprendizaje sin endpoint"),
     "/api/mission/status": ("drift", "el estado de misión cambió de namespace"),
-    "/api/modes/active": ("drift", "modes: sin endpoint /api/modes"),
-    "/api/modes/history": ("drift", "modes: sin historial"),
-    "/api/modes/set-force": ("drift", "modes: sin forzar modo"),
     "/api/identity": ("drift", "sin endpoint de identidad"),
     "/api/system/readiness": ("drift", "readiness no está en /api/system"),
 }

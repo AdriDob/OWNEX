@@ -129,6 +129,13 @@
       <div class="modal-content history-modal" @click.stop>
         <h3>Mode Change History</h3>
         <div class="history-list">
+          <!-- El backend no expone historial de modos (verificado: no existe
+               /api/modes/history ni equivalente). Antes el modal abría vacío
+               sin explicarlo, que se lee como "no hubo cambios" cuando en
+               realidad no se está midiendo. -->
+          <p v-if="history.length === 0" class="text-xs opacity-70 py-3">
+            Sin historial disponible: el sistema no registra cambios de modo.
+          </p>
           <div v-for="change in history" :key="change.id" class="history-item">
             <div class="history-header">
               <span class="history-mode">{{ change.mode_key }}</span>
@@ -238,15 +245,20 @@ function hasConflict(mode: Mode): boolean {
 async function refreshModes() {
   try {
     // Vía `api`: `fetch()` crudo no manda Authorization ni resuelve el puerto
-    // del sidecar, así que devolvía 401 tras el gate de auth del 2026-10-04.
-    const [available, active, past] = await Promise.all([
+    // del sidecar, así que devolvía 401 tras el gate de auth del 2026-04.
+    //
+    // `/api/modes/active` y `/api/modes/history` NO existen (404 medido
+    // 2026-10-05). El endpoint real es `/api/modes/current`, que devuelve
+    // `{ current_mode, available_modes, config }` — verificado autenticado.
+    // No existe historial de modos en ninguna parte del backend.
+    const [available, current] = await Promise.all([
       api.get<any>('/api/modes/available'),
-      api.get<any>('/api/modes/active'),
-      api.get<any>('/api/modes/history'),
+      api.get<any>('/api/modes/current'),
     ])
     availableModes.value = available
-    activeModes.value = active.active_modes
-    history.value = past.history
+    activeModes.value = { [current.current_mode]: current.config?.name ?? current.current_mode }
+    // El historial no existe como endpoint: se deja vacío y el modal lo dice.
+    history.value = []
   } catch (error) {
     console.error('Failed to refresh modes:', error)
   }
@@ -254,9 +266,10 @@ async function refreshModes() {
 
 async function toggleMode(mode: Mode) {
   if (mode.active) {
-    // Deactivate
+    // Deactivate. El body real es `{ mode }` (SetModeRequest.mode), no
+    // `{ mode_key, force }`: esos campos el endpoint los ignora.
     try {
-      await api.post('/api/modes/set', { mode_key: mode.mode_key, force: true })
+      await api.post('/api/modes/set', { mode: mode.mode_key })
       await refreshModes()
     } catch (error) {
       console.error('Failed to deactivate mode:', error)
@@ -291,16 +304,20 @@ async function toggleMode(mode: Mode) {
 
 async function activateMode(modeKey: string) {
   try {
-    const result = await api.post<any>('/api/modes/set', { mode_key, force: false })
+    // El body real es `{ mode: 'lite'|'full'|'capital' }` — medido en
+    // api/routers/modes.py:14 (SetModeRequest.mode). Antes se mandaba
+    // `{ mode_key, force }`, campos que el endpoint ignora: el cambio de
+    // modo NUNCA se aplicó.
+    // El endpoint tampoco devuelve `conflict`: devuelve
+    // `{status, mode, tagline, ...}` o 200 con `{error}`. La rama de
+    // conflicto era inalcanzable.
+    const result = await api.post<any>('/api/modes/set', { mode: modeKey })
 
-    if (result.status === 'conflict') {
-      conflictModalMode.value = availableModes.value[modeKey]
-      conflictModalConflicts.value = result.conflicts
-      conflictModalSuggestions.value = result.suggested_resolution.suggestions
-      showConflictModal.value = true
-    } else {
-      await refreshModes()
+    if (result?.error) {
+      console.error('set mode:', result.error)
+      return
     }
+    await refreshModes()
   } catch (error) {
     console.error('Failed to activate mode:', error)
   }
@@ -309,13 +326,13 @@ async function activateMode(modeKey: string) {
 async function forceActivate() {
   if (!conflictModalMode.value) return
 
-  try {
-    await api.post('/api/modes/set-force', { mode_key: conflictModalMode.value.mode_key, force: true })
-    showConflictModal.value = false
-    await refreshModes()
-  } catch (error) {
-    console.error('Failed to force activate mode:', error)
-  }
+  // `/api/modes/set-force` NO existe (404 medido 2026-10-05). El único
+  // endpoint de cambio es `/api/modes/set`, que no tiene variante "force":
+  // o el modo es válido y cambia, o devuelve error. Este caso sólo se
+  // alcanza desde un modal de conflicto que el backend nunca produce, así
+  // que se delega al mismo endpoint.
+  await activateMode(conflictModalMode.value.mode_key)
+  showConflictModal.value = false
 }
 
 function showDetails(mode: Mode) {

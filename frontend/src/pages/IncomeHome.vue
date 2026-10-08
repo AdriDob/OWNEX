@@ -240,7 +240,18 @@ async function load(): Promise<void> {
   const [planRes, sysRes] = await Promise.allSettled([fetchIncomePlan(), fetchMissionStatus()])
   if (planRes.status === 'fulfilled') income.value = planRes.value
   else error.value = planRes.reason instanceof Error ? planRes.reason.message : String(planRes.reason)
-  if (sysRes.status === 'fulfilled') system.value = { health: sysRes.value.health, status: sysRes.value.status }
+  if (sysRes.status === 'fulfilled') {
+    // `/mission/status` NO existe (404 medido 2026-10-05). El endpoint real
+    // es `/api/mission/summary`, que devuelve contadores, NO {health, status}.
+    // Se mapea desde lo que sí existe: salud = sin bloqueadas ni stales.
+    const m = sysRes.value
+    const blocked = m.blocked_count ?? 0
+    const stale = m.stale_count ?? 0
+    system.value = {
+      health: blocked + stale === 0 ? 100 : Math.max(0, 100 - blocked * 25 - stale * 10),
+      status: blocked + stale === 0 ? 'ok' : 'degraded',
+    }
+  }
 
   // REALIZADO: fallo silencioso → la banda se oculta (no bloquea el plan).
   try {
