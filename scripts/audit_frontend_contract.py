@@ -88,6 +88,7 @@ def main() -> int:
 
     calls: dict[tuple[str, str], tuple[Path, int]] = {}
     templates = 0
+    template_prefixes: dict[tuple[str, str], tuple[Path, int]] = {}
     for f in FRONTEND.rglob("*"):
         if f.suffix not in (".ts", ".vue") or "node_modules" in str(f):
             continue
@@ -96,6 +97,13 @@ def main() -> int:
                 method, path = m.group(1).upper(), m.group(2)
                 if "${" in path:
                     templates += 1
+                    # Guardar el prefijo hasta el primer ${ para verificarlo:
+                    # antes se contaban y se ignoraban a ciegas (punto ciego).
+                    # Aplicar resolve() ANTES de guardar: el prefijo crudo
+                    # `/applications` se resuelve a `/api/applications`, y
+                    # comparar el crudo daba 61 falsos positivos.
+                    pre = resolve(path.split("${")[0], prefixes)
+                    template_prefixes.setdefault((method, pre), (f, ln))
                     continue
                 calls.setdefault((method, resolve(path, prefixes)), (f, ln))
 
@@ -114,6 +122,20 @@ def main() -> int:
         if r_norm not in real and not (r_norm.startswith("/api/") and r_norm[4:] in real):
             rotas.append((method, resolved, f, ln, "path no declarado"))
 
+    # Verificar también los prefijos de templates literales: que exista al
+    # menos una ruta bajo ese prefijo, en raíz o bajo /api. Medido 2026-10-05:
+    # 38 templates = 7 prefijos que "no existían" y los 7 sí están bajo /api.
+    prefixes_malos: list[tuple[str, str, Path, int]] = []
+    for (method, pre), (f, ln) in template_prefixes.items():
+        n = norm(pre)
+        # Mismo chequeo que `_served`: raíz O bajo /api. Medido 2026-10-05:
+        # sin la rama `/api` salían 61 falsos positivos (de 133 templates).
+        if any(p == n or p.startswith(n + "/") for p in real):
+            continue
+        if n.startswith("/api") and any(p == n[4:] or p.startswith(n[4:] + "/") for p in real):
+            continue
+        prefixes_malos.append((method, pre, f, ln))
+
     vivas = len(calls) - len(rotas)
     if args.json:
         print(
@@ -123,6 +145,10 @@ def main() -> int:
                     "templates": templates,
                     "con_backend": vivas,
                     "sin_backend": len(rotas),
+                    "template_prefixes_sin_ruta": [
+                        {"method": m, "prefix": p, "file": str(f.relative_to(REPO)), "line": ln}
+                        for m, p, f, ln in prefixes_malos
+                    ],
                     "rotas": [
                         {"method": m, "path": r, "file": str(f.relative_to(REPO)), "line": ln, "why": w}
                         for m, r, f, ln, w in rotas
@@ -131,12 +157,17 @@ def main() -> int:
                 indent=2,
             )
         )
-        return 1 if rotas else 0
+        return 1 if (rotas or prefixes_malos) else 0
 
     print(f"endpoints distintos que el front llama : {len(calls)}")
     print(f"  con backend                          : {vivas}")
     print(f"  SIN backend                         : {len(rotas)}")
-    print(f"  (llamadas con template literal       : {templates})\n")
+    print(f"  (llamadas con template literal       : {templates})")
+    if prefixes_malos:
+        print(f"  de esos, prefijo SIN ruta en el back : {len(prefixes_malos)}\n")
+        for m, pre, _f, _ln in prefixes_malos:
+            print(f"      {m:6} {pre}")
+    print()
     if args.list and rotas:
         print("=== 404 REALES: el front llama, el backend no sirve ===\n")
         for m, r, f, ln, w in rotas:
@@ -144,7 +175,7 @@ def main() -> int:
             print(f"         {f.relative_to(REPO)}:{ln}")
     elif not args.list and rotas:
         print("  usar --list para el detalle con archivo:línea")
-    return 1 if rotas else 0
+    return 1 if (rotas or prefixes_malos) else 0
 
 
 if __name__ == "__main__":
