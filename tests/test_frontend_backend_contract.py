@@ -72,16 +72,29 @@ def _resolve(path: str, prefixes: set[str]) -> str:
     return clean if is_root else f"/api{clean}"
 
 
+def _norm(path: str) -> str:
+    """Sin barra final, para COMPARAR.
+
+    `/api/knowledge/` y `/api/knowledge` son el MISMO endpoint (FastAPI
+    responde ambos, con 307 en uno). Comparar exactamente daba 404 falso: el
+    router declara la ruta CON barra y el front pide SIN ella. Medido: 4 de los
+    "16 rotas" de 2026-10-05 no estaban rotas.
+    """
+    return path.split("?")[0].rstrip("/") or "/"
+
+
 def _served(resolved: str, real: set[str]) -> bool:
-    """Acepta la forma root-mounted y la /api.
+    """Acepta la forma root-mounted y la /api, normalizada.
 
     `/dev-bounty/status` se sirve en RAÍZ aunque su router lo declare
     `/api/dev-bounty/status`. Ignorar esto mete falsos positivos que hacen
     desconfiar del guard entero.
     """
-    if resolved in real:
+    r = _norm(resolved)
+    real = {_norm(p) for p in real}
+    if r in real:
         return True
-    return resolved.startswith("/api/") and resolved[4:] in real
+    return r.startswith("/api/") and r[4:] in real
 
 
 @pytest.fixture(scope="module")
@@ -201,20 +214,24 @@ CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     # ── wear-os approvals, files/list, profile-kit: ELIMINADO 2026-10-05.
     #     0 consumidores + endpoints inexistentes. Codigo muerto borrado de
     #     ownexData.ts (58 lineas) y controlPanel.ts (6 lineas). Ver #63/#64.
+    # ── knowledge, profile-kit, quick-capture, platform-guides: SACADOS 2026-10-05.
+    #     NO estaban rotas: mi propio guard las contaba como 404 por comparar
+    #     paths con barra final contra declarados sin ella. False negative del
+    #     audit, no deuda del front.
+    # ── modes/{active,history,set-force}: SIN equivalente verificado. Existen
+    #     /api/modes/{available,current,nav,recommend,set} pero sus SHAPES no
+    #     se pudieron confirmar sin sesion (todo el router exige auth), y el
+    #     panel lee active.active_modes y past.history. No se renombró a ciegas:
+    #     mapear sin ver el shape es el bug de AEGIS otra vez.
     # ── Drift: el contrato se movió ──
     "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
-    "/api/hypotheses": ("drift", "las hipótesis viven bajo /api/security"),
-    "/api/knowledge": ("drift", "knowledge: sin endpoint raíz"),
     "/api/learning/progress": ("drift", "progreso de aprendizaje sin endpoint"),
     "/api/mission/status": ("drift", "el estado de misión cambió de namespace"),
     "/api/modes/active": ("drift", "modes: sin endpoint /api/modes"),
     "/api/modes/history": ("drift", "modes: sin historial"),
     "/api/modes/set-force": ("drift", "modes: sin forzar modo"),
-    "/api/profile-kit": ("drift", "profile-kit sin endpoint"),
     "/api/identity": ("drift", "sin endpoint de identidad"),
-    "/api/quick-capture": ("drift", "captura rápida sin endpoint"),
     "/api/system/readiness": ("drift", "readiness no está en /api/system"),
-    "/platform-guides": ("drift", "platform-guides sin endpoint raíz"),
 }
 
 

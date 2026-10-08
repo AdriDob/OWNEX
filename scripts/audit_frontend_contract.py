@@ -56,6 +56,16 @@ def resolve(path: str, prefixes: set[str]) -> str:
     return clean if is_root else f"/api{clean}"
 
 
+def norm(path: str) -> str:
+    """Normaliza para COMPARAR: sin barra final.
+
+    `/api/knowledge/` y `/api/knowledge` son el MISMO endpoint. FastAPI
+    responde ambos (307 en uno). Comparar exactamente daba 404 falso: el
+    router declara la ruta CON barra y el front pide SIN ella.
+    """
+    return path.split("?")[0].rstrip("/") or "/"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--list", action="store_true", help="detalle con archivo:línea")
@@ -70,7 +80,9 @@ def main() -> int:
 
     from api.main import app
 
-    real = {r.path for r in app.routes if getattr(r, "path", None)}
+    # norm() en ambos lados: `/api/knowledge/` y `/api/knowledge` son el mismo
+    # endpoint. Comparar exacto daba 404 falso.
+    real = {norm(r.path) for r in app.routes if getattr(r, "path", None)}
     prefixes = root_prefixes()
     client = TestClient(app)
 
@@ -98,7 +110,8 @@ def main() -> int:
                 continue
         except Exception:  # pragma: no cover
             pass
-        if resolved not in real and not (resolved.startswith("/api/") and resolved[4:] in real):
+        r_norm = norm(resolved)
+        if r_norm not in real and not (r_norm.startswith("/api/") and r_norm[4:] in real):
             rotas.append((method, resolved, f, ln, "path no declarado"))
 
     vivas = len(calls) - len(rotas)

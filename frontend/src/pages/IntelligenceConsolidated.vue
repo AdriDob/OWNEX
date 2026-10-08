@@ -24,7 +24,10 @@ async function fetchData() {
   try {
     const [fRes, hRes] = await Promise.allSettled([
       api.get<any>('/api/findings'),
-      api.get<any>('/api/hypotheses'),
+      // `/api/hypotheses` no existe (404 medido 2026-10-05). El que devuelve
+      // `{ hypotheses: [...] }` — el shape que esta línea lee — es
+      // `/api/offensive/hypotheses`, con los mismos filtros.
+      api.get<any>('/api/offensive/hypotheses'),
     ])
     if (fRes.status === 'fulfilled') findings.value = fRes.value.findings || []
     if (hRes.status === 'fulfilled') hypotheses.value = hRes.value.hypotheses || []
