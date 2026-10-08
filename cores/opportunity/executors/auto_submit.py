@@ -408,15 +408,33 @@ class AutoSubmitEngine:
         self._record_revenue_bridge(record, opportunity)
         return record
 
-    @staticmethod
-    def _record_revenue_bridge(record: SubmissionRecord, opportunity: dict[str, Any]) -> None:
-        """Record the submission outcome in the RevenueTracker (never breaks delivery)."""
+    def _record_revenue_bridge(self, record: SubmissionRecord, opportunity: dict[str, Any]) -> None:
+        """Registra el resultado en el RevenueTracker. Nunca rompe el envío.
+
+        Un fallo del bridge se persiste en `record.metadata` (y en la cola): que
+        el bookkeeping no bloquee el envío no puede significar que nadie se entere
+        de que faltó el revenue_event.
+        """
         try:
             from cores.revenue_tracker.execution_bridge import record_submission_outcome
 
             record_submission_outcome(record, opportunity)
-        except Exception as exc:  # pragma: no cover - revenue never blocks submission
+            # Éxito: se limpia un fallo anterior, si lo hubo.
+            record.metadata.pop("revenue_bridge_error", None)
+        except Exception as exc:  # revenue never blocks submission
+            # Se traga para no perder el envío, pero NO en silencio: el registro
+            # se persiste en la cola, así que el fallo queda consultable. Sin
+            # esto, un envío "correcto" puede no tener revenue_event y nadie
+            # sabe por qué.
             logger.warning("Revenue bridge skipped for %s: %s", getattr(record, "id", "?"), exc)
+            record.metadata["revenue_bridge_error"] = {
+                "error": f"{type(exc).__name__}: {exc}",
+                "at": datetime.now(UTC).isoformat(),
+                "meaning": "el envío se registró, pero NO hay revenue_event: revisá esto",
+            }
+        # La cola es lo que sobrevive al reinicio: si el fallo no queda ahí,
+        # no queda en ninguna parte.
+        self._save_queue()
 
     async def _execute_submission(self, record: SubmissionRecord, opportunity: dict[str, Any]) -> SubmissionRecord:
         """Execute the submission with retry logic."""

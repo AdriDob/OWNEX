@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import asyncio
 import types
+from pathlib import Path
 
 import pytest
 
@@ -271,3 +272,57 @@ def _no_sleep(monkeypatch):
         return await real(0, *a, **kw)
 
     monkeypatch.setattr(asyncio, "sleep", _instant)
+
+
+# ── El revenue bridge no puede fallar en silencio ────────────────────────
+#
+# Patrón repetido 5 veces en este proyecto: un `except: return []` convierte
+# "el conector está roto" en "no hay oportunidades". Aquí la versión es más
+# grave: si el bridge de revenue falla, el envío queda registrado como enviado
+# y el revenue_event NO existe — y nada lo dice fuera del log.
+
+
+def test_revenue_bridge_failure_is_persisted_not_swallowed(tmp_path) -> None:
+    """Si el bridge falla, el error queda en el registro persistido."""
+    import builtins
+    import json
+
+    from cores.opportunity.executors.auto_submit import (
+        AutoSubmitEngine,
+        SubmissionRecord,
+        SubmissionStatus,
+    )
+
+    tmp = Path(tmp_path)
+    engine = AutoSubmitEngine(dlq_path=str(tmp / "dlq"), queue_path=str(tmp / "queue.json"))
+    record = SubmissionRecord(
+        id="s1",
+        platform="opire",
+        opportunity_id="o1",
+        opportunity_title="t",
+        idempotency_key="k",
+        status=SubmissionStatus.SUBMITTED,
+        metadata={"reward": 100.0},
+    )
+    engine._submissions[record.id] = record
+
+    real_import = builtins.__import__
+
+    def boom(name, *a, **kw):
+        if name.endswith("execution_bridge"):
+            raise RuntimeError("tracker caido")
+        return real_import(name, *a, **kw)
+
+    builtins.__import__ = boom
+    try:
+        engine._record_revenue_bridge(record, {"reward": 100.0})
+    finally:
+        builtins.__import__ = real_import
+
+    assert "revenue_bridge_error" in record.metadata, (
+        "el fallo del bridge se tragó: el envío queda 'correcto' sin revenue_event y nadie lo sabe"
+    )
+    persisted = json.loads((tmp / "queue.json").read_text())["submissions"]["s1"]
+    assert "revenue_bridge_error" in persisted["metadata"], (
+        "el fallo no sobrevivió al reinicio: la cola es lo que persiste"
+    )
