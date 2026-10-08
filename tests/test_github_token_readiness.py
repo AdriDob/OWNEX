@@ -376,3 +376,109 @@ def test_scaffold_content_declares_itself(tmp_path) -> None:
         "el markdown no se declara scaffold: alguien podría enviarlo creyéndolo real"
     )
     assert prepared.metadata.get("requires_implementation") is True
+
+
+# ── Cesión: el trabajo real lo hace DevBountyPipeline ───────────────────
+#
+# Hay DOS caminos de dev bounty (medido):
+#   dev_bounty_pipeline  6 fases reales + endpoint POST /api/dev-bounty/execute,
+#                         nunca ejecutado
+#   auto_submit          assisted mode -> scaffold, por donde pasa todo hoy
+#
+# Con repo + issue parseables, auto_submit cede. Sin repo, no cede Y NO cae al
+# scaffold: bloquea diciendo por qué.
+
+
+def test_github_issue_parsing_is_strict() -> None:
+    """Solo se delegan URLs de issue de GitHub. Un repo sin issue no cuenta."""
+    from cores.opportunity.executors.auto_submit import _github_issue
+
+    assert _github_issue("https://github.com/owner/repo/issues/42") == ("owner", "repo", 42)
+    assert _github_issue("https://github.com/a/b/issues/7/") == ("a", "b", 7)
+    assert _github_issue("https://github.com/x/y") is None
+    assert _github_issue("https://gitlab.com/x/y/issues/1") is None
+    assert _github_issue("") is None
+
+
+def test_code_bounty_is_delegated_not_scaffolded(tmp_path) -> None:
+    """Con repo: delega, y NO vuelve a enviar por su cuenta (doble submit)."""
+    import asyncio
+
+    import cores.autonomy.dev_bounty_pipeline as pipeline_mod
+    from cores.opportunity.executors.auto_submit import AutoSubmitEngine, SubmissionStatus
+
+    called: dict = {}
+
+    class _FakePipeline:
+        verdict = "submitted"
+        pr_url = "https://github.com/o/r/pull/9"
+        submission_id = None
+
+        async def execute_dev_bounty(self, **kw):
+            called.update(kw)
+            return self
+
+    original = pipeline_mod.get_dev_bounty_pipeline
+    pipeline_mod.get_dev_bounty_pipeline = lambda: _FakePipeline()  # type: ignore[assignment]
+    try:
+        engine = AutoSubmitEngine(dlq_path=str(tmp_path / "dlq"), queue_path=str(tmp_path / "q.json"))
+        engine.base_retry_delay = 0.01
+
+        class _NoAdapter:
+            async def submit_work(self, prepared, api_key):
+                raise AssertionError("el camino propio no debe enviar: el pipeline ya lo hizo")
+
+        engine._get_adapter = lambda key: _NoAdapter()  # type: ignore[method-assign]
+
+        record = asyncio.run(
+            engine.submit_workbank_item(
+                "i1",
+                "github",
+                {"title": "Fix", "url": "https://github.com/o/r/issues/42", "description": "D", "reward": 300.0},
+            )
+        )
+    finally:
+        pipeline_mod.get_dev_bounty_pipeline = original  # type: ignore[assignment]
+
+    assert record.metadata.get("delegated_to") == "dev_bounty_pipeline"
+    assert called.get("repo_url") == "https://github.com/o/r"
+    assert called.get("issue_number") == 42
+    assert record.status is SubmissionStatus.CONFIRMED
+
+
+def test_delegation_failure_blocks_instead_of_falling_back_to_scaffold(tmp_path) -> None:
+    """Si el pipeline falla, NO se vuelve al scaffold. Bloquea y explica."""
+    import asyncio
+
+    import cores.autonomy.dev_bounty_pipeline as pipeline_mod
+    from cores.opportunity.executors.auto_submit import AutoSubmitEngine, SubmissionStatus
+
+    class _Boom:
+        async def execute_dev_bounty(self, **kw):
+            raise RuntimeError("repo no clonado")
+
+    original = pipeline_mod.get_dev_bounty_pipeline
+    pipeline_mod.get_dev_bounty_pipeline = lambda: _Boom()  # type: ignore[assignment]
+    try:
+        engine = AutoSubmitEngine(dlq_path=str(tmp_path / "dlq"), queue_path=str(tmp_path / "q.json"))
+        engine.base_retry_delay = 0.01
+
+        class _NoAdapter:
+            async def submit_work(self, prepared, api_key):
+                raise AssertionError("no debe enviar nada")
+
+        engine._get_adapter = lambda key: _NoAdapter()  # type: ignore[method-assign]
+
+        record = asyncio.run(
+            engine.submit_workbank_item(
+                "i2",
+                "github",
+                {"title": "Fix", "url": "https://github.com/o/r/issues/7", "description": "D"},
+            )
+        )
+    finally:
+        pipeline_mod.get_dev_bounty_pipeline = original  # type: ignore[assignment]
+
+    assert record.metadata.get("blocked_by") == "delegation_failed"
+    assert record.status is SubmissionStatus.READY
+    assert "delegacion fallida" in (record.last_error or "")

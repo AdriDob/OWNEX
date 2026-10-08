@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -103,6 +104,19 @@ class SubmissionStatus(StrEnum):
     CONFIRMED = "confirmed"
     FAILED = "failed"
     DLQ = "dlq"  # Dead Letter Queue - requires manual intervention
+
+
+_GITHUB_ISSUE_RE = re.compile(r"^https?://(?:www\.)?github\.com/([^/]+)/([^/]+)/issues/(\d+)", re.I)
+_CODE_BOUNTY_PLATFORMS = frozenset({"github", "github_bounty", "oss", "algora", "opire", "issuehunt"})
+
+
+def _github_issue(url: str) -> tuple[str, str, int] | None:
+    """Extrae (owner, repo, issue_number) de una URL de issue de GitHub."""
+    m = _GITHUB_ISSUE_RE.match((url or "").strip())
+    if not m:
+        return None
+    owner, repo, number = m.groups()
+    return owner, repo, int(number)
 
 
 @dataclass
@@ -459,6 +473,60 @@ class AutoSubmitEngine:
                 # es mandar un placeholder bajo el nombre del owner, y el
                 # sistema lo hacia sin preguntar. Se detiene aqui, ANTES de
                 # gastar un intento y antes de tocar la red.
+                # Cesión: si esto es un bounty de CÓDIGO con repo e issue
+                # parseables, el trabajo real lo hace DevBountyPipeline (LLM +
+                # tests + PR). assisted mode no puede, y caer de vuelta al
+                # scaffold sería el bug que se acaba de cerrar.
+                parsed = _github_issue(str(opportunity.get("url") or ""))
+                if parsed is not None:
+                    owner, repo_name, issue_number = parsed
+                    record.status = SubmissionStatus.PREPARING
+                    record.metadata["delegated_to"] = "dev_bounty_pipeline"
+                    self._save_queue()
+                    try:
+                        from cores.autonomy.dev_bounty_pipeline import get_dev_bounty_pipeline
+
+                        result = await get_dev_bounty_pipeline().execute_dev_bounty(
+                            bounty_id=record.opportunity_id,
+                            platform=platform,
+                            repo_url=f"https://github.com/{owner}/{repo_name}",
+                            issue_number=issue_number,
+                            issue_url=str(opportunity.get("url") or ""),
+                            title=str(opportunity.get("title") or ""),
+                            description=str(opportunity.get("description") or ""),
+                        )
+                    except Exception as exc:
+                        # Sin red, sin LLM, sin repo clonado: NO se cae al
+                        # scaffold. Se bloquea diciendo por qué.
+                        record.status = SubmissionStatus.READY
+                        record.last_error = f"delegacion fallida: {type(exc).__name__}: {exc}"
+                        record.metadata["blocked_by"] = "delegation_failed"
+                        record.metadata["blocked_note"] = (
+                            "DevBountyPipeline fallo. NO se vuelve al scaffold a proposito: "
+                            "enviar un placeholder en tu nombre es peor que no enviar."
+                        )
+                        record.updated_at = datetime.now(UTC).isoformat()
+                        self._save_queue()
+                        logger.exception("Delegacion a DevBountyPipeline fallo para %s", record.id)
+                        return record
+
+                    # El pipeline ya envío y ya registró el outcome en
+                    # RevenueTracker. Volver a hacerlo aquí sería doble
+                    # envío y doble revenue.
+                    record.status = (
+                        SubmissionStatus.CONFIRMED
+                        if getattr(result, "verdict", "") == "submitted"
+                        else SubmissionStatus.SUBMITTED
+                    )
+                    record.metadata["pipeline_reference"] = getattr(result, "pr_url", None) or getattr(
+                        result, "submission_id", None
+                    )
+                    record.metadata["pipeline_verdict"] = getattr(result, "verdict", None)
+                    record.updated_at = datetime.now(UTC).isoformat()
+                    self._save_queue()
+                    self._record_revenue_bridge(record, opportunity)
+                    return record
+
                 if getattr(prepared, "metadata", {}).get("requires_implementation"):
                     record.status = SubmissionStatus.READY
                     record.last_error = "scaffold sin implementar: assisted mode no genera el trabajo"
