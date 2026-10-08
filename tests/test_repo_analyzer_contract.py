@@ -47,3 +47,18 @@ def test_analyze_repo_accepts_a_string_path() -> None:
     hint = inspect.signature(RepoAnalyzer.analyze_repo).parameters["repo_path"].annotation
     text = str(hint)
     assert "str" in text, f"analyze_repo anotaba `{text}` sin aceptar str, pero clone_repo lo entrega como str"
+
+
+def test_generate_fix_does_not_report_success_with_zero_changes() -> None:
+    """Cero cambios NO es un exito.
+
+    Séptimo caso del mismo patrón: "no pude" reportado como "lo hice". Con
+    `success=True` y un plan vacío, el pipeline seguía a la Fase 4 (tests) y
+    Fase 5 (PR) sin nada que probar ni enviar.
+    """
+    import inspect
+
+    from cores.autonomy.code_generator import CodeGenerator
+
+    src = inspect.getsource(CodeGenerator.generate_fix)
+    assert "if not changes:" in src, "generate_fix volvió a devolver success=True sin comprobar que haya cambios"

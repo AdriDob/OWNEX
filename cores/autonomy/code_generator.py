@@ -186,6 +186,27 @@ class CodeGenerator:
 
             plan.summary = self._generate_summary(plan)
 
+            # Cero cambios NO es un éxito. Antes devolvía success=True con un
+            # plan vacío, y el pipeline seguía a la Fase 4 (tests) y Fase 5
+            # (PR) sin nada que probar ni enviar. Es el séptimo caso del mismo
+            # patrón: "no pude" reportado como "lo hice" — el mismo que hizo que
+            # 5 connectors, un scaffold y un pipeline fallido parecieran
+            # funcionar.
+            if not changes:
+                return BrowserResult(
+                    False,
+                    "generate_fix",
+                    issue_analysis.issue_id,
+                    "Generated 0 changes: no se produjo ninguna modificación del repo",
+                    error=(
+                        "El generador no produjo cambios. Causa probable: el LLM no "
+                        "respondió (los providers pueden fallar con HTTP 500) y "
+                        "los heurísticos tampoco yeruntaron un punto de entrada "
+                        " editable."
+                    ),
+                    data={"plan": plan, "changes": [], "reason": "empty_plan"},
+                )
+
             return BrowserResult(
                 True,
                 "generate_fix",
