@@ -176,6 +176,54 @@ class TestSmartRouter:
 
         await monitor.stop()
 
+    @pytest.mark.asyncio
+    async def test_un_provider_caido_no_es_candidato(self):
+        """`filter_models` descarta providers con salud que lo impide.
+
+        Sin este filtro, un provider con `auth_failed` o `quota_exceeded`
+        seguía siendo candidato y el routing terminaba en él aunque otro
+        estuviera sano. Medido 2026-10-05: la respuesta llegaba en inglés
+        desde FCC mientras ollama estaba healthy.
+
+        Y `UNKNOWN` **sí** se acepta: al arrancar todavía no hay datos de
+        salud, y quedarse sin candidatos sería peor que probar.
+        """
+        from cores.ai.runtime.interfaces import HealthStatus, ProviderHealth
+
+        config = OARConfig(enabled_providers=["ollama"])
+        registry = ProviderRegistry(config)
+        await registry.initialize()
+
+        context = RoutingContext(
+            task_type=TaskType.CODE,
+            messages=[{"role": "user", "content": "hola"}],
+            max_tokens=1000,
+        )
+        provider = registry.get_provider("ollama")
+        assert provider is not None
+        base = registry.filter_models(context)
+        assert ("ollama", "qwen2.5:3b-instruct") in base, "precondición: el prefijo no debe cambiar"
+
+        def con_salud(status: HealthStatus) -> list[tuple[str, str]]:
+            # Asignación directa, igual que `HealthMonitor` (`health.py:105`):
+            # `_last_health` no está en `AIProviderProtocol` y por eso el type
+            # checker se queja en los dos sitios. Es el patrón que ya usa el
+            # código de producción, no una excepción de este test.
+            provider._last_health = ProviderHealth(  # type: ignore[attr-defined]
+                provider_id="ollama", status=status, latency_ms=1.0, success_count=1
+            )
+            return registry.filter_models(context)
+
+        for malo in (HealthStatus.UNHEALTHY, HealthStatus.AUTH_FAILED, HealthStatus.QUOTA_EXCEEDED):
+            assert con_salud(malo) == [], f"{malo} no debe ser candidato"
+
+        for bueno in (HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNKNOWN):
+            assert con_salud(bueno) == base, f"{bueno} debe seguir siendo candidato"
+
+        # Sin dato de salud (arranque en frío) también debe servir.
+        provider._last_health = None  # type: ignore[attr-defined]
+        assert registry.filter_models(context) == base
+
 
 class TestLearningEngine:
     def test_learning(self):

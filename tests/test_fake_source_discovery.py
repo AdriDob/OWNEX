@@ -279,3 +279,60 @@ def test_las_plantillas_no_convierten_unknown_en_cero():
         src = Path(rel).read_text(encoding="utf-8")
         assert "?.total || 0" not in src, f"{rel}: `|| 0` convierte UNKNOWN en 0"
         assert "?.confirmed || 0" not in src, f"{rel}: `|| 0` convierte UNKNOWN en 0"
+
+
+# ══════════════════════════════════════════════════════════════════
+# health: un check que nunca puede pasar mantiene RED al sistema
+# ══════════════════════════════════════════════════════════════════
+
+
+def test_agents_idle_no_degradan_el_sistema(monkeypatch):
+    """`check_agents_health` exigía que los 8 agentes estuvieran `running`.
+
+    Los agentes departamentales corren por demanda: los 8 reportan
+    `offline` cuando están idle, así que el check **nunca pasaba** y el
+    sistema queda RED para siempre (con ~50k errores acumulados) sin que
+    nada estuviera roto. Sólo un agente en `error` con `last_error` debe
+    degradar.
+
+    Este test corre el check REAL contra un registry falso. La versión
+    anterior afirmaba la misma regla sobre objetos `_Idle`/`_Broken`
+    construidos en el propio test: pasaba con cualquier implementación del
+    check, incluso con la que era el bug — el `import cores.health.checks`
+    quedaba sin usar. Era un test que no podía fallar, o sea confianza
+    falsa. Para que valga tiene que entrar en `cores/health/checks.py`, y de
+    ahí la necesidad de monkeypatchear `get_all_agents`.
+    """
+    import cores.agents as agents_module
+    from cores.health.checks import register_default_checks
+    from cores.health.engine import HealthCenter
+
+    class _Idle:
+        def health(self):
+            return {"status": "offline", "last_error": None}
+
+    class _Broken:
+        def health(self):
+            return {"status": "error", "last_error": "boom"}
+
+    def _check(agents: list) -> bool:
+        """Ejecuta `check_agents_health` real contra `agents`, y solo él."""
+        monkeypatch.setattr(agents_module, "get_all_agents", lambda: agents)
+        center = HealthCenter()
+        register_default_checks(center)
+        # Quedarnos con el check bajo prueba: correr los ~20 restantes
+        # agregaría tiempo y dependencias (DB, vault) sin probar nada más.
+        for name in [c["name"] for c in center.list_checks() if c["name"] != "agents_health"]:
+            center.unregister(name)
+        return center.run_all().checks["agents_health"]
+
+    # 8 agentes idle (el estado real en reposo) ⇒ sano.
+    assert _check([_Idle() for _ in range(8)]) is True
+
+    # Uno en error ⇒ degradado. Éste es el assert que distingue el fix del bug:
+    # con la versión anterior (`all(status == "running")`) también daba False,
+    # con lo que el test viejo no habría detectado la regresión a "todo rojo".
+    assert _check([_Idle() for _ in range(7)] + [_Broken()]) is False
+
+    # Sin agentes ⇒ no se puede afirmar nada ⇒ degradado, no verde por descarte.
+    assert _check([]) is False

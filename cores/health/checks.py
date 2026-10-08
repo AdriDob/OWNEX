@@ -63,13 +63,24 @@ def register_default_checks(center: HealthCenter) -> None:  # noqa: F821
             return False
 
     def check_agents_health() -> bool:
+        """El registro de agentes está sano.
+
+        Antes exigía que **todos** los agentes tuvieran `status == "running"`.
+        Los agentes departamentales corren por demanda, no de forma
+        permanente: los 8 reportan `offline` cuando están idle, así que el
+        check **nunca podía pasar** y el sistema quedaba RED para siempre
+        (con ~50k errores acumulados) sin que nada estuviera roto.
+
+        Lo que sí es un problema real: que un agente esté en `error` con
+        `last_error` puesto. Eso sí degrada.
+        """
         try:
             from cores.agents import get_all_agents
 
             agents = get_all_agents()
             if not agents:
                 return False
-            return all(a.health().get("status") == "running" for a in agents)
+            return not any((a.health().get("status") == "error" or a.health().get("last_error")) for a in agents)
         except Exception:
             return False
 

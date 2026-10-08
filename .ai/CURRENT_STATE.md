@@ -1,3 +1,79 @@
+## Sesión 2026-10-08 — CIERRE: Alignerr + guard de imports + salud del sistema
+
+> **PEDIDO:** terminar la sesión. **VEREDICTO:** F0–F5 cerradas y verificadas; el sistema queda usable
+> y todo lo que afirma es verificable o declara UNKNOWN.
+
+### Lo construido
+
+| Pieza | Qué aporta |
+|---|---|
+| `AlignerrPanel` | Las 60 ofertas reales de Alignerr (API pública, sin scraping) con `pay` real y **el idioma requerido marcado** |
+| `SystemStatePanel` | La salud real del sistema: estado, servicios caídos, errores, uptime |
+| `test_frontend_component_imports.py` | Caza imports faltantes que **build y `vue-tsc` no ven** |
+
+### Los 3 bugs que aparecieron cerrando
+
+1. **`OutlookCalendar.vue` usaba `<CardHeader>`/`<CardTitle>` sin importarlos** (10 usos). Vue lo degrada a custom element: build ✅, `vue-tsc` ✅, página **vacía** en navegador.
+2. **El flujo paralelo sobrescribió `OperationsConsolidated.vue`** y se llevó mis imports: `SystemStatePanel`, `AlignerrPanel` y `OwnexCard` quedaron usados sin registrar.
+3. **El sistema estaba RED para siempre** por `check_agents_health`, que exige que los 8 agentes estén `running`. Corren por demanda ⇒ idle ⇒ `offline` ⇒ el check **nunca pasaba**, con 49.822 errores fantasma. Ahora degrada sólo ante un agente en `error`. Salud: **YELLOW 9/10** (antes RED 8/10).
+
+### El 4º bug: 6 call sites rotos por un `__init__.py` autogenerado
+
+`cores/platform_connectors/__init__.py` era `"""OWNEX module — auto-generated __init__.py"""`: la migración `core/` → `cores/` lo vació, y **6 call sites asumen que el paquete exporta su API pública**.
+
+| Call site | Consecuencia |
+|---|---|
+| `api/routers/control.py:653,1576,1588,1602` | **4 endpoints 500** — `GET /api/config/progress` medido 500 → 200 |
+| `cores/daily_tasks.py:305,514` | 2 tareas que fallan **en silencio** (van en `try/except: pass`) ⇒ las recomendaciones de plataformas no conectadas nunca se generan y nadie se entera |
+
+Lo grave no es el 500: es el `except: pass`. Un `ImportError` silenciado es una capacidad que el sistema cree tener y no tiene.
+
+**Dos capas, no una.** El `ImportError` tapaba un segundo bug: los 6 llamaban `pm.get_status()`, que es método del **connector**; el manager expone `get_system_status()`. Sin el re-export, ese `AttributeError` moría en su propio `except` y el error que se veía no era el que había.
+
+**Verificado a prueba de fallo:** `__init__.py` revertido a HEAD ⇒ `GET /api/config/progress` → **500**; restaurado → **200**.
+
+### Un test que no podía fallar
+
+El guard de `check_agents_health` afirmaba la regla sobre objetos `_Idle`/`_Broken` **construidos en el propio test**, con `import cores.health.checks` sin usar. Pasaba con cualquier implementación del check — **incluida la que era el bug**. Un test que no puede fallar da confianza falsa y entrena a leer verde donde no hay nada.
+
+Reescrito para monkeypatchear `get_all_agents` y correr el check **real** (`register_default_checks` → `list_checks` → `run_all().checks["agents_health"]`). Reintroducido el bug, el test cae; restaurado el fix, pasa.
+
+Mismo criterio aplicado al filtro de salud del routing OAR (`e1b75859`): el cambio de comportamiento entró sin guard, así que `tests/test_oar.py::test_un_provider_caido_no_es_candidato` lo cubre — `UNHEALTHY`/`AUTH_FAILED`/`QUOTA_EXCEEDED` fuera; `HEALTHY`/`DEGRADED`/`UNKNOWN`/sin-dato dentro. Sin ese test, la próxima refactorización puede deshacerlo sin que nada se entere.
+
+### Verificación
+
+```
+backend    test-fast 103/1 · 140 contratos y guards · ruff limpio
+frontend   277/277 · vue-tsc 0 · build 14.5s
+e2e         29/29
+salud       YELLOW 9/10 (scheduler sin arrancar = falla real, visible)
+```
+
+**Revalida al retomar la sesión (todo en este árbol, no heredado):**
+
+```
+test-fast                 103 passed / 1 skipped   ← baseline INTACTO
+tests/test_oar.py          16 passed   (incluye el guard nuevo del routing)
+guards de esta sesion      46 passed
+vue-tsc --noEmit          exit 0
+vitest run                28 files · 277 tests
+vite build                built in 13.89s
+ruff check + format       All checks passed (7 archivos tocados)
+import api.main           BOOT OK
+e2e                       NO re-ejecutado — la cifra de 29/29 es de la corrida anterior
+```
+
+### Lo que queda del lado del owner (18 min, sin código)
+
+| | Desbloquea |
+|---|---|
+| `GITHUB_TOKEN` (3 min) | Los **23 items listos** del banco ($5.800). Hoy van a DLQ con `GITHUB_TOKEN no configurada` |
+| 1 rail de cobro (15 min) | Que OWNEX deje de tratar todo como no-cobrable |
+
+### Nota honesta sobre Alignerr
+
+Cumple *"sin experiencia"* en el sentido de **sin título ni CV** (es cierto), pero **las 60 ofertas piden habla nativo de un idioma**: bengalí, tamil, sueco, y 3 de español centroamericano. Para vos (RIoplatense) los 3 de *Healthcare AI · Central American Spanish* son el match plausible, a **$15-20/hr**. El panel marca el idioma en cada oferta para que no pierdas tiempo en una que no podés hacer.
+
 > **Rotas 2026-09-30 (autorizado por el owner)**: el histórico completo está en `.ai/archive/CURRENT_STATE.md` (427,306 B, 205 secciones). Este archivo conserva 6 de 211.
 > **Regla**: grepeá `.ai/archive/CURRENT_STATE.md` antes de contradecir una regla histórica.
 

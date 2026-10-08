@@ -2079,7 +2079,7 @@ de los 5 pillars me conviene poner el tiempo?". Arreglarlo es agregar el
 campo y la métrica que lo use — en ese orden, y con la métrica ya midiendo,
 no antes.
 
-## 81. El 20% de la tabla `endpoints` tiene el `path` corrupto, y `/api/assistant/insights` daba 500 (2026-10-08) — PARCIAL: script listo, aplicar
+## 81. El 20% de la tabla `endpoints` tiene el `path` corrupto, y `/api/assistant/insights` daba 500 (2026-10-08) — PARCIAL: defensa en el writer aplicada; reparar las 8.937 filas es decisión del owner
 
 Apareció al arreglar el payout inventado de las recomendaciones (#80), porque para ver el resumen diario hubo que arreglar un crash.
 
@@ -2135,7 +2135,17 @@ longitud media del path: 69 chars
 
 **PENDIENTE (decisión del owner):** correr `--apply`. Después: verificar si el ranking de riesgo cambia (si los "high signal" bajan, parte eran basura — y eso es una corrección, no una pérdida).
 
-**Y queda sin arreglar:** el scraper que produce el blob sigue ahí. Si no se arregla, la próxima ingesta vuelve a ensuciar la tabla. No se encontró el string `"max depth reached"` en el repo, así que el mensaje viene del payload externo o de un dependencia; el punto de escritura candidato es `api/services/data_service.py:create_endpoint` y `cores/orchestrator/scan_service.py:123`, que **no validan el path antes de guardarlo**. Un `if not looks_like_path(path): skip` en el writer es la defensa correcta, y es más barato que cualquier reparación posterior.
+**Y queda sin arreglar:** el scraper que produce el blob sigue ahí. Si no se arregla, la próxima ingesta vuelve a ensuciar la tabla. No se encontró el string `"max depth reached"` en el repo, así que el mensaje viene del payload externo o de una dependencia.
+
+**DEFENSA EN EL WRITER — aplicada (era el punto pendiente de esta entrada):**
+
+`looks_like_path()` (`cores/recon/parser.py`) valida en el punto de escritura, que es donde se decidió que fuera: reparar 8.937 filas cuesta una operación; rechazarlas cuesta una línea, y no deja que la basura vuelva a entrar mientras la reparación espera al owner.
+
+- **`cores/orchestrator/scan_service.py:100`** — se **quitó el fallback a `raw`**. Ése era el origen: `raw` es la serialización sin parsear del crawler, y cuando `normalized` y `path` faltaban se guardaba el blob. Ahora usa `normalized` o `path`, y si no hay path **válido** avisa y saltea.
+- **`api/services/data_service.py::create_endpoint`** — `raise ValueError` si no es un path. El otro writer. Un `raise` y no un `skip` porque acá el caller pasó algo explícito y silenciarlo devolvería éxito por una escritura que no ocurrió.
+- Lo que se acepta además de `/x`: `//docs.hackerone.com/…` (URL protocol-relative = discovery real, no basura), y `https://host/x` con esquema. Lo que se rechaza: comillas sin escapar, caracteres de control, texto con pares `"clave":valor`, y lo que no empieza por `/`, `//` o esquema.
+
+La normalización de las 8.937 filas existentes sigue pendiente del owner (`--apply`), pero **la fuente está cerrada**: mientras el writer valide, no entran más.
 
 **Regla permanente:** *existencia de ruta ≠ ruta viva.* Un guard de contrato que compara paths no ve un `TypeError`. Y: *la basura en el campo de entrada de un scorer contamina todo lo que sale de él* — por eso la defensa va en el writer, no en el consumidor.
 

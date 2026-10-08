@@ -9,6 +9,9 @@ import { useRouter } from 'vue-router'
 import { Activity, FolderTree, HeartPulse, Settings, Workflow, Zap, RefreshCw, Database } from '@lucide/vue'
 import Tabs from '@/components/ui/Tabs.vue'
 import ExecutionPanel from '@/components/system/ExecutionPanel.vue'
+import SystemStatePanel from '@/components/system/SystemStatePanel.vue'
+import AlignerrPanel from '@/components/ai/AlignerrPanel.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 import WorkBankList from '@/components/work/WorkBankList.vue'
 import BestActionCard from '@/components/work/BestActionCard.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
@@ -126,13 +129,17 @@ onMounted(fetchStatus)
 
       <!-- Ejecución (cola + caja real) -->
       <template #execution>
-        <ExecutionPanel />
+        <div class="space-y-4">
+          <SystemStatePanel />
+          <ExecutionPanel />
+        </div>
       </template>
 
-      <!-- Trabajo: qué hacer ahora + cola del banco + entrada al Work Room -->
+      <!-- Trabajo: qué hacer ahora + AI-eval + cola del banco -->
       <template #workbank>
         <div class="space-y-4">
           <BestActionCard />
+          <OwnexCard><AlignerrPanel /></OwnexCard>
           <WorkBankList />
         </div>
       </template>
