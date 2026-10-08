@@ -1,4 +1,4 @@
-"""Guard de contrato frontend↔backend con allowlist que se autoverifica.
+"""Guard de contrato frontend↔backend. Allowlist VACÍA: 0 404 conocidos.
 
 Por qué existe (2026-10-05). Auditoría de las 624 llamadas `api.*` del
 frontend contra las 1734 rutas del backend, usando **el resolver real del
@@ -8,7 +8,7 @@ front** (`frontend/src/lib/backend.ts::resolveApiUrl`):
     con backend                          : 363
     SIN backend                         :  39   ← 404 garantizado
 
-Los 39 caen en pantallas que el owner ve: `DashboardAegis`, `SettingsAtlas`,
+Los 39 caían en pantallas que el owner ve: `DashboardAegis`, `SettingsAtlas`,
 `ModeManagerPanel`, `CopilotConsolidated`, `ProfileConsolidated`,
 `QuickCapture`, `SecurityConsolidated`.
 
@@ -17,23 +17,29 @@ defecto) y #62 (SpoofCheck: host muerto, `None` en silencio). La diferencia es
 que acá el síntoma es visible — un 404 — y el problema es que la UI lo traga
 con `.catch(() => ({}))` y muestra una pantalla vacía sin avisar.
 
+## Estado: 0 (cerrado 2026-10-08)
+
+Los 39 bajaron a **0**. Los últimos 8 se resolvieron en el commit que añadió
+este estado; el resto, en las tandas anteriores (modes, trading-lab,
+wear-os, knowledge, profile-kit, quick-capture, platform-guides). El allowlist
+queda **vacío a propósito** y `test_no_quedan_404_conocidos` lo verifica: si
+vuelve a aparecer un 404, hay que arreglarlo, no anotarlo.
+
 ## Las dos trampas de este guard (las caí las dos al escribirlo)
 
 1. **Comparar el path crudo.** El front resuelve `/trading/overview` →
    `/api/trading/overview`. Comparar crudo da 227 falsos positivos.
-2. **Ignorar los root-mounted.** `ROOT_MOUNTED_PREFIXES` (27 namespaces) se
+2. **Ignorar los root-mounted.** `ROOT_MOUNTED_PREFIXES` (13 namespaces) se
    sirven **sin** `/api`. Hay que aceptar ambas formas.
 
-## Por qué un allowlist y no "0 rotas"
+## Por qué un allowlist (aunque hoy esté vacío)
 
 Un test que siempre falla entrena a ignorarlo; uno que se desactiva solo no
-vigila nada. El allowlist documenta **qué está roto y por qué**, y los dos
-tests de `TestElAllowlistEsVeraz` impiden que mienta: si uno de estos endpoints
-vuelve a funcionar, hay que sacarlo; si uno nuevo aparece, el test falla.
-
-**El allowlist NO es permiso para dejarlo así.** Cada entrada dice qué pantalla
-se ve vacía. Cerrarlos es una decisión de producto por endpoint, no de este
-archivo.
+vigila nada. El allowlist documentaba **qué estaba roto y por qué**. Los dos
+tests de `TestElAllowlistEsVeraz` impedían que mintiera: si un endpoint
+volvía a funcionar había que sacarlo; si aparecía uno nuevo, el test falla.
+Con la lista vacía, `test_no_quedan_404_conocidos` cumple esa función: la
+deuda ya no es "documentada", tiene que **cerrarse**.
 """
 
 from __future__ import annotations
@@ -48,7 +54,15 @@ import pytest
 REPO = Path(__file__).resolve().parent.parent
 FRONTEND = REPO / "frontend" / "src"
 
-CALL = re.compile(r"""api\.(get|post|put|patch|delete)(?:<[^>]*>)?\(\s*[`'"]([^`'"]+)""")
+# Tolerante a genéricos de TypeScript, incluidas las formas anidadas.
+#
+# El patrón era `(?:\s*<[^>]*>)?`, que se corta en el primer `>` interno:
+# `api.get<Record<string, any>>('/x')` NO matcheaba. Casi todas las llamadas
+# tipadas del front usan esa forma, así que el guard — el que tenía que ver
+# los 404 — no los veía. `[^(]*` no puede cortarse en un `>` interno porque
+# sigue hasta la `(` que cierra la llamada. Es el mismo bug que se corrigió
+# en `test_frontend_api_contract.py`; los dos guards tienen que usar el mismo.
+CALL = re.compile(r"""api\.(get|post|put|patch|delete)(?:\s*<[^(]*>)?\(\s*[`'"]([^`'"]+)""")
 _PREF_RE = re.compile(r"'([^']+)'")
 
 
@@ -164,7 +178,7 @@ class TestElGuardReplicaElResolver:
 
 
 # ══════════════════════════════════════════════════════════════════
-# Los 39 404 conocidos, agrupados por causa.
+# Los 39 404 conocidos: TODOS CERRADOS. Allowlist vacía.
 #
 #   app-sin-backend : la pantalla existe, su API nunca se cableó
 #   drift            : el backend movió el contrato, el front quedó atrás
@@ -172,68 +186,51 @@ class TestElGuardReplicaElResolver:
 #                     estaba inflada (25 de 27 daban 404 en raíz). Corregido
 #                     en frontend/src/lib/backend.ts; ahora 404 = 0 de este tipo.
 #
-# ESTE allowlist NO ES "está bien así". Cada entrada es una pantalla que el
-# owner ve vacía. Cerrarlas es decisión de producto, endpoint por endpoint.
+# Histórico de los 8 últimos (cerrados 2026-10-08, commit "fix(404)"):
+#
+#   /api/odyssey/analytics/{summary,roi,performance}
+#       NO eran "apps sin backend": `apps/odyssey/api/routers.py` existe con
+#       esos 3 endpoints, y la DB está provisionada. El problema era que
+#       `registry.mount_routers()` corre antes de que `lifespan` llame a
+#       `registry.discover()`, así que `_apps` estaba vacío y no montaba
+#       NINGÚN router de app. Montado sólo odyssey (los prefijos del resto
+#       son inconsistentes: ver KNOWN_DEBT #72).
+#   /api/cycles/security/executive  → compuesto con /api/overview +
+#                                     /api/reports + /api/revenue/summary
+#                                     (los 3 datos que la tab prometía sí
+#                                     existen)
+#   /api/learning/progress          → /api/learning/dashboard
+#   /api/identity                   → /api/identity/me
+#   /mission/status                 → ELIMINADO. Era el peor: `healthScore`
+#                                     arrancaba en 0 y el status bar pintaba
+#                                     "Health: 0" en rojo para siempre
+#   /api/system/readiness           → ELIMINADO. No existe readiness, y
+#                                     `preloadCache` no lo inyecta nadie
+#
+# El allowlist queda VACÍO a propósito: `test_no_quedan_404_conocidos` exige
+# que siga así. Un 404 nuevo se arregla; no se anota.
 # ══════════════════════════════════════════════════════════════════
 
-# NOTA sobre "drift" (auditado 2026-10-05, 1 a 1 contra la app real):
-#
-# Se buscó un equivalente con otro nombre para cada uno. Resultado:
-#
-#   CON EQUIVALENTE REAL pero contrato distinto:
-#     /api/knowledge       -> /api/knowledge-graph/nodes   (params type/name/limit)
-#     /api/identity        -> /api/identity-center        (sin params)
-#
-#   SIN EQUIVALENTE (lo que se parece, es otra cosa):
-#     /api/modes/active    -> /api/mission/active  son MISIONES, no modos
-#     /api/mission/status  -> /api/mission/active  parcial: no trae health/nextAction
-#     /api/profile-kit     -> /api/learning/profile  distinto (perfil de aprendizaje)
-#     /api/learning/progress -> /api/config/progress, /api/life/goals/{id}/progress
-#     /api/files/list      -> /api/files/browse  distinto (browse de archivo)
-#     /api/knowledge       -> /api/core/knowledge/nodes (otra forma del mismo grafo)
-#     /api/quick-capture   -> no hay captura rápida en el backend
-#     /api/system/readiness -> no hay endpoint de readiness
-#     /api/cycles/security/executive -> no hay resumen ejecutivo de security
-#
-# DECISIÓN: no se renombraron. Mapear un path a un endpoint con OTRO contrato
-# es exactamente el bug que se acaba de arreglar en AEGIS (`{items}` leido como
-# `{targets}`). Cada uno de estos necesita que alguien confirme que el
-# endpoint destino sirve lo que la pantalla promete.
-#
-CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
-    # ── Apps sin backend: la UI existe, la API nunca existió ──
-    "/api/odyssey/analytics/summary": (
-        "app-sin-backend",
-        "DashboardOdyssey: analytics nunca existio; pantalla sin backend",
-    ),
-    "/api/odyssey/analytics/roi": ("app-sin-backend", "DashboardOdyssey: ROI nunca existio"),
-    "/api/odyssey/analytics/performance": ("app-sin-backend", "DashboardOdyssey: performance nunca existio"),
-    # ── trading-lab: ELIMINADO 2026-10-05. Los 6 endpoints nunca existieron
-    #     y sus 6 funciones tenian 0 consumidores. Codigo muerto borrado de
-    #     ownexData.ts (162 lineas). Ver #24 y #63.
-    # ── wear-os approvals, files/list, profile-kit: ELIMINADO 2026-10-05.
-    #     0 consumidores + endpoints inexistentes. Codigo muerto borrado de
-    #     ownexData.ts (58 lineas) y controlPanel.ts (6 lineas). Ver #63/#64.
-    # ── knowledge, profile-kit, quick-capture, platform-guides: SACADOS 2026-10-05.
-    #     NO estaban rotas: mi propio guard las contaba como 404 por comparar
-    #     paths con barra final contra declarados sin ella. False negative del
-    #     audit, no deuda del front.
-    # ── modes/*: ARREGLADO 2026-10-05 con sesion real.
-    #     /api/modes/{active,history,set-force} NO existen. El panel ahora usa
-    #     /api/modes/current ({current_mode, available_modes, config}) y
-    #     /api/modes/set con el body REAL {mode} — antes mandaba
-    #     {mode_key, force}, que da 422: cambiar de modo nunca funciono.
-    # ── Drift: el contrato se movió ──
-    "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
-    "/api/learning/progress": ("drift", "progreso de aprendizaje sin endpoint"),
-    "/api/mission/status": ("drift", "el estado de misión cambió de namespace"),
-    "/api/identity": ("drift", "sin endpoint de identidad"),
-    "/api/system/readiness": ("drift", "readiness no está en /api/system"),
-}
+CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {}
 
 
 class TestElAllowlistEsVeraz:
     """Sin esto, el allowlist es una lista de deseos que nadie chequea."""
+
+    def test_no_quedan_404_conocidos(self) -> None:
+        """El allowlist debe seguir VACÍO: un 404 se arregla, no se anota.
+
+        Es el test que reemplaza al allowlist. Con 39 entradas documentadas
+        el guard informaba sin eczar; desde que los 39 están cerrados,
+        agregar una entrada es rendirse. Cada 404 nuevo que aparezca lo
+        señala `TestNoPhantomRoutes::test_todo_lo_llamado_por_el_front_existe`.
+        """
+        assert not CONOCIDOS_ROTOS, (
+            f"{len(CONOCIDOS_ROTOS)} 404 volvería a estar 'documentado':\n  "
+            + "\n  ".join(f"{p}  ({motivo})" for p, (_, motivo) in CONOCIDOS_ROTOS.items())
+            + "\n\n  Arreglar el endpoint o borrar la llamada. Anotarlo aquí es"
+            "\n  devolver el frontend a una pantalla vacía sin avisar."
+        )
 
     def test_los_conocidos_siguen_rotos(self, backend_paths: set[str]) -> None:
         """Si uno volvió a funcionar, sobra en la lista → hay que sacarlo."""

@@ -388,13 +388,28 @@ async def _init_orion_platform(app: Any, bus: Any) -> Any:
 
     dbm = get_db_manager()
     for app_id, app_obj in registry._apps.items():
-        if app_obj.db_path:
-            dbm.register(app_id, app_obj.db_path)
-            if app_obj.models:
-                from sqlalchemy.orm import declarative_base
-
-                base = declarative_base()
-                dbm.run_migrations(app_id, base)
+        if not app_obj.db_path:
+            continue
+        dbm.register(app_id, app_obj.db_path)
+        if not app_obj.models:
+            continue
+        # El base que hay que crear es el del PROPIO app, no uno nuevo: cada
+        # app declara `Base = declarative_base()` en su `models.py`, así que
+        # una `declarative_base()` recién creada no tiene ningún modelo
+        # mapeado y `create_all` creaba **0 tablas**. Medido 2026-10-08:
+        # `aegis`, `atlas` y `odyssey` tenían 0 tablas mientras 53 call
+        # sites las consultaban — cualquier lectura era un
+        # `OperationalError: no such table`.
+        #
+        # Se recorre cada metadata distinto por si un app declarara sus
+        # modelos sobre más de un base.
+        seen: set[int] = set()
+        for model in app_obj.models:
+            metadata = model.metadata
+            if id(metadata) in seen:
+                continue
+            seen.add(id(metadata))
+            dbm.run_migrations(app_id, metadata)
 
     core_bus = get_event_bus()
     orion_scheduler = get_core_scheduler()

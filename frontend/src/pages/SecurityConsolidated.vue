@@ -17,12 +17,33 @@ const executive = ref<any>(null)
 async function fetchData() {
   loading.value = true
   try {
-    const [pRes, eRes] = await Promise.allSettled([
+    // `/api/cycles/security/executive` no existe (404 siempre, verificado
+    // contra `app.openapi()['paths']`). Los 4 números que la tab prometía sí
+    // existen, repartidos en endpoints que el front ya usa:
+    //   · Findings  y Confirmed → GET /api/overview
+    //   · Reports               → GET /api/reports?limit=1  (`total`)
+    //   · Revenue               → GET /api/revenue/summary (`total_earned`)
+    // Compone de datos reales en vez de un endpoint inexistente.
+    // Ver KNOWN_DEBT #76.
+    const [pRes, oRes, rRes, vRes] = await Promise.allSettled([
       api.get<any>('/api/cycles/security/dashboard'),
-      api.get<any>('/api/cycles/security/executive'),
+      api.get<any>('/api/overview'),
+      api.get<any>('/api/reports?limit=1'),
+      api.get<any>('/api/revenue/summary'),
     ])
     if (pRes.status === 'fulfilled') pipeline.value = pRes.value
-    if (eRes.status === 'fulfilled') executive.value = eRes.value
+    if (oRes.status === 'fulfilled') {
+      executive.value = {
+        findings: {
+          total: oRes.value?.findings ?? null,
+          confirmed: oRes.value?.confirmed ?? null,
+        },
+        reports: { total: rRes.status === 'fulfilled' ? (rRes.value?.total ?? null) : null },
+        revenue: {
+          total: vRes.status === 'fulfilled' ? (vRes.value?.total_earned ?? null) : null,
+        },
+      }
+    }
   } catch { /* silent */ }
   loading.value = false
 }
@@ -46,6 +67,40 @@ const stageProgress = computed(() => {
   if (!stages.value.length) return 0
   const completed = stages.value.filter((s: any) => s.status === 'completed').length
   return Math.round((completed / stages.value.length) * 100)
+})
+
+/**
+ * `null` = UNKNOWN y se muestra como "—".
+ *
+ * Antes los tiles usaban `|| 0`, que convierte "no lo sé" en "cero": con
+ * el endpoint en 404 la tab entera enseñaba 0/0/0/$0, indistinguible de un
+ * pipeline realmente vacío. Es la misma clase de mentira que
+ * `acceptance_rate: 0.0` sobre 960 registros sin clasificar.
+ */
+function num(v: number | null | undefined): string {
+  return v === null || v === undefined ? '—' : String(v)
+}
+
+function money(v: number | null | undefined): string {
+  return v === null || v === undefined ? '—' : `$${v.toLocaleString('en-US')}`
+}
+
+const executiveSummary = computed(() => {
+  const e = executive.value
+  if (!e) return 'No data available'
+  const parts: string[] = []
+  const f = e.findings?.total
+  const c = e.findings?.confirmed
+  if (f !== null && f !== undefined) {
+    parts.push(c === null || c === undefined
+      ? `${f} findings`
+      : `${c} de ${f} findings confirmados (${f ? Math.round((c / f) * 100) : 0}%)`)
+  }
+  const r = e.reports?.total
+  if (r !== null && r !== undefined) parts.push(`${r} reports`)
+  const v = e.revenue?.total
+  if (v !== null && v !== undefined) parts.push(`$${v.toLocaleString('en-US')} cobrados`)
+  return parts.length ? parts.join(' · ') : 'No data available'
 })
 
 onMounted(fetchData)
@@ -108,25 +163,27 @@ onMounted(fetchData)
           <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div class="rounded-xl border border-border/30 bg-surface/50 p-4">
               <p class="font-mono text-[10px] uppercase text-muted-foreground">Findings</p>
-              <p class="mt-1 font-mono text-2xl font-bold">{{ executive?.findings?.total || 0 }}</p>
+              <p class="mt-1 font-mono text-2xl font-bold">{{ num(executive?.findings?.total) }}</p>
             </div>
             <div class="rounded-xl border border-border/30 bg-surface/50 p-4">
               <p class="font-mono text-[10px] uppercase text-muted-foreground">Confirmed</p>
-              <p class="mt-1 font-mono text-2xl font-bold text-emerald-400">{{ executive?.findings?.confirmed || 0 }}</p>
+              <p class="mt-1 font-mono text-2xl font-bold text-emerald-400">{{ num(executive?.findings?.confirmed) }}</p>
             </div>
             <div class="rounded-xl border border-border/30 bg-surface/50 p-4">
               <p class="font-mono text-[10px] uppercase text-muted-foreground">Reports</p>
-              <p class="mt-1 font-mono text-2xl font-bold">{{ executive?.reports?.total || 0 }}</p>
+              <p class="mt-1 font-mono text-2xl font-bold">{{ num(executive?.reports?.total) }}</p>
             </div>
             <div class="rounded-xl border border-border/30 bg-surface/50 p-4">
               <p class="font-mono text-[10px] uppercase text-muted-foreground">Revenue</p>
-              <p class="mt-1 font-mono text-2xl font-bold text-primary">${{ executive?.revenue?.total || 0 }}</p>
+              <p class="mt-1 font-mono text-2xl font-bold text-primary">
+                {{ money(executive?.revenue?.total) }}
+              </p>
             </div>
           </div>
 
           <div class="rounded-xl border border-border/30 bg-surface/50 p-5">
             <h3 class="mb-3 text-sm font-semibold text-foreground">Pipeline Summary</h3>
-            <p class="text-xs text-muted-foreground">{{ executive?.summary || 'No data available' }}</p>
+            <p class="text-xs text-muted-foreground">{{ executiveSummary }}</p>
           </div>
         </div>
       </template>

@@ -17,9 +17,16 @@ const copied = ref(false)
 async function fetchData() {
   loading.value = true
   try {
+    // `/api/identity` no existe (404 desde siempre, verificado contra
+    // `app.openapi()['paths']`). El endpoint real es `/api/identity/me`, que
+    // devuelve `{ user_id, display_name, device_count, preferences }`.
+    //
+    // La tab iteraba `identity.credentials`, un campo que ese endpoint
+    // tampoco tiene: renderizaba siempre vacío aunque respondiera. Se
+    // renderiza lo que `/me` SÍ devuelve. Ver KNOWN_DEBT #74.
     const [pRes, iRes] = await Promise.allSettled([
       api.get<any>('/api/profile-kit'),
-      api.get<any>('/api/identity'),
+      api.get<any>('/api/identity/me'),
     ])
     if (pRes.status === 'fulfilled') profile.value = pRes.value
     if (iRes.status === 'fulfilled') identity.value = iRes.value
@@ -32,6 +39,29 @@ const tabs = computed(() => [
   { id: 'identity', label: 'Identity', icon: Shield },
   { id: 'skills', label: 'Skills', icon: Zap },
 ])
+
+/** Campos escalares que `/api/identity/me` sí devuelve. */
+const identityRows = computed(() => {
+  if (!identity.value) return []
+  const labels: Record<string, string> = {
+    user_id: 'User ID',
+    display_name: 'Nombre',
+    device_count: 'Dispositivos',
+  }
+  return Object.keys(labels)
+    .filter((k) => identity.value[k] !== undefined && identity.value[k] !== null)
+    .map((k) => ({ key: labels[k], value: String(identity.value[k]) }))
+})
+
+/**
+ * `preferences` es un dict libre que el usuario escribe con
+ * `POST /api/identity/preferences`. Se listan las CLAVES, no los valores:
+ * el inventario dice qué se guarda sin volcar contenido arbitrario al DOM.
+ */
+const preferenceKeys = computed(() => {
+  const prefs = identity.value?.preferences
+  return prefs && typeof prefs === 'object' ? Object.keys(prefs) : []
+})
 
 async function copyProfile() {
   if (!profile) return
@@ -121,16 +151,29 @@ onMounted(fetchData)
         </div>
         <div v-else class="space-y-4">
           <div class="rounded-xl border border-border/30 bg-surface/50 p-5">
-            <h3 class="mb-3 text-sm font-semibold text-foreground">Identity Vault</h3>
-            <div class="space-y-2">
+            <h3 class="mb-3 text-sm font-semibold text-foreground">Identidad</h3>
+            <div v-if="identity" class="space-y-2">
               <div
-                v-for="(value, key) in (identity?.credentials || {})"
-                :key="key"
+                v-for="row in identityRows"
+                :key="row.key"
                 class="flex items-center justify-between rounded-lg border border-border/20 p-3"
               >
-                <span class="font-mono text-xs text-muted-foreground">{{ key }}</span>
-                <span class="font-mono text-xs text-foreground">••••••••</span>
+                <span class="font-mono text-xs text-muted-foreground">{{ row.key }}</span>
+                <span class="font-mono text-xs text-foreground">{{ row.value }}</span>
               </div>
+              <div
+                v-for="key in preferenceKeys"
+                :key="`pref-${key}`"
+                class="flex items-center justify-between rounded-lg border border-border/20 p-3"
+              >
+                <span class="font-mono text-xs text-muted-foreground">preference: {{ key }}</span>
+                <span class="font-mono text-xs text-foreground">guardada</span>
+              </div>
+            </div>
+            <div v-else class="text-center py-8">
+              <Shield class="mx-auto h-8 w-8 text-muted-foreground/40" />
+              <p class="mt-2 text-sm text-muted-foreground">Sin identidad cargada</p>
+              <p class="mt-1 text-xs text-muted-foreground/60">El backend no devolvió /api/identity/me</p>
             </div>
           </div>
         </div>

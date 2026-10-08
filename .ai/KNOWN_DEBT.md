@@ -1860,3 +1860,119 @@ Segundo caso de la misma clase que `infinite-sources`, encontrado por el mismo c
 | `infinite_source_discovery` | 7 plataformas con URLs y rates inventados |
 | `auto_apply` | 2 plataformas con envíos inventados (`SUBMITTED`) |
 | `intel/llm_scanner` | respuestas de modelo + score de seguridad |
+
+## 72. Las DB de los app plugins tenían 0 tablas, y NINGÚN router de `apps/` estaba montado (2026-10-08) — RESUELTO (odyssey) / P1 para el resto
+
+Dos bugs encadenados en el mismo camino, descubiertos cerrando los 8 últimos 404 del front (#73–#76).
+
+### Bug A — `create_all` con una base vacía (afecta a `aegis`, `atlas`, `odyssey`)
+
+`api/lifespan.py` hacía:
+
+```python
+base = declarative_base()      # ← NUEVA, sin ningún modelo mapeado
+dbm.run_migrations(app_id, base)
+```
+
+`declarative_base()` crea una base **vacía**. `base.metadata.create_all(engine)` no tenía nada que crear, así que **la DB de cada app quedó vacía para siempre**.
+
+**Medido 2026-10-08:** `~/.ownex/database/` — `aegis.db` **0 tablas**, `atlas.db` **0 tablas**, `odyssey.db` **0 tablas**, mientras **53 call sites** las consultaban:
+
+| app DB | call sites | tablas |
+|---|---|---|
+| `aegis` | 17 | **0** |
+| `atlas` | 7 | **0** |
+| `odyssey` | 13 | **0** |
+| `cycles` | 16 | 3 (OK: se crea por otro camino) |
+
+Cualquier lectura de `aegis_scan_results` o `atlas_wallets` era un `OperationalError: no such table`.
+
+**Causa de fondo:** cada app declara SU propio `Base = declarative_base()` en su `models.py`, así que el base del app **nunca** es el del runtime. Pasar uno nuevo era un error de tipo de contrato, no un descuido.
+
+**Fix:** `run_migrations()` acepta `MetaData` además de una base; el lifespan pasa `model.metadata` de los propios modelos del manifest, recorriendo cada `metadata` distinto.
+
+**9 guards** en `tests/test_app_plugin_databases.py`, incluido uno que documenta el bug (`test_una_base_vacia_no_crea_nada`): una base vacía crea 0 tablas.
+
+### Bug B — `mount_routers()` antes de `discover()`: 0 routers de app montados
+
+`api/main.py` montaba a nivel de módulo:
+
+```python
+registry = get_app_registry()
+registry.mount_routers(app)     # ← _apps todavía VACÍO
+```
+
+`discover()` —el que puebla `_apps`— sólo corre en `lifespan`, o sea **después** del import del módulo. En el momento del `mount_routers` no había apps, así que **no se montó ningún router de `apps/`**. Por eso `DashboardOdyssey.vue` recibía 404 en sus 3 endpoints aunque el router existe y la DB estaba provisionada.
+
+**Fix (parcial, a propósito):** se monta **sólo odyssey**.
+
+**Por qué sólo odyssey:** los prefijos que declaran los plugins son inconsistentes y `include_router` está monkey-patcheado para **descartar los kwargs** (`api/main.py:443`), así que el `prefix` que calcula `get_routers()` se pierde:
+
+| app | prefijo en su router | `router_prefix` del manifest | donde caería |
+|---|---|---|---|
+| aegis, atlas, odyssey | `/api/<app>` | `<app>` | bien |
+| forge, pulse, vault | `/<app>` (**raíz**) | `/<app>` | `f"/api/{'/forge'}"` = **`/api//forge`** |
+| cateye | — | `""` | raíz |
+| hermes | sin routers | `hermes` | — |
+
+Montar los cinco restantes metería tres namespaces nuevos **en raíz**, lo que cambia el contrato de `ROOT_MOUNTED_PREFIXES` y del proxy de `vite.config.ts`, sin que ningún endpoint del front los pida. Eso es una decisión de producto, no una corrección de un 404.
+
+**PENDIENTE (P1, decisión del owner):** unificar el prefijo de los routers de app a `/api/<app>` y dejar que `mount_routers()` monte los 8. Requiere además quitar el monkey-patch de `include_router` (o hacerlo honrar `prefix`), porque hoy descarta el prefijo que el registry calcula.
+
+## 73. `/api/system/readiness` no existe — y el dashboard que lo consumía está huérfano (2026-10-08) — RESUELTO
+
+`usePreloadData.ts` pedía `/api/system/readiness` en **cada arranque**: 404 garantizado. No es "falta el endpoint":
+
+- **`mission-control/MissionControlView.vue` está huérfano.** Nada lo importa, y a su vez importa `./stores/readinessStore`, **que no existe en el repo**. Es un árbol entero de componente ("System Readiness Score", `ReadinessMeter`, `ServiceGrid`, `GoodMorning`, `PrepareButton`) que nunca se cableó — y no por eso lo detecta `vue-tsc`, que sólo type-checkea lo que el grafo de imports alcanza.
+- **`preloadCache` no lo inyecta nadie.** `StartupGate.vue` hace `provide('preloadCache', ...)` y no hay un solo `inject('preloadCache')` en el repo. Es decir: ni `health` ni `readiness` se consumían.
+
+**Fix:** fuera la llamada a `readiness` y fuera el tipo `PreloadCache.readiness`. `health` queda porque ese endpoint existe.
+
+**Regla permanente:** *un `provide` sin ningún `inject` es código muerto, y el type-checker no lo ve porque sólo alcanza lo que alguien importa.* El grafo de imports no es el grafo de uso.
+
+## 74. `StatusBar` pintaba "Health: 0" en rojo, en todas las pantallas, para siempre (2026-10-08) — RESUELTO
+
+El peor de los 8, porque era **visible**.
+
+```ts
+const healthScore = ref(0)                                    // valor inicial
+api.get<{ health_score: number }>('/mission/status')          // 404, siempre
+...
+healthScore >= 80 ? 'success' : healthScore >= 60 ? 'warning' : 'destructive'
+```
+
+El 404 dejaba `healthScore` en su valor inicial, y `0` cae en `destructive`: **"Health: 0" en rojo en el status bar de todas las pantallas, permanentemente.** Un sistema sano mostrando alarma permanente entrena al owner a ignorar la alarma.
+
+No se replacesó por otra métrica porque **no existe un health score real**: `collect_health()` (`cores/system_health.py`) no calcula ninguno, y `/api/system/health` devuelve un `status: "healthy"` **hardcodeado** (`api/routers/overview.py:271`), que tampoco sirve. Convertir eso en un 0-100 sería inventar la métrica.
+
+**Fix:** fuera el indicador. El status bar queda con lo que sí es real: Scheduler, Agents, Events/24h, Findings pending, WS.
+
+## 75. Tres pantallas "consolidated" pedían endpoints que nunca existieron (2026-10-08) — RESUELTO
+
+`SecurityConsolidated`, `ProfileConsolidated` y `CopilotConsolidated` son páginas de pestañas fusionadas. Sus 4 llamadas no existían y, además, **los campos que renderizaban tampoco**:
+
+| Pantalla | Pedía | Leía | Real | Fix |
+|---|---|---|---|---|
+| Profile | `/api/identity` | `identity.credentials` | `/api/identity/me` → `{user_id, display_name, device_count, preferences}` (sin `credentials`) | apunta a `/me`, renderiza sus campos |
+| Copilot | `/api/learning/progress` | `learning.skills[]` | `/api/learning/dashboard` → `{today, totals, recent_days, pending_actions, recent_learnings, metrics}` (sin `skills`) | apunta a `/dashboard`, renderiza sus campos |
+| Security | `/api/cycles/security/executive` | `findings/reports/revenue/summary` | no existe | **compuesto**: `/api/overview` (findings, confirmed) + `/api/reports?limit=1` (total) + `/api/revenue/summary` (total_earned) |
+
+**Los 4 números de la tab Executive sí existían**, repartidos en endpoints que el front ya usaba. La tab no se borró: se wiró a datos reales.
+
+**Extra:** en esa tab los tiles usaban `executive?.findings?.total || 0`. Con el 404 se veía `0 / 0 / 0 / $0`, **indistinguible de un pipeline realmente vacío**. Ahora `null` renderiza `—`.
+
+## 76. El guard de contrato tenía el mismo bug de regex que el otro guard (2026-10-08) — RESUELTO
+
+`tests/test_frontend_backend_contract.py` — el guard que debía ver los 404 — usaba:
+
+```python
+CALL = re.compile(r"""api\.(get|post|put|patch|delete)(?:<[^>]*>)?\(\s*[`'"]([^`'"]+)""")
+```
+
+`<[^>]*>` se corta en el primer `>` interno, así que **`api.get<Record<string, any>>('/x')` no matcheaba**. Casi todas las llamadas tipadas del front usan esa forma: el guard que huntaba 404 no veía las llamadas tipadas. Es el mismo bug ya corregido en `test_frontend_api_contract.py` (#68) — dos guards, dos copias de la regex, uno corregido y el otro no. Ambos usan ahora `\s*<[^(]*>`.
+
+**Estado final:** `audit_frontend_contract.py` → **380 endpoints que el front llama, 380 con backend, 0 sin backend.**
+
+El allowlist `CONOCIDOS_ROTOS` queda **vacío**, y `test_no_quedan_404_conocidos` lo verifica: un 404 nuevo se arregla, no se anota. Con 39 entradas documentadas el guard informaba sin ecar; desde que están las 39 cerradas, anotar una es rendirse.
+
+**Regla permanente:** *una regex de scanner es código, y el código duplicado se desincroniza.* Un guard se endurece en los dos sitios donde vive, o en ninguno. Y: *preferí composition a endpoints nuevos* — la tab Executive no necesitó un endpoint, necesitó 3 llamadas a endpoints que ya existían.

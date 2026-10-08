@@ -237,3 +237,45 @@ def test_llm_scanner_sin_garak_no_fabrica_checks_de_seguridad():
     else:
         # Garak presente: los checks son reales, no simulados.
         assert result.methodology == "Garak real execution"
+
+
+# ══════════════════════════════════════════════════════════════════
+# La UI que muestra UNKNOWN como si fuera una medición
+# ══════════════════════════════════════════════════════════════════
+
+_STATUS_BAR = Path("frontend/src/components/ui/StatusBar.vue")
+
+
+def test_el_status_bar_no_pinta_un_cero_como_si_fuera_una_medida():
+    """`healthScore = ref(0)` + 404 ⇒ "Health: 0" en rojo, para siempre.
+
+    `/mission/status` no existe (verificado contra `app.openapi()['paths']`).
+    El `catch` del `Promise.allSettled` dejaba el valor inicial, y el
+    template hacía `healthScore >= 80 ? success : ... : destructive` ⇒ **0 en
+    rojo en el status bar de todas las pantallas**, de forma permanente.
+
+    Es la versión visual de `acceptance_rate: 0.0` sobre 960 registros sin
+    clasificar: no sabemos, y el componente afirma "cero".
+    """
+    src = _STATUS_BAR.read_text(encoding="utf-8")
+
+    assert "/mission/status" not in src, "volvió a pedir un endpoint inexistente"
+    assert "healthScore" not in src, "healthScore quedó sin fuente: no puede seguir en el template"
+    assert "health_score" not in src, "se inventó otra fuente para el mismo número"
+
+
+def test_las_plantillas_no_convierten_unknown_en_cero():
+    """`|| 0` en un campo que puede ser `null` = afirmar "cero" sin saberlo.
+
+    Los tiles de la tab Executive hacían `executive?.findings?.total || 0`:
+    con el endpoint en 404 la tab entera enseñaba 0/0/0/$0, indistinguible de
+    un pipeline realmente vacío. Ahora los Unknown se renderizan `—`.
+    """
+    for rel in (
+        "frontend/src/pages/SecurityConsolidated.vue",
+        "frontend/src/pages/CopilotConsolidated.vue",
+        "frontend/src/pages/ProfileConsolidated.vue",
+    ):
+        src = Path(rel).read_text(encoding="utf-8")
+        assert "?.total || 0" not in src, f"{rel}: `|| 0` convierte UNKNOWN en 0"
+        assert "?.confirmed || 0" not in src, f"{rel}: `|| 0` convierte UNKNOWN en 0"

@@ -800,6 +800,26 @@ app.include_router(app_factory_router)
 from cores.api.routers import router as core_router  # noqa: E402
 
 app.include_router(core_router)
+
+# ── ODYSSEY (analytics de apuestas) ──
+# Router del app plugin que NUNCA estuvo montado: `registry.mount_routers()`
+# corre antes de que `lifespan` llame a `registry.discover()`, así que en ese
+# momento `_apps` está vacío y no monta nada. Medido 2026-10-08: los 3
+# endpoints que pide `DashboardOdyssey.vue` (`/api/odyssey/analytics/{summary,
+# roi,performance}`) daban 404 aunque el router existe y la DB está
+# provisionada (`~/.ownex/database/odyssey.db`).
+#
+# Se monta SÓLO odyssey a propósito, no todo `apps/`: los prefijos que
+# declaran los demás plugins son inconsistentes (forge/pulse/vault en raíz,
+# aegis/atlas/odyssey bajo `/api`) y montarlos todos cambiaría el contrato de
+# `ROOT_MOUNTED_PREFIXES`. Ver KNOWN_DEBT #72.
+#
+# Este router ya trae su propio `prefix="/api/odyssey"`, así que no lleva
+# prefijo extra (y el `include_router` monkey-patcheado descarta los kwargs).
+from apps.odyssey.api.routers import router as odyssey_router  # noqa: E402
+
+app.include_router(odyssey_router)
+
 from cores.app_registry import get_app_registry  # noqa: E402
 
 registry = get_app_registry()

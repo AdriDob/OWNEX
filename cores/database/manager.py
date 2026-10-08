@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Engine, create_engine, event, text
+from sqlalchemy import Engine, MetaData, create_engine, event, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from cores.interfaces import IDatabase
@@ -29,7 +29,7 @@ class DatabaseManager(IDatabase):
     def __init__(self) -> None:
         self._engines: dict[str, Engine] = {}
         self._sessionmakers: dict[str, sessionmaker] = {}
-        self._bases: dict[str, type] = {}
+        self._bases: dict[str, Any] = {}
 
     # ── Registration ─────────────────────────────────────────────
 
@@ -68,12 +68,21 @@ class DatabaseManager(IDatabase):
             raise KeyError(f"No database registered for app: {app_id}")
         return sm()
 
-    def run_migrations(self, app_id: str, base: type) -> None:
-        """Create all tables for the app's declarative base."""
+    def run_migrations(self, app_id: str, base: Any) -> None:
+        """Create all tables for the app's declarative base (or ``MetaData``).
+
+        Acepta las dos formas a propósito. Cada app declara SU propio
+        ``Base`` en su ``models.py`` (``Base = declarative_base()``), así que
+        el base del app nunca es el del runtime: pasar una base nueva vacía
+        creaba **0 tablas** y la DB de cada app quedaba vacía para siempre
+        (medido 2026-10-08: ``aegis``, ``atlas`` y ``odyssey`` con 0 tablas
+        y 53 call sites que las consultan). Ver ``api/lifespan.py``.
+        """
         engine = self.get_engine(app_id)
-        base.metadata.create_all(engine)
+        metadata = base if isinstance(base, MetaData) else base.metadata
+        metadata.create_all(engine)
         self._bases[app_id] = base
-        tables = list(base.metadata.tables.keys())
+        tables = list(metadata.tables.keys())
         logger.info("Migrated %s: %d tables", app_id, len(tables))
 
     # ── Lifecycle ────────────────────────────────────────────────

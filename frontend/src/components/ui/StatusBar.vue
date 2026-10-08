@@ -13,25 +13,20 @@ const props = defineProps<Props>()
 const scheduler = ref('checking...')
 const agents = ref(0)
 const events24h = ref(0)
-const healthScore = ref(0)
 const findingsPending = ref(0)
 const wsConnected = ref(false)
 let interval: ReturnType<typeof setInterval> | null = null
 
 async function fetchStatus() {
   try {
-    const [sys, health, findingsRes] = await Promise.allSettled([
+    const [sys, findingsRes] = await Promise.allSettled([
       api.get<{ scheduler: string; agents: number; events_24h: number }>('/system/status'),
-      api.get<{ health_score: number }>('/mission/status'),
       api.get<{ items: any[] }>('/findings?status=pending'),
     ])
     if (sys.status === 'fulfilled') {
       scheduler.value = sys.value.scheduler
       agents.value = sys.value.agents
       events24h.value = sys.value.events_24h
-    }
-    if (health.status === 'fulfilled') {
-      healthScore.value = health.value.health_score
     }
     if (findingsRes.status === 'fulfilled') {
       findingsPending.value = (findingsRes.value.items || []).length
@@ -73,13 +68,6 @@ onUnmounted(() => {
     <div class="flex items-center gap-4">
       <span class="hidden sm:flex items-center gap-1.5">
         Findings pending: <span class="text-warning font-semibold">{{ findingsPending }}</span>
-      </span>
-      <span class="flex items-center gap-1.5">
-        Health:
-        <span :class="[
-          'font-semibold',
-          healthScore >= 80 ? 'text-success' : healthScore >= 60 ? 'text-warning' : 'text-destructive',
-        ]">{{ healthScore }}</span>
       </span>
       <span class="flex items-center gap-1">
         <span :class="['h-1.5 w-1.5 rounded-full', wsConnected ? 'bg-success' : 'bg-destructive']" />
