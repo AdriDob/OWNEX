@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import httpx
 
 from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
+
+logger = logging.getLogger("ownex.opportunity.adapters.opencollective")
 
 
 class OpenCollectiveAdapter(OpportunityAdapter):
@@ -92,7 +95,18 @@ class OpenCollectiveAdapter(OpportunityAdapter):
                         headers={"Content-Type": "application/json"},
                     )
 
+                    if response.status_code == 429:
+                        # Rate limited. Antes caia en el `!= 200 -> continue` silencioso: un 429
+                        # era indistinguible de "este colectivo no tiene tiers" y el adapter
+                        # devolvia [] sin decir por que. Se dice, y se deja de martillear:
+                        # seguir pidiendo los 10 slugs solo agrava el 429.
+                        logger.info(
+                            "opencollective: 429 rate limited en %s - se corta la pasada (se reintenta en la siguiente)",
+                            slug,
+                        )
+                        break
                     if response.status_code != 200:
+                        logger.debug("opencollective: HTTP %s en %s", response.status_code, slug)
                         continue
 
                     data = response.json()
@@ -211,7 +225,18 @@ class OpenCollectiveProjectsAdapter(OpportunityAdapter):
                         headers={"Content-Type": "application/json"},
                     )
 
+                    if response.status_code == 429:
+                        # Rate limited. Antes caia en el `!= 200 -> continue` silencioso: un 429
+                        # era indistinguible de "este colectivo no tiene tiers" y el adapter
+                        # devolvia [] sin decir por que. Se dice, y se deja de martillear:
+                        # seguir pidiendo los 10 slugs solo agrava el 429.
+                        logger.info(
+                            "opencollective: 429 rate limited en %s - se corta la pasada (se reintenta en la siguiente)",
+                            term,
+                        )
+                        break
                     if response.status_code != 200:
+                        logger.debug("opencollective: HTTP %s en %s", response.status_code, term)
                         continue
 
                     data = response.json()
