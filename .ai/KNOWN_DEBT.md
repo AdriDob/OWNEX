@@ -2149,3 +2149,64 @@ Pedido del owner: *"quiero usar el sistema completo lo antes posible sin errores
 - **Fix:** `check_agents_health` ahora degrada sólo ante un agente en `error` con `last_error`, no por estar idle. 1 guard nuevo (idle pasa, error degrada).
 
 **Regla permanente:** *un health check que no puede pasar es peor que no tenerlo*: entrena al usuario a ignorar el semáforo. Si todo está rojo siempre, el rojo no significa nada. Y: **49.822 errores de fondo sin causa son ruido, no señal** — hay que mirar la causa del contador, no el número.
+
+## 73. Componentes usados sin importar: el build pasa y la página sale vacía (2026-08-08) — RESUELTO
+
+**Cómo apareció:** el flujo paralelo sobrescribió `OperationsConsolidated.vue` y se llevó mis imports; quedaron `<SystemStatePanel>`, `<AlignerrPanel>` y `<OwnexCard>` usados en el template **sin importarse**.
+
+- **Por qué no lo cazó nada:** Vue resuelve un componente no registrado como *custom element* en runtime. **`vite build` pasa, `vue-tsc` da 0 errores** y la página se renderiza vacía en el navegador. Un import faltante es invisible para las dos capas que usamos como gate.
+- **Fix:** reparados los imports de `OperationsConsolidated.vue` y, al pasar el guard, apareció un **segundo caso real preexistente**: `pages/OutlookCalendar.vue` usaba `<CardHeader>` y `<CardTitle>` (10 usos) sin importarlos.
+- **Guard nuevo** (`tests/test_frontend_component_imports.py`): recorre los `.vue` y falla si un tag PascalCase del `<template>` no está registrado. Tres detalles que costaron, medidos contra los falsos positivos que dio:
+  1. Sólo escanea el bloque `<template>` — si no, `<Props>` (genérico de TS) se lee como componente.
+  2. Reconoce built-ins (`Teleport`, `Transition`) y `defineAsyncComponent(() => import(...))`.
+  3. **Quita comentarios** antes de parsear imports: un docstring que menciona un import lo hacía capturar como si fuera real.
+
+**Regla permanente:** *`vue-tsc` + build NO detectan un import faltante.* Vue lo degrada a custom element en runtime sin quejarse. Si el frontend puede quedar en blanco sin romper ningún gate, falta un guard de imports — ese es el que hay que escribir.
+
+## 82. 26 endpoints que el front llama existen y devuelven 500 — y el guard de contrato no lo podía ver (2026-10-08) — PARCIAL: 1 de 26 arreglado
+
+El audit de contrato (#76) dejó pasar **26 endpoints rotas que su propio criterio contaba como sanas**. Ninguna daba 404: la ruta existía, el front la llamaba, y al ejecutarla reventaba.
+
+### El hole del guard
+
+`audit_frontend_contract.py` comparaba **paths declarados** contra **paths que el front llama**. Eso prueba que la ruta existe, no que responda. Con la evidencia de #81 en la mano (el audit decía "380 de 380" mientras `/api/assistant/insights` daba 500), el guard estaba verificando la mitad de lo que parecía verificar.
+
+**`--live`** ahora autentica un usuario de prueba y ejecuta cada GET, informando los 5xx. Es opt-in porque pega contra los endpoints de verdad con la DB real.
+
+**Falso positivo del propio modo, corregido antes de reportarlo:** la primera corrida dio **29** 5xx, 3 de ellos odyssey. No estaban rotos — el API sirve requests *antes* de que el background init registre las DBs de los app plugins, así que `get_session("odyssey")` levantaba. `wait_for_background_init()` espera a `api.lifespan._background_tasks` antes de pegar. **29 → 26.**
+
+Hallazgo lateral que queda: **hay una ventana post-boot donde los endpoints que usan DBs de app dan 500.** Es real (no artefacto del audit), es corta, y es el orden de arranque — no un bug por sí solo, pero conviene saber que existe.
+
+### El que arreglé: `/api/platforms` — tres eslabones rotos en cadena
+
+```
+GET /api/platforms → 500
+ImportError: cannot import name 'get_platform_manager' from 'cores.platform_connectors'
+```
+
+1. **`cores/platform_connectors/__init__.py` era un `__init__` autogenerado VACÍO.** 6 call sites Asumían que el paquete exportaba la API pública.
+2. **`universal_connectors` importaba `get_observation_engine`, que no existía.** Sin él, el módulo entero no importaba.
+3. **`universal_connectors` llamaba `register_sensor()` y `collect_from_sensor()`** — los métodos reales son `register()` y `collect()`. API drift de la migración `core/` → `cores/`.
+
+Y después del ImportError venía un `AttributeError` distinto: los callers hacían `pm.get_status()`, que es método del **connector**, no del manager. El manager expone `get_system_status()`, que devuelve la misma forma.
+
+**Lo grave no era el 500.** `cores/daily_tasks.py:305,514` envuelve esos imports en `try/except: pass`: **las recomendaciones de plataformas no conectadas nunca se generaron y nadie se enteró.** Un ImportError silenciado es una capacidad que el sistema cree tener y no tiene — la misma clase que `auto_apply` diciendo `SUBMITTED`.
+
+**Fix:** re-export en el `__init__` (una definición en vez de 6 call sites), `get_observation_engine()` como singleton con el patrón del proyecto, los 3 nombres de método corregidos, y `get_status` → `get_system_status` en los 4 callers. **26 → 25**, con `/api/platforms` fuera de la lista.
+
+**7 guards nuevos.** Uno verifica la cadena de imports entera y que el singleton sea el mismo; dos verifican invariantes de código (`pm.get_status()` no puede volver); uno verifica que `--live` y `wait_for_background_init` no se pierdan.
+
+### Los 25 que quedan
+
+| Grupo | Nº | Síntoma |
+|---|---|---|
+| `/api/investment/stocks/{algopaca,ibkr}` | 6 | 3 brokers × (info/account/positions) |
+| `/api/investment/defi/{aave,morpho,pendle,lido}` | 10 | DeFi info/apy/markets |
+| `/api/progressive-scaling/*`, `/api/ultra-fast-income/*` | 5 | income/progressive |
+| `/api/core/apps`, `/api/worker/audit`, `/api/config/progress`, `/api/mega-fast/status`, `/api/automation/modules`, `/api/cycles` | 4 | varios |
+
+Todos son rutas que **el front llama** (`frontend/src/lib/api.ts`, `ProgressiveScaling.vue`, `SettingsAtlas.vue`, `WorkerControl.vue`). Ninguno es un 404, así que la pantalla traga el 500 con `.catch` y muestra vacío — el mismo síntoma invisible.
+
+**Pendiente: causa raíz por endpoint.** El patrón que se repite en los tres que arreglé es *API drift entre capas* (el símbolo se movió y el caller no), y el primer movimiento correcto para cada uno es leer la cadena de imports hasta el eslabón roto, no parchear el symptom del 500.
+
+**Regla permanente:** *un guard que compara nombres no verifica comportamiento.* Y: *un `try/except: pass` alrededor de un import convierte un bug de una línea en una capacidad fantasma permanente.*

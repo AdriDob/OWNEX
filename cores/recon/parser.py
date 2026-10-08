@@ -83,6 +83,57 @@ UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-f
 
 NUMERIC_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
 
+#: Un path HTTP serializado no lleva una comilla doble sin escapar: siempre
+#: va percent-encoded (`%22`). Si aparece una, lo que se guardó no es un path.
+_QUOTE_CHARS = ('"', "\n", "\r", "\t")
+
+#: Longitud máxima razonable para un endpoint. Lo más largo que se ha visto
+#: sano ronda los 300 chars; 2048 es holgado y corta los blobs.
+MAX_PATH_LENGTH = 2048
+
+_PATHY = re.compile(r"^(?:/|[a-zA-Z][a-zA-Z0-9+.\-]*://|//)")
+
+
+def looks_like_path(value: object) -> bool:
+    """¿Es esto un path/URL, o es la serialización de otra cosa?
+
+    Existe por un bug medido: `scan_service` hacía
+    `path = entry.get("normalized") or entry.get("path") or entry.get("raw")`
+    y `raw` es el payload sin parsear del crawler. Cuando faltaban los dos
+    primeros, se guardaba ese blob en la columna `path` y quedaba
+
+        //host/x.html","tag":"a","attribute":"href",…,"error":"max depth reached"}
+
+    8.937 de 44.597 endpoints (20% de la tabla). No era cosmético: ese string
+    entra a `unified_score()` y a la detección de superficie por substring, así
+    que un endpoint de documentación marcaba "tiene exports" por la URL de
+    origen pegada. Ver KNOWN_DEBT #81.
+
+    **La defensa va en el writer, no en reparar después**: normalizar la tabla
+    es una operación de 8.937 filas; rechazar el blob, una línea.
+
+    Lo que se acepta, además de `/x`:
+      · `//docs.hackerone.com/en/articles/…` — URL protocol-relative: es
+        discovery real, no basura.
+      · `https://host/x` con esquema.
+    Lo que se rechaza: comillas sin escapar, caracteres de control, texto con
+    pares `"clave":valor` (es decir, serialización), y cualquier cosa que no
+    empiece por `/`, `//` o esquema.
+    """
+    if not isinstance(value, str):
+        return False
+    candidate = value.strip()
+    if not candidate or len(candidate) > MAX_PATH_LENGTH:
+        return False
+    if any(ch in candidate for ch in _QUOTE_CHARS):
+        return False
+    # Serialización: `"algo":algo` con separadores. Una URL con query
+    # (`?a=1&b=2`) no tiene `"` ni coma-con-comillas, así que no hay
+    # colisión con paths legítimos.
+    if '":' in candidate and "," in candidate:
+        return False
+    return bool(_PATHY.match(candidate))
+
 
 @dataclass
 class EndpointMetadata:

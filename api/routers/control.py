@@ -810,7 +810,12 @@ async def config_progress() -> dict[str, Any]:
 
         # 19. Platform Connectors sync
         pm = get_platform_manager()
-        ps = pm.get_status()
+        # `get_status()` es metodo del CONNECTOR, no del manager; el manager
+        # expone `get_system_status()`, que devuelve la misma forma
+        # (`{"platforms": {...}}`). Este rename no es cosmetico: sin el, el
+        # ImportError de arriba lo convertia en AttributeError y cada uno de
+        # estos bloques moria en su propio `except`.
+        ps = pm.get_system_status()
         synced = 0
         for p, v in ps.get("platforms", {}).items():
             if v.get("enabled") and v.get("has_creds"):
@@ -1575,7 +1580,8 @@ async def platforms_status() -> dict[str, Any]:
     try:
         from cores.platform_connectors import get_platform_manager
 
-        return get_platform_manager().get_status()
+        # `get_status()` es del connector; el manager expone `get_system_status()`.
+        return get_platform_manager().get_system_status()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 

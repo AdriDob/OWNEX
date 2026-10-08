@@ -132,3 +132,26 @@ class ObservationEngine(Engine):
                 )
 
         return all_new
+
+
+# ── Singleton ────────────────────────────────────────────────────────────
+# El patrón del proyecto (`_revenue_loop`, `_five_pillar_orchestrator`, …):
+# un `_x: T | None = None` + un `get_x()` que lo crea la primera vez.
+#
+# Faltaba, y `universal_connectors.py` la usa: importaba
+# `get_observation_engine` de este módulo y no existía, así que **el módulo
+# entero no importaba**. Eso hacía inalcanzable `get_platform_manager`, que a
+# su vez rompía 4 endpoints de `api/routers/control.py` (500) y 2 tareas de
+# `cores/daily_tasks.py` (envueltas en `try/except: pass`, o sea en silencio).
+#
+# `api/lifespan.py:263` crea SU propia instancia con el event bus del boot; el
+# singleton es para quien no tiene a mano el bus (p. ej. los connectors).
+_observation_engine: ObservationEngine | None = None
+
+
+def get_observation_engine(event_bus: Any | None = None) -> ObservationEngine:
+    """ObservationEngine global. Crea una sin bus en el primer acceso."""
+    global _observation_engine
+    if _observation_engine is None:
+        _observation_engine = ObservationEngine(event_bus=event_bus)
+    return _observation_engine

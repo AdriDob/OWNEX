@@ -305,7 +305,12 @@ class DailyTaskBoard:
             from cores.platform_connectors import get_platform_manager
 
             pm = get_platform_manager()
-            status = pm.get_status()
+            # `get_status()` es metodo del CONNECTOR, no del manager; el manager
+            # expone `get_system_status()`, que devuelve la misma forma
+            # (`{"platforms": {...}}`). Este rename no es cosmetico: sin el, el
+            # ImportError de arriba lo convertia en AttributeError y cada uno de
+            # estos bloques moria en su propio `except`.
+            status = pm.get_system_status()
             not_connected = [
                 p for p, v in status.get("platforms", {}).items() if v.get("enabled") and not v.get("has_creds")
             ]
@@ -514,7 +519,12 @@ class DailyTaskBoard:
             from cores.platform_connectors import get_platform_manager
 
             pm = get_platform_manager()
-            ps = pm.get_status()
+            # `get_status()` es metodo del CONNECTOR, no del manager; el manager
+            # expone `get_system_status()`, que devuelve la misma forma
+            # (`{"platforms": {...}}`). Este rename no es cosmetico: sin el, el
+            # ImportError de arriba lo convertia en AttributeError y cada uno de
+            # estos bloques moria en su propio `except`.
+            ps = pm.get_system_status()
             platforms = ps.get("platforms", {})
             needs_sync = []
             for p, v in platforms.items():

@@ -28,6 +28,13 @@ from cores.sensors.base import Sensor
 from cores.sensors.observation import Observation
 from cores.sensors.observation_engine import ObservationEngine, get_observation_engine
 
+# Este módulo se escribió contra otra API de ObservationEngine:
+# `register_sensor()` y `collect_from_sensor()` no existen; los métodos reales
+# son `register()` y `collect()`. Y `get_observation_engine()` tampoco existía.
+# Como todo el bloque de `initialize()` está en un `try/except` que deja el
+# conector en `PlatformStatus.ERROR`, el drift degradaba los connectors en
+# silencio en vez de romperse. Medido 2026-10-08 con `--live`.
+
 logger = logging.getLogger("ownex.platform_connectors")
 
 
@@ -140,7 +147,7 @@ class UniversalPlatformConnector:
             self._engine = get_observation_engine()
 
             # Register sensor with engine
-            self._engine.register_sensor(self._sensor)
+            self._engine.register(self._sensor)
 
             # Update Prometheus
             OPPORTUNITY_PROVIDERS_ACTIVE.labels(category=self.config.category.value).inc()
@@ -213,7 +220,7 @@ class UniversalPlatformConnector:
 
         if self._engine and self._sensor:
             # Run sensor through engine
-            observations = await self._engine.collect_from_sensor(self._sensor.id)
+            observations = await self._engine.collect(self._sensor.id)
 
             # Process observations
             count = len(observations)
@@ -251,7 +258,7 @@ class UniversalPlatformConnector:
         """Manually trigger a discovery cycle."""
         if not self._engine or not self._sensor:
             return []
-        return await self._engine.collect_from_sensor(self._sensor.id)
+        return await self._engine.collect(self._sensor.id)
 
     def get_status(self) -> dict[str, Any]:
         """Get connector status."""
