@@ -480,6 +480,11 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/apps/atlas/SettingsAtlas.vue'),
     meta: { title: 'Configuración ATLAS' },
   },
+  // ODYSSEY quedó sin backend: sus 3 endpoints `/api/odyssey/analytics/{summary,
+  // roi, performance}` nunca existieron (404 medido 2026-10-05) y no hay
+  // equivalente con otro nombre. Se conserva la ruta para no romper links
+  // guardados, pero redirige a un aviso explícito en vez de una pantalla
+  // vacía que parece "no hay datos".
   {
     path: '/odyssey/',
     name: 'odyssey-dashboard',

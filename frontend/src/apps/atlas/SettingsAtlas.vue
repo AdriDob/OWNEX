@@ -45,8 +45,9 @@ const riskConfig = reactive({
 onMounted(async () => {
   loading.value = true
   try {
-    await api.get('/api/atlas/health')
-    // Load connector info from manifest
+    // `/api/atlas/health` no existe (404 medido 2026-10-05) y el resultado se
+    // descartaba igual: era un smoke test que nunca mostró un error visible.
+    // Los conectores reales salen de `/api/core/apps`.
     const coreApps = await api.get<any[]>('/api/core/apps')
     if (coreApps) {
       const apps = coreApps

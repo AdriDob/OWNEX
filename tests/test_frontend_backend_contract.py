@@ -165,17 +165,14 @@ class TestElGuardReplicaElResolver:
 
 CONOCIDOS_ROTOS: dict[str, tuple[str, str]] = {
     # ── Apps sin backend: la UI existe, la API nunca existió ──
-    "/api/aegis/targets": ("app-sin-backend", "SettingsAegis: targets sin API"),
-    "/api/aegis/findings": ("app-sin-backend", "DashboardAegis: findings sin API"),
-    "/api/aegis/findings/open": ("app-sin-backend", "DashboardAegis: findings abiertos sin API"),
-    "/api/aegis/targets/active": ("app-sin-backend", "DashboardAegis: targets activos sin API"),
-    "/api/aegis/scans/today": ("app-sin-backend", "DashboardAegis: scans del día sin API"),
-    "/api/atlas/health": ("app-sin-backend", "SettingsAtlas: health de atlas sin API"),
     "/wear-os/approvals/pending": ("drift", "el back sirve /wear-os/approvals, no /approvals/pending"),
     "/wear-os/approval-request": ("drift", "el back sirve /wear-os/approval/{id} (raiz), no /request"),
-    "/api/odyssey/analytics/summary": ("app-sin-backend", "DashboardOdyssey: analytics sin API"),
-    "/api/odyssey/analytics/roi": ("app-sin-backend", "DashboardOdyssey: ROI sin API"),
-    "/api/odyssey/analytics/performance": ("app-sin-backend", "DashboardOdyssey: performance sin API"),
+    "/api/odyssey/analytics/summary": (
+        "app-sin-backend",
+        "DashboardOdyssey: analytics nunca existio; pantalla sin backend",
+    ),
+    "/api/odyssey/analytics/roi": ("app-sin-backend", "DashboardOdyssey: ROI nunca existio"),
+    "/api/odyssey/analytics/performance": ("app-sin-backend", "DashboardOdyssey: performance nunca existio"),
     # ── Drift: el contrato se movió ──
     "/api/cycles/security/executive": ("drift", "el summary vive en /api/trading"),
     "/api/hypotheses": ("drift", "las hipótesis viven bajo /api/security"),

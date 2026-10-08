@@ -15,9 +15,11 @@ const loading = ref(true)
 
 async function fetchTargets() {
   try {
-    const data = await api.get<any>('/api/aegis/targets?limit=50')
+    // /api/aegis/targets NO existe (404 medido 2026-10-05). El endpoint real
+    // es /api/targets y devuelve { items, total }, no { targets }.
+    const data = await api.get<{ items?: unknown[] }>('/api/targets', { limit: 50 })
     if (data) {
-      targets.value = data.targets || []
+      targets.value = (data.items ?? []) as typeof targets.value
     }
   } catch {
     toast.error('Error', 'No se pudieron cargar los targets')
@@ -29,16 +31,16 @@ async function fetchTargets() {
 async function addTarget() {
   if (!newName.value.trim()) return
   try {
-    const res = await api.post<any>('/api/aegis/targets', {
+    // El body coincide con TargetCreate: { name, domain }. Y `api.post`
+    // devuelve el JSON parseado, así que no hay `.ok` que consultar.
+    await api.post('/api/targets', {
       name: newName.value.trim(),
       domain: newDomain.value.trim() || null,
     })
-    if (res.ok) {
-      toast.success('Target creado', `${newName.value} agregado a AEGIS`)
-      newName.value = ''
-      newDomain.value = ''
-      await fetchTargets()
-    }
+    toast.success('Target creado', `${newName.value} agregado a AEGIS`)
+    newName.value = ''
+    newDomain.value = ''
+    await fetchTargets()
   } catch {
     toast.error('Error', 'No se pudo crear el target')
   }
