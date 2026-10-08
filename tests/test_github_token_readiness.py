@@ -528,3 +528,55 @@ def test_failed_pipeline_is_not_recorded_as_submitted(tmp_path) -> None:
     assert record.status is SubmissionStatus.FAILED, f"quedó en {record.status}, se esperaba FAILED"
     assert record.metadata.get("blocked_by") == "pipeline_failed"
     assert "Requires human approval" in (record.last_error or "")
+
+
+# ── El routing tiene que respetar la salud ──────────────────────────────
+#
+# Medido: `ollama` estaba healthy (9ms) y el routing se iba a FCC
+# (localhost:8082). Los health checks reportaban `auth_failed` para `opencode` y
+# `ollama_cloud` — y el routing no se enteraba: `filter_models` filtraba por
+# capacidades, contexto y privacidad, pero NUNCA por salud.
+
+
+def test_router_filters_models_by_health() -> None:
+    """Un provider con auth_failed / unhealthy no llega a ser candidato.
+
+    Medido: ollama estaba healthy (9ms) y el routing se iba a FCC. Los health
+    checks reportaban auth_failed para opencode y ollama_cloud, y filter_models
+    no se enteraba: filtraba por capacidades, contexto y privacidad, pero nunca
+    por salud.
+    """
+    from types import SimpleNamespace
+
+    from cores.ai.runtime.health import HealthStatus, ProviderHealth
+    from cores.ai.runtime.interfaces import RoutingContext, TaskType
+    from cores.ai.runtime.registry import ProviderRegistry
+
+    reg = ProviderRegistry()
+
+    def _p(pid, status):
+        return SimpleNamespace(
+            provider_id=pid,
+            supported_models=[f"m-{pid}"],
+            _last_health=ProviderHealth(provider_id=pid, status=status),
+        )
+
+    sano = _p("sano", HealthStatus.HEALTHY)
+    caido = _p("caido", HealthStatus.UNHEALTHY)
+    sin_cred = _p("sin_cred", HealthStatus.AUTH_FAILED)
+    sin_quota = _p("sin_quota", HealthStatus.QUOTA_EXCEEDED)
+
+    reg._providers = {p.provider_id: p for p in (sano, caido, sin_cred, sin_quota)}
+    reg._model_to_provider = {
+        "m-sano": "sano",
+        "m-caido": "caido",
+        "m-sin_cred": "sin_cred",
+        "m-sin_quota": "sin_quota",
+    }
+    reg._capabilities_cache = {}
+
+    ctx = RoutingContext(task_type=TaskType.CHAT, messages=[{"role": "user", "content": "x"}])
+    candidatos = [pid for pid, _ in reg.filter_models(ctx)]
+    assert "sano" in candidatos, "el provider sano desaparecio del routing"
+    for malo in ("caido", "sin_cred", "sin_quota"):
+        assert malo not in candidatos, f"{malo} sigue siendo candidato de routing"

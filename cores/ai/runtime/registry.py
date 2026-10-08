@@ -25,6 +25,7 @@ from .adapters import (
 from .interfaces import (
     AIProviderProtocol,
     Capability,
+    HealthStatus,
     ModelCapabilities,
     OARConfig,
     RoutingContext,
@@ -157,6 +158,17 @@ class ProviderRegistry:
 
             # Check excluded providers
             if provider_id in context.excluded_providers:
+                continue
+
+            # Salud: un provider que falla credenciales, está caído o sin
+            # cuota no es un candidato. Antes no se filtraba por esto y el
+            # routing acababa en FCC aunque ollama estuviera healthy (medido
+            # 2026-10-05), con el idioma de respuesta como síntoma.
+            # UNKNOWN se acepta: al arrancar todavía no hay datos, y quedarse
+            # sin candidatos sería peor que probar.
+            health = getattr(provider, "_last_health", None)
+            status = getattr(health, "status", None)
+            if status is not None and status not in (HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNKNOWN):
                 continue
 
             # Check capabilities
