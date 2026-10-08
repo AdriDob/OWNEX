@@ -42,6 +42,15 @@ class PreparedWork:
             self.created_at = datetime.now(UTC).isoformat()
 
 
+_SCAFFOLD_BANNER = (
+    "<!-- OWNEX:SCAFFOLD pending-implementation -->\n"
+    "> ⚠️ **SCAFFOLD — este fichero NO es el trabajo.**\n"
+    "> Lo generó `assisted mode` a partir del enunciado. Falta la "
+    "implementación, los tests y la evidencia.\n"
+    "> Enviarlo así a una plataforma es enviar un placeholder en tu nombre.\n\n"
+)
+
+
 class AssistedExecutor:
     """Wrapper for executors that requires user approval before submission."""
 
@@ -86,6 +95,11 @@ class AssistedExecutor:
             files=files,
             metadata={
                 "opportunity": opportunity,
+                # Esto es un SCAFFOLD, no trabajo terminado. Se marca aqui
+                # para que nada aguas abajo lo confunda con un PR real.
+                "requires_implementation": True,
+                "scaffold": True,
+                "scaffold_note": ("Generado por assisted mode: falta el trabajo real. No enviar sin implementarlo."),
                 "guide_available": guide is not None,
             },
             submission_url=opportunity.get("url"),
@@ -228,8 +242,9 @@ $$$
         title = opportunity.get("title", "Untitled")
         description = opportunity.get("description", "")
 
-        return f"""# Work: {title}
-
+        return (
+            _SCAFFOLD_BANNER
+            + f"""# Work: {title}
 ## Description
 {description}
 
@@ -239,6 +254,7 @@ $$$
 ## Testing
 [Add testing details here]
 """
+        )
 
     async def save_work_to_disk(self, prepared: PreparedWork) -> Path:
         """Save prepared work to disk for user review."""

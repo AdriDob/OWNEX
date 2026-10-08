@@ -454,6 +454,31 @@ class AutoSubmitEngine:
                 prepared = await assisted.prepare_work(opportunity)
                 record.prepared_work = prepared
 
+                # assisted mode genera un SCAFFOLD: el enunciado pegado en
+                # un markdown con placeholders. Enviarlo a una plataforma real
+                # es mandar un placeholder bajo el nombre del owner, y el
+                # sistema lo hacia sin preguntar. Se detiene aqui, ANTES de
+                # gastar un intento y antes de tocar la red.
+                if getattr(prepared, "metadata", {}).get("requires_implementation"):
+                    record.status = SubmissionStatus.READY
+                    record.last_error = "scaffold sin implementar: assisted mode no genera el trabajo"
+                    record.metadata["blocked_by"] = "requires_implementation"
+                    record.metadata["blocked_note"] = (
+                        "Falta el trabajo real (implementación + tests + evidencia). "
+                        "El camino que lo produce es cores/autonomy/code_generator.py "
+                        "(GenerationPlan) vía dev_bounty_pipeline, no assisted mode."
+                    )
+                    record.updated_at = datetime.now(UTC).isoformat()
+                    self._save_queue()
+                    self._notify(
+                        "submission:blocked",
+                        id=record.id,
+                        message=(
+                            f"Bloqueado: {platform} requiere trabajo real, y assisted mode sólo genera el scaffold"
+                        ),
+                    )
+                    return record
+
                 # Save to disk for user review
                 work_dir = await assisted.save_work_to_disk(prepared)
                 record.metadata["package_path"] = str(work_dir)

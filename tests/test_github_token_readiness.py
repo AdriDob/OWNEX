@@ -326,3 +326,53 @@ def test_revenue_bridge_failure_is_persisted_not_swallowed(tmp_path) -> None:
     assert "revenue_bridge_error" in persisted["metadata"], (
         "el fallo no sobrevivió al reinicio: la cola es lo que persiste"
     )
+
+
+# ── Un scaffold NO se envía ──────────────────────────────────────────────
+#
+# assisted mode genera un markdown con placeholders a partir del enunciado.
+# auto_submit lo mandaba a la plataforma tal cual: un placeholder bajo el
+# nombre del owner. Ahora se detiene antes de gastar un intento y sin tocar la
+# red. El trabajo real lo produce cores/autonomy/code_generator.py
+# (GenerationPlan) vía dev_bounty_pipeline.
+
+
+def test_scaffold_is_never_submitted(tmp_path) -> None:
+    """Con un scaffold sin implementar, no se llama al adapter ni se envía."""
+    import asyncio
+
+    from cores.opportunity.executors.auto_submit import AutoSubmitEngine, SubmissionStatus
+
+    called: list[int] = []
+
+    class _Boom:
+        async def submit_work(self, prepared, api_key):
+            called.append(1)
+            return {"success": True}
+
+    engine = AutoSubmitEngine(dlq_path=str(tmp_path / "dlq"), queue_path=str(tmp_path / "q.json"))
+    engine.base_retry_delay = 0.01
+    engine._get_adapter = lambda key: _Boom()  # type: ignore[method-assign]
+    engine._get_api_key = lambda platform: "tok"  # type: ignore[method-assign]
+
+    record = asyncio.run(engine.submit_workbank_item("i1", "opire", {"title": "T", "url": "u", "reward": 100.0}))
+
+    assert not called, "se intentó enviar un scaffold: el adapter fue invocado"
+    assert record.status is SubmissionStatus.READY, f"quedó en {record.status}, se esperaba READY"
+    assert record.metadata.get("blocked_by") == "requires_implementation"
+
+
+def test_scaffold_content_declares_itself(tmp_path) -> None:
+    """El propio fichero se marca, para que ni un humano lo envíe por error."""
+    import asyncio
+
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor
+
+    ex = AssistedExecutor(base_executor=None, output_dir=str(tmp_path / "out"))
+    prepared = asyncio.run(
+        ex.prepare_work({"platform": "opire", "id": "o1", "title": "T", "url": "u", "description": "D"})
+    )
+    assert "OWNEX:SCAFFOLD" in prepared.files["work.md"], (
+        "el markdown no se declara scaffold: alguien podría enviarlo creyéndolo real"
+    )
+    assert prepared.metadata.get("requires_implementation") is True
