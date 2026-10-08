@@ -41,8 +41,9 @@ def daily_summary() -> dict[str, Any]:
         f"**Hallazgos:** {f.get('total', 0)} total · {f.get('new_24h', 0)} nuevos (24h)\n"
         f"**Veredictos:** {v.get('total', 0)} total · {v.get('confirmed', 0)} confirmados\n"
         f"**Oportunidades:** {o.get('total', 0)} targets con ROI calculado\n"
-        f"**Quick Wins:** {qw.get('total_opportunities', 0)} oportunidades · "
-        f"${qw.get('total_estimated_value', 0):,.0f} valor estimado\n"
+        f"**Quick Wins:** {qw.get('total_quick_wins', 0)} de {qw.get('scored_endpoints', 0)} "
+        f"endpoints puntuados · mayor índice de prioridad "
+        f"{qw.get('top_priority_index', 0):,.0f} (no USD)\n"
         f"**Actividad 24h:** {a.get('last_24h', 0)} eventos\n\n"
     )
 
@@ -59,12 +60,23 @@ def daily_summary() -> dict[str, Any]:
         summary += "\n"
 
     if rec.get("type") != "no_recommendations":
+        # El payout sale sólo de verdicts confirmados. Antes sumaba también
+        # los endpoints candidatos y un target sin un solo finding valido
+        # anunciaba "$498.000" en el resumen diario. Ver
+        # cores/ai/recommendations.py y KNOWN_DEBT #80.
+        payout_line = (
+            f"Payout estimado: ${rec.get('estimated_payout', 0):,} "
+            f"({rec.get('confirmed_findings', 0)} finding(s) confirmado(s) — "
+            "placeholder sin fuente, no una cotización)\n"
+            if rec.get("confirmed_findings")
+            else "Payout estimado: UNKNOWN — 0 findings confirmados, los endpoints candidatos no se pagan\n"
+        )
         summary += (
             f"🎯 **Recomendación principal:**\n"
             f"Atacar {rec.get('target_name', '?')} · "
             f"Prioridad {rec.get('priority_score', 0):.0f} · "
             f"Tiempo estimado: {rec.get('estimated_time_minutes', 0)} min · "
-            f"Payout estimado: ${rec.get('estimated_payout', 0):,}\n"
+            f"{payout_line}"
         )
 
     summary += f"\n🤖 Asistente: {provider.name}"
@@ -84,8 +96,14 @@ def daily_summary() -> dict[str, Any]:
             "pipeline_confirmed": p.get("confirmed", 0),
             "opportunities": o.get("total", 0),
             "activity_24h": a.get("last_24h", 0),
-            "quick_wins": qw.get("total_opportunities", 0),
-            "quick_wins_value": qw.get("total_estimated_value", 0),
+            "quick_wins": qw.get("total_quick_wins", 0),
+            "quick_wins_scored_endpoints": qw.get("scored_endpoints", 0),
+            # Índice de prioridad derivado del riesgo, NO un payout.
+            # `estimated_payout` en el modelo es un heurístico lineal
+            # (`risk_score/100*5000`) sin base de mercado: ver
+            # QuickWinsEngine._estimate_payout y KNOWN_DEBT #80.
+            "quick_wins_top_priority_index": qw.get("top_priority_index", 0),
+            "quick_wins_priority_index_unit": "índice (no USD)",
         },
         "critical_insights": len(critical_insights),
         "high_insights": len(high_insights),

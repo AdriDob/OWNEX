@@ -71,8 +71,22 @@ class QuickWinsReport:
     immediate_action_endpoints: list[ImmediateActionEndpoint] = field(default_factory=list)
     confidence_ranked_opportunities: list[QuickWin] = field(default_factory=list)
 
+    #: Endpoints **puntuados**, no quick wins. Con 9.922 endpoints el
+    #: resumen decía "9.922 quick wins". Los conteos que sí significan algo
+    #: van en los campos de abajo.
     total_opportunities: int = 0
+    scored_endpoints: int = 0
+    #: `ready_to_report` + `low_hanging_fruit`: los que la engine clasifica
+    #: como quick win de verdad.
+    total_quick_wins: int = 0
+    ready_to_report: int = 0
+    low_hanging_fruit: int = 0
+    half_confirmed: int = 0
     avg_quick_win_score: float = 0.0
     exploitability_score: float = 0.0
     fastest_path_minutes: int = 0
+    #: Índice de prioridad heurístico, **NO USD** (`QuickWinsEngine.
+    #: _estimate_payout`). La suma no es interpretable: usá `top_priority_index`.
     total_estimated_value: float = 0.0
+    top_priority_index: float = 0.0
+    priority_index_status: str = ""

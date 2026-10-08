@@ -2078,3 +2078,74 @@ guarda el payout **por pillar**, así que no hay forma de responder "¿en cuál
 de los 5 pillars me conviene poner el tiempo?". Arreglarlo es agregar el
 campo y la métrica que lo use — en ese orden, y con la métrica ya midiendo,
 no antes.
+
+## 81. El 20% de la tabla `endpoints` tiene el `path` corrupto, y `/api/assistant/insights` daba 500 (2026-10-08) — PARCIAL: script listo, aplicar
+
+Apareció al arreglar el payout inventado de las recomendaciones (#80), porque para ver el resumen diario hubo que arreglar un crash.
+
+## A. 500 en el motor de insights del assistant
+
+```
+GET /api/assistant/insights      → 500
+GET /api/assistant/insights/top  → 500
+TypeError: can't compare offset-naive and offset-aware datetimes
+  cores/ai/context_builder.py:87
+```
+
+Las columnas se declaran con `DateTime` **sin** `timezone=True`, así que SQLite las devuelve naive; el `cutoff_24h` se armaba con `datetime.now(UTC)`, que es aware. Eran **6 comparaciones** del mismo tipo (líneas 87, 112, 219, 230, 240) — la primera en ejecutarse reventaba; las otras 5 habrían reventado apenas alguna fila tuviera timestamp.
+
+**Fix:** `_as_utc()` normaliza la columna a UTC aware. Se normaliza la columna, no el corte: el corte ya era correcto y expresarlo en UTC no depende del tz del host.
+
+**Lo que este finding revela sobre el guard de contrato:** `audit_frontend_contract.py` mide rutas **declaradas**, no rutas **vivas**. Daba "380 de 380 con backend" mientras dos de esas 380 reventaban con un TypeError. Un contrato verificado por existencia no está verificado.
+
+## B. 8.937 de 44.597 endpoints (20%) con el `path` corrupto
+
+El `path` no es un path: es un path pegado a un blob JSON a medio serializar.
+
+```
+//docs.hackerone.com/organizations/report-states.html","tag":"a",
+"attribute":"href","source":"https://..."},"error":"max depth reached"}
+```
+
+Todas del 2026-07-19, `params` vacío, y el mismo target (`736`) mezcla rotas y sanas (`/api/test`). Un serializador falló con `"error":"max depth reached"` y la ingesta escribió el string truncado en `path` en vez de descartarlo.
+
+**Por qué no es cosmético** — el scoring corre sobre ese string:
+- `unified_score(path, ...)` saca el riesgo de ahí
+- `has_admin` / `has_exports` / `has_graphql` matchean substrings (3 copias: `api/services/data_service.py:964-966`, `cores/ai/recommendations.py`, `api/routers/overview.py`)
+- el resumen diario lo mostraba como *"Nuevo endpoint crítico: GET //docs.hackerone.com/...,  "tag":"a"..."*
+
+Un endpoint de documentación marca **"tiene exports"** porque la URL de origen pegada al path contiene la palabra `export`. De los 9.922 endpoints que ve `build_full_context`, 3.713 son "high signal" — parte puede venir de la basura.
+
+**Firma única** (verificada sobre las 8.937 filas, no supuesta) y el prefijo recuperado es siempre un path verosímil (69 chars de media). La reparación es mecánica.
+
+**Fix aplicado — NO se escribio nada:**
+- `scripts/repair_corrupted_endpoint_paths.py` con **dry-run por default**, `--apply` explícito, `.bak` con fecha antes de escribir, y dos guardas que abortan sin escribir: si la proporción a reparar baja del 1% (el patrón cambió, la regla ya no aplica) o si alguna fila quedaría con `path` vacío.
+- 7 guards en `tests/test_endpoint_path_corruption.py`. **Ninguno repara**: mutar 8.937 filas de la tabla de descubrimiento desde un `pytest` no es una verificación, es una escritura.
+
+```
+$ python scripts/repair_corrupted_endpoint_paths.py
+endpoints totales      : 44,597
+paths corruptos        : 8,937 (20.0%)
+longitud media del path: 69 chars
+  #39: //docs.hackerone.com/organizations/report-states.html
+  #43: //hackerone.com/users/sign_in
+  … y 8,927 más
+— dry-run: no se escribió nada. Pasá --apply para aplicar.
+```
+
+**PENDIENTE (decisión del owner):** correr `--apply`. Después: verificar si el ranking de riesgo cambia (si los "high signal" bajan, parte eran basura — y eso es una corrección, no una pérdida).
+
+**Y queda sin arreglar:** el scraper que produce el blob sigue ahí. Si no se arregla, la próxima ingesta vuelve a ensuciar la tabla. No se encontró el string `"max depth reached"` en el repo, así que el mensaje viene del payload externo o de un dependencia; el punto de escritura candidato es `api/services/data_service.py:create_endpoint` y `cores/orchestrator/scan_service.py:123`, que **no validan el path antes de guardarlo**. Un `if not looks_like_path(path): skip` en el writer es la defensa correcta, y es más barato que cualquier reparación posterior.
+
+**Regla permanente:** *existencia de ruta ≠ ruta viva.* Un guard de contrato que compara paths no ve un `TypeError`. Y: *la basura en el campo de entrada de un scorer contamina todo lo que sale de él* — por eso la defensa va en el writer, no en el consumidor.
+
+## 72. El sistema estaba RED para siempre por un check imposible (2026-08-08) — RESUELTO
+
+Pedido del owner: *"quiero usar el sistema completo lo antes posible sin errores"*. El panel de salud que acabo de exponer mostró el problema.
+
+- **Síntoma:** `SystemState` decía `DEGRADED`, con `health_center` en `unhealthy` y **49.822 errores** acumulados.
+- **Causa:** `check_agents_health()` exigía que **los 8 agentes** tuvieran `status == "running"`. Los agentes departamentales corren por demanda: idle ⇒ `offline`. El check **no podía pasar nunca**, y el contador de errores crecía sin que nada estuviera roto. Marcaba RED permanente con 50k errores fantasma.
+- **Segundo check rojo:** `scheduler` (el `ScanScheduler`) — `scheduler_instance` es `None` hasta que arranca. Se deja como falla **real**: el scan scheduler efectivamente no está corriendo en este entorno, y eso sí conviene verlo. Score final honesto: **9/10, YELLOW** (antes 8/10, RED).
+- **Fix:** `check_agents_health` ahora degrada sólo ante un agente en `error` con `last_error`, no por estar idle. 1 guard nuevo (idle pasa, error degrada).
+
+**Regla permanente:** *un health check que no puede pasar es peor que no tenerlo*: entrena al usuario a ignorar el semáforo. Si todo está rojo siempre, el rojo no significa nada. Y: **49.822 errores de fondo sin causa son ruido, no señal** — hay que mirar la causa del contador, no el número.

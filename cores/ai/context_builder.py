@@ -19,6 +19,29 @@ from cores.targets.models import TargetIntel
 from database import db, models
 
 
+def _as_utc(value: datetime | None) -> datetime | None:
+    """Normaliza un datetime de la DB a tz-aware UTC.
+
+    Las columnas se declaran con `DateTime` **sin** `timezone=True`, así que
+    SQLite las devuelve naive (naive == UTC: es como se escriben). El
+    `cutoff_24h` de acá sí es aware (`datetime.now(UTC)`), y comparar uno
+    con otro lanza:
+
+        TypeError: can't compare offset-naive and offset-aware datetimes
+
+    Eso era un **500 en `/api/assistant/insights` y `/insights/top`**, o sea
+    el motor de insights del assistant muerto (medido 2026-10-08: el endpoint
+    reventaba en `context_builder.py:87`, la primera de 6 comparaciones del
+    mismo tipo).
+
+    Se normaliza la columna, no el corte: el corte ya es correcto y
+    expresarlo en UTC explícito evita depender del tz del host.
+    """
+    if value is None or value.tzinfo is not None:
+        return value
+    return value.replace(tzinfo=UTC)
+
+
 def build_full_context() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
@@ -84,7 +107,8 @@ def build_full_context() -> dict[str, Any]:
             by_vector[vec] = by_vector.get(vec, 0) + 1
             for surf in s.get("attack_surface", []):
                 by_surface[surf] = by_surface.get(surf, 0) + 1
-            if ep.discovered_at and ep.discovered_at >= cutoff_24h:
+            discovered = _as_utc(ep.discovered_at)
+            if discovered and discovered >= cutoff_24h:
                 recent_eps += 1
 
         high_signal.sort(key=lambda x: x["risk_score"], reverse=True)
@@ -109,7 +133,8 @@ def build_full_context() -> dict[str, Any]:
         for f in findings:
             sev = (f.severity or "info").lower()
             sev_counts[sev] = sev_counts.get(sev, 0) + 1
-            if f.created_at and f.created_at >= cutoff_24h:
+            created = _as_utc(f.created_at)
+            if created and created >= cutoff_24h:
                 recent_findings += 1
         context["findings"] = {
             "total": len(findings),
@@ -216,7 +241,8 @@ def build_full_context() -> dict[str, Any]:
         # ── Recent Activity Summary ──
         recent_activity: list[dict] = []
         for f in findings:
-            if f.created_at and f.created_at >= cutoff_24h:
+            created = _as_utc(f.created_at)
+            if created and created >= cutoff_24h:
                 recent_activity.append(
                     {
                         "type": "finding",
@@ -227,7 +253,8 @@ def build_full_context() -> dict[str, Any]:
                     }
                 )
         for v in verdicts:
-            if v.created_at and v.created_at >= cutoff_24h:
+            v_created = _as_utc(v.created_at)
+            if v_created and v_created >= cutoff_24h:
                 recent_activity.append(
                     {
                         "type": "verdict",
@@ -237,7 +264,8 @@ def build_full_context() -> dict[str, Any]:
                     }
                 )
         for s in scans:
-            if s.started_at and s.started_at >= cutoff_24h:
+            started = _as_utc(s.started_at)
+            if started and started >= cutoff_24h:
                 recent_activity.append(
                     {
                         "type": "scan",
@@ -294,10 +322,15 @@ def build_full_context() -> dict[str, Any]:
                 qw_engine = QuickWinsEngine()
                 qw_report = qw_engine.evaluate(qw_snapshot, EvidenceGraph())
                 context["quick_wins"] = {
-                    "total_opportunities": qw_report.total_opportunities,
+                    "scored_endpoints": qw_report.scored_endpoints,
+                    "total_quick_wins": qw_report.total_quick_wins,
+                    "ready_to_report": qw_report.ready_to_report,
+                    "low_hanging_fruit": qw_report.low_hanging_fruit,
+                    "half_confirmed": qw_report.half_confirmed,
                     "avg_quick_win_score": qw_report.avg_quick_win_score,
                     "exploitability_score": qw_report.exploitability_score,
-                    "total_estimated_value": qw_report.total_estimated_value,
+                    "top_priority_index": qw_report.top_priority_index,
+                    "priority_index_status": qw_report.priority_index_status,
                     "fastest_path_minutes": qw_report.fastest_path_minutes,
                     "categories": {},
                     "top_opportunities": [
@@ -316,14 +349,16 @@ def build_full_context() -> dict[str, Any]:
                     context["quick_wins"]["categories"][cat] = context["quick_wins"]["categories"].get(cat, 0) + 1
             else:
                 context["quick_wins"] = {
-                    "total_opportunities": 0,
+                    "scored_endpoints": 0,
+                    "total_quick_wins": 0,
                     "avg_quick_win_score": 0.0,
                     "categories": {},
                     "top_opportunities": [],
                 }
         except Exception:
             context["quick_wins"] = {
-                "total_opportunities": 0,
+                "scored_endpoints": 0,
+                "total_quick_wins": 0,
                 "avg_quick_win_score": 0.0,
                 "categories": {},
                 "top_opportunities": [],
