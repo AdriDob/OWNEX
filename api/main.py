@@ -76,6 +76,7 @@ from api.routers import (
     agenda,
     agent_coordinator,
     agents_router,
+    ai_frontier,
     ai_security,
     alerts,
     approvals,
@@ -90,6 +91,7 @@ from api.routers import (
     authhub,
     auto_apply,
     auto_submit,
+    autonomous_scheduler,
     autopilot,
     availability,
     bank_payout,
@@ -125,6 +127,7 @@ from api.routers import (
     endpoints,
     enhanced_personalization,
     evidence,
+    evidence_vault,
     evolution,
     execution,
     execution_queue,
@@ -138,12 +141,14 @@ from api.routers import (
     forge_app,
     forge_cycle,
     help_center,
+    human_gate,
     hunt,
     hunter,
     hypotheses,
     identity,
     identity_center,
     idor,
+    income_experiments,
     infinite_sources,
     intel,
     intelligence,
@@ -536,6 +541,7 @@ app.include_router(targets.router)
 app.include_router(endpoints.router)
 app.include_router(findings.router)
 app.include_router(evidence.router)
+app.include_router(evidence_vault.router)
 app.include_router(sandbox.router)
 app.include_router(dispute.router)
 app.include_router(obsidian_sync.router)
@@ -611,6 +617,9 @@ app.include_router(solver.router)
 app.include_router(projects.router)
 app.include_router(execution.router)
 app.include_router(execution_queue.router)
+from api.routers.finisher import router as finisher_router  # noqa: E402
+
+app.include_router(finisher_router)
 app.include_router(worker_core.router)
 app.include_router(daily_brief.router)
 app.include_router(license.router)
@@ -643,6 +652,7 @@ app.include_router(mission.router)
 app.include_router(progressive_scaling.router)
 app.include_router(ultra_fast_income.router)
 app.include_router(infinite_sources.router)
+app.include_router(income_experiments.router)
 app.include_router(auto_apply.router)
 app.include_router(alerts.router)
 app.include_router(modes.router)
@@ -666,12 +676,14 @@ app.include_router(investment.router)
 _reg_inv_caps()
 app.include_router(osint.router)
 app.include_router(hunt.router)
+app.include_router(human_gate.router)
 app.include_router(hunter.router)
 app.include_router(recon.router)
 app.include_router(telegram_bot.router)
 app.include_router(version.router)
 app.include_router(intel.router)
 app.include_router(ai_security.router)
+app.include_router(ai_frontier.router)
 
 
 # ── Trading Dashboard ──────────────────────────────────────────────
@@ -684,6 +696,18 @@ app.include_router(trading_dashboard_router)
 from api.routers.trading import router as trading_router
 
 app.include_router(trading_router)
+
+from api.routers.mcp_integration import router as mcp_integration_router
+
+app.include_router(mcp_integration_router)
+
+from api.routers.trading_mt5 import router as mt5_router
+
+app.include_router(mt5_router)
+
+from api.routers.meme_copy import router as meme_copy_router
+
+app.include_router(meme_copy_router)
 
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
@@ -755,6 +779,7 @@ app.include_router(forge_cycle.router)
 app.include_router(pulse_cycle.router)
 app.include_router(vault_cycle.router)
 app.include_router(atlas_cycle.router)
+app.include_router(autonomous_scheduler.router)
 app.include_router(qa_cycle.router)
 app.include_router(profile_kit.router)
 app.include_router(daily_digest.router)
@@ -819,6 +844,10 @@ app.include_router(core_router)
 from apps.odyssey.api.routers import router as odyssey_router  # noqa: E402
 
 app.include_router(odyssey_router)
+
+from api.routers.session import router as session_router  # noqa: E402
+
+app.include_router(session_router)
 
 from cores.app_registry import get_app_registry  # noqa: E402
 

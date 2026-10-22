@@ -19,7 +19,27 @@ from collections.abc import Callable
 from contextlib import suppress
 from typing import Any
 
+from cores.session_manager import session_manager
+
 logger = logging.getLogger("cateye.lifespan")
+
+
+def _init_session() -> None:
+    """Restaura la última sesión de trabajo al arrancar la API.
+
+    Se ejecuta en segundo plano (no bloquea el arranque). Deja el
+    session_manager con la última sesión activa para que el dashboard y el
+    operador continúen donde lo dejaron.
+    """
+    try:
+        session = session_manager.restore_or_start(focus="bounty")
+        logger.info(
+            "[BG-INIT] session restaurada: %s (focus=%s)",
+            session.get("session_id") if session else None,
+            session.get("focus") if session else None,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[BG-INIT] session falló (no-fatal): %s", exc)
 
 
 async def run_background_init(app: Any, bus: Any) -> None:
@@ -40,6 +60,7 @@ async def run_background_init(app: Any, bus: Any) -> None:
             logger.warning("[BG-INIT] %s failed (non-fatal): %s", label, exc)
 
     # ── Phase 1: Core systems (fast, <5s total) ──
+    _defer("session", _init_session)
     _defer("enforce_on_startup", _init_enforce_on_startup)
     _defer("identity", _init_identity)
     _defer("temp_manager", _init_temp_manager)
