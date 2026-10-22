@@ -4,11 +4,13 @@
  * Automático (jobs scheduler) + accionable fácil (toggle master, emergency stop,
  * approve/reject propuestas) + config pendiente visible (vía Setup Checklist).
  */
-import { ref, computed, onMounted } from 'vue'
-import { TrendingUp, Brain, FlaskConical, DollarSign, RefreshCw, ShieldAlert, Play, Pause } from '@lucide/vue'
-import { api } from '@/lib/api'
-import TradingRadars from '@/components/trading/TradingRadars.vue'
+
+import { Brain, DollarSign, FlaskConical, Pause, Play, RefreshCw, ShieldAlert, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import TradingLivePanel from '@/components/trading/TradingLivePanel.vue'
+import TradingRadars from '@/components/trading/TradingRadars.vue'
+import TradingReflex from '@/components/trading/TradingReflex.vue'
+import { api } from '@/lib/api'
 
 const loading = ref(true)
 const error = ref('')
@@ -103,9 +105,11 @@ const isLive = computed(() => overview.value?.is_live === true)
 
 const modeBadge = computed(() => {
   const m = overview.value?.mode_label || 'DRY RUN'
-  const cls = isLive.value ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/30'
-    : overview.value?.mode === 'dry_run' ? 'bg-blue-400/10 text-blue-400 border-blue-400/30'
-    : 'bg-amber-400/10 text-amber-400 border-amber-400/30'
+  const cls = isLive.value
+    ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/30'
+    : overview.value?.mode === 'dry_run'
+      ? 'bg-blue-400/10 text-blue-400 border-blue-400/30'
+      : 'bg-amber-400/10 text-amber-400 border-amber-400/30'
   return { m, cls }
 })
 
@@ -117,7 +121,7 @@ function fmtMetric(v: any): string {
 }
 
 function usd(n: any): string {
-  const num = typeof n === 'string' ? parseFloat(n) : (n || 0)
+  const num = typeof n === 'string' ? parseFloat(n) : n || 0
   return `$${Number.isFinite(num) ? num.toLocaleString('es-AR') : '0'}`
 }
 
@@ -255,6 +259,9 @@ onMounted(fetchData)
 
       <!-- Radares de mercado: pump.fun, dip, spread CEX/DEX -->
       <TradingRadars />
+
+      <!-- Reflex: el modelo propone, el código decide (no ejecuta fondos) -->
+      <TradingReflex />
 
       <!-- Live trading panel: MT5 + Meme Copy -->
       <TradingLivePanel />
