@@ -17,7 +17,6 @@ Endpoints:
 from __future__ import annotations
 
 import logging
-import os
 import shutil
 from typing import Any
 
@@ -226,4 +225,4 @@ async def health_recover() -> dict[str, Any]:
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning("Error en recuperación manual: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
