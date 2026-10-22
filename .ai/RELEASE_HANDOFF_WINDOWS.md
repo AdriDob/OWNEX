@@ -102,15 +102,47 @@ Se habilitó `bundle.windows.nsis` en `tauri.conf.json` y **se revirtió** al de
 
 ### Opción A — CI (recomendada, cero trabajo local)
 
-El workflow `.github/workflows/ownex-tauri-windows.yml` **ya está completo**: compila el sidecar
-en `windows-latest`, valida que pese >50 MB, hace smoke test contra `/api/health`, copia el
-sidecar con el triple correcto y colecta `bundle/msi/*.msi`.
+El workflow `.github/workflows/ownex-tauri-windows.yml` **ya está completo y verificado
+estáticamente** (2026-10-22):
+
+| Aspecto | Estado verificado |
+|---------|--------------------|
+| YAML válido | ✓ parseado |
+| Triggers | `workflow_dispatch` (disparo manual) + `push` con tags `v*` |
+| Jobs | `build-backend-sidecar` → `build-tauri` (encadenados) |
+| Matriz | `windows-latest`, `ubuntu-latest`, `macos-latest` |
+| Sidecar | `OWNEX-Backend.spec --clean --noconfirm` → valida >50 MB |
+| Smoke test | arranca el sidecar y exige `/api/health` 200 en 180 s |
+| Staging | copia a `src-tauri/binaries/ownex-backend-x86_64-pc-windows-msvc.exe` |
+| Bundle | `npx tauri build --verbose` → `bundle/msi/*.msi` (NSIS deshabilitado por config) |
+| Checksums | SHA256 junto a cada artefacto |
+| Publica | artefactos de Actions: `OWNEX-Tauri-Windows` + `OWNEX-Tauri-Windows-checksums` |
+
+**El workflow NO publica en GitHub Releases** — sólo sube artefactos a Actions
+(retención por defecto 90 días). El `.msi` se descarga desde la UI.
+
+**Disparar el build:**
 
 ```bash
-git tag v7.7.7 && git push origin v7.7.7
-# o: GitHub Actions → "OWNEX Tauri Multi-Platform Release" → Run workflow
-# Artefacto: OWNEX-Tauri-Windows  (src-tauri/target/release/bundle/msi/*.msi)
+# El tag v7.7.7 YA EXISTE (creado 2026-09-18, apunta a a0e11ac1) — no lo
+# recrees. Para un build con las correcciones actuales usa workflow_dispatch:
+git push origin release/win11-stable
 ```
+
+Luego, en GitHub → **Actions** → *OWNEX Tauri Multi-Platform Release* →
+**Run workflow** → rama `release/win11-stable`.
+
+**Recuperar el artefacto:**
+
+```
+Actions → la run "OWNEX Tauri Multi-Platform Release" → Artifacts
+  → OWNEX-Tauri-Windows          (contiene bundle/msi/*.msi)
+  → OWNEX-Tauri-Windows-checksums (SHA256 de verificación)
+```
+
+> **Pendiente de ejecución real.** No hay evidencia de una run con las
+> correcciones de este commit; el workflow está verificado sólo de forma
+> estática. La primera run es la prueba.
 
 ### Opción B — Local en Windows 11
 
@@ -215,6 +247,36 @@ curl http://127.0.0.1:8000/api/health
 | ⛔ **BLOCKED_BY_EXTERNAL_DEPENDENCY** | No se puede verificar sin un host Windows | `ownex-backend.exe`, `*.msi` |
 | 🔵 **FUNCIONALIDAD_SIMULADA** | Usa mocks/fakes | `ValidationExecutor._mock_execute_steps` (validación de hipótesis) |
 | ⚪ **NOT_JUSTIFIED_YET** | No se implementó a propósito | Credenciales de 37 plataformas no usadas en el flujo diario |
+
+---
+
+## 8b. Estado de Git y del CI (verificado 2026-10-22)
+
+| Aspecto | Estado |
+|---------|--------|
+| Rama | `release/win11-stable` (upstream `origin/release/win11-stable`) |
+| HEAD antes de este trabajo | `a6ad9ae6` (sincronizado con el remoto) |
+| Commit con las correcciones | **`d5f8e389`** — 19 archivos, 1438 inserciones, 136 borrados |
+| Commits locales por delante del remoto | **1** (`d5f8e389`) |
+| Push | viable — `git push --dry-run` → `a6ad9ae6..d5f8e389` (permisos OK) |
+| **Push ejecutado** | **NO** — pendiente de decisión del owner |
+| Tag `v7.7.7` | **YA EXISTE** (creado 2026-09-18, apunta a `a0e11ac1`) — no recrear |
+| Cambios ajenos sin commitear | 68 modificados + 193 sin trackear + 2 borrados (flujos concurrentes) — **intactos** |
+| Archivos que el CI necesita, modificados | **ninguno** — el CI construirá HEAD + las correcciones |
+| Workflows trackeados en git | ✓ los 5 |
+
+**Verificación estática del workflow** (sin afirmar ejecución):
+
+- YAML parsea correctamente
+- 2 jobs encadenados: `build-backend-sidecar` → `build-tauri`
+- Todas las rutas que el workflow asume existen en el repo
+- Comandos clave presentes: spec del sidecar, staging con target triple,
+  smoke test contra `/api/health`, `npx tauri build`, target `bundle/msi`
+- `nsis` sigue deshabilitado en `tauri.conf.json` (MSI-only, decisión del owner)
+
+**No hay evidencia de una ejecución del workflow con estas correcciones.** La
+primera run del CI es la prueba. Hasta entonces, el estado honesto de
+Windows nativo es `BLOCKED` / `NOT VERIFIED`.
 
 ---
 
