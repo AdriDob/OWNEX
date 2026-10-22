@@ -504,6 +504,89 @@ OWNNEX_MAIL_SMTP_HOST=                              # set to enable email verifi
 
 See **[.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md)** for the full security model.
 
+## Demo 🎬
+
+> **OWNEX Self-Evolution Constitution Demo** — This is the definitive demonstration of OWNEX's autonomous evolution capability.
+
+<details>
+<summary><strong>Run the Demo</strong></summary>
+
+```bash
+python OWNEX_OMEGA_DEMO.py
+```
+
+<summary>Demo capabilities</summary>
+
+The self-evolution demo validates:
+
+1. **Constitution compliance** — 10 core principles govern all system changes
+2. **Evolution opportunity detection** — Automatic identification of improvement areas
+3. **Proposal generation** — Constitutional, risk-aware evolution actions
+4. **Compliance enforcement** — 100% of changes pass validation before execution
+5. **Risk management** — Mandatory risk assessment for every proposed change
+
+<details>
+<summary>Expected output</summary>
+
+```
+OWNEX SELF-EVOLUTION CONSTITUTION DEMONSTRATION
+
+Constitution Version: 7.7.7
+Last Updated: 2026-07-30
+
+🔷 CONSTITUTIONAL PRINCIPLES:
+   • 10 High-Priority Core Rules
+   • 26 Foundational Principles
+   • 6 Integration Requirements
+
+   High-Priority Core Rules:
+     • Never Break System Stability: ...
+     • Never Lose User Data: ...
+     • Only Evidence Based Changes: ...
+     • Zero Tolerance Security: ...
+     • Never Degrade User Experience: ...
+     • Always Transparent Changes: ...
+     • Risk Management Mandatory: ...
+     • Maintain Backward Compatibility: ...
+     • Performance Integrity Enforced: ...
+     • Compliance Legal Priority: ...
+
+✅ SELF-EVOLUTION SYSTEM SUCCESSFULLY DEMONSTRATED
+   • Constitution established: 10 core principles
+   • Evolution capabilities: 4 actions proposed
+   • Constitutional compliance: FULLY_COMPLIANT (100.00%)
+   • Autonomy advancement: Waiting
+   • System readiness: 5.61/10
+
+🎯 KEY FEATURE DEMONSTRATED:
+   • OWNEX can now DESIGN, PREPARE, VALIDATE, and PROPOSE its own evolution
+   • All changes pass constitutional compliance validation
+   • Risk management and rollback are automatic
+   • Evolution is gradual and controlled, not uncontrolled
+   • Constitution provides hard boundaries that cannot be broken
+
+🔒 SAFETY GUARANTEES:
+   • Evolution never breaks system stability
+   • User data is always protected
+   • Changes are evidence-based only
+   • Security is always paramount
+   • User experience never degrades
+   • All changes are fully transparent
+   • Risk management is mandatory
+   • Backward compatibility is maintained
+   • Performance integrity is enforced
+   • Legal compliance is non-negotiable
+
+✅ DEMO COMPLETE - OWNEX IS NOW AUTONOMOUS WITH SAFETY CONTROLS
+
+🎉 OWNEX CONSTITUTION AND SELF-EVOLUTION SUCCESSFULLY DEMONSTRATED!
+   The system is now ready for autonomous operation with constitutional safety.
+```
+</details>
+
+</details>
+
+### Targets 📍
 ---
 
 ## Development 🛠️

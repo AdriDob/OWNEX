@@ -19,7 +19,7 @@
   --ownex-blue:         #FFFFFF;  /* Acciones, selección, navegación (blanco) */
   --ownex-white:        #FFFFFF;  /* Información importante, títulos, resultados */
   --ownex-gold:         #B45309;  /* Recompensas, oportunidades premium (ámbar desaturado) */
-  --ownex-accent:       #00D5FF;  /* Único acento: cian (SSOT; revoca auto-refs y dangling) */
+  --ownex-accent:       #A78BF5;  /* Único acento: violeta dark (SSOT; sin red, sin glow) */
 
   /* ── Estados (SOLO 3, desaturados) ── */
   --ownex-green:        #16A34A;  /* ✅ Activo / Éxito */

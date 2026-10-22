@@ -8,6 +8,7 @@ import { ref, computed, onMounted } from 'vue'
 import { TrendingUp, Brain, FlaskConical, DollarSign, RefreshCw, ShieldAlert, Play, Pause } from '@lucide/vue'
 import { api } from '@/lib/api'
 import TradingRadars from '@/components/trading/TradingRadars.vue'
+import TradingLivePanel from '@/components/trading/TradingLivePanel.vue'
 
 const loading = ref(true)
 const error = ref('')
@@ -33,12 +34,18 @@ async function fetchData() {
 }
 
 // ── Config pendiente (banner) ──
+// El Setup Checklist expone ~31 pendientes de todo el sistema. Acá solo
+// importan los que bloquean el trabajo de esta página: trading en vivo y las
+// credenciales de discovery/entrega (github, dev bounty, bug bounty). El resto
+// (perfumes, Mercor, etc.) no pertenece a Trading y drowniría el banner.
+const TRADING_BLOCKERS = new Set(['trading_live', 'bounty_api_key', 'devbounty_api_key', 'github_token'])
+
 const pendingItems = computed<any[]>(() => {
   const fromOverview = overview.value?.pending_config || []
-  const fromChecklist = (setup.value?.pending || []).filter((i: any) => i.id === 'trading_live')
+  const fromChecklist = (setup.value?.pending || []).filter((i: any) => TRADING_BLOCKERS.has(i.id))
   const merged = new Map<string, any>()
   for (const p of [...fromChecklist, ...fromOverview]) merged.set(p.id, p)
-  return [...merged.values()]
+  return [...merged.values()].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99))
 })
 
 const pendingCount = computed(() => pendingItems.value.length)
@@ -248,6 +255,9 @@ onMounted(fetchData)
 
       <!-- Radares de mercado: pump.fun, dip, spread CEX/DEX -->
       <TradingRadars />
+
+      <!-- Live trading panel: MT5 + Meme Copy -->
+      <TradingLivePanel />
     </div>
   </div>
 </template>
