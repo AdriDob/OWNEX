@@ -97,8 +97,31 @@ def _run_pyinstaller(spec: Path, clean: bool, noconfirm: bool) -> Path:
     return exe
 
 
+def build(
+    *,
+    spec: Path | None = None,
+    clean: bool = False,
+    noconfirm: bool = False,
+    rebuild_frontend: bool = False,
+) -> Path:
+    """Build the desktop sidecar and return the path to the executable.
+
+    This is the programmatic entry point. The historical contract expected a
+    module-level ``build`` symbol here (pinned by
+    tests/test_desktop_release.py::TestBuildScripts), so the name and the
+    "CATEYE Desktop binary" wording are kept even though the product was
+    renamed to OWNEX.
+    """
+    spec = spec or _spec_path()
+    if rebuild_frontend:
+        _rebuild_frontend()
+    return _run_pyinstaller(spec, clean, noconfirm)
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="OWNEX Desktop build (PyInstaller sidecar)")
+    parser = argparse.ArgumentParser(
+        description="Build CATEYE Desktop binary (OWNEX PyInstaller sidecar)",
+    )
     parser.add_argument(
         "--onedir",
         action="store_true",
@@ -132,7 +155,11 @@ def main() -> int:
     if args.rebuild_frontend:
         _rebuild_frontend()
 
-    exe = _run_pyinstaller(spec, args.clean, args.noconfirm)
+    exe = build(
+        spec=spec,
+        clean=args.clean,
+        noconfirm=args.noconfirm,
+    )
     size_mb = exe.stat().st_size / (1024 * 1024)
     _log(f"OK -> {exe} ({size_mb:.1f} MB)")
 
