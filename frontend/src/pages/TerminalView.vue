@@ -19,7 +19,7 @@ onMounted(async () => {
   if (!terminalEl.value) return
 
   // Cargar xterm dinámicamente
-  const { Terminal } = await import('xterm')
+  const { Terminal } = await import('@xterm/xterm')
   const { FitAddon } = await import('@xterm/addon-fit')
 
   terminal = new Terminal({
@@ -44,7 +44,7 @@ onMounted(async () => {
       brightBlack: 'var(--ownex-bg-elevated)',
       brightRed: 'var(--ownex-danger)',
       brightGreen: 'var(--ownex-green)',
-      brightYellow: 'var(--ownex-text-primary)fa5',
+      brightYellow: 'var(--ownex-yellow)',
       brightBlue: 'var(--ownex-accent)',
       brightMagenta: 'var(--ownex-accent)',
       brightCyan: 'var(--ownex-accent)',

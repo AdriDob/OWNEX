@@ -3,8 +3,7 @@
   "version": "7.7.7",
   "private": true,
   "workspaces": [
-    "frontend",
-    "desktop"
+    "frontend"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
@@ -26,11 +25,11 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",
-    "concurrently": "^9.0.1"
+    "concurrently": "^9.2.5"
   },
   "dependencies": {
     "@capacitor-community/speech-recognition": "^7.0.1",
-    "@capacitor/android": "^8.4.2",
+    "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.4.2",
     "@capacitor/core": "^8.4.2",
     "vue-i18n": "^11.4.8"

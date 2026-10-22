@@ -12,7 +12,7 @@ import './styles/responsive.css'
 // .skip-nav usándose en AgentFleet.vue. Se importa DESPUÉS de style.css para
 // que sus reglas de foco ganen al .focus-glow (ver el guard de a11y).
 import './styles/accessibility.css'
-import 'xterm/css/xterm.css'
+import '@xterm/xterm/css/xterm.css'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
