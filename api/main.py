@@ -808,8 +808,10 @@ from api.routers.zero_invest import router as zero_invest_router  # noqa: E402
 
 app.include_router(zero_invest_router)
 from api.routers.business_tools import router as business_tools_router  # noqa: E402
+from api.routers.extra_work import router as extra_work_router  # noqa: E402
 
 app.include_router(business_tools_router)
+app.include_router(extra_work_router)
 from api.routers.economic_feedback import router as economic_feedback_router  # noqa: E402
 
 app.include_router(economic_feedback_router)
@@ -848,6 +850,10 @@ app.include_router(odyssey_router)
 from api.routers.session import router as session_router  # noqa: E402
 
 app.include_router(session_router)
+
+from api.routers.system_health import router as system_health_router  # noqa: E402
+
+app.include_router(system_health_router)
 
 from cores.app_registry import get_app_registry  # noqa: E402
 
