@@ -1,6 +1,7 @@
 """API Router for MERLIN - Office Retro Modernized Assistant."""
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -263,8 +264,16 @@ async def _execute_tool_logic(tool: str, args: dict[str, Any]) -> Any:
         import subprocess
 
         try:
+            # Resolve the repo root from this file instead of hardcoding
+            # "/home/adriel/projects/Rastro": that path only exists on the
+            # author's machine and made the call fail on every other host
+            # (including a packaged Windows build).
+            repo_root = Path(__file__).resolve().parent.parent.parent
             result = subprocess.run(
-                ["git", "status", "--short"], capture_output=True, text=True, cwd="/home/adriel/projects/Rastro"
+                ["git", "status", "--short"],
+                capture_output=True,
+                text=True,
+                cwd=str(repo_root) if repo_root.is_dir() else None,
             )
             return {"status": "git_status", "output": result.stdout}
         except Exception as e:

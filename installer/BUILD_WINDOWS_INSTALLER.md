@@ -1,5 +1,21 @@
 # Windows Installer Build Instructions
 
+> **STATUS (2026-10-22) — LEGACY PATH, NOT THE CANONICAL ONE.**
+> This document describes the old NSIS path. It expects
+> `OWNEX-Desktop-Alpha.spec` and `dist\OWNEX-Desktop-Alpha\`, neither of
+> which any current build produces — following it as written fails.
+>
+> **Canonical Windows build (MSI, per the 2026-09-09 decision):**
+> ```powershell
+> python scripts/install_windows.py --installer
+> ```
+> or let CI do it: `.github/workflows/ownex-tauri-windows.yml` builds the
+> sidecar with `OWNEX-Backend.spec` and collects
+> `src-tauri/target/release/bundle/msi/*.msi`.
+> The bundle target is MSI, **not** NSIS — see
+> `tests/test_tauri_packaging.py::test_windows_bundle_is_msi_only`.
+>
+> The NSIS script below is kept only as reference for the older layout.
 ## Prerequisites
 
 1. **NSIS 3.0+**: Download from https://nsis.sourceforge.io/

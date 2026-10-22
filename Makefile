@@ -20,10 +20,16 @@ venv: ## Create the virtual environment in .venv (idempotent)
 	$(PY) -m pip install -q ruff mypy pytest pytest-timeout pytest-asyncio pytest-cov || true
 
 # ── Build / install ───────────────────────────────────────────────
+# The PyInstaller spec (OWNEX-Backend.spec) is ONEFILE by design: Tauri v2
+# resolves externalBin to exactly one file per target triple, and a ONEDIR
+# copy without its _internal/ directory cannot import api.main (the
+# failure that shipped in the 2026-08-24 MSI). Both targets below therefore
+# emit the same self-contained binary; `build-desktop` keeps its name for
+# compatibility with existing muscle memory.
 install-windows: ## Build Windows portable folder + zip (one-command installer)
 	$(PY) scripts/install_windows.py
 
-install-windows-full: ## Build Windows portable + NSIS installer
+install-windows-full: ## Build Windows portable + MSI installer
 	$(PY) scripts/install_windows.py --installer
 
 build-android: ## Build Android debug APK
@@ -35,10 +41,10 @@ build-android-release: ## Build Android release APK
 build-android-clean: ## Clean and rebuild Android debug APK
 	$(PY) scripts/build_android.py --clean
 
-build-desktop: ## Build desktop bundle via PyInstaller (current OS)
-	$(PY) desktop/build/build_desktop.py --onedir
+build-desktop: ## Build desktop bundle via PyInstaller (current OS) -> dist/ownex-backend
+	$(PY) desktop/build/build_desktop.py --onefile
 
-build-desktop-onefile: ## Build desktop single-file binary
+build-desktop-onefile: ## Build desktop single-file binary (same as build-desktop)
 	$(PY) desktop/build/build_desktop.py --onefile
 
 clean: ## Remove build artifacts
@@ -155,3 +161,50 @@ checkpoint: ## Generate summary of changes since last commit
 
 status: ## Full system health check
 	$(PY) scripts/agent-startup.py --no-tests
+
+daily: ## Daily briefing (full)
+	$(PY) scripts/daily.py
+
+daily-quick: ## Daily briefing (essentials only)
+	$(PY) scripts/daily.py --quick
+
+daily-json: ## Daily briefing as JSON
+	$(PY) scripts/daily.py --json
+
+scheduler-start: ## Start scheduler in background
+	$(PY) -m api.scheduler &
+
+scheduler-stop: ## Stop scheduler
+	pkill -f "api.scheduler" || true
+
+scheduler-logs: ## Show scheduler logs
+	tail -f /home/adriel/.ownex/logs/scheduler.log 2>/dev/null || echo "No scheduler logs found"
+
+missing-creds: ## Show missing credentials with setup links
+	$(PY) -c "from cores.credentials.sync import prompt_missing_credentials; prompt_missing_credentials()"
+
+sync-creds: ## Sync credentials from DB to .env
+	$(PY) -c "from cores.credentials.sync import sync_settings_to_env; print(sync_settings_to_env())"
+
+
+
+security-run: ## Run full security cycle once (usage: make security-run DOMAIN=example.com)
+	$(PY) scripts/security_run.py $(DOMAIN)
+
+target-add: ## Add a new target (usage: make target-add NAME=foo DOMAIN=foo.com)
+	$(PY) scripts/target_add.py $(NAME) $(DOMAIN)
+
+first-run: ## Interactive first-time setup wizard
+	$(PY) scripts/first_run.py
+
+
+	$(PY) scripts/first_run.py
+
+watch: ## Watch daily briefing every 5 min (Ctrl+C to stop)
+	watch -n 300 'make daily-quick'
+
+backup: ## Backup database and config
+	$(PY) scripts/backup.py
+
+logs: ## Tail all service logs
+	tail -f /home/adriel/.ownex/logs/*.log 2>/dev/null || echo "No logs found"

@@ -1,6 +1,16 @@
 @echo off
-REM OWNEX Windows Installer Build Script
-REM Run this on Windows with NSIS installed
+REM ================================================================
+REM  OWNEX Windows Installer Build — LEGACY (NSIS) PATH
+REM
+REM  STATUS (2026-10-22): this script expects
+REM    dist\OWNEX-Desktop-Alpha\OWNEX-Desktop-Alpha.exe
+REM  which no current build produces (the spec that made it is
+REM  archived). It is kept for reference only.
+REM
+REM  CANONICAL Windows build (MSI, owner decision 2026-09-09):
+REM    python scripts/install_windows.py --installer
+REM  or let CI do it (.github/workflows/ownex-tauri-windows.yml).
+REM ================================================================
 
 echo ========================================
 echo OWNEX Windows Installer Build

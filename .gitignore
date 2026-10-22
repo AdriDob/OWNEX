@@ -43,7 +43,13 @@ android/local.properties
 .opencode/node_modules/
 
 # Desktop build
-desktop/build/
+# `desktop/build/` used to be excluded wholesale, which also hid the source
+# of the bundler (`desktop/build/build_desktop.py`) — the script that
+# `make build-desktop` and `scripts/install_windows.py` invoke. A file inside
+# an excluded directory cannot be re-included, so the pattern targets the
+# directory's *contents* and the script is explicitly re-included.
+desktop/build/*
+!desktop/build/build_desktop.py
 desktop/installer/
 
 # Root node_modules (Capacitor native deps)
@@ -54,7 +60,10 @@ node_modules/
 
 # Build artifacts
 dist/
-build/
+# Anchored to the repo root: an unanchored `build/` also matched
+# `desktop/build/`, which made it impossible to re-include the bundler
+# source that lives there.
+/build/
 
 # Logs & data
 /logs/
