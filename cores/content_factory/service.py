@@ -22,6 +22,7 @@ from cores.content_factory.mpt_client import (
     VideoGenerationRequest,
     VoiceProvider,
 )
+from database.db import user_data_dir
 
 logger = logging.getLogger("ownex.content_factory.service")
 
@@ -52,13 +53,17 @@ class ContentFactoryService:
         self,
         db_session: Session,
         mpt_client: MPTClient,
-        output_dir: str = "/home/adriel/projects/Rastro/data/mpt/output",
+        output_dir: str | None = None,
         quality_threshold: int = 70,
         max_concurrent_generations: int = 3,
     ):
         self.db = db_session
         self.mpt = mpt_client
-        self.output_dir = Path(output_dir)
+        # Resolve the output dir dynamically: a hardcoded absolute path breaks
+        # on Windows (and in the frozen bundle) where the repo path does not
+        # exist. user_data_dir() honours OWNEX_DATA_DIR (set by the sidecar),
+        # then %LOCALAPPDATA%/OWNEX on Windows, then ./data in dev.
+        self.output_dir = Path(output_dir) if output_dir else (user_data_dir() / "mpt" / "output")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.quality_threshold = quality_threshold
         self.max_concurrent = max_concurrent_generations
