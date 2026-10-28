@@ -62,7 +62,7 @@ class Crawl4AIConnector(IConnector):
             }
         except Exception as exc:
             logger.error("crawl4ai failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en crawl4ai"}
 
     async def crawl_many(self, urls: list[str]) -> list[dict]:
         """Crawl multiple URLs in batch."""

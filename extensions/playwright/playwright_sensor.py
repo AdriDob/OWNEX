@@ -64,8 +64,8 @@ class PlaywrightSensor(Sensor):
             logger.info("[PLAYWRIGHT_SENSOR] Inicialización completada")
 
         except Exception as exc:
-            logger.error("[PLAYWRIGHT_SENSOR] Error al inicializar: %s", exc)
-            self._last_error = str(exc)
+            logger.warning("[PLAYWRIGHT_SENSOR] Error al inicializar: %s", exc)
+            self._last_error = "Error interno de inicialización"
             raise
 
     async def fetch(self) -> list[Observation]:
@@ -121,7 +121,7 @@ class PlaywrightSensor(Sensor):
 
         except Exception as exc:
             logger.error("[PLAYWRIGHT_SENSOR] Error en fetch: %s", exc)
-            self._last_error = str(exc)
+            self._last_error = "Error en operación de sensor"
             return []
 
     def _page_to_observations(self, url: str, page_data: dict[str, Any]) -> list[Observation]:

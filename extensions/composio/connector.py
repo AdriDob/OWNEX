@@ -88,7 +88,7 @@ class ComposioConnector(IConnector):
             return result or {}
         except Exception as exc:
             logger.error("Composio execute_action failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en acción Composio"}
 
     async def list_apps(self) -> list[str]:
         """List all available app integrations."""

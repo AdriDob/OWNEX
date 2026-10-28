@@ -76,7 +76,7 @@ class NanobotConnector(IConnector):
             return {"status": "started", "port": self._port}
         except Exception as exc:
             logger.error("Nanobot start failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno al iniciar nanobot"}
 
     async def stop_server(self) -> dict:
         """Stop the Nanobot server."""
@@ -99,7 +99,7 @@ class NanobotConnector(IConnector):
                 return resp.json() if resp.status_code < 300 else {"error": f"HTTP {resp.status_code}"}
         except Exception as exc:
             logger.error("Nanobot send_message failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en envío de mensaje nanobot"}
 
     async def list_agents(self) -> list[str]:
         """List available agents in Nanobot."""

@@ -48,15 +48,17 @@ const closedLoopStatus = ref<ClosedLoopStatus>({
 const loading = ref(true)
 
 const autonomyPercentage = computed(() => {
-  if (trustStatus.value.auto_approval_enabled && trustStatus.value.platforms_with_high_trust > 0) {
-    return Math.min(100, trustStatus.value.platforms_with_high_trust * 20)
+  const ts = trustStatus.value
+  if (ts?.auto_approval_enabled && ts.platforms_with_high_trust > 0) {
+    return Math.min(100, ts.platforms_with_high_trust * 20)
   }
   return 0
 })
 
 const autoApprovalLabel = computed(() => {
-  if (trustStatus.value.auto_approval_enabled) {
-    return `Activo (hasta $${trustStatus.value.auto_approval_threshold_usd})`
+  const ts = trustStatus.value
+  if (ts?.auto_approval_enabled) {
+    return `Activo (hasta $${ts.auto_approval_threshold_usd})`
   }
   return 'Inactivo'
 })
