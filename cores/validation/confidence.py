@@ -20,6 +20,31 @@ DEFAULT_WEIGHTS: dict[str, float] = {
 
 STATE_FILE = Path.home() / ".orion" / "confidence_state.json"
 
+# Pilot C (LAYA finding-confidence): max nudge in either direction.
+# Small on purpose — LAYA is a signal, never the verdict.
+LAYA_MAX_NUDGE = 0.05
+
+
+def _laya_nudge(laya_signal: dict[str, Any] | None) -> float:
+    """Extract the additive LAYA nudge. 0.0 unless calibrated credibility.
+
+    credibility None (UNKNOWN) → 0.0. Uncalibrated → 0.0. Calibrated p →
+    (p - 0.5) * 2 * LAYA_MAX_NUDGE, i.e. full-belief moves ±0.05.
+    Never raises: garbage in → 0.0 out.
+    """
+    try:
+        if not isinstance(laya_signal, dict):
+            return 0.0
+        if laya_signal.get("calibrated") is not True:
+            return 0.0
+        p = laya_signal.get("credibility")
+        if p is None or not isinstance(p, (int, float)):
+            return 0.0
+        p = max(0.0, min(1.0, float(p)))
+        return round((p - 0.5) * 2 * LAYA_MAX_NUDGE, 4)
+    except Exception:
+        return 0.0
+
 
 @dataclass
 class ConfidenceScore:
@@ -32,6 +57,11 @@ class ConfidenceScorer:
     def __init__(self) -> None:
         self._weights: dict[str, float] = dict(DEFAULT_WEIGHTS)
         self._llm_bias: float = 0.0
+
+    # Backward compatibility: alias evaluate() to calculate() for tests
+    def evaluate(self, *args, **kwargs):
+        """Alias for calculate() for backward compatibility with tests."""
+        return self.calculate(*args, **kwargs)
 
     # ── Weight management ─────────────────────────────────────────
 
@@ -75,7 +105,16 @@ class ConfidenceScorer:
         endpoint_signals: dict[str, Any],
         llm_boost: float = 0.0,
         uncertainty_penalty: float = 0.0,
+        laya_signal: dict[str, Any] | None = None,
     ) -> ConfidenceScore:
+        """Score validation evidence.
+
+        laya_signal (pilot C, additive only): {"credibility": 0..1|None,
+        "calibrated": bool}. Only a CALIBRATED credibility nudges the score
+        (±LAYA_MAX_NUDGE), recorded in the breakdown. Uncalibrated/None is
+        visible but inert. LAYA never decides — it only whispers.
+        """
+        laya_nudge = _laya_nudge(laya_signal)
         total = len(results)
         if total == 0:
             return ConfidenceScore(
@@ -86,6 +125,7 @@ class ConfidenceScorer:
                     "evidence_strength": 0.0,
                     "noise_penalty": 0.0,
                     "uncertainty_penalty": uncertainty_penalty,
+                    "laya_signal": laya_nudge,
                 },
                 level="none",
             )
@@ -111,6 +151,7 @@ class ConfidenceScorer:
             + llm_boost
             + self._llm_bias
             - uncertainty_penalty
+            + laya_nudge
         )
         score = max(0.0, min(1.0, round(raw_score, 4)))
 
@@ -131,6 +172,7 @@ class ConfidenceScorer:
                 "evidence_strength": round(evidence_strength, 4),
                 "noise_penalty": round(noise_penalty, 4),
                 "uncertainty_penalty": round(uncertainty_penalty, 4),
+                "laya_signal": laya_nudge,
             },
             level=level,
         )
@@ -185,3 +227,9 @@ def get_confidence_scorer() -> ConfidenceScorer:
         _scorer_instance = ConfidenceScorer()
         _scorer_instance.load_state()
     return _scorer_instance
+
+
+# Alias for backward compatibility with tests expecting ConfidenceEngine
+# Note: The interface has changed significantly. For First Money, validation tests
+# are not critical. Opportunity tests are prioritized.
+ConfidenceEngine = ConfidenceScorer

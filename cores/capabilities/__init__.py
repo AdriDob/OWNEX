@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.capabilities.registry import (
+from cores.capabilities.registry import (
     CapabilityEntry,
     CapabilityRegistry,
     get_capability_registry,

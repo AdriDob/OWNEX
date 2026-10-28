@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Target } from '@lucide/vue'
-import KPIBlock from '@/components/ui/KPIBlock.vue'
+import { computed } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
+import KPIBlock from '@/components/ui/KPIBlock.vue'
 
 interface Props {
   data?: any

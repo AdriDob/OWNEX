@@ -7,7 +7,7 @@ import math
 import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -100,7 +100,7 @@ class TaskBelief:
     duration_belief: BeliefDistribution = field(default_factory=BeliefDistribution)
     cost_belief: BeliefDistribution = field(default_factory=BeliefDistribution)
     success_rate: BeliefDistribution = field(default_factory=BeliefDistribution)
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @property
     def expected_reward(self) -> float:
@@ -143,7 +143,7 @@ class TaskBelief:
         self.duration_belief.update(duration)
         self.cost_belief.update(cost)
         self.success_rate.update(1.0 if success else 0.0)
-        self.last_updated = datetime.utcnow()
+        self.last_updated = datetime.now(UTC)
 
 
 @dataclass
@@ -155,7 +155,7 @@ class DecisionContext:
     time_horizon_hours: float
     risk_profile: RiskProfile = RiskProfile.BALANCED
     policy: DecisionPolicy = DecisionPolicy.MAX_EXPECTED_UTILITY
-    current_time: datetime = field(default_factory=datetime.utcnow)
+    current_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     agent_availability: dict[str, bool] = field(default_factory=dict)
     platform_access: dict[str, bool] = field(default_factory=dict)
     exploration_budget: float = 0.1  # % del presupuesto para exploración

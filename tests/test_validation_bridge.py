@@ -15,18 +15,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.offensive.models import (
+from cores.offensive.models import (
     Contradiction,
     EndpointInfo,
     Hypothesis,
     ReasonerResult,
 )
-from core.validation.bridge import (
+from cores.validation.bridge import (
     SEVERITY_PAYOUT_BASE,
     VULN_MAP,
     ValidationBridge,
 )
-from core.validation.models import AttackCandidate, VulnType
+from cores.validation.models import AttackCandidate, VulnType
 
 # ═══════════════════════════════════════════════════════════════
 # Fixtures
@@ -257,7 +257,7 @@ class TestFromReasonerResult:
 
 
 class TestFromEndpoint:
-    @patch("core.validation.bridge.OffensiveEngine")
+    @patch("cores.validation.bridge.OffensiveEngine")
     def test_from_endpoint_basic(self, mock_engine_cls: MagicMock):
         """from_endpoint llama a analyze_endpoint y devuelve candidates."""
         # Setup mock
@@ -296,8 +296,8 @@ class TestFromEndpoint:
 
 
 class TestValidateEndpoint:
-    @patch("core.validation.bridge.OffensiveEngine")
-    @patch("core.validation.bridge.ValidationEngine")
+    @patch("cores.validation.bridge.OffensiveEngine")
+    @patch("cores.validation.bridge.ValidationEngine")
     def test_validate_endpoint_cycle(self, mock_val_cls: MagicMock, mock_eng_cls: MagicMock):
         """validate_endpoint ejecuta el ciclo completo con mock."""
         # Mock OffensiveEngine
@@ -344,8 +344,8 @@ class TestValidateEndpoint:
         mock_engine.analyze_endpoint.assert_called_once()
         mock_validator.run.assert_called_once()
 
-    @patch("core.validation.bridge.ValidationBridge.from_reasoner_result")
-    @patch("core.validation.bridge.OffensiveEngine")
+    @patch("cores.validation.bridge.ValidationBridge.from_reasoner_result")
+    @patch("cores.validation.bridge.OffensiveEngine")
     def test_no_candidates_when_none_qualify(self, mock_eng_cls: MagicMock, mock_from_reasoner: MagicMock):
         """Si ninguna hypothesis pasa el filtro económico, no se ejecuta validación."""
         mock_from_reasoner.return_value = []
@@ -358,8 +358,8 @@ class TestValidateEndpoint:
 
         assert len(results) == 0
 
-    @patch("core.validation.bridge.OffensiveEngine")
-    @patch("core.validation.bridge.ValidationEngine")
+    @patch("cores.validation.bridge.OffensiveEngine")
+    @patch("cores.validation.bridge.ValidationEngine")
     def test_batch_validation(self, mock_val_cls: MagicMock, mock_eng_cls: MagicMock):
         """validate_batch maneja múltiples endpoints."""
         mock_engine = MagicMock()

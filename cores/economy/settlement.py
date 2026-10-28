@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -42,7 +42,7 @@ class Settlement:
     status: SettlementStatus = SettlementStatus.PENDING
     fees: dict[str, float] = field(default_factory=dict)
     net_amounts: dict[str, float] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     processed_at: datetime | None = None
     failure_reason: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -113,7 +113,7 @@ class SettlementEngine:
         settlement.status = SettlementStatus.PROCESSING
         settlement.calculate_net(self.PLATFORM_FEE_PCT)
         settlement.status = SettlementStatus.COMPLETED
-        settlement.processed_at = datetime.utcnow()
+        settlement.processed_at = datetime.now(UTC)
         return True
 
     def get_settlement(self, settlement_id: str):

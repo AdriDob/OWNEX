@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
 import { Activity, Bug, Crosshair, Plus, Shield, Target, Zap } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { useRouter } from 'vue-router'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface TargetSummary {
   id: number
@@ -39,32 +40,45 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   try {
-    const [targetsRes, findingsRes, activeRes, openRes, scansRes] = await Promise.allSettled([
-      fetch('/api/aegis/targets?limit=10'),
-      fetch('/api/aegis/findings?limit=10'),
-      fetch('/api/aegis/targets/active'),
-      fetch('/api/aegis/findings/open'),
-      fetch('/api/aegis/scans/today'),
+    // Los endpoints /api/aegis/* NO existen (404 medido 2026-10-05). La
+    // capacidad sí existe, con otro nombre y otro contrato:
+    //   GET /api/targets      -> { items, total }  (NO { targets })
+    //   GET /api/findings     -> { items, total }  (NO { findings })
+    //   GET /api/scans/runs   -> lista de runs
+    //
+    // SEGUNDO bug: `api.get` ya devuelve el JSON parseado (ver request() en
+    // lib/api.ts: `return res.json()`). El código anterior hacía
+    // `res.value.ok` y `res.value.json()` sobre un objeto YA parseado, así
+    // que leía mal las respuestas aunque el endpoint existiera.
+    const [targetsRes, findingsRes, runsRes] = await Promise.allSettled([
+      api.get<{ items?: unknown[] }>('/api/targets', { limit: 100 }),
+      api.get<{ items?: unknown[] }>('/api/findings', { limit: 200 }),
+      api.get<unknown[]>('/api/scans/runs', { limit: 200 }),
     ])
-    if (targetsRes.status === 'fulfilled' && targetsRes.value.ok) {
-      const data = await targetsRes.value.json()
-      targets.value = data.targets || []
+
+    if (targetsRes.status === 'fulfilled') {
+      const items = targetsRes.value?.items ?? []
+      targets.value = items.slice(0, 10) as TargetSummary[]
+      // El modelo de target no expone `active`/`enabled`: se cuenta lo listado
+      // en vez de inventar un filtro que el backend no soporta.
+      stats.value.targets_active = items.length
     }
-    if (findingsRes.status === 'fulfilled' && findingsRes.value.ok) {
-      const data = await findingsRes.value.json()
-      findings.value = data.findings || []
+
+    if (findingsRes.status === 'fulfilled') {
+      const items = findingsRes.value?.items ?? []
+      findings.value = items.slice(0, 10) as FindingSummary[]
+      stats.value.findings_open = items.filter(
+        (f) => (f as { status?: string }).status !== 'closed',
+      ).length
     }
-    if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
-      const data = await activeRes.value.json()
-      stats.value.targets_active = data.count
-    }
-    if (openRes.status === 'fulfilled' && openRes.value.ok) {
-      const data = await openRes.value.json()
-      stats.value.findings_open = data.count
-    }
-    if (scansRes.status === 'fulfilled' && scansRes.value.ok) {
-      const data = await scansRes.value.json()
-      stats.value.scans_today = data.count
+
+    if (runsRes.status === 'fulfilled' && Array.isArray(runsRes.value)) {
+      const today = new Date().toDateString()
+      stats.value.scans_today = runsRes.value.filter((r) => {
+        const rec = r as { started_at?: string; created_at?: string; timestamp?: string }
+        const ts = rec.started_at ?? rec.created_at ?? rec.timestamp
+        return ts ? new Date(ts).toDateString() === today : false
+      }).length
     }
   } catch (e) {
     error.value = 'Error de conexión con AEGIS'
@@ -75,7 +89,13 @@ async function fetchData() {
 }
 
 const severityColor = (s: string) => {
-  const map: Record<string, string> = { critical: 'text-destructive', high: 'text-warning', medium: 'text-accent', low: 'text-muted-foreground', info: 'text-muted' }
+  const map: Record<string, string> = {
+    critical: 'text-destructive',
+    high: 'text-warning',
+    medium: 'text-accent',
+    low: 'text-muted-foreground',
+    info: 'text-muted',
+  }
   return map[s] || 'text-muted-foreground'
 }
 

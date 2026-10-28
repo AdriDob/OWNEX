@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Query, Request
 
-from core.notifications.intelligent import DetailLevel, get_intelligent_notifier
 from cores.gateway.schemas import error, ok
 from cores.notifications.hub import NOTIFICATION_TYPES, get_hub
+from cores.notifications.intelligent import DetailLevel, get_intelligent_notifier
 from database import db
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -214,6 +214,32 @@ async def get_dedup_config():
 
 
 # ── Action Required ────────────────────────────────────────────────
+
+
+@router.get("/pending-config")
+async def get_pending_config():
+    """Todo lo que falta configurar y bloquea el ingreso, en una sola llamada.
+
+    El frontend lo consume junto a `/pending-actions`: un pending-action es una
+    decisión que el sistema espera; un pending-config es una credencial/rail que
+    **el humano** tiene que poner. Sin esto, la campana sólo encendía por lo
+    primero y el desbloqueo real quedaba invisible.
+    """
+    try:
+        from cores.setup.checklist import get_setup_checklist
+
+        status = get_setup_checklist().status()
+    except Exception as exc:
+        return error(f"No se pudo leer el checklist de setup: {exc}", version="1.0")
+
+    pending = status.get("pending", [])
+    return ok(
+        {
+            "complete_pct": status.get("complete_pct", 0),
+            "pending_count": len(pending),
+            "pending": pending,
+        }
+    )
 
 
 @router.get("/pending-actions")

@@ -158,6 +158,18 @@ class SourceIntelEngine:
         earning = self._earning_potential(quality, priority, barrier_flags)
         recommendation = self._recommendation(trust_score, argentina, barrier_flags, source_type)
 
+        # Directiva owner 2026-09-20: solo programas públicos hasta ganar acceso.
+        # Las privadas bloqueadas jamás llegan a DISCOVER (el daily brief las excluye).
+        try:
+            from cores.direct_work_engine.source_registry import is_private_unlocked
+            from cores.opportunity.global_sources import is_private_program
+
+            if is_private_program(source) and not is_private_unlocked(str(self._value(source, "name", "?"))):
+                recommendation = "AVOID"
+                reason += " Programa privado: solo con acceso ganado (desbloqueo explícito)."
+        except Exception:
+            pass
+
         payment_label = "profile/email/API" if method in _LOW_FRICTION_METHODS else method
         return PlatformAnalysis(
             name=str(self._value(source, "name", "?")),

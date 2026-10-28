@@ -8,7 +8,7 @@ Unified system that reads from VERSION.txt and can sync to all project files:
   - apps/*/__init__.py        (__version__ where present)
 
 Usage:
-    >>> from core.system.version_engine import VersionEngine
+    >>> from cores.system.version_engine import VersionEngine
     >>> ve = VersionEngine()
     >>> ve.get_version()          # "4.6.0"
     >>> ve.bump("patch")          # "4.6.1"
@@ -126,11 +126,20 @@ class VersionEngine:
     # ── read / write VERSION.txt ─────────────────────────────────────────
 
     def read_raw(self) -> str:
-        """Read VERSION.txt and return the raw string (stripped)."""
+        """Read VERSION.txt and return the raw string (stripped).
+
+        Frozen fallback: if the file is missing from the bundle (PyInstaller
+        _MEIPASS), use the compiled OWNEX_VERSION constant instead of 500ing.
+        """
         if not self._version_file.exists():
-            raise VersionError(
-                f"VERSION.txt not found at {self._version_file}. Create it with the current version (e.g. '4.6.0')."
-            )
+            try:
+                from cores.version import OWNEX_VERSION
+
+                return OWNEX_VERSION.strip()
+            except ImportError:
+                raise VersionError(
+                    f"VERSION.txt not found at {self._version_file}. Create it with the current version (e.g. '4.6.0')."
+                ) from None
         return self._version_file.read_text(encoding="utf-8").strip()
 
     def write_raw(self, raw: str) -> None:

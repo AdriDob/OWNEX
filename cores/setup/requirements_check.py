@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.core.setup.requirements")
 
@@ -133,7 +133,7 @@ def check_permissions() -> CheckResult:
 
 def check_vault() -> CheckResult:
     try:
-        from core.secrets.manager import get_secrets_manager
+        from cores.secrets.manager import get_secrets_manager
 
         manager = get_secrets_manager()
         health = manager.health()
@@ -146,7 +146,7 @@ def check_vault() -> CheckResult:
 
 def check_secrets() -> CheckResult:
     try:
-        from core.secrets.manager import get_secrets_manager
+        from cores.secrets.manager import get_secrets_manager
 
         manager = get_secrets_manager()
         keys = manager.list_keys()

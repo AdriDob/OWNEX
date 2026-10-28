@@ -6,7 +6,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.market_intelligence.models import Confidence, IntelligenceSource, MarketDomain, SourceTier
+from cores.market_intelligence.models import Confidence, IntelligenceSource, MarketDomain, SourceTier
 
 logger = logging.getLogger("orion.intel.source")
 

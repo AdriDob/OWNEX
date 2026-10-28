@@ -3,7 +3,7 @@
 Stores loop-engineering patterns that map to OWNEX Work Cycles.
 
 Usage:
-    from core.loop.registry import registry
+    from cores.loop.registry import registry
 
     for p in registry.get_patterns():
         engine = LoopEngine(p, scheduler, event_bus)
@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.loop.models import (
+from cores.loop.models import (
     LoopPattern,
     PatternRisk,
     Phase,

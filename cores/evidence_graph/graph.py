@@ -6,8 +6,8 @@ import json
 import logging
 from typing import Any
 
-from core.database.manager import get_db_manager
-from core.evidence_graph.models import Base, EvidenceEdge, EvidenceNode
+from cores.database.manager import get_db_manager
+from cores.evidence_graph.models import Base, EvidenceEdge, EvidenceNode
 
 logger = logging.getLogger("orion.core.evidence_graph")
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.financial_intelligence.agent_framework import (
+from cores.financial_intelligence.agent_framework import (
     AgentCouncil,
     AtlasAgent,
     FinancialIntelligencePipeline,
@@ -8,11 +8,11 @@ from core.financial_intelligence.agent_framework import (
     PortfolioAgent,
     RiskAgent,
 )
-from core.financial_intelligence.f1_assistant import F1Assistant
-from core.financial_intelligence.models import F1Message, Opportunity, RiskPolicy
-from core.financial_intelligence.opportunity_engine import OpportunityEngine
-from core.financial_intelligence.publisher import FinancialIntelligencePublisher
-from core.financial_intelligence.risk_engine import RiskEngine
+from cores.financial_intelligence.f1_assistant import F1Assistant
+from cores.financial_intelligence.models import F1Message, Opportunity, RiskPolicy
+from cores.financial_intelligence.opportunity_engine import OpportunityEngine
+from cores.financial_intelligence.publisher import FinancialIntelligencePublisher
+from cores.financial_intelligence.risk_engine import RiskEngine
 
 
 def _make_opp(**kw) -> Opportunity:

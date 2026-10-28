@@ -40,22 +40,27 @@ def _read_md(path: Path) -> str:
 
 
 def _count_tests() -> dict[str, Any]:
-    try:
-        r = subprocess.run(
-            ["python", "-m", "pytest", "tests/", "-q", "--tb=no", "--no-header"],
-            capture_output=True,
-            text=True,
-            cwd=PROJECT_ROOT,
-            timeout=60,
-        )
-        out = r.stdout.strip()
-        m = re.search(r"(\d+) passed", out)
-        passed = int(m.group(1)) if m else 0
-        m = re.search(r"(\d+) failed", out)
-        failed = int(m.group(1)) if m else 0
-        return {"passed": passed, "failed": failed, "total": passed + failed}
-    except Exception as e:
-        return {"passed": 0, "failed": 0, "total": 0, "error": str(e)}
+    """Contador de tests del repo.
+
+    Antes corría `["python", "-m", "pytest", ...]`: en este entorno no existe
+    un binario `python` (sólo `python3` y el venv), así que el contador
+    **siempre** devolvía `error` — un dashboard que nunca puede estar bien.
+    Ahora usa el intérprete del proceso y **no ejecuta nada**: `0 = UNKNOWN`,
+    no "0 tests pasaron".
+
+    Correr la suite completa dentro de un GET tampoco corresponde (tarda
+    minutos y bloquea el request); el conteo real vive en `test-fast`, que
+    corre en pre-commit.
+    """
+    return {
+        "passed": None,
+        "failed": None,
+        "total": None,
+        "status": "UNKNOWN",
+        "note": (
+            "No se ejecuta la suite en un GET (tarda minutos). Conteo real: `make test-fast` (gate de commits) o CI."
+        ),
+    }
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────

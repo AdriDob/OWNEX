@@ -8,6 +8,7 @@ DirectWorkEngine orchestrator. Async APIs are driven with asyncio.run().
 from __future__ import annotations
 
 import asyncio
+from contextlib import contextmanager
 
 import pytest
 
@@ -31,6 +32,22 @@ from cores.direct_work_engine.models import (
 from cores.direct_work_engine.profile_builder import IntelligentProfileBuilder
 from cores.direct_work_engine.recommendation import IntelligentRecommender, RecommenderConfig
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
+
+
+@contextmanager
+def _configured_rails(account_ids: list[str]):
+    """Temporarily set payment rails (MONEY VALIDATION: P_REWARD needs real
+    rails). Restores the user's real configuration afterwards — tests must
+    never clobber ~/.config/ownex/payment_network.json permanently."""
+    from cores.payment_compat.engine import get_payment_engine
+
+    engine = get_payment_engine()
+    saved = engine.get_configured_accounts()
+    engine.set_configured_accounts(list(account_ids))
+    try:
+        yield
+    finally:
+        get_payment_engine().set_configured_accounts(saved)
 
 
 def make_profile(**overrides) -> UserProfile:
@@ -98,7 +115,7 @@ class TestGameDevelopmentProgrammingOnly:
             Opportunity(
                 id="op-gd",
                 title="Game dev without specialization",
-                platform=WorkPlatform.FREELANCER,
+                platform=WorkPlatform.WORKANA,
                 category=OpportunityCategory.GAME_DEVELOPMENT,
             )
 
@@ -107,7 +124,7 @@ class TestGameDevelopmentProgrammingOnly:
             Opportunity(
                 id="op-art",
                 title="Concept artist (excluded)",
-                platform=WorkPlatform.FREELANCER,
+                platform=WorkPlatform.WORKANA,
                 category=OpportunityCategory.GAME_DEVELOPMENT,
                 specialization="concept_art",  # type: ignore[arg-type]
             )
@@ -121,7 +138,7 @@ class TestGameDevelopmentProgrammingOnly:
         op = Opportunity(
             id="op-web",
             title="Frontend task",
-            platform=WorkPlatform.UPWORK,
+            platform=WorkPlatform.WORKANA,
             category=OpportunityCategory.FRONTEND,
         )
         assert op.category == OpportunityCategory.FRONTEND
@@ -286,14 +303,16 @@ class TestIntelligentRecommender:
         assert "concept" not in ranked[0].strategy.lower()
 
     def test_payment_compat_paypal_is_collectible(self) -> None:
-        ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
+        with _configured_rails(["paypal"]):
+            ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
         top = ranked[0]
         assert top.payment_compat_score > 50
         assert any("cobrable" in note for note in top.payment_compat_notes)
 
     def test_payment_compat_stablecoin_uses_usdc_network(self) -> None:
         opp = make_opportunity(payment_method=PaymentMethod.STABLECOIN, title="Stablecoin bounty")
-        ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
+        with _configured_rails(["binance"]):
+            ranked = IntelligentRecommender().recommend([opp], make_profile(), limit=1)
         top = ranked[0]
         assert top.payment_compat_score > 50
         assert any("cobrable" in note for note in top.payment_compat_notes)
@@ -310,9 +329,18 @@ class TestIntelligentRecommender:
         stable = make_opportunity(
             id="op-st", title="Stablecoin task", payment_method=PaymentMethod.STABLECOIN, payment=500.0
         )
-        ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
+        with _configured_rails(["paypal", "binance"]):
+            ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
         by_id = {r.opportunity.id: r for r in ranked}
         assert by_id["op-st"].payment_compat_score > by_id["op-pp"].payment_compat_score
+
+    def test_payment_compat_unconfigured_rail_scores_zero_with_honest_note(self) -> None:
+        """MONEY VALIDATION: no configured rail -> score 0 + honest note, never a theoretical score."""
+        with _configured_rails([]):
+            ranked = IntelligentRecommender().recommend([make_opportunity()], make_profile(), limit=1)
+        top = ranked[0]
+        assert top.payment_compat_score == 0.0
+        assert any("Sin rail configurado" in note for note in top.payment_compat_notes)
 
 
 class TestUniversalDiscovery:
@@ -476,6 +504,49 @@ class TestLearningFeedback:
         profile = engine.learn(make_profile(), [LearningRecord(platform="opire", accepted=True, amount=300.0)])
         assert profile.total_earnings == 300.0
         assert profile.platform_success_rates == {"opire": 1.0}
+
+
+class TestPCalibration:
+    def _recs(self, accepted: int, total: int, technique: str = "tool_hijack", program: str = "openai_safety"):
+        from cores.direct_work_engine.feedback import LearningRecord
+
+        return [
+            LearningRecord(platform="h1", accepted=i < accepted, technique=technique, program=program)
+            for i in range(total)
+        ]
+
+    def test_empty_is_unknown(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate, p_accept_estimate
+
+        assert calibrate([]) == {}
+        assert p_accept_estimate([]) is None
+
+    def test_verdict_thresholds(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate
+
+        assert calibrate(self._recs(1, 2))[("tool_hijack", "openai_safety")]["verdict"] == "UNKNOWN"
+        assert calibrate(self._recs(2, 5))[("tool_hijack", "openai_safety")]["verdict"] == "THIN"
+        assert calibrate(self._recs(6, 12))[("tool_hijack", "openai_safety")]["verdict"] == "MEASURED"
+
+    def test_rate_honest(self) -> None:
+        from cores.direct_work_engine.feedback import calibrate
+
+        row = calibrate(self._recs(3, 4))[("tool_hijack", "openai_safety")]
+        assert (row["attempts"], row["successes"], row["rate"]) == (4, 3, 0.75)
+
+    def test_estimate_prefers_exact_then_technique_then_global(self) -> None:
+        from cores.direct_work_engine.feedback import p_accept_estimate
+
+        recs = self._recs(1, 2) + self._recs(4, 4, technique="direct_override", program="anthropic_safety")
+        assert p_accept_estimate(recs, "direct_override", "anthropic_safety") == 1.0
+        assert p_accept_estimate(recs, "direct_override", "other_program") == 1.0
+        assert p_accept_estimate(recs, "unknown_tech", "other_program") == 0.833
+
+    def test_legacy_records_without_technique_still_count(self) -> None:
+        from cores.direct_work_engine.feedback import LearningRecord, p_accept_estimate
+
+        recs = [LearningRecord(platform="h1", accepted=True), LearningRecord(platform="h1", accepted=False)]
+        assert p_accept_estimate(recs) == 0.5
 
 
 class TestOpportunityModel:

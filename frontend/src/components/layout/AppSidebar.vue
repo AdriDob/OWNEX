@@ -3,39 +3,32 @@ import {
   Activity,
   BarChart3,
   Bot,
-  Brain,
-  Bug,
-  Calendar,
+  Briefcase,
+  Cable,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Coins,
+  Clapperboard,
+  Cpu,
+  CheckSquare,
+  Database,
   DollarSign,
+  Banknote,
+  GraduationCap,
   ExternalLink,
   FileText,
-  GitBranch,
+  HelpCircle,
+  BellRing,
   Globe,
-  HeartPulse,
+  MapPin,
   Landmark,
-  LayoutDashboard,
-  Lightbulb,
-  ListTodo,
   MessageCircle,
-  MessageSquare,
-  Monitor,
-  RefreshCw,
-  Search,
-  Send,
   Settings,
   Shield,
-  ShieldAlert,
   Sparkles,
   Target,
   TrendingUp,
-  UserRound,
-  Wallet,
-  Wrench,
-  Zap,
+  Unlink,
 } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -53,7 +46,18 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const router = useRouter()
-const collapsed = ref(false)
+const collapsed = ref(window.innerWidth < 768)
+const mobileOpen = ref(false)
+
+function handleResize() {
+  if (window.innerWidth < 768) {
+    collapsed.value = true
+    mobileOpen.value = false
+  }
+}
+
+onMounted(() => window.addEventListener('resize', handleResize))
+onUnmounted(() => window.removeEventListener('resize', handleResize))
 
 const platforms = ref<PlatformStatus[]>([])
 const bank = ref<BankAccount | null>(null)
@@ -63,6 +67,7 @@ const loading = ref(true)
 
 const badgeCounts = ref<Record<string, number>>({})
 const setupIncomplete = ref(false)
+const alertBadgeCount = ref(0)
 
 async function fetchBadges() {
   try {
@@ -88,12 +93,21 @@ async function fetchBadges() {
   } catch {
     /* silent */
   }
+
+  // Live warning count for the Alerts badge (silent on failure).
+  try {
+    const sweep = await api.post<{ total_findings: number }>('/alerts/sweep', { create: false })
+    alertBadgeCount.value = sweep.total_findings || 0
+  } catch {
+    alertBadgeCount.value = 0
+  }
 }
 
 function getBadge(path: string): number | null {
   if (path === '/targets') return badgeCounts.value.targets || null
   if (path === '/operations/work-queue') return badgeCounts.value.workQueue || null
   if (path === '/intelligence/findings') return badgeCounts.value.findings || null
+  if (path === '/copilot/alerts') return alertBadgeCount.value || null
   return null
 }
 
@@ -105,51 +119,60 @@ function isSetupPending(path: string): boolean {
 
 const navSections = [
   {
-    section: 'TRABAJANDO',
+    section: 'WORK',
     cycle: 'forge',
     items: [
-      { name: 'Activos', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
-      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo, badge: 'workQueue' },
-      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
+      { name: 'Work Queue', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
+      { name: 'Mission', path: '/mission', icon: Target },
+      { name: 'Public Work', path: '/public-work', icon: GraduationCap },
+      { name: 'First Money', path: '/operations/first-money', icon: Banknote },
+      { name: 'Adriel Webs', path: '/operations/clients', icon: Briefcase },
+      { name: 'Trabajo local', path: '/operations/local-jobs', icon: MapPin },
+      { name: 'Contenido', path: '/operations/content', icon: Clapperboard },
+      { name: 'Platform Guides', path: '/operations/platforms', icon: GraduationCap },
+      { name: 'Opportunities', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
     ],
   },
   {
-    section: 'DINERO',
+    section: 'MONEY',
     cycle: 'vault',
     items: [
-      { name: 'Ingresos', path: '/capital', icon: DollarSign },
-      { name: 'Objetivos', path: '/operations/agenda', icon: Target },
-      { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
+      { name: 'Capital', path: '/capital', icon: DollarSign },
+      { name: 'Ledger', path: '/operations/ledger', icon: FileText },
+      { name: 'E-commerce', path: '/operations/ecommerce', icon: Globe },
+      { name: 'Trading', path: '/trading', icon: TrendingUp },
     ],
   },
   {
-    section: 'INTELIGENCIA',
+    section: 'INTELLIGENCE',
     cycle: 'atlas',
     items: [
-      { name: 'Insights', path: '/intelligence/confidence', icon: BarChart3 },
-      { name: 'Hallazgos', path: '/intelligence/findings', icon: Bug, badge: 'findings' },
-      { name: 'Memoria', path: '/copilot/memory', icon: Brain },
-      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
-      { name: 'Knowledge Graph', path: '/knowledge/graph', icon: GitBranch },
+      { name: 'Intelligence', path: '/intelligence', icon: BarChart3, badge: 'findings' },
+      { name: 'Reports', path: '/reports', icon: FileText },
+      { name: 'Knowledge', path: '/knowledge', icon: Database },
     ],
   },
   {
-    section: 'SISTEMA',
+    section: 'SYSTEM',
     cycle: 'system',
     items: [
-      { name: 'Configuración', path: '/operations/settings', icon: Settings },
-      { name: 'Integraciones', path: '/integrations/connections', icon: Cable },
-      { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
+      { name: 'Operations', path: '/operations', icon: Activity },
+      { name: 'Worker Control', path: '/operations/worker', icon: Cpu },
+      { name: 'Setup Checklist', path: '/setup/checklist', icon: CheckSquare },
+      { name: 'Integrations', path: '/integrations/connections', icon: Cable },
+      { name: 'Settings', path: '/operations/settings', icon: Settings },
+      { name: 'Centro de Ayuda', path: '/help', icon: HelpCircle },
+      { name: 'Alertas', path: '/copilot/alerts', icon: BellRing, badge: 'alerts' },
     ],
   },
   {
-    section: 'AUTÓNOMO',
+    section: 'APPS',
     cycle: 'security',
     items: [
-      { name: 'MERLIN', path: '/merlin', icon: Bot },
-      { name: 'Computer Use', path: '/copilot/computer-use', icon: Monitor },
-      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
-      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
+      { name: 'OWNEX AI', path: '/ai', icon: Bot },
+      { name: 'Atlas', path: '/atlas/', icon: Landmark },
+      { name: 'Odyssey', path: '/odyssey/', icon: Sparkles },
+      { name: 'Aegis', path: '/aegis/', icon: Shield },
     ],
   },
 ]
@@ -255,19 +278,22 @@ function formatCompact(n: number) {
 </script>
 
 <template>
+  <!-- Mobile overlay -->
+  <div v-if="mobileOpen" class="fixed inset-0 bg-black/50 z-20 lg:hidden" @click="mobileOpen = false" />
   <aside
     :class="[
       'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
-      collapsed ? 'w-16' : 'w-64',
+      collapsed && !mobileOpen ? 'w-16' : 'w-64',
+      mobileOpen ? 'fixed inset-y-0 left-0' : 'hidden lg:flex',
     ]"
   >
     <!-- OWNEX Logo -->
     <div class="flex h-14 items-center gap-3 border-b border-border/40 px-4">
       <div class="flex h-7 w-7 shrink-0 items-center justify-center">
         <svg viewBox="0 0 512 512" width="28" height="28" fill="none">
-          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="#ffffff" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
-          <circle cx="256" cy="256" r="24" fill="#ffffff" opacity="0.8" />
-          <circle cx="256" cy="256" r="200" stroke="#ffffff" stroke-width="8" opacity="0.1" />
+          <polygon points="256,96 376,156 376,356 256,416 136,356 136,156" stroke="var(--ownex-text-primary)" stroke-width="6" fill="rgba(255, 255, 255,0.08)" />
+          <circle cx="256" cy="256" r="24" fill="var(--ownex-text-primary)" opacity="0.8" />
+          <circle cx="256" cy="256" r="200" stroke="var(--ownex-text-primary)" stroke-width="8" opacity="0.1" />
         </svg>
       </div>
       <Transition name="fade">
@@ -346,7 +372,7 @@ function formatCompact(n: number) {
     </Transition>
 
     <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
+    <nav class="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin" aria-label="Main navigation">
       <div v-for="(group, gi) in navSections" :key="gi" class="mb-1">
         <button
           v-if="!collapsed"

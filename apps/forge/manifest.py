@@ -4,19 +4,19 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.interfaces.app import IAppPlugin
-from core.scheduler.jobs import get_forge_jobs
+from cores.interfaces.app import IAppPlugin
+from cores.scheduler.jobs import get_forge_jobs
 
 # Adapter provider strings for the adapter registry
 FORGE_ADAPTERS = [
-    "core.opportunity.adapters.forge.opencollective:fetch_opportunities",
-    "core.opportunity.adapters.forge.opencollective_projects:fetch_opportunities",
-    "core.opportunity.adapters.forge.algora:fetch_opportunities",
-    "core.opportunity.adapters.forge.superteam:fetch_opportunities",
-    "core.opportunity.adapters.forge.github_sponsors:fetch_opportunities",
-    "core.opportunity.adapters.forge.freelancer:fetch_opportunities",
-    "core.opportunity.adapters.forge.issuehunt:fetch_opportunities",
-    "core.opportunity.adapters.forge.opire:fetch_opportunities",
+    "cores.opportunity.adapters.forge.opencollective:fetch_opportunities",
+    "cores.opportunity.adapters.forge.opencollective_projects:fetch_opportunities",
+    "cores.opportunity.adapters.forge.algora:fetch_opportunities",
+    "cores.opportunity.adapters.forge.superteam:fetch_opportunities",
+    "cores.opportunity.adapters.forge.github_sponsors:fetch_opportunities",
+    "cores.opportunity.adapters.forge.freelancer:fetch_opportunities",
+    "cores.opportunity.adapters.forge.issuehunt:fetch_opportunities",
+    "cores.opportunity.adapters.forge.opire:fetch_opportunities",
 ]
 
 
@@ -27,7 +27,7 @@ forge_router = APIRouter(prefix="/forge", tags=["forge"])
 manifest = IAppPlugin(
     id="forge",
     name="FORGE",
-    version="7.0.0",
+    version="7.7.7",
     description="Open Source Funding & Issue Bounty Platforms — Algora, OpenCollective, GitHub Sponsors, Superteam, Freelancer, IssueHunt, IssueHand, Opire",
     icon="Hammer",
     order=10,

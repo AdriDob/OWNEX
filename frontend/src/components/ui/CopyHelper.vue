@@ -1,18 +1,21 @@
 <script setup lang="ts">
+import { Check, Copy } from '@lucide/vue'
 import { ref } from 'vue'
-import { Copy, Check } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 
-const props = withDefaults(defineProps<{
-  text: string
-  label?: string
-  icon?: boolean
-  variant?: 'icon' | 'button' | 'chip'
-}>(), {
-  label: 'Copy',
-  icon: true,
-  variant: 'icon',
-})
+const props = withDefaults(
+  defineProps<{
+    text: string
+    label?: string
+    icon?: boolean
+    variant?: 'icon' | 'button' | 'chip'
+  }>(),
+  {
+    label: 'Copy',
+    icon: true,
+    variant: 'icon',
+  },
+)
 
 const copied = ref(false)
 
@@ -20,7 +23,9 @@ async function copy() {
   try {
     await navigator.clipboard.writeText(props.text)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 1500)
+    setTimeout(() => {
+      copied.value = false
+    }, 1500)
   } catch {
     const ta = document.createElement('textarea')
     ta.value = props.text
@@ -31,7 +36,9 @@ async function copy() {
     document.execCommand('copy')
     document.body.removeChild(ta)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 1500)
+    setTimeout(() => {
+      copied.value = false
+    }, 1500)
   }
 }
 </script>

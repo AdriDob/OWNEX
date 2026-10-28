@@ -7,8 +7,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from core.cycles.models import Cycle
-from core.database.manager import get_db_manager
+from cores.cycles.models import Cycle
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("core.cycles.metrics")
 
@@ -18,7 +18,7 @@ CYCLES_DB = "cycles"
 def _get_session() -> Session:
     mgr = get_db_manager()
     if "cycles" not in mgr.list_databases():
-        from core.cycles.models import Base
+        from cores.cycles.models import Base
 
         mgr.register("cycles", "cycles.db")
         mgr.run_migrations("cycles", Base)
@@ -159,10 +159,90 @@ class CycleMetricsEngine:
             "atlas": self.compute_atlas_cycle(),
         }
 
+    def compute_automation_metrics(self) -> dict[str, Any]:
+        """Fábrica 1000%: cuánto hace la máquina vs el humano.
+
+        SSOT para Automation Ratio, Human Time Saved, Interventions y
+        Money per Human Hour (definidos en OWNEX_VISION_CHARTER.md).
+        Lee solo hechos persistidos: WorkBank, execution queue, ledger
+        PAID, y work_items. UNKNOWN si no hay historial (nunca inventa).
+        """
+        try:
+            from cores.direct_work_engine.workbank import get_workbank
+
+            wb = get_workbank()
+            wb_data = wb.to_dict() if hasattr(wb, "to_dict") else {}
+            total_items = int(wb_data.get("total", 0) or len(getattr(wb, "_items", {}) or {}))
+            ready = len(wb.best_ready(limit=1000)) if hasattr(wb, "best_ready") else 0
+        except Exception:
+            total_items, ready = 0, 0
+        try:
+            from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+            tracker = get_revenue_tracker()
+            paid_usd = float(
+                sum(
+                    float(getattr(o, "amount", 0) or 0)
+                    for o in tracker.opportunities.values()
+                    if str(getattr(getattr(o, "status", ""), "value", getattr(o, "status", ""))) == "paid"
+                )
+                or 0
+            )
+            pipeline_usd = float(
+                sum(
+                    float(getattr(o, "amount", 0) or 0)
+                    for o in tracker.opportunities.values()
+                    if str(getattr(getattr(o, "status", ""), "value", getattr(o, "status", "")))
+                    not in ("paid", "failed", "cancelled")
+                )
+                or 0
+            )
+        except Exception:
+            paid_usd, pipeline_usd = 0.0, 0.0
+        # Human hours from work_items + ledger (best-effort, no inventado)
+        human_hours: float | None = None
+        try:
+            import json as _json
+            import os
+            from pathlib import Path
+
+            data_dir = Path(os.environ.get("OWNEX_DATA_DIR", "data"))
+            ledger_path = data_dir / "work_items.json"
+            if ledger_path.exists():
+                items = _json.loads(ledger_path.read_text(encoding="utf-8") or "[]")
+                # work_items persistidos guardan human_minutes_actual cuando existe
+                mins = sum(float(i.get("human_minutes_actual", 0) or 0) for i in items if isinstance(i, dict))
+                if mins > 0:
+                    human_hours = mins / 60.0
+        except Exception:
+            human_hours = None
+        total_work_hours_est = float(total_items * 1.5) if total_items else 0.0  # 1.5h/op como baseline honesto
+        auto_hours = max(0.0, total_work_hours_est - (human_hours or 0.0)) if human_hours is not None else None
+        automation_ratio = (
+            (auto_hours / total_work_hours_est) if total_work_hours_est and auto_hours is not None else None
+        )
+        money_per_human_hour = (paid_usd / human_hours) if human_hours and human_hours > 0 else None
+        return {
+            "total_items": total_items,
+            "ready_to_deliver": ready,
+            "total_work_hours_est": round(total_work_hours_est, 2),
+            "human_hours": round(human_hours, 2) if human_hours is not None else None,
+            "auto_hours": round(auto_hours, 2) if auto_hours is not None else None,
+            "automation_ratio": round(automation_ratio, 3) if automation_ratio is not None else None,
+            "human_time_saved_hours": round(auto_hours, 2) if auto_hours is not None else None,
+            "paid_usd": round(paid_usd, 2),
+            "pipeline_usd": round(pipeline_usd, 2),
+            "money_per_human_hour": round(money_per_human_hour, 2) if money_per_human_hour is not None else None,
+            "human_interventions_per_item": round((human_hours or 0) / total_items, 3)
+            if total_items and human_hours
+            else None,
+            "note": "UNKNOWN si historial vacío (nunca inventa). Human hours desde work_items.human_minutes_actual.",
+        }
+
     def persist_metrics(self, cycle_slug: str, metrics: dict[str, Any]) -> bool:
         """Persist computed metrics to cycle config."""
-        from core.cycles.models import Base, Cycle
-        from core.database.manager import get_db_manager
+        from cores.cycles.models import Base, Cycle
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         if "cycles" not in mgr.list_databases():

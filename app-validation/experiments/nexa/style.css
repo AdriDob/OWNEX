@@ -1,0 +1,28 @@
+:root{--bg:#000;--fg:#fff;--muted:#a1a1aa;--line:rgba(255,255,255,.12);--accent:#e82127}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.logo{font-weight:800;letter-spacing:.12em}
+.tag{color:var(--muted);font-size:12px}
+main{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.1;margin:8px 0}
+.sub{color:var(--muted);font-size:18px}
+.demo-box,.result,.email-capture,.pricing{border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:18px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+input[type=text],input[type=email]{width:100%;background:#0a0a0a;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:16px}
+button{cursor:pointer;border-radius:8px;padding:12px 16px;font-size:15px;margin-top:10px}
+.primary{background:var(--fg);color:#000;border:0;font-weight:700;width:100%}
+.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.hint{color:var(--muted);font-size:12px}
+.hidden{display:none}
+.result h3{margin:0 0 8px}
+.result ul{margin:8px 0;padding-left:20px}
+.ok{color:#4ade80}
+.prices{display:flex;gap:16px;list-style:none;padding:0}
+.price-btns{display:flex;gap:8px;flex-wrap:wrap}
+.price-btns button{flex:1;min-width:140px}
+.how ol{padding-left:20px;color:var(--muted)}
+.how strong{color:var(--fg)}
+footer{border-top:1px solid var(--line);padding:18px;text-align:center;color:var(--muted)}
+footer a{color:var(--fg)}
+footer form{display:flex;gap:8px;max-width:420px;margin:12px auto 0}
+footer input{flex:1}

@@ -58,3 +58,8 @@ Nunca introducir un cambio que rompa funcionalidad existente. Si es inevitable, 
 
 ### 10. Priorizar seguridad
 En caso de conflicto entre una mejora de seguridad y cualquier otra cosa, la seguridad gana siempre.
+
+### 11. UI comunica o se elimina
+Todo elemento de UI debe comunicar estado, información, acción, consecuencia o navegación. Si no hace ninguna de esas cinco, se elimina.
+La UI de OWNEX optimiza velocidad de decisión, velocidad de ejecución, claridad financiera y confianza en el sistema — no decoración.
+Los colores semánticos económicos viven en `frontend/src/design/tokens.css` (`--color-money-*`, `--color-work-*`, `--color-opp-*`, `--color-sys-*`): REALIZED siempre sólido, PROJECTED siempre apagado; nunca mezclar "podrías ganar" con "recibiste".

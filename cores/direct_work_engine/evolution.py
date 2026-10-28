@@ -252,6 +252,202 @@ class PerformanceAnalyzer:
         )
 
 
+# ---------------------------------------------------------------------------
+# 3b. Channel Economy — MONEY VALIDATION: personal empirical economy per
+# channel. ACCEPTED is pipeline; only PAID records count as cash. Hours come
+# from actual_hours (measured), never from estimates.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class ChannelEconomy:
+    """Net-cash truth for one channel (platform)."""
+
+    channel: str
+    attempted: int = 0
+    accepted: int = 0
+    paid: int = 0
+    earned_gross: float = 0.0
+    net_cash: float = 0.0
+    human_hours: float = 0.0
+    net_per_hour: float | None = None
+    median_days_to_cash: float | None = None
+    acceptance_rate: float = 0.0
+    cash_rate: float = 0.0
+
+
+def _median(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    mid = len(ordered) // 2
+    if len(ordered) % 2:
+        return round(ordered[mid], 2)
+    return round((ordered[mid - 1] + ordered[mid]) / 2.0, 2)
+
+
+def channel_economy(records: list[LearningRecord]) -> dict:
+    """Build the personal empirical economy table from verified outcomes.
+
+    Honesty rules: no paid records -> verdict UNKNOWN (never $0-presented-as-fact
+    for the rate table; totals stay 0.0). Hours only from actual_hours measured.
+    """
+    by_channel: dict[str, list[LearningRecord]] = defaultdict(list)
+    for record in records:
+        if record.platform:
+            by_channel[record.platform].append(record)
+
+    channels: list[dict] = []
+    total_hours = 0.0
+    total_net = 0.0
+    for channel in sorted(by_channel):
+        recs = by_channel[channel]
+        accepted = [r for r in recs if r.accepted]
+        paid = [r for r in recs if r.paid]
+        earned_gross = round(sum(r.amount for r in accepted), 2)
+        net_cash = round(sum(r.net_amount if r.net_amount is not None else 0.0 for r in paid), 2)
+        hours = round(sum(r.actual_hours for r in recs if r.actual_hours is not None), 2)
+        days = [r.time_to_payout_days for r in paid if r.time_to_payout_days is not None]
+        total_hours += hours
+        total_net += net_cash
+        channels.append(
+            {
+                "channel": channel,
+                "attempted": len(recs),
+                "accepted": len(accepted),
+                "paid": len(paid),
+                "earned_gross": earned_gross,
+                "net_cash": net_cash,
+                "human_hours": hours,
+                "net_per_hour": round(net_cash / hours, 2) if hours > 0 and net_cash > 0 else None,
+                "median_days_to_cash": _median(days),
+                "acceptance_rate": round(len(accepted) / len(recs), 3) if recs else 0.0,
+                "cash_rate": round(len(paid) / len(recs), 3) if recs else 0.0,
+            }
+        )
+
+    total_paid = sum(c["paid"] for c in channels)
+    verdict = "UNKNOWN" if total_paid == 0 else ("THIN_EVIDENCE" if total_paid < 3 else "MEASURED")
+    return {
+        "verdict": verdict,
+        "channels": channels,
+        "totals": {
+            "attempted": sum(c["attempted"] for c in channels),
+            "accepted": sum(c["accepted"] for c in channels),
+            "paid": total_paid,
+            "earned_gross": round(sum(c["earned_gross"] for c in channels), 2),
+            "net_cash": round(total_net, 2),
+            "human_hours": round(total_hours, 2),
+            "net_per_hour": round(total_net / total_hours, 2) if total_hours > 0 and total_net > 0 else None,
+        },
+        "note": (
+            "Sin pagos verificados: no hay economía medible, solo escenarios."
+            if verdict == "UNKNOWN"
+            else f"Economía personal sobre {total_paid} pagos verificados."
+        ),
+    }
+
+
+def prediction_error_report(records: list[LearningRecord]) -> dict:
+    """Estimated-vs-actual calibration over records carrying prediction snapshots.
+
+    Honesty rule: records without predictions are excluded and counted;
+    with zero predicted records the verdict is UNKNOWN (never invented).
+    """
+    with_amount = [r for r in records if r.predicted_amount is not None]
+    with_hours = [r for r in records if r.predicted_hours is not None and r.actual_hours is not None]
+    with_prob = [r for r in records if r.predicted_probability is not None]
+
+    def _mae(pairs: list[tuple[float, float]]) -> float | None:
+        if not pairs:
+            return None
+        return round(sum(abs(a - p) for a, p in pairs) / len(pairs), 2)
+
+    mae_amount = _mae([(r.amount, r.predicted_amount) for r in with_amount if r.predicted_amount is not None])
+    mae_hours = _mae(
+        [
+            (r.actual_hours, r.predicted_hours)
+            for r in with_hours
+            if r.actual_hours is not None and r.predicted_hours is not None
+        ]
+    )
+    mean_prob_error = None
+    if with_prob:
+        mean_prob_error = round(
+            sum(abs((1.0 if r.accepted else 0.0) - float(r.predicted_probability or 0.0)) for r in with_prob)
+            / len(with_prob),
+            3,
+        )
+
+    if not with_amount and not with_hours and not with_prob:
+        verdict = "UNKNOWN"
+        note = "No hay predicciones registradas: imposible calibrar. Se necesitan predicted_amount/hours/probability en los outcomes."
+    else:
+        ids = {id(r) for r in with_amount + with_hours + with_prob}
+        verdict = "CALIBRATED" if len(ids) >= 3 else "THIN_EVIDENCE"
+        note = (
+            f"Calibración sobre {len(with_amount)} montos, {len(with_hours)} tiempos, "
+            f"{len(with_prob)} probabilidades ({len(ids)} outcomes)."
+        )
+
+    return {
+        "verdict": verdict,
+        "records_total": len(records),
+        "records_with_amount_prediction": len(with_amount),
+        "records_with_hours_prediction": len(with_hours),
+        "records_with_probability_prediction": len(with_prob),
+        "mae_amount_usd": mae_amount,
+        "mae_hours": mae_hours,
+        "mean_probability_error": mean_prob_error,
+        "note": note,
+    }
+
+
+def identify_repeatable(
+    records: list[LearningRecord],
+    min_accepted: int = 2,
+    min_conversion: float = 0.5,
+    min_evidence: int = 3,
+) -> list[dict]:
+    """Identify repeatable income patterns from verified history.
+
+    Verdicts: REPEATABLE (accepted >= min_accepted and conversion >=
+    min_conversion), NON_REPEATABLE (enough evidence, below bar), UNKNOWN
+    (insufficient evidence). RECURRING requires explicit subscription
+    evidence, which history alone cannot prove — never claimed here.
+    """
+    by_key: dict[tuple[str, str], list[LearningRecord]] = defaultdict(list)
+    for record in records:
+        category = record.category.value if record.category else ""
+        by_key[(record.platform, category)].append(record)
+
+    out: list[dict] = []
+    for (platform, category), items in sorted(by_key.items()):
+        accepted = [r for r in items if r.accepted]
+        total = len(items)
+        conversion = round(len(accepted) / total, 3) if total else 0.0
+        revenue = round(sum(r.amount for r in accepted), 2)
+        if total < min_evidence:
+            verdict = "UNKNOWN"
+        elif len(accepted) >= min_accepted and conversion >= min_conversion:
+            verdict = "REPEATABLE"
+        else:
+            verdict = "NON_REPEATABLE"
+        out.append(
+            {
+                "platform": platform,
+                "category": category,
+                "accepted": len(accepted),
+                "total": total,
+                "conversion": conversion,
+                "revenue_usd": revenue,
+                "verdict": verdict,
+            }
+        )
+    out.sort(key=lambda e: (-e["revenue_usd"], -e["conversion"]))
+    return out
+
+
 def evolve_analysis(
     lost_lessons: list[LostOpportunityLesson],
     proposals: list[CapabilityProposal],

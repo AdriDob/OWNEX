@@ -3,6 +3,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 LOG = logging.getLogger("ownex.review_queue")
@@ -34,6 +35,10 @@ class ReviewItem:
     target_id: int | None = None
     target_name: str | None = None
     created_at: str | None = None
+    # Cola unificada (vNext): carril + EV para ordenar entre lanes.
+    # lane: security | work | ai_work. ev_usd None = sin monto observable.
+    lane: str = "security"
+    ev_usd: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -81,6 +86,101 @@ def _build_reason(tier: str, score: float, factors: list[dict[str, Any]]) -> str
     elif tier == "MEDIUM_CONFIDENCE":
         return f"Moderate confidence ({score:.2f}) — requires human assessment"
     return f"Low confidence ({score:.2f}) — needs additional validation before review"
+
+
+def _work_review_items(limit: int = 20, store_path: str | Path | None = None) -> list[ReviewItem]:
+    """Items WorkBank listos o bloqueados (carril work). Best-effort: [] si falla."""
+    try:
+        from cores.direct_work_engine.workbank import WorkBank
+
+        # Construcción directa (NO el singleton global: el path inyectable
+        # debe respetarse siempre, sobre todo en tests).
+        wb = WorkBank(store_path=store_path) if store_path else WorkBank()
+        items = [i for i in wb._items.values() if getattr(i, "status", "") in ("ready_to_deliver", "needs_access")][
+            : max(0, limit)
+        ]
+        out: list[ReviewItem] = []
+        for i in items:
+            ready = getattr(i, "status", "") == "ready_to_deliver"
+            reward = float(getattr(i, "reward", 0.0) or 0.0)
+            out.append(
+                ReviewItem(
+                    item_id=f"work_{getattr(i, 'id', '?')}",
+                    item_type="work",
+                    label=str(getattr(i, "title", "Untitled"))[:120],
+                    tier="HIGH_CONFIDENCE" if ready else "MEDIUM_CONFIDENCE",
+                    confidence_score=0.75 if ready else 0.5,
+                    reason=(
+                        "Listo para entregar: solo falta tu aprobación"
+                        if ready
+                        else f"Bloqueado por paso humano: {getattr(i, 'access_requirement', '') or 'ver requisito'}"
+                    ),
+                    factors=[
+                        {"name": "work_status", "value": getattr(i, "status", ""), "description": "Estado en WorkBank"},
+                        {"name": "platform", "value": getattr(i, "platform", ""), "description": "Plataforma destino"},
+                        {"name": "reward", "value": reward, "description": "Recompensa observable (no promesa)"},
+                    ],
+                    lane="work",
+                    ev_usd=reward if reward > 0 else None,
+                )
+            )
+        return out
+    except Exception as exc:
+        LOG.warning("review_queue: workbank no disponible: %s", exc)
+        return []
+
+
+def _assessment_review_items(limit: int = 20, store_path: str | Path | None = None) -> list[ReviewItem]:
+    """Assessments pendientes AI-training (carril ai_work). Best-effort: [] si falla."""
+    try:
+        from cores.application_assistant import STATUS_ACCEPTED, STATUS_PAUSED, STATUS_REJECTED, ApplicationAssistant
+
+        assistant = ApplicationAssistant(Path(store_path) if store_path else None)
+        plan = assistant.get_plan()
+        out: list[ReviewItem] = []
+        for platform in (plan.get("platforms") or [])[: max(0, limit)]:
+            status = platform.get("status", "pending")
+            if status in (STATUS_ACCEPTED, STATUS_REJECTED, STATUS_PAUSED):
+                continue
+            pending = [s for s in (platform.get("steps") or []) if not s.get("done")]
+            if not pending:
+                continue
+            step = pending[0]
+            out.append(
+                ReviewItem(
+                    item_id=f"assess_{platform.get('key', '?')}",
+                    item_type="assessment",
+                    label=f"Assessment: {platform.get('name', '?')} — {step.get('title', '?')}",
+                    tier="MEDIUM_CONFIDENCE",
+                    confidence_score=0.5,
+                    reason=f"Siguiente paso humano: {step.get('detail', '') or step.get('title', '')}",
+                    factors=[
+                        {"name": "platform", "value": platform.get("key", ""), "description": "Plataforma AI-training"},
+                        {
+                            "name": "est_minutes",
+                            "value": step.get("est_minutes", 0),
+                            "description": "Minutos estimados",
+                        },
+                    ],
+                    lane="ai_work",
+                    ev_usd=None,
+                )
+            )
+        return out
+    except Exception as exc:
+        LOG.warning("review_queue: assessments no disponibles: %s", exc)
+        return []
+
+
+def unified_ranked(queue: ReviewQueue, limit: int = 20) -> list[dict[str, Any]]:
+    """Una sola lista ordenada por (EV desc, confianza desc) entre carriles.
+
+    Puro: no toca DB ni stores. EV None cuenta como 0 (sin monto observable
+    no lidera el ranking, pero sigue visible).
+    """
+    items = list(queue.high_confidence) + list(queue.medium_confidence) + list(queue.low_confidence)
+    items.sort(key=lambda i: (-(i.ev_usd or 0.0), -i.confidence_score))
+    return [i.to_dict() for i in items[: max(0, limit)]]
 
 
 def build_review_queue(limit: int = 100) -> ReviewQueue:
@@ -179,6 +279,20 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
             if t:
                 target_name = t.name
 
+            # Submit-gate en vivo: el humano ve POR QUÉ está aparcado (o listo).
+            # Best-effort por item: si el gate falla, el item sigue en cola sin el factor.
+            with contextlib.suppress(Exception):
+                from cores.auto_submit.submit_gate import submit_gate_for_finding
+
+                gate = submit_gate_for_finding(int(f.id))
+                factors.append(
+                    {
+                        "name": "submit_gate",
+                        "value": "ready" if gate.allow_submit else f"parked:{gate.parked_reason}",
+                        "description": "Veredicto live del submit gate (scope + repro + dedupe)",
+                    }
+                )
+
             queue.add(
                 ReviewItem(
                     item_id=f"finding_{f.id}",
@@ -195,6 +309,11 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
                     created_at=f.created_at.isoformat() if f.created_at else None,
                 )
             )
+
+        # Cola unificada (vNext P0): work + assessments junto a findings.
+        # Cada sección es best-effort; si falla, la cola sigue con el resto.
+        for item in _work_review_items(limit=20) + _assessment_review_items(limit=20):
+            queue.add(item)
 
         return queue
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC
 
-from core.acceptance import AcceptanceAnalyzer, AcceptanceOptimizer, AcceptancePredictor
-from core.acceptance.models import AcceptanceOutcome, OptimizerSuggestion, PlatformProfile, PredictionResult
+from cores.acceptance import AcceptanceAnalyzer, AcceptanceOptimizer, AcceptancePredictor
+from cores.acceptance.models import AcceptanceOutcome, OptimizerSuggestion, PlatformProfile, PredictionResult
 
 
 def make_outcome(

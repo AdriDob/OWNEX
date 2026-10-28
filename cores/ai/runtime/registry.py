@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from typing import Any
 
@@ -11,9 +12,12 @@ from .adapters import (
     create_cerebras_adapter,
     create_deepinfra_adapter,
     create_fcc_adapter,
+    create_freellmapi_adapter,
     create_groq_adapter,
     create_lmstudio_adapter,
     create_nvidia_adapter,
+    create_ollama_cloud_adapter,
+    create_omniroute_adapter,
     create_opencode_adapter,
     create_openrouter_adapter,
     create_together_adapter,
@@ -21,6 +25,7 @@ from .adapters import (
 from .interfaces import (
     AIProviderProtocol,
     Capability,
+    HealthStatus,
     ModelCapabilities,
     OARConfig,
     RoutingContext,
@@ -41,19 +46,27 @@ class ProviderRegistry:
         self._capabilities_cache: dict[str, ModelCapabilities] = {}
         self._initialized = False
 
-        # Register built-in provider factories
+        # Register built-in provider factories (los no-free se registran bajo demanda)
         self._provider_factories = {
             "ollama": lambda: OllamaAdapter(),
+            "opencode": lambda: create_opencode_adapter(),
+            "ollama_cloud": lambda: create_ollama_cloud_adapter(),
+            "fcc": lambda: create_fcc_adapter(),
+            "nvidia_nim": lambda: create_nvidia_adapter(),
+            "omniroute": lambda: create_omniroute_adapter(),
             "openrouter": lambda: create_openrouter_adapter(),
             "groq": lambda: create_groq_adapter(),
             "together": lambda: create_together_adapter(),
             "deepinfra": lambda: create_deepinfra_adapter(),
             "cerebras": lambda: create_cerebras_adapter(),
-            "nvidia_nim": lambda: create_nvidia_adapter(),
-            "fcc": lambda: create_fcc_adapter(),
-            "opencode": lambda: create_opencode_adapter(),
             "lmstudio": lambda: create_lmstudio_adapter(),
         }
+
+        # FreeLLMAPI es opt-in: sólo existe si el self-hosted está configurado.
+        # Nunca se registra por defecto (si no, cada health check pagaría un
+        # timeout contra un localhost sin servidor).
+        if os.environ.get("FREELLMAPI_BASE_URL"):
+            self._provider_factories["freellmapi"] = lambda: create_freellmapi_adapter()
 
     def register_factory(self, provider_id: str, factory: Callable[[], AIProviderProtocol]) -> None:
         """Register a provider factory for lazy initialization."""
@@ -145,6 +158,17 @@ class ProviderRegistry:
 
             # Check excluded providers
             if provider_id in context.excluded_providers:
+                continue
+
+            # Salud: un provider que falla credenciales, está caído o sin
+            # cuota no es un candidato. Antes no se filtraba por esto y el
+            # routing acababa en FCC aunque ollama estuviera healthy (medido
+            # 2026-10-05), con el idioma de respuesta como síntoma.
+            # UNKNOWN se acepta: al arrancar todavía no hay datos, y quedarse
+            # sin candidatos sería peor que probar.
+            health = getattr(provider, "_last_health", None)
+            status = getattr(health, "status", None)
+            if status is not None and status not in (HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNKNOWN):
                 continue
 
             # Check capabilities

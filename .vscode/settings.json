@@ -68,8 +68,6 @@
   "python.analysis.typeCheckingMode": "basic",
   "ruff.enable": true,
   "ruff.importStrategy": "fromEnvironment",
-  "ruff.lint.run": "onType",
-  "ruff.format.args": [],
   "git.enabled": true,
   "git.autofetch": false,
   "git.enableStatusSync": false,

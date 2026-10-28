@@ -177,3 +177,73 @@ class TestEarningScores:
 
         s = EarningScores.for_category("alien_category")
         assert (s.immediate, s.long_term) == (50, 50)
+
+
+class TestPersonalCashModel:
+    def test_full_model_with_labels(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(reward_usd=500.0, p_accept=0.5, human_hours=10.0, fees_usd=10.0, time_to_cash_days=7.0)
+        assert m.opportunity_value_usd == 500.0
+        assert m.expected_cash_usd == 240.0
+        assert m.expected_net_per_hour_usd == 24.0
+        assert m.time_to_cash_days == 7.0
+        assert m.labels[0] == "HIPOTESIS"
+
+    def test_no_p_means_no_cash(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(reward_usd=500.0, p_accept=None, human_hours=10.0)
+        assert m.expected_cash_usd is None
+        assert m.expected_net_per_hour_usd is None
+        assert "SIN-P" in m.labels and "HIPOTESIS" in m.labels
+
+    def test_no_hours_means_no_rate(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(reward_usd=500.0, p_accept=0.5, human_hours=None)
+        assert m.expected_cash_usd == 250.0
+        assert m.expected_net_per_hour_usd is None
+        assert "SIN-HORAS" in m.labels
+
+    def test_no_time_to_cash_labeled(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(reward_usd=100.0, p_accept=1.0, human_hours=2.0)
+        assert m.time_to_cash_days is None
+        assert "SIN-TIEMPO-COBRO" in m.labels
+
+    def test_calibrated_flips_label(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(reward_usd=100.0, p_accept=0.8, human_hours=2.0, calibrated=True)
+        assert m.labels[0] == "PERSONAL-MEDIDO"
+
+    def test_rate_basis_single_payment_by_default(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        assert personal_cash_model(reward_usd=50.0, p_accept=0.5, human_hours=1.0).rate_basis == "single-payment"
+
+    def test_rate_basis_honors_source(self) -> None:
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        m = personal_cash_model(
+            reward_usd=50.0, p_accept=0.5, human_hours=1.0, hourly_rate_usd=25.0, rate_source="ownex_history"
+        )
+        assert m.rate_basis == "ownex_history"
+        m2 = personal_cash_model(
+            reward_usd=50.0, p_accept=0.5, human_hours=1.0, hourly_rate_usd=25.0, rate_source="invented"
+        )
+        assert m2.rate_basis == "unknown"
+
+    def test_invalid_inputs_fail_closed(self) -> None:
+        import pytest
+
+        from cores.direct_work_engine.economics import personal_cash_model
+
+        with pytest.raises(ValueError):
+            personal_cash_model(reward_usd=-1.0, p_accept=0.5, human_hours=1.0)
+        with pytest.raises(ValueError):
+            personal_cash_model(reward_usd=10.0, p_accept=1.5, human_hours=1.0)
+        with pytest.raises(ValueError):
+            personal_cash_model(reward_usd=10.0, p_accept=0.5, human_hours=1.0, fees_usd=-1.0)

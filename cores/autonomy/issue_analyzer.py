@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.autonomy.repo_analyzer import BrowserResult
+from cores.autonomy.repo_analyzer import BrowserResult
 
 
 @dataclass

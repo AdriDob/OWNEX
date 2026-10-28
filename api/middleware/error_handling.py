@@ -42,6 +42,14 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             response.headers["X-Operation-Id"] = request.state.operation_id
             return response
+        except HTTPException:
+            # Re-lanzar: es una respuesta deliberada del router con su `detail`
+            # (404 "no encontrado", 503 "deshabilitado", 400 "inválido"), no un
+            # fallo. Sin esto `except Exception` la degradaba a 500 genérico y
+            # el usuario perdía TODOS los mensajes de error del sistema —
+            # verificado el 2026-10-05: un 503 con su explicación llegaba
+            # como "Internal server error".
+            raise
         except Exception:
             logger.exception(
                 "unhandled_exception operation_id=%s router=%s operation=%s",

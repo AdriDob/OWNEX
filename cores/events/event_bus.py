@@ -318,4 +318,6 @@ def get_event_bus() -> EventBus:
     return _BUS
 
 
+# Backward compatibility aliases for tests expecting CoreEventBus
+CoreEventBus = EventBus
 get_core_event_bus = get_event_bus

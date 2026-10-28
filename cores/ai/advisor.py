@@ -72,7 +72,7 @@ Contexto actual del sistema:
 - Actividad 24h: {a.get("last_24h", 0)} eventos
 - Scans activos: {ctx.get("scans", {}).get("active", 0)}
 - Programas: {ctx.get("intelligence", {}).get("total_programs", 0)}
-- Quick Wins: {qw.get("total_opportunities", 0)} oportunidades · score {qw.get("avg_quick_win_score", 0)} · valor total ${qw.get("total_estimated_value", 0):,.0f}
+- Quick Wins: {qw.get("total_quick_wins", 0)} quick wins de {qw.get("scored_endpoints", 0)} endpoints puntuados · score {qw.get("avg_quick_win_score", 0)} · mayor índice de prioridad {qw.get("top_priority_index", 0):,.0f} (NO son dólares: índice derivado del riesgo)
 
 Reglas:
 1. Responde solo con datos reales del contexto.
@@ -124,11 +124,19 @@ def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
         top = qw.get("top_opportunities", [])
         cats = qw.get("categories", {})
         if top:
+            # `o['payout']` es un índice de prioridad derivado del riesgo
+            # (`risk_score/100*5000`), no un payout: sin etiqueta de dinero
+            # para que el modelo lo lea como ingreso. KNOWN_DEBT #80.
             lines = [
-                f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · ${o['payout']:,.0f} en {o['effort']}min"
+                f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · "
+                f"índice {o['payout']:,.0f} (no USD) en {o['effort']}min"
                 for o in top
             ]
-            header = f"Quick Wins ({qw.get('total_opportunities', 0)} oportunidades, valor total ${qw.get('total_estimated_value', 0):,.0f}):"
+            header = (
+                f"Quick Wins ({qw.get('total_quick_wins', 0)} de "
+                f"{qw.get('scored_endpoints', 0)} endpoints puntuados, "
+                f"mayor índice de prioridad {qw.get('top_priority_index', 0):,.0f}, no USD):"
+            )
             cat_line = " · ".join(f"{k}: {v}" for k, v in sorted(cats.items())) if cats else ""
             return header + "\n" + ("\n".join(lines)) + ("\n" + cat_line if cat_line else "")
         return "No hay quick wins disponibles. Agrega targets y ejecuta escaneos."

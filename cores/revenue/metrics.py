@@ -6,7 +6,7 @@ acceptance rate, time-to-payout, and monthly revenue.
 
 Usage::
 
-    from core.revenue.metrics import RevenueMetrics
+    from cores.revenue.metrics import RevenueMetrics
     metrics = RevenueMetrics()
     dashboard = metrics.full_dashboard()
 """
@@ -403,14 +403,15 @@ class RevenueMetrics:
             target_count = 0
             scanned_recently = 0
             try:
-                from database.models import Target
+                from database.models import Endpoint, Target
 
                 target_count = session.query(Target).count()
                 scanned_recently = (
-                    session.query(Target)
+                    session.query(Endpoint.target_id)
                     .filter(
-                        Target.last_scanned >= datetime.now(UTC) - timedelta(days=7),
+                        Endpoint.last_scanned >= datetime.now(UTC) - timedelta(days=7),
                     )
+                    .distinct()
                     .count()
                 )
             except Exception:
@@ -432,7 +433,7 @@ class RevenueMetrics:
         }
 
         try:
-            from core.revenue.economic_memory import EconomicMemory
+            from cores.revenue.economic_memory import EconomicMemory
 
             econ = EconomicMemory()
             base["program_ranking"] = econ.rank_programs()[:10]
@@ -456,7 +457,7 @@ class RevenueMetrics:
             base["economic_memory"] = {}
 
         try:
-            from core.target_intelligence.prioritizer import TargetPrioritizer
+            from cores.target_intelligence.prioritizer import TargetPrioritizer
             from database.models import Target
 
             session = SessionLocal()

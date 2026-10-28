@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from threading import Lock
 from typing import Any
@@ -38,7 +38,7 @@ class EscrowAccount:
     status: EscrowStatus = EscrowStatus.CREATED
     description: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     funded_at: datetime | None = None
     expires_at: datetime | None = None
     released_at: datetime | None = None
@@ -58,7 +58,7 @@ class Dispute:
     status: DisputeResolution = DisputeResolution.PENDING
     resolver_id: str | None = None
     resolution: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     resolved_at: datetime | None = None
     split_ratio: float | None = None
 
@@ -86,7 +86,7 @@ class EscrowManager:
         metadata: dict[str, Any] | None = None,
     ) -> str:
         escrow_id = f"esc_{uuid.uuid4().hex[:12]}"
-        expires_at = datetime.utcnow() + (expires_in or self._default_expiry)
+        expires_at = datetime.now(UTC) + (expires_in or self._default_expiry)
         escrow = EscrowAccount(
             id=escrow_id,
             requester_id=requester_id,
@@ -113,7 +113,7 @@ class EscrowManager:
             if hook and not hook(payer_id, escrow.amount):
                 return False
             escrow.status = EscrowStatus.FUNDED
-            escrow.funded_at = datetime.utcnow()
+            escrow.funded_at = datetime.now(UTC)
             return True
 
     def lock_escrow(self, escrow_id: str) -> bool:
@@ -135,7 +135,7 @@ class EscrowManager:
             if release_amount <= 0 or release_amount > escrow.amount - escrow.released_amount:
                 return False
             escrow.released_amount += release_amount
-            escrow.released_at = datetime.utcnow()
+            escrow.released_at = datetime.now(UTC)
             if escrow.released_amount >= escrow.amount:
                 escrow.status = EscrowStatus.RELEASED
             else:
@@ -198,7 +198,7 @@ class EscrowManager:
             dispute.status = resolution
             dispute.resolver_id = resolver_id
             dispute.resolution = resolution_note
-            dispute.resolved_at = datetime.utcnow()
+            dispute.resolved_at = datetime.now(UTC)
             if resolution == DisputeResolution.SPLIT:
                 dispute.split_ratio = split_ratio or 0.5
                 provider_amount = escrow.amount * dispute.split_ratio
@@ -237,7 +237,7 @@ class EscrowManager:
             return result
 
     def check_expired(self) -> list[str]:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expired = []
         with self._lock:
             for escrow in self._escrows.values():
@@ -247,7 +247,7 @@ class EscrowManager:
         return expired
 
     def auto_release_ready(self) -> list[str]:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         released = []
         with self._lock:
             for escrow in self._escrows.values():

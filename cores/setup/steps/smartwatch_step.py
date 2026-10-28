@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.setup.steps import define_step
+from cores.setup.steps import define_step
 
 SMARTWATCH_SCHEMA: dict[str, Any] = {
     "type": "form",

@@ -4,13 +4,13 @@ Every implementation in core/ MUST inherit from these interfaces.
 Apps depend on contracts, not concrete implementations.
 """
 
-from core.interfaces.agent import IAgent
-from core.interfaces.app import IAppPlugin
-from core.interfaces.connector import IConnector
-from core.interfaces.database import IDatabase
-from core.interfaces.event_bus import IEventBus
-from core.interfaces.scheduler import IScheduler
-from core.interfaces.storage import IStorage
+from cores.interfaces.agent import IAgent
+from cores.interfaces.app import IAppPlugin
+from cores.interfaces.connector import IConnector
+from cores.interfaces.database import IDatabase
+from cores.interfaces.event_bus import IEventBus
+from cores.interfaces.scheduler import IScheduler
+from cores.interfaces.storage import IStorage
 
 __all__ = [
     "IConnector",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { HeartPulse } from '@lucide/vue'
+import { computed } from 'vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
 import StatusDot from '@/components/ui/StatusDot.vue'
 

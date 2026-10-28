@@ -160,7 +160,7 @@ def get_platform_credentials(platform: str) -> dict[str, str]:
     cred_prefix = platform_map.get(platform.lower(), platform.lower())
     result = {}
 
-    for field_name, _ in creds.model_fields.items():
+    for field_name, _ in type(creds).model_fields.items():
         if field_name.startswith(cred_prefix + "_"):
             key = field_name[len(cred_prefix) + 1 :]  # Remove prefix + underscore
             value = getattr(creds, field_name)
@@ -224,7 +224,7 @@ async def backup_vault() -> dict[str, Any]:
 
     creds = get_credentials()
     snapshot = {}
-    for field_name in creds.model_fields:
+    for field_name in type(creds).model_fields:
         value = getattr(creds, field_name)
         if value:
             # Mask sensitive values (show first 4 chars + ..redacted..)

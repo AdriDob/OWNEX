@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.context import CopilotContext
-from core.copilot.explain import ExplanationEngine
+from cores.copilot.context import CopilotContext
+from cores.copilot.explain import ExplanationEngine
 
 logger = logging.getLogger("orion.core.copilot.analyzer")
 

@@ -4,8 +4,8 @@ import logging
 from decimal import Decimal
 from typing import Any
 
-from core.revenue_multiplier.config import ExecutionMode, RevenueMultiplierConfig
-from core.revenue_multiplier.models import TradeSignal
+from cores.revenue_multiplier.config import ExecutionMode, RevenueMultiplierConfig
+from cores.revenue_multiplier.models import TradeSignal
 
 logger = logging.getLogger("orion.revenue.crypto")
 
@@ -128,7 +128,7 @@ class CryptoTradingOrchestrator:
         return {"success": True, "simulated": True, "signal": signal}
 
     def _paper_execute(self, signal: TradeSignal) -> dict[str, Any]:
-        from core.trading import Order, OrderSide, OrderType, PaperTradingExecutor, TradingConfig, TradingMode
+        from cores.trading import Order, OrderSide, OrderType, PaperTradingExecutor, TradingConfig, TradingMode
 
         cfg = TradingConfig(
             mode=TradingMode.PAPER_TRADING,
@@ -151,9 +151,9 @@ class CryptoTradingOrchestrator:
 
     def _live_execute(self, signal: TradeSignal) -> dict[str, Any]:
         logger.warning("[LIVE] Executing BUY %.4f %s @ %.6f", signal.quantity, signal.pair, signal.entry_price)
-        from core.trading import Order, OrderSide, OrderType, TradingConfig, TradingMode
-        from core.trading.dex import JupiterClient, SolanaWallet
-        from core.trading.executor import RealExecutor
+        from cores.trading import Order, OrderSide, OrderType, TradingConfig, TradingMode
+        from cores.trading.dex import JupiterClient, SolanaWallet
+        from cores.trading.executor import RealExecutor
 
         cfg = TradingConfig(
             mode=TradingMode.REAL,

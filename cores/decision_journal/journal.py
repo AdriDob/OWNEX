@@ -9,8 +9,8 @@ from datetime import UTC, datetime
 
 from sqlalchemy import desc
 
-from core.database.manager import get_db_manager
-from core.decision_journal.models import Base, DecisionEntry
+from cores.database.manager import get_db_manager
+from cores.decision_journal.models import Base, DecisionEntry
 
 logger = logging.getLogger("orion.core.decision_journal")
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Activity } from '@lucide/vue'
+import { computed } from 'vue'
 
 interface Props {
   data?: any

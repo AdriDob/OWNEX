@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { MessageCircle, X, Sparkles } from '@lucide/vue'
+import { MessageCircle, Sparkles, X } from '@lucide/vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{
   message: string | null
@@ -10,7 +10,9 @@ const emit = defineEmits<{ dismiss: [] }>()
 const visible = ref(false)
 
 onMounted(() => {
-  setTimeout(() => { visible.value = true }, 100)
+  setTimeout(() => {
+    visible.value = true
+  }, 100)
 })
 
 onUnmounted(() => {

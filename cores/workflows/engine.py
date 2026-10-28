@@ -8,7 +8,7 @@ from typing import Any
 
 import yaml
 
-from core.workflows.models import RunStatus, StepType, WorkflowResult, WorkflowRun, WorkflowStep, WorkflowTemplate
+from cores.workflows.models import RunStatus, StepType, WorkflowResult, WorkflowRun, WorkflowStep, WorkflowTemplate
 
 logger = logging.getLogger("orion.core.workflows")
 

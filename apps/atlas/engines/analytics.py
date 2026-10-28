@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from core.normalizer.base import NormalizedPortfolio
+from cores.normalizer.base import NormalizedPortfolio
 
 logger = logging.getLogger("orion.atlas.engines.analytics")
 

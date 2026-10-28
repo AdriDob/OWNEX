@@ -10,8 +10,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.loop.engine import LoopEngine
-from core.loop.registry import get_registry
+from cores.loop.engine import LoopEngine
+from cores.loop.registry import get_registry
 
 logger = logging.getLogger("orion.core.loop.startup")
 
@@ -89,7 +89,7 @@ def _register_default_handlers(engine: LoopEngine) -> None:
     Each phase handler publishes events and logs progress.
     Specific apps can override these with custom handlers via engine.on().
     """
-    from core.loop.models import Phase
+    from cores.loop.models import Phase
 
     async def _report_handler(eng: LoopEngine, ctx: dict[str, Any]) -> None:
         logger.debug("Loop %s: REPORT phase", eng.pattern_id)

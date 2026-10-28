@@ -4,7 +4,7 @@ import logging
 import shutil
 from dataclasses import dataclass, field
 
-from core.revenue_multiplier.models import ToolCategory, ToolStatus
+from cores.revenue_multiplier.models import ToolCategory, ToolStatus
 
 logger = logging.getLogger("orion.revenue.tool_registry")
 

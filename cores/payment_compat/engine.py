@@ -148,6 +148,16 @@ class PaymentMatch:
     function: str
     reason: str = ""
     score: float = 0.0
+    # MONEY VALIDATION (2026-09-11): True when the user actually configured
+    # this account (rails reales). A match with configured=False is a
+    # theoretical route, never proof of collectability.
+    configured: bool = False
+
+
+# Account rail status (MONEY VALIDATION tri-state, approved 2026-09-11).
+ACCOUNT_CONFIGURED = "CONFIGURED"
+ACCOUNT_NOT_CONFIGURED = "NOT_CONFIGURED"
+ACCOUNT_UNVERIFIED = "UNVERIFIED"  # id not in the curated catalog at all
 
 
 @dataclass
@@ -159,6 +169,8 @@ class PaymentVerdict:
     score: float
     requirement: dict[str, Any]
     matches: list[PaymentMatch] = field(default_factory=list)
+    # MONEY VALIDATION: how many matches run on rails the user configured.
+    configured_matches: int = 0
     off_ramp: list[PaymentMatch] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
     honest_notes: list[str] = field(default_factory=list)
@@ -196,11 +208,45 @@ class PaymentCompatibilityEngine:
         """Get the list of configured account IDs."""
         return list(self._configured_accounts)
 
+    def account_status(self, account_id: str) -> str:
+        """Tri-state rail status for one account id (MONEY VALIDATION).
+
+        CONFIGURED = user marked it as theirs; NOT_CONFIGURED = curated but
+        not marked; UNVERIFIED = id unknown to the catalog (never assumed).
+        """
+        if account_id in self._configured_accounts:
+            return ACCOUNT_CONFIGURED
+        if get_account_or_none(account_id) is None:
+            return ACCOUNT_UNVERIFIED
+        return ACCOUNT_NOT_CONFIGURED
+
+    def list_account_statuses(self) -> list[dict[str, str]]:
+        """Status of every curated account (for UI + P_REWARD wiring)."""
+        return [{"id": a.id, "name": a.name, "status": self.account_status(a.id)} for a in self._network]
+
+    def has_cvu_configured(self) -> bool:
+        """Check if any configured account supports CVU withdrawals (local ARS off-ramp)."""
+        cvu_account_ids = {
+            a.id
+            for a in self._network
+            if a.layer == PaymentLayer.BANKING
+            and a.function in (PaymentFunction.LOCAL, PaymentFunction.PAYOUT)
+            and any(m in {"cvu", "cbu", "local_transfer"} for m in a.methods)
+        }
+        return bool(set(self._configured_accounts) & cvu_account_ids)
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def evaluate(self, requirement: PaymentRequirement) -> PaymentVerdict:
-        """Evaluate a single payment requirement against the network."""
+    def evaluate(self, requirement: PaymentRequirement, require_configured: bool = False) -> PaymentVerdict:
+        """Evaluate a single payment requirement against the network.
+
+        MONEY VALIDATION (2026-09-11): with ``require_configured=True`` only
+        matches on rails the user actually configured count. ``compatible``
+        stays catalog-level (a route exists); ``viable`` and ``score`` then
+        reflect real collectability. Default False preserves the catalog
+        contract for existing callers.
+        """
         req = self._normalize_requirement(requirement)
         honest_notes: list[str] = []
         missing: list[str] = []
@@ -219,13 +265,24 @@ class PaymentCompatibilityEngine:
                 f"requiere cuenta en {method_region.upper()}, pedida para {req.region.upper()}."
             )
         matches = self._find_matches(req)
+        configured = [m for m in matches if m.configured]
+        hard_blocked = bool(documentation)
 
-        score = self._score_requirement(req, matches, bool(documentation))
-        compatible = bool(matches) and not missing and not documentation
-        viable = compatible
+        if require_configured and matches and not configured:
+            names = ", ".join(m.account_name for m in matches[:2])
+            missing.append(f"Ninguna cuenta coincidente está configurada ({names}). Configurar rails reales.")
+            honest_notes.append("Ruta teórica disponible, pero sin rail configurado no es cobrable.")
+            score = 0.0
+            compatible = bool(matches) and not hard_blocked
+            viable = False
+        else:
+            score = self._score_requirement(req, configured if require_configured else matches, bool(documentation))
+            compatible = bool(matches) and not missing and not documentation
+            viable = compatible
 
-        if compatible and req.amount > 0:
-            for m in matches:
+        if viable and req.amount > 0:
+            pool = configured if require_configured else matches
+            for m in pool:
                 if m.score < 40:
                     viable = False
                     missing.append(f"{m.account_name}: condiciones limitadas para este monto")
@@ -236,6 +293,7 @@ class PaymentCompatibilityEngine:
             score=round(score, 1),
             requirement=self._requirement_dict(req),
             matches=matches,
+            configured_matches=len(configured),
             missing=missing,
             honest_notes=honest_notes,
         )
@@ -244,9 +302,10 @@ class PaymentCompatibilityEngine:
         self,
         requirement: PaymentRequirement,
         final_currency: str = "ARS",
+        require_configured: bool = True,
     ) -> PaymentVerdict:
         """Evaluate receive + off-ramp: can OWNEX receive AND convert to the final currency."""
-        verdict = self.evaluate(requirement)
+        verdict = self.evaluate(requirement, require_configured=require_configured)
         if not verdict.compatible:
             return verdict
 
@@ -288,6 +347,48 @@ class PaymentCompatibilityEngine:
             "by_layer": by_layer,
             "by_function": by_function,
             "by_region": by_region,
+        }
+
+    def ranked_argentina_methods(self) -> dict[str, Any]:
+        """Proveedores usables desde Argentina, ordenados por comisión.
+
+        Fuente: ``ARGENTINA_PAYOUT_METHODS`` (solo ``argentina_compatible``).
+        Orden: ``fees.percentage`` ascendente, desempate por
+        ``reliability_score`` descendente. Las patas de comisión (fixed /
+        percentage / withdrawal) tienen semánticas mixtas según el método,
+        así que se exponen crudas: el orden es orientativo, no una verdad
+        contable. Entradas nuevas (ej. bitwage) llevan su advertencia de
+        verificación en ``notes``/``cons``.
+        """
+        rows: list[dict[str, Any]] = []
+        for method in ARGENTINA_PAYOUT_METHODS:
+            if not method.argentina_compatible:
+                continue
+            fees = method.fees or {}
+            rows.append(
+                {
+                    "id": method.id,
+                    "name": method.name,
+                    "type": method.type.value,
+                    "fee_fixed": float(fees.get("fixed", 0.0) or 0.0),
+                    "fee_percentage": float(fees.get("percentage", 0.0) or 0.0),
+                    "fee_withdrawal": float(fees.get("withdrawal", 0.0) or 0.0),
+                    "reliability_score": method.reliability_score,
+                    "minimum_withdrawal": method.minimum_withdrawal,
+                    "timing_days": method.timing,
+                    "routes": list(method.routes),
+                    "pros": list(method.pros),
+                    "cons": list(method.cons),
+                    "notes": method.notes,
+                    "kyc_level": method.kyc_level.value,
+                }
+            )
+        rows.sort(key=lambda r: (r["fee_percentage"], -r["reliability_score"]))
+        return {
+            "total": len(rows),
+            "ordered_by": ["fee_percentage ASC", "reliability_score DESC"],
+            "disclaimer": "Comisiones con semánticas mixtas por método (fijo vs %); orden orientativo. Verificar términos vigentes con cada proveedor antes de mover dinero.",
+            "methods": rows,
         }
 
     # ------------------------------------------------------------------
@@ -336,6 +437,11 @@ class PaymentCompatibilityEngine:
         if req.region == "global" and payment_function_boost(account.function) < 0:
             score += payment_function_boost(account.function)
 
+        # CVU boost per-match: si el usuario tiene CVU y la cuenta soporta salida a CVU,
+        # bonificar el score individual (especialmente útil para off_ramp).
+        if self.has_cvu_configured() and account.supports_cvu_out:
+            score += 8.0
+
         # Enriquecimiento con metadatos desde ArgentinaPayoutMethods
         meta = _get_payout_meta(account.id)
         if meta:
@@ -357,6 +463,7 @@ class PaymentCompatibilityEngine:
             function=_FUNCTION_LABELS.get(account.function, account.function.value),
             reason=reason,
             score=score,
+            configured=account.id in self._configured_accounts,
         )
 
     def _match_reason(self, account: OwnAccount, req: PaymentRequirement, is_off_ramp: bool) -> str:
@@ -404,8 +511,18 @@ class PaymentCompatibilityEngine:
             if account and account.payout_ref:
                 documented_bonus = max(documented_bonus, min(5.0, account.payout_ref and 5 or 0))
                 break
+        # CVU boost: si el usuario tiene CVU configurado y la requirement implica
+        # conversión a ARS, bonificar cuentas que soporten salida a CVU.
+        cvu_bonus = 0.0
+        if self.has_cvu_configured():
+            for m in matches:
+                account = get_account(m.account_id)
+                if account and account.supports_cvu_out:
+                    # Boost moderado (0-10 puntos) por tener off-ramp CVU real
+                    cvu_bonus = max(cvu_bonus, 8.0)
+                    break
         coverage = len(matches) / max(1, len(self._network)) * 20
-        return min(100.0, best * 0.8 + coverage + documented_bonus)
+        return min(100.0, best * 0.8 + coverage + documented_bonus + cvu_bonus)
 
     def _normalize_requirement(self, req: PaymentRequirement) -> PaymentRequirement:
         region = (req.region or "global").lower()

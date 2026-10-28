@@ -44,6 +44,82 @@ EVENT_PUSH_MAP: dict[str, dict[str, Any]] = {
         "icon": "system",
         "ttl": 3600,
     },
+    # ── Outcomes de envío (2026-09-16) ───────────────────────────
+    # El agua: sin estos, submit/claim/merge/paid morían en el EventBus
+    # sin llegar a ninguna pantalla. Todo dinero es `critical` — mismo
+    # criterio que el resto del mapa.
+    "submission:submitted": {
+        "title": "Submission Enviado",
+        "priority": "high",
+        "icon": "opportunity",
+        "ttl": 43200,
+    },
+    "submission:confirmed": {
+        "title": "Submission Confirmado",
+        "priority": "high",
+        "icon": "opportunity",
+        "ttl": 86400,
+    },
+    "submission:dead_letter": {
+        "title": "Submission a DLQ",
+        "priority": "critical",
+        "icon": "warning",
+        "ttl": 86400,
+    },
+    "devbounty:claimed": {
+        "title": "Bounty Reclamado",
+        "priority": "high",
+        "icon": "opportunity",
+        "ttl": 43200,
+    },
+    "devbounty:claim_failed": {
+        "title": "Bounty NO Reclamado",
+        "priority": "high",
+        "icon": "warning",
+        "ttl": 43200,
+    },
+    "devbounty:pr_created": {
+        "title": "PR Abierto",
+        "priority": "high",
+        "icon": "opportunity",
+        "ttl": 43200,
+    },
+    "devbounty:merged_paid": {
+        "title": "Bounty Mergeado y Pagado",
+        "priority": "critical",
+        "icon": "money",
+        "ttl": 86400,
+    },
+    "devbounty:merge_pending": {
+        "title": "Merge Pendiente",
+        "priority": "medium",
+        "icon": "opportunity",
+        "ttl": 43200,
+    },
+    "trading:killswitch_on": {
+        "title": "Kill-Switch ACTIVADO",
+        "priority": "critical",
+        "icon": "warning",
+        "ttl": 86400,
+    },
+    "trading:killswitch_off": {
+        "title": "Kill-Switch desactivado",
+        "priority": "critical",
+        "icon": "warning",
+        "ttl": 86400,
+    },
+    "scheduler:job_failed": {
+        "title": "Job del Scheduler Murió",
+        "priority": "high",
+        "icon": "warning",
+        "ttl": 43200,
+    },
+    "revenue:payout_recorded": {
+        "title": "Payout Registrado",
+        "priority": "critical",
+        "icon": "money",
+        "ttl": 86400,
+    },
     "system:degraded": {
         "title": "System Degraded",
         "priority": "critical",

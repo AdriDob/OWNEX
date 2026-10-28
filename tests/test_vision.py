@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.copilot.vision import analyze_image, describe_for_prompt, img_to_base64
+from cores.copilot.vision import analyze_image, describe_for_prompt, img_to_base64
 
 
 def test_analyze_nonexistent():

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass
 
+from cores.direct_work_engine.economics import HumanTimeAdjustedROI
 from cores.direct_work_engine.models import (
     EmploymentType,
     ExperienceLevel,
@@ -65,11 +67,18 @@ class RecommenderConfig:
     min_acceptance_probability: float = 0.1
     min_compatibility: float = 0.3
     enforce_acceptance_floor: bool = False
+    enforce_evidence_gate: bool = False
+    # Payment collectability floor (0-100). 0 = no filter, used by ultra-secure modes
+    # to guarantee near-100% cobro. Enforced in __recommend after payment compat scoring.
+    min_payment_compat_score: float = 0.0
 
     # Diversity
     max_per_platform: int = 3
     max_per_category: int = 5
     enforce_diversity: bool = True
+
+    # Upside boost (for HIGH_UPSIDE_90D mode)
+    upside_boost: bool = False
 
     def validate(self) -> bool:
         total = (
@@ -134,6 +143,206 @@ _MAX_INCOME_CONFIG = RecommenderConfig(
 MAX_INCOME_RECOMMENDER_CONFIG = _MAX_INCOME_CONFIG
 
 
+# HIGH_UPSIDE_90D Mode — 90-day bounty moonshot: high reward, low acceptance,
+# high evidence gate. EV leads; low barrier weight; upside_boost=True to
+# surface high-reward opportunities even with low acceptance probability.
+_HIGH_UPSIDE_90D_CONFIG = RecommenderConfig(
+    weight_expected_value=0.38,
+    weight_acceptance_probability=0.19,
+    weight_speed=0.14,
+    weight_zero_barrier=0.10,
+    weight_compatibility=0.10,
+    weight_reputation=0.09,
+    min_zero_barrier_score=40.0,
+    min_expected_value=200.0,
+    min_acceptance_probability=0.15,
+    enforce_evidence_gate=True,
+    upside_boost=True,
+)
+
+HIGH_UPSIDE_90D_RECOMMENDER_CONFIG = _HIGH_UPSIDE_90D_CONFIG
+
+
+# HIGH_CONFIDENCE_90 Mode — 90-day bounty moonshot with strict evidence gate.
+# EV leads; acceptance keeps it honest; barrier weight drops because upside
+# lives behind capability gates (assessments), not behind zero entry.
+# Niche priority + freshness + low competition + personal reward rate are applied
+# by the evidence gate step, not by weights alone.
+_HIGH_CONFIDENCE_90_CONFIG = RecommenderConfig(
+    weight_expected_value=0.15,
+    weight_acceptance_probability=0.50,  # HIGHEST weight
+    weight_zero_barrier=0.10,
+    weight_compatibility=0.10,
+    weight_speed=0.10,
+    weight_reputation=0.05,
+    min_acceptance_probability=0.90,  # HARD FLOOR
+    min_zero_barrier_score=70.0,
+    min_expected_value=100.0,
+    enforce_acceptance_floor=True,
+    enforce_evidence_gate=True,  # NEW FLAG: enforce EvidenceGate
+    max_per_platform=2,
+    max_per_category=3,
+    upside_boost=False,  # NO upside boost — purity mode
+)
+
+HIGH_CONFIDENCE_90_RECOMMENDER_CONFIG = _HIGH_CONFIDENCE_90_CONFIG
+
+# Zero-First Mode — beginner with no history: barrier-minimal + fast + likely.
+# No acceptance floor (a newcomer has no history to floor on — the floor would
+# nuke everything). New-user flows request this mode explicitly; balanced
+# NEVER auto-switches (pinned deterministic behavior for existing callers).
+_ZERO_FIRST_CONFIG = RecommenderConfig(
+    weight_zero_barrier=0.30,
+    weight_speed=0.25,
+    weight_acceptance_probability=0.25,
+    weight_expected_value=0.10,
+    weight_compatibility=0.05,
+    weight_reputation=0.05,
+    min_zero_barrier_score=60.0,
+    min_expected_value=0.0,
+    min_acceptance_probability=0.1,
+)
+
+ZERO_FIRST_RECOMMENDER_CONFIG = _ZERO_FIRST_CONFIG
+
+# NEAR-GUARANTEED Mode — sube P(cobro) al máximo posible sin fabricar 100%.
+# Diseñado para el objetivo "lo más cerca al 100% de cobro": acceptance 0.55 +
+# compatibility 0.20 capturan historial real + fit personal, barrier 0.15
+# asegura entrada rápida, EV y speed casi no pesan (0.05/0.00) para no
+# distraer con premios grandes pero inciertos. Filtros:
+#   - acceptance >= 0.70 (solo historial probado y bajo fricción)
+#   - zero_barrier >= 65 (sin fricción alta)
+#   - payment_compat y evidence_gate NO filtran duro (penalización por score,
+#     no eliminación) para no dejar la cola vacía cuando el usuario aún no
+#     configuró rails o evidencia. La honestidad se mantiene: cap 0.99 nunca 1.0.
+# Nunca promete 100%: el cap honesto es 0.99 (ver _calculate_acceptance_probability).
+_NEAR_GUARANTEED_CONFIG = RecommenderConfig(
+    weight_acceptance_probability=0.55,
+    weight_compatibility=0.20,
+    weight_zero_barrier=0.15,
+    weight_expected_value=0.05,
+    weight_speed=0.00,
+    weight_reputation=0.05,
+    min_zero_barrier_score=65.0,
+    min_expected_value=0.0,
+    min_acceptance_probability=0.70,
+    min_payment_compat_score=0.0,
+    enforce_acceptance_floor=True,
+    enforce_evidence_gate=False,
+    max_per_platform=2,
+    max_per_category=2,
+    upside_boost=False,
+)
+
+NEAR_GUARANTEED_RECOMMENDER_CONFIG = _NEAR_GUARANTEED_CONFIG
+
+# JACKPOT Mode — pure moonshot: maximum payout, extreme difficulty,
+# ultra-low acceptance. Pure upside hunting for Microsoft Hyper-V ($250k),
+# Chrome RCE ($250k), OpenAI Bio ($50k), etc. Only for dedicated moonshot
+# time allocation (5-10% of total time). Never default, always explicit.
+_JACKPOT_CONFIG = RecommenderConfig(
+    weight_expected_value=0.05,
+    weight_acceptance_probability=0.05,
+    weight_zero_barrier=0.05,
+    weight_compatibility=0.10,
+    weight_speed=0.05,
+    weight_reputation=0.10,
+    upside_boost=True,
+    min_expected_value=10000.0,
+    min_acceptance_probability=0.01,
+    min_zero_barrier_score=0.0,
+    enforce_evidence_gate=True,
+    max_per_platform=1,
+    max_per_category=1,
+)
+
+JACKPOT_RECOMMENDER_CONFIG = _JACKPOT_CONFIG
+
+# Country aliases for eligibility matching (lowercase, stripped).
+_COUNTRY_ALIASES = {
+    "ar": "argentina",
+    "arg": "argentina",
+    "usa": "united states",
+    "us": "united states",
+    "uk": "united kingdom",
+    "uae": "united arab emirates",
+}
+
+
+def _normalize_country(raw: object) -> str:
+    key = str(getattr(raw, "value", raw) or "").strip().lower()
+    return _COUNTRY_ALIASES.get(key, key)
+
+
+def filter_by_region(
+    opportunities: list[Opportunity],
+    region: str | None,
+) -> list[Opportunity]:
+    """Keep opportunities whose allowed_countries include the region.
+
+    Empty allowed_countries = global (always passes). Empty region = no
+    filtering (legacy behavior). Never invents eligibility.
+    """
+    norm = _normalize_country(region) if region else ""
+    if not norm:
+        return opportunities
+    kept: list[Opportunity] = []
+    for opp in opportunities:
+        allowed = [c for c in (getattr(opp, "allowed_countries", None) or []) if str(c).strip()]
+        if not allowed:
+            kept.append(opp)
+            continue
+        if any(_normalize_country(c) == norm for c in allowed):
+            kept.append(opp)
+    return kept
+
+
+# SECURE_INCOME Mode — base segura: máxima P(cobrar) + mínimo tiempo sin
+# ingresos. Acceptance y velocidad mandan; EV y barrera acompañan; floor
+# duro 0.50 + diversidad forzada (2/plataforma, 3/categoría) para varias
+# fuentes independientes. Bug bounty solo surfaces si pasa el floor
+# (upside, nunca renta base).
+_SECURE_INCOME_CONFIG = RecommenderConfig(
+    weight_acceptance_probability=0.35,
+    weight_speed=0.25,
+    weight_expected_value=0.15,
+    weight_zero_barrier=0.15,
+    weight_compatibility=0.05,
+    weight_reputation=0.05,
+    min_acceptance_probability=0.5,
+    min_zero_barrier_score=60.0,
+    min_expected_value=20.0,
+    enforce_acceptance_floor=True,
+    max_per_platform=2,
+    max_per_category=3,
+)
+
+SECURE_INCOME_RECOMMENDER_CONFIG = _SECURE_INCOME_CONFIG
+
+
+# SECURE_PLUS_UPSIDE Mode — modo normal: base segura + upside medido.
+# Mismos pesos base pero floor apagado y piso 0.30 para dejar entrar
+# upside de alto EV con P(CASH) visible. Guía de uso: ~2h base segura,
+# ~1.5h dev bounty, ~0.5h bug bounty alto EV (el splitter automático
+# por horas es follow-up, no parte de este preset).
+_SECURE_PLUS_UPSIDE_CONFIG = RecommenderConfig(
+    weight_acceptance_probability=0.30,
+    weight_expected_value=0.25,
+    weight_speed=0.15,
+    weight_zero_barrier=0.15,
+    weight_compatibility=0.10,
+    weight_reputation=0.05,
+    min_acceptance_probability=0.3,
+    min_zero_barrier_score=30.0,
+    min_expected_value=10.0,
+    enforce_acceptance_floor=False,
+    max_per_platform=3,
+    max_per_category=5,
+)
+
+SECURE_PLUS_UPSIDE_RECOMMENDER_CONFIG = _SECURE_PLUS_UPSIDE_CONFIG
+
+
 def filter_zero_experience(opportunities: list[Opportunity]) -> list[Opportunity]:
     """Keep only opportunities doable WITHOUT prior experience in the category.
 
@@ -185,6 +394,7 @@ class IntelligentRecommender:
         self.scorer = scorer or ZeroBarrierScorer()
         if not self.config.validate():
             raise ValueError("Recommender config weights must sum to 1.0")
+        self._current_mode: str = "balanced"
 
     def recommend(
         self,
@@ -194,6 +404,7 @@ class IntelligentRecommender:
         mode: str = "balanced",
         zero_experience_only: bool = False,
         zero_barrier_strict: bool = False,
+        region: str | None = None,
     ) -> list[RankedOpportunity]:
         """Generate ranked recommendations for a user profile.
 
@@ -208,6 +419,37 @@ class IntelligentRecommender:
         ``mode="max_income"`` maximizes expected weekly income across ALL work
         shapes (hourly streams, bounties, fillers) — not just nominal rate.
 
+        ``mode="high_upside_90d"`` swaps the config to the High Upside 90-Day
+        preset: EV-led moonshot with evidence gate and upside boost for
+        high-reward, low-acceptance bounty opportunities.
+
+        ``mode="high_confidence_90"`` swaps the config to the High Confidence 90
+        preset: acceptance floor 0.90 with evidence gate (purity mode).
+
+        ``mode="secure_income"`` swaps the config to the Secure Income preset:
+        base segura — acceptance 0.35 + speed 0.25 with a hard 0.50 floor and
+        forced diversification (2/platform, 3/category). Bug bounty only
+        surfaces when it passes the floor (upside, never base rent).
+
+        ``mode="secure_plus_upside"`` is the normal mode: secure base plus
+        measured upside — floor off, 0.30 minimum, same secure weights tilted
+        toward EV. Usage guide: ~2h secure base, ~1.5h dev bounty,
+        ~0.5h high-EV bug bounty (hour splitter is follow-up).
+
+        ``mode="zero_first"`` is the beginner mode (no history): barrier-minimal
+        first, then speed and acceptance. No acceptance floor (nothing to floor
+        on). New-user flows request it explicitly — balanced never auto-switches,
+        so existing callers keep byte-identical behavior.
+
+        ``mode="near_guaranteed"`` maximizes P(cobro) as close to 100% as honest
+        evidence allows: acceptance 0.55 + compatibility 0.20, floor 0.88,
+        payment_compat 85, barrier 70, evidence gate ON. Cap 0.99 (never 1.0).
+        Use when the user wants minimum risk, maximum collectability.
+
+        ``region`` filters by ``allowed_countries`` (empty = global, passes).
+        Defaults to ``profile.country``; explicit value overrides. ``None`` and
+        empty both mean "no filtering" (legacy behavior).
+
         Keyword filters (independent of mode):
 
         ``zero_experience_only`` drops opportunities requiring prior experience
@@ -218,14 +460,34 @@ class IntelligentRecommender:
         Any other mode (or no mode) restores the balanced preset, so a previous
         preset call never leaks into later ones.
         """
+        self._current_mode = mode
         if mode == "fast_income":
             self.config = _FAST_INCOME_CONFIG
         elif mode == "max_success":
             self.config = _MAX_SUCCESS_CONFIG
         elif mode == "max_income":
             self.config = _MAX_INCOME_CONFIG
+        elif mode == "high_upside_90d":
+            self.config = _HIGH_UPSIDE_90D_CONFIG
+        elif mode == "high_confidence_90":
+            self.config = _HIGH_CONFIDENCE_90_CONFIG
+        elif mode == "secure_income":
+            self.config = _SECURE_INCOME_CONFIG
+        elif mode == "secure_plus_upside":
+            self.config = _SECURE_PLUS_UPSIDE_CONFIG
+        elif mode == "zero_first":
+            self.config = _ZERO_FIRST_CONFIG
+        elif mode == "near_guaranteed":
+            self.config = _NEAR_GUARANTEED_CONFIG
+        elif mode == "jackpot":
+            self.config = _JACKPOT_CONFIG
         else:
             self.config = DEFAULT_RECOMMENDER_CONFIG
+        effective_region = region if region is not None else getattr(profile, "country", None)
+        if effective_region:
+            opportunities = filter_by_region(opportunities, str(effective_region))
+            if not opportunities:
+                return []
         if zero_experience_only:
             opportunities = filter_zero_experience(opportunities)
         if zero_barrier_strict:
@@ -288,9 +550,29 @@ class IntelligentRecommender:
             if not scored_opps:
                 return []
 
+        # 2c. Evidence Gate (HIGH_CONFIDENCE_90): filter by evidence gate status.
+        #     Only opportunities with HIGH_CONFIDENCE or READY_FOR_HUMAN_REVIEW
+        #     pass the gate. This is a hard filter — no exceptions.
+        if self.config.enforce_evidence_gate:
+            scored_opps = [
+                opp
+                for opp in scored_opps
+                if getattr(opp.opportunity, "evidence_gate_status", "NOT_READY")
+                in ("HIGH_CONFIDENCE", "READY_FOR_HUMAN_REVIEW")
+            ]
+            if not scored_opps:
+                return []
+
+        # 2d. Payment collectability floor (NEAR_GUARANTEED): solo rails verificados.
+        #     Exige cobrabilidad >= min_payment_compat_score (0 = no filtro).
+        if self.config.min_payment_compat_score > 0:
+            scored_opps = [
+                opp for opp in scored_opps if opp.payment_compat_score >= self.config.min_payment_compat_score
+            ]
+            if not scored_opps:
+                return []
+
         # 3. Calculate compatibility score
-        for opp in scored_opps:
-            opp.compatibility_score = self._calculate_compatibility(opp, profile)
 
         # 4. Calculate speed score (inverse of time to payment)
         for opp in scored_opps:
@@ -307,6 +589,14 @@ class IntelligentRecommender:
         # 7. Calculate expected value
         for opp in scored_opps:
             opp.expected_value = self._calculate_expected_value(opp)
+
+        # 7b. Calculate HTROI (Human-Time Adjusted ROI) — Fase C
+        for opp in scored_opps:
+            opp.htroi = self._calculate_htroi(opp)
+
+        # 7c. Calculate P(CASH) — Fase SECURE: acceptance x cobrabilidad.
+        for opp in scored_opps:
+            self._calculate_p_cash(opp)
 
         # 8. Calculate overall recommendation score
         for opp in scored_opps:
@@ -334,18 +624,27 @@ class IntelligentRecommender:
         """Apply profile preferences as hard filters before scoring.
 
         Excluded categories never surface. Rewards below the user's floor are
-        dropped. When no preference is set the profile is a no-op, so legacy
+        dropped. L4 application gating: opted-out interview/CV-portfolio steps
+        filter their opportunities (defaults opt-in = legacy no-op).
+        When no preference is set the profile is a no-op, so legacy
         callers keep their exact behavior.
         """
         excluded = {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories}
-        if not excluded and profile.min_payment <= 0.0:
+        allow_interview = getattr(profile, "allow_interview", True)
+        allow_cv = getattr(profile, "allow_cv_portfolio", True)
+        if not excluded and profile.min_payment <= 0.0 and allow_interview and allow_cv:
             return opportunities
 
         filtered: list[Opportunity] = []
         for opp in opportunities:
-            if opp.category.value in excluded:
+            cat_val = getattr(opp.category, "value", opp.category)
+            if cat_val in excluded:
                 continue
             if profile.min_payment > 0.0 and opp.payment < profile.min_payment:
+                continue
+            if not allow_interview and opp.interview_required:
+                continue
+            if not allow_cv and opp.portfolio_required:
                 continue
             filtered.append(opp)
         return filtered
@@ -354,7 +653,16 @@ class IntelligentRecommender:
         """Score opportunities and convert to RankedOpportunity."""
         ranked: list[RankedOpportunity] = []
 
+        try:
+            from cores.direct_work_engine.category_funnel import funnel_for_category
+        except Exception:
+            funnel_for_category = None  # type: ignore[assignment]
+
         for opp in opportunities:
+            # Stamp the category funnel (never overwrite an explicit value).
+            if not getattr(opp, "funnel", "") and funnel_for_category is not None:
+                with contextlib.suppress(Exception):
+                    opp.funnel = funnel_for_category(opp.category)
             # Ensure zero barrier score exists
             if opp.zero_barrier_score is None:
                 opp.zero_barrier_score = self.scorer.score(opp)
@@ -395,10 +703,17 @@ class IntelligentRecommender:
                     currency="USDC" if method == "crypto" else "USD",
                     region="global",
                     amount=opp.payment,
-                )
+                ),
+                # MONEY VALIDATION: P_REWARD depends on rails the user really
+                # configured, never on the theoretical catalog.
+                require_configured=True,
             )
             ranked.payment_compat_score = verdict.score
-            if verdict.compatible:
+            if verdict.configured_matches == 0 and verdict.matches:
+                ranked.payment_compat_notes.append(
+                    "Sin rail configurado para este método: " + "; ".join(verdict.missing[:1])
+                )
+            elif verdict.compatible:
                 ranked.payment_compat_notes.append("Pago cobrable con las cuentas configuradas de OWNEX.")
             elif verdict.matches:
                 ranked.payment_compat_notes.append(
@@ -413,7 +728,17 @@ class IntelligentRecommender:
             ranked.payment_compat_notes.append("Evaluación de pago no disponible (motor no responde).")
 
     def _calculate_acceptance_probability(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
-        """Estimate probability of acceptance based on profile match."""
+        """Estimate probability of acceptance based on profile match.
+
+        NOTE (Phase 6 decision): the universal engine is NOT consulted on the
+        default path. Personal history already personalizes this heuristic via
+        the in-memory profile (platform/category success rates folded by
+        apply_learning), while the global learning store would make rankings
+        ambient-dependent and break deterministic tests. Explicit callers that
+        want calibrated estimates use UniversalProbabilityEngine directly
+        (see rank_cross_category / is_high_confidence_90). Adoption on the
+        default path is a follow-up requiring test-isolation design.
+        """
         opp = ranked.opportunity
         zb = ranked.zero_barrier_score
 
@@ -432,14 +757,19 @@ class IntelligentRecommender:
         base_prob *= 0.6 + 0.4 * skill_match
 
         # Adjust for platform history
-        platform_hist = profile.platform_success_rates.get(opp.platform.value, 0.5)
+        platform_val = opp.platform.value if hasattr(opp.platform, "value") else opp.platform
+        platform_hist = profile.platform_success_rates.get(platform_val, 0.5)
         base_prob *= 0.7 + 0.3 * platform_hist
 
         # Adjust for category history
-        cat_hist = profile.category_success_rates.get(opp.category.value, 0.5)
+        cat_val = opp.category.value if hasattr(opp.category, "value") else opp.category
+        cat_hist = profile.category_success_rates.get(cat_val, 0.5)
         base_prob *= 0.8 + 0.2 * cat_hist
 
-        return max(0.01, min(0.95, base_prob))
+        # Cap honesto: 0.99 máximo (nunca 1.0 fabricado). El 0.95 anterior
+        # subestimaba historial fuerte; ahora permitimos 0.99 cuando evidencia
+        # es alta, manteniendo incertidumbre mínima. Ver NEAR_GUARANTEED.
+        return max(0.01, min(0.99, base_prob))
 
     def _calculate_compatibility(self, ranked: RankedOpportunity, profile: UserProfile) -> float:
         """Calculate user-opportunity compatibility score (0-1)."""
@@ -465,6 +795,11 @@ class IntelligentRecommender:
         # Remote preference
         remote_match = 1.0 if (not profile.remote_only or opp.remote) else 0.0
         score += remote_match
+        factors += 1
+
+        # Modality fit (presencial/híbrido score against profile zone + commute;
+        # remote legacy path unchanged when no modality info exists)
+        score += self._modality_fit(opp, profile)
         factors += 1
 
         # Payment method preference
@@ -493,6 +828,45 @@ class IntelligentRecommender:
         factors += 1
 
         return score / factors if factors > 0 else 0.5
+
+    @staticmethod
+    def _modality_fit(opp: Opportunity, profile: UserProfile) -> float:
+        """Score work-modality fit 0-1. Neutral (0.75) when either side is silent.
+
+        Presencial with matching zone inside max commute scores high (backup-
+        income path); zone mismatch or over-long commute scores low. Never
+        rejects — rejection stays in StrictFilter for the ABSOLUTE tier.
+        """
+        from cores.direct_work_engine.models import Modality
+
+        def _val(x: object) -> str:
+            return str(getattr(x, "value", x) or "").lower()
+
+        opp_mod = _val(getattr(opp, "modality", "remoto"))
+        pref = getattr(profile, "preferred_modality", None)
+        if pref is not None and _val(pref) == opp_mod:
+            base = 1.0
+        elif pref is None:
+            base = 0.75
+        else:
+            base = 0.4
+        if opp_mod != Modality.PRESENCIAL.value:
+            return base
+        prof_zone = (getattr(profile, "zone", "") or "").strip().lower()
+        opp_zone = (getattr(opp, "zone", "") or "").strip().lower()
+        if prof_zone and opp_zone and prof_zone != opp_zone:
+            return min(base, 0.3)
+        max_commute = getattr(profile, "max_commute_minutes", None)
+        commute = getattr(opp, "commute_minutes", None)
+        if max_commute is not None and commute is not None:
+            try:
+                if float(commute) > float(max_commute):
+                    return min(base, 0.2)
+            except (TypeError, ValueError):
+                pass
+        if prof_zone and opp_zone and prof_zone == opp_zone:
+            return max(base, 0.9)
+        return base
 
     def _experience_match(self, opp: Opportunity, profile: UserProfile) -> float:
         """Match opportunity experience requirement to user level."""
@@ -571,7 +945,16 @@ class IntelligentRecommender:
         from cores.direct_work_engine.models import PAYMENT_RELIABILITY
 
         opp = ranked.opportunity
-        reliability = PAYMENT_RELIABILITY.get(opp.payment_method, 0.5)
+        # Handle both enum and string payment methods
+        pm = opp.payment_method
+        if isinstance(pm, str):
+            try:
+                from cores.direct_work_engine.models import PaymentMethod
+
+                pm = PaymentMethod(pm.lower())
+            except ValueError:
+                pm = None
+        reliability = PAYMENT_RELIABILITY.get(pm, 0.5) if pm is not None else 0.5
 
         ev = compute_expected_value(
             payment=opp.payment,
@@ -588,7 +971,78 @@ class IntelligentRecommender:
         except Exception:  # calibration is an enhancement, never a breaker
             pass
 
+        # Commute cost (presencial only): round-trip minutes valued at the
+        # opportunity's own implied hourly rate. Unknown hours/rate → skip
+        # (UNKNOWN, never invented).
+        try:
+            from cores.direct_work_engine.models import Modality
+
+            opp_mod = getattr(opp.modality, "value", opp.modality)
+            commute = getattr(opp, "commute_minutes", None)
+            hours = getattr(opp, "estimated_time_hours", None)
+            if (
+                opp_mod == Modality.PRESENCIAL.value
+                and commute is not None
+                and hours is not None
+                and float(hours) > 0
+                and float(commute) > 0
+                and opp.payment > 0
+            ):
+                implied_hourly = float(opp.payment) / float(hours)
+                ev = round(ev - (float(commute) * 2 / 60) * implied_hourly, 2)
+        except Exception:
+            pass
+
         return ev
+
+    def _calculate_htroi(self, ranked: RankedOpportunity) -> HumanTimeAdjustedROI | None:
+        """Compute Human-Time Adjusted ROI for an opportunity (Fase C, Income Multiplier).
+
+        Uses the economics SSOT: expected_income / human_hours, with confidence
+        adjustment and optional automation compression. Returns None when
+        human_hours is unknown or zero (honest signaling).
+        """
+        from cores.direct_work_engine.economics import compute_htroi
+
+        opp = ranked.opportunity
+
+        # Determine income base: hourly stream or one-shot payment
+        hourly_rate = opp.hourly_rate_usd if opp.hourly_rate_usd and opp.hourly_rate_usd > 0 else None  # noqa: F841 - reserved for hourly_stream EV path
+        human_hours = opp.estimated_time_hours if opp.estimated_time_hours and opp.estimated_time_hours > 0 else None
+
+        # Confidence = acceptance probability * payment compatibility
+        confidence = ranked.acceptance_probability * (ranked.payment_compat_score / 100.0)
+
+        # Automation hours from execution planner if available
+        automation_hours = getattr(opp, "automation_hours", None)
+
+        try:
+            return compute_htroi(
+                expected_income_usd=opp.payment,
+                human_hours=human_hours or 0,
+                confidence=confidence,
+                automation_hours=automation_hours,
+            )
+        except Exception:
+            return None
+
+    def _calculate_p_cash(self, ranked: RankedOpportunity) -> None:
+        """Stamp P(CASH) = acceptance x payment-collectability (Fase SECURE).
+
+        Both inputs are real measured signals (never invented): the
+        recommender's acceptance probability and the payment-compat score.
+        UNKNOWN (None) only when an input is missing — callers surface the
+        band instead of a fake number.
+        """
+        from cores.direct_work_engine.economics import compute_p_cash
+
+        try:
+            compat = ranked.payment_compat_score / 100.0
+        except Exception:
+            compat = None
+        result = compute_p_cash({"p_accept": ranked.acceptance_probability, "p_collect": compat})
+        ranked.p_cash = result.p_cash
+        ranked.p_cash_band = result.band
 
     def _calculate_overall_score(self, ranked: RankedOpportunity) -> float:
         """Calculate weighted overall recommendation score."""
@@ -618,6 +1072,26 @@ class IntelligentRecommender:
         payment_factor = ranked.payment_compat_score / 100.0 if ranked.payment_compat_score > 0 else 0.3
         score *= payment_factor
 
+        # PROJECT_FUNDING is not a task — must not dominate EV/h ranking.
+        # Keep it visible but deprioritized for "qué hacer esta semana".
+        try:
+            from cores.direct_work_engine.public_work import classify_market_segment, classify_reward_kind
+
+            opp = ranked.opportunity
+            seg = classify_market_segment(
+                category=getattr(getattr(opp, "category", ""), "value", getattr(opp, "category", "")),
+                employment_type=getattr(
+                    getattr(opp, "employment_type", ""), "value", getattr(opp, "employment_type", "")
+                ),
+                platform=getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", "")),
+                payment=opp.payment,
+                title=getattr(opp, "title", "") or "",
+            )
+            if classify_reward_kind(seg).value == "project_funding":
+                score *= 0.4  # grants/retro/ecosystem ≠ tarea inmediata
+        except Exception:
+            pass
+
         return round(score * 100, 1)  # 0-100 scale
 
     def _generate_strategy(self, ranked: RankedOpportunity, profile: UserProfile) -> str:
@@ -643,10 +1117,11 @@ class IntelligentRecommender:
             steps.append("📝 Register on platform — verify payment method setup")
 
         # Add category-specific advice
-        if opp.category.value == "game_development":
+        cat_value = opp.category.value if hasattr(opp.category, "value") else str(opp.category)
+        if cat_value == "game_development":
             steps.append("🎮 Highlight game programming projects (not art) in application")
 
-        if opp.category.value in ["bug_bounty", "security_research"]:
+        if cat_value in ["bug_bounty", "security_research"]:
             steps.append("🔒 Emphasize responsible disclosure history and report quality")
 
         if is_outcome_based(opp.employment_type):
@@ -663,14 +1138,53 @@ class IntelligentRecommender:
         reasons: list[str] = []
 
         reasons.append(f"Overall Score: {ranked.overall_recommendation_score}/100")
-        reasons.append(f"Expected Value: ${ranked.expected_value:.0f}")
-        reasons.append(f"Acceptance Probability: {ranked.acceptance_probability:.0%}")
+        reasons.append(f"EV ${ranked.expected_value:.0f}")
+
+        # High-Upside 90D mode adds specific Spanish terminology
+        if self._current_mode == "high_upside_90d":
+            evidence_label = getattr(ranked, "evidence_label", "THIN_EVIDENCE")
+            freshness_days = getattr(ranked, "freshness_days", "N/A")
+            competition_level = getattr(ranked, "competition_level", "Media")
+            reasons.append(f"P personal: {ranked.acceptance_probability:.0%} (Evidencia: {evidence_label})")
+            reasons.append(f"Frescura: {freshness_days} días")
+            reasons.append(f"Competencia: {competition_level}")
+        else:
+            reasons.append(f"Acceptance Probability: {ranked.acceptance_probability:.0%}")
+
+        if ranked.p_cash is None:
+            reasons.append(f"P(CASH): UNKNOWN ({ranked.p_cash_band}) — sin señal suficiente, no se inventa")
+        else:
+            reasons.append(f"P(CASH): {ranked.p_cash:.0%} ({ranked.p_cash_band}) — prob. de cobrar realmente")
+
         reasons.append(f"Compatibility: {ranked.compatibility_score:.0%}")
         reasons.append(f"Zero Barrier: {zb.total if zb else 'N/A'}/100 ({zb.barrier_label if zb else 'unknown'})")
         reasons.append(f"Speed Score: {ranked.speed_score:.0%}")
         reasons.append(f"Reputation: {ranked.reputation_score:.0%}")
         reasons.append(f"Risk: {ranked.risk_score:.0%}")
         reasons.append(f"Model: {opportunity_model(ranked.opportunity.employment_type)}")
+        # Economic ceiling honesty (TASK_REWARD vs PROJECT_FUNDING)
+        try:
+            from cores.direct_work_engine.public_work import classify_market_segment, get_ceiling
+
+            opp = ranked.opportunity
+            seg = classify_market_segment(
+                category=getattr(getattr(opp, "category", ""), "value", getattr(opp, "category", "")),
+                employment_type=getattr(
+                    getattr(opp, "employment_type", ""), "value", getattr(opp, "employment_type", "")
+                ),
+                platform=getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", "")),
+                payment=opp.payment,
+                title=getattr(opp, "title", "") or "",
+            )
+            ceiling = get_ceiling(seg)
+            if ceiling["reward_kind"] == "project_funding":
+                reasons.append(
+                    f"🏛️ {seg.value.upper()}: {ceiling['typical']} (techo ${ceiling['max_observed_usd']:,}) — proyecto, no tarea"
+                )
+            elif seg.value in ("bug_bounty", "security_oss"):
+                reasons.append(f"🎯 {seg.value}: {ceiling['typical']} (techo ${ceiling['max_observed_usd']:,})")
+        except Exception:
+            pass
         if ranked.payment_compat_notes:
             reasons.append("💳 " + ranked.payment_compat_notes[0])
 
@@ -689,8 +1203,16 @@ class IntelligentRecommender:
         diversified: list[RankedOpportunity] = []
 
         for opp in ranked:
-            platform = opp.opportunity.platform.value
-            category = opp.opportunity.category.value
+            platform = (
+                opp.opportunity.platform.value
+                if hasattr(opp.opportunity.platform, "value")
+                else str(opp.opportunity.platform)
+            )
+            category = (
+                opp.opportunity.category.value
+                if hasattr(opp.opportunity.category, "value")
+                else str(opp.opportunity.category)
+            )
 
             platform_count = platform_counts.get(platform, 0)
             category_count = category_counts.get(category, 0)

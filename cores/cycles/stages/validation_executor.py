@@ -227,6 +227,15 @@ class ValidationExecutor(BaseStageExecutor):
             "evidence_count": 1 if vuln_type != "ssrf" else 0,
         }
 
+    def _notify(self, event_type: str, **payload: Any) -> None:
+        """Publish a user-facing outcome. Never raises: the stage must survive."""
+        try:
+            from cores.notifications.emit import emit
+
+            emit(event_type, **payload)
+        except Exception as exc:
+            self.logger.debug("emit(%s) skipped: %s", event_type, exc)
+
     def _persist_findings(self, target: str, validated: list[dict[str, Any]]) -> None:
         """Save confirmed findings to the database."""
         try:
@@ -243,11 +252,13 @@ class ValidationExecutor(BaseStageExecutor):
                 # Create fallback target if none exists
                 if not db_target:
                     self.logger.warning("Creating fallback target for %s", target)
+                    # Target has NO `description` column (database/models.py:35).
+                    # Passing it raises TypeError -> swallowed below -> every
+                    # confirmed finding of a new target is lost silently.
                     db_target = Target(
                         name=target,
                         domain=target,
                         active=True,
-                        description=f"Auto-created target for {target}",
                     )
                     session.add(db_target)
                     session.flush()
@@ -275,6 +286,11 @@ class ValidationExecutor(BaseStageExecutor):
                         confirmed_count,
                         target,
                         db_target.id,
+                    )
+                    self._notify(
+                        "finding:confirmed",
+                        id=str(db_target.id),
+                        message=f"{confirmed_count} finding(s) confirmado(s) en {target}",
                     )
                 else:
                     self.logger.warning("No confirmed findings to persist for target %s", target)

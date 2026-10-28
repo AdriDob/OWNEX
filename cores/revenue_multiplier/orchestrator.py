@@ -7,13 +7,13 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from core.revenue_multiplier.bugbounty_hunter import BugBountyHunter
-from core.revenue_multiplier.config import RevenueMultiplierConfig
-from core.revenue_multiplier.crypto_trader import CryptoTradingOrchestrator
-from core.revenue_multiplier.metrics.metrics_tracker import MetricsTracker
-from core.revenue_multiplier.models import Finding, RevenueCategory, RevenueEvent
-from core.revenue_multiplier.publisher import RevenuePublisher
-from core.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
+from cores.revenue_multiplier.bugbounty_hunter import BugBountyHunter
+from cores.revenue_multiplier.config import RevenueMultiplierConfig
+from cores.revenue_multiplier.crypto_trader import CryptoTradingOrchestrator
+from cores.revenue_multiplier.metrics.metrics_tracker import MetricsTracker
+from cores.revenue_multiplier.models import Finding, RevenueCategory, RevenueEvent
+from cores.revenue_multiplier.publisher import RevenuePublisher
+from cores.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
 
 logger = logging.getLogger("orion.revenue.orchestrator")
 
@@ -157,7 +157,12 @@ class RevenueMultiplierOrchestrator:
                 trade_result = self._crypto.execute_trade(signal)
                 if trade_result.get("success"):
                     results["trades_executed"] += 1
-                    self._metrics.record_trade(pnl=Decimal("0"), won=True)
+                    # PnL real si el executor lo reporta; si no, UNKNOWN (None).
+                    # Antes: pnl=Decimal("0"), won=True fijos => win_rate 100%.
+                    exec_result = trade_result.get("executor_result")
+                    pnl = getattr(exec_result, "pnl", None) if exec_result is not None else None
+                    won = None if pnl is None else (pnl > 0)
+                    self._metrics.record_trade(pnl=pnl, won=won)
                     self._publisher.publish_event(
                         RevenueEvent(
                             source="crypto:trader",
@@ -180,7 +185,21 @@ class RevenueMultiplierOrchestrator:
         return results
 
     def _discover_targets(self) -> list[str]:
-        targets = []
+        """Targets de bounty desde el dataset público de HackerOne.
+
+        Antes leía `entry["url"]` o `entry["target"]["marketplace"]["handle"]`.
+        **Ninguno de los dos campos existe**: el dataset usa `handle` a nivel
+        superior (verificado contra las 449 entradas reales). Resultado: 0
+        targetsparseados SIEMPRE → caía al fallback de abajo, que escaneaba
+        `example.com` con nuclei y sqlmap.
+
+        Un target de scanner inventado no es un dato de fallback: es un
+        escaneo real contra un dominio que nadie pidió escanear.
+
+        Si el dataset falla, se devuelve lista vacía y el pipeline no escanea
+        nada. Preferimos 0 targets a targets inventados.
+        """
+        targets: list[str] = []
         try:
             import httpx
 
@@ -190,16 +209,19 @@ class RevenueMultiplierOrchestrator:
             )
             if resp.status_code == 200:
                 for entry in (resp.json() or [])[:10]:
-                    url = entry.get("url", "") or entry.get("target", {}).get("marketplace", {}).get("handle", "")
-                    if url and "://" in url:
-                        domain = url.split("://")[1].split("/")[0].split("?")[0]
-                        if domain:
-                            targets.append(domain)
+                    handle = str(entry.get("handle") or "").strip()
+                    if not handle or handle.startswith("-"):
+                        continue
+                    # Sólo programas que pagan bounty: escanear los demás es
+                    # trabajo que no puede convertirse en ingreso.
+                    if not entry.get("offers_bounties"):
+                        continue
+                    targets.append(f"{handle}.hackerone.com")
         except Exception as e:
             logger.warning("Target discovery failed: %s", e)
 
         if not targets:
-            targets = ["docs.hackerone.com", "httpforever.com", "example.com"]
+            logger.warning("Sin targets de bounty: el pipeline no escanea nada (preferible a escenar inventados)")
         return targets
 
     def _generate_report(self, target: str, findings: list[Finding]) -> None:

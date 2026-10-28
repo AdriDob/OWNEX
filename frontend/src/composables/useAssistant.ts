@@ -23,23 +23,45 @@ export function useAssistant() {
     if (loaded.value) return
     loaded.value = true
     const defaultHints: AssistantHint[] = [
-      { id: 'hint-mission', title: 'Mission Control', message: 'Acá están tus prioridades del día. OWNEX recomienda la próxima acción según los datos disponibles.', page: 'mission-control' },
-      { id: 'hint-aegis', title: 'AEGIS', message: 'Los scans se ejecutan secuencialmente. Revisá los findings después de cada ejecución.', page: 'aegis' },
-      { id: 'hint-health', title: 'Health Center', message: 'El score de salud se calcula sobre checks de sistema, integraciones y extensiones.', page: 'health-center' },
-      { id: 'hint-workflows', title: 'Workflows', message: 'Las plantillas YAML definen pipelines automatizados. Podés ejecutarlas con un solo clic.', page: 'workflows' },
+      {
+        id: 'hint-mission',
+        title: 'Mission Control',
+        message: 'Acá están tus prioridades del día. OWNEX recomienda la próxima acción según los datos disponibles.',
+        page: 'mission-control',
+      },
+      {
+        id: 'hint-aegis',
+        title: 'AEGIS',
+        message: 'Los scans se ejecutan secuencialmente. Revisá los findings después de cada ejecución.',
+        page: 'aegis',
+      },
+      {
+        id: 'hint-health',
+        title: 'Health Center',
+        message: 'El score de salud se calcula sobre checks de sistema, integraciones y extensiones.',
+        page: 'health-center',
+      },
+      {
+        id: 'hint-workflows',
+        title: 'Workflows',
+        message: 'Las plantillas YAML definen pipelines automatizados. Podés ejecutarlas con un solo clic.',
+        page: 'workflows',
+      },
     ]
-    hints.value = defaultHints.filter(h => !dismissals.value.has(h.id))
+    hints.value = defaultHints.filter((h) => !dismissals.value.has(h.id))
   }
 
   function dismissHint(id: string) {
     dismissals.value.add(id)
-    hints.value = hints.value.filter(h => h.id !== id)
+    hints.value = hints.value.filter((h) => h.id !== id)
   }
 
   function showBubble(message: string, durationMs = 8000) {
     bubbleMessage.value = message
     if (durationMs > 0) {
-      setTimeout(() => { bubbleMessage.value = null }, durationMs)
+      setTimeout(() => {
+        bubbleMessage.value = null
+      }, durationMs)
     }
   }
 
@@ -53,7 +75,7 @@ export function useAssistant() {
 
   function getHintsForPage(page: string): AssistantHint[] {
     if (!settings.data.assistant?.hints) return []
-    return hints.value.filter(h => h.page === page)
+    return hints.value.filter((h) => h.page === page)
   }
 
   const assistantEnabled = ref(settings.data.assistant?.enabled ?? true)
@@ -61,13 +83,17 @@ export function useAssistant() {
   const bubbleEnabled = ref(settings.data.assistant?.bubble ?? true)
   const spotlightEnabled = ref(settings.data.assistant?.spotlight ?? false)
 
-  watch(() => settings.data.assistant, (a) => {
-    if (!a) return
-    assistantEnabled.value = a.enabled ?? true
-    hintsEnabled.value = a.hints ?? true
-    bubbleEnabled.value = a.bubble ?? true
-    spotlightEnabled.value = a.spotlight ?? false
-  }, { deep: true })
+  watch(
+    () => settings.data.assistant,
+    (a) => {
+      if (!a) return
+      assistantEnabled.value = a.enabled ?? true
+      hintsEnabled.value = a.hints ?? true
+      bubbleEnabled.value = a.bubble ?? true
+      spotlightEnabled.value = a.spotlight ?? false
+    },
+    { deep: true },
+  )
 
   return {
     hints,

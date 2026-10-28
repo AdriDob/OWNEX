@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.offensive.models import Hypothesis, InvestigationPlan, InvestigationStep
+from cores.offensive.models import Hypothesis, InvestigationPlan, InvestigationStep
 
 logger = logging.getLogger("orion.core.offensive.planner")
 

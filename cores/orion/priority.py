@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from core.orion.models import (
+from cores.orion.models import (
     OrionDecision,
     OrionTask,
     PriorityLevel,
@@ -128,10 +128,10 @@ def decisions_to_tasks(decisions: list[OrionDecision]) -> list[OrionTask]:
     tasks: list[OrionTask] = []
     for i, d in enumerate(decisions[:10]):  # cap at 10 per cycle
         task_kind_map = {
-            TaskKind.EXPLORE: "core.orion.intelligence.collector:collect_intel",
-            TaskKind.RECON: "core.orion.intelligence.collector:collect_intel",
-            TaskKind.VALIDATE: "core.orion.health.checker:collect_health_metrics",
-            TaskKind.MONITOR: "core.orion.intelligence.collector:collect_intel",
+            TaskKind.EXPLORE: "cores.orion.intelligence.collector:collect_intel",
+            TaskKind.RECON: "cores.orion.intelligence.collector:collect_intel",
+            TaskKind.VALIDATE: "cores.orion.health.checker:collect_health_metrics",
+            TaskKind.MONITOR: "cores.orion.intelligence.collector:collect_intel",
         }
         tasks.append(
             OrionTask(
@@ -142,7 +142,7 @@ def decisions_to_tasks(decisions: list[OrionDecision]) -> list[OrionTask]:
                 priority=d.priority,
                 score=d.score,
                 status="pending",
-                handler=task_kind_map.get(d.kind, "core.orion.intelligence.collector:collect_intel"),
+                handler=task_kind_map.get(d.kind, "cores.orion.intelligence.collector:collect_intel"),
                 payload=d.payload,
             )
         )

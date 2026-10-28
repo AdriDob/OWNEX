@@ -5,7 +5,7 @@
 ## Arquitectura
 
 ```
-UnifiedMemoryStore (core/memory/store.py)
+UnifiedMemoryStore (cores/memory/store.py)
 ├── 10 namespaces fijos
 ├── CRUD por namespace + key
 ├── Tags, prioridad, expiración
@@ -13,7 +13,7 @@ UnifiedMemoryStore (core/memory/store.py)
 ├── Embedding column (schema-ready, semántica futura)
 └── Singleton global (get_memory_store())
 
-MerlinMemory (core/merlin/memory.py)
+MerlinMemory (cores/merlin/memory.py)
 └── Wrapper estratégico sobre UnifiedMemoryStore
     ├── Daily briefs
     ├── Decisiones
@@ -39,7 +39,7 @@ MerlinMemory (core/merlin/memory.py)
 ## API Pública
 
 ```python
-from core.memory.store import get_memory_store
+from cores.memory.store import get_memory_store
 
 store = get_memory_store()
 
@@ -82,7 +82,7 @@ stats = store.get_stats()
 Úsala para memoria de alto nivel que debe sobrevivir reinicios:
 
 ```python
-from core.merlin.memory import MerlinMemory
+from cores.merlin.memory import MerlinMemory
 
 mm = MerlinMemory()
 
@@ -96,7 +96,7 @@ context = mm.get_strategic_context()
 
 ## Persistencia
 
-- Backend: SQLite vía `core/database/manager.py` (DB_ID = "memory")
+- Backend: SQLite vía `cores/database/manager.py` (DB_ID = "memory")
 - Archivo: `memory.db` en el directorio de datos del proyecto
 - Sobrevive reinicios del backend
 - No requiere migraciones manuales (auto-migration vía `_ensure_db()`)
@@ -126,7 +126,7 @@ context = mm.get_strategic_context()
 
 ## Lecturas Relacionadas
 
-- `core/memory/store.py` — Implementación del store
-- `core/memory/models.py` — Modelo SQLAlchemy
-- `core/merlin/memory.py` — MerlinMemory wrapper
+- `cores/memory/store.py` — Implementación del store
+- `cores/memory/models.py` — Modelo SQLAlchemy
+- `cores/merlin/memory.py` — MerlinMemory wrapper
 - `tests/test_unified_memory.py` — Tests (24 tests, 186 líneas)

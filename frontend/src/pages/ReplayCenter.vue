@@ -213,7 +213,7 @@ onMounted(loadTargets)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <template v-if="loading">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />
@@ -315,8 +315,8 @@ onMounted(loadTargets)
                 :datasets="[{
                   label: 'Progress',
                   data: timelineData,
-                  borderColor: '#00d5ff',
-                  backgroundColor: '#00d5ff30',
+                  borderColor: 'var(--ownex-accent)',
+                  backgroundColor: 'var(--ownex-accent)30',
                   fill: true,
                   pointRadius: 4,
                   tension: 0.2,
@@ -446,7 +446,7 @@ onMounted(loadTargets)
                   <div class="space-y-1 max-h-60 overflow-y-auto">
                     <button
                       v-for="target in targets" :key="target.id"
-                      @click="selectTarget(target.id)"
+                      aria-label="Selecttarget(Target.Id" @click="selectTarget(target.id)"
                       :class="[
                         'w-full text-left rounded-lg px-3 py-2 transition-colors',
                         selectedTargetId === target.id ? 'bg-primary/10' : 'hover:bg-surface/10'

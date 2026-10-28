@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { EntityType } from '@/composables/useContextMenu'
 
 export interface MicroEntity {
@@ -138,7 +138,7 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   function removeFromSelection(id: string) {
-    selectedIds.value = selectedIds.value.filter(s => s !== id)
+    selectedIds.value = selectedIds.value.filter((s) => s !== id)
   }
 
   function toggleSelection(id: string) {
@@ -174,20 +174,47 @@ export const useUIStore = defineStore('ui', () => {
   }
 
   return {
-    inspectorOpen, inspectorEntity, inspectorType,
-    miniPreviewVisible, miniPreviewEntity, miniPreviewPosition,
-    timelineOpen, timelineEntityId,
-    compareOpen, compareEntities, compareEntityType,
-    selectedIds, multiSelectActive,
-    moreInfoPanel, loading,
-    inspectorData, miniPreviewData, timelineData, compareData,
-    selectionCount, hasSelection, isLoading,
-    openInspector, closeInspector,
-    showMiniPreview, hideMiniPreview,
-    openTimeline, closeTimeline,
-    openCompare, addToCompare, clearCompare,
-    addToSelection, removeFromSelection, toggleSelection, clearSelection, selectAll,
-    openMoreInfo, closeMoreInfo,
-    setLoading, inspectorTab, miniPreview, handleMultiSelect,
+    inspectorOpen,
+    inspectorEntity,
+    inspectorType,
+    miniPreviewVisible,
+    miniPreviewEntity,
+    miniPreviewPosition,
+    timelineOpen,
+    timelineEntityId,
+    compareOpen,
+    compareEntities,
+    compareEntityType,
+    selectedIds,
+    multiSelectActive,
+    moreInfoPanel,
+    loading,
+    inspectorData,
+    miniPreviewData,
+    timelineData,
+    compareData,
+    selectionCount,
+    hasSelection,
+    isLoading,
+    openInspector,
+    closeInspector,
+    showMiniPreview,
+    hideMiniPreview,
+    openTimeline,
+    closeTimeline,
+    openCompare,
+    addToCompare,
+    clearCompare,
+    addToSelection,
+    removeFromSelection,
+    toggleSelection,
+    clearSelection,
+    selectAll,
+    openMoreInfo,
+    closeMoreInfo,
+    setLoading,
+    inspectorTab,
+    miniPreview,
+    handleMultiSelect,
   }
 })

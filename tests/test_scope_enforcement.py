@@ -151,3 +151,68 @@ class TestPlatformParsers:
     def test_unknown_platform_raises(self) -> None:
         with pytest.raises(ValueError):
             ScopeEnforcer.parse_from_platform("unknown", {})
+
+
+def _policy_with_tiers() -> ProgramScopePolicy:
+    return ProgramScopePolicy(
+        program_id="h1-shop",
+        program_name="Shop",
+        platform="hackerone",
+        rules=[ScopeRule(asset_type=AssetType.WILDCARD, pattern="*.shop.com", is_in_scope=True)],
+        bounty_tiers={"critical": [5000.0, 15000.0], "high": [1000.0, 3000.0]},
+    )
+
+
+class TestBountyTiers:
+    def test_reward_range_known(self) -> None:
+        assert _policy_with_tiers().reward_range("critical") == (5000.0, 15000.0)
+        assert _policy_with_tiers().reward_range("HIGH") == (1000.0, 3000.0)
+
+    def test_reward_range_unknown_severity(self) -> None:
+        assert _policy_with_tiers().reward_range("info") == (None, None)
+        assert ProgramScopePolicy(program_id="x", program_name="y", platform="z").reward_range("high") == (
+            None,
+            None,
+        )
+
+    def test_reward_range_malformed_ignored(self) -> None:
+        p = ProgramScopePolicy(
+            program_id="x",
+            program_name="y",
+            platform="z",
+            bounty_tiers={"high": [3000.0], "medium": [-5.0, 10.0], "low": [500.0, 100.0]},
+        )
+        assert p.reward_range("high") == (None, None)
+        assert p.reward_range("medium") == (None, None)
+        assert p.reward_range("low") == (None, None)
+        assert p.max_reward() is None
+
+    def test_max_reward(self) -> None:
+        assert _policy_with_tiers().max_reward() == 15000.0
+        assert ProgramScopePolicy(program_id="x", program_name="y", platform="z").max_reward() is None
+
+
+class TestFindPrograms:
+    def test_returns_covering_program_only(self) -> None:
+        enforcer = make_enforcer(_policy_with_tiers())
+        assert enforcer.find_programs_for_endpoint("https://api.shop.com/orders") == ["h1-shop"]
+        assert enforcer.find_programs_for_endpoint("https://other.com/x") == []
+
+    def test_excluded_not_returned(self) -> None:
+        enforcer = make_enforcer(WILDCARD_SCOPE)
+        assert enforcer.find_programs_for_endpoint("https://sub.example.com/") == []
+
+    def test_multiple_programs(self) -> None:
+        enforcer = make_enforcer(_policy_with_tiers())
+        enforcer.register_policy(
+            ProgramScopePolicy(
+                program_id="bc-shop",
+                program_name="Shop2",
+                platform="bugcrowd",
+                rules=[ScopeRule(asset_type=AssetType.DOMAIN, pattern=r"api\.shop\.com", is_in_scope=True)],
+            )
+        )
+        assert enforcer.find_programs_for_endpoint("https://api.shop.com/orders") == ["bc-shop", "h1-shop"]
+
+    def test_empty_enforcer(self) -> None:
+        assert make_enforcer().find_programs_for_endpoint("https://x.com/") == []

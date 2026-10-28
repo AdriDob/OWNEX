@@ -7,8 +7,8 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from core.notifications.telegram import TelegramConfig, get_telegram_bot, reset_telegram_bot
-from core.notifications.telegram.handlers import handle_command
+from cores.notifications.telegram import TelegramConfig, get_telegram_bot, reset_telegram_bot
+from cores.notifications.telegram.handlers import handle_command
 
 logger = logging.getLogger("orion.telegram.api")
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
@@ -67,7 +67,7 @@ async def handle_text(data: dict[str, Any]):
     """Procesar un comando de texto como si viniera de Telegram."""
     text = data.get("text", "")
     level_str = data.get("level", "summary")
-    from core.notifications.hierarchy import InfoLevel
+    from cores.notifications.hierarchy import InfoLevel
 
     level_map = {"summary": InfoLevel.SUMMARY, "details": InfoLevel.DETAILS, "debug": InfoLevel.DEBUG}
     level = level_map.get(level_str, InfoLevel.SUMMARY)

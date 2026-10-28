@@ -5,10 +5,10 @@
  * El usuario SÍ ve: Agentes trabajando."
  */
 
-import { ref, computed, onMounted } from 'vue'
-import OwnexCard from '@/components/ui/OwnexCard.vue'
+import { computed, onMounted, ref } from 'vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexButton from '@/components/ui/OwnexButton.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 
 interface Agent {
   id: string
@@ -69,7 +69,7 @@ const getAgentIcon = (name: string, customIcon?: string) => {
 
 <template>
   <OwnexCard variant="elevated" :padded="!compact">
-    <template #default>
+    <template var(--ownex-accent)ult>
       <div class="ownex-agent-fleet">
         <!-- Header -->
         <div v-if="showHeader" class="ownex-agent-fleet__header">

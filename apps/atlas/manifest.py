@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from apps.atlas.api.routers import router as atlas_router
 from apps.atlas.models import Asset, Portfolio, Transaction, Wallet
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 from .providers import PROVIDERS
 
 manifest = IAppPlugin(
     id="atlas",
     name="ATLAS",
-    version="7.0.0",
+    version="7.7.7",
     description="Personal Investment Dashboard — stocks, crypto, ETFs, bonds, and DeFi",
     icon="TrendingUp",
     order=2,

@@ -312,6 +312,24 @@ class _FakeApi:
     def stop_hunt(self) -> dict | None:
         return {"status": "stopped"}
 
+    def fetch_payment_network(self) -> dict | None:
+        return {"accounts": [{"id": 1, "name": "Primary"}]}
+
+    def fetch_knowledge_status(self) -> dict | None:
+        return {"connected": True}
+
+    def fetch_voice_status(self) -> dict | None:
+        return {"enabled": False}
+
+    def get(self, url: str, params: dict | None = None) -> dict | None:
+        return None
+
+    def post(self, url: str, json: dict | None = None) -> dict | None:
+        return None
+
+    def get_finding(self, finding_id: int) -> dict | None:
+        return {"id": finding_id, "title": "IDOR", "severity": "high", "status": "confirmed", "target_id": 1}
+
 
 def test_dashboard_remote_source():
     mission = MissionControlData(api=_FakeApi(connected=True))  # type: ignore[arg-type]
@@ -521,11 +539,13 @@ def test_findings_view_refresh_populates(qapp):
     assert view._table.item(1, 2).text() == "medium"  # noqa: SLF001
 
 
-def test_system_view_refresh_populates(qapp):
+def test_system_view_refresh_populates(qapp, monkeypatch):
     from desktop.native.ui.views.system import SystemView
 
     view = SystemView()
     view._mission = _FakeMission()  # type: ignore[assignment]  # noqa: SLF001
+    # Mock API methods that make HTTP calls - use the public attribute name
+    view.api = _FakeApi()  # type: ignore[assignment]  # noqa: SLF001
     view.refresh()
     assert view._targets_kpi.text() == "Targets: 2"  # noqa: SLF001
     assert view._ops_kpi.text() == "Ops: running"  # noqa: SLF001
@@ -538,6 +558,8 @@ def test_system_view_local_statuses(qapp):
 
     view = SystemView()
     view._mission = _FakeMission({"source": "local", "counts": {"targets": 1, "findings": 0, "opps": "n/a"}})  # type: ignore[assignment]  # noqa: SLF001
+    # Mock API methods that make HTTP calls
+    view.api = _FakeApi()  # type: ignore[assignment]  # noqa: SLF001
     view.refresh()
     assert view._svc_labels["Backend API"].text() == "Backend API: offline"  # noqa: SLF001
     assert view._svc_labels["Scheduler"].text() == "Scheduler: n/a"  # noqa: SLF001

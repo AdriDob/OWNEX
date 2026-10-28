@@ -13,6 +13,22 @@
 import type { Event } from '@tauri-apps/api/event'
 import { ref } from 'vue'
 
+/** Open a filesystem path in the native file explorer (Tauri shell.open). */
+export async function openPath(path: string): Promise<void> {
+  if (!isTauri) {
+    // Fallback for web: copy to clipboard
+    await navigator.clipboard.writeText(path)
+    return
+  }
+  try {
+    const { open } = await import('@tauri-apps/plugin-shell')
+    await open(path)
+  } catch (e) {
+    console.warn('[OWNEX] Could not open path via Tauri shell:', e)
+    await navigator.clipboard.writeText(path)
+  }
+}
+
 const DEFAULT_PORT = 8000
 /** Must stay aligned with find_available_port() in src-tauri/src/lib.rs. */
 const MAX_PORT_OFFSET = 99
@@ -153,22 +169,65 @@ export function getHostBase(): string {
 
 /**
  * Routers mounted WITHOUT the /api prefix on the backend
- * (api/main.py mounts mobile/direct-work/wear-os at root level).
+ * (api/main.py mounts these at root level — §17 contract audit 2026-09-15,
+ * extended 2026-09-28 to all 27 after finding Mission/Career/OAR/Voice 404).
  * Calls to these namespaces must not be double-prefixed.
+ * NOTE: `/auth` is deliberately EXCLUDED — auth_user.py serves /auth/* at
+ * root but frontend auth flows target auth.py/auth_users.py under /api/auth/*.
  */
-const ROOT_MOUNTED_PREFIXES = ['/direct-work', '/mobile', '/wear-os']
+/**
+ * Namespaces que el backend sirve en RAÍZ, no bajo `/api`.
+ *
+ * MEDIDO 2026-10-05 con HTTP real (no leyendo el código): de los 27 que
+ * estaban aquí, **25 devolvían 404 en raíz** y sólo 2 respondían:
+ * `/platform-guides` y `/today`.
+ *
+ * La lista estaba inflada, y como `resolveApiUrl` normaliza `/api/x` → `x` y
+ * después decide, el efecto era peor que "no-op": **incluso las llamadas con
+ * `/api/` explícito terminaban en raíz y daban 404.** 8 llamadas rotas
+ * (6 de `dev-bounty`, 2 de `wear-os`), 355 no afectadas.
+ *
+ * Regla: *esta lista es un inventario de dónde monta el backend, no una
+ * lista de deseos.* Si agregás un namespace acá sin verificar que el backend
+ * lo sirve en raíz, estás creando 404s silenciosos.
+ *
+ * Verificá con: `python scripts/audit_frontend_contract.py --list`
+ */
+const ROOT_MOUNTED_PREFIXES = [
+  // Namespaces que el backend monta SIN prefijo /api (verificado contra
+  // app.routes el 2026-10-08) y a los que el front llama sin /api.
+  // La lista estaba recortada (5 de 13): /career, /first-money, /mission-hub,
+  // /oar, /revenue-timeline, /version-backup, /voice y /zero-barrier iban a
+  // /api/... y devolvían 404. Medido: /mobile/status pedía /api/mobile/status
+  // y esa ruta no existe.
+  '/career',
+  '/direct-work',
+  '/first-money',
+  '/mission-hub',
+  '/mobile',
+  '/oar',
+  '/platform-guides',
+  '/result-based',
+  '/revenue-timeline',
+  '/today',
+  '/version-backup',
+  '/voice',
+  '/wear-os',
+  '/zero-barrier',
+]
 
 /** Resolve a frontend API path to the full correct URL. */
 export function resolveApiUrl(path: string): string {
-  if (!isTauri && !path.startsWith('/direct-work') && !path.startsWith('/mobile') && !path.startsWith('/wear-os')) {
-    return `/api${path.startsWith('/api/') ? path.slice(4) : path}`
+  // Normalize FIRST so both `/ns/...` and legacy `/api/ns/...` call styles
+  // resolve identically (controlPanel.ts still uses explicit /api/ prefixes).
+  const clean = path.startsWith('/api/') ? path.slice(4) : path
+  const isRootMounted = ROOT_MOUNTED_PREFIXES.some((p) => clean === p || clean.startsWith(`${p}/`))
+  if (!isTauri && !isRootMounted) {
+    return `/api${clean}`
   }
   const base = getHostBase()
-  const clean = path.startsWith('/api/') ? path.slice(4) : path
   // Root-mounted namespaces hit the host directly; everything else under /api.
-  for (const p of ROOT_MOUNTED_PREFIXES) {
-    if (clean === p || clean.startsWith(`${p}/`)) return `${base}${clean}`
-  }
+  if (isRootMounted) return `${base}${clean}`
   return `${base}/api${clean}`
 }
 

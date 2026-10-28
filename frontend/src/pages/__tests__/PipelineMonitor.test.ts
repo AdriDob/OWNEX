@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PipelineMonitor from '@/pages/PipelineMonitor.vue'
 
 const mockApi = vi.hoisted(() => ({
@@ -40,10 +40,50 @@ function createWrapper() {
 }
 
 const mockPipelines = [
-  { id: 'p1', target_id: 1, target_name: 'test.com', state: 'discovery', retries: 0, quality_score: 0.85, stages: [], error: '', created_at: '2025-01-01T00:00:00Z' },
-  { id: 'p2', target_id: 2, target_name: 'example.com', state: 'validation', retries: 1, quality_score: 0.6, stages: [], error: '', created_at: '2025-01-01T00:00:00Z' },
-  { id: 'p3', target_id: 3, target_name: 'closed.com', state: 'closed', retries: 2, quality_score: 0.9, stages: [], error: '', created_at: '2025-01-01T00:00:00Z' },
-  { id: 'p4', target_id: 4, target_name: 'failed.com', state: 'failed', retries: 3, quality_score: 0.2, stages: [], error: 'Timeout', created_at: '2025-01-01T00:00:00Z' },
+  {
+    id: 'p1',
+    target_id: 1,
+    target_name: 'test.com',
+    state: 'discovery',
+    retries: 0,
+    quality_score: 0.85,
+    stages: [],
+    error: '',
+    created_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'p2',
+    target_id: 2,
+    target_name: 'example.com',
+    state: 'validation',
+    retries: 1,
+    quality_score: 0.6,
+    stages: [],
+    error: '',
+    created_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'p3',
+    target_id: 3,
+    target_name: 'closed.com',
+    state: 'closed',
+    retries: 2,
+    quality_score: 0.9,
+    stages: [],
+    error: '',
+    created_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'p4',
+    target_id: 4,
+    target_name: 'failed.com',
+    state: 'failed',
+    retries: 3,
+    quality_score: 0.2,
+    stages: [],
+    error: 'Timeout',
+    created_at: '2025-01-01T00:00:00Z',
+  },
 ]
 
 describe('PipelineMonitor page', () => {
@@ -56,7 +96,7 @@ describe('PipelineMonitor page', () => {
   it('shows error state on API failure', async () => {
     mockApi.get.mockRejectedValue(new Error('Server error'))
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Error de conexión')
     expect(wrapper.text()).toContain('Reintentar')
@@ -65,7 +105,7 @@ describe('PipelineMonitor page', () => {
   it('shows empty state when no pipelines', async () => {
     mockApi.get.mockResolvedValue({ pipelines: [] })
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('No hay pipelines')
     expect(wrapper.text()).toContain('Start Pipeline')
@@ -74,7 +114,7 @@ describe('PipelineMonitor page', () => {
   it('renders pipeline list with active and completed sections', async () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Pipeline Monitor')
     expect(wrapper.text()).toContain('4 pipelines')
@@ -89,7 +129,7 @@ describe('PipelineMonitor page', () => {
   it('shows quality score with correct formatting', async () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('85%')
     expect(wrapper.text()).toContain('60%')
@@ -99,7 +139,7 @@ describe('PipelineMonitor page', () => {
   it('shows failed state label for failed pipelines', async () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('failed')
   })
@@ -108,9 +148,9 @@ describe('PipelineMonitor page', () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     mockApi.post.mockResolvedValue({})
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
-    const cancelBtn = wrapper.findAll('button').find(b => b.text().includes('Cancel'))
+    const cancelBtn = wrapper.findAll('button').find((b) => b.text().includes('Cancel'))
     if (cancelBtn) {
       await cancelBtn.trigger('click')
       expect(mockApi.post).toHaveBeenCalledWith('/agents/pipelines/p1/cancel')
@@ -121,9 +161,9 @@ describe('PipelineMonitor page', () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     mockApi.delete.mockResolvedValue({})
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
-    const deleteBtns = wrapper.findAll('button').filter(b => b.text().includes('Delete'))
+    const deleteBtns = wrapper.findAll('button').filter((b) => b.text().includes('Delete'))
     if (deleteBtns.length > 0) {
       await deleteBtns[0].trigger('click')
       expect(mockApi.delete).toHaveBeenCalled()
@@ -133,7 +173,7 @@ describe('PipelineMonitor page', () => {
   it('filter changes trigger fetch', async () => {
     mockApi.get.mockResolvedValue({ pipelines: mockPipelines })
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     const select = wrapper.find('select')
     if (select.exists()) {

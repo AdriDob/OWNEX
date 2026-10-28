@@ -74,7 +74,24 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 response.set_cookie(
                     key=COOKIE_NAME,
                     value=token,
-                    httponly=True,
+                    # NOTA (2026-10-05): esto estaba en `httponly=True`, lo que
+                    # hace IMPOSIBLE el patrón double-submit que este mismo
+                    # docstring describe: el patrón exige que el cliente lea
+                    # la cookie y la reenvíe en `X-CSRF-Token`, y httpOnly
+                    # impide leerla desde JS.
+                    #
+                    # Consecuencia medida: TODO POST/PUT/DELETE/PATCH del
+                    # navegador devolvía 403 CSRF — aprobar entregas, cambiar
+                    # modos, resolver alertas. El loop de escritura del producto
+                    # estaba roto y los e2e no lo veían porque no hacen POST.
+                    #
+                    # `httponly=False` es correcto AQUÍ y sólo aquí: esta cookie
+                    # no es una credencial (la sesión es el header Bearer /
+                    # `ownex-session`, que sí van httpOnly). Lo que se protege
+                    # es que un sitio externo no pueda induces este POST; sin
+                    # lectura JS el mecanismo no es doble, es único — y el
+                    # header sigue siendo obligatorio para el POST.
+                    httponly=False,
                     samesite="lax",
                     max_age=3600,
                 )

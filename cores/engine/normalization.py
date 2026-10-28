@@ -12,8 +12,8 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any
 
-from core.engine.base import Engine
-from core.sensors.observation import Observation
+from cores.engine.base import Engine
+from cores.sensors.observation import Observation
 
 logger = logging.getLogger("ownex.normalization")
 

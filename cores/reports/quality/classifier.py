@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Literal
 
-from core.reports.quality.scorer import QualityScore
+from cores.reports.quality.scorer import QualityScore
 
 logger = logging.getLogger("orion.core.reports.quality.classifier")
 

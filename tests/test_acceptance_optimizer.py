@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.reports.acceptance.learner import (
+from cores.reports.acceptance.learner import (
     OUTCOME_ACCEPTED,
     OUTCOME_REJECTED,
     AcceptanceLearner,

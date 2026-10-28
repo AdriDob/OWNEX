@@ -321,7 +321,7 @@ class AutomationEngine:
         """Delegate to Health Center if available, otherwise report basic info."""
         info: dict[str, Any] = {}
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             summary = center.summary()
@@ -390,7 +390,7 @@ class AutomationEngine:
             findings["disk_error"] = str(exc)
 
         # ── Databases ───────────────────────────────────────────────
-        from core.maintenance.engine import MaintenanceEngine
+        from cores.maintenance.engine import MaintenanceEngine
 
         try:
             summary = MaintenanceEngine().summary()
@@ -405,7 +405,7 @@ class AutomationEngine:
 
         # ── Backup health ────────────────────────────────────────────
         try:
-            from core.backup.engine import backup_status
+            from cores.backup.engine import backup_status
 
             bs = backup_status()
             findings["total_backups"] = bs.get("total_backups", 0)
@@ -430,7 +430,7 @@ class AutomationEngine:
 
         # ── Update check ─────────────────────────────────────────────
         try:
-            from core.update.engine import UpdateManager
+            from cores.update.engine import UpdateManager
 
             up = UpdateManager().status()
             findings["current_version"] = up.get("current_version")

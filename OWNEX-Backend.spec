@@ -3,7 +3,7 @@
 #
 # OWNEX Backend — PyInstaller build spec for standalone FastAPI sidecar.
 # Entrypoint: src-tauri/binaries/start_backend.py
-# Output: dist/ownex-backend.exe  (ONEFILE — self-contained)
+# Output: dist/ownex-backend  (ONEFILE — self-contained)
 #
 # ONEFILE is required by the Tauri externalBin contract: Tauri bundles and
 # spawns exactly one file per target triple. A ONEDIR exe copied without its
@@ -21,13 +21,14 @@
 #   --log-level <level> (default: INFO)
 
 import os
+import fnmatch
 import shutil
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 IS_WINDOWS = sys.platform.startswith("win")
-ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "cateye.ico") if IS_WINDOWS else None
+IS_MACOS = sys.platform == "darwin"
 
 # ── Auto-discover router modules ─────────────────────────────────────
 ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
@@ -84,7 +85,7 @@ from PyInstaller.utils.hooks import collect_all
 datas = []
 binaries = []
 
-for pkg in ("api", "database", "core", "cores"):
+for pkg in ("api", "database", "cores"):
     pkg_dir = PROJECT_ROOT / pkg
     if pkg_dir.is_dir():
         tmp = collect_all(pkg)
@@ -107,13 +108,20 @@ for pkg in (
     except Exception:
         pass
 
-# Include VERSION file
-version_file = PROJECT_ROOT / "VERSION"
-if version_file.exists():
-    datas.append((str(version_file), "."))
+# Include VERSION files (api/main.py reads VERSION, VersionEngine reads VERSION.txt)
+for _vf in ("VERSION", "VERSION.txt", ".VERSION.txt"):
+    version_file = PROJECT_ROOT / _vf
+    if version_file.exists():
+        datas.append((str(version_file), "."))
+# Version manifests so /api/version reports in_sync=true in frozen bundles
+# (no secrets in either file — build metadata only).
+if (PROJECT_ROOT / "pyproject.toml").exists():
+    datas.append((str(PROJECT_ROOT / "pyproject.toml"), "."))
+_front_pkg = PROJECT_ROOT / "frontend" / "package.json"
+if _front_pkg.exists():
+    datas.append((str(_front_pkg), "frontend"))
 
 # ── Exclude runtime DB files ──────────────────────────────────────────
-import fnmatch
 _filtered = []
 for src, dest in datas:
     if any(fnmatch.fnmatch(src, p) for p in (
@@ -148,13 +156,16 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
+# Output name without extension (Tauri expects base name without platform suffix)
+EXE_NAME = "ownex-backend"
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
     [],
-    name="ownex-backend",
+    name=EXE_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -166,5 +177,18 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    icon=ICON_PATH,
+    icon=None,
 )
+
+# ── macOS .app bundle (only on macOS) ─────────────────────────────────
+if IS_MACOS:
+    app = BUNDLE(
+        exe,
+        name="OWNE Backend",
+        icon=None,
+        bundle_identifier="ai.orion.ownex.backend",
+        info_plist={
+            "LSUIElement": True,  # No dock icon
+            "LSBackgroundOnly": True,
+        },
+    )

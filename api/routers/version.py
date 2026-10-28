@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.system.version_engine import VersionEngine
+from cores.system.version_engine import VersionEngine
 
 router = APIRouter(prefix="/api/version", tags=["version"])
 ve = VersionEngine()

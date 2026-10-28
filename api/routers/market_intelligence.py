@@ -7,7 +7,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from core.market_intelligence import (
+from cores.market_intelligence import (
     IntelligenceSource,
     MarketDomain,
     SourceTier,
@@ -17,7 +17,7 @@ from core.market_intelligence import (
     get_opportunity_scorer,
     get_source_manager,
 )
-from core.market_intelligence.signal_classifier import (
+from cores.market_intelligence.signal_classifier import (
     classify_signal,
     classify_signal_type,
     detect_domain,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
-import { useContextMenu } from '@/composables/useContextMenu'
 import type { ContextAction, EntityType } from '@/composables/useContextMenu'
+import { useContextMenu } from '@/composables/useContextMenu'
 
 const { menuState, close } = useContextMenu()
 
@@ -9,19 +9,27 @@ const emit = defineEmits<{
   action: [actionId: string, entity: any]
 }>()
 
-watch(() => menuState.value.visible, (v) => {
-  if (v) {
-    document.documentElement.setAttribute('data-context-menu-visible', '')
-  } else {
-    document.documentElement.removeAttribute('data-context-menu-visible')
-  }
-})
+watch(
+  () => menuState.value.visible,
+  (v) => {
+    if (v) {
+      document.documentElement.setAttribute('data-context-menu-visible', '')
+    } else {
+      document.documentElement.removeAttribute('data-context-menu-visible')
+    }
+  },
+)
 
 const entityLabel = computed(() => {
   const labels: Record<EntityType, string> = {
-    target: 'Target', program: 'Programa', endpoint: 'Endpoint',
-    finding: 'Hallazgo', report: 'Reporte', session: 'Sesión',
-    wallet: 'Billetera', prediction: 'Predicción',
+    target: 'Target',
+    program: 'Programa',
+    endpoint: 'Endpoint',
+    finding: 'Hallazgo',
+    report: 'Reporte',
+    session: 'Sesión',
+    wallet: 'Billetera',
+    prediction: 'Predicción',
   }
   return labels[menuState.value.entityType] || menuState.value.entityType
 })

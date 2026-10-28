@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from core.offensive.web3.base import BaseWeb3Reasoner
-from core.offensive.web3.models import SmartContractInfo, Web3Hypothesis
+from cores.offensive.web3.base import BaseWeb3Reasoner
+from cores.offensive.web3.models import SmartContractInfo, Web3Hypothesis
 
 
 class AccessControlReasoner(BaseWeb3Reasoner):

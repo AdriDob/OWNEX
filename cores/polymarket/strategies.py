@@ -127,28 +127,46 @@ class SmartMoneyCopier:
         return "polymarket_smart_money"
 
     async def scan_top_traders(self, limit: int = 20) -> list[dict[str, Any]]:
-        """Scan top Polymarket traders by volume/PnL via Gamma API."""
+        """Scan top Polymarket traders by volume/PnL.
+
+        El leaderboard migró de `gamma-api.polymarket.com/leaderboard` a
+        `data-api.polymarket.com/v1/leaderboard` (docs oficiales: Gamma sirve
+        metadata de mercados, Data API sirve actividad y rankings). La URL
+        vieja devuelve **404**, así que el discovery devolvía 0 traders en
+        silencio.
+
+        Los campos también cambiaron a camelCase y se keyea por `proxyWallet`
+        (no por username): `pnl`, `vol`, `rank`, `userName`. **El leaderboard
+        NO expone win_rate ni trades** — se dejan en 0 y `TraderMetrics` los
+        marca como desconocidos, que es lo honesto. El BacktestValidator los
+        exige igual, así que estos traders no pasan el gate hasta que haya
+        histórico propio: descubrir ≠ autorizar.
+        """
         traders: list[dict[str, Any]] = []
         try:
             import httpx
 
             async with httpx.AsyncClient(timeout=10) as c:
-                url = f"https://gamma-api.polymarket.com/leaderboard?limit={limit}&offset=0"
-                r = await c.get(url)
+                r = await c.get(
+                    "https://data-api.polymarket.com/v1/leaderboard",
+                    params={"limit": limit, "offset": 0, "orderBy": "PNL", "timePeriod": "MONTH"},
+                )
                 if r.status_code == 200:
-                    data = r.json()
-                    for t in (data or [])[: self._max_traders]:
+                    for t in (r.json() or [])[: self._max_traders]:
                         traders.append(
                             {
-                                "address": t.get("address", ""),
-                                "volume": t.get("volume", 0),
+                                "address": t.get("proxyWallet", "") or t.get("proxy_wallet", ""),
+                                "volume": t.get("vol", 0) or t.get("volume", 0),
                                 "pnl": t.get("pnl", 0),
+                                # No existen en el leaderboard: se dejan 0 (UNKNOWN).
                                 "win_rate": t.get("winRate", 0),
                                 "trades": t.get("tradesCount", 0),
+                                "user_name": t.get("userName", ""),
+                                "rank": t.get("rank", ""),
                             }
                         )
                 else:
-                    logger.warning("Leaderboard API: %d", r.status_code)
+                    logger.warning("Leaderboard API (data-api): %d", r.status_code)
         except Exception as exc:
             logger.warning("Failed to scan top traders: %s", exc)
         return traders

@@ -1,61 +1,55 @@
-# Known Limitations — CATEYE Validation Engine
+# Known Limitations — OWNEX 7.1.0 FINAL STABLE
 
-> Documentación honesta de lo que CATEYE **no** hace.
-> v4.6.0 STABLE — Julio 2026.
+> Limitaciones reales verificadas contra runtime. Nada de esto bloquea el uso
+> diario. Actualizado: 2026-09-11.
 
-## Validation Engine
+## 1. Modos LITE/FULL/CAPITAL duplicados (no bloquea)
 
-CATEYE valida hipótesis comparando respuestas HTTP (baseline vs probe) y aplicando reglas heurísticas + análisis LLM opcional.
+Dos motores vivos con formas distintas: `cores/modes/engine.py` (OwnexMode,
+usado por `/api/modes/*` y command_center) y
+`cores/financial_intelligence/mode_manager.py` (ModeValue, usado por autopilot
+y settings_runtime). Ambos funcionan; ninguno es canónico. Consolidar exige
+migrar consumidores de autopilot — se difiere por riesgo, no por pereza.
 
-**Lo que sí hace:**
-- Reproducibilidad (3+ intentos)
-- Comparación de respuestas (status, body, headers)
-- Confidence scoring ponderado
-- Detección de rate limiting, WAF, timeouts
-- Generación de reporte borrador
+- Workaround: usar `/api/modes/*` como superficie principal.
+- Acción futura: un motor delega al otro con tests de equivalencia.
 
-**Lo que NO hace:**
+## 2. Mobile = RC, Watch = mínimo viable (no bloquea)
 
-### 1. Refutación activa
-El sistema busca **confirmación**, no refutación. No existe una fase que intente explícitamente demostrar que la hipótesis es falsa.
+Android compila (namespace `ai.rastro.app`) pero no hay validación en hardware
+físico en esta sesión. WearOS expone estado/alertas/aprobación vía
+`cores/wear_os` + API; no hay app nativa. Desktop Windows es la superficie
+primaria; mobile/watch son consulta y aprobación.
 
-*Ejemplo*: Si un endpoint devuelve 200 sin autenticación, el sistema lo marca como posible auth bypass. No pregunta "¿y si el recurso es público?".
+## 3. Suite completa con drift del flujo concurrente (no bloquea)
 
-### 2. Explicaciones alternativas
-No evalúa escenarios como:
-- Recurso público (ambos accesos son legítimos)
-- Caché de CDN o proxy
-- Datos mock o stub de endpoint
-- Respuesta genérica de error
-- Comportamiento esperado del negocio
+`make test` excluye por defecto 5 suites (`test_security`, `test_vision_gateway`,
+`test_scheduler`, `test_financial_hub`, `test_self_improvement`) por red/flaky o
+contratos en migración por otro flujo activo. Gate de release = suite fast
+100/1 + suites afectadas por cada cambio, siempre verdes.
 
-### 3. Verificación de ownership
-No diferencia entre:
-- "El recurso existe y es mío" (pero probé sin auth → 200)
-- "El recurso existe y es de otro" (IDOR real)
-- "El recurso no existe" (respuesta genérica 404)
+## 4. MSI solo vía CI Windows (no bloquea)
 
-### 4. Verificación de RBAC
-No prueba diferentes roles. Solo compara dos contextos (baseline vs probe), no N contextos con N permisos.
+El instalador MSI/NSIS solo se construye en runner `windows-latest`
+(`ownex-tauri-windows.yml`). En Linux se valida spec ONEFILE + `cargo check`
++ smoke del sidecar. Sin firma de código (decisión): SmartScreen mostrará
+advertencia en primera instalación.
 
-### 5. Aprendizaje de falsos positivos
-El `FeedbackLearner` existe pero **no está conectado al pipeline principal**. Los pesos del ConfidenceScorer son fijos. El sistema no mejora con la experiencia.
+## 5. Contenido MPT requiere key gratuita (no bloquea)
 
-### 6. Razonamiento sobre incertidumbre
-El confidence score es numérico. No incluye:
-- "Esto NO se verificó"
-- "Esto podría tener otra explicación"
-- "La siguiente prueba que reduciría más la incertidumbre es X"
+El pipeline Content Factory es end-to-end real (guion Ollama local + Edge TTS
++ subtítulos verificados), pero la descarga de materiales exige
+`pexels_api_keys` o `coverr_api_keys` (tiers gratuitos) en
+`~/projects/MoneyPrinterTurbo/config.toml`. Sin key, el aviso queda visible
+en IncomeHome + `/setup/checklist` y la generación falla con mensaje explícito.
 
-### 7. ReportGate adaptativo
-El umbral (confidence ≥ 0.6) es fijo para todo tipo de vulnerabilidad. Una IDOR replicable con 0.55 de confianza puede ser válida; un XSS con 0.95 puede ser falso positivo.
+## 6. Trading e inversión en DRY_RUN (por diseño)
 
-## Implicaciones
+Nada mueve fondos reales sin configuración explícita + Human Gate. No es un
+bug: es la política de seguridad del producto.
 
-- **Falsos positivos**: El sistema puede reportar auth bypasses que son realmente recursos públicos.
-- **Falsos negativos**: El sistema puede rechazar hipótesis válidas por inconsistencia estadística sin entender la causa.
-- **Dependencia humana**: Todo finding debe ser revisado manualmente antes de reportar. CATEYE produce borradores, no conclusiones.
+## 7. Validation Engine: revisión humana obligatoria (por diseño)
 
-## Próximos pasos (v3.1+)
-
-Ver `.ai/ROADMAP.md` — ORION Reasoning Layer.
+El motor de validación produce borradores con explicaciones alternativas y
+penalización por incertidumbre, pero todo finding requiere revisión humana
+antes de reportar. Probabilidades UNKNOWN se etiquetan, nunca se inventan.

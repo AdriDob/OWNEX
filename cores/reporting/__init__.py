@@ -10,7 +10,7 @@ Pipeline:
       → optional: JSON structured data for API responses
 """
 
-from core.reporting.validator_report import ValidatorReport
+from cores.reporting.validator_report import ValidatorReport
 
 __all__ = ["ValidatorReport", "generate_and_save_report"]
 
@@ -63,4 +63,14 @@ def generate_and_save_report(
             path = path / f"report_{finding_id}_{ts}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(md, encoding="utf-8")
+    try:
+        from cores.notifications.emit import emit
+
+        emit(
+            "report:generated",
+            id=str(finding_id),
+            message=f"Reporte generado: {severity.upper()} {finding_title}",
+        )
+    except Exception:
+        pass  # a notification must never break report generation
     return md

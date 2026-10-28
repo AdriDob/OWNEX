@@ -41,7 +41,12 @@ jobs:
           cd ..
 
       - name: Build executable
-        run: pyinstaller CATEYE.spec -y
+        run: |
+          if [ ! -f CATEYE.spec ]; then
+            echo "::error::CATEYE.spec not in repo root (archived at docs/archived/installers/). Canonical pipeline: ownex-tauri-windows.yml"
+            exit 1
+          fi
+          pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -86,7 +91,12 @@ jobs:
           cd ..
 
       - name: Build executable
-        run: pyinstaller CATEYE.spec -y
+        run: |
+          if [ ! -f CATEYE.spec ]; then
+            echo "::error::CATEYE.spec not in repo root (archived at docs/archived/installers/). Canonical pipeline: ownex-tauri-windows.yml"
+            exit 1
+          fi
+          pyinstaller CATEYE.spec -y
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

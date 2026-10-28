@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useReportStore } from '@/stores/report'
 
 const mockApi = vi.hoisted(() => ({

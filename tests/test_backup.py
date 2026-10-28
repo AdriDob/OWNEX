@@ -13,8 +13,8 @@ import pytest
 def _backup_env(monkeypatch: pytest.MonkeyPatch) -> Path:
     """Create a temp OWNEX_DIR with some test files and point backup at it."""
     tmp = Path(tempfile.mkdtemp())
-    monkeypatch.setattr("core.backup.engine.OWNEX_DIR", tmp)
-    monkeypatch.setattr("core.backup.engine.BACKUP_DIR", tmp / "backups")
+    monkeypatch.setattr("cores.backup.engine.OWNEX_DIR", tmp)
+    monkeypatch.setattr("cores.backup.engine.BACKUP_DIR", tmp / "backups")
 
     # Create some test files
     (tmp / "database").mkdir(parents=True)
@@ -31,7 +31,7 @@ def _backup_env(monkeypatch: pytest.MonkeyPatch) -> Path:
 
 class TestCreateBackup:
     def test_backup_creates_archive(self, _backup_env: Path) -> None:
-        from core.backup import create_backup
+        from cores.backup import create_backup
 
         result = create_backup()
         assert result["status"] == "ok"
@@ -45,14 +45,14 @@ class TestCreateBackup:
         assert path.suffix == ".zip"
 
     def test_backup_contains_manifest(self, _backup_env: Path) -> None:
-        from core.backup import create_backup
+        from cores.backup import create_backup
 
         result = create_backup()
         assert result["status"] == "ok"
 
         import zipfile
 
-        from core.version import OWNEX_VERSION
+        from cores.version import OWNEX_VERSION
 
         with zipfile.ZipFile(result["backup_path"]) as zf:
             assert "manifest.json" in zf.namelist()
@@ -64,7 +64,7 @@ class TestCreateBackup:
             assert any(f["path"] == "database/ownex.db" for f in manifest["files"])
 
     def test_backup_manifest_checksum(self, _backup_env: Path) -> None:
-        from core.backup import create_backup
+        from cores.backup import create_backup
 
         result = create_backup()
 
@@ -84,12 +84,12 @@ class TestCreateBackup:
 
 class TestListBackups:
     def test_list_empty(self, _backup_env: Path) -> None:
-        from core.backup import list_backups
+        from cores.backup import list_backups
 
         assert list_backups() == []
 
     def test_list_after_create(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, list_backups
+        from cores.backup import create_backup, list_backups
 
         create_backup()
         backups = list_backups()
@@ -98,7 +98,7 @@ class TestListBackups:
         assert backups[0]["size"] > 0
 
     def test_list_multiple_backups(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, list_backups
+        from cores.backup import create_backup, list_backups
 
         create_backup()
         create_backup()
@@ -108,7 +108,7 @@ class TestListBackups:
 
 class TestVerifyBackup:
     def test_verify_valid_backup(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, verify_backup
+        from cores.backup import create_backup, verify_backup
 
         result = create_backup()
         v = verify_backup(result["backup_path"])
@@ -118,7 +118,7 @@ class TestVerifyBackup:
         assert v["checksum_errors"] == []
 
     def test_verify_nonexistent_backup(self, _backup_env: Path) -> None:
-        from core.backup import verify_backup
+        from cores.backup import verify_backup
 
         v = verify_backup("/nonexistent/path.zip")
         assert v["status"] == "error"
@@ -127,7 +127,7 @@ class TestVerifyBackup:
 
 class TestPruneBackups:
     def test_prune_keeps_n_most_recent(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, list_backups, prune_backups
+        from cores.backup import create_backup, list_backups, prune_backups
 
         for _ in range(5):
             create_backup()
@@ -138,7 +138,7 @@ class TestPruneBackups:
         assert len(list_backups()) == 2
 
     def test_prune_with_fewer_than_keep(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, prune_backups
+        from cores.backup import create_backup, prune_backups
 
         create_backup()
         result = prune_backups(keep=10)
@@ -147,7 +147,7 @@ class TestPruneBackups:
 
 class TestBackupStatus:
     def test_status_shape(self, _backup_env: Path) -> None:
-        from core.backup import backup_status
+        from cores.backup import backup_status
 
         status = backup_status()
         assert "total_backups" in status
@@ -155,7 +155,7 @@ class TestBackupStatus:
         assert "ownex_dir" in status
         assert status["total_backups"] == 0
 
-        from core.backup import create_backup
+        from cores.backup import create_backup
 
         create_backup()
         status2 = backup_status()
@@ -165,7 +165,7 @@ class TestBackupStatus:
 
 class TestRestoreBackup:
     def test_restore_to_target_dir(self, _backup_env: Path) -> None:
-        from core.backup import create_backup, restore_backup
+        from cores.backup import create_backup, restore_backup
 
         result = create_backup()
 
@@ -177,12 +177,58 @@ class TestRestoreBackup:
         assert (restore_dir / "config.json").exists()
 
 
+class TestSecurityHardening:
+    def test_backup_never_contains_raw_secrets(self, _backup_env: Path) -> None:
+        """SECURITY: vault key / private keys must never land in a plaintext zip."""
+        import zipfile
+
+        from cores.backup import create_backup
+
+        (_backup_env / "id_ed25519").write_text("fake-private-key")
+        (_backup_env / "cert.pem").write_text("fake-pem")
+        (_backup_env / "wallet_key.p12").write_text("fake-p12")
+        (_backup_env / "identity_vault.json").write_text('{"encrypted": true}')
+
+        result = create_backup()
+        assert result["status"] == "ok"
+        with zipfile.ZipFile(result["backup_path"]) as zf:
+            names = zf.namelist()
+            assert "identity_vault.key" not in names
+            assert "identity_vault.key.bak" not in names
+            assert "id_ed25519" not in names
+            assert "cert.pem" not in names
+            assert "wallet_key.p12" not in names
+
+        # Encrypted vault + DBs still backed up (recovery works).
+        with zipfile.ZipFile(result["backup_path"]) as zf:
+            manifest = json.loads(zf.read("manifest.json"))
+            assert "identity_vault.json" in {f["path"] for f in manifest["files"]}
+            assert any("database/ownex.db" == f["path"] for f in manifest["files"])
+
+    def test_restore_preserves_existing_vault_key(self, _backup_env: Path) -> None:
+        """Restoring with an existing vault key never clobbers it (preserves .key.bak)."""
+        from cores.backup import create_backup, restore_backup
+
+        # Put a fake identity_vault.json in the tree so restore has something.
+        (_backup_env / "identity_vault.json").write_text('{"x": 1}')
+        result = create_backup()
+
+        restore_dir = Path(tempfile.mkdtemp())
+        (restore_dir / "identity_vault.key").write_text("precious-existing-key")
+        r = restore_backup(result["backup_path"], target_dir=str(restore_dir))
+        assert r["status"] == "ok"
+        # The archive contains no key, so the existing one is untouched.
+        assert (restore_dir / "identity_vault.key").read_text() == "precious-existing-key"
+        # Restored data landed.
+        assert (restore_dir / "identity_vault.json").exists()
+
+
 class TestAPIEndpoints:
     def test_backup_create_endpoint(self, _backup_env: Path) -> None:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)
@@ -198,7 +244,7 @@ class TestAPIEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)
@@ -213,7 +259,7 @@ class TestAPIEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)

@@ -2,7 +2,7 @@
 
 Usage:
 
-    from core.documentation.registrar import register_module, get_module_doc
+    from cores.documentation.registrar import register_module, get_module_doc
 
     register_module(ModuleDoc(
         id="event_bus",
@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.documentation.models import ModuleDoc
+from cores.documentation.models import ModuleDoc
 
 logger = logging.getLogger("orion.core.documentation")
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from core.interfaces.connector import IConnector
-from core.normalizer.base import NormalizedPortfolio, NormalizedPrice, NormalizedTransaction
+from cores.interfaces.connector import IConnector
+from cores.normalizer.base import NormalizedPortfolio, NormalizedPrice, NormalizedTransaction
 
 
 class AtlasConnector(IConnector):

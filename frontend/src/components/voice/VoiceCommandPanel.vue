@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Mic, MicOff, Volume2, VolumeX, Settings as SettingsIcon } from '@lucide/vue'
+import { Mic, MicOff, Settings as SettingsIcon, Volume2, VolumeX } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { api } from '@/lib/api'
 
 const isListening = ref(false)
 const isProcessing = ref(false)
@@ -86,13 +87,7 @@ async function processCommand(text: string) {
   lastCommand.value = text
 
   try {
-    const response = await fetch('/api/voice/command', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    })
-
-    const result = await response.json()
+    await api.post<any>('/voice/command', { text })
   } catch (error) {
     console.error('Error processing voice command:', error)
   } finally {

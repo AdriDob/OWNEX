@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.interfaces.app import IAppPlugin
-from core.scheduler.jobs import get_vault_jobs
+from cores.interfaces.app import IAppPlugin
+from cores.scheduler.jobs import get_vault_jobs
 
 # Adapter provider strings for the adapter registry
 VAULT_ADAPTERS = [
-    "core.opportunity.adapters.security_bounty:HackerOneAdapter",
-    "core.opportunity.adapters.security_bounty:BugcrowdAdapter",
-    "core.opportunity.adapters.security_bounty:IntigritiAdapter",
-    "core.opportunity.adapters.security_bounty:YesWeHackAdapter",
+    "cores.opportunity.adapters.security_bounty:HackerOneAdapter",
+    "cores.opportunity.adapters.security_bounty:BugcrowdAdapter",
+    "cores.opportunity.adapters.security_bounty:IntigritiAdapter",
+    "cores.opportunity.adapters.security_bounty:YesWeHackAdapter",
 ]
 
 
@@ -23,7 +23,7 @@ vault_router = APIRouter(prefix="/vault", tags=["vault"])
 manifest = IAppPlugin(
     id="vault",
     name="VAULT",
-    version="7.0.0",
+    version="7.7.7",
     description="Bug Bounty Platforms — HackerOne, Bugcrowd, Intigriti, Synack, YesWeHack, Immunefi",
     icon="Shield",
     order=20,

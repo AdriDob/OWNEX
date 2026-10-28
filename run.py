@@ -45,11 +45,22 @@ if getattr(sys, "frozen", False) and not os.environ.get("CATEYE_DATA_DIR"):
 
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
+#
+# Resolution order. Before this it was CATEYE_DATA_DIR only, defaulting to
+# ~/.orion, which created a FIFTH database distinct from the app's:
+#   OWNEX_DATA_DIR -> CATEYE_DATA_DIR -> <portable data dir> -> ~/.ownex
+# The installed app resolves the same chain, so dev and the installation
+# converge instead of diverging.
 if not os.environ.get("DATABASE_URL"):
-    _data_dir = Path(os.environ.get("CATEYE_DATA_DIR", Path.home() / ".orion"))
-    _db_path = _data_dir / "database" / "cateye.db"
+    _data_dir = os.environ.get("OWNEX_DATA_DIR") or os.environ.get("CATEYE_DATA_DIR")
+    if not _data_dir and getattr(sys, "frozen", False):
+        _data_dir = str(_portable_data) if _portable_data.is_dir() else None
+    _data_dir = _data_dir or str(Path.home() / ".ownex")
+    _db_path = Path(_data_dir) / "database" / "catseye.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+    os.environ["OWNEX_DATA_DIR"] = _data_dir
+    os.environ.setdefault("CATEYE_DATA_DIR", _data_dir)
 
 _BASE_DIR = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 if str(_BASE_DIR) not in sys.path:
@@ -432,7 +443,7 @@ def _handle_daemon(args: list[str]) -> None:
     import asyncio
     import signal
     import time
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     interval = 300  # default 5 minutes
     once = False
@@ -659,7 +670,7 @@ def _handle_daemon(args: list[str]) -> None:
 
                 # 3. EXECUTE - Run validation/scanning via Validation Bridge
                 try:
-                    from core.validation.bridge import ValidationBridge
+                    from cores.validation.bridge import ValidationBridge
 
                     bridge = ValidationBridge()
 
@@ -681,7 +692,7 @@ def _handle_daemon(args: list[str]) -> None:
 
                     # 4. ANALYZE - Update endpoint scan status
                     for ep in endpoints:
-                        ep.last_scanned = datetime.utcnow()
+                        ep.last_scanned = datetime.now(UTC)
                         ep.scan_count = (ep.scan_count or 0) + 1
                     session.commit()
 
@@ -714,7 +725,7 @@ def _check_migrate_export(args_list: list[str]) -> bool:
     print("\n📦 OWNEX Full Migration Export")
     print("   Capturing: ~/.orion, ~/.ownex, ~/.config/ownex, database/, data/, .env")
 
-    from core.backup.migrate import export_migration
+    from cores.backup.migrate import export_migration
 
     args_set = set(args_list)
     dest = None
@@ -753,7 +764,7 @@ def _check_migrate(args_list: list[str]) -> bool:
     if force:
         print("   (--force: sobrescribirá datos existentes)")
 
-    from core.backup.migrate import import_migration, verify_migration
+    from cores.backup.migrate import import_migration, verify_migration
 
     # 1. Verify archive integrity (manifest + sha256 per file)
     print("\n1/4 Verifying archive integrity...")
@@ -887,7 +898,7 @@ def _handle_validate(args: list[str]) -> None:
     session = db.SessionLocal()
 
     try:
-        from core.validation.bridge import ValidationBridge
+        from cores.validation.bridge import ValidationBridge
 
         bridge = ValidationBridge()
         targets = session.query(db.models.Target).limit(10).all()
@@ -969,7 +980,7 @@ def _handle_report(args: list[str]) -> None:
         _log("REPORT", "Uso: python run.py --report <finding_id> [--output <path>]")
         return
 
-    from core.reporting import generate_and_save_report
+    from cores.reporting import generate_and_save_report
     from database import db
 
     db.init_db()
@@ -1202,7 +1213,7 @@ def main() -> None:
 
     # --backup: create data backup (uses ORION Backup Engine)
     if "--backup" in args_set:
-        from core.backup.engine import create_backup
+        from cores.backup.engine import create_backup
 
         result = create_backup()
         if result.get("status") == "ok":
@@ -1214,11 +1225,11 @@ def main() -> None:
 
     # --restore: restore from backup
     if "--restore" in args_set:
-        from core.backup.engine import restore_backup
+        from cores.backup.engine import restore_backup
 
         idx = args_list.index("--restore")
         if idx + 1 < len(args_list) and not args_list[idx + 1].startswith("--"):
-            from core.backup.engine import verify_backup
+            from cores.backup.engine import verify_backup
 
             verification = verify_backup(args_list[idx + 1])
             if verification.get("status") == "error":

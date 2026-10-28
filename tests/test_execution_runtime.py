@@ -4,22 +4,22 @@ import time as _real_time
 
 import pytest
 
-from core.execution.compiler import BytecodeInstruction, Opcode
-from core.execution.runtime.api import RuntimeAPI
-from core.execution.runtime.approval import ApprovalManager
-from core.execution.runtime.checkpoint import CheckpointManager
-from core.execution.runtime.clock import VirtualClock
-from core.execution.runtime.context import RuntimeContext, RuntimeMetrics
-from core.execution.runtime.dispatcher import CapabilityDispatcher
-from core.execution.runtime.journal import ExecutionJournal
-from core.execution.runtime.kernel import ExecutionKernel
-from core.execution.runtime.metrics import MetricsEngine
-from core.execution.runtime.publisher import ExecutionEventPublisher
-from core.execution.runtime.resource import ResourceManager
-from core.execution.runtime.retry import RetryEngine, RetryPolicy
-from core.execution.runtime.rollback import RollbackEngine
-from core.execution.runtime.scheduler import Scheduler
-from core.execution.runtime.state_machine import (
+from cores.execution.compiler import BytecodeInstruction, Opcode
+from cores.execution.runtime.api import RuntimeAPI
+from cores.execution.runtime.approval import ApprovalManager
+from cores.execution.runtime.checkpoint import CheckpointManager
+from cores.execution.runtime.clock import VirtualClock
+from cores.execution.runtime.context import RuntimeContext, RuntimeMetrics
+from cores.execution.runtime.dispatcher import CapabilityDispatcher
+from cores.execution.runtime.journal import ExecutionJournal
+from cores.execution.runtime.kernel import ExecutionKernel
+from cores.execution.runtime.metrics import MetricsEngine
+from cores.execution.runtime.publisher import ExecutionEventPublisher
+from cores.execution.runtime.resource import ResourceManager
+from cores.execution.runtime.retry import RetryEngine, RetryPolicy
+from cores.execution.runtime.rollback import RollbackEngine
+from cores.execution.runtime.scheduler import Scheduler
+from cores.execution.runtime.state_machine import (
     NodeState,
     TransitionError,
     WorkflowState,
@@ -28,8 +28,8 @@ from core.execution.runtime.state_machine import (
     validate_node_transition,
     validate_workflow_transition,
 )
-from core.execution.runtime.timeout import TimeoutEngine
-from core.execution.runtime.worker import WorkerEngine
+from cores.execution.runtime.timeout import TimeoutEngine
+from cores.execution.runtime.worker import WorkerEngine
 
 # ═══════════════════════════════════════════════════════════════════════════
 # EP-5A: VirtualClock
@@ -380,7 +380,7 @@ class TestExecutionKernel:
 
 class TestExecutionEventPublisher:
     def test_publish_without_bind(self) -> None:
-        from core.execution.runtime.publisher import ExecutionEventPublisher
+        from cores.execution.runtime.publisher import ExecutionEventPublisher
 
         p = ExecutionEventPublisher()
         p.workflow_started("wf1", "e1", "c1")

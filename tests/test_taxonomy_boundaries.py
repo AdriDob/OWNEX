@@ -172,7 +172,7 @@ class TestMercenaryCategoriesContract:
         assert first["slug"] == first["slug"].lower()
 
     def test_every_mercenary_category_has_canonical_target(self) -> None:
-        from core.opportunity.mercenary_filter import OpportunityCategory as MercCat
+        from cores.opportunity.mercenary_filter import OpportunityCategory as MercCat
         from cores.work_taxonomy import MERCENARY_TO_CANONICAL, to_canonical
 
         for member in MercCat:

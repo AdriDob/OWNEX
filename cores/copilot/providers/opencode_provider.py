@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import logging
+import os
 import subprocess
 import time
 from typing import Any
 
-from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
+from cores.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
 logger = logging.getLogger("orion.copilot.providers.opencode")
+
+# Side-by-side v1/v2 — mismo env que el bridge. Default v1 estable.
+OPENCODE_DEFAULT_BINARY = "opencode"
 
 
 class OpenCodeProvider(BaseProvider):
@@ -22,7 +26,10 @@ class OpenCodeProvider(BaseProvider):
             config
             or ProviderConfig(name="opencode", priority=10, models=["opencode/deepseek-v4-flash-free"], timeout_s=180)
         )
-        self._binary = self._config.extra.get("binary", "opencode")
+        self._binary = (
+            self._config.extra.get("binary", os.environ.get("OPENCODE_BINARY", OPENCODE_DEFAULT_BINARY))
+            or OPENCODE_DEFAULT_BINARY
+        )
         self._model = (
             self._config.extra.get("model", self._config.models[0])
             if self._config.models

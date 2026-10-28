@@ -5,7 +5,7 @@ Each platform has different expectations for format, tone, and detail level.
 
 Usage::
 
-    from core.reports.templates import render_report
+    from cores.reports.templates import render_report
 
     # Render for HackerOne
     markdown = render_report("hackerone", {
@@ -121,6 +121,84 @@ def _severity_label(severity: str) -> str:
     }.get(severity.lower(), severity.capitalize())
 
 
+# ── Quantified business impact (F2b) ─────────────────────────────
+# Pure: tiers from evidence signals, never invented headcounts. An explicit
+# finding["users_affected"] (human-measured) always wins over inference.
+
+_DATA_CLASS_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "PII": ("pii", "email", "phone", "address", "personal data", "dni", "name"),
+    "payment": ("payment", "card", "billing", "invoice", "price", "amount", "wallet"),
+    "credentials": ("password", "token", "session", "secret", "api key", "credential"),
+    "admin": ("admin", "privilege", "role", "permission"),
+}
+
+_MASS_SIGNALS = ("collection", "enumerat", "mass", "all users", "bulk", "iterate", "dump")
+
+
+def quantify_impact(finding: dict[str, Any]) -> dict[str, Any]:
+    """Business-impact numbers for severity fights. Pure, honest tiers.
+
+    users_scope: single_user | many_users | all_users | unknown.
+    data_classes: detected from explicit field or keyword scan (may be []).
+    reproducibility: measured_rate | steps_documented | unproven.
+    has_numbers: True only with human-measured users_affected.
+    severity_argument: one paragraph combining all three for the triager.
+    """
+    vuln_type = str(finding.get("vulnerability_type") or finding.get("type") or "unknown")
+    severity = str(finding.get("severity") or "medium")
+    base = _impact_for_vuln(vuln_type, severity)
+
+    explicit_users = finding.get("users_affected")
+    if isinstance(explicit_users, (int, float)) and explicit_users > 0:
+        users_scope = "measured"
+        users_note = f"{int(explicit_users)} affected users (human-measured)"
+        has_numbers = True
+    else:
+        blob = " ".join(
+            [
+                str(finding.get("description") or ""),
+                str(finding.get("summary") or ""),
+                " ".join(str(e) for e in (finding.get("evidence") or [])[:5]),
+            ]
+        ).lower()
+        low = blob.lower()
+        if any(s in low for s in _MASS_SIGNALS):
+            users_scope, users_note, has_numbers = "many_users", "mass-access pattern in evidence", False
+        elif any(s in low for s in ("other user", "another user", "cross-user", "cross-tenant", "other account")):
+            users_scope, users_note, has_numbers = "single_user", "cross-user access demonstrated", False
+        else:
+            users_scope, users_note, has_numbers = "unknown", "scope not evidenced yet", False
+
+    data_classes = list(finding.get("data_classes") or [])
+    if not data_classes:
+        blob_low = " ".join([str(finding.get("description") or ""), str(finding.get("summary") or "")]).lower()
+        data_classes = sorted({cls for cls, kws in _DATA_CLASS_KEYWORDS.items() if any(k in blob_low for k in kws)})
+
+    rate = finding.get("repro_rate", finding.get("measured_rate"))
+    steps = finding.get("reproduction_steps", []) or finding.get("test_instructions", []) or []
+    if isinstance(rate, (int, float)) and not isinstance(rate, bool):
+        reproducibility, repro_note = "measured_rate", f"reproduced {float(rate):.0%} of attempts"
+    elif len(steps) >= 3:
+        reproducibility, repro_note = "steps_documented", f"{len(steps)} steps documented"
+    else:
+        reproducibility, repro_note = "unproven", "no measured rate, <3 steps"
+
+    data_bit = f" Data at stake: {', '.join(data_classes)}." if data_classes else ""
+    severity_argument = (
+        f"{base} Scope: {users_note}.{data_bit} Reproducibility: {repro_note}. "
+        f"Severity {severity} is justified by measured effect, not by vulnerability class alone."
+    )
+    return {
+        "users_scope": users_scope,
+        "users_note": users_note,
+        "has_numbers": has_numbers,
+        "data_classes": data_classes,
+        "reproducibility": reproducibility,
+        "repro_note": repro_note,
+        "severity_argument": severity_argument,
+    }
+
+
 def _impact_for_vuln(vuln_type: str, severity: str) -> str:
     impacts = {
         "idor": {
@@ -152,6 +230,36 @@ def _impact_for_vuln(vuln_type: str, severity: str) -> str:
             "high": "Access to restricted functionality without proper authorization.",
             "medium": "Limited privilege escalation.",
             "low": "Access to low-sensitivity authenticated endpoints.",
+        },
+        "bacl": {
+            "critical": "Cross-role access to privileged objects or admin functions — a lower-privilege caller reaches data or actions reserved for another role.",
+            "high": "Cross-user or cross-tenant object access: attacker reads or modifies records belonging to other accounts.",
+            "medium": "Role-indicator tampering surface with limited confirmed cross-role read.",
+            "low": "Role-visible parameters without confirmed cross-role effect.",
+        },
+        "business_logic": {
+            "critical": "Direct financial impact — attacker sets price, quantity, discount or skips payment steps with server-side effect.",
+            "high": "Money/state flow manipulation: altered totals, reused single-use values, or out-of-order step execution honored by the server.",
+            "medium": "Flow anomaly with bounded financial effect or requiring unlikely preconditions.",
+            "low": "Logic deviation without monetary or state consequence.",
+        },
+        "prompt_injection": {
+            "critical": "Agent executes unauthorized actions via injected instructions — data exfiltration, config change, or internal API calls.",
+            "high": "Injected instructions obeyed with tool execution or cross-user data access.",
+            "medium": "Injection reflected in output without tool use or privilege boundary crossing.",
+            "low": "Model mentions injection without acting on it.",
+        },
+        "graphql": {
+            "critical": "Field-level authorization bypass or batch extraction at scale via nested queries.",
+            "high": "Unauthorized field access or introspection-enabled attack surface with sensitive data.",
+            "medium": "Verbose errors or excessive data exposure without auth boundary crossing.",
+            "low": "Introspection enabled without sensitive exposure.",
+        },
+        "oauth": {
+            "critical": "Account takeover via redirect/ token flow flaw — attacker obtains victim session.",
+            "high": "Token leakage or scope escalation across clients.",
+            "medium": "Open redirect in OAuth flow without token impact.",
+            "low": "Informative OAuth misconfiguration without exploit path.",
         },
     }
     type_impact = impacts.get(vuln_type, {})
@@ -500,7 +608,7 @@ def render_report_from_finding(
     Returns:
         Data dict ready for render_report().
     """
-    from core.evidence.composer import CVSS_SEVERITY_MAP, CWE_MAP
+    from cores.evidence.composer import CVSS_SEVERITY_MAP, CWE_MAP
 
     cvss_data = CVSS_SEVERITY_MAP.get(finding.get("severity", "medium"), (0.0, ""))
     cwe_data = CWE_MAP.get(finding.get("vulnerability_type", ""), ("", ""))

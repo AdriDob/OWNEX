@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from apps.odyssey.api.routers import router as odyssey_router
 from apps.odyssey.models import Bankroll, Bet, Strategy
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 from .providers import PROVIDERS
 
 manifest = IAppPlugin(
     id="odyssey",
     name="ODYSSEY",
-    version="7.0.0",
+    version="7.7.7",
     description="Gambling Analytics — bankroll, ROI, EV, prediction markets, and sports betting intelligence",
     icon="Dices",
     order=3,

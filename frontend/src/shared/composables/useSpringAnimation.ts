@@ -46,7 +46,7 @@ export function useSpringAnimation() {
   const controls: AnimControls[] = []
 
   onUnmounted(() => {
-    controls.forEach(c => c.cancel?.())
+    controls.forEach((c) => c.cancel?.())
     controls.length = 0
   })
 
@@ -65,9 +65,7 @@ export function useSpringAnimation() {
     if (shouldReduce()) {
       Object.assign((el as HTMLElement).style, {
         ...Object.fromEntries(
-          Object.entries(keyframes).map(([k, v]) =>
-            Array.isArray(v) ? [k, v[v.length - 1]] : [k, v]
-          )
+          Object.entries(keyframes).map(([k, v]) => (Array.isArray(v) ? [k, v[v.length - 1]] : [k, v])),
         ),
       })
       return noopControls

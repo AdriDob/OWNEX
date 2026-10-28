@@ -42,10 +42,12 @@ class TestAuthMiddleware:
         assert resp.status_code == 200
 
     def test_protected_no_token_returns_401(self, client):
+        client.cookies.clear()
         resp = client.get("/api/targets")
         assert resp.status_code == 401
 
     def test_protected_invalid_token_returns_401(self, client):
+        client.cookies.clear()
         resp = client.get("/api/targets", headers={"Authorization": "Bearer invalid-token"})
         assert resp.status_code == 401
 
@@ -55,8 +57,32 @@ class TestAuthMiddleware:
         assert resp.status_code == 200
 
     def test_protected_expired_token_returns_401(self, client):
+        client.cookies.clear()
         resp = client.get("/api/targets", headers={"Authorization": "Bearer eyJleHAiOjB9.signature"})
         assert resp.status_code == 401
+
+    def test_root_mounted_requires_auth(self, client):
+        """Las rutas montadas en raíz también exigen sesión.
+
+        Antes de 2026-10-04 el early-return `if not path.startswith("/api/")`
+        dejaba pasar 265 rutas raíz, incluidas 139 mutantes como
+        `POST /direct-work/workbank/{id}/deliver/approve`.
+        """
+        client.cookies.clear()
+        for path in ("/mission-hub/overview", "/direct-work/workbank"):
+            resp = client.get(path)
+            assert resp.status_code == 401, f"{path} sin credencial debe ser 401"
+
+    def test_root_mounted_allows_auth_login(self, client):
+        """`/auth/*` está en raíz y debe seguir siendo público.
+
+        `/auth/verify` sin params devuelve 422 (validación), no 401: eso
+        prueba que el gate de auth lo dejó pasar y llegó al handler.
+        `/version` no sirve como prueba: en raíz no existe (sólo
+        `/api/version`), responde 404.
+        """
+        client.cookies.clear()
+        assert client.get("/auth/verify").status_code != 401, "/auth/* debe ser público"
 
     def test_all_routers_require_auth(self, client):
         protected = [

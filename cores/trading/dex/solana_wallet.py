@@ -113,15 +113,25 @@ class SolanaWallet:
             return None
 
         try:
+            import base64
+
             from solders.transaction import VersionedTransaction
 
-            raw = base58.b58decode(tx_b64) if not tx_b64.startswith("A") else __import__("base64").b64decode(tx_b64)
-            if len(raw) < 64:
-                raw = __import__("base64").b64decode(tx_b64)
-            tx = VersionedTransaction.from_bytes(raw)
-            sig = self._keypair.sign_message(tx.message.serialize())
-            signed = VersionedTransaction([sig], tx.message)
-            return __import__("base64").b64encode(bytes(signed)).decode()
+            # Jupiter devuelve base64 (prefija 'A' a veces por el alphabet).
+            try:
+                raw_bytes = base64.b64decode(tx_b64)
+            except Exception:
+                raw_bytes = base58.b58decode(tx_b64)
+            tx = VersionedTransaction.from_bytes(raw_bytes)
+
+            # Orden VERIFICADO contra solders 0.29.0:
+            #   VersionedTransaction(message, [keypair])   ✓
+            #   VersionedTransaction([signature], message) ✗ TypeError
+            # Antes se pasaba ([sig], message) con un Signature ya firmado,
+            # que solders rechaza: el 2do slot espera Keypair|Presigner.
+            # Además `sign_message` firma bytes arbitrarios, NO la tx.
+            signed = VersionedTransaction(tx.message, [self._keypair])
+            return base64.b64encode(bytes(signed)).decode()
         except Exception as e:
             logger.error("Failed to sign transaction: %s", e)
             return None

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger("orion.revenue.api")
 router = APIRouter(prefix="/api/revenue-multiplier", tags=["revenue_multiplier"])
@@ -15,7 +16,7 @@ router = APIRouter(prefix="/api/revenue-multiplier", tags=["revenue_multiplier"]
 async def revenue_status():
     """Get current orchestrator status."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "status": rm.get_status()}
@@ -26,9 +27,44 @@ async def revenue_status():
 
 @router.post("/activate")
 async def activate_max_revenue(data: dict[str, Any] | None = None):
-    """Activate MAX REVENUE MODE — runs bounty pipeline and/or crypto trading."""
+    """Activate MAX REVENUE MODE — runs bounty pipeline and/or crypto trading.
+
+    **Modo LIVE exige Human Gate.** Antes `POST {"mode":"live"}` llegaba a
+    `_live_execute` → `RealExecutor` → `send_transaction` (broadcast
+    on-chain) sin ninguna verificación: sin approval, sin kill switch, sin
+    chequear `TradingConfig.is_live`. Sólo el `max_position_usd` lo frenaba.
+
+    Ahora pedir LIVE sin token válido devuelve 403 antes de ejecutar nada.
+    El mecanismo es el MISMO que ya usa `/api/trading/pump/execute`
+    (`consume_approval`, HMAC single-use, binding de action+target+workspace).
+    """
+    payload = data or {}
+    requested = str(payload.get("mode") or "").lower()
+
+    if requested == "live":
+        from cores.automation.safety import consume_approval
+
+        token = str(payload.get("approval_token") or "").strip()
+        target = str(payload.get("target") or "max_revenue_live")
+        if not consume_approval(token, action="revenue_live_trade", target=target, workspace="revenue"):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "modo live requiere Human Gate: pedí un token con "
+                    "issue_approval(action='revenue_live_trade', target=..., workspace='revenue') "
+                    "y mandalo como approval_token"
+                ),
+            )
+
+        # Kill switch global: mismo control que el resto del trading.
+        from cores.trading.risk import KillSwitchLevel, KillSwitchManager
+        from cores.trading.store import TradingStore
+
+        if KillSwitchManager(store=TradingStore()).is_active(KillSwitchLevel.GLOBAL):
+            raise HTTPException(status_code=423, detail="kill switch global activo — no se puede operar en live")
+
     try:
-        from core.revenue_multiplier import (
+        from cores.revenue_multiplier import (
             ExecutionMode,
             RevenueMultiplierConfig,
             RevenueMultiplierOrchestrator,
@@ -42,7 +78,15 @@ async def activate_max_revenue(data: dict[str, Any] | None = None):
         else:
             rm = get_revenue_multiplier()
 
-        result = rm.activate_max_revenue_mode()
+        # El orchestrator es SÍNCRONO y bloquea: `subprocess.run` de nuclei,
+        # sqlmap y compañía con timeouts de hasta 900s por tool, más llamadas
+        # de red. Llamarlo directo desde este `async def` congelaba el event
+        # loop DEL SERVER ENTERO: no sólo esta request, sino todas las demás
+        # (health, WS, copilot) durante los minutos que durara el escaneo.
+        #
+        # `asyncio.to_thread` lo mueve a un hilo del pool: el loop sigue
+        # respondiendo y la request espera su resultado igual que antes.
+        result = await asyncio.to_thread(rm.activate_max_revenue_mode)
         return {"success": True, "result": result}
     except Exception as e:
         logger.exception("Failed to activate MAX REVENUE MODE")
@@ -53,11 +97,11 @@ async def activate_max_revenue(data: dict[str, Any] | None = None):
 async def list_tools(category: str | None = None):
     """List all registered tools with availability status."""
     try:
-        from core.revenue_multiplier import get_tool_registry
+        from cores.revenue_multiplier import get_tool_registry
 
         reg = get_tool_registry()
         if category:
-            from core.revenue_multiplier.models import ToolCategory
+            from cores.revenue_multiplier.models import ToolCategory
 
             cat = ToolCategory(category)
             tools = reg.list_by_category(cat)
@@ -95,7 +139,7 @@ def shutil_which(binary: str) -> bool:
 async def revenue_metrics():
     """Get combined bounty + trading metrics."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "metrics": rm.metrics.to_dict()}
@@ -108,7 +152,7 @@ async def revenue_metrics():
 async def recent_events(limit: int = 20):
     """Get recent revenue events."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         events = rm.publisher.get_recent_events(limit=limit)
@@ -135,7 +179,7 @@ async def recent_events(limit: int = 20):
 async def get_config():
     """Get current revenue multiplier configuration."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         return {"success": True, "config": rm.get_status().get("config", {})}
@@ -148,7 +192,7 @@ async def get_config():
 async def update_config(data: dict[str, Any]):
     """Update revenue multiplier configuration for current session."""
     try:
-        from core.revenue_multiplier import (
+        from cores.revenue_multiplier import (
             ExecutionMode,
             get_revenue_multiplier,
         )
@@ -179,7 +223,7 @@ async def update_config(data: dict[str, Any]):
 async def generate_report():
     """Generate a revenue report from accumulated events."""
     try:
-        from core.revenue_multiplier import get_revenue_multiplier
+        from cores.revenue_multiplier import get_revenue_multiplier
 
         rm = get_revenue_multiplier()
         events = rm.publisher.get_recent_events()

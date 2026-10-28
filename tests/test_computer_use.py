@@ -363,18 +363,27 @@ class TestRegistry:
 
 
 class TestVisionIntegration:
-    def test_capture_screenshot_exists_in_vision(self):
-        from core.copilot.vision import capture_screenshot
+    """La captura y el análisis viven en módulos distintos.
+
+    Antes estos tests importaban `capture_screenshot` / `analyze_screenshot` /
+    `_available_screenshot_tools` de `cores.copilot.vision`, y los tres raisean
+    ImportError: ese módulo expone `analyze_image` / `describe_for_prompt`, y
+    la captura está en `cores.tools.computer_use`. Se reescribieron contra la
+    API real en vez de crear tres funciones para satisfacer al test.
+    """
+
+    def test_capture_screenshot_lives_in_computer_use(self):
+        from cores.tools.computer_use import capture_screenshot
 
         assert callable(capture_screenshot)
 
-    def test_analyze_screenshot_exists_in_vision(self):
-        from core.copilot.vision import analyze_screenshot
+    def test_analyze_image_exists_in_vision(self):
+        from cores.copilot.vision import analyze_image
 
-        assert callable(analyze_screenshot)
+        assert callable(analyze_image)
 
-    def test_available_screenshot_tools_exists(self):
-        from core.copilot.vision import _available_screenshot_tools
+    def test_vision_exposes_prompt_description(self):
+        """Lo que el copilot realmente consume del módulo de visión."""
+        from cores.copilot.vision import describe_for_prompt
 
-        tools = _available_screenshot_tools()
-        assert isinstance(tools, list)
+        assert callable(describe_for_prompt)

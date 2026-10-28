@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.intel.llm_scanner import (
+from cores.intel.llm_scanner import (
     LLMScanResult,
     scan_llm_endpoint,
     scan_local_model,
@@ -15,13 +15,24 @@ from core.intel.llm_scanner import (
 
 @pytest.mark.asyncio
 async def test_scan_llm_fallback():
-    """Without Garak installed, returns simulated result."""
+    """Sin Garak NO hay escaneo: se declara, no se simula.
+
+    Antes devolvía 6 checks con `model_response` INVENTADOS — o sea,
+    fabricating lo que un modelo respondió sobre el endpoint del usuario,
+    con score y severidad calculados de probes que nunca se ejecutaron.
+    El contrato ahora es `NOT_SCANNED`: 0 checks, score `None` (UNKNOWN,
+    no "0% de seguridad").
+    """
     result = await scan_llm_endpoint("http://test:11434")
     assert isinstance(result, LLMScanResult)
     assert result.endpoint == "http://test:11434"
-    assert "fallback" in result.methodology.lower()
-    assert result.summary["total"] == 6
-    assert 0 <= result.summary["score"] <= 100
+    assert result.model == "NOT_SCANNED"
+    assert result.summary["status"] == "NOT_SCANNED"
+    assert result.summary["total"] == 0
+    assert result.summary["score"] is None, "UNKNOWN no es 0"
+    assert result.checks == []
+    assert result.data_sources == [], "no se escaneó nada: no hay data sources"
+    assert "garak" in result.methodology.lower(), "debe decir cómo dejarlo escaneable"
 
 
 @pytest.mark.asyncio
@@ -32,15 +43,25 @@ async def test_scan_local_fallback():
     assert "test-model" in result.endpoint
     assert result.methodology in (
         "Garak Ollama real execution",
-        "Fallback: simulated until Garak is installed (`pip install garak`)",
+        (
+            "UNKNOWN: Garak no esta instalado, el escaneo NO se ejecuto. "
+            "Instalalo con `pip install garak` para escanear de verdad."
+        ),
     )
 
 
 @pytest.mark.asyncio
 async def test_scan_llm_garak_error_fallback():
-    """If Garak is installed but raises, falls back to simulated."""
+    """Si Garak no está, el resultado NO inventa checks.
+
+    Antes este test fijaba `total == 6` como si un escaneo inexistente
+    tuviera 6 veredictos. Un fallo de Garak es UNKNOWN; la ruta real
+    (Garak disponible → probes ejecutados) la cubre
+    `test_scan_local_with_garak`.
+    """
     result = await scan_llm_endpoint("http://test:11434")
-    assert result.summary["total"] == 6
+    assert result.summary["total"] == 0
+    assert result.summary["score"] is None
 
 
 @pytest.mark.asyncio

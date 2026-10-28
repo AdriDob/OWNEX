@@ -138,6 +138,9 @@ class SurfaceView(BaseView):
             QMessageBox.information(
                 self, "Add Target", f"Target '{result.get('name')}' already exists (id={result.get('id')})."
             )
+        elif result.get("invalid"):
+            QMessageBox.warning(self, "Add Target", f"Dominio inválido, no se creó:\n{result.get('reason', '')}")
+            return
         self.refresh()
 
     # -- Helpers de estilo --

@@ -18,7 +18,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from core.orion.models import MemoryRecord
+from cores.orion.models import MemoryRecord
 
 logger = logging.getLogger("ownex.orion.memory")
 
@@ -54,7 +54,7 @@ def remember(
     if ttl_hours <= 0:
         ttl_hours = _CATEGORY_TTL.get(category, TTL_OBSERVATION)
 
-    from core.knowledge.models import KGNode
+    from cores.knowledge.models import KGNode
 
     node_id = f"orion:{category}:{key}"
 
@@ -115,7 +115,7 @@ def recall(
     Filters by key, category, and/or tags. Returns up to ``limit``
     entries, sorted by most recent first.
     """
-    from core.knowledge.models import KGNode
+    from cores.knowledge.models import KGNode
 
     stmt = select(KGNode).where(KGNode.id.like("orion:%"))
 
@@ -158,7 +158,7 @@ def forget(
     Removes nodes matching key/category/age criteria. Returns count
     of deleted nodes.
     """
-    from core.knowledge.models import KGNode
+    from cores.knowledge.models import KGNode
 
     stmt = select(KGNode).where(KGNode.id.like("orion:%"))
 
@@ -194,7 +194,7 @@ def connect(
     Example: ``connect("shopify:/api/users", "403_no_auth", "returns")``
     creates a graph edge: ``/api/users --[returns]--> 403_no_auth``
     """
-    from core.knowledge.models import KGEdge, KGNode
+    from cores.knowledge.models import KGEdge, KGNode
 
     source = session.execute(
         select(KGNode).where(KGNode.name == source_key, KGNode.id.like("orion:%"))

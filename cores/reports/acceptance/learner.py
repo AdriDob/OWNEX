@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.reports.quality.scorer import QualityScorer
+from cores.reports.quality.scorer import QualityScorer
 from database import db
 from database.models import Report, SubmissionRecord
 

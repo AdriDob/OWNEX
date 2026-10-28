@@ -79,7 +79,7 @@ async def daily_digest() -> dict[str, Any]:
 
     # Execution Queue WAITING_HUMAN
     try:
-        from core.execution_queue.models import ExecutionQueueStore
+        from cores.execution_queue.models import ExecutionQueueStore
 
         eq = ExecutionQueueStore()
         waiting = eq.pending_by_state("waiting_human")
@@ -129,18 +129,69 @@ async def daily_digest() -> dict[str, Any]:
     except Exception:
         pass
 
+    # ── Project TOP-3 (Project OS: next_actions across ALL projects) ──
+    try:
+        from cores.projects.registry import ProjectStore, next_actions
+
+        for a in next_actions(ProjectStore(), limit=3):
+            decisions.append(
+                {
+                    "type": "project_task",
+                    "title": f"[{a['project']}] {a['title']}",
+                    "platform": a["project"],
+                    "reward": a.get("score", 0),
+                    "action": "Abrir proyecto y ejecutar tarea",
+                    "url": f"/projects/{a['project']}",
+                    "priority": float(a.get("score", 0)),
+                    "project": a["project"],
+                    "task_id": a["task_id"],
+                    "phase": a.get("phase", ""),
+                    "ladder_rung": a.get("ladder_rung", ""),
+                }
+            )
+    except Exception:
+        pass
+
     # Sort by priority desc, take top 5
     decisions.sort(key=lambda d: -float(d.get("priority", 0)))
     digest["decisions"] = decisions[:5]
     digest["counts"] = {"pending_decisions": len(decisions)}
 
-    # ── Best Action (the ONE thing to do) ──
+    # ── Best Action (the ONE thing to do) — now with P(CASH) + EV/h + human minutes ──
+    # Enrich decisions with economic metrics when possible
+    for d in decisions:
+        try:
+            # If decision came from WorkBank/Execution, try to enrich with P(CASH) and EV/h from Direct Work Engine
+            # For now, attach honest UNKNOWN when no personal history
+            d.setdefault("p_cash", None)
+            d.setdefault("p_cash_band", "UNKNOWN")
+            d.setdefault("ev_h", None)
+            d.setdefault("human_minutes", None)
+        except Exception:
+            pass
+
     if decisions:
         top = decisions[0]
         digest["best_action"] = {
             **top,
-            "why": "Mayor recompensa esperada entre tus decisiones pendientes",
+            "why": "Mayor NET CASH / HUMAN HOUR entre pendientes (EV × P(CASH) / tiempo humano)",
         }
+
+    # ── Economic snapshot for life (Base/Motor/Upside/Capital) ──
+    try:
+        from cores.first_money.tracker import get_first_money_tracker
+
+        t = get_first_money_tracker()
+        march = t.get_march2027_plan()
+        digest["economic"] = {
+            "target_50k": march["target_usd"],
+            "gap_50k": march["gap_usd"],
+            "weekly_required": march["weekly_required"],
+            "ladder": march["ladder"][:3],  # next 3 milestones
+            "scenarios": march["scenarios"],
+        }
+    except Exception as e:
+        logger.debug("economic digest error: %s", e)
 
     # ── System Health ──
     health_items = []

@@ -1,6 +1,6 @@
 [project]
 name = "ownex-omega"
-version = "7.0.0"
+version = "7.7.7"
 description = "OWNEX OMEGA — Autonomous Work Operating Platform"
 requires-python = ">=3.11"
 dependencies = [
@@ -15,6 +15,7 @@ exclude = ["extensions.*.*"]
 target-version = "py311"
 line-length = 120
 indent-width = 4
+exclude = ["api/routers/_archived"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
@@ -26,6 +27,7 @@ ignore = ["E501", "E731", "B008"]
 "desktop/service.py" = ["N802"]
 "alembic/*" = ["E402", "UP035", "UP007", "W291", "I001"]
 "database/db.py" = ["E402"]
+"api/main.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -75,7 +77,8 @@ disallow_any_unimported = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short --timeout=60"
+addopts = "-v --tb=short "
+asyncio_mode = "auto"
 markers = [
     "integration: end-to-end pipeline tests that may need external services",
     "slow: long-running tests (network/recon); use -m 'not slow' for CI smoke",

@@ -4,6 +4,7 @@ from typing import Any
 
 from cores.engine.unified_scoring import score as unified_score
 from cores.engine.unified_scoring import score_target as unified_score_target
+from cores.recon.parser import looks_like_path
 from cores.targets.models import TargetIntel
 from database import db, models
 
@@ -627,6 +628,18 @@ def generate_report() -> dict[str, Any]:
 def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
+        # Higiene de escaneo (2026-09-18): dominio inválido = scan condenado
+        # a 0 findings. Fail-closed acá, no en el scheduler.
+        from cores.recon.hostname import scannable_domain
+
+        effective = (domain or "").strip()
+        if effective and not scannable_domain(name, effective):
+            return {
+                "name": (name or "").strip(),
+                "domain": effective,
+                "invalid": True,
+                "reason": "hostname DNS inválido (¿slug con '_' + '.com'?). Corregí el dominio.",
+            }
         existing = session.query(models.Target).filter(models.Target.name == name).first()
         if existing:
             return {
@@ -651,6 +664,17 @@ def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
 def create_endpoint(
     target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None
 ) -> dict[str, Any]:
+    """Crea un endpoint para un target.
+
+    Rechaza lo que no es un path. Sin este chequeo, un caller que pase el
+    payload crudo del crawler guarda la serialización en la columna `path`, y
+    eso es exactamente cómo se ensuciaron 8.937 de 44.597 filas: el string
+    entra a `unified_score()` y a la detección de superficie por substring,
+    así que la basura contamina riesgo y superficie, no sólo el texto.
+    Ver `cores/recon/parser.py::looks_like_path` y KNOWN_DEBT #81.
+    """
+    if not looks_like_path(path):
+        raise ValueError(f"path no es un path: {str(path)[:120]!r}")
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()

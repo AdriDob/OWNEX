@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.application_assistant import (
+from cores.application_assistant import (
     STATUS_ACCEPTED,
     ApplicationAssistant,
     get_application_assistant,
@@ -104,6 +104,75 @@ class TestOverview:
         assert overview["progress_pct"] == round(1 / total * 100)
 
 
+class TestPlatformStatus:
+    def test_fresh_platform_is_not_connected_with_unknown_facets(self, tmp_path) -> None:
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        st = assistant.get_platform_status("outlier")
+        assert st["global_state"] == "NOT_CONNECTED"
+        assert st["facets"]["account"] == "pending"
+        assert st["facets"]["email"] == "unknown"
+        assert st["facets"]["first_payment"] == "unknown"
+        assert st["next_action"] is not None
+        assert "missing" in st and "account" in st["missing"]
+
+    def test_completed_steps_move_facets_and_global_state(self, tmp_path) -> None:
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        assistant.complete_step("alignerr", "create_account")
+        assistant.complete_step("alignerr", "domain_assessment")
+        assistant.complete_step("alignerr", "payment_setup")
+        st = assistant.get_platform_status("alignerr", allow_interview_paths=True)
+        assert st["facets"]["account"] == "done"
+        assert st["facets"]["skills"] == "done"
+        assert st["facets"]["payment"] == "done"
+        assert st["global_state"] in ("READY", "OPERATIONAL")
+        assert "account" not in st["missing"]
+
+    def test_accepted_without_payment_evidence_never_claims_first_payment(self, tmp_path) -> None:
+        from cores.application_assistant import STATUS_ACCEPTED
+
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        assistant.set_status("outlier", STATUS_ACCEPTED)
+        st = assistant.get_platform_status("outlier")
+        assert st["facets"]["first_payment"] == "unknown"
+
+    def test_unknown_platform_raises(self, tmp_path) -> None:
+        import pytest
+
+        assistant = ApplicationAssistant(store_path=tmp_path / "a.json")
+        with pytest.raises(KeyError):
+            assistant.get_platform_status("nope")
+
+
+class TestPhaseStatusEndpoint:
+    def test_phase_status_endpoint_shape(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.control import router
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        resp = client.get("/api/applications/outlier/phase-status")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["platform"] == "outlier"
+        assert body["global_state"] == "NOT_CONNECTED"
+        assert body["facets"]["first_payment"] == "unknown"
+        assert "missing" in body and "what_unlocks" in body
+
+    def test_phase_status_unknown_platform_404(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.control import router
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        assert client.get("/api/applications/nope/phase-status").status_code == 404
+
+
 class TestSingleton:
     def test_get_application_assistant_returns_same_instance(self) -> None:
         assert get_application_assistant() is get_application_assistant()
@@ -135,3 +204,149 @@ class TestApiEndpoints:
         client = TestClient(app)
         assert client.post("/api/applications/nope/status", json={"status": "applied"}).status_code == 404
         assert client.post("/api/applications/outlier/status", json={"status": "bad"}).status_code == 400
+
+
+class TestZeroBarrierGating:
+    """L4: default hides CV/interview steps; opt-in reveals them."""
+
+    def test_default_plan_hides_gated_steps(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan()
+        assert plan["zero_barrier"] is True
+        ids = {s["id"] for p in plan["platforms"] for s in p["steps"]}
+        assert "resume_linkedin" not in ids
+        assert "ai_interview" not in ids
+        # assessments stay (registration-or-assessment is allowed)
+        assert "coding_assessment" in ids
+
+    def test_opt_in_reveals_all_steps(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan(allow_interview_paths=True)
+        assert plan["zero_barrier"] is False
+        ids = {s["id"] for p in plan["platforms"] for s in p["steps"]}
+        assert "resume_linkedin" in ids
+        assert "ai_interview" in ids
+
+    def test_gated_count_reported(self, assistant: ApplicationAssistant) -> None:
+        plan = assistant.get_plan()
+        gated = sum(p.get("gated_steps", 0) for p in plan["platforms"])
+        assert gated == 4  # outlier CV + mercor CV + mercor interview + alignerr CV
+
+    def test_onboarding_filters_consistently(self, assistant: ApplicationAssistant) -> None:
+        ob = assistant.get_onboarding("mercor")
+        ids = {c["id"] for c in ob["checklist"]}
+        assert "ai_interview" not in ids
+        assert "create_account" not in ids  # CV-gated
+        assert "technical_screening" in ids  # assessment stays
+        ob_full = assistant.get_onboarding("mercor", allow_interview_paths=True)
+        full_ids = {c["id"] for c in ob_full["checklist"]}
+        assert "ai_interview" in full_ids
+        assert "create_account" in full_ids
+
+    def test_complete_gated_step_still_valid(self, tmp_path) -> None:
+        a = ApplicationAssistant(store_path=tmp_path / "a.json")
+        res = a.complete_step("mercor", "ai_interview")
+        assert res["success"] is True
+
+
+class TestAllAccessEntry:
+    """Vía all-access: entrar seguro sin experiencia profesional."""
+
+    def test_verdicts_per_platform(self, assistant: ApplicationAssistant) -> None:
+        entry = assistant.get_all_access_entry()
+        by_platform = {e["platform"]: e for e in entry["entries"]}
+        # Mercor fuera: su única vía curada exige entrevista por video + CV.
+        assert set(by_platform) == {"outlier", "alignerr", "mindrift"}
+        assert by_platform["mindrift"]["verdict"] == "ALL_ACCESS_OK"
+        assert by_platform["mindrift"]["experience_required"] is False
+        assert by_platform["outlier"]["verdict"] == "NEEDS_CV"
+        assert by_platform["alignerr"]["verdict"] == "NEEDS_CV"
+
+    def test_mercor_excluded_no_interview_free_path(self, assistant: ApplicationAssistant) -> None:
+        entry = assistant.get_all_access_entry()
+        assert "mercor" not in {e["platform"] for e in entry["entries"]}
+
+    def test_safest_first_is_mindrift(self, assistant: ApplicationAssistant) -> None:
+        entry = assistant.get_all_access_entry()
+        assert entry["safest_first"] == "mindrift"
+        assert entry["entries"][0]["platform"] == "mindrift"
+
+    def test_totals_match_visible_steps(self, assistant: ApplicationAssistant) -> None:
+        entry = assistant.get_all_access_entry()
+        for e in entry["entries"]:
+            assert e["total_minutes"] == sum(s["est_minutes"] for s in e["steps"])
+            assert e["next_action"] is not None
+            assert {"platform", "pay_range", "payout", "why", "url"} <= set(e)
+        assert entry["total_minutes_all"] == sum(e["total_minutes"] for e in entry["entries"])
+
+    def test_completing_step_advances_next_action(self, tmp_path) -> None:
+        a = ApplicationAssistant(store_path=tmp_path / "a.json")
+        before = a.get_all_access_entry()["entries"][0]["next_action"]["step_id"]
+        assert before == "create_account"
+        a.complete_step("mindrift", "create_account")
+        after = a.get_all_access_entry()["entries"][0]["next_action"]["step_id"]
+        assert after == "writing_tests"
+
+    def test_all_access_endpoint(self) -> None:
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+
+        from api.routers.control import router
+
+        app = FastAPI()
+        app.include_router(router)
+        client = TestClient(app)
+        resp = client.get("/api/applications/all-access")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["safest_first"] == "mindrift"
+        assert len(body["entries"]) == 3
+
+
+class TestPrepPacks:
+    def test_pack_conocido_trae_contenido_y_seeds(self, assistant: ApplicationAssistant) -> None:
+        pack = assistant.get_prep_pack("outlier", "coding_assessment")
+        assert pack["evaluates"] and pack["checklist"] and pack["est_minutes"] > 0
+        assert isinstance(pack["suggested_answers"], dict)
+        assert pack["prior_attempts"] == []
+
+    def test_paso_no_assessment_retorna_vacio(self, assistant: ApplicationAssistant) -> None:
+        assert assistant.get_prep_pack("outlier", "create_account") == {}
+
+    def test_plataforma_desconocida_404_logico(self, assistant: ApplicationAssistant) -> None:
+        import pytest
+
+        with pytest.raises(KeyError):
+            assistant.get_prep_pack("nope", "coding_assessment")
+
+    def test_record_attempt_persiste(self, tmp_path) -> None:
+        a1 = ApplicationAssistant(store_path=tmp_path / "applications.json")
+        out = a1.record_attempt("outlier", "coding_assessment", True, "pasó a la primera")
+        assert out == {"success": True, "platform": "outlier", "step": "coding_assessment", "attempts": 1}
+        a2 = ApplicationAssistant(store_path=tmp_path / "applications.json")
+        assert a2.attempt_summary() == {"outlier": {"coding_assessment": {"attempts": 1, "passed": 1}}}
+        assert a2.get_prep_pack("outlier", "coding_assessment")["prior_attempts"][0]["passed"] is True
+
+    def test_record_attempt_none_permitido(self, assistant: ApplicationAssistant) -> None:
+        out = assistant.record_attempt("mindrift", "domain_assessment", None)
+        assert out["attempts"] == 1
+        assert assistant.attempt_summary("mindrift") == {
+            "mindrift": {"domain_assessment": {"attempts": 1, "passed": 0}}
+        }
+
+    def test_record_attempt_invalido_falla(self, assistant: ApplicationAssistant) -> None:
+        import pytest
+
+        with pytest.raises(KeyError):
+            assistant.record_attempt("outlier", "create_account", True)
+        with pytest.raises(KeyError):
+            assistant.record_attempt("nope", "coding_assessment", True)
+        with pytest.raises(ValueError):
+            assistant.record_attempt("outlier", "coding_assessment", "si")  # type: ignore[arg-type]
+
+    def test_summary_vacio(self, assistant: ApplicationAssistant) -> None:
+        assert assistant.attempt_summary() == {}
+        assert assistant.attempt_summary("outlier") == {}
+
+    def test_summary_cuenta_varios(self, assistant: ApplicationAssistant) -> None:
+        assistant.record_attempt("outlier", "coding_assessment", False)
+        assistant.record_attempt("outlier", "coding_assessment", True)
+        assert assistant.attempt_summary() == {"outlier": {"coding_assessment": {"attempts": 2, "passed": 1}}}

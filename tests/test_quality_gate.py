@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from core.reports.quality.classifier import QualityClassifier
-from core.reports.quality.scorer import QualityScore, QualityScorer
+from cores.reports.quality.classifier import QualityClassifier
+from cores.reports.quality.scorer import QualityScore, QualityScorer
 
 
 def test_quality_score_data_class() -> None:

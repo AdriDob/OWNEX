@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# from core.autonomy.browser_agent import BrowserResult  # Will import after browser_agent is fixed
+# from cores.autonomy.browser_agent import BrowserResult  # Will import after browser_agent is fixed
 
 
 @dataclass
@@ -167,9 +167,25 @@ class RepoAnalyzer:
             pass
         return "main"
 
-    async def analyze_repo(self, repo_path: Path) -> RepoInfo:
+    async def analyze_repo(self, repo_path: Path | str) -> RepoInfo:
         """Analyze repository structure and detect configuration."""
-        info = RepoInfo(path=repo_path, language="unknown", package_manager=None)
+        # clone_repo devuelve el path como str en `data`. Sin coercionar, el
+        # primer `repo_path.rglob(...)` de _detect_language reventaba con
+        # 'str' object has no attribute 'rglob' — segundo fallo en la misma
+        # funcion, y la razon de que la Fase 1 jamas haya corrido.
+        repo_path = Path(repo_path)
+        # RepoInfo exige 7 campos. Pasando 3, esto lanzaba TypeError en TODAS
+        # las llamadas: la Fase 1 del pipeline (clone+analyze) no podia funcionar
+        # nunca. Por eso DevBountyPipeline nunca se ejecuto.
+        info = RepoInfo(
+            path=repo_path,
+            language="unknown",
+            package_manager=None,
+            test_command=None,
+            build_command=None,
+            dev_command=None,
+            framework=None,
+        )
 
         # Detect language
         info.language = self._detect_language(repo_path)

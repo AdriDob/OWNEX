@@ -146,6 +146,23 @@ Herramientas críticas para triplicar capacidad de ingresos.
 - [ ] Auto-submission pipeline (Finding → Evidence → Report → Submit → Payout)
 - [ ] Agentes independientes por ciclo con coordinador multi-agente
 
+### PROYECCIÓN 30H/SEMANA → MARZO 2027 (2026-09-15) — 840h, $50k objetivo
+
+> Piso mecánico $21k (840h×$25/h). Techo sin upside $30-35k. Con 1 upside $40-80k. Sin dispersión (>3 activos mata `money_per_human_hour`).
+
+| Escenario | Acumulado | Run-rate Mar | Condición |
+|---|---|---|---|
+| 🔴 Flojo | $5-12k | $1-2k/mes | 1er PAID mes 3+, 1 canal |
+| 🟠 Conservador | $18-35k | $2.5-4.5k/mes | 1er PAID mes 2, 2 canales |
+| 🟢 Objetivo | $40-80k | $5-10k/mes | 1er PAID S3-4, 3 canales, 1 upside $3-8k |
+| 🔵 Muy fuerte | $80-160k | $10-20k/mes | +1 Critical $5k+ |
+| 🟣 Excepcional | $160k+ | $20k+/mes | Múltiples Criticals |
+
+**Asignación 30h:** 10h AI work · 8h Dev bounties · 6h B2B · 3h MeLi · 2h Bug bounty · 1h Admin
+**Hitos:** S3-4 1er PAID → Mes2 2 canales → Mes4 3 canales MEASURED → Mes6-9 upside
+**Kill rule:** 40h/$0 a día 60 → pausa canal
+**Bloqueos P0:** GITHUB_TOKEN, 3 rails, 3 assessments
+
 ### FASE 6 — Tauri Desktop + Android Companion ⭐⭐⭐⭐
 
 - [ ] Tauri + Vue 3 build (OWNEX.exe)

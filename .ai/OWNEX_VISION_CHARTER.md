@@ -25,6 +25,13 @@ autónoma capaz de ayudar al usuario a:
 - aumentar productividad
 - construir independencia digital
 
+> **El objetivo final no es OWNEX. Es la vida que OWNEX debe ayudar a construir.**
+> Ver `.ai/PERSONAL_CONTEXT.md` (SSOT personal del usuario: independencia, $125k de
+> colchón, vivienda, Chevy Tracker azul, familia, viajes, fe, pintura). La IA debe
+> explicar cada "hacé X" en términos del objetivo de vida que mueve, no de la checklist
+> que marca (jerarquía VIDa → Independencia/Carrera/Negocios/Tecnología/Familia/
+> Viajes/Entretenimiento/Fe/Creatividad).
+
 OWNEX debe sentirse como tener una **organización tecnológica completa dentro de un
 único sistema**. No es una aplicación. No es un chatbot. Es un ecosistema personal
 inteligente.
@@ -125,6 +132,48 @@ organizar, aprender, optimizar. Pipeline:
 FOUND → ANALYZED → SELECTED → PREPARED → TESTED → READY → USER APPROVAL → SUBMISSION → RESULT TRACKING
 ```
 
+### Economic Objective (DEFINITIVE — 2026-09-09)
+
+**OWNEX is an autonomous economic opportunity operating system. Its primary objective is to maximize the user's expected legitimate net income per unit of human time, across bug bounties, security contests, developer bounties and AI training/data annotation.**
+
+The system continuously discovers, evaluates, researches, prepares, validates, tracks and learns from opportunities. Human intervention is restricted to decisions requiring authorization, judgment, identity, platform interaction or irreversible external actions.
+
+OWNEX must optimize for expected value, probability of success, time efficiency, competition, risk, repeatability and historical performance rather than headline payout.
+
+**The system must never fabricate opportunities, earnings, platform availability, acceptance probability or revenue. Unknown information must remain explicitly unknown.**
+
+Estructura económica — 6 motores (definitivo 2026-09-15):
+
+```text
+                         OWNEX
+                           │
+             ┌─────────────┼──────────────┐
+             │             │              │
+          CASH NOW     SKILL→CASH    ASSET→CASH      ← 3 motores de ingreso directo
+             │             │              │
+       Droppinglabel    Bounties        SaaS  APIs  Tools  Templates  Datasets
+       Mercado Libre    AI Work         Plugins  Extensions  Automation Kits
+       Adriel Webs      Challenges      Digital Products · Licensing
+             │             │              │
+             └─────────────┼──────────────┘
+                           │
+                    AUDIENCE→CASH        ← distribución (Content Factory / social)
+                           │
+                    PARTNERSHIP→CASH     ← revenue share / afiliación (futuro, UPSIDE)
+                           │
+                    CAPITAL→CAPITAL      ← ahorro → inversión → trading (PAPER, nunca renta base)
+                           │
+                    WORK ENGINE (Human Gate obligatorio)
+                           │
+                    REVENUE ENGINE (EXPECTED ≠ PENDING ≠ PAID)
+```
+
+12 workspaces canónicos (6 motores): OWNEX(core) + BUG_BOUNTY/DEV_BOUNTY/AI_TRAINING(SKILL→CASH) + DROPPINGLABEL/MERCADO_LIBRE/ADRIEL_WEBS(CASH NOW) + CONTENT_FACTORY(AUDIENCE) + ASSET_FACTORY(ASSET→CASH) + PARTNERSHIP(futuro) + TRADING(CAPITAL) + BACKUP_INCOME(safety net).
+
+Regla permanente: < $15/h, requiere entrevista/empleo, o datos simulados → fuera. ASSET_FACTORY solo produce si pasa 9 gates con demanda observable; PARTNERSHIP solo con acuerdo firmado.
+
+Fiverr es canal comercial (no motor): adquisición de clientes/servicios. Upwork y uTest quedan fuera. Revenue tiers visibles: SURVIVAL (¿hay ingreso?) / TARGET $5K / STRETCH $15K, con pace, proyección y gap calculados solo desde ledger PAID.
+
 ---
 
 ## Category Specialists
@@ -211,6 +260,58 @@ Interacción natural:
 Todo en tiempo real, con tecnologías open source.
 
 ---
+
+## Principio Rector — Fábrica Autónoma 1000%
+
+> **OWNEX automatiza al máximo todo trabajo digital automatizable. Descubre oportunidades, analiza, prepara, ejecuta, verifica, aprende y optimiza continuamente. El usuario monitorea el sistema, toma las decisiones que requieren criterio humano y recibe/cobra los resultados.**
+
+La métrica no es "¿cuántas features tiene?" sino:
+
+> **¿Cuánto trabajo que antes hacía yo ahora hace OWNEX por mí?**
+
+```
+ANTES                          OWNEX
+Usuario hace todo      →       MÁQUINA hace todo lo posible
+  buscar                          → DISCOVERY automático
+  comparar                        → scoring EV/h + P(CASH)
+  investigar                      → análisis + research
+  decidir                         → ranking top 3, usuario decide
+  programar                       → CODEGEN + tests
+  testear                         → validación automática
+  preparar PR/reporte             → evidence bundle
+  seguimiento                     → monitor + polling
+  revisar pagos                   → Ledger EXPECTED≠PAID
+  aprender                        → evolution loop
+Usuario decide              →  Solo autoridad / criterio / identidad
+```
+
+### Escalera de automatización (objetivo de diseño para cada tarea)
+
+```
+MANUAL → ASISTIDO → AUTOMÁTICO → AUTÓNOMO → AUTÓNOMO+VERIFICADO → AUTÓNOMO+APRENDE
+```
+
+Cada feature debe responder: ¿sube un peldaño o solo agrega info bonita? Si no reduce trabajo humano → no se prioriza. Si duplica → eliminar. Si requiere acción manual automatizable → candidato a automatización. Si automatizar introduce riesgo irreversible → Human Gate (99% preparación automática + 1 clic de autoridad).
+
+### Métricas corazón (SSOT en `cores/cycles/metrics.py` → `GET /api/cycles/automation-metrics`)
+
+```text
+Automation Ratio   = trabajo automático / trabajo total
+Human Time Saved   = estimado manual - tiempo humano real
+Human Interventions= aprobaciones / oportunidad / misión / $ ganado
+Money per Human Hour = NET CASH / HUMAN HOURS
+Productivity       = RESULTADO GENERADO / TIEMPO HUMANO
+```
+
+Prueba de que OWNEX funciona: *"Ayer necesitaba 8h para X. Hoy OWNEX produjo X mientras dediqué 30 min a supervisar."*
+
+### Frontera no automatizable (aunque sea técnicamente posible)
+
+Transacciones financieras importantes, trading/inversiones, envío de reportes, aceptación de contratos, acciones legales, comunicaciones críticas, publicación bajo identidad. Objetivo: **OWNEX hace el 99%, el humano hace el último clic de autoridad.** Ejemplo:
+
+```
+Bug → valida → PoC → reporte → severidad → reward → "ENVIAR $4.200 P(CASH)38% 12min review" → 👤 APROBAR → OWNEX envía
+```
 
 ## Final Vision
 

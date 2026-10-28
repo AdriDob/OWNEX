@@ -8,22 +8,74 @@ El directorio `.ai/` es la única fuente de verdad para reglas, protocolos y dec
 
 ### Referencias de archivos .ai/
 
-| Archivo .ai/ | Función (consulte directamente) |
+| Archivo | Función (consulte directamente) |
 |--------------|--------------------------------------|
 | **AGENT_CHARTER.md** | Constitución, Agent Loop, Regla de Oro - leer primero |
-| **OWNEX_VISION_CHARTER.md** | Visión de producto (APOS) - la brújula: qué es OWNEX |
 | **PRODUCTION_RULES.md** | Reglas de producción - NO modificar |
-| **CURRENT_STATE.md** | Estado verificado de cada feature |
-| **TASK_QUEUE.md** | Cola de tareas priorizada |
-| **ROADMAP.md** | Roadmap general |
-| **DECISIONS.md** | Decisiones arquitectónicas con evidencia |
+| **DO_NOT_TOUCH.md** | Componentes estables y su riesgo - leer antes de tocar |
+| **LESSONS.md** | Anti-patrones ya pagados - no repetirlos |
+| **CODE_QUALITY.md** | Estándares de código |
+| **TESTING_POLICY.md** | Cómo y qué correr |
+| **SECURITY_POLICY.md** | Principios de seguridad del proyecto |
+| **docs/PRODUCT_ONE_PAGE.md** | **El producto en una página** - qué es OWNEX, el loop, los human gates. Leer antes de proponer features |
+| **docs/PRODUCT_MAP.md** | Mapa del producto + tabla de conceptos canónicos (solapamientos verificados) |
+| **OWNEX_VISION_CHARTER.md** | Visión de producto (APOS) - la brújula: qué es OWNEX |
+| **CURRENT_STATE.md** | Estado verificado — **bajo demanda**: leer antes de proponer o afirmar "no existe" |
+| **TASK_QUEUE.md** | Cola priorizada — bajo demanda: leer al elegir tarea |
+| **ROADMAP.md** | Roadmap general — bajo demanda |
+| **DECISIONS.md** | Decisiones con evidencia — bajo demanda: **grep antes de contradecir una regla** |
+| **KNOWN_DEBT.md** | Deuda viva — bajo demanda: leer antes de "arreglar" algo |
+
+> **Criterio de parada (§4 del audit):** si OWNEX no se puede explicar en una
+> página, **no se agrega arquitectura**. `docs/PRODUCT_ONE_PAGE.md` es ese
+> contrato; si un cambio no cabe ahí, o se actualiza la página o no entra.
+
+### Regla de carga (2026-09-30)
+
+Los 7 documentos de la primera tabla están en el system prompt FIJO de cada
+sesión (`opencode.json.instructions`, 47 KB ≈ 12k tokens). Los de la segunda
+tabla **NO** están: se leen bajo demanda con `read`.
+
+Motivo medido: el bloque anterior declaraba 17 ficheros = **1.025.155 B
+(~256k tokens) de narrativa sesión-por-sesión en cada prompt**, con
+`compaction.auto: false`. Dos documentos (`CURRENT_STATE` 452 KB y
+`DECISIONS` 376 KB) eran bitácora, no reglas.
+
+**Antes de afirmar "no existe" u "ya está hecho"** (Regla de Oro del charter),
+leer `CURRENT_STATE.md` y `DECISIONS.md`. Un agente que no los lee propone
+features que ya existen — es el fallo que el charter §2 prohíbe.
+
+El histórico de los 4 documentos rotados quedó en `.ai/archive/` (828 KB):
+`CURRENT_STATE` 434 KB · `DECISIONS` 342 KB · `KNOWN_DEBT` 12 KB ·
+`TASK_QUEUE` 25 KB · `MEMORY.md` (archivado entero: documenta `core/memory/`,
+eliminado el 2026-09-14) · `ARCHITECTURE_FINAL.md` (autodeclara `[STALE]`).
+
+**El guard es mecánico:** `tests/test_opencode_contract.py::
+test_instructions_block_within_budget` falla si el bloque fijo crece de 64 KB.
+
 
 ### Comando de referencia rápida OBLIGATORIO:
 
 ```bash
-# Siempre consultá el charté antes de trabajar
-# .ai/ contiene TODO el protocolo, reglas de producción y decisiones estratégicas
+# 1. Verificar que la feature NO existe ya (Regla de Oro, charter §2)
+#    Antes de proponer o escribir una línea:
+grep -in "<término>" .ai/CURRENT_STATE.md | head -20
+grep -in "<símbolo>"  .ai/archive/DECISIONS.md | head -10
+
+# 2. Entender el código SIN leerlo entero (el skill `graft` lo hace por vos)
+graft ask "<qué hace X / dónde vive Y>" --source
+graft callers <símbolo> --depth 2      # blast radius antes de renombrar
+graft grep "<patrón>"                  # todas las ocurrencias, agrupadas
+
+# 3. Verificar antes de llamar "DONE"
+make check          # ruff + typecheck + test-fast (gate real)
 ```
+
+**El `skill` `graft` está cableado como MCP** (`opencode.json.mcp.graft`) y como
+CLI en `/home/adriel/.local/bin/graft`. Los 5 subagents del proyecto viven en
+`.opencode/agents/*.md` y se invocan con `@planner`, `@python-reviewer`,
+`@rust-reviewer`, `@security-reviewer`, `@code-reviewer`. El workflow
+obligatorio de 8 pasos está en el skill `ecc-workflow`.
 
 ## ORION Infrastructure v1.0: FROZEN
 

@@ -1,5 +1,50 @@
 # Changelog — OWNEX Alpha Desktop
 
+## Unreleased (post-7.1.0, rama release/win11-stable)
+
+Consolidación ULTIMATE FINAL (master prompt Fase 0-3 + plan $0 + trading front real).
+
+### Added
+- **Economic Feedback Loop** (`cores/economic_feedback/`): `ChannelEconomics` + `FeedbackSnapshot` — collect LearningRecords + WorkBank horas → `p_cash_real`/`net_per_hour`/`prediction_error`/verdict SCALE/KEEP/PAUSE (UNKNOWN si 0 PAID) → recalibrate P(CASH) → reallocate. Job diario + `GET /api/economic-feedback/snapshot` + `POST /record-outcome` + `POST /recalibrate`. Persiste `data/economic_feedback/`.
+- **NETO REAL + MATAR/ESCALAR** (ecommerce): `platform_fee_pct/tax_pct/other_costs_usd` en `score_supplier_offer` + `suggest_price`; `ProductPerformance` (ESCALAR/OBSERVAR/REVISAR_PRECIO/TESTING/MATAR) + `portfolio_funnel` + objetivos O1-O6 (`experiment_objectives`); endpoints `/sourcing/net-real`, `/intel/winners`, `/intel/objectives`; `SupplierType.DROPSHEABLE`.
+- **Plan $0 completo**: auto-pricing, competitor watch, routing multi-supplier, scorecards, cross-listing 4 canales, content planner, reviews+carts, affiliate (`cores/affiliate.py`), leadgen+arbitrage, report factory, data curation, security packs, automation service, router `zero_invest`.
+- **15 workspaces canónicos $0**: `AFFILIATE` + `LEAD_SERVICES` + `KNOWLEDGE_ASSETS` (registry + policies, todos UPSIDE/DRAFT_ONLY).
+- **Free Business Tools**: `cores/tools/business.py` (18 herramientas $0 + 13 tareas + detección pura) + `GET /api/business-tools`.
+- **Trading front real**: router accionable montado en main + `GET /api/trading/overview` honesto (NO_DATA sin trades) + `TradingConsolidated.vue` al contrato real (toggle/stop/approve).
+- **Curated sources**: `cores/direct_work_engine/source_registry.py` (118 webs, gates, opt, quarantine) + filtro `languages` en GitHub bounty + prober.
+
+### Fixed
+- **P0 async jobs sin await**: 21 handlers async de `get_all_jobs()` se llamaban sync en `lifespan._run_job` (coroutine never awaited: discovery/execution/worker muertos). Ahora se aguardan en loop propio (thread daemon, timeout 5 min). Test `test_scheduler_async_handlers.py`.
+- **P0 contract drift frontend↔backend** (57/222 calls): `ROOT_MOUNTED_PREFIXES` += first-money/result-based/platform-guides (11 rutas → 404 en prod); `updateFinding` PUT→PATCH (405). Guard `test_frontend_api_contract.py`.
+- **P1 `WorkPlatform.OPEN_SOURCE` faltante** (bountyboard/polar crasheaban en discovery) + 7 plataformas inexistentes en adapters huérfanos (CANTINA/CODEHAWKS/GITCOIN/GITWORK/HACKENPROOF/HATS_FINANCE/ONLYDUST→ONLYDUST). Test `test_phase3_production_fixes.py`.
+- **P1 `/direct-work/recommend` 500 sin `name`** en profile → default `"me"`.
+- **Test ciclos 16→17** (`economic_feedback`): fix de contrato, no de código.
+- **E741** en `direct_work_onlydust.py`.
+
+### Removed
+- **Dead code §12**: `cores/intelligence/next_best_action.py` (duplicado de `one_best_action.py` SSOT, 0 callers) + `frontend/src/services/capitalApi.ts` (29 calls a rutas inexistentes, 0 imports).
+
+## 7.1.0 (2026-09-09)
+
+Working-tree release: P0 core→cores canonical migration + Zero-to-Earning product close (P1–P3, front económico, P4 verify, P5 parcial).
+
+### Added
+- **P0 core→cores migration**: `scripts/migrate_core_to_cores.py` + `scripts/fix_test_patches.py`; scoring/knowledge/investment twins consolidados; script idempotente y verificado.
+- **P1 First Money + Platform Onboarding UI**: `FirstMoney.vue` (tracker 14 etapas, próxima acción, registro de ingreso real), `PlatformOnboarding.vue` (12 plataformas, tabs cuenta/trabajo), `FirstMoneyStrip.vue` en IncomeHome.
+- **P2 execution→revenue bridge**: `cores/revenue_tracker/execution_bridge.py` (SUBMITTED→REVIEWING, CONFIRMED→ACCEPTED, FAILED/DLQ→FAILED; PAID inalcanzable por este camino); calibration (`prediction_error_report`) + `identify_repeatable()` (REPEATABLE/NON_REPEATABLE/UNKNOWN) en `/evolution`.
+- **P3 safety gates**: `cores/automation/safety.py` (approval tokens HMAC un solo uso, denylist de comandos destructivos, redact de secretos, containment de paths); gates en BrowserAgent/CoderAgent/PR/test-runner; semántica IA (`cores/copilot/semantics.py`) en `/daily-brief`.
+- **Revenue durability**: `reconcile_from_persisted_state()` en boot (replay idempotente); `Ledger.vue` + `GET /direct-work/revenue-ledger` (buckets EXPECTED→PAID/NET + proyección).
+- **P5 fault-injection IA**: `tests/test_llm_fault_injection.py` (8 tests: outage OAR→fallback, contenido vacío, sin invención, secretos redactados).
+
+### Fixed
+- **Enum safety fail-closed**: `_resolve()` → HTTP 422 con valores válidos (direct_work.py).
+- **RevenueTracker str/enum tolerance** (`get_revenue_state_breakdown`, `_update_metrics`).
+- **Versión canónica única 7.1.0** (11 fuentes vía `scripts/sync_version.py`); `datetime.utcnow()` → `datetime.now(UTC)` (0 usos en producción).
+- **Freelance opcional**: `cores/freelance/channel_status.py` (ACTIVE/PAUSED/DISABLED/EXCLUDED) + filtro en recommend/discover/brief/cycle; Workana agregado como `WORKANA` (AR-directo honesto).
+
+### Verification
+- Suite amplia **544 passed / 1 skipped**; `import api.main` OK (1665 rutas); `vite build` OK; `cargo check` OK; ruff/biome limpios en tocados.
+
 ## 1.0.1-alpha-rc2 (2026-08-26)
 
 Megaprompt FINAL DEFINITIVE RELEASE — Partes 1-4. Freeze de alcance; solo cierre, integración y estabilidad.

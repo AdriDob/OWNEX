@@ -1,236 +1,54 @@
+
+## Sesión 2026-10-05 — CONSOLIDACIÓN CERRADA + 2 P0 (bypass de auth, promoter muerto)
+
+> **PEDIDO OWNER:** "todo" — commit de la deuda, los 85 rojos, y la deuda abierta (#32/#33/#30/`/oar/doctor`).
+> **VEREDICTO: la deuda de 4 días estaba bloqueada por el hook, no olvidada.** Al validarla aparecieron **2 P0 de producto** que ningún diff delata. Commit `4daef0f9` (354 archivos) + push.
+
+### Los 2 P0 (ninguno visible en un diff)
+
+**1. Bypass de auth en 51 rutas.** `AuthMiddleware._register_mounted()` guardaba el path **con plantilla** (`/workbank/{item_id}/deliver/approve`) y el dispatch lo comparaba contra el path **concreto** (`/workbank/1/…`): nunca coinciden ⇒ la rama "asset o SPA route" se los llevaba y pasaban **sin credencial**. Medido en vivo, anónimo: `GET /mobile/reject/1` → **405** (llegó al router) vs `GET /today` → 401. Afectaba `POST /mobile/approve/{id}` y `POST /mobile/reject/{id}`. Fix: matchear `route.path_regex`, indexado por primer segmento literal. 15 tests nuevos + a prueba de fallo.
+
+**2. El flujo validation → Finding estaba muerto.** `promoter.promote()` usaba `ConfidenceEngine().evaluate(result)` — alias de `ConfidenceScorer`, cuyo `calculate()` exige 3 args — con **un** arg ⇒ `TypeError` en cada llamada. `ValidationEngine.run()` tenía la misma llamada. **Estaba oculto porque los 11 tests que lo probaban figuraban como "baseline conocido" en #36: eran el spec de un módulo sin implementar.** Fix: `ConfidenceScore.from_validation_result()` (pesos explícitos que suman 1.0; sin baseline/probes ⇒ 0 con gap explícito). Promoter y engine usan la misma función.
+
+### El rojo era ruido de medición, no de producto
+
+**104 → 30.** No eran 104 bugs: 26 tests median 401 por no autenticar contra root-mounted · 19 heredaban `no such table` porque dos fixtures hacían `drop_all` **sin filtro** y dejaban la base sin tablas (pasan aislados) · 3 heredaban 403 por un `os.environ.pop` sin teardown · el resto fijaban contratos ya decididos en otro sentido. Cada uno se arregló contra la API real, **no creando funciones para satisfacer al test**.
+
+### Por qué la consolidación llevaba 4 días sin commitear
+
+**No era olvido: el hook la rechazaba.** `.pre-commit-config.yaml` corre `ruff`, `ruff-format`, `pytest` (fast) y `frontend-build`. 31 violaciones de ruff bloqueaban el commit — y **2 eran bugs reales**: `__all__` de `reward_probability.py` declaraba `EXTERNAL_REWARD_PRIORS` y `RewardPrior`, que no existen ⇒ `import *` reventaba.
+
+Corregido de paso: `make check` **no** corre ruff pese a que AGENTS.md lo describe así. Y `git commit` con archivos unstaged hace que el hook los stashee y su restore es de fiar **NO** — perdió `promoter.py` completo (277→11 líneas) y 4 `VulnType`. Recuperado y documentado en KNOWN_DEBT #73.
+
+### Verificación
+
+```
+suite serial completa   6176 passed · 30 failed · 0 errors
+make check              fast 103 passed / 1 skipped  (baseline INTACTO)
+ruff + ruff-format      156 archivos: All checks passed
+vue-tsc                 exit 0
+vite build              OK 13.25s
+import api.main         BOOT OK, 1728 rutas
+```
+
+### Verificado y YA cerrado (no tocar)
+
+- **`/oar/doctor` tiene consumidor vivo**: `router/index.ts:60` → `UnifiedChat.vue:616` → `ProviderHealthPanel.vue:138`. El item de CURRENT_STATE que decía "0 consumidores" quedó viejo.
+- **#33** lo cerró el flujo concurrente en `a355001b`/`9b9712c2` (39 endpoints + guard).
+
+### Pendiente owner
+
+1. **Validación física Windows/Android (W1–W12)** → veredicto STABLE. Nada de lo de esta sesión se medió en hardware real.
+2. **Los 30 rojos restantes**: triados por causa en KNOWN_DEBT #36/#71/#72. `secure_income`(5), `opportunity_cycle`(4), resto 1-2 — son de domina complemento, no de los 2 P0.
+3. **Decidir Code4rena / Immunefi** (KNOWN_DEBT #71): adapter escrito, cableado en ningún registro. ¿carril vivo o se borra? Los tests ahora affirmations su ausencia y avisan si alguien los cablea.
+4. `ConfidenceEngine = ConfidenceScorer` sigue siendo un alias mentiroso (`confidence.py:235`): borrarlo cuando se migrate el dominio viejo.
 # Session Checkpoint — Agosto 2026
 
-> v7.0.0 STABLE — 6 Work Cycles operativos, lint clean, tests fast 88/89 pasan.
+> v7.7.7 — SESIÓN 2026-10-01 (**CIERRE FINAL DE PRODUCCIÓN**): **4 endpoints que devolvían 500 con credencial válida → 200**, 5 stubs "for backward compatibility" implementados, y un bug que perdía findings en silencio. La sesión anterior había declarado `NOTIFY-EVERYTHING` DONE con 16/16 verdes y el código nunca aterrizó (commit `a0e11ac1` con `add -A` se lo llevó). Verificado midiendo, no leyendo. Detalle: `.ai/CURRENT_STATE.md` + `.ai/DECISIONS.md` 2026-10-01.
+> **Verificación:** suites tocadas **440/440** · `make test-fast` **103/1** (intacto) · suite serial completa **5845 passed · 85 failed · 0 errors** · ruff limpio en 30 archivos · `import api.main` OK · a prueba de fallo 2 veces.
+> **Los 85 rojos restantes NO son de esta sesión** (triage archivo por archivo en KNOWN_DEBT #36): 6 baseline documentado · 13 drift del flujo concurrente · 9 contaminación de orden (pasan aislados) · 3 red.
+> **Pendiente owner:** commit+push (371 entradas sin commitear, mayormente del flujo concurrente), validación física Windows W1–W12 → veredicto STABLE.
 
-## Última Sesión: 2026-08-24 — FRONTEND FUNCTIONAL PASS ✅
+> v7.7.7 — SESIÓN 2026-09-14 (re-aplicada): **CONSOLIDACIÓN FINAL — `core/` ELIMINADO** (656 archivos; verificación completa 0 refs `core.`; Makefile+orion/priority migrados antes del borrado; un flujo paralelo lo revirtió al comitear y fue re-aplicado + re-verificado). Deuda barrida: test_orion_core (`event_type`), test_daily_brief fixture + `save_brief` acepta dict (bug real del job scheduler), dead code eliminado en brief.py. Features de sesión ya commiteadas por el flujo paralelo: HelpCenter+AlertsCenter+/api/help/*+/api/alerts/sweep+plan diario, purga de plataformas low-value. Verificación: fast 102/1, api.main OK, suites afectadas verdes, ruff limpio. Detalles: `.ai/DECISIONS.md`/`CURRENT_STATE.md`/`KNOWN_DEBT.md` 2026-09-14. **Pendiente owner**: commit+push, validación física Windows W1–W12 → veredicto STABLE.
 
-### Qué se hizo
-- **Auditoría funcional completa del frontend** contra el OpenAPI real (1.236 paths):
-  cross-reference de ~500 llamadas `api.*` → matriz viva en `.ai/FRONTEND_FUNCTIONALITY_MATRIX.md`.
-- **3 bugs sistémicos corregidos** (afectaban TODA la app):
-  1. Doble prefijo `/api/api/x` (~150 call sites, 404 silencioso tapado por catches) → normalización central en `lib/api.ts::request()`.
-  2. Namespaces root-mounted (`direct-work/*` 35 rutas, `mobile/*`, `wear-os/*`) → `resolveApiUrl()` + proxies vite.
-  3. Fetch crudos con path hardcodeado (evidence/chat-stream/pdf) → `getApiBase()` request-time.
-- **Discovery endurecido**: reset ante fallo de red + re-scan rápido→lento infinito + `retryConnection()`; `backendStatus` reactivo.
-- **ErrorState.vue** (ERROR/CAUSA/ACCIÓN, connecting calmado — regla CALM UX) reemplaza banners rojos inexplicables.
-- **Rewires a contratos reales**: learning/profile·events·export·reset, canonical/insights (404→empty), execution/traces, differential-intelligence/analyze, POST hypotheses/{target}→attack_queue, endpoints?target_id=, validation/validate+idor/idor (payloads reales), micro/batch/{action}, ReplayCenter→scans/runs, Identity sync→platforms/sync + settings granulares.
-- **Mock eliminado en producción**: KnowledgeGraphMini generateSampleData() → empty state honesto.
-- **AI Settings completo**: PUT /settings/ai/config mapea claves de TODOS los providers al registry vivo; saveAI aplica provider en vivo (antes solo persistía JSON); inputs devin/freebuff; catálogo dinámico GET providers con fallback offline.
-- **Identity**: modo global deshabilitado honesto (backend solo tiene modo por-plataforma).
-- **Docs**: TECHNICAL_DEBT.md reconstruido; FRONTEND_FUNCTIONALITY_MATRIX.md creado.
-
-### Verificación
-- vue-tsc **0 errores** · vitest **226/226** · build OK · ruff clean
-- E2E backend-vivo **11/11** | Commits: bbf5750d, cbf69102, 032975b3, df17ebc9, ab0255da
-
-### Deuda restante
-- P2: noExplicitAny preexistentes en 4 archivos legacy (stash-diff verificado)
-- Decisión producto: investment sub-adapters (~32 llamadas sin backend) — construir o retirar UI
-
----
-
-## Sesión previa: 2026-08-24 — Taxonomy refactor Phases 2-6 ✅
-
-### Qué se hizo
-- **Auditoría forense completa** (READ-ONLY): 4 enums OpportunityCategory (38 canónica / 11 engine / 3 global_sources / 11 mercenary IntEnum) + shadow taxonomies por literales (~40 sitios). Informe completo entregado con matrices A-P.
-- **FASE 2** (`ed5eaa5d`): mapper adoptado en boundaries — bounty_coordinator normaliza T2→canónico (desconocidos pasan literales); opportunity_feedback rewired a FeedbackLoop real (bug preexistente: llamaba métodos inexistentes del engine → 500 siempre) + validación fail-closed 400. `tests/test_taxonomy_boundaries.py` NUEVO.
-- **FASE 3** (`afa55bc7`): auto_scanner itera el enum en vez de hardcodear 3 familias; source_intel expone `vocabulary="global_source_families"`.
-- **FASE 4** (`919bc884`): mercenary `/categories` expone slug estable + canonical vía work_taxonomy; ordinal IntEnum deja de ser contrato público.
-- **FASE 5** (`bf97a517`): OpenSourceCategory (10 miembros) mapeado a canónica con rationale inline.
-- **FASE 6**: `cores/work_policy.py` NUEVO — CategoryPolicy separada de la identidad (invariante #10), sembrada SOLO con evidencia: owner-priority-list (8 cats → HIGH) + prioridades curadas del mercenary filter heredadas vía MERCENARY_TO_CANONICAL; resto LOW con rationale explícito. Cero valores económicos inventados.
-- Pendiente: F7 (API higiene direct_work resolve estricto), F8 (tipos TS frontend), F9 (migración shadows a policy con paridad numérica), F10 (dead code).
-
----
-
-## Sesión anterior: 2026-08-24 — Application Assistant (FASE_39) ✅
-
-### Qué se hizo
-- **Plan asistido de postulación a plataformas de ingreso** (`core/application_assistant.py` NUEVO):
-  - Catálogo curado de 5 plataformas priorizadas por caja (Outlier, Mercor, Alignerr, Mindrift, Fiverr) con pay ranges honestos region-tiered
-  - 19 pasos con guía de qué poner en cada campo + respuestas sugeridas pre-rellenadas desde el Profile Kit real
-  - Tracking persistente en `data/applications.json` (sobrevive restarts) + `overview()` con next_action
-  - Endpoints en `api/routers/control.py`: GET `/api/applications/{plan,overview}`, POST `/applications/{platform}/steps/{step_id}/complete` (404), POST `/applications/{platform}/status` (400)
-- **Hallazgo que motivó el módulo**: verificación de mercado 2026 confirmó que Outlier/Mercor/Alignerr/Mindrift aceptan Argentina DIRECTO (ID + móvil del país real, sin VPN). El `vpn_assistant.py` tenía AR en `DISALLOWED_COUNTRIES` como suposición conservadora → **FIX**: AR (+MX) movidos a ALLOWED con fuente citada; `DATAANNOTATION_ALLOWED_COUNTRIES` separado (sigue US/UK/CA/AU/NZ/IE); verdicts ya no empujan VPN (apuntan a `/api/applications/plan`). Módulo VPN archivado.
-- **Coordinación**: proceso concurrente (`c33eb761`) revirtió dos veces cambios unstaged (control.py + COMPLETED_FEATURES.json); re-aplicados y re-verificados.
-
-### Verificación
-- ruff limpio en los 4 archivos; `tests/test_application_assistant.py` **16/16**
-- Suite fast **100 passed / 1 skipped** (baseline exacta); `import api.main` OK; smoke E2E overview+complete OK
-- FASE_39 registrada en COMPLETED_FEATURES.json; entrada completa en CURRENT_STATE.md
-
----
-
-## Sesión anterior: 2026-08-07 — Closed Loop Revenue Implementado ✅
-
-### Qué se hizo
-- **Closed Loop Revenue completo** - Sistema de autonomía y aprendizaje automático
-  - **PaymentTracker** (`core/payment_tracker.py`): Rastreo de pagos vía webhooks/polling, persistencia en JSON
-  - **TrustEngine** (`core/trust_engine.py`): Sistema de confianza por plataforma con métricas (success_rate, payment_rate, trust_level)
-  - **ClosedLoopManager** (`core/closed_loop.py`): Conecta detección de pago → actualización de trust → aprendizaje de perfil
-  - **Auto-approval configurable**: Threshold por monto, nivel de confianza mínimo, plataformas bloqueadas/permitidas
-- **API endpoints** (15 nuevos en `control.py`):
-  - `/api/payment-tracker/*` - status, webhook, config, confirm, pending
-  - `/api/trust-engine/*` - status, platform metrics, config, outcome, can-auto-approve
-  - `/api/closed-loop/*` - status, process-payment, process-rejection, config
-- **Frontend integration**:
-  - Types TypeScript en `controlPanel.ts` (PaymentEvent, TrustMetrics, ClosedLoopStatus)
-  - `AutonomyDashboard.vue` - Dashboard de autonomía con % auto, trust metrics, pagos pendientes
-  - Integrado en MissionControl.vue después de FinanceGuru
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 28 definidos
-- **Work Bank**: Recomienda método de cobro automáticamente (visible en frontend)
-- **Closed Loop**: Sistema básico implementado (webhooks → trust → perfil → aprendizaje)
-- **Autonomía**: Dashboard muestra % auto, trust metrics, pagos pendientes
-
-### Próximos pasos para ser insuperable
-1. Integrar webhooks reales de plataformas (HackerOne, Opire, Freelancer)
-2. Auto-submit con auto-approval (integrar con AssistedExecutor)
-3. RL engine para aprender de decisiones
-4. Multi-tenant beta
-
----
-
-## Sesión 2026-08-07 — Integración Frontend + Backend Completa ✅
-
-### Qué se hizo
-- **Integración Work Bank + PayoutNet (Backend)**: Enriquecimiento automático de oportunidades con método de cobro óptimo
-  - Agregados campos `payout_method` y `payout_method_rationale` a `WorkItem`
-  - Integración de `PayoutNet.recommend_for()` en `daily_cycle` del Work Bank
-  - Exposición de métodos de cobro en endpoints `/direct-work/bank` y `/direct-work/recommend`
-  - Recomendación automática por plataforma (ej: opire → Binance P2P, freelance → DolarApp)
-- **Tests de integración**: 5 tests nuevos en `test_workbank_payout_integration.py`
-  - Verificación de payout fields en items
-  - Persistencia de métodos entre instancias
-  - Robustez ante fallos de PayoutNet
-  - Validación de endpoints
-- **Integración Frontend**: Exposición visual de métodos de cobro
-  - Actualizados tipos TypeScript en `ownexData.ts` (`DirectWorkRanked`, `WorkBankItem`, `DeliverableItem`)
-  - Agregado badge de método de cobro en `DirectWorkRadar.vue` (delivery queue y ranked opportunities)
-  - PayoutNet.vue ya conectado a endpoints `/api/payout-net/*`
-  - Nuevas funciones para endpoints adicionales: `fetchIncomeDashboard`, `projectIncome`, `fetchEvolutionReport`, `fetchSuccessStats`
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK. Frontend build OK.
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 88/89 pasan (1 skip, 1 deselect)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 28 definidos
-- **Work Bank**: Ahora recomienda método de cobro automáticamente para cada oportunidad (visible en frontend)
-- **Frontend**: Expone métodos de cobro en DirectWorkRadar y conecta todos los endpoints de análisis de ingresos
-
----
-
-## Sesión 2026-08-07 — Limpieza de lint y reanudación ✅
-
-### Qué se hizo
-- **Limpieza de lint**: 100 errores → 0 errores
-  - Fixed 23 endpoints en `api/routers/control.py` (B006: mutable defaults → `None`)
-  - Fixed ternary operator en `core/daily_tasks.py` (SIM108)
-  - Removed unused variables (`done_count`, `issue`, `state`, `g`)
-  - Replaced % format con f-strings en `core/goal_evaluator.py` (UP031)
-  - Added `strict=True` a `zip()` en `core/master_guide.py` (B905)
-  - Renamed ambiguous variables `l` → `level`/`level_data` en `core/skill_method.py` (E741)
-  - Fixed undefined `ACCOUNTS` → `g.recommend_accounts(purpose)` en control.py
-- **Verificación**: `make check` → 88 passed, 1 skipped, typecheck OK
-
----
-
-## Sesión 2026-08-04 — Revenue Maximization Tools Completados ✅
-
-### Todas las 7 herramientas críticas implementadas
-
-#### 1. CoderAgent E2E Integration ✅
-- Archivo: `core/autonomy/bounty_pipeline.py`
-- 7 fases: Clone → Analyze → Generate → Test → PR → Claim → Submit
-- Integración con AlgoraExecutor para claim/submit reales
-- Feedback loop automático para aprender de outcomes
-- API: `/api/bounty-pipeline/execute`, `/status`, `/config`
-- Tests: 6/6 pasan
-- **Impacto**: +$1,500-$8,000/mes (Mes 2-3)
-
-#### 2. BrowserAgent Automation ✅
-- Archivo: `cores/opportunity/executors/platform_workers.py`
-- DataAnnotationWorker: login real, fetch_projects, submit_response
-- OutlierWorker: login real, fetch_projects, submit_work
-- ~1000 líneas de lógica real con múltiples selectores
-- Manejo robusto de errores (CAPTCHA, 2FA, timeouts)
-- **Impacto**: +$3,000-$10,000/mes (microtasks automatizados)
-
-#### 3. Multi-Agent Coordinator ✅
-- Archivo: `cores/agents/bounty_coordinator.py`
-- Cola de prioridad basada en EVH
-- Control de concurrencia (max 3-5 bounties simultáneos)
-- Timeout automático (30min por defecto)
-- Integración con EventBus para monitoreo
-- API: `/api/agent-coordinator/start`, `/stop`, `/status`, `/add-bounty`
-- **Impacto**: +$5,000-$15,000/mes (paralelización)
-
-#### 4. Auto-Submission Pipeline ✅
-- Archivo: `cores/auto_submit/pipeline.py` actualizado
-- Elite quality gate (severity, confidence, evidence, reproduction)
-- Sistema de aprobaciones manuales/automáticas
-- Rate limiting (5 submissions/hora)
-- API: `/api/auto-submit/pending`, `/approve/{id}`, `/reject/{id}`, `/config`
-- **Impacto**: +50-100% throughput
-
-#### 5. Credential Vault Automation ✅
-- Archivo: `core/credentials/vault.py` actualizado
-- Auto-rotación de API keys (90 días max)
-- Alertas 7 días antes de expiración
-- Backup automático antes de rotar
-- Failed auth count trigger (3 fallos → rotar)
-- API: `/api/credentials/rotate/{platform}`, `/rotation-status`, `/expiring-soon`
-- **Impacto**: -50% intervención manual
-
-#### 6. Mobile Companion Approvals ✅
-- Archivo: `api/routers/mobile_approvals.py`
-- Namespace Android unificado (ai.rastro.app)
-- WebSocket para push notifications
-- Aprobaciones móviles para bounties
-- API: `/mobile/pending-approvals`, `/approve/{id}`, `/reject/{id}`
-- **Impacto**: +20% velocidad de aprobación
-
-#### 7. Voice Assistant Integration ✅
-- Archivo: `cores/voice/command_executor.py`
-- Comandos de voz: "claim bounty X", "submit PR", "start pipeline"
-- Parser de comandos con regex patterns
-- Confirmación por voz para acciones críticas
-- API: `/api/voice/commands/execute`, `/history`, `/available`
-- **Impacto**: +15% UX
-
-### Estado del Sistema
-- **Lint**: 0 errores
-- **Tests fast**: 86/87 pasan (1 skip)
-- **Version**: 7.0.0
-- **Ciclos operativos**: 6 (security, forge, pulse, vault, atlas, direct_work)
-- **Scheduler jobs**: 27 definidos
-- **BountyPipeline**: Operativo con E2E integration
-- **Feedback Loop**: Operativo con persistencia DB y personalización de scoring
-- **All Routers Mounted**: bounty_pipeline, agent_coordinator, auto_submit, mobile_approvals, voice_commands, credentials_rotation
-
-### Impacto Total Esperado
-
-**Sin automatización**: $400-$2,800/mes (Mes 1)
-**Con todas las herramientas**: $10,000-$20,000/mes (Mes 6)
-
-**Multiplicador**: ~10x en capacidad de ingresos
-
-### Archivos Nuevos Creados
-- `core/autonomy/bounty_pipeline.py` (Pipeline E2E)
-- `cores/agents/bounty_coordinator.py` (Multi-agent coordinator)
-- `cores/voice/command_executor.py` (Voice commands)
-- `api/routers/bounty_pipeline.py` (API)
-- `api/routers/agent_coordinator.py` (API)
-- `api/routers/auto_submit.py` (API)
-- `api/routers/mobile_approvals.py` (API)
-- `api/routers/voice_commands.py` (API)
-- `api/routers/credentials_rotation.py` (API)
-- `tests/test_bounty_pipeline.py` (Tests)
-- `scripts/test_coordinator.py` (Test script)
+> v7.7.7 — SESIÓN 2026-09-10: UNIVERSAL FUNNEL WIRING (Phase 6-9) + MOBILE GAP (3 reasoners) + MOBILE ON-DEVICE (validador) cerrados + pusheados. Siguiente: validación física Windows W1–W12 → veredicto STABLE. Ver `.ai/CURRENT_STATE.md` sesiones "MOBILE ON-DEVICE", "MOBILE GAP" y "UNIVERSAL FUNNEL WIRING".

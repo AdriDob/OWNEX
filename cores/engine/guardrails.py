@@ -5,22 +5,22 @@ ONLY_PIPELINE_CAN_SCORE = True
 
 This module provides runtime enforcement hooks and documentation
 to ensure no component computes its own risk_score outside of
-core/engine/unified_scoring.py.
+cores/engine/unified_scoring.py.
 """
 
 ONLY_PIPELINE_CAN_SCORE = True
 
-SOURCE_OF_TRUTH = "core.engine.unified_scoring.score"
+SOURCE_OF_TRUTH = "cores.engine.unified_scoring.score"
 
 AUTHORIZED_SCORING_CONSUMERS = {
-    "core.engine.unified_scoring",
-    "core.engine.unified_classifier",
-    "core.engine.priority_rebalancer",
-    "core.engine.risk_model",
+    "cores.engine.unified_scoring",
+    "cores.engine.unified_classifier",
+    "cores.engine.priority_rebalancer",
+    "cores.engine.risk_model",
 }
 
 FORBIDDEN_IMPORTS: set[str] = {
-    "core.targets.scorer",
+    "cores.targets.scorer",
 }
 
 

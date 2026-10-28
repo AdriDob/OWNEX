@@ -10,13 +10,13 @@ from decimal import Decimal
 
 import pytest
 
-from core.trading.config import TradingConfig
-from core.trading.copy_trading import CopyTradingEngine, FollowedTrader, MasterTrade, RiskControls
-from core.trading.executor import DryRunExecutor
-from core.trading.models import OrderSide
-from core.trading.reasoning import AutoParamOptimizer, DecisionCorrelator, StrategyDNA
-from core.trading.store import TradingStore
-from core.trading.trader_intelligence import (
+from cores.trading.config import TradingConfig
+from cores.trading.copy_trading import CopyTradingEngine, FollowedTrader, MasterTrade, RiskControls
+from cores.trading.executor import DryRunExecutor
+from cores.trading.models import OrderSide
+from cores.trading.reasoning import AutoParamOptimizer, DecisionCorrelator, StrategyDNA
+from cores.trading.store import TradingStore
+from cores.trading.trader_intelligence import (
     BacktestValidator,
     LiveTraderMonitor,
     TraderDiscovery,
@@ -185,8 +185,8 @@ class TestCopyTradingEngine:
         assert status["mode"] == "DRY_RUN"
 
     def test_risk_check_handler_no_breach(self, engine: CopyTradingEngine, monkeypatch) -> None:
-        monkeypatch.setattr("core.trading.copy_trading.CopyTradingEngine", lambda: engine)
-        from core.trading.copy_trading import run_trading_risk_check
+        monkeypatch.setattr("cores.trading.copy_trading.CopyTradingEngine", lambda: engine)
+        from cores.trading.copy_trading import run_trading_risk_check
 
         result = run_trading_risk_check()
         assert result["status"] == "ok"

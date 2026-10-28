@@ -15,7 +15,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.cycles.atlas import get_atlas_cycle
+from cores.cycles.atlas import get_atlas_cycle
 
 router = APIRouter(prefix="/api/cycles/atlas", tags=["atlas-cycle"])
 

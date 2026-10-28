@@ -2,7 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from core.opportunity.scoring import (
+from cores.opportunity.scoring import (
     OpportunityEngineLegacy,
     PersonalHistoryTracker,
     Top5Engine,
@@ -267,7 +267,7 @@ class TestPersonalHistoryTracker:
         mock_finding.severity = "critical"
         mock_finding.difficulty = 0.3
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -290,7 +290,7 @@ class TestPersonalHistoryTracker:
             mock_finding.severity = severity
             mock_finding.difficulty = difficulty
 
-            with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+            with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
                 mock_session_instance = Mock()
                 mock_session.return_value = mock_session_instance
                 mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -313,7 +313,7 @@ class TestPersonalHistoryTracker:
         mock_finding.severity = "critical"
         mock_finding.difficulty = 0.3
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -334,7 +334,7 @@ class TestPersonalHistoryTracker:
         mock_finding.severity = "critical"
         mock_finding.difficulty = 0.3
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -391,7 +391,7 @@ class TestOpportunityEngine:
         mock_tier3 = Mock(spec=BountyTier)
         mock_tier3.max_reward = 3000.0
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.side_effect = [
@@ -428,7 +428,7 @@ class TestOpportunityEngine:
         mock_finding.severity = "unknown_severity"
         mock_finding.target = None
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             # No program/target found
@@ -441,7 +441,7 @@ class TestOpportunityEngine:
         """Test computing opportunities when no confirmed findings exist."""
         engine = OpportunityEngineLegacy()
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.all.return_value = []
@@ -492,7 +492,7 @@ class TestOpportunityEngine:
         mock_tier2 = Mock(spec=BountyTier)
         mock_tier2.max_reward = 5000.0
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             # Mock the query chains
@@ -541,7 +541,7 @@ class TestOpportunityEngine:
         mock_finding.severity = "critical"
         mock_finding.difficulty = 0.3
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -560,7 +560,7 @@ class TestOpportunityEngine:
         mock_finding.severity = "high"
         mock_finding.difficulty = 0.4
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.return_value = mock_finding
@@ -628,7 +628,7 @@ class TestIntegrationScenarios:
         mock_tier = Mock(spec=BountyTier)
         mock_tier.max_reward = 10000.0
 
-        with patch("core.opportunity.scoring.db.SessionLocal") as mock_session:
+        with patch("cores.opportunity.scoring.db.SessionLocal") as mock_session:
             mock_session_instance = Mock()
             mock_session.return_value = mock_session_instance
             mock_session_instance.query.return_value.filter.return_value.first.side_effect = [

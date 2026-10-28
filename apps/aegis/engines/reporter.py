@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from apps.aegis.models import AegisTarget, ScanReport, ScanResult, VulnFinding
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.aegis.engines.reporter")
 

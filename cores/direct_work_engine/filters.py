@@ -19,6 +19,32 @@ _MIN_CREDIBLE_REWARD_USD: float = 2.0
 # Long payout windows and gift-card-only payouts are the classic scam vectors.
 
 
+# Soft deductions for passed opportunities (deterministic, documented).
+# A hard-rejected opportunity always scores 0 (consistency: rejected ⇒ 0).
+_DEDUCT_INTERVIEW = 15.0
+_DEDUCT_PORTFOLIO = 15.0
+_DEDUCT_REGISTRATION = 5.0
+_DEDUCT_TECHNICAL_TEST = 10.0
+_DEDUCT_LOW_PAYMENT = 10.0  # payment < $10
+_DEDUCT_SMALL_PAYMENT = 5.0  # $10 <= payment < $50
+_DEDUCT_SLOW_PAYOUT = 10.0  # payout > 30 days
+_DEDUCT_VERY_SLOW_PAYOUT = 20.0  # payout > 60 days (replaces SLOW, not added)
+
+
+class FilterScore:
+    """Numeric pass-strength 0-100 plus the hard-reject reasons (if any)."""
+
+    __slots__ = ("score", "passed", "reasons")
+
+    def __init__(self, score: float, passed: bool, reasons: list[str]) -> None:
+        self.score = score
+        self.passed = passed
+        self.reasons = reasons
+
+    def to_dict(self) -> dict:
+        return {"score": self.score, "passed": self.passed, "reasons": list(self.reasons)}
+
+
 class StrictFilter:
     """Deterministic hard-reject rules. Returns empty reasons = opportunity passes."""
 
@@ -26,16 +52,25 @@ class StrictFilter:
         """Return the list of rejection reasons for an opportunity (empty = approved)."""
         reasons: list[str] = []
 
-        # Unclear / fake payment
+        # Unclear / fake payment.
+        # A published HOURLY rate is a real, comparable payment: AI-evaluation
+        # roles (Mercor/Turing/Outlier) are contracts, so `payment` is 0 by
+        # construction and the money lives in `hourly_rate_usd`. Treating that
+        # as "no reward published" would reject every legitimate $-/h role;
+        # treating it as free work would rank unpriced bounties. It is neither.
+        has_published_rate = bool(getattr(opp, "hourly_rate_usd", None) or 0) > 0
         if opp.payment < 0:
             reasons.append("unclear_payment: reward value is negative")
-        elif opp.payment == 0:
+        elif opp.payment == 0 and not has_published_rate:
             reasons.append("unclear_payment: no reward published")
+        elif opp.payment == 0:
+            pass  # priced by rate/hour — see note above
         elif opp.payment < _MIN_CREDIBLE_REWARD_USD:
             reasons.append(f"unclear_payment: reward below credible minimum (${_MIN_CREDIBLE_REWARD_USD:.0f})")
 
         # Unpaid mandatory work: significant effort with no compensation.
-        if opp.payment <= 0 and opp.estimated_time_hours >= 4:
+        # Same reasoning as above: a published hourly rate IS compensation.
+        if opp.payment <= 0 and not has_published_rate and opp.estimated_time_hours >= 4:
             reasons.append("unpaid_mandatory_work: 4+h expected with no reward")
 
         # Impossible country restrictions: OWNEX targets remote, open-world work.
@@ -63,3 +98,34 @@ class StrictFilter:
         Opportunities absent from the mapping passed the strict gate.
         """
         return {opp.id: self.reject(opp) for opp in opportunities if self.reject(opp)}
+
+    def score(self, opp: Opportunity) -> FilterScore:
+        """Numeric pass-strength 0-100 for an opportunity.
+
+        Consistency contract: hard-rejected ⇒ 0. Passed opportunities lose
+        fixed deductions per friction (interview/portfolio/test/registration,
+        small reward, slow payout). Deterministic, no inventing.
+        """
+        reasons = self.reject(opp)
+        if reasons:
+            return FilterScore(score=0.0, passed=False, reasons=reasons)
+        total = 100.0
+        if opp.interview_required:
+            total -= _DEDUCT_INTERVIEW
+        if opp.portfolio_required:
+            total -= _DEDUCT_PORTFOLIO
+        if opp.registration_required:
+            total -= _DEDUCT_REGISTRATION
+        if opp.technical_test_required:
+            total -= _DEDUCT_TECHNICAL_TEST
+        if opp.payment < 10:
+            total -= _DEDUCT_LOW_PAYMENT
+        elif opp.payment < 50:
+            total -= _DEDUCT_SMALL_PAYMENT
+        payout_days = getattr(opp, "time_to_payout_days", None)
+        if isinstance(payout_days, (int, float)):
+            if payout_days > 60:
+                total -= _DEDUCT_VERY_SLOW_PAYOUT
+            elif payout_days > 30:
+                total -= _DEDUCT_SLOW_PAYOUT
+        return FilterScore(score=round(max(0.0, total), 1), passed=True, reasons=[])

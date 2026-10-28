@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOCUS — Plan your day without fighting your brain</title>
+<meta name="description" content="Less planning. Less guilt. Just the next thing that matters. Capture → Prioritize → Next → Focus → Done.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav"><div class="logo">FOCUS</div><div class="tag">validation prototype — no signup</div></header>
+<main>
+<section class="hero">
+<h1>Plan your day without fighting your brain.</h1>
+<p class="sub">Less planning. Less guilt.<br>Just the next thing that matters.</p>
+<div class="demo-box">
+<label for="tasks-input">Dump everything on your mind:</label>
+<input id="tasks-input" type="text" maxlength="200" placeholder="e.g. Tengo que estudiar, limpiar y trabajar" autocomplete="off">
+<button id="plan-btn" class="primary">Plan my day</button>
+<p class="hint">Static demo. No account. No medical claims — designed for overload, not diagnosis.</p>
+</div>
+<div class="result hidden" id="result"></div>
+<div class="email-capture hidden" id="email-step">
+<h3>Save your plan?</h3>
+<p>Get your 3-priority template + energy-based scheduling guide.</p>
+<form id="email-form"><input id="email-input" type="email" required placeholder="you@email.com"><button class="primary" type="submit">Save my plan</button></form>
+<p id="email-ok" class="ok hidden">Saved. One quick question below.</p>
+</div>
+<div class="pricing hidden" id="pricing-step">
+<h3>FOCUS Pro (planned)</h3>
+<ul class="prices"><li><strong>$4.99</strong>/mo</li><li><strong>$49.99</strong>/yr</li><li><strong>$99</strong> lifetime</li></ul>
+<p>Unlimited days · energy planning · focus timer · widgets · sync</p>
+<div class="price-btns">
+<button data-intent="clicked_pro" class="primary">I want Pro</button>
+<button data-intent="clicked_notify" class="ghost">Notify me</button>
+<button data-intent="clicked_not_interested" class="ghost">Not interested</button>
+</div>
+<p id="price-thanks" class="ok hidden">Recorded. Thanks.</p>
+</div>
+</section>
+<section class="how"><h2>No streaks. No guilt. Just the next right thing.</h2>
+<ol><li><strong>CAPTURE</strong> — dump it all</li><li><strong>PRIORITIZE</strong> — max 3 that matter</li><li><strong>TIME / ENERGY</strong> — fit to your day</li><li><strong>NEXT</strong> — one action now</li><li><strong>FOCUS</strong> — 25 min, then done</li></ol></section>
+</main>
+<footer><p>FOCUS validation · <a href="../nexa/">Try NEXA instead</a></p>
+<form id="footer-email"><input type="email" required placeholder="email for updates"><button type="submit">Join waitlist</button></form></footer>
+<script src="../shared/analytics.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { api } from '@/lib/api'
 
 const apiBase = import.meta.env.VITE_API_BASE || ''
 
@@ -87,8 +88,7 @@ onUnmounted(() => stopPreview())
 // ── API calls ──────────────────────────────────────────────────
 async function fetchStatus() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/status`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/status')
     status.value = data.status === 'ok' ? data.tool : null
   } catch (e: any) {
     error.value = e.message
@@ -97,8 +97,7 @@ async function fetchStatus() {
 
 async function fetchLearningStats() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/learning/stats`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/learning/stats')
     learningStats.value = data.platforms || []
   } catch (e: any) {
     error.value = e.message
@@ -107,8 +106,7 @@ async function fetchLearningStats() {
 
 async function captureScreenshot() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/screenshot`, { method: 'POST' })
-    const data = await res.json()
+    const data = await api.post<any>('/api/copilot/computer-use/screenshot')
     if (data.status === 'ok' && data.analysis?.screenshot_path) {
       currentScreenshot.value = data.analysis.screenshot_path
       screenshotTimestamp.value = Date.now()
@@ -167,8 +165,7 @@ async function fetchRecords() {
 
 async function fetchHistory() {
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/history?limit=10`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/history?limit=10')
     historySessions.value = data.sessions || []
   } catch (e: any) {
     // silent
@@ -179,8 +176,7 @@ async function selectSession(session: HistorySession) {
   selectedSession.value = session
   currentSlide.value = 0
   try {
-    const res = await fetch(`${apiBase}/api/copilot/computer-use/history/${session.session_id}/screenshots`)
-    const data = await res.json()
+    const data = await api.get<any>('/api/copilot/computer-use/history/${session.session_id}/screenshots')
     sessionScreenshots.value = data.screenshots || []
     if (sessionScreenshots.value.length > 0) {
       currentScreenshot.value = sessionScreenshots.value[0].path
@@ -224,7 +220,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background p-6">
+  <div class="min-h-screen bg-background p-4 sm:p-6">
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
@@ -245,7 +241,7 @@ onMounted(() => {
     <!-- Error banner -->
     <div v-if="error" class="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
       {{ error }}
-      <button class="ml-2 underline" @click="error = ''">dismiss</button>
+      <button class="ml-2 underline" aria-label="Error = ''" @click="error = ''">dismiss</button>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -285,7 +281,7 @@ onMounted(() => {
             <button
               class="ml-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
               :disabled="!task.trim() || isRunning"
-              @click="executeTask"
+              aria-label="Executetask" @click="executeTask"
             >
               <svg v-if="isRunning" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -304,7 +300,7 @@ onMounted(() => {
               <button
                 class="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-mono transition-colors"
                 :class="livePreview ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-surface text-muted-foreground hover:text-foreground'"
-                @click="togglePreview"
+                aria-label="Togglepreview" @click="togglePreview"
               >
                 <span class="h-1.5 w-1.5 rounded-full" :class="livePreview ? 'bg-emerald-400 animate-pulse' : 'bg-muted-foreground'" />
                 {{ livePreview ? 'LIVE' : 'Preview OFF' }}
@@ -327,7 +323,7 @@ onMounted(() => {
               </select>
               <button
                 class="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                @click="captureScreenshot"
+                aria-label="Capturescreenshot" @click="captureScreenshot"
               >
                 Capture Now
               </button>
@@ -399,7 +395,7 @@ onMounted(() => {
             <h2 class="text-sm font-semibold text-foreground">Session History</h2>
             <button
               class="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              @click="showHistory = !showHistory"
+              aria-label="Showhistory = !Showhistory" @click="showHistory = !showHistory"
             >
               {{ showHistory ? 'Hide' : 'Show' }}
             </button>
@@ -411,7 +407,7 @@ onMounted(() => {
                 v-for="s in historySessions.slice(0, 8)"
                 :key="s.session_id"
                 class="flex w-full items-center justify-between rounded-lg border border-border/20 px-3 py-2 text-left text-xs transition-colors hover:border-primary/30 hover:bg-surface/30"
-                @click="selectSession(s)"
+                aria-label="Selectsession(S" @click="selectSession(s)"
               >
                 <div class="min-w-0 flex-1">
                   <p class="truncate font-mono text-foreground">{{ s.task }}</p>
@@ -432,7 +428,7 @@ onMounted(() => {
             <div v-if="selectedSession">
               <button
                 class="mb-2 flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-foreground"
-                @click="selectedSession = null; sessionScreenshots = []"
+                aria-label="Selectedsession = Null; Sessionscreenshots = []" @click="selectedSession = null; sessionScreenshots = []"
               >
                 ← Back to sessions
               </button>
@@ -453,7 +449,7 @@ onMounted(() => {
                   <button
                     :disabled="currentSlide === 0"
                     class="rounded border border-border/30 px-2 py-1 text-[10px] font-mono text-muted-foreground hover:text-foreground disabled:opacity-30"
-                    @click="prevSlide"
+                    aria-label="Prevslide" @click="prevSlide"
                   >
                     ← Prev
                   </button>
@@ -489,7 +485,7 @@ onMounted(() => {
                     :key="i"
                     class="h-1.5 w-1.5 rounded-full transition-colors"
                     :class="i === currentSlide ? 'bg-primary' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'"
-                    @click="currentSlide = i; currentScreenshot = sessionScreenshots[i].path; screenshotTimestamp = sessionScreenshots[i].timestamp * 1000"
+                    aria-label="Currentslide = I; Currentscreenshot = Sessionscreenshots[I].Path; Screenshottimestamp = Sessionscreenshots[I].Timestamp * 1000" @click="currentSlide = i; currentScreenshot = sessionScreenshots[i].path; screenshotTimestamp = sessionScreenshots[i].timestamp * 1000"
                   />
                 </div>
               </div>
@@ -570,7 +566,7 @@ onMounted(() => {
         <div class="rounded-xl border border-border/40 bg-surface/50 p-5">
           <div class="mb-3 flex items-center justify-between">
             <h2 class="text-sm font-semibold text-foreground">Recent Fills</h2>
-            <button class="text-xs text-muted-foreground hover:text-foreground" @click="fetchRecords">
+            <button class="text-xs text-muted-foreground hover:text-foreground" aria-label="Fetchrecords" @click="fetchRecords">
               Refresh
             </button>
           </div>

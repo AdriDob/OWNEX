@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { ArrowLeft, Home, Search } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import Button from '@/components/ui/Button.vue'
-import { Home, ArrowLeft, Search } from '@lucide/vue'
 
 const router = useRouter()
 </script>

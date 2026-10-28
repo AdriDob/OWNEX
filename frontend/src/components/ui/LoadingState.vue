@@ -1,22 +1,19 @@
-<script setup lang="ts">
-import Skeleton from './Skeleton.vue'
-
-interface Props {
-  count?: number
-  height?: string
-}
-
-withDefaults(defineProps<Props>(), {
-  count: 4,
-  height: 'h-24',
-})
-</script>
-
 <template>
-  <div :class="['space-y-4', $attrs.class as string]">
-    <div :class="['grid grid-cols-2 gap-4 sm:grid-cols-4']">
-      <Skeleton v-for="i in count" :key="i" :class="`${height} rounded-xl`" />
+  <div class="flex flex-col items-center justify-center py-12 gap-3" role="status" aria-live="polite">
+    <!-- Spinner -->
+    <div class="relative h-8 w-8">
+      <div class="absolute inset-0 rounded-full border-2 border-[var(--ownex-border)]" />
+      <div
+        class="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--ownex-accent)] animate-spin"
+      />
     </div>
-    <Skeleton class="h-48 rounded-xl" />
+    <!-- Text -->
+    <span v-if="text" class="text-sm text-[var(--ownex-text-secondary)]">{{ text }}</span>
   </div>
 </template>
+
+<script setup lang="ts">
+defineProps<{
+  text?: string
+}>()
+</script>

@@ -2,15 +2,39 @@ from __future__ import annotations
 
 import abc
 import logging
+import shutil
 import subprocess
+from pathlib import Path
 from typing import Any
 
-from core.revenue_multiplier.models import Finding
+from cores.revenue_multiplier.models import Finding
 
 logger = logging.getLogger("orion.revenue.adapter")
 
 
 class ToolAdapter(abc.ABC):
+    # Confianza = evidencia OBSERVABLE en la salida de la herramienta, no el
+    # nombre de la herramienta. Antes cada adapter usaba una constante
+    # (sqlmap 0.8, xsstrike 0.7, subfinder 0.6, ffuf 0.4, katana/gau 0.3),
+    # y el orchestrator reporta al bounty todo finding con
+    # confidence >= min_confidence_for_report (0.65). Eso significa que un
+    # finding de sqlmap pasaba el gate POR EL HECHO de venir de sqlmap, sin
+    # ninguna evidencia. Un numero constante que decide si se reporta un
+    # bounty no es una metrica: es un sesgo.
+    #
+    # La escala: `severity` del scanner es la unica senal de riesgo que
+    # estos tools emiten de forma comparable. Nuclei la da clasificada;
+    # ffuf/subfinder/katana/gau no la dan, y por eso arrancan en `base`
+    # (bajo el gate) en vez de inventar una alta.
+    _SEVERITY_CONFIDENCE: dict[str, float] = {
+        "critical": 0.75,
+        "high": 0.70,
+        "medium": 0.55,
+        "low": 0.40,
+        "info": 0.30,
+    }
+    _BASE_CONFIDENCE = 0.30  # sin severity: bajo el gate de reporte
+
     def __init__(self, binary: str = "") -> None:
         self._binary = binary
 
@@ -20,6 +44,16 @@ class ToolAdapter(abc.ABC):
     @property
     @abc.abstractmethod
     def name(self) -> str: ...
+
+    def _confidence_for(self, severity: str | None) -> float:
+        """Confianza derivada de la severity que reporta el scanner.
+
+        Severidad desconocida o ausente ⇒ `_BASE_CONFIDENCE` (bajo el gate de
+        reporte). Preferimos un número honesto y bajo a uno alto y falso.
+        """
+        if not severity:
+            return self._BASE_CONFIDENCE
+        return self._SEVERITY_CONFIDENCE.get(str(severity).lower(), self._BASE_CONFIDENCE)
 
     def _execute(self, cmd: list[str], timeout: int = 300) -> str:
         try:
@@ -78,7 +112,7 @@ class NucleiAdapter(ToolAdapter):
                         target=target,
                         endpoint=data.get("matched-at", ""),
                         evidence=json.dumps(data.get("extracted-results", {})),
-                        confidence=0.7 if data.get("info", {}).get("severity") in ("critical", "high") else 0.5,
+                        confidence=self._confidence_for(data.get("info", {}).get("severity")),
                         raw_output=data,
                     )
                 )
@@ -109,7 +143,7 @@ class KatanaAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"Crawled: {line.strip()[:80]}",
-                confidence=0.3,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -154,7 +188,7 @@ class FfufAdapter(ToolAdapter):
                             tool="ffuf",
                             target=target,
                             endpoint=data.get("url", ""),
-                            confidence=0.4,
+                            confidence=self._BASE_CONFIDENCE,
                             raw_output=data,
                         )
                     )
@@ -180,7 +214,7 @@ class SubfinderAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"Subdomain: {line.strip()}",
-                confidence=0.6,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -204,7 +238,7 @@ class GauAdapter(ToolAdapter):
                 target=target,
                 endpoint=line.strip(),
                 title=f"URL: {line.strip()[:80]}",
-                confidence=0.3,
+                confidence=self._BASE_CONFIDENCE,
             )
             for line in output.strip().split("\n")
             if line.strip()
@@ -244,11 +278,10 @@ class SqlmapAdapter(ToolAdapter):
                 Finding(
                     title="SQL Injection detected",
                     description="sqlmap identified an injection point",
-                    severity="critical",
                     tool="sqlmap",
                     target=target,
                     endpoint=target,
-                    confidence=0.8,
+                    confidence=self._confidence_for("critical"),
                     raw_output={"output_preview": output[:500]},
                 )
             )
@@ -279,7 +312,7 @@ class XSStrikeAdapter(ToolAdapter):
                     tool="xsstrike",
                     target=target,
                     endpoint=target,
-                    confidence=0.7,
+                    confidence=self._confidence_for("high"),
                     raw_output={"output_preview": output[:500]},
                 )
             )
@@ -294,43 +327,103 @@ class GitleaksAdapter(ToolAdapter):
     def name(self) -> str:
         return "gitleaks"
 
+    @staticmethod
+    def _clone_for_scan(url: str) -> tuple[str | None, str | None]:
+        """Clona un repo GitHub a un temp para escanearlo.
+
+        Devuelve (ruta_local, tmp_dir_para_borrar) o (None, None) si no se
+        pudo clonar. Sólo github.com — es lo que genera el hunter.
+        """
+        import re
+        import tempfile
+
+        m = re.match(r"^https?://github\.com/([^/]+)/([^/?#]+)", url)
+        if not m:
+            return None, None
+        owner, repo = m.group(1), m.group(2).removesuffix(".git")
+        tmp = tempfile.mkdtemp(prefix="ownex-gitleaks-")
+        local = str(Path(tmp) / repo)
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--quiet", f"https://github.com/{owner}/{repo}", local],
+                capture_output=True,
+                text=True,
+                timeout=180,
+                check=True,
+            )
+        except (subprocess.SubprocessError, OSError) as exc:
+            logger.warning("gitleaks: no se pudo clonar %s/%s (%s)", owner, repo, exc)
+            shutil.rmtree(tmp, ignore_errors=True)
+            return None, None
+        return local, tmp
+
     def run(self, target: str, **kwargs: Any) -> list[Finding]:
+        """Escanea secretos de un repo o path local.
+
+         Gitleaks sólo acepta **paths locales** (`--source`), no URLs. Antes el
+         hunter pasaba `repo_path=f"https://github.com/{domain}"`, que gitleaks
+         no puede abrir: FileNotFoundError -> output vacío -> `except` en el
+         caller lo logueaba como warning y el stage "Secret scanning" no
+        (reportaba nunca. Un escáner que siempre devuelve 0 hallazgos no es un
+         escáner: es ruido.
+
+         Si `repo_path` parece una URL de GitHub, se clona primero a un temp
+         (depth 1) y se escanea el clon. Sin red o sin git, se devuelve []
+         con un warning explícito: menos "0 hallazgos" y más "no escaneado".
+        """
         import json
+        import re
 
-        repo_path = kwargs.get("repo_path", target)
-        cmd = [
-            self._binary,
-            "detect",
-            "--source",
-            repo_path,
-            "--no-git",
-            "--report-format",
-            "json",
-            "--report-path",
-            "/dev/stdout",
-            "-v",
-        ]
-        output = self._execute(cmd, timeout=kwargs.get("timeout", 120))
+        repo_path = kwargs.get("repo_path") or target
+        tmp_dir: str | None = None
 
-        findings: list[Finding] = []
-        for line in output.strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                data = json.loads(line)
-                findings.append(
-                    Finding(
-                        title=f"Secret leak: {data.get('Description', 'Unknown')}",
-                        description=f"File: {data.get('File', '')} - {data.get('Match', '')[:200]}",
-                        severity="high",
-                        tool="gitleaks",
-                        target=target,
-                        endpoint=data.get("File", ""),
-                        evidence=data.get("Secret", "")[:50],
-                        confidence=0.8,
-                        raw_output=data,
-                    )
+        if re.match(r"^https?://", str(repo_path)):
+            repo_path, tmp_dir = self._clone_for_scan(str(repo_path))
+            if tmp_dir is None:
+                logger.warning(
+                    "gitleaks: %s es una URL y no se pudo clonar; stage NO ejecutado (no '0 secretos')",
+                    repo_path,
                 )
-            except json.JSONDecodeError:
-                continue
+                return []
+
+        try:
+            cmd = [
+                self._binary,
+                "detect",
+                "--source",
+                str(repo_path),
+                "--no-git",
+                "--report-format",
+                "json",
+                "--report-path",
+                "/dev/stdout",
+                "-v",
+            ]
+            output = self._execute(cmd, timeout=kwargs.get("timeout", 120))
+
+            findings: list[Finding] = []
+            for line in output.strip().split("\n"):
+                if not line.strip():
+                    continue
+                try:
+                    data = json.loads(line)
+                    findings.append(
+                        Finding(
+                            title=f"Secret leak: {data.get('Description', 'Unknown')}",
+                            description=f"File: {data.get('File', '')} - {data.get('Match', '')[:200]}",
+                            severity="high",
+                            tool="gitleaks",
+                            target=target,
+                            endpoint=data.get("File", ""),
+                            evidence=data.get("Secret", "")[:50],
+                            confidence=self._confidence_for("high"),
+                            raw_output=data,
+                        )
+                    )
+                except json.JSONDecodeError:
+                    continue
+            return findings
+        finally:
+            if tmp_dir:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
         return findings

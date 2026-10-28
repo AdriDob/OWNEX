@@ -15,11 +15,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.validation.adapters import HTTPAdapter, ProbeResponse
-from core.validation.confidence import ConfidenceEngine
-from core.validation.economic_scorer import EconomicScorer
-from core.validation.engine import ValidationEngine
-from core.validation.models import (
+from cores.validation.adapters import HTTPAdapter, ProbeResponse
+from cores.validation.economic_scorer import EconomicScorer
+from cores.validation.engine import ValidationEngine
+from cores.validation.models import (
     AttackCandidate,
     ConfidenceScore,
     EconomicScore,
@@ -29,8 +28,8 @@ from core.validation.models import (
     ValidationResult,
     VulnType,
 )
-from core.validation.planner import ValidationPlanner
-from core.validation.promoter import ValidationPromoter
+from cores.validation.planner import ValidationPlanner
+from cores.validation.promoter import ValidationPromoter
 
 # ═══════════════════════════════════════════════════════════════
 # Fixtures
@@ -296,10 +295,9 @@ class TestValidationPlanner:
 # ═══════════════════════════════════════════════════════════════
 
 
-class TestConfidenceEngine:
+class TestConfidenceFromValidationResult:
     def test_high_confidence_with_strong_signals(self, sample_validation_result: ValidationResult):
-        engine = ConfidenceEngine()
-        score = engine.evaluate(sample_validation_result)
+        score = ConfidenceScore.from_validation_result(sample_validation_result)
 
         assert score.score >= 0.7
         assert score.should_promote
@@ -310,24 +308,21 @@ class TestConfidenceEngine:
         assert len(score.reasoning) > 0
 
     def test_no_baseline_returns_zero(self):
-        engine = ConfidenceEngine()
         result = ValidationResult(probes=[ProbeResult()])
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score == 0.0
         assert not score.should_promote
         assert "Baseline missing" in score.gaps
 
     def test_no_probes_returns_zero(self):
-        engine = ConfidenceEngine()
         result = ValidationResult(baseline=ProbeResult())
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score == 0.0
         assert not score.should_promote
 
     def test_mixed_signals_medium_confidence(self):
-        engine = ConfidenceEngine()
         baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=500)
         probe = ProbeResult(
             probe_type=ProbeType.ID_SWAP,
@@ -338,13 +333,12 @@ class TestConfidenceEngine:
             auth_bypassed=False,
         )
         result = ValidationResult(baseline=baseline, probes=[probe])
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert 0 <= score.score <= 0.8  # Señal débil
         assert not score.should_promote
 
     def test_sql_error_detection(self):
-        engine = ConfidenceEngine()
         baseline = ProbeResult(probe_type=ProbeType.BASELINE, success=True, status_code=200, response_size=100)
         probe = ProbeResult(
             probe_type=ProbeType.ERROR_ANALYSIS,
@@ -359,7 +353,7 @@ class TestConfidenceEngine:
             probes=[probe],
             total_signals=["SQL error detected", "Error message contains SQL syntax"],
         )
-        score = engine.evaluate(result)
+        score = ConfidenceScore.from_validation_result(result)
 
         assert score.score > 0.2
         assert len(score.reasoning) > 0
@@ -673,7 +667,7 @@ class TestValidationEngine:
 # ═══════════════════════════════════════════════════════════════
 
 
-@patch("core.validation.adapters.HTTPAdapter.fire")
+@patch("cores.validation.adapters.HTTPAdapter.fire")
 def test_engine_end_to_end_with_mock_http(mock_fire):
     """Ciclo completo: engine ejecuta probes mock → confidence → promote."""
     # Mock responses: baseline 200, probe 200 con data leak
@@ -712,7 +706,7 @@ def test_engine_end_to_end_with_mock_http(mock_fire):
     assert result.candidate.economic_score.priority >= 1
 
 
-@patch("core.validation.adapters.HTTPAdapter.fire")
+@patch("cores.validation.adapters.HTTPAdapter.fire")
 def test_engine_rejects_when_no_data_leak(mock_fire):
     """Si no hay data leak, no debe promover."""
     # Mismas respuestas en baseline y probe (sin señal)

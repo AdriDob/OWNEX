@@ -191,7 +191,7 @@ def update_changelog(since: str | None = None, version: str | None = None) -> di
 
 def create_snapshot(label: str = "pre-update") -> dict[str, Any]:
     """Create a system state snapshot for traceability."""
-    from core.system.version_engine import VersionEngine
+    from cores.system.version_engine import VersionEngine
 
     ve = VersionEngine()
     snapshot = {

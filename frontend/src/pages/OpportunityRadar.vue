@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, ExternalLink, Globe, Search, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import BarChart from '@/components/charts/BarChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
-import { Radar, Search, ExternalLink, TrendingUp, Globe, AlertTriangle } from '@lucide/vue'
-import BarChart from '@/components/charts/BarChart.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface Program {
   id: number
@@ -16,6 +16,12 @@ interface Program {
   endpoint_count?: number
   opportunity_score?: number
   competition_score?: number
+  // HIGH_CONFIDENCE_90 fields
+  evidence_gate_status?: string
+  acceptance_probability?: number
+  evidence_quality?: number
+  uniqueness_score?: number
+  scope_verified?: boolean
 }
 
 const programs = ref<Program[]>([])
@@ -25,10 +31,17 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const res = await api.get<{ items: Program[]; total: number }>('/targets', { limit: 50, sort_by: 'opportunity_score', sort_order: 'desc' })
+    const res = await api.get<{ items: Program[]; total: number }>('/targets', {
+      limit: 50,
+      sort_by: 'opportunity_score',
+      sort_order: 'desc',
+    })
     programs.value = res.items || []
-  } catch (e: any) { error.value = e?.message || 'Error al cargar oportunidades' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar oportunidades'
+  } finally {
+    loading.value = false
+  }
 })
 
 function scoreColor(s?: number) {
@@ -41,14 +54,35 @@ function scoreColor(s?: number) {
 const filtered = computed(() => {
   if (!search.value) return programs.value
   const q = search.value.toLowerCase()
-  return programs.value.filter(p =>
-    p.name.toLowerCase().includes(q) || (p.domain && p.domain.toLowerCase().includes(q))
+  return programs.value.filter(
+    (p) => p.name.toLowerCase().includes(q) || (p.domain && p.domain.toLowerCase().includes(q)),
   )
 })
+
+function gateBadge(status?: string) {
+  switch (status) {
+    case 'HIGH_CONFIDENCE': return 'success'
+    case 'READY_FOR_HUMAN_REVIEW': return 'warning'
+    case 'NEEDS_EVIDENCE': return 'destructive'
+    case 'NEEDS_UNIQUENESS': return 'warning'
+    default: return 'default'
+  }
+}
+
+function gateIcon(status?: string): string {
+  if (status === 'HIGH_CONFIDENCE' || status === 'READY_FOR_HUMAN_REVIEW') return '✓'
+  return '⚠'
+}
+
+function gateIconColor(status?: string): string {
+  if (status === 'HIGH_CONFIDENCE') return 'text-success'
+  if (status === 'NEEDS_EVIDENCE') return 'text-destructive'
+  return 'text-warning'
+}
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Discovery</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Opportunity Radar</h1>
@@ -102,7 +136,22 @@ const filtered = computed(() => {
             {{ p.opportunity_score.toFixed(1) }}
           </Badge>
         </div>
-        <div class="mt-3 flex items-center justify-between">
+        <div class="mt-3 flex items-center justify-between flex-wrap gap-2">
+          <span class="text-xs text-muted-foreground">{{ p.endpoint_count || 0 }} endpoints</span>
+          <!-- HIGH_CONFIDENCE_90 Gate Status -->
+          <div v-if="p.evidence_gate_status" class="flex items-center gap-1.5">
+            <span class="h-3.5 w-3.5 flex-shrink-0" :class="gateIconColor(p.evidence_gate_status)">
+              {{ gateIcon(p.evidence_gate_status) }}
+            </span>
+            <Badge :variant="gateBadge(p.evidence_gate_status)" class="text-xs">
+              {{ p.evidence_gate_status.replace('_', ' ') }}
+            </Badge>
+            <span class="text-xs text-muted-foreground hidden sm:inline">
+              P_ACCEPT: {{ Math.round((p.acceptance_probability || 0) * 100) }}%
+            </span>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center justify-between">
           <span class="text-xs text-muted-foreground">{{ p.endpoint_count || 0 }} endpoints</span>
           <Button variant="ghost" size="sm" class="gap-1">
             <span>Analizar</span>
@@ -116,7 +165,7 @@ const filtered = computed(() => {
 
     <!-- Empty -->
     <div v-else class="flex flex-col items-center py-20 text-center">
-      <Radar class="h-10 w-10 text-muted-foreground mb-4" />
+      <div class="h-10 w-10 text-muted-foreground mb-4" />
       <p class="text-sm text-muted-foreground">No se encontraron programas</p>
     </div>
   </div>

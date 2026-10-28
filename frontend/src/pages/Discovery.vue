@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useDiscoveryStore } from '@/stores/discovery'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Compass,
+  ExternalLink,
+  Globe,
+  Layers,
+  Loader2,
+  RefreshCw,
+  RotateCw,
+  Search,
+  XCircle,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import {
-  AlertTriangle, CheckCircle2, Compass, ExternalLink, Globe,
-  Layers, Loader2, RefreshCw, RotateCw, Search, XCircle,
-} from '@lucide/vue'
+import { useDiscoveryStore } from '@/stores/discovery'
 
 const store = useDiscoveryStore()
 
@@ -42,10 +51,10 @@ const platformOptions = computed(() => {
 
 const filteredPrograms = computed(() => {
   let list = store.programs
-  if (filterPlatform.value) list = list.filter(p => p.platform === filterPlatform.value)
-  if (filterSource.value) list = list.filter(p => p.source === filterSource.value)
-  if (filterImported.value === 'true') list = list.filter(p => p.imported)
-  else if (filterImported.value === 'false') list = list.filter(p => !p.imported)
+  if (filterPlatform.value) list = list.filter((p) => p.platform === filterPlatform.value)
+  if (filterSource.value) list = list.filter((p) => p.source === filterSource.value)
+  if (filterImported.value === 'true') list = list.filter((p) => p.imported)
+  else if (filterImported.value === 'false') list = list.filter((p) => !p.imported)
   return list
 })
 
@@ -79,7 +88,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6 animate-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <div class="flex items-center justify-between">
       <div class="space-y-1">
         <div class="flex items-center gap-2">

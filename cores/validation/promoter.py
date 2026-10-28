@@ -16,8 +16,7 @@ import json
 import logging
 from typing import Any
 
-from core.validation.confidence import ConfidenceEngine
-from core.validation.models import (
+from cores.validation.models import (
     AttackCandidate,
     ConfidenceScore,
     PromoteDecision,
@@ -44,9 +43,6 @@ class ValidationPromoter:
       5. Retorna PromoteDecision
     """
 
-    def __init__(self) -> None:
-        self._confidence = ConfidenceEngine()
-
     def promote(
         self,
         candidate: AttackCandidate,
@@ -63,7 +59,15 @@ class ValidationPromoter:
         Returns:
             PromoteDecision con el resultado
         """
-        confidence = self._confidence.evaluate(result)
+        # Antes: `self._confidence.evaluate(result)` con
+        # `self._confidence = ConfidenceEngine()` — alias de `ConfidenceScorer`
+        # (confidence.py), cuyo `calculate()` exige `results + validation +
+        # endpoint_signals`. Llamado con un único ValidationResult lanzaba
+        # TypeError en CADA promote(): el flujo validation → Finding estaba
+        # muerto y sus 11 tests figuraban como "baseline conocido" en
+        # KNOWN_DEBT #36. Ahora se deriva con la misma función que usa el
+        # engine, para que el log y la decisión digan lo mismo.
+        confidence = ConfidenceScore.from_validation_result(result)
         severity = self._map_severity(candidate, confidence)
 
         poc_data = {

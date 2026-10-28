@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useNotificationsStore } from '@/stores/notifications'
 import { ChevronRight, Home, Minus, Square, X } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
-import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
+import { useNotificationsStore } from '@/stores/notifications'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +26,9 @@ const breadcrumbs = computed(() => {
     const seg = segments[i]
     if (/^\d+$/.test(seg) && i > 0) continue
     const label = seg.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
-    crumbs.push(i === segments.length - 1 ? { label: (route.meta?.title as string) || label } : { label, path: accumulated })
+    crumbs.push(
+      i === segments.length - 1 ? { label: (route.meta?.title as string) || label } : { label, path: accumulated },
+    )
   }
   return crumbs
 })
@@ -35,7 +38,9 @@ async function minimize() {
   try {
     const { getCurrentWindow } = await import('@tauri-apps/api/window')
     await getCurrentWindow().minimize()
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 async function toggleMaximize() {
@@ -49,7 +54,9 @@ async function toggleMaximize() {
       await win.maximize()
     }
     isMaximized.value = !isMaximized.value
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 async function closeWindow() {
@@ -57,7 +64,9 @@ async function closeWindow() {
   try {
     const { getCurrentWindow } = await import('@tauri-apps/api/window')
     await getCurrentWindow().close()
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 async function checkMaximized() {
@@ -65,7 +74,9 @@ async function checkMaximized() {
   try {
     const { getCurrentWindow } = await import('@tauri-apps/api/window')
     isMaximized.value = await getCurrentWindow().isMaximized()
-  } catch { /* */ }
+  } catch {
+    /* */
+  }
 }
 
 onMounted(() => {
@@ -93,8 +104,8 @@ onMounted(() => {
           <ellipse cx="32" cy="32" rx="20" ry="7" stroke="url(#orbital)" stroke-width="1" opacity="0.4" transform="rotate(30 32 32)"/>
           <circle cx="32" cy="32" r="3" fill="url(#core)" />
           <defs>
-            <radialGradient id="core" cx="50%" cy="50%"><stop offset="0%" stop-color="#A855F7"/><stop offset="100%" stop-color="#7C3AED"/></radialGradient>
-            <linearGradient id="orbital" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7C3AED"/><stop offset="100%" stop-color="#A855F7"/></linearGradient>
+            <radialGradient id="core" cx="50%" cy="50%"><stop offset="0%" stop-color="var(--ownex-accent)"/><stop offset="100%" stop-color="var(--ownex-accent)"/></radialGradient>
+            <linearGradient id="orbital" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--ownex-accent)"/><stop offset="100%" stop-color="var(--ownex-accent)"/></linearGradient>
           </defs>
         </svg>
         <span class="font-display text-[11px] font-semibold tracking-widest text-orion-text-secondary uppercase">OWNEX</span>
@@ -136,6 +147,9 @@ onMounted(() => {
         :status="notifications.wsConnected ? 'OPERATIVO' : 'FUERA DE LÍNEA'"
         :reason="notifications.wsConnected ? 'WebSocket conectado' : 'WebSocket desconectado'"
       />
+
+      <!-- Language (es por defecto, cambio a 1 clic) -->
+      <LanguageSwitcher />
 
       <!-- Theme mode toggle -->
       <ThemeToggle />

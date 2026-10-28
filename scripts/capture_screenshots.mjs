@@ -1,10 +1,10 @@
-import { chromium } from '/home/adrie/projects/Rastro/node_modules/playwright-core/index.mjs'
+import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
 
 const API = 'http://127.0.0.1:8000'
 const BASE = 'http://localhost:5173'
-const OUT_DARK = '/home/adrie/projects/Rastro/docs/assets/screenshots/desktop'
-const OUT_LIGHT = '/home/adrie/projects/Rastro/docs/assets/screenshots/desktop-light'
+const OUT_DARK = new URL('../docs/assets/screenshots/desktop', import.meta.url).pathname
+const OUT_LIGHT = new URL('../docs/assets/screenshots/desktop-light', import.meta.url).pathname
 
 const LIGHT_CSS = `
 :root {
@@ -94,9 +94,10 @@ async function getToken() {
   const csrfCookie = csrfMatch ? csrfMatch.split(';')[0] : ''
   const csrfToken = csrfCookie.replace('csrf-token=', '')
   const headers = { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken, Cookie: csrfCookie }
-  const register = await fetch(`${API}/api/auth/users/register`, { method: 'POST', headers, body: JSON.stringify({ username: 'operator', email: 'op@ownex.local', password: 'ownex-secret-2026' }) })
+  const uname = `operator_${Date.now().toString(36)}`
+  const register = await fetch(`${API}/api/auth/users/register`, { method: 'POST', headers, body: JSON.stringify({ username: uname, email: `${uname}@ownex.local`, password: 'ownex-secret-2026' }) })
   if (register.ok) return (await register.json()).access_token
-  const login = await fetch(`${API}/api/auth/users/login`, { method: 'POST', headers, body: JSON.stringify({ username: 'operator', password: 'ownex-secret-2026' }) })
+  const login = await fetch(`${API}/api/auth/users/login`, { method: 'POST', headers, body: JSON.stringify({ username: uname, password: 'ownex-secret-2026' }) })
   if (login.ok) return (await login.json()).access_token
   throw new Error(`auth failed: ${register.status} ${login.status}`)
 }
@@ -105,7 +106,7 @@ const token = await getToken()
 console.log('AUTH OK')
 
 const browser = await chromium.launch({
-  executablePath: '/home/adrie/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell',
+  executablePath: `${process.env.HOME}/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`,
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--force-device-scale-factor=2', '--hide-scrollbars'],
 })
 
@@ -146,6 +147,21 @@ async function capture(theme, out) {
       } catch {
         console.log(`WARN[${theme}/${name}] app content not detected, shooting anyway`)
       }
+      // First-run setup wizard (fresh DB): Skip needs double-click (confirm pattern)
+      try {
+        const skip = page.getByText('Skip', { exact: true }).first()
+        if (await skip.isVisible({ timeout: 3000 })) {
+          await skip.click()
+          await page.waitForTimeout(800)
+          const confirm = page.getByText('¿Saltar config?', { exact: true }).first()
+          if (await confirm.isVisible({ timeout: 2000 })) {
+            await confirm.click()
+          } else {
+            await skip.click()
+          }
+          await page.waitForTimeout(1500)
+        }
+      } catch { /* no wizard — shoot as-is */ }
       if (theme === 'light') {
         await page.addStyleTag({ content: LIGHT_CSS })
       }

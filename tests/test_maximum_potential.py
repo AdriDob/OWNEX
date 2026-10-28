@@ -322,7 +322,7 @@ def test_get_evolution_report_includes_trend(tmp_path, monkeypatch) -> None:
 
 def test_daily_handler_runs_and_persists(tmp_path, monkeypatch) -> None:
     import cores.direct_work_engine.maximum_potential as mp_module
-    from core.cycles import tasks
+    from cores.cycles import tasks
 
     monkeypatch.setattr(mp_module, "get_evolution_report", lambda: {"digest": {"text": "OK"}, "trend": {}})
     monkeypatch.setattr(mp_module, "save_daily_report", lambda report, report_dir=None: str(tmp_path / "x.json"))
@@ -332,7 +332,7 @@ def test_daily_handler_runs_and_persists(tmp_path, monkeypatch) -> None:
 
 
 def test_daily_handler_fails_gracefully(monkeypatch) -> None:
-    from core.cycles import tasks
+    from cores.cycles import tasks
 
     monkeypatch.setattr(
         "cores.direct_work_engine.maximum_potential.get_evolution_report",

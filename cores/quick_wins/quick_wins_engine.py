@@ -115,11 +115,30 @@ class QuickWinsEngine:
             low_effort_high_roi_targets=low_effort_targets,
             immediate_action_endpoints=immediate,
             confidence_ranked_opportunities=ranked[:20],
+            # `total_opportunities` = endpoints **puntuados**, no quick wins.
+            # Con 9.922 endpoints el resumen decía "9.922 quick wins", que
+            # es lo mismo que decir "no hay quick wins". El conteo que sí
+            # significa algo va aparte.
             total_opportunities=n,
+            scored_endpoints=n,
+            total_quick_wins=len(ready) + len(low_hanging),
+            ready_to_report=len(ready),
+            low_hanging_fruit=len(low_hanging),
+            half_confirmed=len(half_confirmed),
             avg_quick_win_score=round(avg_score, 3),
             exploitability_score=round(sum(w.exploitability_score for w in all_wins) / max(n, 1), 3),
             fastest_path_minutes=getattr(fastest, "estimated_effort_minutes", 0),
+            # `estimated_payout` es un índice de prioridad heurístico, NO USD
+            # (ver `_estimate_payout`). **Sumarlo no significa nada**: con
+            # 9.922 endpoints daba "índice total 9.786.548", una magnitud sin
+            # interpretación. Se expone el máximo —que sí ordena— y el conteo,
+            # y la suma queda marcada como no interpretable.
             total_estimated_value=sum(w.estimated_payout for w in all_wins),
+            top_priority_index=round(max((w.estimated_payout for w in all_wins), default=0.0), 2),
+            priority_index_status=(
+                "índice de priorización derivado del riesgo (NO USD). "
+                "El total no es interpretable; usá top_priority_index."
+            ),
         )
 
     # ── Scoring methods ──────────────────────────────────────
@@ -352,6 +371,28 @@ class QuickWinsEngine:
         vector: str,
         potential_idor: bool,
     ) -> float:
+        """Peso de prioridad DERIVADO del riesgo. **No son dólares.**
+
+        `risk_score / 100 * 5000` con multiplicadores 1.5 / 1.3 / 1.2 es un
+        mapa lineal inventado: afirma que "un risk_score 80 en un IDOR vale
+        $6.000" sin ninguna base de mercado. No hay ninguna fuente, ni
+        histórico de payouts del owner que lo respalde.
+
+        El número **sí sirve para ordenar** quick wins entre sí (para eso sólo
+        necesita ser monótono en el riesgo, y lo es). Lo que no vale es la
+        etiqueta `$`: con ella, `$11.700` por finding entra al contexto del
+        advisor (`cores/ai/advisor.py`), cuya propia regla #1 es *"Respondé
+        solo con datos reales del contexto"*, y de ahí a una decisión del
+        owner sobre cuánto vale su tiempo.
+
+        Por eso la unidad se declara en el docstring y **nadie lo renderiza
+        como dinero**: en `cores/ai/summary.py` y `cores/ai/advisor.py` se
+        rotula como índice de prioridad. Ver KNOWN_DEBT #80.
+
+        El nombre del campo (`estimated_payout`) se mantiene: está en el
+        modelo y en la DB, y renombrarlo costaría más que el beneficio. La
+        honestidad está en no ponerle `$` adelante.
+        """
         base = risk_score / 100.0 * 5000
         if vector in ("IDOR", "Privilege escalation", "Auth bypass"):
             base *= 1.5

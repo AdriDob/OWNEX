@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-import core.setup.checklist as cl
-from core.setup.checklist import SetupChecklist, get_setup_checklist
+import cores.setup.checklist as cl
+from cores.setup.checklist import SetupChecklist, get_setup_checklist
 
 
 @pytest.fixture()
@@ -20,10 +20,10 @@ def checklist(tmp_path, monkeypatch, all_detectors_false):
 
 
 class TestCatalog:
-    def test_catalog_has_ten_items_with_required_keys(self) -> None:
+    def test_catalog_has_all_items_with_required_keys(self) -> None:
         required = {"id", "phase", "priority", "title", "why", "est_minutes", "how_to", "auto"}
         items = cl._catalog()
-        assert len(items) == 10
+        assert len(items) == 35
         for item in items:
             assert required <= set(item), item["id"]
 
@@ -37,13 +37,18 @@ class TestCatalog:
         for priorities in by_phase.values():
             assert len(priorities) == len(set(priorities))
 
+    def test_github_token_item_is_auto_essential(self) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "github_token")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_ESSENTIALS
+
 
 class TestStatus:
     def test_fresh_status_all_pending_zero_pct(self, checklist: SetupChecklist) -> None:
         status = checklist.status()
         assert status["complete_pct"] == 0
         assert status["done_items"] == 0
-        assert len(status["pending"]) == 10
+        assert len(status["pending"]) == 35
         assert status["complete"] is False
         assert status["next_task"] is not None
 
@@ -52,7 +57,7 @@ class TestStatus:
         status = checklist.status()
         assert "profile_kit" in status["done"]
         assert status["done_items"] == 1
-        assert status["complete_pct"] == 10
+        assert status["complete_pct"] == 3
         assert all(p["id"] != "profile_kit" for p in status["pending"])
 
     def test_status_shape_has_phases_labels(self, checklist: SetupChecklist) -> None:
@@ -66,7 +71,7 @@ class TestNextDailyTask:
     def test_essentials_beat_lower_priority_number_in_later_phase(self, checklist: SetupChecklist) -> None:
         task = checklist.next_daily_task()
         assert task is not None
-        assert task["id"] == "profile_kit"
+        assert task["id"] == "ai_provider"
         assert task["phase"] == cl.PHASE_ESSENTIALS
 
     def test_phase_ranking_over_priority_number(self, checklist: SetupChecklist, tmp_path) -> None:
@@ -82,7 +87,10 @@ class TestNextDailyTask:
         assert task["id"] == "obsidian_vault"
 
     def test_complete_checklist_returns_none(self, checklist: SetupChecklist) -> None:
-        assert checklist.next_daily_task(pending=[]) is None
+        # Post-setup guidance: never a dead end — returns next money action, not None
+        result = checklist.next_daily_task(pending=[])
+        assert result is not None
+        assert result["id"] in ("all_done", "first_money_next")
 
 
 class TestManualItems:
@@ -120,20 +128,116 @@ class TestComplete:
         self, checklist: SetupChecklist, monkeypatch, all_detectors_false
     ) -> None:
         for name in (
+            "ai_provider",
             "profile_kit",
             "payment_accounts",
             "bounty_api_key",
+            "devbounty_api_key",
+            "github_token",
             "first_target",
+            "mpt_material_key",
             "obsidian_vault",
             "smtp_mail",
+            "trading_exchange",
+            "memecoin_wallet",
+            "betfair",
+            "ccxt_exchange",
+            "outlook",
+            "aux_bounty_keys",
+            "ai_work_keys",
+            "meta_account",
+            "meli_account",
+            "affiliate_networks",
+            "supplier_outreach_3wa",
         ):
             monkeypatch.setitem(cl._DETECTORS, name, lambda: True)
-        for manual in ("outlier_onboarding", "mindrift_onboarding", "freelance_profile", "trading_live"):
+        for manual in (
+            "outlier_onboarding",
+            "mercor_onboarding",
+            "alignerr_onboarding",
+            "mindrift_onboarding",
+            "freelance_profile",
+            "mercor_marketplace",
+            "supplier_football",
+            "supplier_streetwear",
+            "supplier_perfumes",
+            "supplier_accessories",
+            "exchange_binance",
+            "exchange_alpaca",
+            "whop_account",
+            "trading_live",
+        ):
             checklist.mark_done(manual)
         status = checklist.status()
         assert status["complete"] is True
         assert status["complete_pct"] == 100
-        assert status["next_task"] is None
+        assert status["next_task"] is not None
+        assert status["next_task"]["id"] in ("all_done", "first_money_next")
+
+
+class TestMptMaterialKey:
+    def test_detector_false_without_config(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(tmp_path / "missing.toml"))
+        assert cl._detect_mpt_material_key() is False
+
+    def test_detector_false_with_empty_keys(self, monkeypatch, tmp_path) -> None:
+        cfg = tmp_path / "config.toml"
+        cfg.write_text("pexels_api_keys = []\ncoverr_api_keys = []\n", encoding="utf-8")
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(cfg))
+        assert cl._detect_mpt_material_key() is False
+
+    def test_detector_true_with_pexels_key(self, monkeypatch, tmp_path) -> None:
+        cfg = tmp_path / "config.toml"
+        cfg.write_text('pexels_api_keys = ["demo-key"]\n', encoding="utf-8")
+        monkeypatch.setenv("MPT_CONFIG_PATH", str(cfg))
+        assert cl._detect_mpt_material_key() is True
+
+    def test_item_is_auto_and_undoable_only_by_key(self, checklist: SetupChecklist) -> None:
+        with pytest.raises(ValueError):
+            checklist.mark_done("mpt_material_key")
+
+
+class TestAiProvider:
+    def test_detector_true_with_remote_key(self, monkeypatch) -> None:
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+        for key in ("ANTHROPIC_API_KEY", "FCC_API_KEY", "GEMINI_API_KEY"):
+            monkeypatch.delenv(key, raising=False)
+        assert cl._detect_ai_provider() is True
+
+    def test_detector_false_without_key_and_no_ollama(self, monkeypatch) -> None:
+        for key in cl._AI_API_KEY_ENVS:
+            monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:9")
+        assert cl._detect_ai_provider() is False
+
+    def test_ollama_reachable_false_on_refused(self, monkeypatch) -> None:
+        monkeypatch.setenv("OLLAMA_HOST", "http://127.0.0.1:9")
+        assert cl._ollama_reachable(timeout=1.0) is False
+
+    def test_item_is_auto_first_essential(self, checklist: SetupChecklist) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "ai_provider")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_ESSENTIALS
+        assert item["priority"] == 1
+        with pytest.raises(ValueError):
+            checklist.mark_done("ai_provider")
+
+
+class TestDevbountyApiKey:
+    def test_detector_false_without_keys(self, monkeypatch) -> None:
+        for key in ("OPIRE_API_KEY", "ISSUEHUNT_API_KEY", "ALGORA_API_KEY"):
+            monkeypatch.delenv(key, raising=False)
+        assert cl._detect_devbounty_api_key() is False
+
+    def test_detector_true_with_opire_key(self, monkeypatch) -> None:
+        monkeypatch.setenv("OPIRE_API_KEY", "test-token")
+        assert cl._detect_devbounty_api_key() is True
+
+    def test_item_is_auto(self, checklist: SetupChecklist) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "devbounty_api_key")
+        assert item["auto"] is True
+        with pytest.raises(ValueError):
+            checklist.mark_done("devbounty_api_key")
 
 
 class TestSingleton:
@@ -167,3 +271,69 @@ class TestApiEndpoints:
 
     def test_undone_unknown_returns_404(self, client) -> None:
         assert client.post("/api/setup/checklist/nope/undone").status_code == 404
+
+
+class TestExternalUrls:
+    EXPECTED_URLS = {
+        "github_token": "https://github.com/settings/tokens",
+        "outlier_onboarding": "https://outlier.ai",
+        "mercor_onboarding": "https://work.mercor.com",
+        "alignerr_onboarding": "https://alignerr.com",
+        "mindrift_onboarding": "https://mindrift.ai",
+        "freelance_profile": "https://www.fiverr.com",
+        "mpt_material_key": "https://www.pexels.com/api/",
+        "mercor_marketplace": "https://work.mercor.com",
+    }
+
+    def test_external_items_expose_https_url_and_label(self) -> None:
+        items = {i["id"]: i for i in cl._catalog()}
+        for item_id, url in self.EXPECTED_URLS.items():
+            item = items[item_id]
+            assert item.get("url") == url, item_id
+            assert item.get("url_label"), item_id
+
+    def test_all_urls_are_https(self) -> None:
+        for item in cl._catalog():
+            if item.get("url"):
+                assert item["url"].startswith("https://") or item["url"].startswith("/"), item["id"]
+
+    def test_next_task_carries_url(self, checklist: SetupChecklist) -> None:
+        task = checklist.next_daily_task(pending=[i for i in cl._catalog() if i["id"] == "github_token"])
+        assert task is not None
+        assert task["url"] == "https://github.com/settings/tokens"
+        assert task["url_label"] == "Abrir GitHub Tokens"
+
+    def test_status_pending_carries_url(self, checklist: SetupChecklist) -> None:
+        status = checklist.status()
+        by_id = {p["id"]: p for p in status["pending"]}
+        assert by_id["github_token"]["url"] == "https://github.com/settings/tokens"
+
+
+class TestSupplierOutreachUnlock:
+    def test_item_es_auto_con_url(self) -> None:
+        item = next(i for i in cl._catalog() if i["id"] == "supplier_outreach_3wa")
+        assert item["auto"] is True
+        assert item["phase"] == cl.PHASE_PLATFORMS
+        assert item["url"] == "/operations/ecommerce"
+
+    def test_detector_pendiente_con_menos_de_3(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        import cores.ecommerce.outreach as outreach_mod
+        import cores.setup.checklist as checklist_mod
+
+        monkeypatch.setattr(outreach_mod, "_store", None)
+        store = outreach_mod.get_outreach_store()
+        store.mark_contacted("s1", "https://wa.me/?text=hola", "hola")
+        store.mark_contacted("s2", "https://wa.me/?text=hola", "hola")
+        assert checklist_mod._detect_supplier_outreach() is False
+
+    def test_detector_completa_con_3(self, monkeypatch, tmp_path) -> None:
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        import cores.ecommerce.outreach as outreach_mod
+        import cores.setup.checklist as checklist_mod
+
+        monkeypatch.setattr(outreach_mod, "_store", None)
+        store = outreach_mod.get_outreach_store()
+        for sid in ("dropsheable", "canevic_perf", "flex_sport_arg"):
+            store.mark_contacted(sid, "https://wa.me/?text=hola", "hola")
+        assert checklist_mod._detect_supplier_outreach() is True

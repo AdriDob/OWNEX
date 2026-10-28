@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.auth.provider import AuthType
+from cores.auth.provider import AuthType
 
 logger = logging.getLogger("ownex.auth.credentials")
 

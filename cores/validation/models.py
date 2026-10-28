@@ -40,6 +40,13 @@ class VulnType(StrEnum):
     CORS = "cors"
     OPEN_REDIRECT = "open_redirect"
     BUSINESS_LOGIC = "business_logic"
+    DEEPLINK_HIJACK = "deeplink_hijack"
+    MOBILE_DATA_EXPOSURE = "mobile_data_exposure"
+    MOBILE_TRANSPORT = "mobile_transport"
+    PROMPT_INJECTION = "prompt_injection"
+    DESERIALIZATION = "deserialization"
+    OAUTH = "oauth"
+    BACL = "bacl"
     GENERIC = "generic"
 
 
@@ -380,6 +387,102 @@ class ConfidenceScore:
     def should_promote(self) -> bool:
         """¿Merece promoverse a Finding en la DB?"""
         return self.score >= 0.7 and self.reproducible
+
+    # Pesos de la confianza. Suman 1.0 para que `score` quede en 0..1 sin
+    # renormalizar. Declarados aquí y no en el scorer porque este es el único
+    # cálculo que corre en el camino de promote().
+    _W_SIGNAL = 0.40
+    _W_IMPACT = 0.30
+    _W_REPRODUCIBLE = 0.20
+    _W_CONSISTENCY = 0.10
+
+    #: Cuántas señales globales se consideran "evidencia completa". Tres es lo
+    #: que produce un hallazgo reportable (impacto + alcance + confirmación).
+    SIGNALS_TARGET = 3
+
+    @classmethod
+    def from_validation_result(cls, result: ValidationResult) -> ConfidenceScore:
+        """Deriva la confianza de lo que la validación efectivamente midió.
+
+        Este método es el que `PromotionEngine.promote()` usa. Antes no existía:
+        el promoter instanciaba `ConfidenceEngine` (alias de
+        `ConfidenceScorer`, cuyo `calculate()` exige
+        `results + validation + endpoint_signals`) y lo llamaba con un único
+        `ValidationResult` ⇒ `TypeError` en cada promote(). El flujo
+        validation → Finding estaba muerto y los tests que lo probaban
+        figuraban como "baseline conocido" en KNOWN_DEBT #36.
+
+        Los pesos son explícitos y suman 1.0. Sin baseline o sin probes no hay
+        comparación posible: se devuelve 0 con el gap explícito, nunca un
+        score inventado.
+        """
+        if result.baseline is None:
+            return cls(
+                score=0.0,
+                gaps=["Baseline missing"],
+                reasoning=["Sin baseline no se puede comparar la respuesta: score 0."],
+            )
+
+        probes = result.probes
+        if not probes:
+            return cls(
+                score=0.0,
+                gaps=["No probes executed"],
+                reasoning=["No se ejecutó ninguna probe contra el baseline: score 0."],
+            )
+
+        data_leak = any(p.data_leaked for p in probes)
+        auth_bypass = any(p.auth_bypassed for p in probes)
+        reproducible = bool(result.reproducible)
+
+        signal_score = min(len(result.total_signals) / cls.SIGNALS_TARGET, 1.0)
+        impact_score = (0.5 if data_leak else 0.0) + (0.5 if auth_bypass else 0.0)
+        reproducible_score = 1.0 if reproducible else 0.0
+        consistency_score = sum(1 for p in probes if p.status_code == result.baseline.status_code) / len(probes)
+
+        score = round(
+            cls._W_SIGNAL * signal_score
+            + cls._W_IMPACT * impact_score
+            + cls._W_REPRODUCIBLE * reproducible_score
+            + cls._W_CONSISTENCY * consistency_score,
+            4,
+        )
+
+        reasoning: list[str] = []
+        if data_leak:
+            reasoning.append("Se detectó fuga de datos entre identidades (data_leaked).")
+        if auth_bypass:
+            reasoning.append("El endpoint respondió sin autenticación (auth_bypassed).")
+        if reproducible:
+            reasoning.append("El finding se reprodujo de forma consistente.")
+        if not result.total_signals:
+            reasoning.append("Ninguna probe reportó señal: la evidencia es débil.")
+        reasoning.append(f"{len(probes)} probe(s), {consistency_score:.0%} con el status del baseline.")
+
+        gaps: list[str] = []
+        if not result.total_signals:
+            gaps.append("No signals detected")
+        if not reproducible:
+            gaps.append("Not reproducible")
+        if not data_leak and not auth_bypass:
+            gaps.append("No impact confirmed (data leak / auth bypass)")
+
+        diff_ratio = 0.0
+        if any(p.response_preview != result.baseline.response_preview for p in probes):
+            diff_ratio = 1.0
+
+        return cls(
+            score=score,
+            signals_found=len(result.total_signals),
+            signals_possible=cls.SIGNALS_TARGET,
+            data_leak_confirmed=data_leak,
+            auth_bypass_confirmed=auth_bypass,
+            reproducible=reproducible,
+            baseline_diff_ratio=diff_ratio,
+            rejection_risk=result.false_positive_risk or "high",
+            reasoning=reasoning,
+            gaps=gaps,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {

@@ -8,10 +8,10 @@ from typing import Any
 # Add the project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from core.opportunity.adapters import get_adapters
-from core.opportunity.engine import OpportunityOrchestrator
-from core.opportunity.executors import get_executors
-from core.scheduler.jobs import get_all_jobs
+from cores.opportunity.adapters import get_adapters
+from cores.opportunity.engine import OpportunityOrchestrator
+from cores.opportunity.executors import get_executors
+from cores.scheduler.jobs import get_all_jobs
 
 
 class TestOpportunityPipeline:

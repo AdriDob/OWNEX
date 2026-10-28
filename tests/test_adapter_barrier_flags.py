@@ -34,11 +34,25 @@ class _FakeLegacy:
 
 
 def test_curated_flags_known_platform() -> None:
+    """Plataforma con entrada curada toma sus flags del catálogo (no inventados).
+
+    Nota 2026-09-28: el ejemplo original era ``freelancer``, que fue eliminada
+    del catálogo curado por la regla permanente de OWNEX (plataformas freelance
+    < $15/h fuera). El test ahora usa una plataforma vigente y sigue fijando
+    la misma intención: flags desde el catálogo, nunca aplanados a False.
+    """
     from api.adapters.legacy import _curated_barrier_flags
 
-    result = _curated_barrier_flags("freelancer")
+    result = _curated_barrier_flags("outlier")
     assert result is not None
     assert all(isinstance(v, bool) for v in result)
+
+
+def test_plataformas_freelance_ya_no_estan_en_catalogo() -> None:
+    """Guard de la decisión: freelance fuera del catálogo ⇒ sin flags curados."""
+    from api.adapters.legacy import _curated_barrier_flags
+
+    assert _curated_barrier_flags("freelancer") is None
 
 
 def test_curated_flags_unknown_platform_is_none() -> None:
@@ -53,8 +67,8 @@ def test_conversion_uses_curated_values() -> None:
 
     adapter = LegacyOpportunityDweAdapter(
         legacy=_FakeLegacy(),
-        name="Freelancer",
-        platform=WorkPlatform.FREELANCER,
+        name="Workana",
+        platform=WorkPlatform.WORKANA,
         category=OpportunityCategory.SOFTWARE_ENGINEERING,
         employment_type=EmploymentType.FREELANCE,
         payment_method=PaymentMethod.BANK_WIRE,
@@ -76,7 +90,7 @@ def test_conversion_uses_curated_values() -> None:
         )()
     )
 
-    expected = _curated_barrier_flags("freelancer")
+    expected = _curated_barrier_flags("outlier")
     assert expected is not None
     assert opp.portfolio_required == expected[0]
     assert opp.interview_required == expected[1]

@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from core.autonomy.github_commenter import CommentResult, GitHubCommenter
+from cores.autonomy.github_commenter import CommentResult, GitHubCommenter
 
 
 def _run(coro: Any) -> Any:
@@ -60,7 +60,7 @@ class TestClaimCommands:
                 captured["body"] = json.get("body")
                 return FakeResp()
 
-        import core.autonomy.github_commenter as mod
+        import cores.autonomy.github_commenter as mod
 
         original = mod.httpx.AsyncClient
         mod.httpx.AsyncClient = FakeAsyncClient  # type: ignore[misc]
@@ -98,7 +98,7 @@ class TestClaimCommands:
                 sent.append(json.get("body"))
                 return FakeResp()
 
-        import core.autonomy.github_commenter as mod
+        import cores.autonomy.github_commenter as mod
 
         original = mod.httpx.AsyncClient
         mod.httpx.AsyncClient = FakeAsyncClient  # type: ignore[misc]
@@ -133,7 +133,7 @@ class TestClaimCommands:
             async def post(self, url: str, json: dict | None = None, headers: dict | None = None) -> FakeResp:
                 return FakeResp()
 
-        import core.autonomy.github_commenter as mod
+        import cores.autonomy.github_commenter as mod
 
         original = mod.httpx.AsyncClient
         mod.httpx.AsyncClient = FakeAsyncClient  # type: ignore[misc]

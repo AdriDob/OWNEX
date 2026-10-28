@@ -1,0 +1,246 @@
+/* ── Responsive Utilities ── */
+
+/* Mobile-first: stack everything, then expand at breakpoints */
+
+/* Grid utilities */
+.grid-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card grid — 1 col mobile, 2 col tablet, 3-4 col desktop */
+.card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Stat cards — 2 col mobile, 4 col desktop */
+.stat-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+/* Hide on mobile, show on desktop */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+/* Hide on desktop, show on mobile */
+.show-mobile {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .show-mobile {
+    display: none;
+  }
+}
+
+/* Responsive padding */
+.padding-responsive {
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .padding-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .padding-responsive {
+    padding: 2rem;
+  }
+}
+
+/* Responsive text */
+.text-responsive-sm {
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .text-responsive-sm {
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive gap */
+.gap-responsive {
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .gap-responsive {
+    gap: 1rem;
+  }
+}
+
+/* Touch-friendly tap targets (min 44px) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Responsive sidebar main content offset */
+.main-content {
+  padding-bottom: 4rem; /* space for mobile bottom nav */
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    padding-bottom: 0;
+  }
+}
+
+/* Responsive card padding */
+.card-padding {
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .card-padding {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-padding {
+    padding: 1.5rem;
+  }
+}
+
+/* Responsive font sizes for headings */
+.heading-responsive {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .heading-responsive {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .heading-responsive {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+/* Responsive flex — stack on mobile, row on desktop */
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .flex-responsive {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+/* Responsive grid for 2-column layouts */
+.grid-2-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid-2-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Responsive grid for 3-column layouts */
+.grid-3-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .grid-3-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-3-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Responsive grid for 4-column layouts */
+.grid-4-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  .grid-4-responsive {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

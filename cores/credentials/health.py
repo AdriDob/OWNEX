@@ -41,12 +41,12 @@ PLATFORMS = [
 async def check_secrets_health() -> dict[str, Any]:
     """Check health of all credential secrets.
 
-    Scheduler handler: ``core.credentials.health:check_secrets_health``
+    Scheduler handler: ``cores.credentials.health:check_secrets_health``
     """
     try:
         creds = get_credentials()
-        total_fields = len(creds.model_fields)
-        populated = sum(1 for f in creds.model_fields if getattr(creds, f))
+        total_fields = len(type(creds).model_fields)
+        populated = sum(1 for f in type(creds).model_fields if getattr(creds, f))
 
         platform_health: dict[str, Any] = {}
         populated_platforms = 0

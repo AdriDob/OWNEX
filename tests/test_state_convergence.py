@@ -8,7 +8,7 @@ nunca quede desincronizada cuando se agreguen estados nuevos.
 
 from __future__ import annotations
 
-from core.execution_queue import ExecState
+from cores.execution_queue import ExecState
 from cores.revenue_tracker.revenue_tracker import (
     OpportunityStage,
     exec_state_for_stage,
@@ -52,7 +52,7 @@ def test_store_default_honors_ownex_data_dir(monkeypatch, tmp_path) -> None:
     """El default del store resuelve OWNEX_DATA_DIR (frozen bundles), jamás
     un path repo-parents fuera del árbol (audit P0-5)."""
     monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path / "ownexdata"))
-    from core.execution_queue import _default_store_path
+    from cores.execution_queue import _default_store_path
 
     resolved = _default_store_path()
     assert str(tmp_path / "ownexdata") in str(resolved)
@@ -73,6 +73,6 @@ def test_store_default_dev_falls_inside_repo() -> None:
 
 
 def _default_store_path_importable():
-    from core.execution_queue import _default_store_path
+    from cores.execution_queue import _default_store_path
 
     return _default_store_path()

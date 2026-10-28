@@ -111,9 +111,9 @@ response = await oar.chat(
     "Resume este finding",
     task_type=TaskType.SUMMARIZATION,
 )
-print(response.content)       # texto generado
-print(response.provider_id)   # qué provider ejecutó
-print(response.cost_usd)      # costo real (0.0 en free/local)
+print(response.content)  # texto generado
+print(response.provider_id)  # qué provider ejecutó
+print(response.cost_usd)  # costo real (0.0 en free/local)
 ```
 
 ## Degraded Mode

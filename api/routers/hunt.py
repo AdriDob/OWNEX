@@ -3,8 +3,10 @@
 import asyncio
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("ownex.api.hunt")
 router = APIRouter(prefix="/api/hunt", tags=["hunt"])
@@ -36,14 +38,20 @@ async def start_hunt():
     _hunt_state["targets_scanned"] = 0
     logger.info("Hunt started")
 
-    # Kick off immediate pipeline run
+    # Kick off an immediate pipeline cycle on the LIVE scheduler instance.
+    # Never create a second ScanScheduler here: it would run with empty state
+    # (no cooldowns/last_run) and drift from the instance the app actually runs.
     try:
         import asyncio
 
+        from api import scheduler as sched_mod
         from api.scheduler import ScanScheduler
 
-        sched = ScanScheduler(interval_minutes=30)
-        t = asyncio.create_task(sched._run_pipeline())
+        sched = sched_mod.scheduler_instance
+        if sched is None:
+            sched = ScanScheduler(interval_minutes=30)
+            sched_mod.scheduler_instance = sched
+        t = asyncio.create_task(sched.run_cycle())
         _hunt_tasks.add(t)
         t.add_done_callback(_hunt_tasks.discard)
     except Exception as e:
@@ -78,3 +86,69 @@ async def stop_hunt():
     _hunt_state["started_at"] = None
     logger.info("Hunt stopped")
     return {"status": "stopped"}
+
+
+@router.post("/restart")
+async def restart_hunt():
+    """Stop + start in one call (CommandPalette + hunt store contract).
+
+    Added 2026-09-12: frontend called /hunt/restart which 404'd (only
+    start/pause/resume/stop existed). Restart = fresh started_at/counters +
+    a new pipeline cycle on the LIVE scheduler instance (never a second one).
+    """
+    _hunt_state["status"] = "idle"
+    _hunt_state["started_at"] = None
+    return await start_hunt()
+
+
+class CrewAgentIn(BaseModel):
+    agent_id: str = Field(min_length=1, max_length=64)
+    name: str = ""
+    mode: str = "FAST"
+    max_targets: int = Field(default=5, ge=1, le=20)
+
+
+class CrewAssignIn(BaseModel):
+    agent_id: str = Field(min_length=1)
+    target: str = Field(min_length=1, max_length=253)
+
+
+@router.get("/crew")
+async def crew_status() -> dict[str, Any]:
+    """Crew + métricas por agente. Nunca 500."""
+    try:
+        from cores.hunt.crew import get_hunt_crew
+
+        crew = get_hunt_crew()
+        agents = crew.list_agents()
+        return {
+            "success": True,
+            "agents": [{**a, "stats": crew.agent_stats(a["agent_id"])} for a in agents],
+        }
+    except Exception as e:
+        logger.exception("Crew status failed")
+        return {"success": False, "agents": [], "error": str(e)[:200]}
+
+
+@router.post("/crew/agents")
+async def crew_create_agent(payload: CrewAgentIn) -> dict[str, Any]:
+    """Crea un hunt agent (organiza cobertura; no escanea solo)."""
+    from cores.hunt.crew import get_hunt_crew
+
+    out = get_hunt_crew().create_agent(
+        payload.agent_id, name=payload.name, mode=payload.mode, max_targets=payload.max_targets
+    )
+    if not out.get("ok"):
+        raise HTTPException(status_code=422, detail=str(out.get("reason", "invalid")))
+    return {"success": True, **out}
+
+
+@router.post("/crew/assign")
+async def crew_assign_target(payload: CrewAssignIn) -> dict[str, Any]:
+    """Asigna un target a un agente (valida DNS, cupo, duplicados)."""
+    from cores.hunt.crew import get_hunt_crew
+
+    out = get_hunt_crew().assign(payload.agent_id, payload.target)
+    if not out.get("ok"):
+        raise HTTPException(status_code=422, detail=str(out.get("reason", "invalid")))
+    return {"success": True, **out}

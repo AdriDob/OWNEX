@@ -198,3 +198,8 @@ class PolymarketAdapter:
             "summary": "Polymarket adapter connected. Full trading requires CLOB SDK integration.",
             "docs_url": "https://docs.polymarket.com/api/rest",
         }
+
+
+def build_polymarket_adapter(config: dict[str, Any] | None = None) -> PolymarketAdapter:
+    """Factory function to create Polymarket adapter."""
+    return PolymarketAdapter(config)

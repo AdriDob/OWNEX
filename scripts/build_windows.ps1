@@ -1,305 +1,246 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    CATEYE Windows Build — one command to build, package, and deploy.
+    OWNEX Windows Build — builds the Tauri desktop bundle + MSI on Windows.
 .DESCRIPTION
-    Runs on Windows only. Builds frontend, PyInstaller EXE, and NSIS installer,
-    then copies output to the user's OneDrive desktop folder and runs install.bat.
+    Local mirror of .github/workflows/ownex-tauri-windows.yml (job: build-tauri).
+    Runs on Windows only. Produces:
+
+      src-tauri\target\release\bundle\msi\*.msi   ← the installable artifact
+
+    Pipeline (same order as CI):
+      0. Preflight tools + version
+      1. Clean previous build outputs
+      2. Frontend build (npm ci + npm run build)
+      3. PyInstaller ONEFILE backend → dist\ownex-backend.exe
+      4. Sidecar → src-tauri\binaries\ownex-backend-x86_64-pc-windows-msvc.exe
+      5. Sidecar smoke test (real /api/health probe)
+      6. WebView2 presence check
+      7. Tauri build → MSI + SHA256
+      8. Verify artifacts exist
+
+    Notes:
+      - The NSIS installer (installer\OWNEX-Desktop-Alpha.nsi) is ARCHIVED.
+        The maintained Windows path is the Tauri MSI. Do not add NSIS back.
+      - Tauri v2 resolves externalBin "binaries/ownex-backend" to
+        "binaries/ownex-backend-<target-triple>.exe" at build time. The file on
+        disk MUST carry the triple suffix, else build-script-build fails with
+        "resource path ... doesn't exist".
 .NOTES
-    Version: 3.0.0
-    Author: CATEYE Labs
+    Version: 7.7.7
 #>
 
 $ErrorActionPreference = "Stop"
-$VERSION = "3.0.0"
+Set-StrictMode -Version Latest
 
 $PROJECT_DIR = Split-Path -Parent $PSScriptRoot
-$DIST_DIR = Join-Path $PROJECT_DIR "dist"
-$BUILD_DIR = Join-Path $PROJECT_DIR "build"
+$DIST_DIR    = Join-Path $PROJECT_DIR "dist"
 $FRONTEND_DIR = Join-Path $PROJECT_DIR "frontend"
+$TAURI_DIR   = Join-Path $PROJECT_DIR "src-tauri"
+$BINARIES_DIR = Join-Path $TAURI_DIR "binaries"
+$BUNDLE_DIR  = Join-Path $TAURI_DIR "target" "release" "bundle"
 
-# ── Final target (OneDrive desktop) ──
-$TARGET_ROOT = "$env:USERPROFILE\OneDrive\Desktop\Yo\privado\windows"
-$TARGET_DIR = Join-Path $TARGET_ROOT "CATEYE"
+# Tauri v2 target triple for the maintained Windows build.
+$SIDECAR_NAME = "ownex-backend-x86_64-pc-windows-msvc.exe"
+$SIDECAR_PATH = Join-Path $BINARIES_DIR $SIDECAR_NAME
 
-$PADDING = " " * 22
+# Port used only for the sidecar smoke test (never collides with a real run).
+$SMOKE_PORT = 8199
 
 function Log($step, $msg) {
     $ts = Get-Date -Format "HH:mm:ss"
-    Write-Host "[$ts] [$($step.PadLeft(20))] $msg"
+    Write-Host "[$ts] [$($step.PadLeft(10))] $msg"
 }
 
-function Check-Command($name, $installMsg) {
+function Fail($step, $msg) {
+    Write-Host "[$step] FAIL: $msg" -ForegroundColor Red
+    exit 1
+}
+
+function Assert-Tool($name, $installMsg) {
     if (-not (Get-Command $name -ErrorAction SilentlyContinue)) {
-        Log "PRECHECK" "$name — NOT FOUND"
         Write-Host "  >> $installMsg" -ForegroundColor Yellow
-        exit 1
+        Fail "PRECHECK" "$name not found"
     }
-    Log "PRECHECK" "$name — OK"
+    Log "PRECHECK" "$name OK"
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 0 — Prechecks
+# STEP 0 — Preflight
 # ═══════════════════════════════════════════════════════════════════
-Log "BUILD" "CATEYE Windows Builder v$VERSION"
+$versionFile = Join-Path $PROJECT_DIR "VERSION.txt"
+if (-not (Test-Path $versionFile)) { Fail "PRECHECK" "VERSION.txt not found at repo root" }
+$VERSION = (Get-Content $versionFile -Raw).Trim()
+Log "BUILD" "OWNEX Windows Builder — version $VERSION"
 Log "BUILD" "Project: $PROJECT_DIR"
 
-Check-Command "node" "Install from https://nodejs.org (LTS recommended)"
-Check-Command "npm" "Comes with Node.js"
-Check-Command "python" "Install from https://www.python.org/downloads/ (3.10+)"
-Check-Command "pyinstaller" "Run: pip install pyinstaller"
-Check-Command "makensis" "Install NSIS from https://nsis.sourceforge.io/Download"
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    Log "PRECHECK" "Windows PowerShell 5 detected. PowerShell 7+ recommended (pwsh)."
+}
+
+Assert-Tool "node"  "Install from https://nodejs.org (LTS 20+)"
+Assert-Tool "npm"   "Ships with Node.js"
+Assert-Tool "cargo" "Install Rust from https://rustup.rs (needed by Tauri)"
+
+# Windows ships `python`; POSIX uses `python3`. Accept both so the script is
+# runnable from WSL/Git Bash too (useful to validate the flow before the
+# Windows-only steps).
+$pythonCmd = $null
+foreach ($c in @("python", "python3", "py")) {
+    if (Get-Command $c -ErrorAction SilentlyContinue) { $pythonCmd = $c; break }
+}
+if (-not $pythonCmd) {
+    Write-Host "  >> Install from https://www.python.org/downloads/ (3.11+)" -ForegroundColor Yellow
+    Fail "PRECHECK" "no python interpreter found"
+}
+Log "PRECHECK" "python OK ($pythonCmd)"
+
+$pyinstallerCmd = $null
+if (Get-Command "pyinstaller" -ErrorAction SilentlyContinue) {
+    $pyinstallerCmd = "pyinstaller"
+} else {
+    foreach ($p in @(
+        (Join-Path $PROJECT_DIR ".venv\Scripts\pyinstaller.exe"),
+        (Join-Path $PROJECT_DIR ".venv\bin\pyinstaller")
+    )) {
+        if (Test-Path $p) { $pyinstallerCmd = $p; break }
+    }
+}
+if (-not $pyinstallerCmd) {
+    Write-Host "  >> pip install pyinstaller  (or create a .venv with requirements.txt)" -ForegroundColor Yellow
+    Fail "PRECHECK" "pyinstaller not found"
+}
+$PYINSTALLER = $pyinstallerCmd
+Log "PRECHECK" "pyinstaller OK ($PYINSTALLER)"
+
+$rustcVersion = (& rustc --version)
+Log "PRECHECK" "$rustcVersion"
+
+Set-Location $PROJECT_DIR
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 1 — Clean previous builds
+# STEP 1 — Clean previous outputs
 # ═══════════════════════════════════════════════════════════════════
-Log "CLEAN" "Removing dist/ and build/release/ ..."
+Log "CLEAN" "Removing dist\, src-tauri\binaries\ownex-backend-*.exe and bundle\"
 if (Test-Path $DIST_DIR) { Remove-Item -Recurse -Force $DIST_DIR }
-$buildRelease = Join-Path $BUILD_DIR "release"
-if (Test-Path $buildRelease) { Remove-Item -Recurse -Force $buildRelease }
+if (Test-Path $BUNDLE_DIR) { Remove-Item -Recurse -Force $BUNDLE_DIR }
+if (Test-Path $BINARIES_DIR) {
+    Get-ChildItem $BINARIES_DIR -Filter "ownex-backend-*.exe" -ErrorAction SilentlyContinue |
+        Remove-Item -Force
+}
 Log "CLEAN" "OK"
 
 # ═══════════════════════════════════════════════════════════════════
 # STEP 2 — Frontend build
 # ═══════════════════════════════════════════════════════════════════
-Log "FRONTEND" "Building frontend..."
+Log "FRONTEND" "Installing dependencies (root workspace)..."
+Set-Location $PROJECT_DIR
+npm ci --no-audit --no-fund
+if ($LASTEXITCODE -ne 0) { Fail "FRONTEND" "npm ci failed at repo root" }
 
 Set-Location $FRONTEND_DIR
-Log "FRONTEND" "npm ci..."
-npm ci --silent
-if ($LASTEXITCODE -ne 0) { Log "FRONTEND" "FAILED (npm ci)"; exit 1 }
-
 Log "FRONTEND" "npm run build..."
 npm run build
-if ($LASTEXITCODE -ne 0) { Log "FRONTEND" "FAILED (npm run build)"; exit 1 }
+if ($LASTEXITCODE -ne 0) { Fail "FRONTEND" "npm run build failed" }
 
 $frontendDist = Join-Path $FRONTEND_DIR "dist"
-$htmlFiles = Get-ChildItem -Path $frontendDist -Filter "*.html" -Recurse
-if (-not $htmlFiles) { Log "FRONTEND" "FAILED — no index.html"; exit 1 }
-
-$frontendSize = (Get-ChildItem -Path $frontendDist -Recurse | Measure-Object -Property Length -Sum).Sum
-$frontendCount = (Get-ChildItem -Path $frontendDist -Recurse).Count
-Log "FRONTEND" "OK — $([math]::Round($frontendSize/1KB)) KB in $frontendCount files"
+if (-not (Test-Path (Join-Path $frontendDist "index.html"))) {
+    Fail "FRONTEND" "dist\index.html missing — frontend build produced nothing usable"
+}
+$frontendSize = (Get-ChildItem $frontendDist -Recurse | Measure-Object -Property Length -Sum).Sum
+Log "FRONTEND" "OK — $([math]::Round($frontendSize/1KB)) KB in $frontendDist"
 
 Set-Location $PROJECT_DIR
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 3 — PyInstaller
+# STEP 3 — PyInstaller backend (ONEFILE)
 # ═══════════════════════════════════════════════════════════════════
-Log "PYINSTALLER" "Building CATEYE.exe (pyinstaller CATEYE.spec -y)..."
-pyinstaller CATEYE.spec -y
-if ($LASTEXITCODE -ne 0) { Log "PYINSTALLER" "FAILED"; exit 1 }
+Log "PYINSTALLER" "Building backend sidecar (ONEFILE)..."
+& $PYINSTALLER OWNEX-Backend.spec --clean --noconfirm
+if ($LASTEXITCODE -ne 0) { Fail "PYINSTALLER" "pyinstaller failed" }
 
-$exePath = Join-Path $DIST_DIR "CATEYE" "CATEYE.exe"
-if (-not (Test-Path $exePath)) { Log "PYINSTALLER" "FAILED — $exePath not found"; exit 1 }
-
+$exePath = Join-Path $DIST_DIR "ownex-backend.exe"
+if (-not (Test-Path $exePath)) { Fail "PYINSTALLER" "expected $exePath" }
 $exeSize = (Get-Item $exePath).Length
-Log "PYINSTALLER" "OK — $([math]::Round($exeSize/1MB, 1)) MB"
+if ($exeSize -lt 50MB) { Fail "PYINSTALLER" "sidecar suspiciously small ($([math]::Round($exeSize/1MB,2)) MB)" }
+Log "PYINSTALLER" "OK — $([math]::Round($exeSize/1MB,1)) MB"
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 4 — NSIS Installer
+# STEP 4 — Prepare Tauri sidecar (triple suffix REQUIRED)
 # ═══════════════════════════════════════════════════════════════════
-Log "INSTALLER" "Building NSIS installer..."
-$nsiPath = Join-Path $PROJECT_DIR "installer" "cateye.nsi"
+Log "SIDECAR" "Copying to $SIDECAR_NAME"
+if (-not (Test-Path $BINARIES_DIR)) { New-Item -ItemType Directory -Path $BINARIES_DIR -Force | Out-Null }
+Copy-Item $exePath $SIDECAR_PATH -Force
+if (-not (Test-Path $SIDECAR_PATH)) { Fail "SIDECAR" "copy failed — Tauri would fail with 'resource path ... doesn't exist'" }
+Log "SIDECAR" "OK — $SIDECAR_PATH"
 
-Set-Location (Join-Path $PROJECT_DIR "installer")
-makensis "/DPRODUCT_VERSION=$VERSION" "cateye.nsi"
-if ($LASTEXITCODE -ne 0) { Log "INSTALLER" "FAILED"; exit 1 }
+# ═══════════════════════════════════════════════════════════════════
+# STEP 5 — Sidecar smoke test (REAL probe, no mocks)
+# ═══════════════════════════════════════════════════════════════════
+Log "SMOKE" "Starting sidecar on port $SMOKE_PORT and probing /api/health ..."
+$errFile = Join-Path $env:TEMP "ownex_sidecar_err.txt"
+$outFile = Join-Path $env:TEMP "ownex_sidecar_out.txt"
+$proc = Start-Process $exePath -ArgumentList "--port", "$SMOKE_PORT", "--log-level", "INFO" `
+    -PassThru -RedirectStandardError $errFile -RedirectStandardOutput $outFile
 
-$installerPath = Join-Path $DIST_DIR "CATEYEInstaller.exe"
-if (-not (Test-Path $installerPath)) {
-    Log "INSTALLER" "FAILED — CATEYEInstaller.exe not found in dist/"
-    exit 1
+$healthy = $false
+for ($i = 0; $i -lt 90; $i++) {
+    Start-Sleep -Seconds 2
+    if ($proc.HasExited) { break }
+    try {
+        $resp = Invoke-RestMethod "http://127.0.0.1:$SMOKE_PORT/api/health" -TimeoutSec 5
+        $healthy = $true
+        break
+    } catch { }
 }
-$installerSize = (Get-Item $installerPath).Length
-Log "INSTALLER" "OK — $([math]::Round($installerSize/1MB, 1)) MB"
 
+if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+if (-not $healthy) {
+    Write-Host "=== sidecar stderr ===" -ForegroundColor Red
+    Get-Content $errFile -Tail 60 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
+    Write-Host "=== sidecar stdout ===" -ForegroundColor Red
+    Get-Content $outFile -Tail 60 -ErrorAction SilentlyContinue | ForEach-Object { $_ }
+    Fail "SMOKE" "sidecar did not answer /api/health on port $SMOKE_PORT"
+}
+Log "SMOKE" "OK — sidecar healthy (status=$($resp.status), version=$($resp.version))"
+
+# ═══════════════════════════════════════════════════════════════════
+# STEP 6 — WebView2 (Tauri needs it at runtime)
+# ═══════════════════════════════════════════════════════════════════
+$webview2Key = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+if (Test-Path $webview2Key) {
+    $wv = (Get-ItemProperty $webview2Key).pv
+    Log "WEBVIEW2" "installed (version $wv)"
+} else {
+    Log "WEBVIEW2" "NOT detected — the installer will fetch the bootstrapper (needs internet)"
+}
+
+# ═══════════════════════════════════════════════════════════════════
+# STEP 7 — Tauri build → MSI
+# ═══════════════════════════════════════════════════════════════════
+Log "TAURI" "Building desktop bundle (this takes several minutes)..."
 Set-Location $PROJECT_DIR
+$env:RUST_BACKTRACE = "1"
+npx tauri build --verbose
+if ($LASTEXITCODE -ne 0) { Fail "TAURI" "npx tauri build failed" }
 
 # ═══════════════════════════════════════════════════════════════════
-# STEP 5 — Prepare release output
+# STEP 8 — Verify artifacts
 # ═══════════════════════════════════════════════════════════════════
-$releaseDir = Join-Path $BUILD_DIR "release"
-New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+Log "VERIFY" "Checking bundle output..."
+$msi = Get-ChildItem (Join-Path $BUNDLE_DIR "msi") -Filter "*.msi" -ErrorAction SilentlyContinue
+if (-not $msi) { Fail "VERIFY" "no .msi found in $BUNDLE_DIR\msi" }
 
-Log "RELEASE" "Copying PyInstaller build..."
-$cateyeDist = Join-Path $DIST_DIR "CATEYE"
-Copy-Item -Recurse -Path $cateyeDist -Destination $releaseDir
-
-Log "RELEASE" "Copying installer..."
-Copy-Item -Path $installerPath -Destination $releaseDir
-
-# Documentation
-Log "DOCS" "Generating documentation..."
-$readme = Join-Path $releaseDir "README.txt"
-@"
-========================================
-         CATEYE v$VERSION
-   Automated Security Investigation OS
-========================================
-
-  Dashboard:  http://127.0.0.1:8000
-
---  Getting Started  --
-
-  1. Run CATEYE\CATEYE.exe --tray
-  2. Open http://127.0.0.1:8000 in your browser
-  3. Right-click tray icon for: Dashboard, Stop, View Logs
-
---  System Requirements  --
-
-  * Windows 11 64-bit
-  * 4 GB RAM (8 GB recommended)
-  * No Python or Node.js required
-
---  v$VERSION - $(Get-Date -Format 'yyyy-MM-dd')  --
-"@ | Out-File -FilePath $readme -Encoding utf8
-
-$changelog = Join-Path $releaseDir "CHANGELOG.md"
-@"
-# Changelog
-
-## v$VERSION ($(Get-Date -Format 'yyyy-MM-dd'))
-
-### Release
-- CATEYE v$VERSION Stable
-- Build pipeline reproducible
-- NSIS installer with Windows 11 support
-- PyInstaller single-directory executable
-- Watchdog with auto-recovery
-- Multi-agent architecture (exploit, research, financial, strategy, validator, coordinator)
-- 40+ API routers for security investigation
-- Vue 3 + TypeScript frontend
-- Service mode (optional, requires pywin32)
-- Auto-update framework with safe rollback
-"@ | Out-File -FilePath $changelog -Encoding utf8
-
-$versionTxt = Join-Path $releaseDir "VERSION.txt"
-"$VERSION`n" | Out-File -FilePath $versionTxt -Encoding utf8
-
-$licenseFile = Join-Path $releaseDir "LICENSE.txt"
-@"
-CATEYE v$VERSION
-Copyright (c) $(Get-Date -Format 'yyyy') CATEYE Labs
-
-All rights reserved.
-
-This software is protected by intellectual property laws.
-Unauthorized distribution, modification, or use is prohibited.
-
-For personal use only.
-Non-transferable license.
-"@ | Out-File -FilePath $licenseFile -Encoding utf8
-
-# ═══════════════════════════════════════════════════════════════════
-# STEP 6 — Copy to final destination
-# ═══════════════════════════════════════════════════════════════════
-Log "DEPLOY" "Copying to: $TARGET_DIR"
-if (Test-Path $TARGET_DIR) {
-    Remove-Item -Recurse -Force $TARGET_DIR
-}
-New-Item -ItemType Directory -Force -Path $TARGET_DIR | Out-Null
-
-# Copy CATEYE/ directory contents (the PyInstaller output)
-$releaseCateye = Join-Path $releaseDir "CATEYE"
-Copy-Item -Recurse -Path $releaseCateye -Destination $TARGET_DIR
-
-# Copy supporting files
-foreach ($f in @("README.txt", "CHANGELOG.md", "VERSION.txt", "LICENSE.txt", "CATEYEInstaller.exe")) {
-    $src = Join-Path $releaseDir $f
-    if (Test-Path $src) { Copy-Item -Path $src -Destination $TARGET_DIR }
+foreach ($f in $msi) {
+    $sha = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
+    "$sha  $($f.Name)" | Out-File -FilePath "$($f.FullName).sha256" -Encoding ascii
+    Log "VERIFY" "[OK] $($f.Name) — $([math]::Round($f.Length/1MB,1)) MB"
+    Log "VERIFY" "     sha256: $sha"
 }
 
-# Copy install.bat (from scripts/install_portable.bat → target install.bat)
-$installBatSrc = Join-Path $PROJECT_DIR "scripts" "install_portable.bat"
-if (Test-Path $installBatSrc) {
-    Copy-Item -Path $installBatSrc -Destination (Join-Path $TARGET_DIR "install.bat")
-}
-
-# Copy run.bat
-$runBatSrc = Join-Path $PROJECT_DIR "scripts" "run_portable.bat"
-if (Test-Path $runBatSrc) {
-    Copy-Item -Path $runBatSrc -Destination (Join-Path $TARGET_DIR "run.bat")
-}
-
-Log "DEPLOY" "OK — files deployed to $TARGET_DIR"
-
-# ═══════════════════════════════════════════════════════════════════
-# STEP 7 — Verify
-# ═══════════════════════════════════════════════════════════════════
-Log "VERIFY" "Verifying deployment..."
-
-$checks = @(
-    @{Path = "CATEYE.exe"; Label = "Binary"}
-    @{Path = "CATEYEInstaller.exe"; Label = "Installer"}
-    @{Path = "README.txt"; Label = "README"}
-    @{Path = "CHANGELOG.md"; Label = "Changelog"}
-    @{Path = "VERSION.txt"; Label = "Version"}
-    @{Path = "LICENSE.txt"; Label = "License"}
-    @{Path = "install.bat"; Label = "Install script"}
-    @{Path = "run.bat"; Label = "Run script"}
-)
-
-$allOk = $true
-foreach ($check in $checks) {
-    $fullPath = Join-Path $TARGET_DIR $check.Path
-    if (Test-Path $fullPath) {
-        $size = (Get-Item $fullPath).Length
-        $sizeStr = if ($size -gt 1MB) { "$([math]::Round($size/1MB, 1)) MB" } else { "$([math]::Round($size/1KB)) KB" }
-        Log "VERIFY" "  [OK] $($check.Path) ($sizeStr)"
-    } else {
-        Log "VERIFY" "  [MISSING] $($check.Path)"
-        $allOk = $false
-    }
-}
-
-# Check frontend dist inside PyInstaller
-$internalFrontend = Join-Path $TARGET_DIR "_internal" "frontend_dist" "index.html"
-if (Test-Path $internalFrontend) {
-    Log "VERIFY" "  [OK] _internal/frontend_dist/index.html"
-} else {
-    $directFrontend = Join-Path $TARGET_DIR "frontend_dist" "index.html"
-    if (Test-Path $directFrontend) {
-        Log "VERIFY" "  [OK] frontend_dist/index.html"
-    } else {
-        Log "VERIFY" "  [WARN] Frontend assets not found"
-    }
-}
-
-$totalSize = (Get-ChildItem -Path $TARGET_DIR -Recurse | Measure-Object -Property Length -Sum).Sum
-Log "VERIFY" "Total size: $([math]::Round($totalSize/1MB, 1)) MB in $(@(Get-ChildItem -Path $TARGET_DIR -Recurse).Count) files"
-
-if (-not $allOk) {
-    Log "VERIFY" "Some files are missing — check output above"
-    exit 1
-}
-
-# ═══════════════════════════════════════════════════════════════════
-# STEP 8 — Run install.bat
-# ═══════════════════════════════════════════════════════════════════
-Log "INSTALL" "Running install.bat..."
-
-$installBat = Join-Path $TARGET_DIR "install.bat"
-if (Test-Path $installBat) {
-    Set-Location $TARGET_DIR
-    & cmd /c "install.bat"
-    if ($LASTEXITCODE -eq 0) {
-        Log "INSTALL" "OK — CATEYE quedo configurado correctamente."
-    } else {
-        Log "INSTALL" "WARN — install.bat returned exit code $LASTEXITCODE"
-    }
-    Set-Location $PROJECT_DIR
-} else {
-    Log "INSTALL" "SKIP — install.bat not found"
-}
-
-# ═══════════════════════════════════════════════════════════════════
-# DONE
-# ═══════════════════════════════════════════════════════════════════
-Log "BUILD" ("─" * 50)
-Log "BUILD" "BUILD COMPLETE"
-Log "BUILD" "  Output:  $releaseDir"
-Log "BUILD" "  Target:  $TARGET_DIR"
-Log "BUILD" "  To launch: run.bat or CATEYE.exe --tray"
-Log "BUILD" "  Dashboard: http://127.0.0.1:8000"
+Log "BUILD" ("─" * 56)
+Log "BUILD" "BUILD COMPLETE — version $VERSION"
+Log "BUILD" "Installer: $($msi[0].FullName)"
+Log "BUILD" "Install it, then launch 'OWNEX Alpha' from the Start menu."
+Log "BUILD" "Backend sidecar + logs: %LOCALAPPDATA%\OWNEX"
 Log "BUILD" "DONE"

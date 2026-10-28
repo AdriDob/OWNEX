@@ -1,0 +1,1928 @@
+.venv/bin/python -m pytest --timeout=60 -q --ignore=tests/test_security.py --ignore=tests/test_vision_gateway.py --ignore=tests/test_scheduler.py tests/
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/adriel/projects/Rastro
+configfile: pyproject.toml
+plugins: cov-7.1.0, anyio-4.14.2, xdist-3.8.0, timeout-2.4.0, asyncio-1.4.0
+timeout: 60.0s
+timeout method: signal
+timeout func_only: False
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 4456 items
+
+tests/integration/test_worker_core_full_cycle_e2e.py .........F........  [  0%]
+tests/integration/test_worker_crash_resume.py ..................F...     [  0%]
+tests/test_acceptance_feedback.py ...........                            [  1%]
+tests/test_acceptance_intelligence.py ......................             [  1%]
+tests/test_acceptance_optimizer.py ..................                    [  2%]
+tests/test_acceptance_scraper.py ............                            [  2%]
+tests/test_adapter_barrier_flags.py ...                                  [  2%]
+tests/test_adaptive_gate.py ................................             [  3%]
+tests/test_agenda.py ............                                        [  3%]
+tests/test_agents.py .....................................               [  4%]
+tests/test_ai_bounty.py ..............................                   [  4%]
+tests/test_ai_providers_integration.py ..................                [  5%]
+tests/test_ai_resilience.py ............................................ [  6%]
+..                                                                       [  6%]
+tests/test_ai_router.py ..............................................   [  7%]
+tests/test_ai_security.py .....ssssss                                    [  7%]
+tests/test_algora_executor.py ...............                            [  7%]
+tests/test_amass.py .....                                                [  8%]
+tests/test_api_endpoints.py ..............................               [  8%]
+tests/test_api_pure_backend.py ...                                       [  8%]
+tests/test_application_assistant.py ................                     [  9%]
+tests/test_approval_gate.py ........................                     [  9%]
+tests/test_arca_connector.py ...............                             [ 10%]
+tests/test_artifact_store.py ........                                    [ 10%]
+tests/test_artifacts.py .........                                        [ 10%]
+tests/test_assistance_mode.py ........                                   [ 10%]
+tests/test_atlas_composition.py .........                                [ 10%]
+tests/test_audit_contest_adapters.py ................                    [ 11%]
+tests/test_auth_cookie.py ..........                                     [ 11%]
+tests/test_auth_users.py ...........                                     [ 11%]
+tests/test_auto_submit.py .......                                        [ 11%]
+tests/test_availability.py ................                              [ 12%]
+tests/test_availability_engine.py ........                               [ 12%]
+tests/test_backup.py ...............                                     [ 12%]
+tests/test_barrier_profile.py .....                                      [ 12%]
+tests/test_bounty_coordinator.py ........                                [ 12%]
+tests/test_bounty_pipeline.py ......                                     [ 13%]
+tests/test_bounty_scraper.py .........................                   [ 13%]
+tests/test_browser_agent.py .............                                [ 13%]
+tests/test_calibration.py .........                                      [ 14%]
+tests/test_capability_expansion.py .......................               [ 14%]
+tests/test_career_api.py .......                                         [ 14%]
+tests/test_career_engine.py ..............                               [ 15%]
+tests/test_cashflow.py ......                                            [ 15%]
+tests/test_cashflow_radar.py .............                               [ 15%]
+tests/test_challenger.py .......................                         [ 16%]
+tests/test_chaos_workflows.py ..............                             [ 16%]
+tests/test_code_generator_llm.py ..........                              [ 16%]
+tests/test_coder_agent.py ......................................         [ 17%]
+tests/test_coingecko.py ........                                         [ 17%]
+tests/test_command_system.py ........................................... [ 18%]
+..                                                                       [ 18%]
+tests/test_computer_use.py ...................................           [ 19%]
+tests/test_computer_use_learning.py .......................              [ 19%]
+tests/test_computer_use_platform.py ..............................       [ 20%]
+tests/test_confidence.py .......                                         [ 20%]
+tests/test_contracts.py ........                                         [ 20%]
+tests/test_contradiction_runner.py ......................                [ 21%]
+tests/test_copilot_agent.py ............................................ [ 22%]
+....................................                                     [ 23%]
+tests/test_copilot_ecosystem.py .............................            [ 23%]
+tests/test_copilot_everywhere.py ...........                             [ 24%]
+tests/test_core_api_routers.py ..........................                [ 24%]
+tests/test_core_auth.py ..........................................       [ 25%]
+tests/test_core_extension.py .........................                   [ 26%]
+tests/test_core_health.py .........................                      [ 26%]
+tests/test_core_secrets.py ...........                                   [ 27%]
+tests/test_cors_tauri.py .........                                       [ 27%]
+tests/test_creative_generator.py .....                                   [ 27%]
+tests/test_credentials_rotation.py ..........................            [ 27%]
+tests/test_credentials_vault.py ...................                      [ 28%]
+tests/test_cross_workflow_memory.py .                                    [ 28%]
+tests/test_crypto.py ............................................        [ 29%]
+tests/test_csrf_middleware.py .................                          [ 29%]
+tests/test_daily_brief.py .E.E.E.E.E.E.E.EFE                             [ 29%]
+tests/test_daily_companion.py .......                                    [ 30%]
+tests/test_daily_mode.py ...                                             [ 30%]
+tests/test_data_dir_resolution.py ....                                   [ 30%]
+tests/test_db_user_data_dir.py .......                                   [ 30%]
+tests/test_decision_journal.py .............                             [ 30%]
+tests/test_deep_study.py ...................                             [ 31%]
+tests/test_defi_tracker.py ........................                      [ 31%]
+tests/test_desktop_native.py ........................................... [ 32%]
+...........                                                              [ 32%]
+tests/test_desktop_release.py .......ssssssssss............x............ [ 33%]
+.......................................x........................         [ 35%]
+tests/test_dev_bounty_pipeline.py ........                               [ 35%]
+tests/test_devin_provider.py ............                                [ 35%]
+tests/test_direct_work_api.py .......................................... [ 36%]
+..                                                                       [ 36%]
+tests/test_direct_work_engine.py ....................................... [ 37%]
+                                                                         [ 37%]
+tests/test_duplicate_detector.py .........                               [ 37%]
+tests/test_dynamic_weights.py .....                                      [ 37%]
+tests/test_e2e_copilot.py ..FFFFF.........................F              [ 38%]
+tests/test_e2e_flow.py ............                                      [ 38%]
+tests/test_e2e_security_pipeline.py ........                             [ 39%]
+tests/test_economics_ssot.py ......                                      [ 39%]
+tests/test_error_handling.py .......                                     [ 39%]
+tests/test_event_foundation.py ................................          [ 40%]
+tests/test_evidence_composer.py .....................................    [ 40%]
+tests/test_evidence_graph.py ............................                [ 41%]
+tests/test_evolution_analyze.py ............                             [ 41%]
+tests/test_evolution_engine.py ...................                       [ 42%]
+tests/test_execution_compiler.py ...................................     [ 43%]
+tests/test_execution_mirror.py ........                                  [ 43%]
+tests/test_execution_planner.py .......                                  [ 43%]
+tests/test_execution_platform.py ....................................... [ 44%]
+........                                                                 [ 44%]
+tests/test_execution_queue.py ......                                     [ 44%]
+tests/test_execution_queue_store.py ...                                  [ 44%]
+tests/test_execution_runtime.py ........................................ [ 45%]
+.......................................................................  [ 47%]
+tests/test_executors_base.py ....................                        [ 47%]
+tests/test_failure_injection.py ...................                      [ 47%]
+tests/test_fallbacks.py .......                                          [ 48%]
+tests/test_feedback_pipeline.py ..............................           [ 48%]
+tests/test_finance.py .................                                  [ 49%]
+tests/test_financial_hub.py EEEEEEE..EEEEE..EEEEEEEEEEEEEEEE.EEEE.EEEEE. [ 50%]
+EE.E.............                                                        [ 50%]
+tests/test_financial_intelligence.py ................................... [ 51%]
+..                                                                       [ 51%]
+tests/test_financial_scheduler_persist.py ......                         [ 51%]
+tests/test_finding_market.py ..........                                  [ 51%]
+tests/test_fiverr_decision.py ...............                            [ 52%]
+tests/test_freelancer_executor.py ................                       [ 52%]
+tests/test_frontend_theme_consistency.py ....                            [ 52%]
+tests/test_github_commenter.py ........                                  [ 52%]
+tests/test_hardening_db_guards.py .....                                  [ 52%]
+tests/test_hermes.py ...............                                     [ 53%]
+tests/test_hermes_events.py ..........                                   [ 53%]
+tests/test_hermes_permissions.py ................                        [ 53%]
+tests/test_hermes_security.py ............................               [ 54%]
+tests/test_htroi.py .......                                              [ 54%]
+tests/test_http_probe.py ............................................... [ 55%]
+.........                                                                [ 55%]
+tests/test_hunter_bridge.py .....................                        [ 56%]
+tests/test_income_chain_e2e.py ...                                       [ 56%]
+tests/test_income_goal.py ................                               [ 56%]
+tests/test_income_plan.py ................                               [ 57%]
+tests/test_income_target.py ..............                               [ 57%]
+tests/test_intel.py .....                                                [ 57%]
+tests/test_intelligence_loop.py ..............                           [ 57%]
+tests/test_investment.py ............................................... [ 58%]
+................................................................         [ 60%]
+tests/test_investment_wiring.py ..................                       [ 60%]
+tests/test_issuehunt_executor.py .............                           [ 60%]
+tests/test_job_search.py ...........                                     [ 61%]
+tests/test_knowledge_bridge.py .........................                 [ 61%]
+tests/test_knowledge_graph.py ..................................         [ 62%]
+tests/test_learning.py ...................                               [ 62%]
+tests/test_learning_outcome_loop.py ......                               [ 63%]
+tests/test_maintenance.py .........                                      [ 63%]
+tests/test_market_evolution.py .....................                     [ 63%]
+tests/test_max_daily_income.py .................                         [ 64%]
+tests/test_max_income_model.py ............                              [ 64%]
+tests/test_maximum_potential.py ........................                 [ 64%]
+tests/test_memory_system.py ....FFF.FFF.                                 [ 65%]
+tests/test_mercenary_filter.py .............                             [ 65%]
+tests/test_micro_integrations.py ..................                      [ 65%]
+tests/test_mindrift_executor.py ...........                              [ 66%]
+tests/test_mission.py ....................                               [ 66%]
+tests/test_mobile_copilot.py ....                                        [ 66%]
+tests/test_naabu.py ......                                               [ 66%]
+tests/test_new_integrations.py ...........................F...........FF [ 67%]
+F.F.                                                                     [ 67%]
+tests/test_no_secrets_committed.py ..                                    [ 67%]
+tests/test_notification_bridge.py .....                                  [ 68%]
+tests/test_notification_engine.py ...................................... [ 68%]
+..........                                                               [ 69%]
+tests/test_oar.py ............                                           [ 69%]
+tests/test_oar_api.py .......                                            [ 69%]
+tests/test_offensive.py ................................................ [ 70%]
+.....................................................                    [ 71%]
+tests/test_offensive_web3.py .......................                     [ 72%]
+tests/test_opire_executor.py .................                           [ 72%]
+tests/test_opportunity_core.py .......................                   [ 73%]
+tests/test_opportunity_cycle.py ....                                     [ 73%]
+tests/test_opportunity_engine.py .                                       [ 73%]
+tests/test_opportunity_engine_comprehensive.py ......................... [ 73%]
+....                                                                     [ 73%]
+tests/test_opportunity_feedback.py FF....F...                            [ 74%]
+tests/test_opportunity_genome.py ...................                     [ 74%]
+tests/test_opportunity_genome_mappers.py ....                            [ 74%]
+tests/test_opportunity_genome_repository.py ...                          [ 74%]
+tests/test_opportunity_genome_sql_repository.py ..                       [ 74%]
+tests/test_opportunity_stage.py .........                                [ 75%]
+tests/test_orion_core.py ...........FF....                               [ 75%]
+tests/test_outlier_executor.py ...............                           [ 75%]
+tests/test_outlook_connector.py ............                             [ 76%]
+tests/test_outlook_sync.py FFF....FFF...F                                [ 76%]
+tests/test_ownex_e2e.py ...........                                      [ 76%]
+tests/test_payment_compat.py ..........................                  [ 77%]
+tests/test_payment_pipeline.py ....................                      [ 77%]
+tests/test_persistence_resume.py .                                       [ 77%]
+tests/test_pipeline_e2e.py .......                                       [ 77%]
+tests/test_platform_workers.py ..s........                               [ 78%]
+tests/test_polymarket.py ........................                        [ 78%]
+tests/test_predictive_prioritizer.py .......                             [ 78%]
+tests/test_profile_kit.py ...............                                [ 79%]
+tests/test_provider_catalog_sync.py .                                    [ 79%]
+tests/test_qa_cycle_api.py .......                                       [ 79%]
+tests/test_quality_gate.py ....................                          [ 79%]
+tests/test_quality_gate_delivery.py ..                                   [ 79%]
+tests/test_quick_capture.py .........                                    [ 79%]
+tests/test_rate_limit_middleware.py ............                         [ 80%]
+tests/test_recon_enhancement.py .......................                  [ 80%]
+tests/test_recon_router.py .....................................         [ 81%]
+tests/test_report_critic.py ...........                                  [ 81%]
+tests/test_report_optimizer.py .......................                   [ 82%]
+tests/test_report_templates.py ...........                               [ 82%]
+tests/test_revenue_engine.py ...F........                                [ 82%]
+tests/test_revenue_ledger.py ................                            [ 83%]
+tests/test_revenue_pipeline.py ...............................           [ 83%]
+tests/test_router_mount_completeness.py ...                              [ 83%]
+tests/test_scheduler_adaptive.py ....................................    [ 84%]
+tests/test_scheduler_hooks.py ...                                        [ 84%]
+tests/test_scheduler_jobs.py ........................................... [ 85%]
+........                                                                 [ 85%]
+tests/test_scope_enforcement.py ..................                       [ 86%]
+tests/test_scoring.py .......s                                           [ 86%]
+tests/test_security_cycle.py ....                                        [ 86%]
+tests/test_self_healer.py F...                                           [ 86%]
+tests/test_self_improvement.py .......FFF.F......EEEEFFFFFFFFFFFF        [ 87%]
+tests/test_setup.py ..............                                       [ 87%]
+tests/test_setup_checklist.py ....................                       [ 88%]
+tests/test_shodan_uncover.py .............                               [ 88%]
+tests/test_stability.py ...                                              [ 88%]
+tests/test_state_convergence.py ......                                   [ 88%]
+tests/test_success_engine.py ..........................                  [ 89%]
+tests/test_takenos.py ............                                       [ 89%]
+tests/test_target_intelligence.py ......................                 [ 90%]
+tests/test_tauri_packaging.py .........                                  [ 90%]
+tests/test_tax_automation.py .........                                   [ 90%]
+tests/test_taxonomy_boundaries.py ................                       [ 90%]
+tests/test_team_org.py ............                                      [ 91%]
+tests/test_threat_intel.py .........                                     [ 91%]
+tests/test_tool_ecosystem.py .......                                     [ 91%]
+tests/test_tools.py .........                                            [ 91%]
+tests/test_tools_new.py ........................                         [ 92%]
+tests/test_trading_intelligence.py ..................................... [ 93%]
+...                                                                      [ 93%]
+tests/test_training_pipeline.py ......                                   [ 93%]
+tests/test_unified_memory.py .......................                     [ 93%]
+tests/test_updates.py ...........                                        [ 94%]
+tests/test_validation_bridge.py ..................                       [ 94%]
+tests/test_validation_engine.py ...................................      [ 95%]
+tests/test_verdict_learner.py ..............                             [ 95%]
+tests/test_version_backup.py ........................                    [ 96%]
+tests/test_vision.py .....                                               [ 96%]
+tests/test_voice_assistant.py .........                                  [ 96%]
+tests/test_voice_department.py .................................         [ 97%]
+tests/test_voice_engine.py ............                                  [ 97%]
+tests/test_web3_direct_work.py ............                              [ 97%]
+tests/test_widget_system.py ....                                         [ 97%]
+tests/test_work_policy.py ........                                       [ 97%]
+tests/test_work_taxonomy.py ...................                          [ 98%]
+tests/test_workbank.py ..................                                [ 98%]
+tests/test_workbank_payout_integration.py .....                          [ 98%]
+tests/test_worker_checkpoints.py ..............                          [ 99%]
+tests/test_worker_core.py ......                                         [ 99%]
+tests/test_worker_core_e2e_golden.py FF..                                [ 99%]
+tests/test_worker_recovery.py ......                                     [ 99%]
+tests/test_workercore_evaluate_select.py .                               [ 99%]
+tests/test_workercore_genome_integration.py .                            [ 99%]
+tests/test_workflow_engine.py ......                                     [ 99%]
+tests/test_zero_experience_model.py ............                         [100%]
+
+==================================== ERRORS ====================================
+________ ERROR at teardown of TestDailyBriefEngine.test_generate_brief _________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+_______ ERROR at teardown of TestDailyBriefEngine.test_critical_actions ________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+__________ ERROR at teardown of TestDailyBriefEngine.test_high_value ___________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+________ ERROR at teardown of TestDailyBriefEngine.test_autonomous_work ________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+_________ ERROR at teardown of TestDailyBriefEngine.test_waiting_items _________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+________ ERROR at teardown of TestDailyBriefEngine.test_completed_work _________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+________ ERROR at teardown of TestDailyBriefEngine.test_revenue_summary ________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+____________ ERROR at teardown of TestDailyBriefEngine.test_alerts _____________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+__________ ERROR at teardown of TestDailyBriefEngine.test_save_brief ___________
+tests/test_daily_brief.py:36: in clean_brief
+    TestBase.metadata.drop_all(bind=engine)
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/schema.py:5958: in drop_all
+    bind._run_ddl_visitor(
+    ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'DailyBriefEngine' object has no attribute '_run_ddl_visitor'
+___________ ERROR at setup of TestPayoutAdvisor.test_list_platforms ____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestPayoutAdvisor.test_get_platform_found __________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_______ ERROR at setup of TestPayoutAdvisor.test_get_platform_not_found ________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_____________ ERROR at setup of TestPayoutAdvisor.test_best_routes _____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___________ ERROR at setup of TestPayoutAdvisor.test_simulate_payout ___________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___ ERROR at setup of TestPayoutAdvisor.test_simulate_payout_invalid_amount ____
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_____________ ERROR at setup of TestKYCManager.test_list_kyc_empty _____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___________ ERROR at setup of TestKYCManager.test_get_kyc_not_found ____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_______________ ERROR at setup of TestKYCManager.test_upsert_kyc _______________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+______________ ERROR at setup of TestKYCManager.test_kyc_summary _______________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestKYCManager.test_upsert_invalid_status __________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestRouteOptimizer.test_list_routes_empty __________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+__________ ERROR at setup of TestRouteOptimizer.test_get_route_found ___________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestRouteOptimizer.test_get_route_not_found _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___________ ERROR at setup of TestRouteOptimizer.test_optimize_route ___________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+______ ERROR at setup of TestRouteOptimizer.test_optimize_invalid_amount _______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___________ ERROR at setup of TestFeesCalculator.test_estimate_fees ____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+______ ERROR at setup of TestFeesCalculator.test_estimate_invalid_amount _______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+__________ ERROR at setup of TestFeesCalculator.test_compare_methods ___________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+__________ ERROR at setup of TestPlatformRegistry.test_list_platforms __________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestPlatformRegistry.test_get_platform_found ________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+______ ERROR at setup of TestPlatformRegistry.test_get_platform_not_found ______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestPlatformRegistry.test_compare_platforms _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestPlatformRegistry.test_argentina_ranked _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_____ ERROR at setup of TestVerificationTracker.test_progress_no_defaults ______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+____ ERROR at setup of TestVerificationTracker.test_progress_with_defaults _____
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_____ ERROR at setup of TestVerificationTracker.test_pending_verifications _____
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+______ ERROR at setup of TestDocumentsChecklist.test_list_documents_empty ______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_______ ERROR at setup of TestDocumentsChecklist.test_get_document_found _______
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_____ ERROR at setup of TestDocumentsChecklist.test_get_document_not_found _____
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestDocumentsChecklist.test_mark_completed _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestDocumentsChecklist.test_mark_incomplete _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_______ ERROR at setup of TestEmergencyRoutes.test_list_emergency_empty ________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___ ERROR at setup of TestEmergencyRoutes.test_list_emergency_with_defaults ____
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestEmergencyRoutes.test_fallback_not_found _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+________ ERROR at setup of TestEmergencyRoutes.test_quickest_not_found _________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+___________ ERROR at setup of TestTaxNotes.test_list_tax_notes_empty ___________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+____________ ERROR at setup of TestTaxNotes.test_get_tax_note_found ____________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+__________ ERROR at setup of TestTaxNotes.test_get_tax_note_not_found __________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_______________ ERROR at setup of TestTaxNotes.test_for_platform _______________
+tests/test_financial_hub.py:140: in client
+    from api.routers.financial_hub import router
+E   ModuleNotFoundError: No module named 'api.routers.financial_hub'
+_________ ERROR at setup of TestEngineEndToEnd.test_run_once_completes _________
+tests/test_self_improvement.py:37: in engine
+    return SelfImprovementEngine(config=config, solver=DeterministicSolver())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/engine.py:54: in __init__
+    self.harness = Harness(self.config)
+                   ^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+_________ ERROR at setup of TestEngineEndToEnd.test_run_batch_multiple _________
+tests/test_self_improvement.py:37: in engine
+    return SelfImprovementEngine(config=config, solver=DeterministicSolver())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/engine.py:54: in __init__
+    self.harness = Harness(self.config)
+                   ^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+_____ ERROR at setup of TestEngineEndToEnd.test_status_returns_all_fields ______
+tests/test_self_improvement.py:37: in engine
+    return SelfImprovementEngine(config=config, solver=DeterministicSolver())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/engine.py:54: in __init__
+    self.harness = Harness(self.config)
+                   ^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+____ ERROR at setup of TestEngineEndToEnd.test_recommendations_returns_list ____
+tests/test_self_improvement.py:37: in engine
+    return SelfImprovementEngine(config=config, solver=DeterministicSolver())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/engine.py:54: in __init__
+    self.harness = Harness(self.config)
+                   ^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+=================================== FAILURES ===================================
+______________ TestWorkerCoreFullCycleE2E.test_resume_capability _______________
+tests/integration/test_worker_core_full_cycle_e2e.py:339: in test_resume_capability
+    assert any(wid == work_id for wid, _ in resumed)
+E   assert False
+E    +  where False = any(<generator object TestWorkerCoreFullCycleE2E.test_resume_capability.<locals>.<genexpr> at 0x70ef13bd5460>)
+_____ TestAutonomyEnforcement.test_none_autonomy_blocks_sensitive_actions ______
+tests/integration/test_worker_crash_resume.py:303: in test_none_autonomy_blocks_sensitive_actions
+    assert wc.requires_human_approval("discover") is False
+E   AssertionError: assert True is False
+E    +  where True = requires_human_approval('discover')
+E    +    where requires_human_approval = <cores.worker_core.orchestrator.WorkerCore object at 0x70ef136f5010>.requires_human_approval
+_____________________ TestDailyBriefEngine.test_save_brief _____________________
+tests/test_daily_brief.py:96: in test_save_brief
+    clean_brief.save_brief(brief)
+core/daily/brief.py:499: in save_brief
+    save_brief(asdict(brief))
+               ^^^^^^^^^^^^^
+/usr/lib/python3.14/dataclasses.py:1495: in asdict
+    raise TypeError("asdict() should be called on dataclass instances")
+E   TypeError: asdict() should be called on dataclass instances
+_____________ TestCopilotCommanderE2E.test_3_context_engine_builds _____________
+tests/test_e2e_copilot.py:50: in test_3_context_engine_builds
+    from core.commander.context_engine import build_context_async
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+___________ TestCopilotCommanderE2E.test_4_providers_block_has_data ____________
+tests/test_e2e_copilot.py:64: in test_4_providers_block_has_data
+    from core.commander.context_engine import build_context_async
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+___________ TestCopilotCommanderE2E.test_5_system_context_has_counts ___________
+tests/test_e2e_copilot.py:76: in test_5_system_context_has_counts
+    from core.commander.context_engine import build_context_async
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+_______________ TestCopilotCommanderE2E.test_6_normalizes_prompt _______________
+tests/test_e2e_copilot.py:89: in test_6_normalizes_prompt
+    from core.commander.context_engine import get_prompt_context_async
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+______________ TestCopilotCommanderE2E.test_7_copilot_context_api ______________
+tests/test_e2e_copilot.py:99: in test_7_copilot_context_api
+    from core.commander.audit import get_audit_logger
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+_______________ TestWorkflowEngineE2E.test_3_audit_logger_works ________________
+tests/test_e2e_copilot.py:432: in test_3_audit_logger_works
+    from core.commander.audit import get_audit_logger
+core/commander/__init__.py:1: in <module>
+    from core.commander.agent_registry import AgentRegistry
+E   ModuleNotFoundError: No module named 'core.commander.agent_registry'
+_______________________ test_search_filters_by_namespace _______________________
+tests/test_memory_system.py:62: in test_search_filters_by_namespace
+    assert "opp_1" in keys
+E   AssertionError: assert 'opp_1' in []
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:260 memory set failed for opportunities:opp_1
+WARNING  catseye.memory:system.py:260 memory set failed for conversation:chat_1
+WARNING  catseye.memory:system.py:382 memory search failed
+_________________________ test_search_filters_by_query _________________________
+tests/test_memory_system.py:72: in test_search_filters_by_query
+    assert "opp_1" in keys
+E   AssertionError: assert 'opp_1' in []
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:260 memory set failed for opportunities:opp_1
+WARNING  catseye.memory:system.py:260 memory set failed for opportunities:opp_2
+WARNING  catseye.memory:system.py:382 memory search failed
+_____________ test_search_returns_entries_with_deserialized_value ______________
+tests/test_memory_system.py:81: in test_search_returns_entries_with_deserialized_value
+    assert "opp_1" in by_key
+E   AssertionError: assert 'opp_1' in {}
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:260 memory set failed for opportunities:opp_1
+WARNING  catseye.memory:system.py:382 memory search failed
+_____________________________ test_get_stats_shape _____________________________
+tests/test_memory_system.py:98: in test_get_stats_shape
+    assert stats["total"] >= 2
+E   assert 0 >= 2
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:260 memory set failed for opportunities:opp_1
+WARNING  catseye.memory:system.py:260 memory set failed for preferences:lang
+______________________ test_persistence_across_instances _______________________
+tests/test_memory_system.py:105: in test_persistence_across_instances
+    assert _fresh_store().get(MemoryNamespace.PREFERENCES, "persisted") == "yes"
+E   AssertionError: assert None == 'yes'
+E    +  where None = get(<MemoryNamespace.PREFERENCES: 'preferences'>, 'persisted')
+E    +    where get = <cores.memory.system.UnifiedMemoryStore object at 0x70eec2100320>.get
+E    +      where <cores.memory.system.UnifiedMemoryStore object at 0x70eec2100320> = _fresh_store()
+E    +    and   <MemoryNamespace.PREFERENCES: 'preferences'> = MemoryNamespace.PREFERENCES
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:260 memory set failed for preferences:persisted
+__________________ test_opportunity_engine_seeds_into_memory ___________________
+tests/test_memory_system.py:113: in test_opportunity_engine_seeds_into_memory
+    assert len(all_opps) >= 3
+E   assert 0 >= 3
+E    +  where 0 = len([])
+------------------------------ Captured log call -------------------------------
+WARNING  catseye.memory:system.py:382 memory search failed
+____________ TestBountyIntelligence.test_bounty_intel_empty_report _____________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: targets_intel
+
+The above exception was the direct cause of the following exception:
+tests/test_new_integrations.py:387: in test_bounty_intel_empty_report
+    report = bi.generate_report()
+             ^^^^^^^^^^^^^^^^^^^^
+cores/intelligence/bounty_intel.py:54: in generate_report
+    programs = session.query(TargetIntel).all()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2711: in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2864: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: targets_intel
+E   [SQL: SELECT targets_intel.id AS targets_intel_id, targets_intel.name AS targets_intel_name, targets_intel.domain AS targets_intel_domain, targets_intel.source AS targets_intel_source, targets_intel.target_id AS targets_intel_target_id, targets_intel.program_url AS targets_intel_program_url, targets_intel.quality_score AS targets_intel_quality_score, targets_intel.complexity_score AS targets_intel_complexity_score, targets_intel.roi_score AS targets_intel_roi_score, targets_intel.noise_score AS targets_intel_noise_score, targets_intel.freshness_score AS targets_intel_freshness_score, targets_intel.competition_score AS targets_intel_competition_score, targets_intel.opportunity_score AS targets_intel_opportunity_score, targets_intel.reward_score AS targets_intel_reward_score, targets_intel.reward_confidence AS targets_intel_reward_confidence, targets_intel.attack_surface_score AS targets_intel_attack_surface_score, targets_intel.evidence_potential_score AS targets_intel_evidence_potential_score, targets_intel.saas_probability AS targets_intel_saas_probability, targets_intel.api_density AS targets_intel_api_density, targets_intel.graphql_detected AS targets_intel_graphql_detected, targets_intel.b2b_indicator AS targets_intel_b2b_indicator, targets_intel.admin_detected AS targets_intel_admin_detected, targets_intel.multi_tenant AS targets_intel_multi_tenant, targets_intel.tags AS targets_intel_tags, targets_intel.notes AS targets_intel_notes, targets_intel.technology_tags AS targets_intel_technology_tags, targets_intel.cms_detected AS targets_intel_cms_detected, targets_intel.framework_detected AS targets_intel_framework_detected, targets_intel.wordpress_plugins_detected AS targets_intel_wordpress_plugins_detected, targets_intel.created_at AS targets_intel_created_at 
+E   FROM targets_intel]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_______________ TestRewardLearning.test_reward_learner_empty_db ________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: reports
+
+The above exception was the direct cause of the following exception:
+tests/test_new_integrations.py:528: in test_reward_learner_empty_db
+    report = learner.analyze()
+             ^^^^^^^^^^^^^^^^^
+cores/intelligence/reward_learning.py:88: in analyze
+    reports = session.query(Report).all()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2711: in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2864: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: reports
+E   [SQL: SELECT reports.id AS reports_id, reports.investigation_id AS reports_investigation_id, reports.format AS reports_format, reports.content AS reports_content, reports.finding_ids AS reports_finding_ids, reports.program AS reports_program, reports.target AS reports_target, reports.vulnerability AS reports_vulnerability, reports.severity AS reports_severity, reports.status AS reports_status, reports.estimated_reward AS reports_estimated_reward, reports.confirmed_reward AS reports_confirmed_reward, reports.currency AS reports_currency, reports.evidence_count AS reports_evidence_count, reports.notes AS reports_notes, reports.timeline AS reports_timeline, reports.attachments AS reports_attachments, reports.updated_at AS reports_updated_at, reports.created_at AS reports_created_at 
+E   FROM reports]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+________________ TestRewardLearning.test_reward_learner_analyze ________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: reports
+
+The above exception was the direct cause of the following exception:
+tests/test_new_integrations.py:536: in test_reward_learner_analyze
+    report = learner.analyze()
+             ^^^^^^^^^^^^^^^^^
+cores/intelligence/reward_learning.py:88: in analyze
+    reports = session.query(Report).all()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2711: in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2864: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: reports
+E   [SQL: SELECT reports.id AS reports_id, reports.investigation_id AS reports_investigation_id, reports.format AS reports_format, reports.content AS reports_content, reports.finding_ids AS reports_finding_ids, reports.program AS reports_program, reports.target AS reports_target, reports.vulnerability AS reports_vulnerability, reports.severity AS reports_severity, reports.status AS reports_status, reports.estimated_reward AS reports_estimated_reward, reports.confirmed_reward AS reports_confirmed_reward, reports.currency AS reports_currency, reports.evidence_count AS reports_evidence_count, reports.notes AS reports_notes, reports.timeline AS reports_timeline, reports.attachments AS reports_attachments, reports.updated_at AS reports_updated_at, reports.created_at AS reports_created_at 
+E   FROM reports]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+______________ TestRewardLearning.test_reward_learner_adjustments ______________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: reports
+
+The above exception was the direct cause of the following exception:
+tests/test_new_integrations.py:547: in test_reward_learner_adjustments
+    learner.analyze()
+cores/intelligence/reward_learning.py:88: in analyze
+    reports = session.query(Report).all()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2711: in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2864: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: reports
+E   [SQL: SELECT reports.id AS reports_id, reports.investigation_id AS reports_investigation_id, reports.format AS reports_format, reports.content AS reports_content, reports.finding_ids AS reports_finding_ids, reports.program AS reports_program, reports.target AS reports_target, reports.vulnerability AS reports_vulnerability, reports.severity AS reports_severity, reports.status AS reports_status, reports.estimated_reward AS reports_estimated_reward, reports.confirmed_reward AS reports_confirmed_reward, reports.currency AS reports_currency, reports.evidence_count AS reports_evidence_count, reports.notes AS reports_notes, reports.timeline AS reports_timeline, reports.attachments AS reports_attachments, reports.updated_at AS reports_updated_at, reports.created_at AS reports_created_at 
+E   FROM reports]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_____________ TestRewardLearning.test_reward_learner_report_fields _____________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: reports
+
+The above exception was the direct cause of the following exception:
+tests/test_new_integrations.py:562: in test_reward_learner_report_fields
+    report = learner.analyze()
+             ^^^^^^^^^^^^^^^^^
+cores/intelligence/reward_learning.py:88: in analyze
+    reports = session.query(Report).all()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2711: in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:2864: in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: reports
+E   [SQL: SELECT reports.id AS reports_id, reports.investigation_id AS reports_investigation_id, reports.format AS reports_format, reports.content AS reports_content, reports.finding_ids AS reports_finding_ids, reports.program AS reports_program, reports.target AS reports_target, reports.vulnerability AS reports_vulnerability, reports.severity AS reports_severity, reports.status AS reports_status, reports.estimated_reward AS reports_estimated_reward, reports.confirmed_reward AS reports_confirmed_reward, reports.currency AS reports_currency, reports.evidence_count AS reports_evidence_count, reports.notes AS reports_notes, reports.timeline AS reports_timeline, reports.attachments AS reports_attachments, reports.updated_at AS reports_updated_at, reports.created_at AS reports_created_at 
+E   FROM reports]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_____________________________ test_record_feedback _____________________________
+tests/test_opportunity_feedback.py:28: in test_record_feedback
+    assert len(history) == 1
+E   assert 0 == 1
+E    +  where 0 = len([])
+------------------------------ Captured log call -------------------------------
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-1: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-1', '{"outcome": "accepted", "category": "web3", "platform": "immunefi", "technology_tags": ["solidity", "defi"], "timestamp": "2026-09-05T02:53:07.475724+00:00", "estimated_payout": 5000.0, "actual_payout": 4800.0, "reasoning": "Good fit for skills"}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:130 Failed to retrieve feedback history: (sqlite3.OperationalError) no such table: memory_records
+[SQL: SELECT memory_records.id AS memory_records_id, memory_records.category AS memory_records_category, memory_records."key" AS memory_records_key, memory_records.details AS memory_records_details, memory_records.created_at AS memory_records_created_at 
+FROM memory_records 
+WHERE memory_records.category = ? AND memory_records."key" = ? ORDER BY memory_records.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('opportunity_feedback', 'test-opp-1', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+________________________ test_record_multiple_feedback _________________________
+tests/test_opportunity_feedback.py:54: in test_record_multiple_feedback
+    assert len(history) >= 2
+E   assert 0 >= 2
+E    +  where 0 = len([])
+------------------------------ Captured log call -------------------------------
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-2: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-2', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.480662+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-3: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-3', '{"outcome": "rejected", "category": "platform", "platform": "hackerone", "technology_tags": ["web"], "timestamp": "2026-09-05T02:53:07.481276+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:130 Failed to retrieve feedback history: (sqlite3.OperationalError) no such table: memory_records
+[SQL: SELECT memory_records.id AS memory_records_id, memory_records.category AS memory_records_category, memory_records."key" AS memory_records_key, memory_records.details AS memory_records_details, memory_records.created_at AS memory_records_created_at 
+FROM memory_records 
+WHERE memory_records.category = ? ORDER BY memory_records.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('opportunity_feedback', 100, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+____________________________ test_feedback_summary _____________________________
+tests/test_opportunity_feedback.py:124: in test_feedback_summary
+    assert summary["total_feedback"] >= 8
+E   assert 0 >= 8
+------------------------------ Captured log call -------------------------------
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-accepted-0: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-accepted-0', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.493983+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-accepted-1: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-accepted-1', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.494455+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-accepted-2: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-accepted-2', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.494884+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-accepted-3: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-accepted-3', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.495326+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-accepted-4: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-accepted-4', '{"outcome": "accepted", "category": "platform", "platform": "hackerone", "technology_tags": ["api"], "timestamp": "2026-09-05T02:53:07.495760+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-rejected-0: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-rejected-0', '{"outcome": "rejected", "category": "platform", "platform": "bugcrowd", "technology_tags": ["web"], "timestamp": "2026-09-05T02:53:07.496334+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-rejected-1: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-rejected-1', '{"outcome": "rejected", "category": "platform", "platform": "bugcrowd", "technology_tags": ["web"], "timestamp": "2026-09-05T02:53:07.496763+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:97 Failed to store feedback for test-opp-rejected-2: (sqlite3.OperationalError) no such table: memory_records
+[SQL: INSERT INTO memory_records (category, "key", details) VALUES (?, ?, ?) RETURNING id, created_at]
+[parameters: ('opportunity_feedback', 'test-opp-rejected-2', '{"outcome": "rejected", "category": "platform", "platform": "bugcrowd", "technology_tags": ["web"], "timestamp": "2026-09-05T02:53:07.497202+00:00", "estimated_payout": 0.0, "actual_payout": 0.0, "reasoning": ""}')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  ownex.opportunity.feedback:feedback.py:130 Failed to retrieve feedback history: (sqlite3.OperationalError) no such table: memory_records
+[SQL: SELECT memory_records.id AS memory_records_id, memory_records.category AS memory_records_category, memory_records."key" AS memory_records_key, memory_records.details AS memory_records_details, memory_records.created_at AS memory_records_created_at 
+FROM memory_records 
+WHERE memory_records.category = ? ORDER BY memory_records.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('opportunity_feedback', 1000, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________ TestCoreScheduler.test_scheduler_singleton __________________
+tests/test_orion_core.py:127: in test_scheduler_singleton
+    s1 = get_core_scheduler()
+         ^^^^^^^^^^^^^^^^^^^^
+core/scheduler/scheduler.py:203: in get_core_scheduler
+    _scheduler = CoreScheduler()
+                 ^^^^^^^^^^^^^^^
+core/scheduler/scheduler.py:33: in __init__
+    from core.scheduler.runs import SchedulerRunLedger
+E   ModuleNotFoundError: No module named 'core.scheduler.runs'
+__________________ TestCoreScheduler.test_add_and_remove_job ___________________
+tests/test_orion_core.py:132: in test_add_and_remove_job
+    s = CoreScheduler()
+        ^^^^^^^^^^^^^^^
+core/scheduler/scheduler.py:33: in __init__
+    from core.scheduler.runs import SchedulerRunLedger
+E   ModuleNotFoundError: No module named 'core.scheduler.runs'
+__________________ test_sync_creates_events_for_pending_tasks __________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:235: in test_sync_creates_events_for_pending_tasks
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:213: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+______________________ test_sync_updates_existing_events _______________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:260: in test_sync_updates_existing_events
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:242: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_________________ test_sync_deletes_events_for_completed_tasks _________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:289: in test_sync_deletes_events_for_completed_tasks
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:267: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________ test_todo_sync_creates_tasks_in_ownex_list __________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:374: in test_todo_sync_creates_tasks_in_ownex_list
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:351: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+____________________ test_todo_sync_updates_existing_tasks _____________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:401: in test_todo_sync_updates_existing_tasks
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:381: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________ test_todo_sync_deletes_tasks_for_completed __________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:430: in test_todo_sync_deletes_tasks_for_completed
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:408: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_____________________ test_run_calendar_sync_includes_todo _____________________
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: tasks
+
+The above exception was the direct cause of the following exception:
+tests/test_outlook_sync.py:496: in test_run_calendar_sync_includes_todo
+    asyncio.run(_run())
+/usr/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_outlook_sync.py:486: in _run
+    _cleanup_all_due_tasks()
+tests/test_outlook_sync.py:203: in _cleanup_all_due_tasks
+    session.query(models.Task).filter(models.Task.due_date.isnot(None)).delete()
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py:3217: in delete
+    self.session.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/bulk_persistence.py:2033: in orm_execute_statement
+    return super().orm_execute_statement(
+.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: tasks
+E   [SQL: DELETE FROM tasks WHERE tasks.due_date IS NOT NULL]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________________ test_tracker_add_and_stats __________________________
+tests/test_revenue_engine.py:37: in test_tracker_add_and_stats
+    assert stats.total_usd == 200
+E   assert 0 == 200
+E    +  where 0 = RevenueStats(period_days=30, total_usd=0, pending_usd=0, accepted_usd=0, paid_usd=0, by_platform={}, by_source_type={}... opportunities_discovered=0, opportunities_accepted=0, opportunities_completed=0, win_rate_pct=0.0, avg_payout_usd=0.0).total_usd
+______________________________ test_models_basic _______________________________
+tests/test_self_healer.py:31: in test_models_basic
+    p = Problem(name="test", severity=5, category="test_cat")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: Problem.__init__() got an unexpected keyword argument 'name'
+_________________ TestHarness.test_harness_runs_code_solution __________________
+tests/test_self_improvement.py:159: in test_harness_runs_code_solution
+    harness = Harness(config)
+              ^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+________________ TestHarness.test_harness_detects_syntax_error _________________
+tests/test_self_improvement.py:177: in test_harness_detects_syntax_error
+    harness = Harness(config)
+              ^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+_________________ TestHarness.test_harness_policy_enforcement __________________
+tests/test_self_improvement.py:194: in test_harness_policy_enforcement
+    harness = Harness(config)
+              ^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+____________ TestTaskGenerator.test_generate_batch_avoids_existing _____________
+tests/test_self_improvement.py:238: in test_generate_batch_avoids_existing
+    tasks = generator.generate_batch(
+core/self_improvement/task_generator.py:166: in generate_batch
+    scorer = NoveltyScorer(existing)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: NoveltyScorer() takes no arguments
+____________ TestEngineEndToEnd.test_persistence_between_instances _____________
+tests/test_self_improvement.py:418: in test_persistence_between_instances
+    e1 = SelfImprovementEngine(config=config, solver=DeterministicSolver())
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/engine.py:54: in __init__
+    self.harness = Harness(self.config)
+                   ^^^^^^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+_______________________ TestAPIEndpoints.test_get_status _______________________
+tests/test_self_improvement.py:459: in test_get_status
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:300 Failed to get engine status: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=d1b5ff11bb0d480fa8dfad35fe60f8d6 router=/api/self-improvement/status operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/status "HTTP/1.1 500 Internal Server Error"
+______________________ TestAPIEndpoints.test_get_frontier ______________________
+tests/test_self_improvement.py:467: in test_get_frontier
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:327 Failed to get frontier: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=790000ffa5df4333b05b0ef2518fe123 router=/api/self-improvement/frontier operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/frontier "HTTP/1.1 500 Internal Server Error"
+____________________ TestAPIEndpoints.test_get_capabilities ____________________
+tests/test_self_improvement.py:475: in test_get_capabilities
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:338 Failed to get capabilities: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=a4bcfc37ee3f4de19e9893981cf59c08 router=/api/self-improvement/capabilities operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/capabilities "HTTP/1.1 500 Internal Server Error"
+__________________ TestAPIEndpoints.test_get_recommendations ___________________
+tests/test_self_improvement.py:482: in test_get_recommendations
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:349 Failed to get recommendations: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=9109c350c1a646b9aa12ff6a9f9814e6 router=/api/self-improvement/recommendations operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/recommendations "HTTP/1.1 500 Internal Server Error"
+____________________ TestAPIEndpoints.test_get_experiences _____________________
+tests/test_self_improvement.py:489: in test_get_experiences
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:316 Failed to get experiences: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=eb5e0b060ad1415c93b39c28b1e0f546 router=/api/self-improvement/experiences operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/experiences "HTTP/1.1 500 Internal Server Error"
+__________________ TestAPIEndpoints.test_get_dashboard_engine __________________
+tests/test_self_improvement.py:497: in test_get_dashboard_engine
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:385 Failed to get engine dashboard: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=0bac2fab87ea41d5a579e6c410ea8e35 router=/api/self-improvement/dashboard/engine operation=GET status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/self-improvement/dashboard/engine "HTTP/1.1 500 Internal Server Error"
+_____________________ TestAPIEndpoints.test_post_generate ______________________
+tests/test_self_improvement.py:506: in test_post_generate
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:369 Failed to generate tasks: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=bd6f24ddae3a4be88c37c3d8ca68afdb router=/api/self-improvement/generate operation=POST status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/self-improvement/generate "HTTP/1.1 500 Internal Server Error"
+________________________ TestAPIEndpoints.test_post_run ________________________
+tests/test_self_improvement.py:516: in test_post_run
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:275 Failed to run self-improvement loop: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=78a222815c20486fb26d5f247757e896 router=/api/self-improvement/run operation=POST status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/self-improvement/run "HTTP/1.1 500 Internal Server Error"
+_____________________ TestAPIEndpoints.test_post_run_batch _____________________
+tests/test_self_improvement.py:525: in test_post_run_batch
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:287 Failed to run batch: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=ee814b51627f46319367ce342e207a1a router=/api/self-improvement/run/batch operation=POST status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/self-improvement/run/batch "HTTP/1.1 500 Internal Server Error"
+__________________ TestAPIEndpoints.test_end_to_end_critical ___________________
+tests/test_self_improvement.py:537: in test_end_to_end_critical
+    assert r.status_code == 200
+E   assert 500 == 200
+E    +  where 500 = <Response [500 Internal Server Error]>.status_code
+------------------------------ Captured log setup ------------------------------
+INFO     ownex.api:main.py:257 [BOOT] Data directory: /home/adriel/.ownex
+INFO     ownex.api:main.py:258 [BOOT] Database path: /home/adriel/.ownex/database/cateye.db
+INFO     ownex.api:main.py:732 [ORION] Core + app routers mounted
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/auth/login "HTTP/1.1 200 OK"
+INFO     httpx:_client.py:1025 HTTP Request: GET http://testserver/api/version "HTTP/1.1 200 OK"
+------------------------------ Captured log call -------------------------------
+INFO     ownex.api.middleware:auth_middleware.py:82 [HW] AuthMiddleware.dispatch: JWT valid, passing request through
+ERROR    ownex.api.self_improvement:self_improvement.py:275 Failed to run self-improvement loop: ExecutionPolicy() takes no arguments
+ERROR    ownex.error:error_handling.py:69 http_exception operation_id=580424bb8dfc4255a0ea07512a3bd0cf router=/api/self-improvement/run operation=POST status=500 detail=ExecutionPolicy() takes no arguments
+INFO     httpx:_client.py:1025 HTTP Request: POST http://testserver/api/self-improvement/run "HTTP/1.1 500 Internal Server Error"
+________________ TestRolloutRunner.test_runner_runs_with_solver ________________
+tests/test_self_improvement.py:557: in test_runner_runs_with_solver
+    runner = RolloutRunner(Harness(config), solver=DeterministicSolver())
+                           ^^^^^^^^^^^^^^^
+core/self_improvement/harness.py:32: in __init__
+    self.policy = ExecutionPolicy(config)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: ExecutionPolicy() takes no arguments
+_________________________ test_golden_path_full_cycle __________________________
+tests/test_worker_core_e2e_golden.py:161: in test_golden_path_full_cycle
+    assert work_item.workflow_id is not None
+E   AssertionError: assert None is not None
+E    +  where None = WorkItem(id='52b83fb6', goal_id='', opportunity_id='QG Opp', title='QG Opp', description='', platform='hackerone', cat...ce=[], error=None, human_action_required=False, human_action_description='', approved_by_human=False, workflow_id=None).workflow_id
+------------------------------ Captured log setup ------------------------------
+INFO     worker_core.orchestrator:orchestrator.py:204 Self-repair engine connected to WorkerCore
+INFO     worker_core.orchestrator:orchestrator.py:115 WorkerCore initialized with autonomy_level=full
+INFO     worker_core.orchestrator:orchestrator.py:284 Worker goal set: Test goal (target: $5000/month)
+------------------------------ Captured log call -------------------------------
+INFO     worker_core.orchestrator:orchestrator.py:295 WorkerCore resuming 9 open work items from checkpoints
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item 52b83fb6 → resume at phase validate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item a423ba03 → resume at phase learn
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item persist-1 → resume at phase prepare
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item rehydrate-test → resume at phase execute
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item resume-w1 → resume at phase validate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item w-gate → resume at phase learn
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-abc → resume at phase evaluate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-list-1 → resume at phase select
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-xyz → resume at phase prepare
+INFO     worker_core.orchestrator:orchestrator.py:303 WorkerCore started
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=discover
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.discovery circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:529 Discovered work: Fix auth bug (2f581dfc) - EV: $80.00/hr
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=evaluate
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.evaluation circuit -> closed (success)
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=select
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=prepare
+INFO     worker_core.orchestrator:orchestrator.py:671 Work 2f581dfc prepared
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=execute
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.execution circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:809 Work 2f581dfc executed
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=validate
+INFO     worker_core.orchestrator:orchestrator.py:870 Work 2f581dfc passed Quality Gate
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=deliver
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.delivery circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:954 Work 2f581dfc delivered
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=2f581dfc phase=learn
+INFO     worker_core.orchestrator:orchestrator.py:980 Learning recorded for work 2f581dfc
+INFO     worker_core.orchestrator:orchestrator.py:367 Test mode: completed one cycle, stopping
+INFO     worker_core.orchestrator:orchestrator.py:324 WorkerCore stopped
+_________________________ test_workflow_id_propagation _________________________
+tests/test_worker_core_e2e_golden.py:188: in test_workflow_id_propagation
+    assert work_item.workflow_id is not None
+E   AssertionError: assert None is not None
+E    +  where None = WorkItem(id='52b83fb6', goal_id='', opportunity_id='QG Opp', title='QG Opp', description='', platform='hackerone', cat...ce=[], error=None, human_action_required=False, human_action_description='', approved_by_human=False, workflow_id=None).workflow_id
+------------------------------ Captured log setup ------------------------------
+INFO     worker_core.orchestrator:orchestrator.py:204 Self-repair engine connected to WorkerCore
+INFO     worker_core.orchestrator:orchestrator.py:115 WorkerCore initialized with autonomy_level=full
+INFO     worker_core.orchestrator:orchestrator.py:284 Worker goal set: Test goal (target: $5000/month)
+------------------------------ Captured log call -------------------------------
+INFO     worker_core.orchestrator:orchestrator.py:295 WorkerCore resuming 9 open work items from checkpoints
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item 52b83fb6 → resume at phase validate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item a423ba03 → resume at phase learn
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item persist-1 → resume at phase prepare
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item rehydrate-test → resume at phase execute
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item resume-w1 → resume at phase validate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item w-gate → resume at phase learn
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-abc → resume at phase evaluate
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-list-1 → resume at phase select
+INFO     worker_core.orchestrator:orchestrator.py:1100 Rehydrated work item work-xyz → resume at phase prepare
+INFO     worker_core.orchestrator:orchestrator.py:303 WorkerCore started
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=discover
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.discovery circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:529 Discovered work: Fix auth bug (d0ff9738) - EV: $80.00/hr
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=evaluate
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.evaluation circuit -> closed (success)
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=select
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=prepare
+INFO     worker_core.orchestrator:orchestrator.py:671 Work d0ff9738 prepared
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=execute
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.execution circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:809 Work d0ff9738 executed
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=validate
+INFO     worker_core.orchestrator:orchestrator.py:870 Work d0ff9738 passed Quality Gate
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=deliver
+INFO     ownex.recovery.circuit_breaker:circuit_breaker.py:109 [CB] worker_core.delivery circuit -> closed (success)
+INFO     worker_core.orchestrator:orchestrator.py:954 Work d0ff9738 delivered
+INFO     worker_core.persistence:persistence.py:82 Checkpoint saved: work=d0ff9738 phase=learn
+INFO     worker_core.orchestrator:orchestrator.py:980 Learning recorded for work d0ff9738
+INFO     worker_core.orchestrator:orchestrator.py:367 Test mode: completed one cycle, stopping
+INFO     worker_core.orchestrator:orchestrator.py:324 WorkerCore stopped
+=============================== warnings summary ===============================
+.venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+cores/system/hhd_tracker.py:18
+  /home/adriel/projects/Rastro/cores/system/hhd_tracker.py:18: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _last_human_activity: datetime = datetime.utcnow()
+
+cores/system/hhd_tracker.py:19
+  /home/adriel/projects/Rastro/cores/system/hhd_tracker.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _system_start_time: datetime = datetime.utcnow()
+
+core/system/hhd_tracker.py:18
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:18: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _last_human_activity: datetime = datetime.utcnow()
+
+core/system/hhd_tracker.py:19
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _system_start_time: datetime = datetime.utcnow()
+
+core/system/hhd_tracker.py:33
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:33: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _system_start_time = datetime.utcnow()
+
+core/system/hhd_tracker.py:34
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:34: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    _last_human_activity = datetime.utcnow()
+
+tests/test_api_endpoints.py::TestOverview::test_system_health
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:112: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_api_endpoints.py::TestOverview::test_system_health
+tests/test_api_endpoints.py::TestOverview::test_system_health
+  /home/adriel/projects/Rastro/core/system/hhd_tracker.py:131: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return round((datetime.utcnow() - _system_start_time).total_seconds() / 3600, 2)
+
+tests/test_audit_contest_adapters.py: 25 warnings
+tests/test_credentials_vault.py: 105 warnings
+tests/test_desktop_native.py: 50 warnings
+tests/test_direct_work_api.py: 24 warnings
+tests/test_e2e_copilot.py: 78 warnings
+tests/test_opportunity_cycle.py: 64 warnings
+tests/test_web3_direct_work.py: 5 warnings
+tests/test_workbank.py: 5 warnings
+  /home/adriel/projects/Rastro/core/credentials/vault.py:161: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    for field_name, _ in creds.model_fields.items():
+
+tests/test_auth_cookie.py::TestSessionCookie::test_middleware_rejects_unauthorized_api_path
+tests/test_auth_cookie.py::TestSessionCookie::test_middleware_rejects_unauthorized_api_path
+  /home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/testclient.py:454: DeprecationWarning: Setting per-request cookies=<...> is being deprecated, because the expected behaviour on cookie persistence is ambiguous. Set cookies directly on the client instance instead.
+    return super().request(
+
+tests/test_credentials_vault.py::TestGetCredentials::test_empty_by_default
+  /home/adriel/projects/Rastro/tests/test_credentials_vault.py:53: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    for field_name in c.model_fields:
+
+tests/test_credentials_vault.py: 27 warnings
+  /home/adriel/projects/Rastro/tests/test_credentials_vault.py:54: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    assert getattr(c, field_name) == "" or getattr(c, field_name) == c.model_fields[field_name].default
+
+tests/test_credentials_vault.py::TestBackupVault::test_backup_creates_file
+tests/test_credentials_vault.py::TestBackupVault::test_backup_redacts_secrets
+  /home/adriel/projects/Rastro/core/credentials/vault.py:224: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    for field_name in creds.model_fields:
+
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_returns_success_structure
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_lists_all_platforms
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_coverage_starts_low
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_reports_platform_health
+  /home/adriel/projects/Rastro/core/credentials/health.py:48: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    total_fields = len(creds.model_fields)
+
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_returns_success_structure
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_lists_all_platforms
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_coverage_starts_low
+tests/test_credentials_vault.py::TestCheckSecretsHealth::test_reports_platform_health
+  /home/adriel/projects/Rastro/core/credentials/health.py:49: PydanticDeprecatedSince211: Accessing the 'model_fields' attribute on the instance is deprecated. Instead, you should access this attribute from the model class. Deprecated in Pydantic V2.11 to be removed in V3.0.
+    populated = sum(1 for f in creds.model_fields if getattr(creds, f))
+
+tests/test_desktop_native.py::test_dashboard_local_source_and_counts
+tests/test_desktop_native.py::test_dashboard_local_source_and_counts
+  /home/adriel/projects/Rastro/cores/system/hhd_tracker.py:112: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_desktop_native.py::test_dashboard_local_source_and_counts
+tests/test_desktop_native.py::test_dashboard_local_source_and_counts
+  /home/adriel/projects/Rastro/cores/system/hhd_tracker.py:131: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return round((datetime.utcnow() - _system_start_time).total_seconds() / 3600, 2)
+
+tests/test_desktop_release.py::TestEnvConfig::test_env_override
+  /home/adriel/projects/Rastro/cores/env/config.py:60: DeprecationWarning: CATEYE_PORT is deprecated, use OWNEX_PORT instead
+    port: int = field(default_factory=lambda: _env_int("OWNEX_PORT", 8000, "CATEYE_PORT"))
+
+tests/test_desktop_release.py::TestEnvConfig::test_env_override
+  /home/adriel/projects/Rastro/cores/env/config.py:64: DeprecationWarning: CATEYE_DESKTOP is deprecated, use OWNEX_DESKTOP instead
+    desktop: bool = field(default_factory=lambda: _env_bool("OWNEX_DESKTOP", legacy_name="CATEYE_DESKTOP"))
+
+tests/test_desktop_release.py::TestEnvConfig::test_env_override
+  /home/adriel/projects/Rastro/cores/env/config.py:65: DeprecationWarning: CATEYE_DEBUG is deprecated, use OWNEX_DEBUG instead
+    debug: bool = field(default_factory=lambda: _env_bool("OWNEX_DEBUG", legacy_name="CATEYE_DEBUG"))
+
+tests/test_fiverr_decision.py::TestDecisionEngine::test_evaluate_go_when_worth_it
+tests/test_fiverr_decision.py::TestDecisionEngine::test_evaluate_skip_when_not_worth_it
+  <string>:11: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_hardening_db_guards.py::TestRecoverStaleScans::test_marks_stale_running_as_failed_keeps_fresh
+  /home/adriel/projects/Rastro/tests/test_hardening_db_guards.py:70: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    assert session.query(models.ScanRun).get(stale_id).status == "failed"
+
+tests/test_hardening_db_guards.py::TestRecoverStaleScans::test_marks_stale_running_as_failed_keeps_fresh
+  /home/adriel/projects/Rastro/tests/test_hardening_db_guards.py:71: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    assert session.query(models.ScanRun).get(stale_id).finished_at is not None
+
+tests/test_hardening_db_guards.py::TestRecoverStaleScans::test_marks_stale_running_as_failed_keeps_fresh
+  /home/adriel/projects/Rastro/tests/test_hardening_db_guards.py:73: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    assert session.query(models.ScanRun).get(fresh_id).status == "running"
+
+tests/test_investment.py::TestCCXTAdapter::test_get_exchange_info
+  /home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/aiohttp/connector.py:988: DeprecationWarning: enable_cleanup_closed ignored because https://github.com/python/cpython/pull/118960 is fixed in Python version sys.version_info(major=3, minor=14, micro=4, releaselevel='final', serial=0)
+    super().__init__(
+
+tests/test_knowledge_bridge.py::test_api_router_mounted
+  /home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/openapi/utils.py:303: UserWarning: Duplicate Operation ID revenue_summary_api_revenue_summary_get for function revenue_summary at /home/adriel/projects/Rastro/api/routers/revenue_app.py
+    warnings.warn(message, stacklevel=1)
+
+tests/test_knowledge_bridge.py::test_api_router_mounted
+  /home/adriel/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/openapi/utils.py:303: UserWarning: Duplicate Operation ID get_version_api_version_get for function get_version at /home/adriel/projects/Rastro/api/main.py
+    warnings.warn(message, stacklevel=1)
+
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_replicate_executes_in_dry_run
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_replicate_respects_position_cap
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_emergency_stop_blocks_and_cancels
+tests/test_trading_intelligence.py::test_dashboard_summary_route
+  <string>:16: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_replicate_executes_in_dry_run
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_replicate_respects_position_cap
+tests/test_trading_intelligence.py::TestCopyTradingEngine::test_emergency_stop_blocks_and_cancels
+tests/test_trading_intelligence.py::test_dashboard_summary_route
+  <string>:17: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_trading_intelligence.py: 4 warnings
+tests/test_workflow_engine.py: 6 warnings
+  <string>:8: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+tests/test_workflow_engine.py::test_workflow_start
+tests/test_workflow_engine.py::test_task_assignment
+tests/test_workflow_engine.py::test_task_completion
+tests/test_workflow_engine.py::test_handoff_trigger
+  /home/adriel/projects/Rastro/cores/workflow/engine.py:149: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    workflow.started_at = datetime.utcnow()
+
+tests/test_workflow_engine.py::test_workflow_start
+tests/test_workflow_engine.py::test_task_assignment
+tests/test_workflow_engine.py::test_task_completion
+tests/test_workflow_engine.py::test_handoff_trigger
+  /home/adriel/projects/Rastro/cores/workflow/engine.py:168: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    task.assigned_at = datetime.utcnow()
+
+tests/test_workflow_engine.py::test_workflow_start
+tests/test_workflow_engine.py::test_task_assignment
+tests/test_workflow_engine.py::test_task_completion
+tests/test_workflow_engine.py::test_handoff_trigger
+  /home/adriel/projects/Rastro/cores/workflow/engine.py:183: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    task.started_at = datetime.utcnow()
+
+tests/test_workflow_engine.py::test_task_completion
+tests/test_workflow_engine.py::test_handoff_trigger
+  /home/adriel/projects/Rastro/cores/workflow/engine.py:199: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    task.completed_at = datetime.utcnow()
+
+tests/test_workflow_engine.py::test_task_completion
+tests/test_workflow_engine.py::test_handoff_trigger
+  /home/adriel/projects/Rastro/cores/workflow/engine.py:205: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    workflow.completed_at = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/integration/test_worker_core_full_cycle_e2e.py::TestWorkerCoreFullCycleE2E::test_resume_capability
+FAILED tests/integration/test_worker_crash_resume.py::TestAutonomyEnforcement::test_none_autonomy_blocks_sensitive_actions
+FAILED tests/test_daily_brief.py::TestDailyBriefEngine::test_save_brief - Typ...
+FAILED tests/test_e2e_copilot.py::TestCopilotCommanderE2E::test_3_context_engine_builds
+FAILED tests/test_e2e_copilot.py::TestCopilotCommanderE2E::test_4_providers_block_has_data
+FAILED tests/test_e2e_copilot.py::TestCopilotCommanderE2E::test_5_system_context_has_counts
+FAILED tests/test_e2e_copilot.py::TestCopilotCommanderE2E::test_6_normalizes_prompt
+FAILED tests/test_e2e_copilot.py::TestCopilotCommanderE2E::test_7_copilot_context_api
+FAILED tests/test_e2e_copilot.py::TestWorkflowEngineE2E::test_3_audit_logger_works
+FAILED tests/test_memory_system.py::test_search_filters_by_namespace - Assert...
+FAILED tests/test_memory_system.py::test_search_filters_by_query - AssertionE...
+FAILED tests/test_memory_system.py::test_search_returns_entries_with_deserialized_value
+FAILED tests/test_memory_system.py::test_get_stats_shape - assert 0 >= 2
+FAILED tests/test_memory_system.py::test_persistence_across_instances - Asser...
+FAILED tests/test_memory_system.py::test_opportunity_engine_seeds_into_memory
+FAILED tests/test_new_integrations.py::TestBountyIntelligence::test_bounty_intel_empty_report
+FAILED tests/test_new_integrations.py::TestRewardLearning::test_reward_learner_empty_db
+FAILED tests/test_new_integrations.py::TestRewardLearning::test_reward_learner_analyze
+FAILED tests/test_new_integrations.py::TestRewardLearning::test_reward_learner_adjustments
+FAILED tests/test_new_integrations.py::TestRewardLearning::test_reward_learner_report_fields
+FAILED tests/test_opportunity_feedback.py::test_record_feedback - assert 0 == 1
+FAILED tests/test_opportunity_feedback.py::test_record_multiple_feedback - as...
+FAILED tests/test_opportunity_feedback.py::test_feedback_summary - assert 0 >= 8
+FAILED tests/test_orion_core.py::TestCoreScheduler::test_scheduler_singleton
+FAILED tests/test_orion_core.py::TestCoreScheduler::test_add_and_remove_job
+FAILED tests/test_outlook_sync.py::test_sync_creates_events_for_pending_tasks
+FAILED tests/test_outlook_sync.py::test_sync_updates_existing_events - sqlalc...
+FAILED tests/test_outlook_sync.py::test_sync_deletes_events_for_completed_tasks
+FAILED tests/test_outlook_sync.py::test_todo_sync_creates_tasks_in_ownex_list
+FAILED tests/test_outlook_sync.py::test_todo_sync_updates_existing_tasks - sq...
+FAILED tests/test_outlook_sync.py::test_todo_sync_deletes_tasks_for_completed
+FAILED tests/test_outlook_sync.py::test_run_calendar_sync_includes_todo - sql...
+FAILED tests/test_revenue_engine.py::test_tracker_add_and_stats - assert 0 ==...
+FAILED tests/test_self_healer.py::test_models_basic - TypeError: Problem.__in...
+FAILED tests/test_self_improvement.py::TestHarness::test_harness_runs_code_solution
+FAILED tests/test_self_improvement.py::TestHarness::test_harness_detects_syntax_error
+FAILED tests/test_self_improvement.py::TestHarness::test_harness_policy_enforcement
+FAILED tests/test_self_improvement.py::TestTaskGenerator::test_generate_batch_avoids_existing
+FAILED tests/test_self_improvement.py::TestEngineEndToEnd::test_persistence_between_instances
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_status - as...
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_frontier - ...
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_capabilities
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_recommendations
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_experiences
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_get_dashboard_engine
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_post_generate
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_post_run - asse...
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_post_run_batch
+FAILED tests/test_self_improvement.py::TestAPIEndpoints::test_end_to_end_critical
+FAILED tests/test_self_improvement.py::TestRolloutRunner::test_runner_runs_with_solver
+FAILED tests/test_worker_core_e2e_golden.py::test_golden_path_full_cycle - As...
+FAILED tests/test_worker_core_e2e_golden.py::test_workflow_id_propagation - A...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_generate_brief - ...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_critical_actions
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_high_value - Attr...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_autonomous_work
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_waiting_items - A...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_completed_work - ...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_revenue_summary
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_alerts - Attribut...
+ERROR tests/test_daily_brief.py::TestDailyBriefEngine::test_save_brief - Attr...
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_list_platforms - M...
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_get_platform_found
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_get_platform_not_found
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_best_routes - Modu...
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_simulate_payout - ...
+ERROR tests/test_financial_hub.py::TestPayoutAdvisor::test_simulate_payout_invalid_amount
+ERROR tests/test_financial_hub.py::TestKYCManager::test_list_kyc_empty - Modu...
+ERROR tests/test_financial_hub.py::TestKYCManager::test_get_kyc_not_found - M...
+ERROR tests/test_financial_hub.py::TestKYCManager::test_upsert_kyc - ModuleNo...
+ERROR tests/test_financial_hub.py::TestKYCManager::test_kyc_summary - ModuleN...
+ERROR tests/test_financial_hub.py::TestKYCManager::test_upsert_invalid_status
+ERROR tests/test_financial_hub.py::TestRouteOptimizer::test_list_routes_empty
+ERROR tests/test_financial_hub.py::TestRouteOptimizer::test_get_route_found
+ERROR tests/test_financial_hub.py::TestRouteOptimizer::test_get_route_not_found
+ERROR tests/test_financial_hub.py::TestRouteOptimizer::test_optimize_route - ...
+ERROR tests/test_financial_hub.py::TestRouteOptimizer::test_optimize_invalid_amount
+ERROR tests/test_financial_hub.py::TestFeesCalculator::test_estimate_fees - M...
+ERROR tests/test_financial_hub.py::TestFeesCalculator::test_estimate_invalid_amount
+ERROR tests/test_financial_hub.py::TestFeesCalculator::test_compare_methods
+ERROR tests/test_financial_hub.py::TestPlatformRegistry::test_list_platforms
+ERROR tests/test_financial_hub.py::TestPlatformRegistry::test_get_platform_found
+ERROR tests/test_financial_hub.py::TestPlatformRegistry::test_get_platform_not_found
+ERROR tests/test_financial_hub.py::TestPlatformRegistry::test_compare_platforms
+ERROR tests/test_financial_hub.py::TestPlatformRegistry::test_argentina_ranked
+ERROR tests/test_financial_hub.py::TestVerificationTracker::test_progress_no_defaults
+ERROR tests/test_financial_hub.py::TestVerificationTracker::test_progress_with_defaults
+ERROR tests/test_financial_hub.py::TestVerificationTracker::test_pending_verifications
+ERROR tests/test_financial_hub.py::TestDocumentsChecklist::test_list_documents_empty
+ERROR tests/test_financial_hub.py::TestDocumentsChecklist::test_get_document_found
+ERROR tests/test_financial_hub.py::TestDocumentsChecklist::test_get_document_not_found
+ERROR tests/test_financial_hub.py::TestDocumentsChecklist::test_mark_completed
+ERROR tests/test_financial_hub.py::TestDocumentsChecklist::test_mark_incomplete
+ERROR tests/test_financial_hub.py::TestEmergencyRoutes::test_list_emergency_empty
+ERROR tests/test_financial_hub.py::TestEmergencyRoutes::test_list_emergency_with_defaults
+ERROR tests/test_financial_hub.py::TestEmergencyRoutes::test_fallback_not_found
+ERROR tests/test_financial_hub.py::TestEmergencyRoutes::test_quickest_not_found
+ERROR tests/test_financial_hub.py::TestTaxNotes::test_list_tax_notes_empty - ...
+ERROR tests/test_financial_hub.py::TestTaxNotes::test_get_tax_note_found - Mo...
+ERROR tests/test_financial_hub.py::TestTaxNotes::test_get_tax_note_not_found
+ERROR tests/test_financial_hub.py::TestTaxNotes::test_for_platform - ModuleNo...
+ERROR tests/test_self_improvement.py::TestEngineEndToEnd::test_run_once_completes
+ERROR tests/test_self_improvement.py::TestEngineEndToEnd::test_run_batch_multiple
+ERROR tests/test_self_improvement.py::TestEngineEndToEnd::test_status_returns_all_fields
+ERROR tests/test_self_improvement.py::TestEngineEndToEnd::test_recommendations_returns_list
+= 52 failed, 4340 passed, 18 skipped, 2 xfailed, 455 warnings, 53 errors in 201.92s (0:03:21) =
+make: *** [Makefile:82: test] Error 1

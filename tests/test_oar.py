@@ -69,7 +69,7 @@ class TestProviderRegistry:
         registry = ProviderRegistry(config)
         await registry.initialize()
 
-        caps = registry.get_model_capabilities("qwen3-coder:8b")
+        caps = registry.get_model_capabilities("qwen2.5:3b-instruct")
         assert caps is not None
         assert Capability.CHAT in caps.supports
         assert Capability.CODE in caps.supports
@@ -171,10 +171,58 @@ class TestSmartRouter:
         decision = await router.route(context)
 
         assert decision.provider_id == "ollama"
-        assert decision.model_id == "qwen3-coder:8b"
+        assert decision.model_id == "qwen2.5:3b-instruct"
         assert decision.confidence > 0
 
         await monitor.stop()
+
+    @pytest.mark.asyncio
+    async def test_un_provider_caido_no_es_candidato(self):
+        """`filter_models` descarta providers con salud que lo impide.
+
+        Sin este filtro, un provider con `auth_failed` o `quota_exceeded`
+        seguía siendo candidato y el routing terminaba en él aunque otro
+        estuviera sano. Medido 2026-10-05: la respuesta llegaba en inglés
+        desde FCC mientras ollama estaba healthy.
+
+        Y `UNKNOWN` **sí** se acepta: al arrancar todavía no hay datos de
+        salud, y quedarse sin candidatos sería peor que probar.
+        """
+        from cores.ai.runtime.interfaces import HealthStatus, ProviderHealth
+
+        config = OARConfig(enabled_providers=["ollama"])
+        registry = ProviderRegistry(config)
+        await registry.initialize()
+
+        context = RoutingContext(
+            task_type=TaskType.CODE,
+            messages=[{"role": "user", "content": "hola"}],
+            max_tokens=1000,
+        )
+        provider = registry.get_provider("ollama")
+        assert provider is not None
+        base = registry.filter_models(context)
+        assert ("ollama", "qwen2.5:3b-instruct") in base, "precondición: el prefijo no debe cambiar"
+
+        def con_salud(status: HealthStatus) -> list[tuple[str, str]]:
+            # Asignación directa, igual que `HealthMonitor` (`health.py:105`):
+            # `_last_health` no está en `AIProviderProtocol` y por eso el type
+            # checker se queja en los dos sitios. Es el patrón que ya usa el
+            # código de producción, no una excepción de este test.
+            provider._last_health = ProviderHealth(  # type: ignore[attr-defined]
+                provider_id="ollama", status=status, latency_ms=1.0, success_count=1
+            )
+            return registry.filter_models(context)
+
+        for malo in (HealthStatus.UNHEALTHY, HealthStatus.AUTH_FAILED, HealthStatus.QUOTA_EXCEEDED):
+            assert con_salud(malo) == [], f"{malo} no debe ser candidato"
+
+        for bueno in (HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNKNOWN):
+            assert con_salud(bueno) == base, f"{bueno} debe seguir siendo candidato"
+
+        # Sin dato de salud (arranque en frío) también debe servir.
+        provider._last_health = None  # type: ignore[attr-defined]
+        assert registry.filter_models(context) == base
 
 
 class TestLearningEngine:
@@ -241,3 +289,76 @@ class TestOARIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+class TestRecentRouting:
+    def test_recent_routing_empty_before_requests(self):
+        from cores.ai.runtime import OAR, OARConfig
+
+        oar = OAR(OARConfig(enabled_providers=[]))
+        recent = oar._recent_routing(20)
+        assert recent == []
+
+    def test_recent_routing_sanitizes_decisions(self):
+        from types import SimpleNamespace
+
+        from cores.ai.runtime import OAR, OARConfig
+
+        oar = OAR(OARConfig(enabled_providers=[]))
+
+        class _D:
+            provider_id = "fcc"
+            model_id = "m-1"
+            confidence = 0.9
+            estimated_cost_usd = 0.01
+            estimated_latency_ms = 120
+            fallback_chain = ["ollama"]
+            privacy_ok = True
+            task_type = SimpleNamespace(value="code")
+            timestamp = "2026-01-01"
+
+        oar._router = SimpleNamespace(_routing_history=[_D()])  # type: ignore[attr-defined]
+        recent = oar._recent_routing(20)
+        assert len(recent) == 1
+        row = recent[0]
+        assert row["provider_id"] == "fcc"
+        assert row["task_type"] == "code"
+        assert "messages" not in row and "prompt" not in row
+
+
+class TestLocalFirstOrder:
+    """Pin canonical OAR order: local > free-remote > fcc > openrouter (SSOT router.py tier_bonus)."""
+
+    def _router(self):
+        from types import SimpleNamespace
+
+        from cores.ai.runtime.router import SmartRouter
+
+        class FakeReg:
+            def get_provider(self, pid):
+                return SimpleNamespace(provider_id=pid)
+
+            def get_model_capabilities(self, mid):
+                return SimpleNamespace(max_context_tokens=32000, supports=set())
+
+        class FakeHealth:
+            def get_health(self, pid):
+                return SimpleNamespace(status=SimpleNamespace(value="healthy"), latency_ms=100)
+
+        return SmartRouter(FakeReg(), FakeHealth(), config=None)
+
+    async def test_local_beats_fcc_beats_openrouter(self):
+
+        from cores.ai.runtime.interfaces import RoutingContext, TaskType
+
+        router = self._router()
+        ctx = RoutingContext(
+            task_type=TaskType.CHAT,
+            messages=[{"role": "user", "content": "hi"}],
+            max_tokens=100,
+        )
+        scores = {}
+        for pid in ("ollama", "opencode", "groq", "fcc", "openrouter"):
+            scores[pid] = await router._score_candidate(pid, "m", ctx)
+        assert scores["ollama"] > scores["fcc"] > scores["openrouter"]
+        assert scores["ollama"] >= scores["opencode"] >= scores["groq"] >= scores["fcc"]

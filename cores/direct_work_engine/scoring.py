@@ -315,7 +315,12 @@ class ZeroBarrierScorer:
         if factors["no_experience_required"] >= 80:
             enablers.append("No experience required")
         elif factors["no_experience_required"] < 50:
-            blockers.append(f"Requires {opp.experience_required.value}+ experience")
+            exp_value = (
+                opp.experience_required.value
+                if hasattr(opp.experience_required, "value")
+                else str(opp.experience_required)
+            )
+            blockers.append(f"Requires {exp_value}+ experience")
 
         if factors["no_portfolio_required"] >= 80:
             enablers.append("No portfolio required")
@@ -328,7 +333,12 @@ class ZeroBarrierScorer:
             blockers.append("Interview required")
 
         if opp.technical_test_required:
-            if opp.experience_required == ExperienceLevel.NONE:
+            exp_value = (
+                opp.experience_required.value
+                if hasattr(opp.experience_required, "value")
+                else str(opp.experience_required)
+            )
+            if exp_value == "NONE" or exp_value == ExperienceLevel.NONE:
                 enablers.append("Capability assessment only (one-time; no prior experience needed)")
             else:
                 blockers.append("Technical test required")

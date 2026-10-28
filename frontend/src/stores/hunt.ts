@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { api } from '@/lib/api'
 
 export const useHuntStore = defineStore('hunt', () => {
@@ -84,8 +84,17 @@ export const useHuntStore = defineStore('hunt', () => {
   }
 
   return {
-    status, startedAt, findingsFound, targetsScanned, loading,
-    isActive, label,
-    start, pause, resume, stop, fetchStatus,
+    status,
+    startedAt,
+    findingsFound,
+    targetsScanned,
+    loading,
+    isActive,
+    label,
+    start,
+    pause,
+    resume,
+    stop,
+    fetchStatus,
   }
 })
