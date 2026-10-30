@@ -18,10 +18,13 @@ from __future__ import annotations
 import json
 import logging
 import time
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.core.sync")
 SYNC_CACHE = OWNEX_DIR / "sync_cache.json"
@@ -48,7 +51,35 @@ SYNCABLE_DOMAINS = {
 }
 
 
+class SyncEventType(StrEnum):
+    """Types of sync events."""
+
+    PUSH_STARTED = "push_started"
+    PUSH_COMPLETED = "push_completed"
+    PUSH_FAILED = "push_failed"
+    PULL_STARTED = "pull_started"
+    PULL_COMPLETED = "pull_completed"
+    PULL_FAILED = "pull_failed"
+    KEY_SET = "key_set"
+    KEY_CLEARED = "key_cleared"
+    MERGE_COMPLETED = "merge_completed"
+
+
+@dataclass
+class SyncEvent:
+    """Event emitted during sync operations."""
+
+    event_type: SyncEventType
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    device_id: str = ""
+    size_bytes: int = 0
+    domains: list[str] = field(default_factory=list)
+    error: str | None = None
+
+
 class SyncEngine:
+    ...
+
     def __init__(self) -> None:
         self._sync_key: str | None = None
         self._load_key()
@@ -133,7 +164,7 @@ class SyncEngine:
 
     def _get_device_id(self) -> str:
         try:
-            from core.secrets.manager import get_secrets_manager
+            from cores.secrets.manager import get_secrets_manager
 
             mgr = get_secrets_manager()
             device = mgr.get_or_raise("device_id") if hasattr(mgr, "get_or_raise") else ""
@@ -161,7 +192,7 @@ class SyncEngine:
 
     def _load_decisions(self) -> list[dict[str, Any]] | None:
         try:
-            from core.decision_journal import get_decisions
+            from cores.decision_journal import get_decisions
 
             return get_decisions(limit=100)
         except Exception:

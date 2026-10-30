@@ -34,7 +34,7 @@ async function refreshAll() {
   firstTime.value = ft
   actions.value = acts
   startupChecks.value = checks.checks || []
-  modules.value = modRes.modules || {}
+  modules.value = (modRes && modRes.modules) ? modRes.modules : {}
   vpn.value = vpnInfo
   loading.value = false
 }

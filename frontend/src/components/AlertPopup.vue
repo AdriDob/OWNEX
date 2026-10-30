@@ -38,7 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { isUnauthenticated } from '@/lib/errors'
 
 interface Alert {
   id: string
@@ -63,8 +65,7 @@ let pollInterval: number | null = null
 
 const fetchAlerts = async () => {
   try {
-    const response = await fetch('/api/alerts/active')
-    const data = await response.json()
+    const data = await api.get<any>('/api/alerts/active')
     if (!data.alerts) return
     activeAlerts.value = data.alerts
 
@@ -77,18 +78,14 @@ const fetchAlerts = async () => {
       }
     })
   } catch (error) {
-    console.error('Failed to fetch alerts:', error)
+    if (!isUnauthenticated(error)) console.error('Failed to fetch alerts:', error)
   }
 }
 
 const dismissAlert = async (alertId: string) => {
   try {
-    await fetch(`/api/alerts/resolve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ alert_id: alertId }),
-    })
-    activeAlerts.value = activeAlerts.value.filter(a => a.id !== alertId)
+    await api.post('/api/alerts/resolve', { alert_id: alertId })
+    activeAlerts.value = activeAlerts.value.filter((a) => a.id !== alertId)
   } catch (error) {
     console.error('Failed to dismiss alert:', error)
   }
@@ -124,7 +121,7 @@ onUnmounted(() => {
 
 .alert {
   background: rgba(0, 0, 0, 0.95);
-  border: 1px solid #374151;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -149,22 +146,22 @@ onUnmounted(() => {
 }
 
 .alert-error {
-  border-color: #00d5ff;
+  border-color: var(--ownex-accent);
   background: rgba(148, 163, 184, 0.1);
 }
 
 .alert-warning {
-  border-color: #f59e0b;
+  border-color: var(--ownex-yellow);
   background: rgba(245, 158, 11, 0.1);
 }
 
 .alert-success {
-  border-color: #10b981;
+  border-color: var(--ownex-green);
   background: rgba(16, 185, 129, 0.1);
 }
 
 .alert-critical {
-  border-color: #64748b;
+  border-color: var(--ownex-text-secondary);
   background: rgba(100, 116, 139, 0.15);
   animation: pulse 2s infinite;
 }
@@ -174,7 +171,7 @@ onUnmounted(() => {
 }
 
 .alert-action {
-  border-left: 4px solid #fbbf24;
+  border-left: 4px solid var(--ownex-yellow);
 }
 
 @keyframes pulse {
@@ -215,13 +212,13 @@ onUnmounted(() => {
 }
 
 .alert-title {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .alert-category {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-size: 0.7rem;
   text-transform: uppercase;
   padding: 2px 6px;
@@ -230,7 +227,7 @@ onUnmounted(() => {
 }
 
 .alert-message {
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
   font-size: 0.85rem;
   line-height: 1.4;
   margin-bottom: 8px;
@@ -245,14 +242,14 @@ onUnmounted(() => {
 }
 
 .steps-title {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
   font-size: 0.75rem;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .steps-list {
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
   font-size: 0.8rem;
   margin: 0;
   padding-left: 16px;
@@ -267,7 +264,7 @@ onUnmounted(() => {
 }
 
 .action-link {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 600;
@@ -280,7 +277,7 @@ onUnmounted(() => {
 .alert-dismiss {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-size: 20px;
   cursor: pointer;
   padding: 0;
@@ -295,6 +292,6 @@ onUnmounted(() => {
 
 .alert-dismiss:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
 }
 </style>

@@ -1,22 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
 import {
-  Target, DollarSign, Sparkles, ArrowRight, RefreshCw,
-  Zap, CheckCircle2, XCircle,
-  Clock, Activity, Shield, FileText, Bug, TrendingUp,
-  Loader2
+  Activity,
+  ArrowRight,
+  Bug,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Target,
+  TrendingUp,
+  XCircle,
+  Zap,
 } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Card from '@/components/ui/Card.vue'
+import CardContent from '@/components/ui/CardContent.vue'
 import CardHeader from '@/components/ui/CardHeader.vue'
 import CardTitle from '@/components/ui/CardTitle.vue'
-import CardContent from '@/components/ui/CardContent.vue'
-import Button from '@/components/ui/Button.vue'
-import Badge from '@/components/ui/Badge.vue'
-import LoadingState from '@/components/ui/LoadingState.vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
+import LoadingState from '@/components/ui/LoadingState.vue'
 import { useToast } from '@/composables/useToast'
+import { api } from '@/lib/api'
 
 const router = useRouter()
 const { toast } = useToast()
@@ -74,8 +85,11 @@ async function loadData() {
     }
     if (findingsRes.status === 'fulfilled') stats.value.findings = findingsRes.value.total
     if (reportsRes.status === 'fulfilled') stats.value.reports = reportsRes.value.total
-  } catch { /* silent */ }
-  finally { loading.value = false }
+  } catch {
+    /* silent */
+  } finally {
+    loading.value = false
+  }
 }
 
 // ── Poll hunt status + pipeline stage ──
@@ -118,7 +132,9 @@ async function checkHuntStatus() {
         currentHuntStage.value = stageInfo.current_stage
       }
     }
-  } catch { /* status poll silent */ }
+  } catch {
+    /* status poll silent */
+  }
 }
 
 function startPolling() {
@@ -175,7 +191,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="space-y-6 p-6 animate-fade-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-fade-in">
     <!-- Header -->
     <div class="text-center mb-4">
       <p class="text-lg text-muted-foreground mb-1">{{ greeting }},</p>
@@ -218,7 +234,7 @@ onUnmounted(() => {
     <!-- HUNT Button -->
     <div class="flex justify-center my-8">
       <button
-        @click="startHunt"
+        aria-label="Starthunt" @click="startHunt"
         :disabled="isHuntActive"
         class="group relative flex flex-col items-center justify-center w-72 h-72 rounded-full
           bg-gradient-to-br from-primary/20 via-primary/10 to-transparent
@@ -283,7 +299,7 @@ onUnmounted(() => {
 
     <!-- Quick Nav Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
-      <button @click="router.push('/capital')"
+      <button aria-label="Go To /Capital" @click="router.push('/capital')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
           border border-success/30 bg-gradient-to-br from-success/10 to-success/20
           hover:from-success/20 hover:to-success/30 hover:scale-[1.02] hover:border-success/50
@@ -296,7 +312,7 @@ onUnmounted(() => {
         <ArrowRight class="w-5 h-5 text-success absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
 
-      <button @click="router.push('/intelligence/findings')"
+      <button aria-label="Go To /Intelligence/Findings" @click="router.push('/intelligence/findings')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
           border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/20
           hover:from-primary/20 hover:to-primary/30 hover:scale-[1.02] hover:border-primary/50
@@ -307,7 +323,7 @@ onUnmounted(() => {
         <ArrowRight class="w-5 h-5 text-primary absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
 
-      <button @click="router.push('/reports/queue')"
+      <button aria-label="Go To /Reports/Queue" @click="router.push('/reports/queue')"
         class="group relative flex flex-col items-center justify-center p-8 rounded-2xl
           border border-intigriti/30 bg-gradient-to-br from-intigriti/10 to-intigriti/20
           hover:from-intigriti/20 hover:to-intigriti/30 hover:scale-[1.02] hover:border-intigriti/50
@@ -321,10 +337,10 @@ onUnmounted(() => {
 
     <!-- Footer Nav -->
     <div class="flex justify-center gap-6 mt-6">
-      <button @click="router.push('/targets')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Targets</button>
-      <button @click="router.push('/operations/health')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Health</button>
-      <button @click="router.push('/integrations/connections')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Conexiones</button>
-      <button @click="router.push('/')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission Control</button>
+      <button aria-label="Go To /Targets" @click="router.push('/targets')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Targets</button>
+      <button aria-label="Go To /Operations/Health" @click="router.push('/operations/health')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Health</button>
+      <button aria-label="Go To /Integrations/Connections" @click="router.push('/integrations/connections')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Conexiones</button>
+      <button aria-label="Go To /" @click="router.push('/')" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Mission Control</button>
     </div>
   </div>
 </template>

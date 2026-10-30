@@ -16,11 +16,11 @@ total but NOT injective (two local categories may share a canonical target).
 
 from __future__ import annotations
 
-from core.opportunity.mercenary_filter import OpportunityCategory as MercenaryCategory
 from cores.direct_work_engine.models import OpportunityCategory
 from cores.opensource.categories import OpenSourceCategory
 from cores.opportunity.engine import OpportunityCategory as EngineOpportunityCategory
 from cores.opportunity.global_sources import OpportunityCategory as GlobalSourceCategory
+from cores.opportunity.mercenary_filter import OpportunityCategory as MercenaryCategory
 
 __all__ = [
     "OpportunityCategory",
@@ -65,6 +65,9 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
     # AI-training platforms (Outlier/Mercor/Alignerr/Mindrift family,
     # curated 2026-08-25): hourly evaluation streams ≈ ai_evaluation.
     GlobalSourceCategory.ai_evaluation: OpportunityCategory.AI_EVALUATION,
+    # Open calls (Whop Content Rewards clipping, 2026-09-20): anyone joins,
+    # paid per verified views → canonical OPEN_CALL (no hourly rate).
+    GlobalSourceCategory.open_call: OpportunityCategory.OPEN_CALL,
 }
 
 # core.opportunity.mercenary_filter (11 prioritized categories) -> canonical

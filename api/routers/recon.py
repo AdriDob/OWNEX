@@ -7,9 +7,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.recon.fingerprint import Fingerprinter
-from core.recon.router import ReconRouter
-from core.recon.strategies import list_strategies
+from cores.recon.fingerprint import Fingerprinter
+from cores.recon.router import ReconRouter
+from cores.recon.strategies import list_strategies
 
 logger = logging.getLogger("orion.recon")
 router = APIRouter(prefix="/api/recon", tags=["recon"])
@@ -92,3 +92,27 @@ async def list_recon_strategies():
             for s in strategies
         ],
     }
+
+
+@router.get("/change-alerts")
+async def list_change_alerts(limit: int = 50):
+    """Alertas recientes del monitor de cambios (P3). Nunca 500."""
+    try:
+        from cores.recon.change_monitor import ChangeMonitor
+
+        return {"success": True, "alerts": ChangeMonitor().recent_alerts(limit=max(1, min(limit, 200)))}
+    except Exception as e:
+        logger.exception("Change alerts failed")
+        return {"success": False, "alerts": [], "error": str(e)[:200]}
+
+
+@router.post("/change-watch/run")
+async def trigger_change_watch():
+    """Ejecuta un ciclo del monitor de cambios (P3). Nunca 500."""
+    try:
+        from cores.cycles.tasks import run_change_watch
+
+        return {"success": True, **run_change_watch()}
+    except Exception as e:
+        logger.exception("Change watch run failed")
+        return {"success": False, "error": str(e)[:200]}

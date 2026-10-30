@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.polymarket.btc_latency_arb.indicators.rsi import ema
+from cores.polymarket.btc_latency_arb.indicators.rsi import ema
 
 
 def compute_macd(closes: list[float], fast: int = 12, slow: int = 26, signal: int = 9) -> dict[str, float] | None:

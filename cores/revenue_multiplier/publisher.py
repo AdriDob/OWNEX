@@ -6,8 +6,8 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from core.revenue_multiplier.config import RevenueMultiplierConfig
-from core.revenue_multiplier.models import RevenueCategory, RevenueEvent, RevenueReport
+from cores.revenue_multiplier.config import RevenueMultiplierConfig
+from cores.revenue_multiplier.models import RevenueCategory, RevenueEvent, RevenueReport
 
 logger = logging.getLogger("orion.revenue.publisher")
 

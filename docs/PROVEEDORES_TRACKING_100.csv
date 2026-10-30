@@ -1,0 +1,101 @@
+id,name,type,website,api_endpoint,commission_rate,processing_time_days,is_active,notes
+sup_urban_001,Nebbux,local_argentina,https://nebbux.com,,0.25,2,true,Streetwear oversize; Sheet diario; validar stock
+sup_urban_002,ShopTrend AR,local_argentina,https://shoptrend.com.ar,,0.25,2,true,Dropship 48h; Drive
+sup_urban_003,SAMPLES Streetwear,local_argentina,https://samples.com.ar,,0.30,2,true,Premium; margen alto
+sup_urban_004,CMMNTY AR,local_argentina,https://cmmnty.com.ar,,0.28,2,true,Buzos conjuntos
+sup_urban_005,KND AR,local_argentina,https://knd.com.ar,,0.25,2,true,Oversize remeras
+sup_urban_006,47 Street Mayorista,domestic_distributor,https://47street.com.ar,,0.20,3,true,Marca; reventa autorizada
+sup_urban_007,Moha Mayorista,domestic_distributor,https://moha.com.ar,,0.22,3,true,Jeans cargos
+sup_urban_008,Distrito Once Urbano,domestic_distributor,https://distritoonce.com.ar,,0.30,2,true,Hub Once multi-marca
+sup_urban_009,BairesMayorista,domestic_distributor,https://bairesmayorista.com.ar,,0.28,2,true,Drive diario
+sup_urban_010,Flores Street Hub,domestic_distributor,https://floresstreet.com.ar,,0.25,2,true,Conjunto urbano
+sup_urban_011,Urban Beast AR,local_argentina,https://urbanbeast.com.ar,,0.30,2,true,Buzos frisa
+sup_urban_012,Holy Crew,local_argentina,https://holycrew.com.ar,,0.25,2,true,Remeras estampadas
+sup_urban_013,Stone Street,local_argentina,https://stonestreet.com.ar,,0.25,2,true,Cargos bermudas
+sup_urban_014,Revolt Urban,local_argentina,https://revolturban.com.ar,,0.28,2,true,Conjuntos urbanos
+sup_urban_015,Blackrock AR,local_argentina,https://blackrock.com.ar,,0.25,2,true,Oversize + gorras
+sup_urban_016,Nocturne Wear,local_argentina,https://nocturnewear.com.ar,,0.30,2,true,Street premium
+sup_urban_017,Faqqot Mayorista,domestic_distributor,https://faqqot.com.ar,,0.20,3,true,Buzos camperas
+sup_urban_018,Dixie Mayorista,domestic_distributor,https://dixie.com.ar,,0.22,3,true,Remeras pantalones
+sup_urban_019,Zonz Mayorista,domestic_distributor,https://zonz.com.ar,,0.25,2,true,Urbano joven
+sup_urban_020,Cueros y Frisa Hub,domestic_distributor,https://cuerosyfrisa.com.ar,,0.28,3,true,Camperas buzos
+sup_urban_021,Rey Urbano,local_argentina,https://reyurbano.com.ar,,0.25,2,true,Conjuntos 3 piezas
+sup_urban_022,Laundry Street,local_argentina,https://laundrystreet.com.ar,,0.25,2,true,Jeans bermudas
+sup_urban_023,Old Bridge Mayorista,domestic_distributor,https://oldbridge.com.ar,,0.20,3,true,Clásico urbano
+sup_urban_024,Nasa Wears AR,local_argentina,https://nasawears.com.ar,,0.28,2,true,Oversize estampado
+sup_urban_025,Once Urbano Gold,domestic_distributor,https://onceurbanogold.com.ar,,0.30,2,true,Mix urbano fotos pro
+sup_fut_001,Tamil Sport,local_argentina,https://tamilsport.com.ar,,0.35,1,true,Selección clubes; retro
+sup_fut_002,Grisino Deportes,domestic_distributor,https://grisinosports.com.ar,,0.30,2,true,Fútbol importada
+sup_fut_003,Deybim Moda Deportiva,domestic_distributor,https://deybim.com.ar,,0.32,2,true,Conjuntos fútbol
+sup_fut_004,RM Deportes Mayorista,local_argentina,https://rmdeportes.com.ar,,0.35,1,true,Retro actual
+sup_fut_005,MK10 Sport,local_argentina,https://mk10sport.com.ar,,0.35,1,true,AAA sublimadas
+sup_fut_006,Flex Sport AR,domestic_distributor,https://flexsport.com.ar,,0.30,2,true,Stock Once
+sup_fut_007,Lomas Futbol Import,local_argentina,https://lomasfutbolimport.com.ar,,0.35,1,true,La Salada mayorista
+sup_fut_008,Sur Sport Distribuidora,domestic_distributor,https://sursport.com.ar,,0.32,2,true,Envío 24h
+sup_fut_009,Golazo Mayorista,local_argentina,https://golazomayorista.com.ar,,0.35,1,true,Kits completos
+sup_fut_010,Capri Futbol,domestic_distributor,https://caprifutbol.com.ar,,0.30,2,true,Niños + adultos
+sup_fut_011,La 12 Sport,local_argentina,https://la12sport.com.ar,,0.35,1,true,Boca River foco
+sup_fut_012,Albiceleste Store Mayorista,local_argentina,https://albicelestestore.com.ar,,0.40,1,true,Selección foco
+sup_fut_013,Retro Futbol AR,local_argentina,https://retrofutbolar.com.ar,,0.35,2,true,Retro 90s 2000s
+sup_fut_014,Mundial Sport,domestic_distributor,https://mundialsport.com.ar,,0.32,2,true,Mundial clubes EU
+sup_fut_015,Fanáticos Futbol,local_argentina,https://fanaticosfutbol.com.ar,,0.35,1,true,AAA premium
+sup_fut_016,Pase Gol Mayorista,local_argentina,https://pasegol.com.ar,,0.30,2,true,Conjuntos buzos
+sup_fut_017,Once Futbol Hub,domestic_distributor,https://oncefutbolhub.com.ar,,0.35,1,true,Hub múltiples importadores
+sup_fut_018,La Salada Futbol Premium,domestic_distributor,https://lasaladafutbol.com.ar,,0.40,1,true,AAA espejo
+sup_fut_019,Sportivo Import,local_argentina,https://sportivoimport.com.ar,,0.32,2,true,Clubes europeos
+sup_fut_020,Doble 5 Deportes,domestic_distributor,https://doble5deportes.com.ar,,0.30,2,true,Fútbol rugby
+sup_fut_021,Titular Futbol,local_argentina,https://titularfutbol.com.ar,,0.35,1,true,Sublimadas económicas
+sup_fut_022,Corner Sport Mayorista,local_argentina,https://cornersport.com.ar,,0.35,1,true,Niños adultos
+sup_fut_023,Gambeta AR,domestic_distributor,https://gambetaar.com.ar,,0.32,2,true,Stock diario
+sup_fut_024,10 Futbol Mayorista,local_argentina,https://10futbol.com.ar,,0.35,1,true,Selección clubes
+sup_fut_025,Gol Sur Mayorista,local_argentina,https://golsur.com.ar,,0.30,2,true,Andreani 48h
+sup_watch_001,TimeCenter Mayorista,domestic_distributor,https://timecenter.com.ar,,0.40,1,true,Acero digital
+sup_watch_002,Cronos Import,local_argentina,https://cronosimport.com.ar,,0.45,1,true,Smart + analógicos
+sup_watch_003,Relojes Once Hub,domestic_distributor,https://relojesonce.com.ar,,0.35,1,true,Hub Once multi-marca
+sup_watch_004,Mister Reloj Mayorista,domestic_distributor,https://misterreloj.com.ar,,0.40,1,true,Casio Seiko tipo
+sup_watch_005,Tic Tac Mayorista,local_argentina,https://tictacmayorista.com.ar,,0.35,1,true,Digital pilas
+sup_watch_006,Smart Time AR,local_argentina,https://smarttimear.com.ar,,0.45,1,true,Smartbands watches
+sup_watch_007,Once Watch Premium,domestic_distributor,https://oncewatchpremium.com.ar,,0.40,1,true,Acero inox
+sup_watch_008,Relojería Universal Mayorista,domestic_distributor,https://relojeriauniversal.com.ar,,0.35,1,true,Vintage nuevo
+sup_watch_009,Watches AR Import,local_argentina,https://watchesar.com.ar,,0.40,1,true,Import directo
+sup_watch_010,Tempo Mayorista,domestic_distributor,https://tempomayorista.com.ar,,0.35,1,true,Correas relojes
+sup_watch_011,Infinity Watches,local_argentina,https://infinitywatches.com.ar,,0.45,1,true,Smart premium
+sup_watch_012,Pulso Urbano Relojes,domestic_distributor,https://pulso-urbano.com.ar,,0.35,1,true,Moda joven
+sup_watch_013,Classic Time AR,local_argentina,https://classictimear.com.ar,,0.40,1,true,Analógico clásico
+sup_watch_014,Digital Pro Mayorista,domestic_distributor,https://digitalpro.com.ar,,0.35,1,true,Digital deportivo
+sup_watch_015,Crown Watch Import,local_argentina,https://crownwatch.com.ar,,0.45,1,true,Acero smart
+sup_watch_016,Horus Mayorista,domestic_distributor,https://horusmayorista.com.ar,,0.40,1,true,Hub relojes joyería
+sup_watch_017,Urban Clock AR,local_argentina,https://urbanclockar.com.ar,,0.35,1,true,Diseño urbano
+sup_watch_018,Splendid Time,domestic_distributor,https://splendidtime.com.ar,,0.40,1,true,Mujer hombre
+sup_watch_019,Max Time Import,local_argentina,https://maxtimeimport.com.ar,,0.35,1,true,Stock Once
+sup_watch_020,Golden Hour Mayorista,domestic_distributor,https://goldenhour.com.ar,,0.45,1,true,Smart acero
+sup_perf_001,Fábrica de Aromas,domestic_distributor,https://fabricadearomas.com.ar,,0.45,1,true,Nicho árabe
+sup_perf_002,Aromas de Lujo,local_argentina,https://aromasdelujo.com.ar,,0.50,1,true,Importado decants
+sup_perf_003,Once Perfumes Mayorista,domestic_distributor,https://onceperfumes.com.ar,,0.45,1,true,Hub Once
+sup_perf_004,Essence Mayorista,local_argentina,https://essencemayorista.com.ar,,0.50,1,true,Árabes Lattafa
+sup_perf_005,Decants AR,local_argentina,https://decantsar.com.ar,,0.60,1,true,Viales 5/10ml 150%
+sup_perf_006,Perfumes Once Premium,domestic_distributor,https://perfumesoncepremium.com.ar,,0.45,1,true,Importados sellados
+sup_perf_007,Scent House AR,local_argentina,https://scenthouse.com.ar,,0.50,1,true,Nicho tester
+sup_perf_008,Aroma Import,domestic_distributor,https://aromaimport.com.ar,,0.45,1,true,Stock diario
+sup_perf_009,Lattafa Mayorista AR,local_argentina,https://lattafamayorista.com.ar,,0.50,1,true,Árabes foco
+sup_perf_010,Perfume Gallery Mayorista,domestic_distributor,https://perfumegallery.com.ar,,0.45,1,true,Diseñador nicho
+sup_perf_011,Viales & Decants,local_argentina,https://vialesdecants.com.ar,,0.60,1,true,Decants muestras
+sup_perf_012,Once Mayorista Perfumes,domestic_distributor,https://oncemayoristaperfumes.com.ar,,0.45,1,true,Importador directo
+sup_perf_013,Boutique del Perfume Mayorista,domestic_distributor,https://boutiquedelperfume.com.ar,,0.40,1,true,Retail mayorista
+sup_perf_014,Aromas Árabes AR,local_argentina,https://aromasaarabesar.com.ar,,0.50,1,true,Nicho árabe premium
+sup_perf_015,Niche Scents AR,local_argentina,https://nichescentsar.com.ar,,0.55,1,true,Nicho europeo
+sup_acc_001,Gorras Once Mayorista,domestic_distributor,https://gorras-once.com.ar,,0.35,1,true,Gorras planas curvas
+sup_acc_002,Riñoneras Urbanas,local_argentina,https://rinonerasurbanas.com.ar,,0.35,1,true,Bandoleras morrales
+sup_acc_003,Acero Quirúrgico Mayorista,domestic_distributor,https://aceroquirurgico.com.ar,,0.45,1,true,Joyería acero inox
+sup_acc_004,Lentes Mayorista AR,local_argentina,https://lentesmayorista.com.ar,,0.40,1,true,Sol anti-blue
+sup_acc_005,Bolsos & Mochilas AR,domestic_distributor,https://bolsosmochilas.com.ar,,0.30,1,true,Mochilas urbanas
+sup_acc_006,Gorra Premium Hub,local_argentina,https://gorrapremium.com.ar,,0.35,1,true,Trucker snapback
+sup_acc_007,Joya Acero Once,domestic_distributor,https://joyaaceroonce.com.ar,,0.45,1,true,Anillos cadenas pulseras
+sup_acc_008,Lentes Urban Mayorista,local_argentina,https://lentesurban.com.ar,,0.40,1,true,Polarizado
+sup_acc_009,Bandolera AR,local_argentina,https://bandoleraar.com.ar,,0.30,1,true,Riñoneras bolsos chicos
+sup_acc_010,Cap Store Mayorista,domestic_distributor,https://capstore.com.ar,,0.35,1,true,Gorras marcas
+sup_acc_011,Accesorios Once Gold,domestic_distributor,https://accesoriosoncegold.com.ar,,0.40,1,true,Mix accesorios
+sup_acc_012,Urbano Accesorios Hub,local_argentina,https://urbanoaccesorios.com.ar,,0.35,1,true,Gorras lentes joyería
+sup_acc_013,Morral & Co Mayorista,local_argentina,https://morralco.com.ar,,0.30,1,true,Mochilas riñoneras
+sup_acc_014,Steel Jewelry AR,domestic_distributor,https://steeljewelryar.com.ar,,0.45,1,true,Acero premium
+sup_acc_015,Lens Pro Mayorista,local_argentina,https://lenspro.com.ar,,0.40,1,true,Gafas estuches

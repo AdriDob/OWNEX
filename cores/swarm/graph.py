@@ -4,7 +4,7 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from threading import Lock
 from typing import Any
@@ -52,8 +52,8 @@ class GraphNode:
     risk_score: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
     discovered_by: str | None = None
-    discovered_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     tags: set[str] = field(default_factory=set)
 
     def merge(self, other: GraphNode) -> None:
@@ -62,7 +62,7 @@ class GraphNode:
         self.risk_score = max(self.risk_score, other.risk_score)
         self.metadata.update(other.metadata)
         self.tags.update(other.tags)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(UTC)
 
 
 @dataclass(slots=True)
@@ -75,7 +75,7 @@ class GraphEdge:
     confidence: float = 1.0
     metadata: dict[str, Any] = field(default_factory=dict)
     discovered_by: str | None = None
-    discovered_at: datetime = field(default_factory=datetime.utcnow)
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(slots=True)
@@ -125,7 +125,7 @@ class AttackSurfaceGraph:
                     node.metadata.update(metadata)
                 if tags:
                     node.tags.update(tags)
-                node.updated_at = datetime.utcnow()
+                node.updated_at = datetime.now(UTC)
                 return node_id
 
             node_id = f"node_{uuid.uuid4().hex[:12]}"
@@ -303,7 +303,7 @@ class AttackSurfaceGraph:
         node = self._nodes.get(node_id)
         if node:
             node.exploitability = max(0.0, min(1.0, node.exploitability + delta))
-            node.updated_at = datetime.utcnow()
+            node.updated_at = datetime.now(UTC)
 
     def export_json(self) -> str:
         data = {

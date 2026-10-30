@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 
-from core.ai.runtime import AIRuntime
+from cores.ai.runtime import AIRuntime
 
 logger = logging.getLogger("orion.atlas.agents")
 

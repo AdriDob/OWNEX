@@ -100,8 +100,7 @@ const activePlatform = ref<string>('')
 const completing = ref<string>('')
 
 const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
-const rangeLabel = (r: PayoffRange): string =>
-  r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`
+const rangeLabel = (r: PayoffRange): string => (r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`)
 
 function fieldsOf(step: PlanStep): Array<{ label: string; value: string }> {
   if (!step.fields) return []
@@ -145,8 +144,7 @@ async function load(): Promise<void> {
     income.value = incRes
     if (!activePlatform.value && plan.value.length > 0) {
       const headPlatform = ovRes.next_action?.platform
-      activePlatform.value =
-        plan.value.find((p) => p.key === headPlatform)?.key ?? plan.value[0]?.key ?? ''
+      activePlatform.value = plan.value.find((p) => p.key === headPlatform)?.key ?? plan.value[0]?.key ?? ''
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
@@ -183,7 +181,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="space-y-6 animate-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <div class="flex items-center justify-between">
       <div class="space-y-1">
         <h1 class="text-xl font-semibold tracking-tight">Application Assistant</h1>
@@ -297,7 +295,7 @@ onMounted(load)
             :key="p.key"
             class="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-surface/40"
             :class="{ 'bg-primary/5': activePlatform === p.key }"
-            @click="activePlatform = p.key"
+            aria-label="Activeplatform = P.Key" @click="activePlatform = p.key"
           >
             <span class="space-y-0.5">
               <span class="block font-mono text-sm font-medium">{{ p.name }}</span>

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.workflows.engine import WorkflowEngine, get_workflow_engine
-from core.workflows.models import StepType, WorkflowStep
+from cores.workflows.engine import WorkflowEngine, get_workflow_engine
+from cores.workflows.models import StepType, WorkflowStep
 
 
 def test_engine_singleton():

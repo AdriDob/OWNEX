@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import { Activity, FileText, Play, Plus, RefreshCw, Workflow, CheckCircle2, XCircle, Clock, Loader2 } from '@lucide/vue'
-import Button from '@/components/ui/Button.vue'
+import { Activity, CheckCircle2, Clock, FileText, Loader2, Play, Plus, RefreshCw, Workflow, XCircle } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
 import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface WorkflowTemplate {
   file: string
@@ -34,23 +35,21 @@ const selectedTemplate = ref<string | null>(null)
 const showNewDialog = ref(false)
 const activeTab = ref<'templates' | 'runs'>('templates')
 
-const tabData = computed(() => activeTab.value === 'templates' ? templates.value : runs.value)
-const tabLabel = computed(() => activeTab.value === 'templates' ? 'Plantillas' : 'Ejecuciones')
+const tabData = computed(() => (activeTab.value === 'templates' ? templates.value : runs.value))
+const tabLabel = computed(() => (activeTab.value === 'templates' ? 'Plantillas' : 'Ejecuciones'))
 
 async function fetchAll() {
   loading.value = true
   try {
-    const [tRes, rRes] = await Promise.all([
-      fetch('/api/core/workflows/templates'),
-      fetch('/api/core/workflows/runs'),
+    const [tData, rData] = await Promise.all([
+      api.get<any>('/api/core/workflows/templates'),
+      api.get<any>('/api/core/workflows/runs'),
     ])
-    if (tRes.ok) {
-      const d = await tRes.json()
-      templates.value = d.templates || []
+    if (tData) {
+      templates.value = tData.templates || []
     }
-    if (rRes.ok) {
-      const d = await rRes.json()
-      runs.value = d.runs || []
+    if (rData) {
+      runs.value = rData.runs || []
     }
   } catch {
     toast.error('Error', 'No se pudieron cargar workflows')
@@ -62,36 +61,43 @@ async function fetchAll() {
 async function createRun(templateFile: string) {
   creating.value = templateFile
   try {
-    const res = await fetch('/api/core/workflows/runs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ template_file: templateFile, target: targetInput.value }),
+    await api.post('/api/core/workflows/runs', {
+      template_file: templateFile,
+      target: targetInput.value,
     })
-    if (res.ok) {
-      toast.success('Workflow', 'Ejecución creada')
-      targetInput.value = ''
-      selectedTemplate.value = null
-      showNewDialog.value = false
-      await fetchAll()
-      activeTab.value = 'runs'
-    } else {
-      const err = await res.json()
-      toast.error('Error', err.error || 'No se pudo crear')
-    }
-  } catch {
-    toast.error('Error', 'Error de conexión')
+    toast.success('Workflow', 'Ejecución creada')
+    targetInput.value = ''
+    selectedTemplate.value = null
+    showNewDialog.value = false
+    await fetchAll()
+    activeTab.value = 'runs'
+  } catch (e: unknown) {
+    const err = e as { message?: string }
+    toast.error('Error', err.message || 'No se pudo crear')
   } finally {
     creating.value = null
   }
 }
 
 function statusBadgeVariant(s: string): 'success' | 'warning' | 'info' | 'destructive' | 'outline' {
-  const m: Record<string, 'success' | 'warning' | 'info' | 'destructive' | 'outline'> = { completed: 'success', running: 'warning', pending: 'info', failed: 'destructive', cancelled: 'outline' }
+  const m: Record<string, 'success' | 'warning' | 'info' | 'destructive' | 'outline'> = {
+    completed: 'success',
+    running: 'warning',
+    pending: 'info',
+    failed: 'destructive',
+    cancelled: 'outline',
+  }
   return m[s] || 'outline'
 }
 
 function statusIcon(s: string) {
-  const m: Record<string, any> = { completed: CheckCircle2, running: Loader2, pending: Clock, failed: XCircle, cancelled: XCircle }
+  const m: Record<string, any> = {
+    completed: CheckCircle2,
+    running: Loader2,
+    pending: Clock,
+    failed: XCircle,
+    cancelled: XCircle,
+  }
   return m[s] || Clock
 }
 
@@ -99,7 +105,7 @@ onMounted(fetchAll)
 </script>
 
 <template>
-  <div class="p-6 space-y-6 animate-in">
+  <div class="p-4 space-y-4 sm:p-6 sm:space-y-6 animate-in">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -124,7 +130,7 @@ onMounted(fetchAll)
     <!-- Tabs -->
     <div class="flex gap-1 border-b border-border/20">
       <button v-for="tab in [{id:'templates',label:'Plantillas'},{id:'runs',label:'Ejecuciones'}]" :key="tab.id"
-        @click="activeTab = tab.id as any"
+        aria-label="Activetab = Tab.Id As Any" @click="activeTab = tab.id as any"
         class="px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors border-b-2 -mb-[1px]"
         :class="activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
       >

@@ -189,7 +189,7 @@ class HypothesisEngine:
         """
         try:
             ep = endpoints[0] if endpoints else None
-            return generate_from_threat_intel(
+            hyps = generate_from_threat_intel(
                 target_id=target_id,
                 target_name=target_name,
                 technologies=technologies,
@@ -199,6 +199,27 @@ class HypothesisEngine:
         except Exception as exc:
             LOG.warning("threat intel stage failed (non-fatal): %s", exc)
             return []
+        # Bridge: cached OSV/EPSS/NVD/GHSA/ThreatFox items (cache-only, no network).
+        try:
+            from cores.engine.hypothesis.threat_intel import generate_from_feed_items
+            from cores.intelligence import IntelligenceCache
+            from cores.intelligence.tasks import _default_cache_dir
+
+            cache = IntelligenceCache(_default_cache_dir())
+            cached: list[dict[str, Any]] = []
+            for src in ("osv", "epss", "nvd", "github_advisory", "threatfox"):
+                cached.extend(cache.iter_source(src))
+            if cached:
+                hyps = list(hyps) + generate_from_feed_items(
+                    cached,
+                    target_id=target_id,
+                    target_name=target_name,
+                    technologies=technologies,
+                    endpoint=ep,
+                )
+        except Exception as exc:
+            LOG.warning("feed bridge failed (non-fatal): %s", exc)
+        return hyps
 
     def _stage_3_memory(self, hypotheses: list[Hypothesis]) -> list[Hypothesis]:
         return self.memory.refine(hypotheses)

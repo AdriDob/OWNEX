@@ -37,9 +37,9 @@ sync(
     f'"version": "{VERSION}"',
 )
 
-# 3. core/__init__.py  —  __version__ = "7.0.0"
+# 3. cores/__init__.py  —  __version__ = "7.0.0"
 sync(
-    "core/__init__.py",
+    "cores/__init__.py",
     r'__version__ = ["\']\d+\.\d+\.\d+["\']',
     f'__version__ = "{VERSION}"',
 )
@@ -58,6 +58,20 @@ sync(
     VERSION,
 )
 
+# 5b. VERSION.txt — duplicate SSOT file kept in sync
+sync(
+    "VERSION.txt",
+    r"\d+\.\d+\.\d+",
+    VERSION,
+)
+
+# 5c. cores/version.py — legacy core twin re-export
+sync(
+    "cores/version.py",
+    r'__version__ = ["\']\d+\.\d+\.\d+["\']',
+    f'__version__ = "{VERSION}"',
+)
+
 # 6. frontend/package.json — workspace del frontend
 sync(
     "frontend/package.json",
@@ -73,14 +87,51 @@ sync(
 )
 
 # 8. src-tauri/Cargo.toml — versión del crate
+# NOTA: el patrón está anclado a inicio de línea y el archivo NO empieza con
+# "version", así que requiere el flag re.MULTILINE — sin él el sync nunca
+# matcheaba y Cargo.toml quedaba desincronizado (bug silencioso).
 sync(
     "src-tauri/Cargo.toml",
-    r'^version = ["\']\d+\.\d+\.\d+["\']',
+    r'(?m)^version = ["\']\d+\.\d+\.\d+["\']',
     f'version = "{VERSION}"',
 )
 
+# 9. cores/version.py — OWNEX_VERSION (consumido por /api/stability/status)
+sync(
+    "cores/version.py",
+    r'OWNEX_VERSION = ["\']\d+\.\d+\.\d+["\']',
+    f'OWNEX_VERSION = "{VERSION}"',
+)
+
+# 10. apps/*/manifest.py — version="7.x" de cada app (IAppPlugin)
+for _app in ("aegis", "atlas", "cateye", "forge", "hermes", "odyssey", "pulse", "vault"):
+    sync(
+        f"apps/{_app}/manifest.py",
+        r'version=["\']\d+\.\d+\.\d+["\']',
+        f'version="{VERSION}"',
+    )
+
+# 11. installer/OWNEX-Desktop-Alpha.nsi — instalador legacy Gen2
+# El NSI usa tres defines (MAJOR/MINOR/BUILD); se sincronizan por partes.
+_nsi_major, _nsi_minor, _nsi_build = VERSION.split(".")
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONMAJOR \d+",
+    f"!define VERSIONMAJOR {_nsi_major}",
+)
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONMINOR \d+",
+    f"!define VERSIONMINOR {_nsi_minor}",
+)
+sync(
+    "installer/OWNEX-Desktop-Alpha.nsi",
+    r"!define VERSIONBUILD \d+",
+    f"!define VERSIONBUILD {_nsi_build}",
+)
+
 if changed:
-    print(f"✅ Version {VERSION} sincronizada en 5 archivos del proyecto.")
+    print(f"✅ Version {VERSION} sincronizada en los archivos del proyecto.")
 else:
     print(f"⚠️ No se detectaron diferencias — todos los archivos ya tienen version {VERSION}.")
 

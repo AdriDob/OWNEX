@@ -10,7 +10,7 @@ import logging
 from collections import defaultdict
 from typing import Any
 
-from core.acceptance.models import AcceptanceOutcome, PlatformProfile
+from cores.acceptance.models import AcceptanceOutcome, PlatformProfile
 
 logger = logging.getLogger("orion.core.acceptance.analyzer")
 

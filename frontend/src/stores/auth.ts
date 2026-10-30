@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { api, getToken, setToken, clearSession, isSessionValid, setSessionExpiry } from '@/lib/api'
+import { computed, ref } from 'vue'
+import { api, clearSession, getToken, isSessionValid, setToken } from '@/lib/api'
+import type { DeviceLoginEnvelope, TokenResponse } from '@/types/index'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
@@ -10,47 +11,59 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => isSessionValid())
 
-  async function loginWithCredentials(email: string, password: string) {
+  /**
+   * Login por credenciales contra `/auth/users/login`.
+   * Contrato real (api/routers/auth_users.py): LoginRequest exige `username`
+   * (no email) y la respuesta es un TokenResponse plano con `access_token`
+   * — sin envelope y sin `session`. Antes se mandaba `{email,password}` y se
+   * leía `res.session.token`, lo que producía 422 y un token nunca guardado.
+   */
+  async function loginWithCredentials(username: string, password: string) {
     loading.value = true
     error.value = null
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
-        '/auth/users/login', { email, password }, true
+      const res = await api.post<TokenResponse>(
+        '/auth/users/login',
+        { username, password },
+        true,
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
-        user.value = res.user
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
-        }
+      if (res?.access_token) {
+        setToken(res.access_token)
+        token.value = res.access_token
+        user.value = { username }
+        return true
       }
+      error.value = 'Credenciales inválidas'
+      return false
     } catch (e: any) {
       error.value = e?.message || 'Credenciales inválidas'
-      throw e
+      return false
     } finally {
       loading.value = false
     }
   }
 
-  async function register(email: string, password: string, displayName?: string) {
+  /** Contrato real: RegisterRequest = { username, email, password }. */
+  async function register(username: string, email: string, password: string) {
     loading.value = true
     error.value = null
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
-        '/auth/users/register', { email, password, display_name: displayName || email.split('@')[0] }, true
+      const res = await api.post<TokenResponse>(
+        '/auth/users/register',
+        { username, email, password },
+        true,
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
-        user.value = res.user
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
-        }
+      if (res?.access_token) {
+        setToken(res.access_token)
+        token.value = res.access_token
+        user.value = { username, email }
+        return true
       }
+      error.value = 'No se pudo completar el registro'
+      return false
     } catch (e: any) {
       error.value = e?.message || 'Error al registrarse'
-      throw e
+      return false
     } finally {
       loading.value = false
     }
@@ -61,19 +74,22 @@ export const useAuthStore = defineStore('auth', () => {
     const deviceId = tryGetDeviceId()
     if (!deviceId) return false
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user?: any }>(
-        '/auth/login', { device_id: deviceId, device_info: 'vue-frontend' }, true
+      // Contrato real: APIEnvelope → data.token (antes leíamos res.session.token,
+      // clave que ningún endpoint emite ⇒ el token nunca se guardaba).
+      const res = await api.post<DeviceLoginEnvelope>(
+        '/auth/login',
+        { device_id: deviceId, device_info: 'vue-frontend' },
+        true,
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
-        }
-        if (res.user) user.value = res.user
+      const issued = res?.data?.token
+      if (issued) {
+        setToken(issued)
+        token.value = issued
         return true
       }
-    } catch { /* silent */ }
+    } catch {
+      /* silent — sin backend la app sigue navegable, la API protege las mutaciones */
+    }
     return false
   }
 
@@ -84,7 +100,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function tryGetDeviceId(): string | null {
-    try { return localStorage.getItem('CATEYE-device-id') } catch { return null }
+    try {
+      return localStorage.getItem('CATEYE-device-id')
+    } catch {
+      return null
+    }
   }
 
   return { user, token, loading, error, isAuthenticated, loginWithCredentials, register, autoLogin, logout }

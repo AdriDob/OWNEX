@@ -52,7 +52,7 @@ class OrionContext:
 
     def _get_system_state(self) -> dict[str, Any]:
         try:
-            from core.system_state import get_system_state
+            from cores.system_state import get_system_state
 
             s = get_system_state()
             return {
@@ -75,7 +75,7 @@ class OrionContext:
             from database.models import Target
 
             session = self._db()
-            targets = session.query(Target).filter(Target.status.in_(["active", "scanning"])).limit(10).all()
+            targets = session.query(Target).filter(Target.active.is_(True)).limit(10).all()
             result = [
                 {"id": t.id, "name": t.name, "domain": getattr(t, "domain", ""), "status": t.status} for t in targets
             ]
@@ -104,7 +104,7 @@ class OrionContext:
 
     def _get_memory_snapshot(self) -> list[dict[str, Any]]:
         try:
-            from core.memory.store import get_memory_store
+            from cores.memory.store import get_memory_store
 
             store = get_memory_store()
             entries = store.query(namespace="global", limit=5)

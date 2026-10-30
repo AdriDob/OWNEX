@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from core.opportunity.models import ScoredOpportunity
+    from cores.opportunity.models import ScoredOpportunity
 
 
 @dataclass
@@ -45,7 +45,7 @@ class OpportunityAdapter:
 
     def to_scored(self, raw: RawOpportunity, personal: Any | None = None) -> ScoredOpportunity:
         """Convert raw opportunity to scored OWNEX opportunity."""
-        from core.opportunity.scorer import score_opportunity
+        from cores.opportunity.scorer import score_opportunity
 
         return score_opportunity(
             opp_id=raw.id,
@@ -103,17 +103,26 @@ def get_adapter_registry() -> AdapterRegistry:
 def _seed_defaults(registry: AdapterRegistry) -> None:
     """Register built-in adapters (lazy import to avoid circular deps)."""
     # Security adapters (Rastro)
+    # NOTE: cores/opportunity/adapters/security.py (legacy SecurityAdapter/
+    # AegisAdapter) is shadowed by the security/ package of the same name, so
+    # it is loaded from its file path explicitly instead of by module import.
     try:
-        from core.opportunity.adapters.security import SecurityAdapter
+        import importlib.util
+        from pathlib import Path
 
-        registry.register("rastro", SecurityAdapter)
-        registry.register("aegis", SecurityAdapter)
-    except ImportError:
+        _legacy_path = Path(__file__).with_name("security.py")
+        _spec = importlib.util.spec_from_file_location("cores.opportunity.adapters.security_legacy", _legacy_path)
+        if _spec is not None and _spec.loader is not None:
+            _legacy_mod = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_legacy_mod)
+            registry.register("rastro", _legacy_mod.SecurityAdapter)
+            registry.register("aegis", _legacy_mod.AegisAdapter)
+    except (ImportError, AttributeError, OSError):
         pass
 
     # Forge adapters (Dev Bounty)
     try:
-        from core.opportunity.adapters.forge import (
+        from cores.opportunity.adapters.forge import (
             AlgoraAdapter,
             ForgeAdapter,
             OpireAdapter,
@@ -129,7 +138,7 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # IssueHunt
     try:
-        from core.opportunity.adapters.issuehunt import IssueHandAdapter, IssueHuntAdapter
+        from cores.opportunity.adapters.issuehunt import IssueHandAdapter, IssueHuntAdapter
 
         registry.register("issuehunt", IssueHuntAdapter)
         registry.register("issuehand", IssueHandAdapter)
@@ -138,8 +147,8 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # Opire/Opyre
     try:
-        from core.opportunity.adapters.opire import OpireAdapter as OpireAdapterNew
-        from core.opportunity.adapters.opire import OpyreAdapter
+        from cores.opportunity.adapters.opire import OpireAdapter as OpireAdapterNew
+        from cores.opportunity.adapters.opire import OpyreAdapter
 
         registry.register("opire", OpireAdapterNew)
         registry.register("opyre", OpyreAdapter)
@@ -148,28 +157,42 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # LinkedIn
     try:
-        from core.opportunity.adapters.linkedin import LinkedInEasyApplyAdapter, LinkedInJobsAdapter
+        from cores.opportunity.adapters.linkedin import LinkedInEasyApplyAdapter, LinkedInJobsAdapter
 
         registry.register("linkedin", LinkedInJobsAdapter)
         registry.register("linkedin_easyapply", LinkedInEasyApplyAdapter)
     except ImportError:
         pass
 
-    # Freelancer
+    # Freelancer marketplace adapters are intentionally NOT registered:
+    # low-trust marketplace, extreme competition, low $/h (purge 2026-09).
+
+    # AR job boards (read-only discovery, manual apply — backup income)
     try:
-        from core.opportunity.adapters.freelancer import (
-            FreelancerAdapter,
-            FreelancerMicrotaskAdapter,
+        from cores.opportunity.adapters.ar_jobs import (
+            BumeranAdapter,
+            ComputrabajoAdapter,
+            ZonaJobsAdapter,
         )
 
-        registry.register("freelancer", FreelancerAdapter)
-        registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
+        registry.register("zonajobs", ZonaJobsAdapter)
+        registry.register("bumeran", BumeranAdapter)
+        registry.register("computrabajo", ComputrabajoAdapter)
+    except ImportError:
+        pass
+
+    # Microtask marketplaces: Prolific only. Toloka + Clickworker removed
+    # per owner (purge 2026-09-13): sub-scale payouts, no skill assessment.
+    try:
+        from cores.opportunity.adapters.microtask import ProlificAdapter
+
+        registry.register("prolific", ProlificAdapter)
     except ImportError:
         pass
 
     # OpenCollective
     try:
-        from core.opportunity.adapters.opencollective import (
+        from cores.opportunity.adapters.opencollective import (
             OpenCollectiveAdapter,
             OpenCollectiveProjectsAdapter,
         )
@@ -180,22 +203,20 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
         pass
 
     # Pulse adapters
+    # Remotasks excluded: sub-Toloka payouts, same parent (Scale), shuttering.
+    # FreelancerMicrotask excluded: marketplace race-to-bottom (purge 2026-09).
     try:
-        from core.opportunity.adapters.pulse import (
+        from cores.opportunity.adapters.pulse import (
             DataAnnotationAdapter,
-            FreelancerMicrotaskAdapter,
             LinkedInEasyApplyAdapter,
             MindriftAdapter,
             OpyreMicrotaskAdapter,
             OutlierAdapter,
-            RemotasksAdapter,
         )
 
         registry.register("outlier", OutlierAdapter)
         registry.register("dataannotation", DataAnnotationAdapter)
         registry.register("mindrift", MindriftAdapter)
-        registry.register("remotasks", RemotasksAdapter)
-        registry.register("freelancer_microtask", FreelancerMicrotaskAdapter)
         registry.register("linkedin_easyapply", LinkedInEasyApplyAdapter)
         registry.register("opyre_microtask", OpyreMicrotaskAdapter)
     except ImportError:
@@ -203,7 +224,7 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # Vault adapters
     try:
-        from core.opportunity.adapters.vault import (
+        from cores.opportunity.adapters.vault import (
             BinanceAdapter,
             CoinGeckoAdapter,
             DefiLlamaAdapter,
@@ -219,7 +240,7 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
 
     # Atlas adapters
     try:
-        from core.opportunity.adapters.atlas import AtlasAdapter
+        from cores.opportunity.adapters.atlas import AtlasAdapter
 
         registry.register("cve", AtlasAdapter)
         registry.register("osint", AtlasAdapter)
@@ -272,7 +293,7 @@ async def fetch_all_opportunities(
     enabled_only: bool = True,
 ) -> list[ScoredOpportunity]:
     """Fetch opportunities from all enabled adapters."""
-    from core.opportunity.models import ScoredOpportunity
+    from cores.opportunity.models import ScoredOpportunity
 
     registry = get_adapter_registry()
     all_opportunities: list[ScoredOpportunity] = []

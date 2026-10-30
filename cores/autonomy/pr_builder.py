@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from core.autonomy.code_generator import CodeChange, GenerationPlan
-from core.autonomy.repo_analyzer import RepoInfo
+from cores.autonomy.code_generator import CodeChange, GenerationPlan
+from cores.autonomy.repo_analyzer import RepoInfo
 
 
 @dataclass
@@ -38,8 +38,22 @@ class PRBuilder:
         plan: GenerationPlan,
         repo_info: RepoInfo,
         platform: str = "github",
+        approval_token: str | None = None,
+        require_approval: bool = True,
     ) -> PRResult:
-        """Create a pull request with the generated changes."""
+        """Create a pull request with the generated changes.
+
+        Pushing a branch and opening a PR are outward, hard-to-undo actions:
+        they REQUIRE a one-time human approval token by default.
+        """
+        if require_approval:
+            from cores.automation.safety import consume_approval
+
+            target = str(getattr(repo_info, "path", "") or "unknown-repo")
+            if not consume_approval(approval_token, "coder:create_pr", target):
+                return PRResult(
+                    success=False, error="Requires human approval: PR push/open. Issue a token after review."
+                )
         try:
             # 1. Create a new branch
             branch_name = self._generate_branch_name(plan.issue_analysis.issue_id)
@@ -405,7 +419,9 @@ async def create_pr_from_plan(
     repo_info: RepoInfo,
     platform: str = "github",
     config: dict[str, Any] | None = None,
+    approval_token: str | None = None,
+    require_approval: bool = True,
 ) -> PRResult:
-    """Convenience function to create PR from generation plan."""
+    """Convenience function to create PR from generation plan (approval-gated)."""
     builder = PRBuilder(config)
-    return await builder.create_pr(plan, repo_info, platform)
+    return await builder.create_pr(plan, repo_info, platform, approval_token, require_approval)

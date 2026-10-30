@@ -4,8 +4,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from core.evolution.analyze import AnalyzeEngine
-from core.evolution.rollup import RollupEngine
+from cores.evolution.analyze import AnalyzeEngine
+from cores.evolution.rollup import RollupEngine
 from database import db
 from database.db import init_db
 from database.models import Finding, KnowledgeAsset, MetricEvent, MetricRollup, Verdict

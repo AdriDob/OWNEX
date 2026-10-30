@@ -1,6 +1,28 @@
 from typing import Any
+from urllib.parse import urlencode
 
 from cores.validation.replayer import ComparisonResult, RequestSpec
+
+_REDACTED_HEADERS = {"authorization", "cookie", "set-cookie", "x-api-key", "api-key"}
+_SKIP_HEADERS = {"content-length", "host"}
+
+
+def _redact_headers(headers: dict[str, str] | None) -> dict[str, str]:
+    cleaned: dict[str, str] = {}
+    for k, v in (headers or {}).items():
+        if k.lower() in _REDACTED_HEADERS:
+            cleaned[k] = "<redacted>"
+        elif k.lower() not in _SKIP_HEADERS:
+            cleaned[k] = v
+    return cleaned
+
+
+def _url_with_params(url: str, params: dict[str, str] | None) -> str:
+    if not params:
+        return url
+    qs = urlencode(params)
+    sep = "&" if "?" in url else "?"
+    return f"{url}{sep}{qs}"
 
 
 class EvidenceBuilder:
@@ -31,6 +53,7 @@ class EvidenceBuilder:
             "sensitive_fields": _json.dumps(comparison.sensitive_fields_detected),
             "consistent": "true" if comparison.consistent else "false",
             "curl_command": self._build_curl(request_spec, auth_label, comparison),
+            "python_command": self._build_python(request_spec, auth_label),
         }
 
     def build_all_from_comparisons(
@@ -59,18 +82,111 @@ class EvidenceBuilder:
             "sensitive_fields_found": sorted(set(f for c in comparisons for f in c.sensitive_fields_detected)),
         }
 
-    def _build_curl(self, spec: RequestSpec, auth_label: str, comparison: ComparisonResult) -> str:
+    def build_poc_from_probe(self, probe_request: Any) -> dict[str, str]:
+        """Build curl + python PoCs from a probe's ProbeRequest.
+
+        Bridges cores/offensive/probe results into executable evidence
+        without going through the replayer comparison path.
+        """
+        spec = RequestSpec(
+            url=getattr(probe_request, "url", ""),
+            method=getattr(probe_request, "method", "GET") or "GET",
+            headers=dict(getattr(probe_request, "headers", {}) or {}),
+            params=dict(getattr(probe_request, "params", {}) or {}),
+            body=getattr(probe_request, "body", None),
+        )
+        return {
+            "curl_command": self._build_curl(spec, "probe", None),
+            "python_command": self._build_python(spec, "probe"),
+        }
+
+    def build_ai_agent_transcript(
+        self,
+        turns: list[dict[str, Any]],
+        endpoint: str = "",
+        program: str = "",
+        repro_rate: float | None = None,
+        impact: str = "",
+    ) -> dict[str, Any]:
+        """Transcript de agente-IA en el formato que piden los programas frontier.
+
+        OpenAI/Anthropic exigen: scope autorizado, prompt benigno fijo +
+        instrucción inyectada, transcript completo y tasa de reproducción.
+        Auth-bearing headers de los turns se redactan igual que en curl.
+        Puro: turns es lista de {input, output} (ej. ai_lab.run_chain).
+        """
+        clean_turns: list[dict[str, str]] = []
+        for i, t in enumerate(turns or []):
+            clean_turns.append(
+                {
+                    "turn": str(i + 1),
+                    "input": str(t.get("input", ""))[:2000],
+                    "output": str(t.get("output", ""))[:2000],
+                }
+            )
+        lines = [
+            f"Scope: authorized target {endpoint or '(see report)'} — program: {program or 'unspecified'}.",
+            f"Fixed benign prompt + injected instruction per turn below ({len(clean_turns)} turns).",
+        ]
+        for t in clean_turns:
+            lines.append(f"[turn {t['turn']}] IN> {t['input']}")
+            lines.append(f"[turn {t['turn']}] OUT> {t['output']}")
+        if repro_rate is not None:
+            lines.append(f"Reproducibility: {repro_rate:.0%} over repeated runs (fresh session each).")
+        return {
+            "endpoint": endpoint,
+            "program": program,
+            "turns": clean_turns,
+            "turn_count": len(clean_turns),
+            "repro_rate": repro_rate,
+            "repro_gate": "PASS"
+            if repro_rate is not None and repro_rate >= 0.5
+            else ("UNKNOWN" if repro_rate is None else "FAIL"),
+            "impact": impact,
+            "transcript_md": "\n".join(lines),
+        }
+
+    def _build_curl(self, spec: RequestSpec, auth_label: str, comparison: ComparisonResult | None = None) -> str:
+        """Reproducible curl built from the REQUEST spec (never response headers).
+
+        GET-like methods carry params in the query string; others use -d.
+        Auth-bearing headers are redacted, never dropped silently.
+        """
         parts = ["curl"]
         if spec.method != "GET":
             parts.append(f"-X {spec.method}")
-        if comparison.baseline.headers:
-            for k, v in comparison.baseline.headers.items():
-                if k.lower() in ("authorization", "cookie"):
-                    parts.append(f"-H '{k}: <redacted>'")
-                elif k.lower() not in ("content-length", "host"):
-                    parts.append(f"-H '{k}: {v}'")
-        for k, v in spec.params.items():
-            if spec.method in ("POST", "PUT", "PATCH"):
+        for k, v in _redact_headers(spec.headers).items():
+            parts.append(f"-H '{k}: {v}'")
+        if spec.method in ("POST", "PUT", "PATCH"):
+            if isinstance(spec.body, dict):
+                import json as _json
+
+                parts.append("-H 'Content-Type: application/json'")
+                parts.append(f"-d '{_json.dumps(spec.body)}'")
+            for k, v in (spec.params or {}).items():
                 parts.append(f"-d '{k}={v}'")
-        parts.append(f"'{spec.url}'")
+            parts.append(f"'{spec.url}'")
+        else:
+            parts.append(f"'{_url_with_params(spec.url, spec.params)}'")
         return " \\\n  ".join(parts)
+
+    def _build_python(self, spec: RequestSpec, auth_label: str) -> str:
+        """Equivalent requests-based PoC (same request the curl reproduces)."""
+        import json as _json
+
+        lines = ["import requests", ""]
+        headers = _redact_headers(spec.headers)
+        lines.append(f"url = '{spec.url}'")
+        lines.append(f"headers = {_json.dumps(headers)}")
+        if spec.params:
+            lines.append(f"params = {_json.dumps(spec.params)}")
+        else:
+            lines.append("params = None")
+        if spec.body is not None:
+            lines.append(f"body = {_json.dumps(spec.body)}")
+            lines.append(f"r = requests.{spec.method.lower()}(url, headers=headers, params=params, json=body)")
+        else:
+            lines.append(f"r = requests.{spec.method.lower()}(url, headers=headers, params=params)")
+        lines.append("print(r.status_code)")
+        lines.append("print(r.text[:2000])")
+        return "\n".join(lines)

@@ -26,11 +26,12 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
-from core.target_intelligence import TargetPrioritizer
 from cores.agents.types import EventType  # AÑADIR PipelineState
 from cores.env.config import get_config
 from cores.events.event_bus import get_event_bus  # AÑADIR
 from cores.intelligence.reward_learning import RewardLearner
+from cores.recon.hostname import scannable_domain
+from cores.target_intelligence import TargetPrioritizer
 from cores.targets.models import TargetIntel
 from database import db, models
 
@@ -46,8 +47,8 @@ def _get_copilot():
     global _copilot_instance
     if _copilot_instance is None:
         try:
-            from core.copilot.agent import CopilotAgent
-            from core.copilot.permissions import AuthorityLevel
+            from cores.copilot.agent import CopilotAgent
+            from cores.copilot.permissions import AuthorityLevel
 
             _copilot_instance = CopilotAgent(authority=AuthorityLevel.SENIOR_HUNTER)
             logger.info("[COPILOT] Scheduler COPILOT initialized")
@@ -176,11 +177,21 @@ class ScanScheduler:
     async def _loop(self):
         while self._running:
             try:
-                self._recover_stale_scans()
-                await self._run_pipeline()
+                await self.run_cycle()
             except Exception as exc:
                 logger.warning("Pipeline cycle error: %s", exc)
             await asyncio.sleep(self.interval)
+
+    async def run_cycle(self) -> None:
+        """Run one full pipeline cycle (stale-scan recovery + stages).
+
+        Public entry point so external triggers (e.g. POST /api/hunt/start)
+        can kick a cycle immediately WITHOUT creating a second scheduler
+        instance or reaching into the private pipeline method. Honors the
+        same per-stage cooldowns as the interval loop.
+        """
+        self._recover_stale_scans()
+        await self._run_pipeline()
 
     def _recover_stale_scans(self) -> None:
         """Mark scans stuck in 'running' as failed before each cycle."""
@@ -334,7 +345,7 @@ class ScanScheduler:
             goals_met = 0
 
             try:
-                from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+                from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
                 fed = feed_hacktivity_to_learner(max_pages=1, delay=0.3)
                 if fed:
@@ -344,7 +355,7 @@ class ScanScheduler:
                 logger.debug("[RECOVERY] Hacktivity learning skipped")
 
             try:
-                from core.revenue.economic_memory import EconomicMemory
+                from cores.revenue.economic_memory import EconomicMemory
 
                 EconomicMemory().refresh()
                 goals_met += 1
@@ -540,6 +551,22 @@ class ScanScheduler:
                 logger.debug("[RECON] No targets to scan")
                 return
 
+            # Higiene de escaneo (2026-09-18): los dominios inválidos (ej.
+            # slugs con "_" + ".com") jamás resuelven DNS — escanearlos quema
+            # timeouts y jamás produce findings. Se saltean sin mutar la DB;
+            # el owner los corrige o elimina cuando quiera.
+            scannable = [t for t in targets if scannable_domain(t.name, getattr(t, "domain", None))]
+            skipped = len(targets) - len(scannable)
+            if skipped:
+                logger.warning(
+                    "[RECON] Skipping %d target(s) with invalid DNS domain (no-op scans avoided)",
+                    skipped,
+                )
+            targets = scannable
+            if not targets:
+                logger.debug("[RECON] No scannable targets (all invalid domain)")
+                return
+
             mode = get_config().scan_mode
 
             # Use TargetPrioritizer for EV-based ranking + attack plans
@@ -549,6 +576,15 @@ class ScanScheduler:
                 adjustments = learner.get_adjustments()
             except Exception:
                 adjustments = {}
+            # Primicia P3: dominios con deltas recientes rinden más (best-effort)
+            try:
+                from cores.recon.change_monitor import fresh_domains_with_alerts
+
+                fresh = {host: 1.0 + min(count, 3) * 0.25 for host, count in fresh_domains_with_alerts().items()}
+            except Exception:
+                fresh = {}
+
+            target_intel_map: dict[int, TargetIntel] = {}
 
             target_intel_map: dict[int, TargetIntel] = {}
             for t in targets:
@@ -562,7 +598,7 @@ class ScanScheduler:
                     target_intel_map[t.id] = intel
 
             prioritizer = TargetPrioritizer()
-            priority, results = prioritizer.prioritize(targets, target_intel_map, adjustments)
+            priority, results = prioritizer.prioritize(targets, target_intel_map, adjustments, fresh)
 
             targets_with_priority = [(t, priority.get(t.id, 0.0)) for t in targets]
             targets_with_priority.sort(key=lambda x: -x[1])
@@ -716,7 +752,7 @@ class ScanScheduler:
         logger.info("[PROMOTE] Testing hypotheses against real endpoints...")
         session = db.SessionLocal()
         try:
-            from core.pipeline.hypothesis_bridge import run_promote
+            from cores.pipeline.hypothesis_bridge import run_promote
 
             stats = await asyncio.to_thread(run_promote, session)
             if stats["findings_created"] > 0:
@@ -755,11 +791,19 @@ class ScanScheduler:
 
                     pipeline_id = self._target_pipelines.get(target.id)  # OBTENER pipeline_id
                     if not pipeline_id:
-                        logger.warning(
-                            "[HYPOTHESIS] No pipeline_id found for target %d, skipping hypothesis generation.",
+                        # Resumen tras restart (2026-09-18): _target_pipelines vive
+                        # solo en RAM; sin fallback, todo endpoint escaneado antes
+                        # del restart (o vía API) se salteaba PARA SIEMPRE y jamás
+                        # llegaba a hypothesis → validation → finding (0 findings
+                        # con 9k+ endpoints). El pipeline_id es observabilidad,
+                        # no lógica: se sintetiza uno estable y se registra.
+                        pipeline_id = f"resume-t{target.id}"
+                        self._target_pipelines[target.id] = pipeline_id
+                        logger.info(
+                            "[HYPOTHESIS] Resumed pipeline %s for target %d (no live pipeline_id).",
+                            pipeline_id,
                             target.id,
                         )
-                        continue
 
                     ep_dict = {
                         "id": ep.id,
@@ -809,7 +853,7 @@ class ScanScheduler:
         logger.info("[AUTO_VALIDATE] Running Validation Engine on hypotheses...")
         session = db.SessionLocal()
         try:
-            from core.validation.bridge import ValidationBridge
+            from cores.validation.bridge import ValidationBridge
 
             bridge = ValidationBridge()
 
@@ -1002,8 +1046,8 @@ class ScanScheduler:
 
                             # Acceptance prediction (no-op if no data yet)
                             try:
-                                from core.reports.acceptance.learner import AcceptanceLearner
-                                from core.reports.quality.scorer import QualityScorer
+                                from cores.reports.acceptance.learner import AcceptanceLearner
+                                from cores.reports.quality.scorer import QualityScorer
 
                                 learner = AcceptanceLearner(load_persisted=True)
                                 scorer = QualityScorer()
@@ -1050,7 +1094,7 @@ class ScanScheduler:
     async def _stage_ai_bounty(self):
         logger.info("[AI_BOUNTY] Checking AI bounty programs...")
         try:
-            from core.ai_bounty.engine import AIBountyEngine
+            from cores.ai_bounty.engine import AIBountyEngine
 
             engine = AIBountyEngine()
             challenges = engine.discover_all()

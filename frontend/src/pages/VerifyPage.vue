@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { Loader2, MailCheck, ShieldCheck, XCircle } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/lib/api'
-import { MailCheck, XCircle, Loader2, ShieldCheck } from '@lucide/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -50,7 +50,7 @@ onMounted(async () => {
         </p>
         <button
           class="mt-5 w-full rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          @click="router.push('/')"
+          aria-label="Go To /" @click="router.push('/')"
         >
           Ir a la aplicación
         </button>
@@ -62,7 +62,7 @@ onMounted(async () => {
         <p class="mt-1 text-xs text-muted-foreground">{{ errorMsg }}</p>
         <button
           class="mt-5 w-full rounded-lg bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          @click="router.push('/')"
+          aria-label="Go To /" @click="router.push('/')"
         >
           Ir a la aplicación
         </button>

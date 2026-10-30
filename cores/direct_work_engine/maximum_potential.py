@@ -280,14 +280,14 @@ def _recent_commits() -> list[str]:
 
 
 def _active_capabilities() -> list[str]:
-    from core.capabilities.registry import get_capability_registry
+    from cores.capabilities.registry import get_capability_registry
 
     registry = get_capability_registry()
     return list(registry.list_capabilities())
 
 
 def _broken_capabilities() -> list[str]:
-    from core.capabilities.registry import get_capability_registry
+    from cores.capabilities.registry import get_capability_registry
 
     registry = get_capability_registry()
     entries = getattr(registry, "capabilities", {})
@@ -295,7 +295,7 @@ def _broken_capabilities() -> list[str]:
 
 
 def _health_snapshot():
-    from core.health.engine import get_health_center
+    from cores.health.engine import get_health_center
 
     return get_health_center().get_snapshot()
 

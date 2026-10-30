@@ -152,7 +152,6 @@ class TargetPrioritizer:
     def __init__(self) -> None:
         self._fingerprinter: Any = None
         self._revenue_metrics: Any = None
-        self._feedback_loop: Any = None
 
     def _load_metrics(self) -> None:
         if self._revenue_metrics is None:
@@ -160,20 +159,14 @@ class TargetPrioritizer:
 
             self._revenue_metrics = RevenueMetrics()
 
-    def _load_feedback_loop(self) -> None:
-        if self._feedback_loop is None:
-            from cores.opportunity.feedback import get_feedback_loop
-
-            self._feedback_loop = get_feedback_loop()
-
     def prioritize(
         self,
         targets: list[Any],
         target_intel_map: dict[int, Any],
         adjustments: dict[str, float] | None = None,
+        fresh_boost: dict[str, float] | None = None,
     ) -> tuple[dict[int, float], list[PriorityResult]]:
         self._load_metrics()
-        self._load_feedback_loop()
         priority_dict: dict[int, float] = {}
         results: list[PriorityResult] = []
 
@@ -184,19 +177,10 @@ class TargetPrioritizer:
                 continue
 
             reward = self._estimate_reward(intel)
-            platform = self._detect_platform(tgt, intel) or "unknown"
+            platform = self._detect_platform(tgt, intel)
             speed_days = self._estimate_speed(platform)
             tech_adjustment = compute_tech_adjustment(intel.technology_tags or "", adjustments or {})
             surface = 0.8 + (intel.attack_surface_score or 0.0) * 0.2
-
-            # Get feedback multipliers for personalized scoring
-            tech_tags_list = [t.strip() for t in (intel.technology_tags or "").split(",") if t.strip()]
-            feedback_multipliers = self._feedback_loop.get_personalized_multipliers(
-                category="platform",  # Targets are typically platform programs
-                platform=platform,
-                technology_tags=tech_tags_list,
-            )
-            feedback_multiplier = feedback_multipliers.get("combined_multiplier", 1.0)
 
             ev = compute_ev(
                 estimated_reward=reward,
@@ -205,7 +189,38 @@ class TargetPrioritizer:
                 confidence=intel.reward_confidence or 0.5,
             )
 
-            adjusted_ev = ev.expected_value * tech_adjustment * surface * feedback_multiplier
+            adjusted_ev = ev.expected_value * tech_adjustment * surface
+            # F1 big-scope: wildcards = periferia donde la competencia no mira.
+            # Boost acotado ×1.25; solo bool real (None/desconocido = sin cambio).
+            try:
+                _wild = getattr(tgt, "is_wildcard", False)
+                if type(_wild) is bool and _wild:
+                    adjusted_ev *= 1.25
+            except (TypeError, ValueError, AttributeError):
+                pass
+            # F1 payout-tiers: tablas máximas PUBLICADAS para critical
+            # (2026-09, verificar en cada programa). Solo ordenan, jamás fijan
+            # el payout esperado: TIER_1 ×1.3, TIER_2 ×1.15.
+            try:
+                prog = str(getattr(intel, "program_url", "") or "").lower()
+                if any(g in prog for g in ("google", "meta", "facebook")):
+                    adjusted_ev *= 1.3
+                elif any(g in prog for g in ("microsoft", "shopify", "gitlab", "uber", "yahoo")):
+                    adjusted_ev *= 1.15
+            except (TypeError, ValueError, AttributeError):
+                pass
+            # Primicia P3: dominios con alertas de cambio recientes rinden más
+            # (menos duplicados). Boost acotado [1.0, 2.0], None = sin cambio.
+            try:
+                domain = str(getattr(tgt, "domain", "") or "").lower().strip()
+                boost = 1.0
+                for host, mult in (fresh_boost or {}).items():
+                    h = str(host or "").lower().strip()
+                    if h and (domain == h or domain.endswith("." + h) or h.endswith("." + domain)):
+                        boost = max(boost, min(max(float(mult), 1.0), 2.0))
+                adjusted_ev *= boost
+            except (TypeError, ValueError, AttributeError):
+                pass
             plan = self._build_attack_plan(intel)
             usd_per_hour = round(reward / max(plan.estimated_hours, 0.5), 2)
 

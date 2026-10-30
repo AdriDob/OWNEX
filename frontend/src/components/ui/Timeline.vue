@@ -11,14 +11,17 @@ export interface TimelineEvent {
   detail?: string
 }
 
-const props = withDefaults(defineProps<{
-  events: TimelineEvent[]
-  height?: string
-  compact?: boolean
-}>(), {
-  height: 'full',
-  compact: false,
-})
+const props = withDefaults(
+  defineProps<{
+    events: TimelineEvent[]
+    height?: string
+    compact?: boolean
+  }>(),
+  {
+    height: 'full',
+    compact: false,
+  },
+)
 
 const dotColors: Record<string, string> = {
   success: 'bg-success',

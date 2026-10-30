@@ -6,23 +6,28 @@
 </p>
 
 <p align="center">
-  <strong>Autonomous Work Operating System</strong> 📡
+  <strong>OWNEX v7.7.7 — Autonomous Work Operating System</strong> 📡
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0/>
+  <img src="https://img.shields.io/badge/version-7.7.7-success?style=flat-square"/>
   <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-4000%2B/>
+  <img src="https://img.shields.io/badge/tests-4534+-passed?style=flat-square"/>
   <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
   <img src="https://img.shields.io/github/stars/AdriDob/OWNEX?style=flat-square&logo=github&logoColor=white&label=stars"/>
   <img src="https://img.shields.io/github/last-commit/AdriDob/OWNEX?style=flat-square&label=last%20commit"/>
   <img src="https://img.shields.io/github/repo-size/AdriDob/OWNEX?style=flat-square&label=repo%20size"/>
+  <img src="https://img.shields.io/badge/health-9.5%2F10-success?style=flat-square"/>
 </p>
 
 <p align="center">
-  <b>👁️ Mission Control</b> &bull; <b>🛡️ Security Cycle</b> &bull; <b>💰 Revenue Engine</b> &bull; <b>🤖 MERLIN</b> &bull; <b>⚙️ Automation</b> &bull; <b>🧠 Intelligence</b>
+  <b>👁️ Mission Control</b> &bull; <b>🛡️ Security Cycle</b> &bull; <b>💰 Revenue Engine</b> &bull; <b>🤖 MERLIN</b> &bull; <b>⚙️ Automation</b> &bull; <b>🧠 Intelligence</b> &bull; <b>🎯 Execution Queue</b>
+</p>
+
+<p align="center">
+  System verified: 9.5/10 overall | 10/10 Core | 10/10 Backend | 10/10 Frontend | 10/10 AI/OAR | 10/10 Reliability | 8/10 Revenue | Execution Queue: operational
 </p>
 
 <p align="center">
@@ -99,12 +104,22 @@ The human sits at the **decision gate**. The system does everything before and a
 <p align="center">
   <img src="docs/assets/github/desktop/targets.png?v=5" alt="Targets" width="100%"/>
 </p>
-
 ### Capital 💰
-> Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
+
+> Revenue tracking and payment management with strict state separation (Economic Rule §39): money only counted in **PAID** state, never accumulated incrementally. **RevenueTracker** enforces: EXPECTED→COMMITTED→EARNED→PENDING→PAID→NET.
 
 <p align="center">
   <img src="docs/assets/github/desktop/capital.png?v=5" alt="Capital" width="100%"/>
+</p>
+
+### Execution Queue 🔄
+
+> **Execution Queue** — Canonical state machine for all OWNEX work items (13 states: DISCOVERED→QUALIFIED→READY→QUEUED→EXECUTING→WAITING_HUMAN→SUBMITTED→VERIFICATION→PAID, with REJECTED/BLOCKED/FAILED/DEAD_LETTER).
+
+> **Mirror system**: `mirror_workbank_prepared()` transitions WorkBank `ready_to_deliver` items → QUALIFIED→READY in the queue. `mirror_payment_result()` confirms payments → VERIFICATION→PAID. Without payment confirmation, item stays at SUBMITTED (honest economic rule).
+
+<p align="center">
+  <img src="docs/assets/github/desktop/work-bank.png?v=5" alt="Work Bank & Execution Queue" width="100%"/>
 </p>
 
 ### MERLIN 🤖
@@ -170,7 +185,7 @@ flowchart TB
 
     subgraph CORE["🧩 Core Platform - FastAPI"]
         EB["🔌 EventBus"]
-        SCH["⏰ Scheduler - 28 cron jobs"]
+        SCH["⏰ Scheduler - 72 jobs"]
         UM["🧠 Unified Memory - SQLite"]
         DJ["📓 Decision Journal"]
         VAULT["🔐 Identity Vault"]
@@ -271,7 +286,7 @@ No — the code is **proprietary** and private. OWNEX is a personal competitive-
 <details>
 <summary><strong>What can it actually do today?</strong></summary>
 
-Verified working features (not roadmap): discovery from **135 curated sources** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), zero-barrier scoring, Work Bank that prepares jobs to 100% ready-to-deliver, EV ranking, Daily Brief/Companion, market evolution engine (OVOS + friction tiers), career/skill gap engine, revenue tracking + projections, security pipeline (recon → hypothesis → validation → evidence → report), scheduler with 28 cron jobs, 7 work cycles, mobile Android companion (APK), desktop (Tauri + PyInstaller), voice assistant, MERLIN chat, CSRF/rate-limit/auth security layers.
+Verified working features (not roadmap): discovery from **138 curated sources** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), zero-barrier scoring, Work Bank that prepares jobs to 100% ready-to-deliver, EV ranking, Daily Brief/Companion, market evolution engine (OVOS + friction tiers), career/skill gap engine, revenue tracking + projections, security pipeline (recon → hypothesis → validation → evidence → report), scheduler with 72 jobs across 17 cycles, mobile Android companion (APK), desktop (Tauri + PyInstaller), voice assistant, MERLIN chat, CSRF/rate-limit/auth security layers.
 </details>
 
 <details>
@@ -289,7 +304,7 @@ No. The Direct Work Engine scores opportunities by **entry barrier** and priorit
 <details>
 <summary><strong>Does it require an internet connection or cloud services?</strong></summary>
 
-No. Everything runs **100% local**: FastAPI backend, SQLite, local model via Ollama. Optional integrations (SMTP for email verification, platform APIs, cloud backup) are opt-in and never required. There is no telemetry, no account cloud.
+No. The core runs local: FastAPI backend, SQLite, local model via Ollama. Optional integrations (SMTP for email verification, platform APIs, cloud backup) are opt-in and never required. There is no telemetry, no account cloud.
 </details>
 
 <details>
@@ -307,7 +322,7 @@ The system optimizes **probability × reward × speed** and tracks real outcomes
 <details>
 <summary><strong>What platforms does it integrate with?</strong></summary>
 
-Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: Fiverr engine (11 gigs), Freelancer. Plus 135 curated discovery sources across 36 categories. Connectors for crypto/wealth (CoinGecko, Polymarket) and data annotation categories.
+Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: Fiverr engine (11 gigs), Freelancer. Plus 138 curated discovery sources across 36 categories (AI-training, audit contests, DS competitions, OSS aggregators). Connectors for crypto/wealth (CoinGecko, Polymarket) and data annotation categories.
 </details>
 
 <details>
@@ -321,12 +336,15 @@ python run.py
 ```
 
 Open http://127.0.0.1:8000 — the guided personalization wizard takes you through setup. See [Quick Start](#quick-start).
+
+> **This is the developer/server path.** Windows users should install the Tauri
+> `.msi` (no Python needed) — see [Quick Start](#quick-start).
 </details>
 
 <details>
 <summary><strong>What platforms does it run on?</strong></summary>
 
-- **Desktop:** Linux, Windows, macOS (Python 3.11+; Tauri bundle + PyInstaller sidecar)
+- **Desktop:** Windows/macOS/Linux via the Tauri v2 app (bundled PyInstaller sidecar; users need no Python). Source/dev server: Python 3.11+ + Node 20
 - **Mobile companion:** Android (Capacitor APK, ~5 MB, native mic/voice)
 - The mobile app connects to your local backend; it does not require a cloud server.
 </details>
@@ -334,13 +352,13 @@ Open http://127.0.0.1:8000 — the guided personalization wizard takes you throu
 <details>
 <summary><strong>Is my data safe?</strong></summary>
 
-Security is layered: AES-256-GCM IdentityVault (random key, `chmod 600`), Ed25519 licenses, double-submit CSRF, identity-based rate limiting, session tokens with device binding, audit log (append-only JSONL, rotated), 100% local storage. Details in [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
+Security is layered: AES-256-GCM IdentityVault (random key, `chmod 600`), Ed25519 licenses, double-submit CSRF, identity-based rate limiting, session tokens with device binding, audit log (append-only JSONL, rotated), local-first storage. Details in [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
 </details>
 
 <details>
 <summary><strong>Is there a mobile/desktop app?</strong></summary>
 
-Yes — an Android APK (OMEGA companion: dashboard, agents, opportunities, MERLIN chat, notifications, watch sync) and a Tauri desktop bundle (`OWNEX OMEGA`). Both are build-verified; see [Project Status](#project-status).
+Yes — an Android APK (OMEGA companion: dashboard, agents, opportunities, MERLIN chat, notifications, watch sync) and a Tauri desktop app (`OWNEX Alpha`, MSI from the CI artifact). Both are build-verified; see [Project Status](#project-status).
 </details>
 
 <details>
@@ -386,19 +404,24 @@ SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator
 
 Choose your platform:
 
-#### 🪟 Windows 11 (with WSL) — Desktop Installer (Recommended)
-**Auto-contained bundle — no Python/Node required**
+#### 🪟 Windows 11 — Desktop Installer (Recommended)
+**Self-contained bundle — no Python/Node required on your machine**
 
-1. Build or download the installer:
-   - **Canonical (Tauri)**: run `.github/workflows/ownex-tauri-windows.yml` → artifact `OWNEX-Tauri-Windows` (`OWNEX Alpha_7.0.0_x64-setup.exe` / `.msi`)
-   - **Legacy (PySide6 NSIS)**: dispatch `ownex-alpha-windows.yml` (manual) → artifact `OWNEX-Alpha-Windows-Installer`; last deployed build: `ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe`
-   - GitHub Releases (when published)
-2. Run the installer (accept SmartScreen warning — debug build)
-3. Launch OWNEX Desktop from Start menu
-4. Backend starts automatically at `http://127.0.0.1:8000`
-5. Data persists in `%APPDATA%\OWNEX` (survives reinstalls)
+The app ships as a **Tauri v2 desktop app**: a native window + a bundled Python
+backend (PyInstaller sidecar) that starts automatically. There is no
+`pip install` / `run.py` step for end users.
 
-**Detailed guide:** [README-INSTALACION.md](README-INSTALACION.md)
+1. Get the installer from the CI artifact of the latest tag:
+   - Actions → [OWNEX Tauri Windows Release](https://github.com/AdriDob/OWNEX/actions/workflows/ownex-tauri-windows.yml) → pick the newest `v*` run → **Artifacts** → `OWNEX-Tauri-Windows` (~133 MB, contains the `.msi`)
+   - The run for `v7.7.7` is [run 36461005049](https://github.com/AdriDob/OWNEX/actions/runs/36461005049)
+   - Artifacts expire ~90 days after the run; re-run the workflow (`workflow_dispatch`) to rebuild.
+2. Run the `.msi` (accept the SmartScreen warning — unsigned debug build).
+3. Launch **OWNEX Alpha** from the Start menu.
+4. The backend sidecar starts automatically on `http://127.0.0.1:8000` (first free port from 8000).
+5. Your data persists in `%LOCALAPPDATA%\OWNEX` and survives uninstall/reinstall.
+
+> The legacy PySide6/NSIS installer (`ownex-alpha-windows.yml`) is **archived**.
+> Do not use it: Tauri is the only maintained desktop path.
 
 #### 🐧 Linux — Development Setup
 ```bash
@@ -481,6 +504,89 @@ OWNNEX_MAIL_SMTP_HOST=                              # set to enable email verifi
 
 See **[.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md)** for the full security model.
 
+## Demo 🎬
+
+> **OWNEX Self-Evolution Constitution Demo** — This is the definitive demonstration of OWNEX's autonomous evolution capability.
+
+<details>
+<summary><strong>Run the Demo</strong></summary>
+
+```bash
+python OWNEX_OMEGA_DEMO.py
+```
+
+<summary>Demo capabilities</summary>
+
+The self-evolution demo validates:
+
+1. **Constitution compliance** — 10 core principles govern all system changes
+2. **Evolution opportunity detection** — Automatic identification of improvement areas
+3. **Proposal generation** — Constitutional, risk-aware evolution actions
+4. **Compliance enforcement** — 100% of changes pass validation before execution
+5. **Risk management** — Mandatory risk assessment for every proposed change
+
+<details>
+<summary>Expected output</summary>
+
+```
+OWNEX SELF-EVOLUTION CONSTITUTION DEMONSTRATION
+
+Constitution Version: 7.7.7
+Last Updated: 2026-07-30
+
+🔷 CONSTITUTIONAL PRINCIPLES:
+   • 10 High-Priority Core Rules
+   • 26 Foundational Principles
+   • 6 Integration Requirements
+
+   High-Priority Core Rules:
+     • Never Break System Stability: ...
+     • Never Lose User Data: ...
+     • Only Evidence Based Changes: ...
+     • Zero Tolerance Security: ...
+     • Never Degrade User Experience: ...
+     • Always Transparent Changes: ...
+     • Risk Management Mandatory: ...
+     • Maintain Backward Compatibility: ...
+     • Performance Integrity Enforced: ...
+     • Compliance Legal Priority: ...
+
+✅ SELF-EVOLUTION SYSTEM SUCCESSFULLY DEMONSTRATED
+   • Constitution established: 10 core principles
+   • Evolution capabilities: 4 actions proposed
+   • Constitutional compliance: FULLY_COMPLIANT (100.00%)
+   • Autonomy advancement: Waiting
+   • System readiness: 5.61/10
+
+🎯 KEY FEATURE DEMONSTRATED:
+   • OWNEX can now DESIGN, PREPARE, VALIDATE, and PROPOSE its own evolution
+   • All changes pass constitutional compliance validation
+   • Risk management and rollback are automatic
+   • Evolution is gradual and controlled, not uncontrolled
+   • Constitution provides hard boundaries that cannot be broken
+
+🔒 SAFETY GUARANTEES:
+   • Evolution never breaks system stability
+   • User data is always protected
+   • Changes are evidence-based only
+   • Security is always paramount
+   • User experience never degrades
+   • All changes are fully transparent
+   • Risk management is mandatory
+   • Backward compatibility is maintained
+   • Performance integrity is enforced
+   • Legal compliance is non-negotiable
+
+✅ DEMO COMPLETE - OWNEX IS NOW AUTONOMOUS WITH SAFETY CONTROLS
+
+🎉 OWNEX CONSTITUTION AND SELF-EVOLUTION SUCCESSFULLY DEMONSTRATED!
+   The system is now ready for autonomous operation with constitutional safety.
+```
+</details>
+
+</details>
+
+### Targets 📍
 ---
 
 ## Development 🛠️
@@ -533,6 +639,14 @@ npm run build                        # production build
 npx vite preview                     # serve dist
 npx vue-tsc --noEmit                  # typecheck
 
+# Frontend QA — desde la raíz del repo
+npm run qa                           # typecheck + unit + E2E (gate completo)
+npm run test                         # vitest (191 tests)
+npm run test:e2e                     # Playwright vs dev server
+npm run test:e2e:ui                  # Playwright interactivo
+npm run test:e2e:prod                # E2E contra el build de producción
+npm run serve:dist -- --port 8080 --proxy http://127.0.0.1:8000
+                                        # build servido por HTTP con proxy al backend
 # Branding pipeline
 scripts/brand/regenerate.sh          # logo + banners + README badge sync
 scripts/brand/regenerate.sh --shots  # + screenshots (dark + light)
@@ -545,8 +659,12 @@ scripts/brand/regenerate.sh --shots  # + screenshots (dark + light)
 | Python lint | Ruff | `pyproject.toml[tool.ruff]` |
 | Python types | mypy | strict on `core/` |
 | Frontend lint | Biome | `frontend/biome.json` |
+| Frontend types | vue-tsc | `frontend/tsconfig.json` (0 errores, corre en CI) |
 | Python tests | pytest | `tests/test_*.py`, `--timeout=60` |
+| Frontend tests | Vitest | `frontend/vitest.config.ts` (191 tests) |
+| E2E tests | Playwright | `playwright.config.ts` (dev) · `playwright.prod.config.ts` (build) |
 | Frontend build | Vite | `frontend/vite.config.ts` |
+| Static server | Node nativo (sin deps) | `frontend/spa-server.cjs` |
 
 ---
 
@@ -554,7 +672,7 @@ scripts/brand/regenerate.sh --shots  # + screenshots (dark + light)
 
 | Measure | Implementation | Docs |
 |---|---|---|
-| Local-first | 100% local by default — nothing leaves the machine | [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md) |
+| Local-first | core local; opt-in external integrations only | [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md) |
 | Credential vault | IdentityVault AES-256-GCM, random key, `chmod 600` | [core/identity_vault.py](core/identity_vault.py) |
 | License validation | Ed25519 asymmetric, 25-char format | [cores/license/](cores/license/) |
 | CSRF protection | Double-submit cookie on all mutantes | [api/middleware/csrf_middleware.py](api/middleware/csrf_middleware.py) |

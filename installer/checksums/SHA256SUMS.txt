@@ -1,1 +1,11 @@
-f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967  /home/adriel/projects/Rastro/ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe
+# OWNEX installer checksums.
+#
+# Canonical production artifact (Tauri v2, Windows 11): the MSI is built ONLY
+# in CI (.github/workflows/ownex-tauri-windows.yml, tag v7.1.x). Each CI
+# artifact ships with a .sha256 sidecar generated at build time — verify with:
+#   Get-FileHash "OWNEX Alpha_7.1.0_x64_es-ES.msi" -Algorithm SHA256
+# and compare against the accompanying .sha256 file. No local MSI hash is
+# recorded here because the MSI cannot be built on Linux (WiX requires Windows).
+#
+# Legacy (Gen2 PySide6, pre-Tauri) — superseded, kept for rebuild reference:
+f33030e7e3eebc78733f6bad6d0d395f9e5781b77103f834b8d27f9294905967  ownexinstalador/windows/OWNEX-Desktop-Alpha-Setup.exe

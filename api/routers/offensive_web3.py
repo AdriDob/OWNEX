@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from core.offensive.web3.engine import Web3OffensiveEngine
-from core.offensive.web3.models import SmartContractInfo
+from cores.offensive.web3.engine import Web3OffensiveEngine
+from cores.offensive.web3.models import SmartContractInfo
 
 router = APIRouter(prefix="/api/offensive/web3", tags=["offensive_web3"])
 

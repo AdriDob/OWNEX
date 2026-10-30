@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from core.app_registry import AppRegistry, get_app_registry
-from core.database.manager import DatabaseManager, get_db_manager
-from core.events import CoreEventBus, get_core_event_bus
-from core.interfaces.scheduler import JobDefinition
-from core.normalizer.base import (
+from cores.app_registry import AppRegistry, get_app_registry
+from cores.database.manager import DatabaseManager, get_db_manager
+from cores.events import CoreEventBus, get_core_event_bus
+from cores.interfaces.scheduler import JobDefinition
+from cores.normalizer.base import (
     NormalizedBet,
     NormalizedMarket,
     NormalizedPortfolio,
@@ -16,8 +16,8 @@ from core.normalizer.base import (
     NormalizedPrice,
     NormalizedTransaction,
 )
-from core.scheduler.scheduler import CoreScheduler, get_core_scheduler
-from core.simulation.engine import SimulationEngine
+from cores.scheduler.scheduler import CoreScheduler, get_core_scheduler
+from cores.simulation.engine import SimulationEngine
 
 
 class TestNormalizedTypes:
@@ -154,7 +154,7 @@ class TestCoreEventBus:
         bus.publish("test:event", key="value")
         assert len(received) == 1
         assert received[0]["key"] == "value"
-        assert received[0]["event"] == "test:event"
+        assert received[0]["event_type"] == "test:event"
 
 
 @pytest.mark.asyncio

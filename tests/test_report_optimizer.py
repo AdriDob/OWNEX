@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from core.reports.optimizer import (
+from cores.reports.optimizer import (
     CWE_MAP,
     PLATFORM_REMEDIATION_PREFIX,
     REMEDIATION_DB,
@@ -112,9 +112,9 @@ def test_parse_notes_invalid_json():
 # ── ReportContextBuilder ─────────────────────────────────────
 
 
-@patch("core.reports.optimizer.get_db_session")
-@patch("core.reports.optimizer.get_quality_scorer")
-@patch("core.reports.optimizer.get_acceptance_learner")
+@patch("cores.reports.optimizer.get_db_session")
+@patch("cores.reports.optimizer.get_quality_scorer")
+@patch("cores.reports.optimizer.get_acceptance_learner")
 def test_builder_returns_context_for_valid_finding(mock_get_learner, mock_get_scorer, mock_get_session):
     mock_session = MagicMock()
     mock_get_session.return_value = mock_session
@@ -164,7 +164,7 @@ def test_builder_returns_context_for_valid_finding(mock_get_learner, mock_get_sc
     assert ctx.platform == "hackerone"
 
 
-@patch("core.reports.optimizer.get_db_session")
+@patch("cores.reports.optimizer.get_db_session")
 def test_builder_returns_none_for_missing_finding(mock_get_session):
     mock_session = MagicMock()
     mock_session.query.return_value.filter.return_value.first.return_value = None
@@ -178,8 +178,8 @@ def test_builder_returns_none_for_missing_finding(mock_get_session):
 # ── ReportOptimizer ──────────────────────────────────────────
 
 
-@patch("core.reports.optimizer.ReportContextBuilder")
-@patch("core.reports.optimizer.get_bus")
+@patch("cores.reports.optimizer.ReportContextBuilder")
+@patch("cores.reports.optimizer.get_bus")
 def test_optimize_returns_full_result(mock_get_bus, mock_builder_cls):
     mock_ctx = ReportContext(
         finding={"title": "Test", "vulnerability_type": "idor", "severity": "high", "description": "desc"},
@@ -214,8 +214,8 @@ def test_optimize_returns_full_result(mock_get_bus, mock_builder_cls):
     mock_bus.publish.assert_called_once()
 
 
-@patch("core.reports.optimizer.ReportContextBuilder")
-@patch("core.reports.optimizer.get_bus")
+@patch("cores.reports.optimizer.ReportContextBuilder")
+@patch("cores.reports.optimizer.get_bus")
 def test_optimize_returns_none_for_missing(mock_get_bus, mock_builder_cls):
     mock_builder = MagicMock()
     mock_builder.build.return_value = None
@@ -226,8 +226,8 @@ def test_optimize_returns_none_for_missing(mock_get_bus, mock_builder_cls):
     assert result is None
 
 
-@patch("core.reports.optimizer.ReportContextBuilder")
-@patch("core.reports.optimizer.get_bus")
+@patch("cores.reports.optimizer.ReportContextBuilder")
+@patch("cores.reports.optimizer.get_bus")
 def test_batch_optimize(mock_get_bus, mock_builder_cls):
     mock_ctx = ReportContext(
         finding={"title": "Test", "vulnerability_type": "xss", "severity": "medium", "description": "desc"},
@@ -252,8 +252,8 @@ def test_batch_optimize(mock_get_bus, mock_builder_cls):
     assert results[1]["finding_id"] == 3
 
 
-@patch("core.reports.optimizer.ReportContextBuilder")
-@patch("core.reports.optimizer.get_bus")
+@patch("cores.reports.optimizer.ReportContextBuilder")
+@patch("cores.reports.optimizer.get_bus")
 def test_optimize_publishes_event(mock_get_bus, mock_builder_cls):
     mock_ctx = ReportContext(
         finding={"title": "T", "vulnerability_type": "sqli", "severity": "critical", "description": "d"},

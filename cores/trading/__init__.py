@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from core.trading.config import TradingConfig, TradingMode
-from core.trading.errors import (
+from cores.trading.config import TradingConfig, TradingMode
+from cores.trading.errors import (
     ConfigurationError,
     InsufficientBalanceError,
     InvalidOrderStateError,
@@ -12,15 +12,15 @@ from core.trading.errors import (
     UnsupportedExchangeError,
     WalletPersistenceError,
 )
-from core.trading.executor import (
+from cores.trading.executor import (
     DryRunExecutor,
     ExecutionEngine,
     PaperTradingExecutor,
     RealExecutor,
     create_executor,
 )
-from core.trading.metrics import PerformanceMetrics, TradeRecord, calculate_performance
-from core.trading.models import (
+from cores.trading.metrics import PerformanceMetrics, TradeRecord, calculate_performance
+from cores.trading.models import (
     Balance,
     ExecutionReport,
     ExecutionResult,
@@ -33,7 +33,7 @@ from core.trading.models import (
     Trade,
     WalletSnapshot,
 )
-from core.trading.virtual_wallet import VirtualWallet
+from cores.trading.virtual_wallet import VirtualWallet
 
 __all__ = [
     "Balance",

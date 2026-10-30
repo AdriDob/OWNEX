@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.financial_intelligence.f1_assistant import F1Assistant
-from core.financial_intelligence.models import AgentVote, Opportunity
-from core.financial_intelligence.opportunity_engine import OpportunityEngine
-from core.financial_intelligence.risk_engine import RiskEngine
+from cores.financial_intelligence.f1_assistant import F1Assistant
+from cores.financial_intelligence.models import AgentVote, Opportunity
+from cores.financial_intelligence.opportunity_engine import OpportunityEngine
+from cores.financial_intelligence.risk_engine import RiskEngine
 
 logger = logging.getLogger("orion.financial_intelligence.agent_framework")
 

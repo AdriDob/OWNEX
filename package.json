@@ -1,27 +1,35 @@
 {
   "name": "ownex-omega",
-  "version": "7.0.0",
+  "version": "7.7.7",
   "private": true,
   "workspaces": [
-    "frontend",
-    "desktop"
+    "frontend"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "uvicorn api.main:app --reload --port 8000",
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
+    "typecheck": "cd frontend && npx vue-tsc --noEmit",
     "test": "cd frontend && npm run test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:prod": "playwright test --config=playwright.prod.config.ts",
+    "serve:dist": "node frontend/spa-server.cjs",
     "test:backend": "pytest tests/ -v",
+    "qa": "npm run typecheck && npm run test && npm run test:e2e",
     "lint": "ruff check . && cd frontend && npm run lint",
     "tauri:build": "cd frontend && npm run tauri:build"
   },
   "devDependencies": {
-    "concurrently": "^9.0.1"
+    "@tauri-apps/cli": "^2.11.4",
+    "concurrently": "^9.2.5"
   },
   "dependencies": {
     "@capacitor-community/speech-recognition": "^7.0.1",
-    "@capacitor/android": "^8.4.2",
+    "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.4.2",
     "@capacitor/core": "^8.4.2",
     "vue-i18n": "^11.4.8"

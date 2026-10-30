@@ -15,10 +15,7 @@ router = APIRouter(prefix="/api/pulse", tags=["pulse"])
 
 PULSE_PLATFORMS = [
     "outlier",
-    "dataannotation",
     "mindrift",
-    "remotasks",
-    "freelancer_microtask",
     "linkedin_easyapply",
     "opyre_microtask",
 ]

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from database import db as db_mod
+from database import models as db_models
 
 
 @pytest.fixture(autouse=True)
@@ -79,3 +80,28 @@ def test_migration_noop_on_posix(monkeypatch, tmp_path):
     target = tmp_path / "target"
     db_mod._migrate_legacy_roaming_data(target)
     assert not target.exists()
+
+
+def test_reinstall_preserves_data():
+    """Reinstall simulation: re-running init_db() against the same data dir
+    (fresh bundle, same %LOCALAPPDATA%/OWNEX) must preserve rows."""
+    from database.db import SessionLocal, init_db
+
+    init_db()
+    session = SessionLocal()
+    try:
+        target = db_models.Target(name="reinstall-proof-target", domain="proof.example.com")
+        session.add(target)
+        session.commit()
+        target_id = target.id
+    finally:
+        session.close()
+
+    # Fresh bundle boot over the same data dir.
+    init_db()
+
+    session = SessionLocal()
+    try:
+        assert session.query(db_models.Target).filter(db_models.Target.id == target_id).one_or_none() is not None
+    finally:
+        session.close()

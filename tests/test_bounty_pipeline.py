@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.autonomy.bounty_pipeline import (
+from cores.autonomy.bounty_pipeline import (
     BountyPipeline,
     BountyPipelineConfig,
     BountyPipelineResult,

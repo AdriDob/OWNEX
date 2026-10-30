@@ -12,8 +12,8 @@ from typing import Any
 
 import httpx
 
-from core.credentials.vault import get_platform_credentials
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.credentials.vault import get_platform_credentials
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.immunefi")
 

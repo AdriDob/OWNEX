@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.normalizer.base import BaseNormalizer
+from cores.normalizer.base import BaseNormalizer
 
 _registry: dict[str, type[BaseNormalizer]] = {}
 

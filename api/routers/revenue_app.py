@@ -32,15 +32,11 @@ async def payment_methods() -> dict[str, Any]:
         return {"error": str(e)}
 
 
-@router.get("/summary")
-async def revenue_summary() -> dict[str, Any]:
-    try:
-        from cores.revenue.revenue_engine import RevenueEngine
-
-        engine = RevenueEngine()
-        return {"summary": engine.summary(), "stats": engine.get_stats().to_dict()}
-    except Exception as e:
-        return {"error": str(e)}
+# NOTE (ship-day 2026-09-28): este /summary se eliminó — duplicaba
+# api/routers/revenue.py (mismo prefix `/api/revenue`, montado antes) y era
+# inalcanzable por HTTP. Además su forma {summary,stats} NO era la que el
+# front consume en IncomeHome (total_earned / pending_amount, que sí devuelve
+# el ganador). Los demás endpoints de este router (/payment) siguen vivos.
 
 
 @router.post("/payment")
@@ -62,6 +58,6 @@ async def process_payment(payload: dict[str, Any]) -> dict[str, Any]:
 
 @router.get("/usd-to-ars")
 async def usd_to_ars(amount: float = 100, rate: float = 1000) -> dict[str, Any]:
-    from core.revenue.converter import usd_to_ars
+    from cores.revenue.converter import usd_to_ars
 
     return {"usd": amount, "ars": usd_to_ars(amount, rate), "rate": rate}

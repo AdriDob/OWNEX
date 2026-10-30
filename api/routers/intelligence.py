@@ -106,3 +106,24 @@ def refresh():
         "trends": trends.to_dict(),
         "recommendations": recs.to_dict(),
     }
+
+
+@router.get("/feeds/health")
+async def feeds_health():
+    """Aggregate health of all registered intelligence feeds + cache stats.
+
+    Best-effort: a down feed reports degraded/down, never 500.
+    """
+    try:
+        from cores.intelligence import build_default_intelligence_registry
+        from cores.intelligence.tasks import _default_cache_dir
+
+        registry = build_default_intelligence_registry(_default_cache_dir())
+        health = await registry.health_check_all()
+        return {
+            "feeds": health,
+            "cache": registry.get_cache_stats(),
+            "registered": sorted(health.keys()),
+        }
+    except Exception as exc:  # noqa: BLE001 — health never 500s
+        return {"feeds": {}, "cache": {}, "registered": [], "error": str(exc)}

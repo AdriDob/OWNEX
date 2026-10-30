@@ -10,7 +10,7 @@ Each entry records:
 
 from __future__ import annotations
 
-from core.decision_journal.journal import (
+from cores.decision_journal.journal import (
     get_decisions,
     log_decision,
     record_outcome,

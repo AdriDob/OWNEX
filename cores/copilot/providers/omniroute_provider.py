@@ -8,26 +8,17 @@ from typing import Any
 
 import httpx
 
-from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
+from cores.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
 logger = logging.getLogger("orion.copilot.providers.omniroute")
 
 _OMNIROUTE_MODELS = [
-    "oc/deepseek-v4-flash-free",
-    "oc/qwen3.6-plus-free",
-    "oc/minimax-m3-free",
-    "aug/gemini-3.1-pro",
-    "aug/gemini-3.0-flash",
-    "groq/llama-3.3-70b-versatile",
-    "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-    "groq/qwen/qwen3-32b",
-    "groq/qwen/qwen3.6-27b",
-    "samba/Meta-Llama-3.3-70B-Instruct",
-    "samba/Llama-4-Maverick-17B-128E-Instruct",
-    "samba/DeepSeek-V3.2",
+    "auto/best-free",
     "auto/best-coding",
     "auto/best-fast",
     "auto/best-reasoning",
+    "auto/best-chat",
+    "auto/best-coding-fast",
 ]
 
 # NVIDIA models available via NVIDIA NIM API

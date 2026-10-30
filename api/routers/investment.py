@@ -11,36 +11,36 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, RootModel
 
-from core.investment.adapters import (
+from cores.investment.adapters import (
     AgentFactory,
     InvestmentAdapterRegistry,
     build_agent_factory,
     build_default_registry,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_aave_adapter as _build_aave,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_alpaca_adapter as _build_alpaca,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_ibkr_adapter as _build_ibkr,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_lido_adapter as _build_lido,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_morpho_adapter as _build_morpho,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_pendle_adapter as _build_pendle,
 )
-from core.investment.adapters import (
+from cores.investment.adapters import (
     build_polymarket_adapter as _build_polymarket,
 )
-from core.investment.adapters.ccxt_adapter import CCXTAdapter as _CCXTAdapter
-from core.investment.manager import get_investment_manager
-from core.investment.models import get_strategy
+from cores.investment.adapters.ccxt_adapter import CCXTAdapter as _CCXTAdapter
+from cores.investment.manager import get_investment_manager
+from cores.investment.models import get_strategy
 
 logger = logging.getLogger("orion.api.investment")
 
@@ -118,7 +118,7 @@ async def get_strategy_detail(
     sdef = get_strategy(strategy_id)
     if not sdef:
         raise HTTPException(status_code=404, detail=f"Strategy {strategy_id} not found")
-    from core.investment.allocation import get_allocation_controller
+    from cores.investment.allocation import get_allocation_controller
 
     ctrl = get_allocation_controller()
     alloc = ctrl.get_strategy_allocation(strategy_id)
@@ -628,14 +628,14 @@ async def lido_protocol_metrics() -> dict[str, Any]:
 
 
 def _polymarket_manager() -> Any:
-    from core.polymarket.manager import PolymarketManager
+    from cores.polymarket.manager import PolymarketManager
 
     return PolymarketManager()
 
 
 @router.get("/polymarket/strategies")
 async def polymarket_strategies() -> dict[str, Any]:
-    from core.polymarket.manager import list_strategies
+    from cores.polymarket.manager import list_strategies
 
     return {"success": True, "strategies": list_strategies()}
 

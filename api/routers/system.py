@@ -1,11 +1,56 @@
+import os
+import re
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from cores.confidence import audit_findings, audit_single, audit_verdicts
 from cores.replay import build_replay, list_replay_targets
 from cores.review_queue import build_review_queue
 from cores.timeline import build_timeline
+from cores.tools.ecosystem import get_tool_ecosystem
 
 router = APIRouter(prefix="/api/system", tags=["system"])
+
+
+@router.get("/pc-health")
+def pc_health():
+    """PC health granular + Brave + elevation (spec §6, least-privilege)."""
+    try:
+        from cores.health.system_health import collect_pc_health
+
+        return collect_pc_health()
+    except Exception as exc:  # noqa: BLE001 — health never 500s
+        return {"level": "DEGRADED", "error": str(exc)}
+
+
+@router.get("/brave")
+def brave_status():
+    """Brave detection + context (spec §5). Never extracts secrets."""
+    try:
+        from cores.browsing.brave import browser_context, detect_brave
+        from cores.platform.elevated import elevation_status
+
+        return {"brave": detect_brave(), "context": browser_context(), "elevation": elevation_status()}
+    except Exception as exc:  # noqa: BLE001
+        return {"brave": {"installed": False}, "error": str(exc)}
+
+
+@router.post("/brave/open")
+def brave_open(payload: dict):
+    """Open URL in Brave (prefer) or default browser. Body: {url: str}."""
+    url = (payload or {}).get("url") or ""
+    if not url or not str(url).startswith(("http://", "https://")):
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="url must be http(s)")
+    try:
+        from cores.browsing.brave import open_in_brave
+
+        return open_in_brave(str(url))
+    except Exception as exc:  # noqa: BLE001
+        return {"opened": False, "error": str(exc)}
 
 
 @router.get("/timeline")
@@ -84,6 +129,13 @@ def get_definitions():
     }
 
 
+@router.get("/tools")
+def get_tools():
+    """Tool inventory with install status — consumed by frontend Settings → Herramientas."""
+    ecosystem = get_tool_ecosystem()
+    return ecosystem.inventory()
+
+
 @router.get("/replay/{target_id}")
 def get_replay(target_id: int):
     try:
@@ -146,6 +198,24 @@ def get_system_state_events(
     }
 
 
+@router.get("/capabilities")
+def get_capabilities():
+    """Configuración pendiente por capacidad — la superficie que faltaba.
+
+    Responde al pedido del owner: *"todo lo que quede pendiente de
+    configuración debe aparecer en la configuración del sistema"*.
+
+    Antes esa información estaba en tres lugares que nadie podía ver juntos:
+    145 `os.getenv()` dispersos, una tupla de 16 keys en el checklist, y
+    docstrings que prometían capacidades contingent on keys no listadas.
+
+    Devuelve **presencia** de cada variable, nunca su valor.
+    """
+    from cores.setup.capability_config import snapshot
+
+    return snapshot()
+
+
 @router.get("/update-check")
 def check_update():
     from desktop.updater import _current_version, check_for_updates
@@ -173,7 +243,7 @@ def restart_api():
     try:
         from pathlib import Path
 
-        from core.self_update.system import ProcessManager
+        from cores.self_update.system import ProcessManager
 
         root = Path(__file__).resolve().parent.parent.parent
         pm = ProcessManager(root)
@@ -244,9 +314,16 @@ def start_daemon():
     if not venv_python.exists():
         venv_python = Path.home() / "projects" / "Rastro" / ".venv" / "bin" / "python"
 
-    # Use nohup to detach
-    env = os.environ.copy()
-    env["DATABASE_URL"] = "sqlite:///" + str(Path.home() / ".orion" / "database" / "cateye.db")
+        # Use nohup to detach
+        env = os.environ.copy()
+        # Antes fijaba `~/.orion/database/cateye.db` a mano: una BASE QUINTA,
+        # distinta de la que usa la app. Ahora el daemon hereda el mismo
+        # DATABASE_URL que el proceso que lo lanza, y solo lo calcula si no
+        # existe — con la misma cadena de resolucion.
+        if not env.get("DATABASE_URL"):
+            import database.db as _db
+
+            env["DATABASE_URL"] = _db.DATABASE_URL
 
     proc = subprocess.Popen(
         [str(venv_python), "run.py", "--daemon"],
@@ -299,3 +376,110 @@ def stop_daemon():
         return {"success": False, "message": "Daemon process not found"}
     except Exception as e:
         return {"success": False, "message": f"Error stopping daemon: {e}"}
+
+
+# ── Configuración pendiente: check y escritura ────────────────────────────
+# El panel ya existía y sólo LEÍA. Sin estos dos endpoints el owner no puede
+# "colocar la setting" desde la UI ni comprobar si lo que puso funciona.
+
+_CREDENTIALS_FILE = Path("~/.config/ownex/opportunity.env").expanduser()
+# Valores que no son llaves: se permiten pero nunca se devuelven al cliente.
+_SECRETISH = re.compile(r"(KEY|TOKEN|SECRET|PASSWORD|PRIVATE)", re.IGNORECASE)
+
+
+class ConfigCheckRequest(BaseModel):
+    env: str
+
+
+class ConfigSetRequest(BaseModel):
+    env: str
+    value: str
+
+
+def _is_secret(env: str) -> bool:
+    return bool(_SECRETISH.search(env))
+
+
+def _write_env(env: str, value: str) -> None:
+    """Escribe UNA variable en opportunity.env preservando el resto del fichero."""
+    _CREDENTIALS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    lines: list[str] = []
+    if _CREDENTIALS_FILE.exists():
+        lines = _CREDENTIALS_FILE.read_text(encoding="utf-8").splitlines()
+
+    replaced = False
+    for i, line in enumerate(lines):
+        if line.split("=", 1)[0].strip() == env:
+            lines[i] = f"{env}={value}"
+            replaced = True
+    if not replaced:
+        lines.append(f"{env}={value}")
+
+    body = "\n".join(lines).rstrip() + "\n"
+    # 0600: el fichero contiene llaves. NoReadable por grupo ni por otros.
+    _CREDENTIALS_FILE.write_text(body, encoding="utf-8")
+    _CREDENTIALS_FILE.chmod(0o600)
+
+
+@router.post("/capabilities/check")
+def check_capability_env(req: ConfigCheckRequest) -> dict[str, object]:
+    """Verifica una variable y devuelve POR QUÉ, no sólo sí/no.
+
+    `usable` es distinto de `present`: una clave puesta con valor 'changeme' no
+    es usable, y el panel necesita poder decirlo.
+    """
+    from cores.setup.capability_config import check_env
+
+    env = req.env.strip()
+    if not env:
+        raise HTTPException(status_code=400, detail="env vacío")
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*", env):
+        raise HTTPException(status_code=400, detail=f"nombre de variable inválido: {env}")
+    return check_env(env).to_dict()
+
+
+@router.post("/capabilities/check-all")
+def check_all_capability_envs() -> dict[str, object]:
+    """Estado de toda la configuración pendiente, para pintar el panel de golpe."""
+    from cores.setup.capability_config import check_all
+
+    results = [r.to_dict() for r in check_all()]
+    return {
+        "results": results,
+        "total": len(results),
+        "usable": sum(1 for r in results if r["usable"]),
+    }
+
+
+@router.post("/capabilities/set")
+def set_capability_env(req: ConfigSetRequest) -> dict[str, object]:
+    """Escribe una variable y la verifica en el acto.
+
+    No devuelve el valor: una llave nunca sale por la API. Y el fichero queda
+    en 0600 porque contiene secretos.
+    """
+    from cores.setup.capability_config import check_env
+
+    env = req.env.strip()
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]*", env):
+        raise HTTPException(status_code=400, detail=f"nombre de variable inválido: {env}")
+
+    value = req.value.strip()
+    if not value:
+        raise HTTPException(status_code=400, detail="valor vacío")
+    if any(ch in value for ch in "\n\r"):
+        raise HTTPException(status_code=400, detail="el valor no puede contener saltos de linea")
+
+    _write_env(env, value)
+
+    # Se aplica al proceso actual para que el check sea inmediato, no al reiniciar.
+    os.environ[env] = value
+    result = check_env(env).to_dict()
+    return {
+        "saved": True,
+        "path": str(_CREDENTIALS_FILE),
+        "env": env,
+        "usable": result["usable"],
+        "detail": result["detail"],
+        "where": result["where"],
+    }

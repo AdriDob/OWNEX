@@ -5,9 +5,9 @@ import logging
 import time
 from typing import Any
 
-from core import OWNEX_DIR
-from core.setup.models import STEP_STATUS_COMPLETED, STEP_STATUS_FAILED, WizardState
-from core.setup.steps import get_all_steps, get_step
+from cores import OWNEX_DIR
+from cores.setup.models import STEP_STATUS_COMPLETED, STEP_STATUS_FAILED, WizardState
+from cores.setup.steps import get_all_steps, get_step
 
 logger = logging.getLogger("ownex.core.setup.wizard")
 

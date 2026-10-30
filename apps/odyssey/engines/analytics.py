@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 
 from apps.odyssey.models import Bet
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.odyssey.engines.analytics")
 

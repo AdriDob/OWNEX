@@ -13,13 +13,72 @@ os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
 # Isolate test DB: never touch the real database/catseye.db
 os.environ["DATABASE_URL"] = f"sqlite:////tmp/cateye_test_{os.getpid()}.db"
 
+# Isolate the data dir: never write to ~/.ownex nor ~/ownex/submissions.
+#
+# Antes se escribían paquetes de trabajo reales en el HOME: 1.354 fixtures
+# ("deliv-1", "e2e-1", "wire-1", todos con `[Add implementation details here]`)
+# acumulados en ~/ownex/submissions/opire/ entre el 4 y el 5 de agosto. La causa
+# era doble: AssistedExecutor tenía "~/ownex/submissions" hardcodeado (corregido
+# para respetar OWNEX_DATA_DIR) y conftest sólo aislaba DATABASE_URL.
+#
+# A nivel de módulo, no con monkeypatch: debe cubrir toda la sesión, igual que
+# DATABASE_URL.
+_TEST_DATA_DIR = Path(f"/tmp/OWNEX_test_{os.getpid()}")  # OWNEX en mayúsculas: lo valida test_desktop_release
+_TEST_DATA_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["OWNEX_DATA_DIR"] = str(_TEST_DATA_DIR)
+os.environ.setdefault("CATEYE_DATA_DIR", str(_TEST_DATA_DIR))
+
 from database.db import DATABASE_URL as _DB_URL  # noqa: E402
 
-if "catseye.db" in _DB_URL:
+# El guard anterior (`if "catseye.db" in _DB_URL`) era tautológico: DATABASE_URL
+# se fija 14 líneas más arriba, así que nunca podía dispararse. Éste compara la
+# ruta RESUELTA contra las dos bases reales — la del repo (90 MB con datos del
+# usuario) y la de la app instalada.
+_REAL_DATABASES = {
+    (Path(__file__).resolve().parent.parent / "database" / "catseye.db").resolve(),
+    (Path.home() / ".ownex" / "database" / "catseye.db").resolve(),
+}
+_resolved_db = Path(_DB_URL.replace("sqlite:///", "", 1)).resolve()
+if _resolved_db in _REAL_DATABASES:
     raise RuntimeError(
-        "Refusing to run tests against the real database "
-        f"(DATABASE_URL={_DB_URL!r}). Set DATABASE_URL to a temp path first."
+        f"Refusing to run tests against a real database: {_resolved_db}. "
+        "A test writing there writes to production data."
     )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _cleanup_test_artifacts_in_data_dir():
+    """Red de seguridad: borra artefactos de test que se filtren al data dir real.
+
+    `OWNEX_DATA_DIR` aísla la mayoría, pero cualquier code path que resuelva el
+    path por otra vía (o que corra fuera de pytest) escribe en
+    `~/.ownex/database/`. Ya se acumulaban 8.597 bases `knowledge_graph_kg_test_*`
+    (663 MB) ahí, en el directorio de la app instalada.
+
+    No borra nada del directorio real de la app: sólo ficheros cuyo nombre
+    matchea los prefijos de test conocidos.
+    """
+
+    yield
+
+    data_dir = Path(os.environ.get("OWNEX_DATA_DIR", ""))
+    # Nunca tocar el directorio real de la app instalada: sólo temporales.
+    if not data_dir or data_dir == Path.home() / ".ownex":
+        return
+    db_dir = data_dir / "database"
+    if not db_dir.is_dir():
+        return
+    patterns = ("*_test_*.db", "*_test_*.db-wal", "*_test_*.db-shm", "*_kg_test_*.db*")
+    removed = 0
+    for pattern in patterns:
+        for f in db_dir.glob(pattern):
+            try:
+                f.unlink()
+                removed += 1
+            except OSError:
+                pass
+    if removed:
+        print(f"[conftest] limpiados {removed} artefactos de test de {db_dir}")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -60,6 +119,59 @@ def _set_license_key() -> None:
         priv_raw = key.private_bytes_raw()
         os.environ["CATEYE_LICENSE_PRIVATE_KEY"] = b64encode(priv_raw).decode()
         os.environ["CATEYE_LICENSE_PUBLIC_KEY"] = b64encode(key.public_key().public_bytes_raw()).decode()
+
+
+# ── Auth para tests que pegan a rutas montadas en RAÍZ ─────────────
+
+# `AuthMiddleware` exige sesión en las rutas montadas en raíz desde el fix del
+# gate de auth (KNOWN_DEBT #32, 2026-10-04) — y desde el 2026-10-05 también en
+# las que tienen parámetro de path, que antes se colaban sin credencial.
+# `test_mission_hub.py`, `test_mobile_copilot.py` y `test_night_session_fixes.py`
+# seguían pegando a `/mission-hub/*` y `/mobile/*` sin autenticar: tests que
+# medían el 401 en vez del endpoint.
+#
+# El fixture replica el flujo real del navegador (login → cookie de sesión),
+# no una backdoor: si el gate se rompe, vuelven a fallar en vez de pasar.
+
+
+@pytest.fixture(scope="session")
+def ownex_login():
+    """Devuelve un callable que autentica un `TestClient` como el cliente real.
+
+    Usa el login por `device_id` (`/api/auth/login`) y deja la cookie
+    `ownex-session` en el jar del cliente — el mismo camino que sigue el
+    navegador. El token se cachea a nivel sesión y se reintenta ante 429: el
+    login está rate-limited, así que un fixture function-scoped queloguea en
+    cada test se autobloquea (medido: 7 errores 429 en test_mission_hub.py).
+    """
+    import time
+
+    from api.middleware.auth_middleware import SESSION_COOKIE
+
+    cache: dict[str, str] = {}
+
+    def _login(client) -> str:
+        if "token" not in cache:
+            last = ""
+            for _ in range(6):
+                resp = client.post(
+                    "/api/auth/login",
+                    json={"device_id": "pytest-suite", "device_info": {"kind": "pytest"}},
+                )
+                if resp.status_code == 200:
+                    cache["token"] = resp.json().get("data", {}).get("token", "")
+                    break
+                last = f"{resp.status_code}: {resp.text[:200]}"
+                if resp.status_code == 429:
+                    time.sleep(1.5)
+                    continue
+                break
+            if not cache.get("token"):
+                pytest.fail(f"login de tests falló con {last}")
+        client.cookies.set(SESSION_COOKIE, cache["token"])
+        return cache["token"]
+
+    return _login
 
 
 # ── Path fixtures ─────────────────────────────────────────────────

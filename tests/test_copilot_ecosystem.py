@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from core.copilot.bayesian import BayesianLearner, BetaPosterior, beta_posterior
-from core.copilot.connections import _normalize_path, run_connection_audit
-from core.copilot.orion_context import OrionContext
-from core.copilot.providers.base import ProviderConfig, ProviderResponse
-from core.copilot.providers.router import TASK_CHAT, ProviderRouter
+from cores.copilot.bayesian import BayesianLearner, BetaPosterior, beta_posterior
+from cores.copilot.connections import _normalize_path, run_connection_audit
+from cores.copilot.orion_context import OrionContext
+from cores.copilot.providers.base import ProviderConfig, ProviderResponse
+from cores.copilot.providers.router import TASK_CHAT, ProviderRouter
 
 
 class TestBetaPosterior:

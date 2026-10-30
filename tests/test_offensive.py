@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from core.offensive.contradiction import ContradictionEngine
-from core.offensive.curiosity import CuriosityEngine
-from core.offensive.engine import OffensiveEngine
-from core.offensive.models import (
+from cores.offensive.contradiction import ContradictionEngine
+from cores.offensive.curiosity import CuriosityEngine
+from cores.offensive.engine import OffensiveEngine
+from cores.offensive.models import (
     Contradiction,
     EndpointInfo,
     Hypothesis,
 )
-from core.offensive.planner import InvestigationPlanner
-from core.offensive.relationship import EndpointRelationshipEngine
-from core.offensive.triager import TriagerSimulator
+from cores.offensive.planner import InvestigationPlanner
+from cores.offensive.relationship import EndpointRelationshipEngine
+from cores.offensive.triager import TriagerSimulator
 
 # ── Relationship Engine ───────────────────────────────────────────────
 
@@ -261,7 +261,9 @@ class TestOffensiveEngineV2:
             }
         )
         if result.hypotheses:
-            assert len(result.hypotheses[0].contradictions) > 0
+            # Verify ContradictionEngine produces contradictions for at least one hypothesis
+            # (CSRF/CORS have alternative_explanations so no contradiction; IDOR/BACL do)
+            assert any(len(h.contradictions) > 0 for h in result.hypotheses)
 
     def test_evidence_score_in_result(self):
         result = self.engine.analyze_endpoint(
@@ -479,7 +481,7 @@ class TestTransitiveOwnership:
         self.engine = EndpointRelationshipEngine()
 
     def _make_edges(self):
-        from core.offensive.models import OwnershipEdge
+        from cores.offensive.models import OwnershipEdge
 
         return [
             OwnershipEdge(parent_resource="user", child_resource="organization", confidence=0.55, via_param="userId"),
@@ -500,7 +502,7 @@ class TestTransitiveOwnership:
                 assert abs(e.confidence - expected) < 0.01
 
     def test_no_false_edges(self):
-        from core.offensive.models import OwnershipEdge
+        from cores.offensive.models import OwnershipEdge
 
         edges = [
             OwnershipEdge(parent_resource="a", child_resource="b", confidence=0.5, via_param="aId"),
@@ -509,7 +511,7 @@ class TestTransitiveOwnership:
         assert all(e.parent_resource != "b" for e in transitive)
 
     def test_deep_chain(self):
-        from core.offensive.models import OwnershipEdge
+        from cores.offensive.models import OwnershipEdge
 
         edges = [
             OwnershipEdge(parent_resource="a", child_resource="b", confidence=0.5, via_param="aId"),
@@ -601,12 +603,12 @@ class TestOffensiveEngineV3:
 
 class TestSSRFReasoner:
     def setup_method(self):
-        from core.offensive.reasoners.ssrf import SSRFReasoner
+        from cores.offensive.reasoners.ssrf import SSRFReasoner
 
         self.reasoner = SSRFReasoner()
 
     def _ep(self, **kw):
-        from core.offensive.models import EndpointInfo
+        from cores.offensive.models import EndpointInfo
 
         default = {"path": "/api/proxy", "method": "GET", "params": {"url": "http://example.com"}}
         default.update(kw)
@@ -657,12 +659,12 @@ class TestSSRFReasoner:
 
 class TestAuthBypassReasoner:
     def setup_method(self):
-        from core.offensive.reasoners.auth_bypass import AuthBypassReasoner
+        from cores.offensive.reasoners.auth_bypass import AuthBypassReasoner
 
         self.reasoner = AuthBypassReasoner()
 
     def _ep(self, **kw):
-        from core.offensive.models import EndpointInfo
+        from cores.offensive.models import EndpointInfo
 
         default = {"path": "/api/admin/users", "method": "GET"}
         default.update(kw)
@@ -718,12 +720,12 @@ class TestAuthBypassReasoner:
 
 class TestXSSReasoner:
     def setup_method(self):
-        from core.offensive.reasoners.xss import XSSReasoner
+        from cores.offensive.reasoners.xss import XSSReasoner
 
         self.reasoner = XSSReasoner()
 
     def _ep(self, **kw):
-        from core.offensive.models import EndpointInfo
+        from cores.offensive.models import EndpointInfo
 
         default = {"path": "/api/search", "method": "GET", "params": {"q": "test"}}
         default.update(kw)
@@ -776,12 +778,12 @@ class TestXSSReasoner:
 
 class TestSQLiReasoner:
     def setup_method(self):
-        from core.offensive.reasoners.sqli import SQLiReasoner
+        from cores.offensive.reasoners.sqli import SQLiReasoner
 
         self.reasoner = SQLiReasoner()
 
     def _ep(self, **kw):
-        from core.offensive.models import EndpointInfo
+        from cores.offensive.models import EndpointInfo
 
         default = {"path": "/api/users", "method": "GET", "params": {"id": "1"}}
         default.update(kw)
@@ -840,7 +842,7 @@ class TestSQLiReasoner:
 
 class TestReasonerFeedback:
     def setup_method(self):
-        from core.offensive.reasoners.idor import IDORReasoner
+        from cores.offensive.reasoners.idor import IDORReasoner
 
         self.reasoner = IDORReasoner()
 
@@ -863,14 +865,14 @@ class TestReasonerFeedback:
         assert adjusted <= 1.0
 
     def test_stats_empty_initially(self):
-        from core.offensive.reasoners.idor import IDORReasoner
+        from cores.offensive.reasoners.idor import IDORReasoner
 
         r = IDORReasoner()
         stats = r.get_outcome_stats()
         assert stats["total"] == 0
 
     def test_engine_records_outcome(self):
-        from core.offensive.engine import OffensiveEngine
+        from cores.offensive.engine import OffensiveEngine
 
         engine = OffensiveEngine()
         engine.record_outcome("idor", "hyp-005", True)
@@ -879,7 +881,7 @@ class TestReasonerFeedback:
         assert stats["idor"]["confirmed"] >= 1
 
     def test_engine_outcome_unknown_reasoner(self):
-        from core.offensive.engine import OffensiveEngine
+        from cores.offensive.engine import OffensiveEngine
 
         engine = OffensiveEngine()
         engine.record_outcome("nonexistent", "hyp-006", True)  # Should not crash
@@ -887,12 +889,12 @@ class TestReasonerFeedback:
 
 class TestEngineV3ReasonerRegistration:
     def setup_method(self):
-        from core.offensive.engine import OffensiveEngine
+        from cores.offensive.engine import OffensiveEngine
 
         self.engine = OffensiveEngine()
 
-    def test_five_reasoners_registered(self):
-        assert len(self.engine._reasoners) == 5
+    def test_reasoners_registered(self):
+        assert len(self.engine._reasoners) == 21
 
     def test_reasoner_types(self):
         types = [r.vulnerability_type for r in self.engine._reasoners]
@@ -901,6 +903,15 @@ class TestEngineV3ReasonerRegistration:
         assert "auth_bypass" in types
         assert "xss" in types
         assert "sqli" in types
+        assert "deeplink_hijack" in types
+        assert "mobile_data_exposure" in types
+        assert "prompt_injection" in types
+        assert "bacl" in types
+        assert "business_logic" in types
+        assert "graphql" in types
+        assert "oauth" in types
+        assert "deserialization" in types
+        assert "mobile_transport" in types
 
     def test_each_reasoner_generates_hypotheses(self):
         ep = {

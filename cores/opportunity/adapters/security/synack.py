@@ -12,8 +12,8 @@ from typing import Any
 
 import httpx
 
-from core.credentials.vault import get_platform_credentials
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.credentials.vault import get_platform_credentials
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.synack")
 
@@ -106,10 +106,10 @@ class SynackAdapter(OpportunityAdapter):
                 except Exception as e:
                     logger.warning("Synack authenticated fetch failed: %s", e)
 
-        # Fallback: known Synack-style missions (for development)
-        if not results:
-            results = self._fallback_missions()
-
+        # No fallback: when the API is unavailable or unauthenticated, return
+        # what was actually fetched (possibly empty). Fabricating missions
+        # with invented payouts would corrupt downstream EV scoring.
+        # Synack is invite-only; unauthenticated callers honestly get [].
         return results
 
     def _normalize_mission(self, mission: dict[str, Any]) -> dict[str, Any]:
@@ -148,42 +148,3 @@ class SynackAdapter(OpportunityAdapter):
         elif payout >= 5000:
             return 15.0
         return 10.0
-
-    def _fallback_missions(self) -> list[dict[str, Any]]:
-        """Fallback missions for development/testing when API unavailable."""
-        logger.info("Synack: using fallback missions (API unavailable)")
-        return [
-            {
-                "id": "synack_enterprise_web",
-                "name": "Enterprise Web Application Assessment",
-                "description": "Comprehensive security assessment of enterprise web application including authentication, authorization, and business logic.",
-                "categories": ["web-application", "red-team", "penetration-testing"],
-                "mission_url": "https://platform.synack.com/missions/enterprise-web",
-                "has_rewards": True,
-                "estimated_payout": 25000.0,
-                "estimated_effort_hours": 40.0,
-                "created_at": "2026-01-15T00:00:00Z",
-            },
-            {
-                "id": "synack_mobile_app",
-                "name": "Mobile Application Security Review",
-                "description": "iOS and Android mobile application security testing including local storage, network communication, and platform-specific vulnerabilities.",
-                "categories": ["mobile", "red-team", "penetration-testing"],
-                "mission_url": "https://platform.synack.com/missions/mobile-app",
-                "has_rewards": True,
-                "estimated_payout": 15000.0,
-                "estimated_effort_hours": 25.0,
-                "created_at": "2026-01-10T00:00:00Z",
-            },
-            {
-                "id": "synack_api_security",
-                "name": "API Security Assessment",
-                "description": "REST/GraphQL API security testing including authentication bypasses, authorization flaws, and data exposure.",
-                "categories": ["api", "red-team", "penetration-testing"],
-                "mission_url": "https://platform.synack.com/missions/api-security",
-                "has_rewards": True,
-                "estimated_payout": 12000.0,
-                "estimated_effort_hours": 20.0,
-                "created_at": "2026-01-05T00:00:00Z",
-            },
-        ]

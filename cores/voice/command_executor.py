@@ -24,8 +24,8 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from core.autonomy.bounty_pipeline import BountyPipeline, get_bounty_pipeline
-from core.opportunity.executors import get_executors
+from cores.autonomy.bounty_pipeline import BountyPipeline, get_bounty_pipeline
+from cores.opportunity.executors import get_executors
 from cores.opportunity.feedback import FeedbackOutcome, get_feedback_loop
 
 logger = logging.getLogger("ownex.voice.command_executor")

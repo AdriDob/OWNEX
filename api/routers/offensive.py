@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
-from core.offensive.engine import OffensiveEngine
+from cores.offensive.engine import OffensiveEngine
 
 router = APIRouter(prefix="/api/offensive", tags=["offensive"])
 
@@ -79,7 +79,7 @@ def list_hypotheses(
     max_results: int = Query(50, ge=1, le=200),
 ):
     """List recent hypotheses from the Knowledge Graph."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     nodes = kg.find_nodes(node_type="finding", limit=max_results)
@@ -102,8 +102,8 @@ def generate_investigation_plan(
     summary: str = Query("", description="Hypothesis summary"),
 ):
     """Generate a step-by-step investigation plan for a hypothesis."""
-    from core.offensive.models import Hypothesis
-    from core.offensive.planner import InvestigationPlanner
+    from cores.offensive.models import Hypothesis
+    from cores.offensive.planner import InvestigationPlanner
 
     hyp = Hypothesis(
         vulnerability_type=vulnerability_type,
@@ -124,7 +124,7 @@ def explore_endpoint(
     vulnerability_type: str = Query("idor", description="Vulnerability type"),
 ):
     """Generate expert-level questions and identify blind spots for an endpoint."""
-    from core.offensive.curiosity import CuriosityEngine
+    from cores.offensive.curiosity import CuriosityEngine
 
     engine = CuriosityEngine()
     result = engine.explore_endpoint(path, method, vulnerability_type)
@@ -136,11 +136,11 @@ def get_ownership_graph(
     min_confidence: float = Query(0.0, ge=0.0, le=1.0),
 ):
     """Get the current ownership graph with transitive relationships."""
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
     nodes = kg.find_nodes(node_type="endpoint", limit=200)
-    from core.offensive.relationship import EndpointRelationshipEngine
+    from cores.offensive.relationship import EndpointRelationshipEngine
 
     engine = EndpointRelationshipEngine()
     endpoints = [{"path": n.properties.get("name", n.name), "method": n.properties.get("method", "GET")} for n in nodes]

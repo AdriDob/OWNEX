@@ -274,7 +274,7 @@ class CopilotAgent:
 
         # Add acceptance probability prediction
         try:
-            from core.reports.acceptance.learner import AcceptanceLearner
+            from cores.reports.acceptance.learner import AcceptanceLearner
 
             platform = finding.get("platform", "hackerone")
             score = finding.get("quality_score", 0.0) or 0.0
@@ -789,7 +789,7 @@ class CopilotAgent:
 
         # Persist to SQLite Decision Journal
         try:
-            from core.decision_journal import log_decision as dj_log
+            from cores.decision_journal import log_decision as dj_log
 
             dj_log(
                 app_id=self.app_id,

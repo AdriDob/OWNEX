@@ -3,9 +3,9 @@
  * ServiceGrid — Grid of all service checks, grouped by category
  */
 import { computed } from 'vue'
+import GlassPanel from '@/shared/components/GlassPanel.vue'
 import type { ServiceCheck as ServiceCheckType } from '@/shared/types'
 import ServiceCheckComp from './ServiceCheck.vue'
-import GlassPanel from '@/shared/components/GlassPanel.vue'
 
 const props = defineProps<{
   checks: ServiceCheckType[]
@@ -24,7 +24,7 @@ const grouped = computed(() => {
 
   const groups: { label: string; checks: ServiceCheckType[] }[] = []
   for (const cat of order) {
-    const items = props.checks.filter(c => c.category === cat)
+    const items = props.checks.filter((c) => c.category === cat)
     if (items.length > 0) {
       groups.push({ label: labels[cat] || cat, checks: items })
     }
@@ -34,9 +34,11 @@ const grouped = computed(() => {
 
 const totals = computed(() => ({
   total: props.checks.length,
-  passed: props.checks.filter(c => c.status === 'passed').length,
-  errors: props.checks.filter(c => c.status === 'error').length,
-  checking: props.checks.filter(c => c.status === 'checking' || c.status === 'installing' || c.status === 'configuring').length,
+  passed: props.checks.filter((c) => c.status === 'passed').length,
+  errors: props.checks.filter((c) => c.status === 'error').length,
+  checking: props.checks.filter(
+    (c) => c.status === 'checking' || c.status === 'installing' || c.status === 'configuring',
+  ).length,
 }))
 </script>
 

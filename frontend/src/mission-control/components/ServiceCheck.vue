@@ -12,13 +12,13 @@ const props = defineProps<{
 
 const statusMeta = computed(() => {
   const map: Record<string, { icon: string; color: string; label: string }> = {
-    pending:    { icon: '○', color: 'text-muted',      label: 'Pendiente' },
-    checking:   { icon: '◎', color: 'text-primary',     label: 'Verificando' },
-    installing: { icon: '◉', color: 'text-warning',     label: 'Instalando' },
-    configuring:{ icon: '◉', color: 'text-warning',     label: 'Configurando' },
-    passed:     { icon: '●', color: 'text-success',     label: props.check.version || 'OK' },
-    warning:    { icon: '◐', color: 'text-warning',     label: 'Advertencia' },
-    error:      { icon: '○', color: 'text-destructive', label: 'Error' },
+    pending: { icon: '○', color: 'text-muted', label: 'Pendiente' },
+    checking: { icon: '◎', color: 'text-primary', label: 'Verificando' },
+    installing: { icon: '◉', color: 'text-warning', label: 'Instalando' },
+    configuring: { icon: '◉', color: 'text-warning', label: 'Configurando' },
+    passed: { icon: '●', color: 'text-success', label: props.check.version || 'OK' },
+    warning: { icon: '◐', color: 'text-warning', label: 'Advertencia' },
+    error: { icon: '○', color: 'text-destructive', label: 'Error' },
   }
   return map[props.check.status] || map.pending
 })
@@ -26,11 +26,11 @@ const statusMeta = computed(() => {
 const categoryLabel = computed(() => {
   const map: Record<string, string> = {
     infrastructure: 'Infraestructura',
-    tools:          'Herramientas',
-    ai:             'Inteligencia',
-    security:       'Seguridad',
-    config:         'Configuración',
-    data:           'Datos',
+    tools: 'Herramientas',
+    ai: 'Inteligencia',
+    security: 'Seguridad',
+    config: 'Configuración',
+    data: 'Datos',
   }
   return map[props.check.category] || props.check.category
 })

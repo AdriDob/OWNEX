@@ -45,18 +45,24 @@ class BaseExecutor:
 
 
 def get_executors(config: dict[str, Any] | None = None) -> dict[str, BaseExecutor]:
-    """Get executor instances for all registered executors."""
-    from core.opportunity.executors.algora_executor import AlgoraExecutor
-    from core.opportunity.executors.freelancer_executor import FreelancerExecutor
-    from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-    from core.opportunity.executors.mindrift_executor import MindriftExecutor
-    from core.opportunity.executors.opire_executor import OpireExecutor
+    """Get executor instances for all registered headless executors.
+
+    Browser workers (dataannotation, outlier, mindrift_browser) live in
+    ``cores.automation.workers.get_browser_workers`` — they need Playwright +
+    credentials + Human Gate, never headless use. Algora integrates via
+    ``build_algora_executor()`` / ``AlgoraDweAdapter`` (claim → PR → merge),
+    not via this registry: ``AlgoraExecutor`` takes ``AlgoraConfig`` (never a
+    plain dict) and requires a GitHub token.
+    """
+    from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
+    from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+    from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+    from cores.opportunity.executors.opire_executor import OpireExecutor
 
     _config = config or {}
     executors: dict[str, BaseExecutor] = {}
     for cls in [
         FreelancerExecutor,
-        AlgoraExecutor,
         MindriftExecutor,
         OpireExecutor,
         IssueHuntExecutor,

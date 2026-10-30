@@ -5,15 +5,15 @@ from pathlib import Path
 
 import pytest
 
-from core.self_improvement.capability import CapabilityTracker
-from core.self_improvement.config import SelfImprovementConfig
-from core.self_improvement.engine import SelfImprovementEngine
-from core.self_improvement.experience import ExperienceStore
-from core.self_improvement.frontier import DifficultyFrontier
-from core.self_improvement.harness import Harness
-from core.self_improvement.models import ScaffoldStep, Task, TaskCategory
-from core.self_improvement.rollout import DeterministicSolver, RolloutRunner
-from core.self_improvement.task_generator import TaskGenerator
+from cores.self_improvement.capability import CapabilityTracker
+from cores.self_improvement.config import SelfImprovementConfig
+from cores.self_improvement.engine import SelfImprovementEngine
+from cores.self_improvement.experience import ExperienceStore
+from cores.self_improvement.frontier import DifficultyFrontier
+from cores.self_improvement.harness import Harness
+from cores.self_improvement.models import ScaffoldStep, Task, TaskCategory
+from cores.self_improvement.rollout import DeterministicSolver, RolloutRunner
+from cores.self_improvement.task_generator import TaskGenerator
 
 
 @pytest.fixture
@@ -273,7 +273,7 @@ class TestExperienceStore:
         store = ExperienceStore(config)
         initial_count = store.count()
         # Create a minimal experience
-        from core.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
+        from cores.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
 
         task = Task(
             id="exp-1",
@@ -312,7 +312,7 @@ class TestExperienceStore:
 
     def test_success_rate(self, config):
         store = ExperienceStore(config)
-        from core.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
+        from cores.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
 
         for i in range(3):
             task = Task(
@@ -428,14 +428,20 @@ class TestAPIEndpoints:
     @pytest.fixture
     def client(self, tmp_data_dir, monkeypatch):
         import importlib
-        import os
         import sys
 
         # Re-enable CSRF for these tests (conftest disables it by default)
         monkeypatch.delenv("CATEYE_CSRF_DISABLED", raising=False)
 
-        os.environ["OWNEX_DATA_DIR"] = str(tmp_data_dir)
-        os.environ["DATABASE_URL"] = f"sqlite:////{tmp_data_dir}/test.db"
+        # monkeypatch, no os.environ directo: este fixture antes dejaba
+        # OWNEX_DATA_DIR y DATABASE_URL puestos para el resto de la sesión, y
+        # como `api/main.py` los lee AL IMPORTAR, cualquier test posterior
+        # heredaba el tmp_path de este test como data dir real.
+        # Síntoma medido: `test_desktop_release.py::test_data_dir_default`
+        # pasaba en aislamiento y fallaba en lote con
+        # `assert 'OWNEX' in '/home/adriel/.ownex'`.
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_data_dir))
+        monkeypatch.setenv("DATABASE_URL", f"sqlite:////{tmp_data_dir}/test.db")
         # Force reload to pick up new env vars
         if "api.main" in sys.modules:
             importlib.reload(sys.modules["api.main"])

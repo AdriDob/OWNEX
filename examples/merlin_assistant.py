@@ -13,8 +13,8 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.ai.memory import MemoryStore
-from core.ai.merlin import Merlin
+from cores.ai.memory import MemoryStore
+from cores.ai.merlin import Merlin
 
 
 async def main():

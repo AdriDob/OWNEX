@@ -5,8 +5,8 @@ Fase 1 implementation: Command Registry + Dispatcher + Permission Validation.
 
 from __future__ import annotations
 
-from core.commands.dispatcher import CommandDispatcher, get_command_dispatcher
-from core.commands.models import (
+from cores.commands.dispatcher import CommandDispatcher, get_command_dispatcher
+from cores.commands.models import (
     CommandCost,
     CommandDefinition,
     CommandFlag,
@@ -15,7 +15,7 @@ from core.commands.models import (
     CommandResult,
     PermissionLevel,
 )
-from core.commands.registry import CommandRegistry, get_command_registry
+from cores.commands.registry import CommandRegistry, get_command_registry
 
 __all__ = [
     "CommandCost",

@@ -36,6 +36,9 @@ DEFAULT_TEST_ARGS = [
     "--ignore=tests/test_security.py",
     "--ignore=tests/test_vision_gateway.py",
     "--ignore=tests/test_scheduler.py",
+    # test_financial_hub / test_self_improvement re-enabled 2026-10-01:
+    # el import al router archivado y los 4 stubs del self-improvement ya
+    # están resueltos. Ver el comentario en el Makefile.
 ]
 
 TEST_TARGETS = [
@@ -69,14 +72,14 @@ def cmd_fmt(extra: list[str]) -> int:
 def cmd_typecheck(extra: list[str]) -> int:
     return _run(
         "mypy (full)",
-        [PY, "-m", "mypy", "cores/", "core/", "api/", "database/", "desktop/"] + extra,
+        [PY, "-m", "mypy", "cores/", "api/", "database/", "desktop/"] + extra,
     )
 
 
 def cmd_typecheck_fast(_extra: list[str]) -> int:
     return _run(
         "mypy (scoped)",
-        [PY, "-m", "mypy", "core/opportunity/scoring.py", "core/scheduler/scheduler.py", "core/scheduler/jobs.py"],
+        [PY, "-m", "mypy", "cores/opportunity/scoring.py", "cores/scheduler/scheduler.py", "cores/scheduler/jobs.py"],
     )
 
 

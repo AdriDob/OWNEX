@@ -15,7 +15,7 @@ logger = logging.getLogger("orion.core.learning.verdict_learner")
 
 
 def get_acceptance_learner():
-    from core.reports.acceptance.learner import AcceptanceLearner
+    from cores.reports.acceptance.learner import AcceptanceLearner
 
     return AcceptanceLearner()
 
@@ -29,7 +29,7 @@ def get_bus():
 def get_quality_dimensions(finding_id: int) -> dict[str, float] | None:
     """Score a finding and return its quality dimensions (0-1 scale)."""
     try:
-        from core.reports.quality.scorer import QualityScorer
+        from cores.reports.quality.scorer import QualityScorer
 
         qs = QualityScorer()
         score = qs.score(finding_id)

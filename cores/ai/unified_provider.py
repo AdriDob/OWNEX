@@ -40,23 +40,14 @@ class UnifiedAIProvider:
         self._ollama_model = os.getenv("OLLAMA_MODEL", "qwen3-coder:8b")
         self._fcc_base_url = os.getenv("FCC_BASE_URL", "http://localhost:8082")
 
-        # OmniRoute free models (same as IDE)
+        # OmniRoute free models (same as IDE) — curados 2026-09-15 (auto/* free 24/7)
         self._omniroute_models = [
-            "oc/deepseek-v4-flash-free",
-            "oc/qwen3.6-plus-free",
-            "oc/minimax-m3-free",
-            "aug/gemini-3.1-pro",
-            "aug/gemini-3.0-flash",
-            "groq/llama-3.3-70b-versatile",
-            "groq/meta-llama/llama-4-scout-17b-16e-instruct",
-            "groq/qwen/qwen3-32b",
-            "groq/qwen/qwen3.6-27b",
-            "samba/Meta-Llama-3.3-70B-Instruct",
-            "samba/Llama-4-Maverick-17B-128E-Instruct",
-            "samba/DeepSeek-V3.2",
+            "auto/best-free",
             "auto/best-coding",
             "auto/best-fast",
             "auto/best-reasoning",
+            "auto/best-chat",
+            "auto/best-coding-fast",
         ]
 
         # NVIDIA models (same as IDE)

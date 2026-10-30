@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
-import {
-  AlertTriangle, Cable, CheckCircle2, Dices, KeyRound, Percent, Save, Shield, Sliders,
-} from '@lucide/vue'
+import { AlertTriangle, Cable, CheckCircle2, Dices, KeyRound, Percent, Save, Shield, Sliders } from '@lucide/vue'
+import { onMounted, reactive, ref } from 'vue'
+import { api } from '@/lib/api'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 const { toast } = useToast()
 const saveSuccess = ref('')
@@ -43,9 +42,9 @@ const bankrollConfig = reactive({
 onMounted(async () => {
   loading.value = true
   try {
-    const coreRes = await fetch('/api/core/apps')
-    if (coreRes.ok) {
-      const apps = await coreRes.json()
+    const coreApps = await api.get<any[]>('/api/core/apps')
+    if (coreApps) {
+      const apps = coreApps
       const odysseyApp = apps.find((a: any) => a.id === 'odyssey')
       if (odysseyApp?.providers) {
         connectors.value = odysseyApp.providers.map((pid: string) => ({
@@ -71,11 +70,18 @@ async function saveSettings() {
   saveError.value = ''
   try {
     const existing = JSON.parse(localStorage.getItem('orion_odyssey_settings') || '{}')
-    const updated = { ...existing, ...formValues, kellyConfig: { ...kellyConfig }, bankrollConfig: { ...bankrollConfig } }
+    const updated = {
+      ...existing,
+      ...formValues,
+      kellyConfig: { ...kellyConfig },
+      bankrollConfig: { ...bankrollConfig },
+    }
     localStorage.setItem('orion_odyssey_settings', JSON.stringify(updated))
     saveSuccess.value = 'Configuración guardada correctamente'
     toast.success('Guardado', 'La configuración de ODYSSEY se actualizó')
-    setTimeout(() => { saveSuccess.value = '' }, 3000)
+    setTimeout(() => {
+      saveSuccess.value = ''
+    }, 3000)
   } catch (e) {
     saveError.value = 'Error al guardar la configuración'
     toast.error('Error', 'No se pudo guardar la configuración')

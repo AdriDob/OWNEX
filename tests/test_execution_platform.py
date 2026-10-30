@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from core.execution.contract import CapabilityContract, ContractEvent, ContractField, ContractPermission
-from core.execution.intent import Intent, IntentStatus, IntentUrgency
-from core.execution.models import (
+from cores.execution.contract import CapabilityContract, ContractEvent, ContractField, ContractPermission
+from cores.execution.intent import Intent, IntentStatus, IntentUrgency
+from cores.execution.models import (
     Approval,
     ApprovalStatus,
     Checkpoint,
@@ -14,8 +14,8 @@ from core.execution.models import (
     NodeResult,
     Workflow,
 )
-from core.execution.plan import ExecutionPlan, RollbackPlan, build_execution_plan
-from core.execution.primitives import (
+from cores.execution.plan import ExecutionPlan, RollbackPlan, build_execution_plan
+from cores.execution.primitives import (
     ApprovalConfig,
     CapabilityConfig,
     CheckpointConfig,
@@ -33,7 +33,7 @@ from core.execution.primitives import (
     TriggerConfig,
     WaitConfig,
 )
-from core.execution.validation import (
+from cores.execution.validation import (
     BaseValidator,
     ExecutionValidator,
     ValidationIssue,

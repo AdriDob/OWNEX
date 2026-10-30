@@ -5,7 +5,7 @@
  * No external dependencies (pure Canvas 2D).
  * Falls back to empty div when reduced-motion is active.
  */
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useReducedMotion } from '@/shared/composables/useReducedMotion'
 
 const { shouldReduce } = useReducedMotion()

@@ -19,7 +19,7 @@ class TestPolicyTotality:
 
     def test_profiles_do_not_mutate_taxonomy(self) -> None:
         # identity and policy stay separate: consuming policy never changes the Enum
-        assert len(OpportunityCategory) == 38
+        assert len(OpportunityCategory) == 40
 
 
 class TestEvidenceRules:

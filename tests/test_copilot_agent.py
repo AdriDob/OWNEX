@@ -6,9 +6,9 @@ from typing import Any
 
 import pytest
 
-from core.copilot.agent import CopilotAgent
-from core.copilot.analyzer import AnalysisResult, FindingAnalyzer
-from core.copilot.auditor import (
+from cores.copilot.agent import CopilotAgent
+from cores.copilot.analyzer import AnalysisResult, FindingAnalyzer
+from cores.copilot.auditor import (
     ArchitectureAuditor,
     AuditFinding,
     AuditReport,
@@ -17,13 +17,13 @@ from core.copilot.auditor import (
     IAuditor,
     SecurityAuditor,
 )
-from core.copilot.config import CopilotConfig
-from core.copilot.context import CopilotContext
-from core.copilot.explain import ExplanationEngine
-from core.copilot.permissions import AuthorityLevel, DecisionConfidence, Policy, PolicyEngine
-from core.copilot.planner import Plan, Planner, PlanStep
-from core.copilot.recommender import Recommendation, Recommender
-from core.copilot.review import CopilotReview, ReviewItem, ReviewReport
+from cores.copilot.config import CopilotConfig
+from cores.copilot.context import CopilotContext
+from cores.copilot.explain import ExplanationEngine
+from cores.copilot.permissions import AuthorityLevel, DecisionConfidence, Policy, PolicyEngine
+from cores.copilot.planner import Plan, Planner, PlanStep
+from cores.copilot.recommender import Recommendation, Recommender
+from cores.copilot.review import CopilotReview, ReviewItem, ReviewReport
 
 # ── Fixtures ──────────────────────────────────────────────────────────
 
@@ -633,7 +633,7 @@ class TestCopilotAgent:
         assert agent.explain("nonexistent") is None
 
     def test_pre_report_review(self, agent: CopilotAgent, sample_finding: dict[str, Any]) -> None:
-        from core.reports.acceptance.learner import AcceptanceLearner
+        from cores.reports.acceptance.learner import AcceptanceLearner
 
         AcceptanceLearner().reset()
         review = agent.pre_report_review(sample_finding)
@@ -703,9 +703,39 @@ class TestCopilotAgent:
         """Verify Copilot does not import apps directly."""
         import inspect
 
-        import core.copilot.agent as agent_module
+        import cores.copilot.agent as agent_module
 
         source = inspect.getsource(agent_module)
         # Should not import cateye, atlas, odyssey directly
         assert "import cores" not in source
         assert "from apps" not in source
+
+
+class TestSemantics:
+    def test_semantic_response_sections(self) -> None:
+        from cores.copilot.semantics import SemanticResponse
+
+        resp = SemanticResponse(
+            facts=["Scanned 10 opportunities."],
+            inferences=["Top pick maximizes EV/hour."],
+            recommendations=["Review then approve."],
+            unknowns=["Payout path unverified."],
+        )
+        d = resp.to_dict()
+        assert set(d) == {"FACT", "INFERENCE", "RECOMMENDATION", "UNKNOWN"}
+        md = resp.render_markdown()
+        assert "**FACT:**" in md and "**UNKNOWN:**" in md
+
+    def test_daily_brief_semantics_honest(self) -> None:
+        from cores.copilot.semantics import build_daily_brief_semantics
+
+        empty = build_daily_brief_semantics(scanned=0, top_title=None, top_score=None, top_ev_per_hour=None)
+        assert any("No recommendable" in u for u in empty.unknowns)
+        full = build_daily_brief_semantics(
+            scanned=25,
+            top_title="Fix login bug",
+            top_score=82.0,
+            top_ev_per_hour=35.5,
+            missing_skills=["pytest"],
+        )
+        assert full.facts and full.inferences and full.recommendations

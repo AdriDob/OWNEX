@@ -58,7 +58,7 @@ class GraphifyConnector(IConnector):
             return {"status": "ok", "graph_path": str(result) if result else ""}
         except Exception as exc:
             logger.error("Graphify analyze failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en análisis Graphify"}
 
     async def search(self, query: str, graph_dir: str) -> list[dict]:
         """Search the code knowledge graph."""
@@ -80,7 +80,7 @@ class GraphifyConnector(IConnector):
             return result if isinstance(result, dict) else {"error": "invalid result format"}
         except Exception as exc:
             logger.error("Graphify get_context failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno al obtener contexto Graphify"}
 
     async def export(self, graph_dir: str, format: str = "json") -> dict:
         """Export the knowledge graph in the specified format."""
@@ -91,4 +91,4 @@ class GraphifyConnector(IConnector):
             return {"status": "ok", "file_path": str(result) if result else ""}
         except Exception as exc:
             logger.error("Graphify export failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno al exportar Graphify"}

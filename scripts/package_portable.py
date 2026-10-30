@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CATEYE Portable Package Builder.
+"""OWNEX Portable Package Builder.
 
 Creates a self-contained portable distribution in build/portable/.
 
@@ -67,12 +67,14 @@ def build_frontend() -> bool:
 
 
 def build_pyinstaller() -> bool:
-    spec = PROJECT_ROOT / "CATEYE.spec"
+    # The canonical spec lives at the repo root. `CATEYE.spec` was the old
+    # name and no longer exists — this path silently skipped the build.
+    spec = PROJECT_ROOT / "OWNEX-Backend.spec"
     if not spec.exists():
-        log("PYINSTALLER", "SKIP — no CATEYE.spec found")
+        log("PYINSTALLER", "SKIP — no OWNEX-Backend.spec found")
         return False
 
-    binary = DIST_DIR / "CATEYE" / ("CATEYE.exe" if sys.platform == "win32" else "CATEYE")
+    binary = DIST_DIR / ("ownex-backend.exe" if sys.platform.startswith("win") else "ownex-backend")
     if binary.exists():
         log("PYINSTALLER", f"Already built ({binary}) — skipping")
         return True
@@ -82,7 +84,7 @@ def build_pyinstaller() -> bool:
         return False
 
     log("PYINSTALLER", "Building binary...")
-    if not _run_cmd(["pyinstaller", "CATEYE.spec", "-y"], timeout=600):
+    if not _run_cmd([sys.executable, "-m", "PyInstaller", "OWNEX-Backend.spec", "--noconfirm"], timeout=900):
         return False
 
     if not binary.exists():
@@ -102,16 +104,13 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
     PORTABLE_DIR.mkdir(parents=True, exist_ok=True)
 
     # ── Binary ──
+    # The spec emits a ONEFILE executable at dist/ownex-backend[.exe]
+    # (not a dist/CATEYE/ directory — that was the old ONEDIR layout).
     if not skip_pyinstaller and build_pyinstaller():
-        src = DIST_DIR / "CATEYE"
-        if src.exists():
+        binary = DIST_DIR / ("ownex-backend.exe" if sys.platform.startswith("win") else "ownex-backend")
+        if binary.exists():
             log("PORTABLE", "Copying PyInstaller build...")
-            for item in src.iterdir():
-                dest = PORTABLE_DIR / item.name
-                if item.is_dir():
-                    shutil.copytree(item, dest)
-                else:
-                    shutil.copy2(item, dest)
+            shutil.copy2(binary, PORTABLE_DIR / binary.name)
 
     # ── Frontend dist (fallback if PyInstaller didn't bundle it) ──
     frontend_dist = FRONTEND_DIR / "dist"
@@ -170,15 +169,16 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
     # ── README.txt at root ──
     readme = PORTABLE_DIR / "README.txt"
     readme.write_text(
-        f"CATEYE v{version}\n"
+        f"OWNEX v{version}\n"
         f"{'=' * 40}\n"
-        f"Portable Bug Bounty Intelligence System\n"
+        f"Autonomous Work Operating Platform\n"
         f"\n"
         f"QUICK START:\n"
-        f"  1. Run install.bat (one-time setup)\n"
-        f"  2. Run run.bat     (daily launch)\n"
+        f"  Windows: run install.bat (one-time setup), then run.bat (daily launch)\n"
+        f"  Linux:   run ./ownex-backend.sh\n"
         f"\n"
-        f"Data directory: ./data/\n"
+        f"Backend:  http://127.0.0.1:8000\n"
+        f"Data dir: ./data/\n"
         f"See docs/ for full documentation.\n"
     )
 
@@ -195,21 +195,23 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
         log("PORTABLE", "run.bat copied")
 
     # ── Launcher (Linux/macOS) ──
-    launcher = PORTABLE_DIR / "CATEYE.sh"
+    # The backend entrypoint accepts --port/--host/--data-dir/--log-level.
+    # `--browser` never existed as a flag, so the old launcher failed on
+    # the first argument it passed.
+    launcher = PORTABLE_DIR / "ownex-backend.sh"
     launcher.write_text(
         "#!/usr/bin/env bash\n"
-        "# CATEYE Portable Launcher\n"
+        "# OWNEX Portable Launcher\n"
         'SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\n'
-        'export CATEYE_DATA_DIR="${SCRIPT_DIR}/data"\n'
-        "export CATEYE_CSRF_DISABLED=1\n"
-        'exec "${SCRIPT_DIR}/CATEYE" --browser "$@"\n'
+        'export OWNEX_DATA_DIR="${SCRIPT_DIR}/data"\n'
+        'exec "${SCRIPT_DIR}/ownex-backend" --host 127.0.0.1 --port 8000 --data-dir "${SCRIPT_DIR}/data" "$@"\n'
     )
     launcher.chmod(0o755)
 
     # ── Verify ──
     log("PORTABLE", "Verifying portable distribution...")
     all_ok = True
-    for name in dirs + ["install.bat", "run.bat", "CATEYE.sh", "VERSION", "LICENSE", "README.txt"]:
+    for name in dirs + ["install.bat", "run.bat", "ownex-backend.sh", "VERSION", "LICENSE", "README.txt"]:
         path = PORTABLE_DIR / name
         if path.exists():
             size = ""
@@ -221,7 +223,7 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
             all_ok = False
 
     # Check for binary
-    for bin_name in ["CATEYE", "CATEYE.exe"]:
+    for bin_name in ["ownex-backend", "ownex-backend.exe"]:
         if (PORTABLE_DIR / bin_name).exists():
             log("PORTABLE", f"  [OK] {bin_name} ({(PORTABLE_DIR / bin_name).stat().st_size / 1024 / 1024:.1f} MB)")
             break
@@ -243,14 +245,14 @@ def create_portable_dist(skip_pyinstaller: bool) -> Path:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="CATEYE Portable Package Builder")
+    parser = argparse.ArgumentParser(description="OWNEX Portable Package Builder")
     parser.add_argument("--dev", action="store_true", help="Skip PyInstaller (for development testing)")
     parser.add_argument("--skip-pyinstaller", action="store_true", help="Skip PyInstaller build")
     args = parser.parse_args()
 
     skip_pyinstaller = args.dev or args.skip_pyinstaller
 
-    log("BUILD", "CATEYE Portable Package Builder")
+    log("BUILD", "OWNEX Portable Package Builder")
     log("BUILD", f"Platform: {sys.platform}")
     log("BUILD", f"Dev mode (skip PyInstaller): {skip_pyinstaller}")
 
@@ -264,7 +266,7 @@ def main() -> None:
     log("BUILD", "To test on a clean machine:")
     log("BUILD", f"  1. Copy {PORTABLE_DIR} to a USB drive or empty folder")
     log("BUILD", "  Windows: run install.bat (one-time), then run.bat (daily)")
-    log("BUILD", "  Linux:   run ./CATEYE.sh")
+    log("BUILD", "  Linux:   run ./ownex-backend.sh")
     log("BUILD", "  3. The setup wizard will open automatically")
     log("BUILD", "Done.")
 

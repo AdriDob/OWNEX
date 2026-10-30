@@ -324,6 +324,72 @@ def compute_htroi(
     )
 
 
+# ── P(CASH) — Fase SECURE (versioned, spec Secure Income) ──
+
+PCASH_FORMULA_VERSION = "PCASH-V1"
+
+
+@dataclass(frozen=True, slots=True)
+class CashConfidence:
+    """Probability that work actually turns into received money.
+
+    Product of the funnel stage probabilities the caller passes
+    (e.g. p_complete x p_accept x p_pay). Any unknown stage forces
+    UNKNOWN — the system admits it does not know instead of inventing
+    a chain link. Bands: HIGH >= 0.80, MEDIUM >= 0.50, else LOW.
+    """
+
+    p_cash: float | None
+    band: str  # HIGH | MEDIUM | LOW | UNKNOWN
+    formula_version: str
+    warnings: tuple[str, ...] = ()
+
+
+def compute_p_cash(stages: dict[str, float | None]) -> CashConfidence:
+    """Chain product of stage probabilities into P(CASH).
+
+    Empty dict or any None/out-of-range stage -> UNKNOWN (None),
+    never a guess. All-known stages multiply, clamped to [0, 1].
+    """
+    warnings: list[str] = []
+    if not stages:
+        return CashConfidence(
+            p_cash=None,
+            band="UNKNOWN",
+            formula_version=PCASH_FORMULA_VERSION,
+            warnings=("no stages provided -> P(CASH) UNKNOWN",),
+        )
+    missing = sorted(k for k, v in stages.items() if v is None)
+    if missing:
+        warnings.append(f"unknown stages ({', '.join(missing)}) -> P(CASH) UNKNOWN")
+        return CashConfidence(
+            p_cash=None,
+            band="UNKNOWN",
+            formula_version=PCASH_FORMULA_VERSION,
+            warnings=tuple(warnings),
+        )
+    product = 1.0
+    for key in sorted(stages):
+        value = stages[key]
+        assert value is not None  # narrowed above; keeps mypy honest
+        if not 0.0 <= float(value) <= 1.0:
+            return CashConfidence(
+                p_cash=None,
+                band="UNKNOWN",
+                formula_version=PCASH_FORMULA_VERSION,
+                warnings=(f"stage {key}={value} out of [0,1] -> P(CASH) UNKNOWN",),
+            )
+        product *= float(value)
+    product = round(min(max(product, 0.0), 1.0), 4)
+    band = "HIGH" if product >= 0.80 else ("MEDIUM" if product >= 0.50 else "LOW")
+    return CashConfidence(
+        p_cash=product,
+        band=band,
+        formula_version=PCASH_FORMULA_VERSION,
+        warnings=tuple(warnings),
+    )
+
+
 # ── Confidence Engine — Fase E (versioned, spec Income Multiplier §26) ──
 
 CONFIDENCE_FORMULA_VERSION = "CONF-V1"
@@ -412,4 +478,75 @@ def compute_confidence(
         band=band,
         formula_version=CONFIDENCE_FORMULA_VERSION,
         warnings=tuple(warnings),
+    )
+
+
+# ── Personal cash model (vNext §7, additive) ────────────────────────────────
+# Une reward observado + P calibrada + horas + fees en UNA estructura
+# etiquetada. Reglas duras:
+# - opportunity_value es monto OBSERVADO, jamás promesa de cobro.
+# - expected_cash existe solo con p_accept dada; si no, None (UNKNOWN).
+# - Toda cifra sin calibración propia lleva HIPOTESIS; MEDIDO solo con
+#   calibrated=True (outcomes verificados que la respaldan).
+
+
+@dataclass(frozen=True, slots=True)
+class PersonalCashModel:
+    opportunity_value_usd: float
+    expected_cash_usd: float | None
+    expected_net_per_hour_usd: float | None
+    time_to_cash_days: float | None
+    rate_basis: str  # platform | ownex_history | unknown | single-payment
+    labels: tuple[str, ...] = ()
+
+
+def personal_cash_model(
+    *,
+    reward_usd: float,
+    p_accept: float | None,
+    human_hours: float | None,
+    fees_usd: float = 0.0,
+    hourly_rate_usd: float | None = None,
+    rate_source: str = "unknown",
+    time_to_cash_days: float | None = None,
+    calibrated: bool = False,
+) -> PersonalCashModel:
+    """Modelo personal de cash con etiquetas de honestidad. Puro, sin I/O."""
+    if reward_usd < 0:
+        raise ValueError("reward_usd no puede ser negativo")
+    if fees_usd < 0:
+        raise ValueError("fees_usd no puede ser negativo")
+    if p_accept is not None and not 0.0 <= p_accept <= 1.0:
+        raise ValueError("p_accept debe estar en [0, 1] o ser None")
+
+    labels: list[str] = ["PERSONAL-MEDIDO" if calibrated else "HIPOTESIS"]
+    expected_cash: float | None = None
+    if p_accept is None:
+        labels.append("SIN-P")
+    else:
+        expected_cash = round(reward_usd * p_accept - fees_usd, 2)
+
+    net_per_hour: float | None = None
+    if expected_cash is None or human_hours is None or human_hours <= 0:
+        labels.append("SIN-HORAS")
+    else:
+        net_per_hour = round(expected_cash / human_hours, 2)
+
+    cash_days: float | None = None
+    if time_to_cash_days is not None and time_to_cash_days >= 0:
+        cash_days = float(time_to_cash_days)
+    else:
+        labels.append("SIN-TIEMPO-COBRO")
+
+    if hourly_rate_usd is not None and hourly_rate_usd > 0:
+        basis = rate_source if rate_source in ("platform", "ownex_history") else "unknown"
+    else:
+        basis = "single-payment"
+    return PersonalCashModel(
+        opportunity_value_usd=round(reward_usd, 2),
+        expected_cash_usd=expected_cash,
+        expected_net_per_hour_usd=net_per_hour,
+        time_to_cash_days=cash_days,
+        rate_basis=basis,
+        labels=tuple(labels),
     )

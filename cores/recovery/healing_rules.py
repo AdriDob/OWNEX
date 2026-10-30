@@ -128,8 +128,17 @@ HEALING_RULES: list[HealingRule] = [
     HealingRule(
         FailureType.VERSION_CORRUPTION,
         "version_rollback",
-        "Rollback to previous stable version when version corruption detected",
-        priority=0,  # Highest priority for version corruption
+        "Version corruption detected — rollback to last stable version",
+        priority=0,
+        requires_circuit_breaker=False,
+    ),
+    # UNKNOWN fallback: log + observe, never a silent no-op. Lowest priority,
+    # disabled circuit-breaker gate so it always runs and records.
+    HealingRule(
+        FailureType.UNKNOWN,
+        "log_and_observe",
+        "Unclassified failure — log evidence and observe before any action",
+        priority=100,
         requires_circuit_breaker=False,
     ),
 ]

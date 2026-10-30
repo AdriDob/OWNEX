@@ -4,8 +4,8 @@
    Triggers on IntersectionObserver and re-animates when value changes.
    ══════════════════════════════════════════════════════════ */
 
-import { ref, watch, onMounted, type Ref } from 'vue'
 import { animate } from 'motion'
+import { onMounted, type Ref, ref, watch } from 'vue'
 import { useReducedMotion } from './useReducedMotion'
 
 interface CounterOptions {
@@ -28,14 +28,7 @@ export function useAnimatedCounter(
   valueRef: Ref<number>,
   options: CounterOptions = {},
 ) {
-  const {
-    from = 0,
-    decimals = 0,
-    duration = 0.6,
-    spring: useSpring = true,
-    suffix = '',
-    prefix = '',
-  } = options
+  const { from = 0, decimals = 0, duration = 0.6, spring: useSpring = true, suffix = '', prefix = '' } = options
 
   const { shouldReduce } = useReducedMotion()
   const displayedValue = ref(from)
@@ -63,20 +56,13 @@ export function useAnimatedCounter(
     }
 
     // Animate the value binding and update DOM each frame
-    const controls = animate(
-      () => displayedValue.value,
-      target,
-      {
-        ...(useSpring
-          ? { type: 'spring' as const, stiffness: 100, damping: 18 }
-          : { duration }
-        ),
-        onUpdate: (latest: number) => {
-          displayedValue.value = latest
-          el.textContent = formatValue(latest)
-        },
+    const controls = animate(() => displayedValue.value, target, {
+      ...(useSpring ? { type: 'spring' as const, stiffness: 100, damping: 18 } : { duration }),
+      onUpdate: (latest: number) => {
+        displayedValue.value = latest
+        el.textContent = formatValue(latest)
       },
-    )
+    })
 
     controls.then(() => {
       displayedValue.value = target

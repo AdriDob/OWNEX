@@ -3,6 +3,7 @@
     { "name": "Rastro", "path": ".." }
   ],
   "settings": {
+    "terminal.integrated.defaultWorkingDirectory.linux": "/home/adriel/projects/Rastro",
     "files.watcherExclude": {
       "archive_cleanup/**": true,
       "dist/**": true,

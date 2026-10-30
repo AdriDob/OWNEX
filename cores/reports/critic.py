@@ -5,7 +5,7 @@ Attempts to identify weaknesses, missing information, and rejection risks.
 
 Usage::
 
-    from core.reports.critic import ReportCritic
+    from cores.reports.critic import ReportCritic
 
     critic = ReportCritic()
     result = critic.evaluate(finding_data, platform="hackerone")
@@ -15,6 +15,7 @@ Usage::
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -340,6 +341,35 @@ class ReportCritic:
                 notes=f"{len(impact.strip())} chars" if impact else "",
             )
         )
+        # F2: en high/critical el triage degrada sin escala (usuarios, alcance,
+        # consecuencia financiera). Solo pesa en esas severidades.
+        severity = str(finding.get("severity", "") or "").lower()
+        if severity in ("high", "critical"):
+            text = impact.lower()
+            quantified = bool(re.search(r"\d", text)) or any(
+                k in text
+                for k in (
+                    "all users",
+                    "any user",
+                    "every",
+                    "entire",
+                    "mass",
+                    "database",
+                    "production",
+                    "financial",
+                    "pii",
+                    "scale",
+                    "widespread",
+                )
+            )
+            checks.append(
+                CriticCheck(
+                    name="impact_quantified",
+                    description="High/Critical states scale: users/records/scope or financial consequence",
+                    passed=quantified,
+                    weight=1.5,
+                )
+            )
         return checks
 
     def _check_cvss(self, finding: dict[str, Any]) -> list[CriticCheck]:
@@ -452,6 +482,7 @@ class ReportCritic:
             "evidence_urls": "Include URL references in your evidence to make it verifiable",
             "impact_exists": "Explain the business impact: what data an attacker could access or what damage they could cause",
             "impact_detailed": "Expand the business impact to at least 50 characters with specific scenarios",
+            "impact_quantified": "State the scale: how many users/records, what scope, what financial or data consequence",
             "cvss_scored": "Calculate and include a CVSS v3.1 score for the vulnerability",
             "cvss_vectored": "Include the CVSS vector string (e.g., CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N)",
             "cwe_set": "Include the CWE identifier (e.g., CWE-200 for Information Disclosure)",
@@ -468,3 +499,42 @@ class ReportCritic:
             return "Intigriti requires tags/classification for proper routing. Add relevant tags."
 
         return suggestions.get(check.name, f"Fix: {check.description}")
+
+    # ── Pre-submit gate (F2c) ─────────────────────────────────────
+    # Hard gate over evaluate(): READY/needs_improvement + executable PoC +
+    # quantified impact, or HOLD with the exact reasons. The human (or a
+    # future pipeline hook) decides; the gate never submits by itself.
+
+    def gate(self, finding: dict[str, Any], platform: str = "hackerone") -> dict[str, Any]:
+        """GO/HOLD pre-submit gate. Pure (no DB, no network)."""
+        result = self.evaluate(finding, platform)
+        failed = {c.name for c in result.checks if not c.passed}
+        blockers: list[str] = []
+        if result.verdict in ("risky", "rework"):
+            blockers.append(f"critic verdict {result.verdict} (score {result.score:.0f}/{result.max_score:.0f})")
+        for must in ("poc_curl", "evidence_exists", "reproduction_steps", "impact_exists"):
+            if must in failed:
+                blockers.append(f"missing: {must}")
+        try:
+            from cores.reports.templates import quantify_impact
+
+            impact = quantify_impact(finding)
+            if impact.get("reproducibility") == "unproven":
+                blockers.append("impact unproven: no measured rate and <3 steps")
+        except Exception:
+            impact = {}
+        if blockers:
+            return {
+                "verdict": "HOLD",
+                "reasons": blockers,
+                "suggestions": result.suggestions[:5],
+                "critic": result.to_dict(),
+                "impact": impact,
+            }
+        return {
+            "verdict": "GO",
+            "reasons": [],
+            "suggestions": result.suggestions[:5],
+            "critic": result.to_dict(),
+            "impact": impact,
+        }

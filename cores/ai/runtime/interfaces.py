@@ -423,24 +423,23 @@ class FailoverEngineProtocol(ABC):
 class OARConfig:
     """Global OAR configuration."""
 
-    # Provider settings
+    # Provider settings (solo free 24/7: 2026-09-15 — el resto se registra bajo demanda)
     enabled_providers: list[str] = field(
         default_factory=lambda: [
-            "ollama",
-            "opencode",
-            "fcc",
-            "openrouter",
-            "nvidia_nim",
-            "groq",
-            "together",
-            "deepinfra",
-            "cerebras",
-            "lmstudio",
-            "freebuff",
+            "ollama",  # local más ligero (qwen2.5:3b-instruct)
+            "opencode",  # modelos opencode/*-free
+            "ollama_cloud",  # ollama.com/v1 free
+            "fcc",  # free via NVIDIA/Groq/OpenRouter
+            "nvidia_nim",  # NVIDIA NIM free
+            "omniroute",  # orquestador local free 24/7
+            "groq",  # Groq free (llama-3.1-70b, 30 rpm)
+            "cerebras",  # Cerebras free (llama3.1-70b, fast)
+            "together",  # Together AI free (meta-llama, 60 rpm)
+            "deepinfra",  # DeepInfra free (meta-llama, low cost)
         ]
     )
     default_provider: str = "ollama"
-    default_model: str = "qwen3-coder:8b"
+    default_model: str = "qwen2.5:3b-instruct"
 
     # Routing settings
     enable_smart_routing: bool = True

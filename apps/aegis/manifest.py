@@ -15,14 +15,14 @@ from apps.aegis.models import (
     ScanResult,
     VulnFinding,
 )
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 from .providers import PROVIDERS
 
 manifest = IAppPlugin(
     id="aegis",
     name="AEGIS",
-    version="7.0.0",
+    version="7.7.7",
     description="Offensive Security Platform — recon, scanning, validation, evidence, reporting, and learning",
     icon="Shield",
     order=5,

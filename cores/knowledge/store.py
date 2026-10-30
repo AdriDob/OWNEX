@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text
@@ -85,7 +85,7 @@ class SqlAlchemyKnowledgeStore(KnowledgeStore):
 
     def save_artifact(self, artifact: dict[str, Any]) -> str:
         artifact_id = artifact.get("artifact_id") or str(uuid.uuid4())
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(UTC).isoformat()
         model = KnowledgeArtifactModel(
             id=artifact_id,
             title=artifact.get("title", "untitled"),

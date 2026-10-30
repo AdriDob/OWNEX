@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from math import exp
 
-from core.opportunity.models import PersonalHistory, ScoredOpportunity, UnifiedScore
-from core.priority.ev_engine import compute_ev
+from cores.opportunity.models import PersonalHistory, ScoredOpportunity, UnifiedScore
+from cores.priority.ev_engine import compute_ev
 
 logger = logging.getLogger("ownex.opportunity.scorer")
 

@@ -7,8 +7,12 @@ from api.main import app
 
 
 @pytest.fixture
-def client():
-    return TestClient(app)
+def client(ownex_login):
+    c = TestClient(app)
+    # `/mobile/*` se monta en RAÍZ y el gate de auth exige sesión desde
+    # KNOWN_DEBT #32 — sin login estos tests sólo medían el 401.
+    ownex_login(c)
+    return c
 
 
 def test_mobile_copilot_chat(client):

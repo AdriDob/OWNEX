@@ -149,7 +149,9 @@ def unified_timeline(
 ):
     session = db.SessionLocal()
     try:
-        since = datetime.utcnow() - timedelta(hours=hours)
+        # DB timestamps are naive (server_default=func.now() in SQLite); keep the
+        # bound param naive UTC so the string format matches stored rows.
+        since = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=hours)
         events: list[dict[str, Any]] = []
 
         for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():

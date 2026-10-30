@@ -7,6 +7,7 @@ and technologies for a given target or list of endpoints.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from cores.cycles.stages import BaseStageExecutor
@@ -62,9 +63,20 @@ class AttackSurfaceExecutor(BaseStageExecutor):
             return self._wrap_result("failed", f"Attack surface mapping failed: {e}", error=str(e))
 
     def _scan_ports(self, target: str, endpoints: list[dict[str, Any]], scan_type: str) -> list[dict[str, Any]]:
-        """Discover open ports via passive analysis or simulated scan."""
+        """Discover open ports via passive analysis, with real naabu scan when requested.
+
+        Passive guesses are honestly labeled (source/confidence). When
+        ``scan_type`` is not "passive" and the naabu binary is installed,
+        a real scan runs first and its results take precedence.
+        """
         open_ports: list[dict[str, Any]] = []
         seen_ports: set[int] = set()
+
+        if scan_type != "passive":
+            open_ports.extend(self._scan_ports_naabu(target))
+
+        for p in open_ports:
+            seen_ports.add(p["port"])
 
         # Derive common ports from endpoints (URL patterns)
         for ep in endpoints:
@@ -99,6 +111,41 @@ class AttackSurfaceExecutor(BaseStageExecutor):
 
         open_ports.sort(key=lambda x: x["port"])
         return open_ports
+
+    def _scan_ports_naabu(self, target: str) -> list[dict[str, Any]]:
+        """Run a real naabu port scan when the binary is installed.
+
+        Returns [] when naabu is missing or the scan fails — the caller
+        then falls back to honestly-labeled passive guesses. Never raises.
+        """
+        try:
+            from cores.tools.naabu import NaabuTool
+
+            tool = NaabuTool()
+            if not tool.is_available():
+                self.logger.info("naabu not installed; using passive port guesses for %s", target)
+                return []
+            host = target.split("://", 1)[-1].split("/", 1)[0].split("?", 1)[0]
+            results = tool.scan(host, ports="top-100", rate=500, timeout=120)
+            ports: list[dict[str, Any]] = []
+            for r in results:
+                match = re.search(r"Port\s+(\d+)", r.name)
+                if not match:
+                    continue
+                ports.append(
+                    {
+                        "port": int(match.group(1)),
+                        "protocol": "tcp",
+                        "state": "open",
+                        "source": "naabu",
+                        "confidence": "high",
+                    }
+                )
+            self.logger.info("naabu scan for %s: %d open ports", target, len(ports))
+            return ports
+        except Exception as e:  # noqa: BLE001 — scan must never break the stage
+            self.logger.warning("naabu scan failed for %s: %s", target, e)
+            return []
 
     def _identify_services(self, target: str, ports: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Identify services running on open ports."""

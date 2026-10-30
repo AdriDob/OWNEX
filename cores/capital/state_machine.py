@@ -205,11 +205,6 @@ TRANSITIONS: dict[MoneyState, set[MoneyState]] = {
         MoneyState.REJECTED,
         MoneyState.PAUSED,
     },
-    MoneyState.IN_REVIEW: {
-        MoneyState.ACCEPTED,
-        MoneyState.REJECTED,
-        MoneyState.PAUSED,
-    },
     MoneyState.ACCEPTED: {
         MoneyState.PREPARED,  # entra a WorkBank como stream activo
     },
@@ -234,13 +229,6 @@ TRANSITIONS: dict[MoneyState, set[MoneyState]] = {
     # ExecutionQueue internos
     MoneyState.DISCOVERED: {MoneyState.EXPECTED, MoneyState.REJECTED},
     # MoneyState.QUALIFIED removed - using EXPECTED directly
-    MoneyState.FAILED: {MoneyState.QUEUED, MoneyState.DEAD_LETTER},
-    MoneyState.DEAD_LETTER: set(),
-    MoneyState.DUPLICATE: set(),
-    MoneyState.CLOSED: set(),
-    MoneyState.INFORMATIVE: set(),
-    MoneyState.WITHDRAWAL_COMPLETED: set(),
-    MoneyState.BOUNTY_PAID: set(),
 }
 
 

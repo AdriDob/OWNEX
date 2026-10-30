@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import os
 import threading
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Global state
 _hhd_lock = threading.RLock()
-_last_human_activity: datetime = datetime.utcnow()
-_system_start_time: datetime = datetime.utcnow()
+_last_human_activity: datetime = datetime.now(UTC)
+_system_start_time: datetime = datetime.now(UTC)
 _idle_seconds_accumulator: float = 0.0
 _tracker_initialized: bool = False
 _persist_path: Path | None = None
@@ -30,8 +30,8 @@ def init_hhd_tracker(data_dir: str | None = None) -> None:
         if _tracker_initialized:
             return
 
-        _system_start_time = datetime.utcnow()
-        _last_human_activity = datetime.utcnow()
+        _system_start_time = datetime.now(UTC)
+        _last_human_activity = datetime.now(UTC)
 
         # Setup persistence
         if data_dir:
@@ -60,14 +60,26 @@ def _load_persisted_state() -> None:
                 data = json.load(f)
 
             if "last_human_activity" in data:
-                _last_human_activity = datetime.fromisoformat(data["last_human_activity"])
+                _last_human_activity = _from_iso_utc(data["last_human_activity"])
             if "idle_seconds_accumulator" in data:
                 _idle_seconds_accumulator = float(data["idle_seconds_accumulator"])
             if "system_start_time" in data:
-                _system_start_time = datetime.fromisoformat(data["system_start_time"])
+                _system_start_time = _from_iso_utc(data["system_start_time"])
         except Exception:
             # Ignore corrupted state, start fresh
             pass
+
+
+def _from_iso_utc(raw: str) -> datetime:
+    """Parse an ISO timestamp, defaulting to UTC when no tz is present.
+
+    Older hhd_state.json files were written with naive utcnow() timestamps;
+    comparing those against aware now(UTC) values would raise TypeError.
+    """
+    value = datetime.fromisoformat(raw)
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    return value
 
 
 def _persist_state() -> None:
@@ -82,7 +94,7 @@ def _persist_state() -> None:
             "last_human_activity": _last_human_activity.isoformat(),
             "idle_seconds_accumulator": _idle_seconds_accumulator,
             "system_start_time": _system_start_time.isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         # Atomic write
@@ -99,7 +111,7 @@ def record_human_activity() -> None:
     global _last_human_activity, _idle_seconds_accumulator
 
     with _hhd_lock:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         idle_duration = (now - _last_human_activity).total_seconds()
         _idle_seconds_accumulator += idle_duration
         _last_human_activity = now
@@ -109,7 +121,7 @@ def record_human_activity() -> None:
 def get_idle_seconds() -> float:
     """Get total idle seconds since last human activity (including current idle period)."""
     with _hhd_lock:
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         current_idle = (now - _last_human_activity).total_seconds()
         return _idle_seconds_accumulator + current_idle
 
@@ -128,7 +140,7 @@ def get_last_activity() -> datetime:
 def get_uptime_hours() -> float:
     """Get system uptime in hours."""
     with _hhd_lock:
-        return round((datetime.utcnow() - _system_start_time).total_seconds() / 3600, 2)
+        return round((datetime.now(UTC) - _system_start_time).total_seconds() / 3600, 2)
 
 
 def get_hhd_summary() -> dict:
@@ -164,8 +176,8 @@ def reset_tracker() -> None:
     global _last_human_activity, _idle_seconds_accumulator, _system_start_time
 
     with _hhd_lock:
-        _system_start_time = datetime.utcnow()
-        _last_human_activity = datetime.utcnow()
+        _system_start_time = datetime.now(UTC)
+        _last_human_activity = datetime.now(UTC)
         _idle_seconds_accumulator = 0.0
         _persist_state()
 

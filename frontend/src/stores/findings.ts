@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { Finding, PipelineStages } from '@/types'
+import { computed, ref } from 'vue'
 import { api } from '@/lib/api'
+import type { Finding, PipelineStages } from '@/types'
 
 export const useFindingsStore = defineStore('findings', () => {
   const findings = ref<Finding[]>([])
@@ -47,7 +47,9 @@ export const useFindingsStore = defineStore('findings', () => {
   async function fetchPipeline() {
     try {
       pipeline.value = await api.get<PipelineStages>('/pipeline')
-    } catch { pipeline.value = null }
+    } catch {
+      pipeline.value = null
+    }
   }
 
   async function fetchAll() {
@@ -73,17 +75,27 @@ export const useFindingsStore = defineStore('findings', () => {
       estimated_reward: selectedFinding.value?.payout || 0,
     })
     if (report?.id) {
-      return api.post<{ success: boolean; external_id?: string; url?: string }>(
-        `/reports/${report.id}/submit`, { platform }
-      )
+      return api.post<{ success: boolean; external_id?: string; url?: string }>(`/reports/${report.id}/submit`, {
+        platform,
+      })
     }
     throw new Error('No se pudo crear el reporte')
   }
 
   return {
-    findings, pipeline, selectedFinding, loading, error,
-    findingsBySeverity, pipelineCounts,
-    fetchFindings, fetchPipeline, fetchAll, selectFinding,
-    updateStatus, regenerateNarrative, submitAsReport,
+    findings,
+    pipeline,
+    selectedFinding,
+    loading,
+    error,
+    findingsBySeverity,
+    pipelineCounts,
+    fetchFindings,
+    fetchPipeline,
+    fetchAll,
+    selectFinding,
+    updateStatus,
+    regenerateNarrative,
+    submitAsReport,
   }
 })

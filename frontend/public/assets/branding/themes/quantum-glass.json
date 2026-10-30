@@ -10,7 +10,7 @@
     "bg-glass-border": "rgba(255, 255, 255, 0.18)",
     "primary": "#F8FAFC",
     "primary-foreground": "#080A0F",
-    "accent": "#00D5FF",
+    "accent": "#E82127",
     "accent-foreground": "#080A0F",
     "gold": "#FBBF24",
     "green": "#34D399",
@@ -47,11 +47,23 @@
   "audio": {
     "profile": "crystalline",
     "volume": 0.65,
-    "enabled": ["startup", "shutdown", "success", "error", "hover", "click", "toggle", "agent_thinking", "mission_completed", "new_opportunity", "background_ambience"]
+    "enabled": [
+      "startup",
+      "shutdown",
+      "success",
+      "error",
+      "hover",
+      "click",
+      "toggle",
+      "agent_thinking",
+      "mission_completed",
+      "new_opportunity",
+      "background_ambience"
+    ]
   },
   "visualization": {
-    "coreColor": "#00D5FF",
-    "coreGlow": "rgba(0, 213, 255, 0.4)",
+    "coreColor": "#E82127",
+    "coreGlow": "rgba(232, 33, 39, 0.4)",
     "orbitColor": "rgba(255, 255, 255, 0.2)",
     "particleColor": "rgba(255, 255, 255, 0.15)",
     "trailLength": 35,

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import { Download, RefreshCw, Tag, Trash2, X } from '@lucide/vue'
+import { type Component, computed } from 'vue'
 import { useUIStore } from '@/stores/ui'
-import { Download, RefreshCw, Trash2, Tag, X } from '@lucide/vue'
 import Separator from './Separator.vue'
 
-const props = withDefaults(defineProps<{
-  container?: string
-}>(), {
-  container: '',
-})
+const props = withDefaults(
+  defineProps<{
+    container?: string
+  }>(),
+  {
+    container: '',
+  },
+)
 
 const store = useUIStore()
 

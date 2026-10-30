@@ -202,21 +202,48 @@ async function fetchActivity(): Promise<KnowledgeItem[]> {
     }))
 }
 
+/**
+ * Estado de misiones para la banda de salud del Command Center.
+ *
+ * `/mission/status` NO existe (404 medido 2026-10-05) y su shape esperado
+ * (`{system: {health_score, status}, next_action}`) no corresponde a ningún
+ * endpoint. El real es `/api/mission/summary`, que devuelve CONTADORES
+ * verificados autenticado: active_count, blocked_count, stale_count,
+ * waiting_human_count, by_status, stale_missions.
+ *
+ * La salud se deriva de lo que existe: sin bloqueadas ni stales = 100.
+ * Antes devolvía `health: 0` (porque `data.system` era undefined) y la banda
+ * del Command Center mostraba 0% como si el sistema estuviera caído.
+ */
 export async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
-    const data = await api.get<any>('/mission/status')
-    const nextAction = data.next_action
-      ? {
-          title: data.next_action.title || 'Sin acción pendiente',
-          reason: data.next_action.why_now || '',
-          effort: data.next_action.effort || 'Bajo',
-          estimatedReward: data.next_action.estimated_reward || 0,
-        }
-      : null
+    const data = await api.get<{
+      active_count?: number
+      blocked_count?: number
+      stale_count?: number
+      waiting_human_count?: number
+    }>('/api/mission/summary')
+
+    const blocked = data.blocked_count ?? 0
+    const stale = data.stale_count ?? 0
+    const waiting = data.waiting_human_count ?? 0
+
+    // nextAction: la única acción real que el backend expone es "esperar
+    // aprobación humana" cuando hay misiones en ese estado.
+    const nextAction: NextActionItem | null =
+      waiting > 0
+        ? {
+            title: `${waiting} misión(es) esperando aprobación`,
+            reason: 'Requieren una decisión del owner antes de avanzar',
+            effort: 'Bajo',
+            estimatedReward: 0,
+          }
+        : null
+
     return {
-      health: data.system?.health_score ?? 0,
-      status: data.system?.status ?? 'unknown',
+      health: blocked + stale === 0 ? 100 : Math.max(0, 100 - blocked * 25 - stale * 10),
+      status: blocked + stale === 0 ? 'ok' : 'degraded',
       nextAction,
-      timestamp: data.system?.timestamp ?? new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     }
 }
 
@@ -509,6 +536,23 @@ export interface DirectWorkOpportunity {
   payment: number
   remote: boolean
   employment_type: string
+  url?: string
+}
+
+export interface PublicWorkBlock {
+  rung: string
+  rung_label_es: string
+  rung_goal_es: string
+  checks: string[]
+  proof: string
+  difficulty: number
+  difficulty_unknown_inputs: boolean
+  market_segment?: string
+  reward_kind?: string
+  is_task_reward?: boolean
+  is_project_funding?: boolean
+  ceiling?: { segment: string; reward_kind: string; min_usd: number; max_observed_usd: number; typical: string; note: string }
+  ceiling_note?: string
 }
 
 export interface DirectWorkRanked {
@@ -517,6 +561,9 @@ export interface DirectWorkRanked {
   expected_value: number
   acceptance_probability: number
   overall_recommendation_score: number
+  compatibility_score: number
+  speed_score: number
+  risk_score: number
   strategy: string | null
   recommendation_reasoning: string[]
   zero_barrier_score: {
@@ -529,6 +576,10 @@ export interface DirectWorkRanked {
    payout_method_rationale: string
    payment_compat_score: number
    payment_compat_notes: string[]
+   p_cash?: number | null
+   p_cash_band?: string
+   htroi?: { usd_per_hour: number | null } | null
+   public_work?: PublicWorkBlock
  }
  
  export interface DirectWorkRecommendResponse {
@@ -554,6 +605,19 @@ export async function fetchDirectWorkRecommendations(
     profile: buildDirectWorkProfile(),
     opportunities,
     limit: 5,
+  })
+  return data.ranked
+}
+
+export async function fetchPublicWork(
+  mode = 'secure_plus_upside',
+  limit = 30,
+): Promise<DirectWorkRanked[]> {
+  const data = await api.post<DirectWorkRecommendResponse>('/direct-work/recommend', {
+    profile: buildDirectWorkProfile(),
+    opportunities: [],
+    limit,
+    mode,
   })
   return data.ranked
 }
@@ -754,7 +818,6 @@ export async function fetchSourceIntel(options?: {
 }
 
 
-
 // ── Income Projector ──
 
 export interface IncomeProjectionRequest {
@@ -947,25 +1010,6 @@ export async function sendWearOSNotification(payload: {
   return api.post<WearOSNotification>('/wear-os/notification', payload)
 }
 
-export async function fetchWearOSPendingApprovals(): Promise<WearOSApproval[]> {
-  return api.get<WearOSApproval[]>('/wear-os/approvals/pending')
-}
-
-export async function requestWearOSApproval(payload: {
-  title: string
-  description: string
-  workflow_id?: string
-}): Promise<WearOSApproval> {
-  return api.post<WearOSApproval>('/wear-os/approval-request', payload)
-}
-
-export async function respondWearOSApproval(
-  requestId: string,
-  approved: boolean,
-): Promise<{ success: boolean; approved: boolean }> {
-  return api.post<{ success: boolean; approved: boolean }>(`/wear-os/approval/${requestId}/respond`, { approved })
-}
-
 export async function clearWearOSNotifications(days = 7): Promise<{ success: boolean; cleared_count: number }> {
   return api.post<{ success: boolean; cleared_count: number }>('/wear-os/clear-notifications', { days })
 }
@@ -1092,6 +1136,15 @@ export interface CopilotChatResponse {
   model: string
   duration_ms: number
   error: string | null
+  /** Authoritative semantic labeling from the backend (model output = INFERENCE, never FACT). */
+  semantics?: SemanticLabels
+}
+
+export interface SemanticLabels {
+  FACT: string[]
+  INFERENCE: string[]
+  RECOMMENDATION: string[]
+  UNKNOWN: string[]
 }
 
 export async function sendChatMessage(
@@ -1114,6 +1167,16 @@ export async function executeCommand(
     action,
     params,
   })
+}
+
+/** One-time human approval token for opencode writes (single-use, expiring). */
+export async function requestOpencodeApproval(): Promise<{ status: string; approval_token: string }> {
+  return api.post<{ status: string; approval_token: string }>('/api/copilot/approve', { target: 'repo' })
+}
+
+/** Recent opencode runs (prompt/output/diff files live server-side). */
+export async function fetchOpencodeRuns(limit = 10): Promise<{ status: string; runs: Array<{ run_id: string; files: string[]; mtime: number }> }> {
+  return api.get('/api/copilot/runs', { limit })
 }
 
 // ── System Commands ──
@@ -1201,45 +1264,6 @@ export async function fetchDailyCompanion(
 }
 
 // ── Profile Kit ──
-
-export interface ProfileKitProfile {
-  name: string
-  country: string
-  skills: string[]
-  experience_level: string
-  availability_hours: number
-  github_url: string
-  linkedin_url: string
-  portfolio_url: string
-}
-
-export interface ProfileKitField {
-  key: string
-  label: string
-  text: string
-}
-
-export interface ProfileKitStatus {
-  saved: boolean
-  available_platforms: string[]
-  profile: ProfileKitProfile
-}
-
-export interface ProfileKitResponse {
-  kits: Record<string, Record<string, ProfileKitField[]>>
-}
-
-export async function fetchProfileKitStatus(): Promise<ProfileKitStatus> {
-  return api.get<ProfileKitStatus>('/api/profile-kit/')
-}
-
-export async function saveProfileKit(profile: ProfileKitProfile): Promise<{ success: boolean; saved: ProfileKitProfile }> {
-  return api.post<{ success: boolean; saved: ProfileKitProfile }>('/api/profile-kit/', profile)
-}
-
-export async function generateProfileKit(profile: ProfileKitProfile): Promise<ProfileKitResponse> {
-  return api.post<ProfileKitResponse>('/api/profile-kit/generate', profile)
-}
 
 // ── Outlook Calendar + Microsoft To Do Sync ──
 
@@ -1389,20 +1413,100 @@ export async function fetchValidTransitions(current: string): Promise<string[]> 
 
 // ── Capital Snapshot (SSOT de patrimonio) ──
 
+/**
+ * Forma REAL de `GET /api/financial/capital/snapshot`
+ * (api/routers/financial_truth.py:397-412).
+ *
+ * Antes se declaraba una forma que ningún campo del backend emitía
+ * (`bounty`, `work_income`, `investment`, `atlas`, `crypto`, `total_usd`,
+ * `expected_cash` como array, `payment_compat.{compatible,total}`) y todos
+ * los campos eran opcionales: `vue-tsc` no daba error y la UI renderizaba $0.
+ * `expected_cash` y `payment_compat` son DICTS, no arrays.
+ */
+export interface CapitalSnapshotWire {
+  patrimonio_total?: number
+  breakdown?: {
+    bounty_platforms?: Record<string, unknown>
+    crypto?: Record<string, unknown>
+    takenos?: Record<string, unknown>
+    atlas_inversiones?: Record<string, unknown>
+    workbank_ingresos?: Record<string, unknown>
+    inversiones?: Record<string, unknown>
+  }
+  liquidez?: Record<string, unknown>
+  expected_cash?: Record<string, { fecha_estimada?: string; confianza?: string; cuentas_disponibles?: number; nota?: string }>
+  payment_compat?: { total_cuentas?: number; por_funcion?: Record<string, unknown> }
+  ingresos_mes?: Record<string, unknown>
+  objetivo_libertad?: Record<string, unknown>
+  timestamp?: string
+}
+
+/** Vista del frontend. Todo número ausente es UNKNOWN (null), nunca 0. */
 export interface CapitalSnapshot {
   generated_at?: string
-  bounty?: { pagado_usd?: number; pendiente_usd?: number }
-  work_income?: { entregado_usd: number; pendiente_usd: number; total_usd: number }
-  investment?: { total_usd: number; estrategias: Array<{ name?: string; value?: number }> }
-  atlas?: { total_usd?: number }
-  crypto?: { total_usd?: number }
-  expected_cash?: Array<{ rail?: string; amount_usd?: number; date?: string }>
-  payment_compat?: { compatible?: number; total?: number }
-  total_usd?: number
+  total_usd?: number | null
+  bounty?: { pagado_usd?: number; pendiente_usd?: number } | null
+  work_income?: { entregado_usd?: number; pendiente_usd?: number; total_usd?: number } | null
+  investment?: { total_usd?: number; estrategias?: Array<{ name?: string; value?: number }> } | null
+  atlas?: { total_usd?: number } | null
+  crypto?: { total_usd?: number } | null
+  expected_cash?: { total?: number; by_rail?: Array<{ rail?: string; amount_usd?: number; date?: string }> } | null
+  payment_compat?: { total?: number; por_funcion?: Record<string, unknown> } | null
+}
+
+function _num(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+function _sumRecord(rec: Record<string, unknown> | undefined, key: string): number | null {
+  if (!rec) return null
+  const v = _num(rec[key])
+  return v
+}
+
+/**
+ * Traduce el wire real a la vista del frontend. Un campo que el backend no
+ * manda queda `null` = UNKNOWN, que la UI muestra como `—`. Antes esos mismos
+ * campos se renderizaban como $0 (UNKNOWN declarado como cero).
+ */
+function _mapCapitalSnapshot(wire: CapitalSnapshotWire): CapitalSnapshot {
+  const b = wire.breakdown ?? {}
+  const rails = Object.entries(wire.expected_cash ?? {}).map(([rail, info]) => ({
+    rail,
+    amount_usd: undefined as number | undefined,
+    date: info?.fecha_estimada,
+  }))
+  return {
+    generated_at: wire.timestamp,
+    total_usd: _num(wire.patrimonio_total),
+    bounty: b.bounty_platforms
+      ? {
+          pagado_usd: _sumRecord(b.bounty_platforms, 'pagado_usd') ?? undefined,
+          pendiente_usd: _sumRecord(b.bounty_platforms, 'pendiente_usd') ?? undefined,
+        }
+      : null,
+    work_income: b.workbank_ingresos
+      ? {
+          entregado_usd: _sumRecord(b.workbank_ingresos, 'entregado_usd') ?? undefined,
+          pendiente_usd: _sumRecord(b.workbank_ingresos, 'pendiente_usd') ?? undefined,
+          total_usd: _sumRecord(b.workbank_ingresos, 'total_usd') ?? undefined,
+        }
+      : null,
+    investment: b.inversiones
+      ? { total_usd: _sumRecord(b.inversiones, 'total_usd') ?? undefined, estrategias: [] }
+      : null,
+    atlas: b.atlas_inversiones ? { total_usd: _sumRecord(b.atlas_inversiones, 'total_usd') ?? undefined } : null,
+    crypto: b.crypto ? { total_usd: _sumRecord(b.crypto, 'total_usd') ?? undefined } : null,
+    expected_cash: wire.expected_cash ? { by_rail: rails } : null,
+    payment_compat: wire.payment_compat
+      ? { total: _num(wire.payment_compat.total_cuentas) ?? undefined, por_funcion: wire.payment_compat.por_funcion }
+      : null,
+  }
 }
 
 export async function fetchCapitalSnapshot(): Promise<CapitalSnapshot> {
-  return api.get<CapitalSnapshot>('/financial/capital/snapshot')
+  const wire = await api.get<CapitalSnapshotWire>('/financial/capital/snapshot')
+  return _mapCapitalSnapshot(wire ?? {})
 }
 
 // ── AI Providers (settings/ai + OAR + resilience) ──
@@ -1498,6 +1602,41 @@ export async function fetchRevenueSummary(): Promise<RevenueSummary> {
     by_platform: data.by_platform ?? [],
     submissions: data.submissions ?? 0,
   }
+}
+
+// ── Revenue Tiers (SURVIVAL / TARGET $5K / STRETCH $15K + pace) ──
+
+export interface RevenueTier {
+  name: string
+  target_usd: number
+  realized_usd: number
+  projection_usd: number
+  gap_usd: number
+  on_track: boolean
+}
+
+export interface RevenueTiers {
+  month: string
+  realized_mtd_net_usd: number
+  pending_usd: number
+  pace_monthly_usd: number
+  projection_monthly_usd: number
+  tiers: {
+    survival: { name: string; question: string; met: boolean; realized_usd: number }
+    target: RevenueTier
+    stretch: RevenueTier
+  }
+  best_opportunity: {
+    title: string | null
+    expected_value: number | null
+    ev_per_hour: number | null
+    opportunity_id: string | null
+    why: string | null
+  }
+}
+
+export async function fetchRevenueTiers(target = 5000, stretch = 15000): Promise<RevenueTiers> {
+  return api.get<RevenueTiers>(`/command-center/tiers?target=${target}&stretch=${stretch}`)
 }
 
 export async function fetchRevenueSubmissions(): Promise<RevenueSubmission[]> {
@@ -1612,4 +1751,1230 @@ export interface UnifiedAgendaState {
 
 export async function fetchAgenda(): Promise<UnifiedAgendaState> {
   return api.get<UnifiedAgendaState>('/agenda')
+}
+
+// ── OneAction Autopilot ──
+
+export interface OneAction {
+  action_id: string
+  action_type: string
+  title: string
+  description: string
+  why: string
+  instruction: string
+  urgency: 'immediate' | 'today' | 'this_week' | 'this_month' | 'flexible'
+  confidence_band: 'high' | 'medium' | 'low' | 'unknown'
+  success_probability: number | null
+  acceptance_probability: number | null
+  payment_probability: number | null
+  p_cash: number | null
+  p_cash_band: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN' | null
+  expected_value_usd: number | null
+  ev_per_human_hour_usd: number | null
+  estimated_human_hours: number | null
+  cash_speed_days: number | null
+  platform_name: string | null
+  platform_readiness_pct: number
+  platform_url: string | null
+  prerequisites: string[]
+  url: string | null
+  expires_at: string | null
+}
+
+export async function fetchOneAction(params: { force_refresh?: boolean } = {}): Promise<OneAction | null> {
+  return api.post<OneAction | null>('/autopilot/one-action', params)
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// TRADING LAB API
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── trading-lab eliminado 2026-10-05 ──
+// 163 lineas (6 endpoints `/trading-lab/*` + sus tipos). Los 6 endpoints
+// NO existen en el backend (404 medido) y estas 6 funciones tenian 0
+// consumidores. Codigo muerto: una funcion que llama a un 404 y no la
+// llama nadie. Ver KNOWN_DEBT #24 y #63.
+// Si se reconstruye trading-lab, rehacer contra la API real, no este bloque.
+
+export interface OneBestAction {
+  action_type: string
+  title: string
+  description: string
+  why_now: string
+  platform: string
+  opportunity_id: string | null
+  work_item_id: string | null
+  estimated_human_hours: number
+  expected_value_usd: number
+  acceptance_probability: number
+  cash_speed_days: number | null
+  urgency: string
+  prerequisites: string[]
+  url: string | null
+  next_step_instruction: string
+  metadata: Record<string, unknown>
+}
+
+export async function fetchOneBestAction(): Promise<OneBestAction | null> {
+  return api.get<OneBestAction | null>('/direct-work/one-best-action')
+}
+
+// ── Work Streams (Category-aware UI) ──
+
+export type WorkStreamKey =
+  | 'bug_bounty'
+  | 'dev_bounty'
+  | 'ai_work'
+  | 'game_dev'
+  | 'open_source'
+  | 'tech_content'
+
+export interface WorkStreamConfig {
+  key: WorkStreamKey
+  label: string
+  icon: string
+  description: string
+  platforms: string[]
+  access_type: 'api_key' | 'mixed' | 'manual_setup'
+  deliverables: string[]
+  quick_actions: string[]
+  automation: string
+  user_decides: string[]
+}
+
+export interface WorkStreamsResponse {
+  streams: WorkStreamConfig[]
+  category_to_stream: Record<string, WorkStreamKey>
+  platform_to_stream: Record<string, WorkStreamKey>
+}
+
+export interface StreamOpportunitiesResponse {
+  stream: WorkStreamKey
+  stream_config: WorkStreamConfig
+  total_found: number
+  filtered: number
+  ranked: Array<{
+    rank: number
+    opportunity: {
+      id: string
+      title: string
+      platform: string
+      category: string
+      stream: string
+      payment: number
+      reward: number
+    }
+    overall_recommendation_score: number
+    expected_value: number
+    barrier_score: number
+    payment_compat_score: number
+    payout_method: string
+  }>
+}
+
+export interface StreamWorkBankResponse {
+  stream: WorkStreamKey
+  stream_config: WorkStreamConfig
+  total: number
+  ready_to_deliver: number
+  needs_access: number
+  delivered: number
+  items: {
+    ready: WorkBankItem[]
+    needs_access: WorkBankItem[]
+    delivered: WorkBankItem[]
+  }
+  targets: Record<string, WorkBankTarget>
+}
+
+export async function fetchWorkStreams(): Promise<WorkStreamsResponse> {
+  return api.get<WorkStreamsResponse>('/direct-work/streams')
+}
+
+export async function fetchStreamOpportunities(
+  streamKey: WorkStreamKey,
+  limit: number = 20,
+): Promise<StreamOpportunitiesResponse> {
+  return api.get<StreamOpportunitiesResponse>(`/direct-work/streams/${streamKey}/opportunities`, { params: { limit } })
+}
+
+export async function fetchStreamWorkBank(streamKey: WorkStreamKey): Promise<StreamWorkBankResponse> {
+  return api.get<StreamWorkBankResponse>(`/direct-work/streams/${streamKey}/workbank`)
+}
+
+export async function runStreamCycle(
+  streamKey: WorkStreamKey,
+  target: number | null = null,
+): Promise<WorkBankState> {
+  const summary = await api.post<{ scanned: number; new_items_added: number; ready_to_deliver: number; needs_access: number }>(
+    `/direct-work/streams/${streamKey}/cycle`,
+    { target },
+  )
+  const state = await fetchStreamWorkBank(streamKey)
+  return { ...state, ...summary } as any
+}
+
+// ── Knowledge Graph ──
+
+export interface KnowledgeGraphStats {
+  nodes: number
+  edges: number
+  node_types: Record<string, number>
+  relationships: Record<string, number>
+}
+
+export interface KnowledgeGraphNode {
+  id: string
+  type: string
+  name: string
+  properties: Record<string, any>
+  confidence: number
+  created_at: string
+  last_updated: string
+}
+
+export interface KnowledgeGraphEdge {
+  source: string
+  target: string
+  relationship: string
+  strength: number
+  properties: Record<string, any>
+  confidence: number
+}
+
+export interface KnowledgeGraphSubgraph {
+  center_id: string
+  nodes: KnowledgeGraphNode[]
+  edges: KnowledgeGraphEdge[]
+  depth: number
+}
+
+export async function fetchKnowledgeGraphStats(): Promise<KnowledgeGraphStats> {
+  return api.get<KnowledgeGraphStats>('/api/knowledge-graph/stats')
+}
+
+export async function fetchKnowledgeGraphNodes(
+  params: { type?: string; limit?: number } = {}
+): Promise<KnowledgeGraphNode[]> {
+  return api.get<KnowledgeGraphNode[]>('/api/knowledge-graph/nodes', { params })
+}
+
+export async function searchKnowledgeGraphNodes(
+  query: string,
+  params: { type?: string; limit?: number } = {}
+): Promise<KnowledgeGraphNode[]> {
+  return api.get<KnowledgeGraphNode[]>('/api/knowledge-graph/nodes/search', { params: { q: query, ...params } })
+}
+
+export async function fetchKnowledgeGraphSubgraph(
+  nodeId: string,
+  depth: number = 2,
+  limit: number = 100
+): Promise<KnowledgeGraphSubgraph> {
+  return api.get<KnowledgeGraphSubgraph>(`/api/knowledge-graph/subgraph/${nodeId}`, { params: { depth, limit } })
+}
+
+export async function fetchKnowledgeGraphEdges(
+  params: { node_id?: string; direction?: string; relationship?: string; limit?: number } = {}
+): Promise<{ edges: KnowledgeGraphEdge[]; count: number }> {
+  return api.get('/api/knowledge-graph/edges', { params })
+}
+
+export async function createKnowledgeGraphEdge(
+  sourceId: string,
+  targetId: string,
+  relationship: string,
+  strength: number = 1
+): Promise<{ source_id: string; target_id: string; relationship: string; strength: number }> {
+  return api.post('/api/knowledge-graph/edges', { source_id: sourceId, target_id: targetId, relationship, strength })
+}
+
+export async function upsertKnowledgeGraphNode(
+  type: string,
+  name: string,
+  properties: Record<string, any> | null = null,
+  nodeId: string | null = null
+): Promise<KnowledgeGraphNode> {
+  return api.post('/api/knowledge-graph/nodes', { type, name, properties, node_id: nodeId })
+}
+
+// ── Targets CRUD ──
+
+export async function createTarget(data: { name: string; domain?: string; mode?: string }): Promise<{ id: number; name: string; domain: string | null }> {
+  return api.post('/api/targets', data)
+}
+
+export async function updateTarget(targetId: number, data: { name?: string; domain?: string; active?: boolean; priority?: string; orion_score?: number }): Promise<{ id: number; name: string; domain: string | null; active: boolean }> {
+  return api.put(`/api/targets/${targetId}`, data)
+}
+
+export async function deleteTarget(targetId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/targets/${targetId}`)
+}
+
+export async function activateTarget(targetId: number): Promise<{ id: number; active: boolean }> {
+  return api.patch(`/api/targets/${targetId}/activate`)
+}
+
+export async function deactivateTarget(targetId: number): Promise<{ id: number; active: boolean }> {
+  return api.patch(`/api/targets/${targetId}/deactivate`)
+}
+
+// ── Findings CRUD ──
+
+export async function createFinding(data: { target_id: number; endpoint_id?: number; title: string; severity?: string; description?: string }): Promise<{ id: number; title: string }> {
+  return api.post('/api/findings', data)
+}
+
+export async function updateFinding(findingId: number, data: { notes?: string; status?: string }): Promise<{ id: number }> {
+  // Contract real (findings.py): PATCH /{finding_id} acepta notes/status.
+  return api.patch(`/api/findings/${findingId}`, data)
+}
+
+export async function updateFindingStatus(findingId: number, status: string): Promise<{ id: number; status: string }> {
+  return api.put(`/api/findings/${findingId}/status`, { status })
+}
+
+export async function deleteFinding(findingId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/findings/${findingId}`)
+}
+
+export async function confirmFinding(findingId: number): Promise<{ id: number; status: string }> {
+  return updateFindingStatus(findingId, 'confirmed')
+}
+
+export async function rejectFinding(findingId: number): Promise<{ id: number; status: string }> {
+  return updateFindingStatus(findingId, 'rejected')
+}
+
+// ── Reports CRUD ──
+
+export async function createReport(data: { title: string; target_id: number; findings: number[] }): Promise<{ id: number; title: string }> {
+  return api.post('/api/reports', data)
+}
+
+export async function updateReport(reportId: number, data: { title?: string; status?: string; content?: string }): Promise<{ id: number }> {
+  return api.put(`/api/reports/${reportId}`, data)
+}
+
+export async function deleteReport(reportId: number): Promise<{ id: number; deleted: boolean }> {
+  return api.delete(`/api/reports/${reportId}`)
+}
+
+export async function submitReport(reportId: number, data?: { submission_url?: string }): Promise<{ id: number; status: string }> {
+  return api.post(`/api/reports/${reportId}/submit`, data || {})
+}
+
+// ── Milestone Tracker (First Money Extended: $100 → $500 → $1k → $2.5k → $5k → $10k) ──
+
+export type IncomeEngineType = 'ai_training' | 'adriel_webs' | 'bug_bounty' | 'dev_bounty'
+
+export interface EngineProximity {
+  engine: string
+  label: string
+  current_usd: number
+  projected_usd: number
+  next_milestone: string
+  usd_to_milestone: number
+  pct_to_milestone: number
+  status: 'ready' | 'needs_setup' | 'needs_action' | 'blocked'
+  next_action: string
+  action_url: string | null
+  confidence: number
+  is_closest: boolean
+}
+
+export interface MilestoneProgressItem {
+  milestone: string
+  label: string
+  usd_target: number
+  current_usd: number
+  usd_needed: number
+  pct_complete: number
+  engines_contributing: string[]
+  is_next: boolean
+  achieved: boolean
+}
+
+export interface ClosestEngine {
+  engine: string
+  label: string
+  usd_to_milestone: number
+  next_action: string
+  action_url: string | null
+}
+
+export interface DailyAction {
+  engine: string
+  title: string
+  description: string
+  estimated_minutes: number
+  impact_usd: number
+  priority: number
+  url: string | null
+}
+
+export interface MilestoneTrackerState {
+  total_earned_usd: number
+  next_milestone: {
+    milestone: string
+    label: string
+    usd_needed: number
+    pct_complete: number
+  }
+  milestones: Array<{
+    milestone: string
+    label: string
+    usd_target: number
+    current_usd: number
+    usd_needed: number
+    pct_complete: number
+    engines_contributing: string[]
+    is_next: boolean
+    achieved: boolean
+  }>
+  engine_proximities: Array<{
+    engine: string
+    label: string
+    current_usd: number
+    projected_usd: number
+    next_milestone: string
+    usd_to_milestone: number
+    pct_to_milestone: number
+    status: string
+    next_action: string
+    action_url: string | null
+    confidence: number
+    is_closest: boolean
+  }>
+  closest_engine: {
+    engine: string
+    label: string
+    usd_to_milestone: number
+    next_action: string
+    action_url: string | null
+  } | null
+  daily_action: {
+    engine: string
+    title: string
+    description: string
+    estimated_minutes: number
+    impact_usd: number
+    priority: number
+    url: string | null
+  } | null
+}
+
+export interface MilestoneTrackerResponse {
+  total_earned_usd: number
+  next_milestone: { milestone: string; label: string; usd_needed: number; pct_complete: number }
+  milestones: Array<{
+    milestone: string; label: string; usd_target: number; current_usd: number; usd_needed: number; pct_complete: number
+    engines_contributing: string[]; is_next: boolean; achieved: boolean
+  }>
+  engine_proximities: Array<{
+    engine: string; label: string; current_usd: number; projected_usd: number; next_milestone: string
+    usd_to_milestone: number; pct_to_milestone: number; status: string; next_action: string
+    action_url: string | null; confidence: number; is_closest: boolean
+  }>
+  closest_engine: { engine: string; label: string; usd_to_milestone: number; next_action: string; action_url: string | null } | null
+  daily_action: { engine: string; title: string; description: string; estimated_minutes: number; impact_usd: number; priority: number; url: string | null } | null
+}
+
+export async function fetchMilestoneTracker(): Promise<MilestoneTrackerState> {
+  const data = await api.get<MilestoneTrackerResponse>('/first-money/milestone-tracker')
+  // Normalize: ensure all expected fields are present
+  return {
+    next_milestone: data.next_milestone ?? { milestone: '100', label: '$100', usd_needed: 100, pct_complete: 0 },
+    milestones: data.milestones ?? [],
+    engine_proximities: data.engine_proximities ?? [],
+    closest_engine: data.closest_engine ?? null,
+    daily_action: data.daily_action ?? null,
+    total_earned_usd: data.total_earned_usd ?? 0,
+  }
+}
+
+// ── Aggressive Plan (EOY Targets: $5k / $10k) ──
+
+export interface AggressiveEnginePlan {
+  engine: string
+  label: string
+  status: string
+  weekly_usd_target: number
+  monthly_usd_target: number
+  est_hours_per_week: number
+  current_projected_monthly: number
+  gap_to_monthly_target: number
+  confidence: number
+  is_primary?: boolean
+  setup_phase?: boolean
+  setup_actions?: string
+}
+
+export interface AggressivePlanState {
+  target_usd: number
+  current_earned: number
+  gap_usd: number
+  weeks_left: number
+  weekly_required_total: number
+  monthly_required_total: number
+  engine_plan: Array<{
+    engine: string
+    label: string
+    status: string
+    weekly_usd_target: number
+    monthly_usd_target: number
+    est_hours_per_week: number
+    current_projected_monthly: number
+    gap_to_monthly_target: number
+    confidence: number
+    is_primary?: boolean
+    setup_phase?: boolean
+    setup_actions?: string
+  }>
+  weekly_checklist: string[]
+  milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+  probability_note: string
+}
+
+export async function fetchAggressivePlan(targetUsd: 5000 | 10000 = 5000): Promise<{
+  target_usd: number
+  current_earned: number
+  gap_usd: number
+  weeks_left: number
+  weekly_required_total: number
+  monthly_required_total: number
+  engine_plan: AggressiveEnginePlan[]
+  weekly_checklist: string[]
+  milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+  probability_note: string
+}> {
+  const data = await api.get<{
+    target_usd: number
+    current_earned: number
+    gap_usd: number
+    weeks_left: number
+    weekly_required_total: number
+    monthly_required_total: number
+    engine_plan: AggressiveEnginePlan[]
+    weekly_checklist: string[]
+    milestones_remaining: Array<{ label: string; usd: number; achieved: boolean }>
+    probability_note: string
+  }>(`/first-money/aggressive-plan?target_usd=${targetUsd}`)
+  return data
+}
+
+// ── First Money Workflow (Zero-to-Earning) ──
+
+export type FirstMoneyStageStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped' | 'blocked'
+
+export interface FirstMoneyStageProgress {
+  stage: string
+  label: string
+  description: string
+  status: FirstMoneyStageStatus
+  started_at: string | null
+  completed_at: string | null
+  platform: string | null
+  is_current: boolean
+  blocking_reason: string | null
+}
+
+export interface FirstMoneyProgress {
+  user_name: string
+  current_stage: string
+  current_stage_label: string
+  completion_percentage: number
+  completed_count: number
+  total_count: number
+  first_revenue_amount: number
+  first_revenue_platform: string | null
+  started_at: string
+  completed_at: string | null
+  stages: FirstMoneyStageProgress[]
+  is_complete: boolean
+}
+
+export interface FirstMoneyNextAction {
+  action: string
+  title: string
+  description: string
+  platform: string | null
+}
+
+export async function fetchFirstMoneyProgress(): Promise<FirstMoneyProgress> {
+  return api.get<FirstMoneyProgress>('/first-money/progress')
+}
+
+export async function fetchFirstMoneyNextAction(): Promise<FirstMoneyNextAction> {
+  return api.get<FirstMoneyNextAction>('/first-money/next-action')
+}
+
+export interface SetupChecklistPendingItem {
+  id: string
+  phase: string
+  priority: number
+  title: string
+  why: string
+  est_minutes: number
+  how_to: string
+  url?: string
+  url_label?: string
+}
+
+export interface SetupChecklistNextTask {
+  id: string
+  phase: string
+  phase_label: string
+  title: string
+  why: string
+  est_minutes: number
+  how_to: string
+  url?: string
+  url_label?: string
+}
+
+export interface SetupChecklistStatus {
+  complete_pct: number
+  total_items: number
+  done_items: number
+  done: string[]
+  pending: SetupChecklistPendingItem[]
+  next_task?: SetupChecklistNextTask | null
+}
+
+export async function fetchSetupChecklistStatus(): Promise<SetupChecklistStatus> {
+  return api.get<SetupChecklistStatus>('/setup/checklist/status')
+}
+
+export async function startFirstMoneyStage(
+  stage: string,
+  platform?: string | null,
+): Promise<{ success: boolean; stage: string; platform: string | null }> {
+  const qs = platform ? `?platform=${encodeURIComponent(platform)}` : ''
+  return api.post(`/first-money/stage/${encodeURIComponent(stage)}/start${qs}`, {})
+}
+
+export async function completeFirstMoneyStage(
+  stage: string,
+  notes?: string,
+): Promise<{ success: boolean; stage: string }> {
+  const qs = notes ? `?notes=${encodeURIComponent(notes)}` : ''
+  return api.post(`/first-money/stage/${encodeURIComponent(stage)}/complete${qs}`, {})
+}
+
+export async function recordFirstRevenue(
+  amount: number,
+  platform: string,
+  notes?: string,
+): Promise<{ success: boolean; amount: number; platform: string }> {
+  const qs = new URLSearchParams({
+    amount: String(amount),
+    platform,
+    ...(notes ? { notes } : {}),
+  }).toString()
+  return api.post(`/first-money/first-revenue?${qs}`, {})
+}
+
+// ── Freelance Channels (OPTIONAL commercial engine) ──
+
+export type FreelanceChannelStatus = 'active' | 'paused' | 'disabled' | 'excluded'
+
+export interface FreelanceChannelInfo {
+  status: FreelanceChannelStatus
+  recommending: boolean
+}
+
+export async function fetchFreelanceChannels(): Promise<{
+  channels: Record<string, FreelanceChannelInfo>
+  note: string
+}> {
+  return api.get('/direct-work/channels')
+}
+
+export async function setFreelanceChannel(
+  channel: string,
+  status: FreelanceChannelStatus,
+): Promise<{ channel: string; status: string; recommending: boolean }> {
+  return api.post(`/direct-work/channels/${encodeURIComponent(channel)}`, { status })
+}
+
+// ── Platform Guides (Zero-to-Earning onboarding) ──
+
+export interface PlatformGuideStep {
+  index: number
+  title: string
+  description: string
+  action: string
+  element: string
+  value: string | null
+  url: string | null
+  screenshot_hint: string | null
+}
+
+export interface PlatformGuideDetail {
+  platform: string
+  name: string
+  url: string
+  guide_type: string
+  formatted: string
+  steps_count: number
+  file_formats: Record<string, string>
+  tips: string[]
+  common_errors: Array<{ error: string; solution: string }>
+}
+
+export interface PlatformGuideSteps {
+  platform: string
+  name: string
+  url: string
+  guide_type: string
+  steps: PlatformGuideStep[]
+  file_formats: Record<string, string>
+  tips: string[]
+  common_errors: Array<{ error: string; solution: string }>
+}
+
+export interface PlatformFirstOpportunity {
+  platform: string
+  name: string
+  recommendation: {
+    title: string
+    description: string
+    url: string
+    why: string
+    difficulty: string
+    estimated_time: string
+    skills_practiced: string[]
+    next_action: string
+  }
+  guide_available: boolean
+}
+
+export async function fetchZeroToHundredGuide(): Promise<{
+  title: string
+  total_phases: number
+  steps: Array<{ phase: string; title: string; why: string; actions: string; check: string; next: string }>
+  principle: string
+  new_user_note: string
+}> {
+  return api.get('/platform-guides/guide/zero-to-hundred')
+}
+
+export async function fetchPlatformGuides(): Promise<{ platforms: string[]; count: number }> {
+  return api.get('/platform-guides/')
+}
+
+export async function fetchPlatformGuide(
+  platform: string,
+  guideType: 'account' | 'work' = 'account',
+): Promise<PlatformGuideDetail> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}`, { guide_type: guideType })
+}
+
+export async function fetchPlatformGuideSteps(
+  platform: string,
+  guideType: 'account' | 'work' = 'account',
+): Promise<PlatformGuideSteps> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}/steps`, { guide_type: guideType })
+}
+
+export async function fetchPlatformFirstOpportunity(platform: string): Promise<PlatformFirstOpportunity> {
+  return api.get(`/platform-guides/${encodeURIComponent(platform)}/first-opportunity`)
+}
+
+export async function fetchWorkPlatformMapping(): Promise<{
+  total_platforms: number
+  platforms_with_guides: number
+  mapping: Record<string, { has_guide: boolean; guide_url: string | null }>
+}> {
+  return api.get('/platform-guides/workplatform/mapping')
+}
+
+// ── Revenue Ledger (truthful buckets: only PAID/NET is cash) ──
+
+export interface RevenueLedgerOpportunity {
+  id: string
+  title: string
+  platform: string
+  status: string
+  revenue_state: string
+  amount_usd: number
+  currency: string
+  url: string
+  created_at: string | null
+  updated_at: string | null
+}
+
+export interface RevenueLedger {
+  generated_at: string
+  buckets_usd: Record<string, number>
+  projection_usd: {
+    pipeline: number
+    earned_not_paid: number
+    realized: number
+    total_potential: number
+    breakdown: Record<string, number>
+  }
+  count: number
+  opportunities: RevenueLedgerOpportunity[]
+}
+
+export async function fetchRevenueLedger(platform?: string, limit: number = 100): Promise<RevenueLedger> {
+  return api.get<RevenueLedger>('/direct-work/revenue-ledger', {
+    ...(platform ? { platform } : {}),
+    limit,
+  })
+}
+
+// ── Evolution: calibration + repeatable (estimated-vs-actual learning) ──
+
+export interface EvolutionCalibration {
+  verdict: string
+  records_total: number
+  records_with_amount_prediction: number
+  records_with_hours_prediction: number
+  records_with_probability_prediction: number
+  mae_amount_usd: number | null
+  mae_hours: number | null
+  mean_probability_error: number | null
+  note: string
+}
+
+export interface RepeatableRow {
+  platform: string
+  category: string
+  accepted: number
+  total: number
+  conversion: number
+  revenue_usd: number
+  verdict: string
+}
+
+export interface EvolutionLearningReport {
+  lessons: unknown[]
+  capabilities: unknown[]
+  performance: Record<string, unknown>
+  calibration: EvolutionCalibration
+  repeatable: RepeatableRow[]
+}
+
+export async function fetchEvolutionLearning(
+  records: Array<Record<string, unknown>> = [],
+  timeInvestedHours: number = 0,
+): Promise<EvolutionLearningReport> {
+  return api.post<EvolutionLearningReport>('/direct-work/evolution', {
+    profile: buildDirectWorkProfile(),
+    records,
+    opportunities: [],
+    time_invested_hours: timeInvestedHours,
+  })
+}
+
+// ── Mission Hub (L7+L9: economic mission + levels + workspaces) ──
+
+export interface HubMission {
+  target_usd: number
+  earned_usd: number
+  gap_usd: number
+  progress_pct: number
+  is_met: boolean
+  month: string
+  suggested_mix: Array<Record<string, unknown>>
+  disclaimer: string
+}
+
+export interface HubLevels {
+  level: number
+  title: string
+  total_xp: number
+  current_threshold: number
+  next_threshold: number | null
+  pct_to_next: number
+  events: Record<string, number>
+}
+
+export interface HubWorkspace {
+  id: string
+  name: string
+  type: string
+  role: string
+  policy: string
+  active: boolean
+  priority: number
+  goals: string[]
+  automation_policy: string
+  linked: { tasks: number; opportunities: number; revenue: number }
+}
+
+export interface FactoryExperiment {
+  demand_score: number | null
+  verdict: string
+  views: number
+  plans: number
+  saves: number
+  emails: number
+}
+
+export interface HubNextAction {
+  title: string
+  why?: string
+  est_minutes?: number
+  url?: string
+  endpoint?: string
+  command?: string
+  life_goal?: string
+  reallocation_hint?: unknown
+}
+
+export interface HubEconomics {
+  money_per_human_hour: number | null
+  automation_ratio: number | null
+  paid_usd: number
+  pipeline_usd: number
+  human_hours: number | null
+}
+
+export interface HunterOverview {
+  mission: HubMission
+  levels: HubLevels
+  workspaces: HubWorkspace[]
+  next_action: HubNextAction
+  target_usd: number
+  economics?: HubEconomics | null
+  factory?: Record<string, FactoryExperiment>
+  money_loop?: MoneyLoopBlock | null
+}
+
+export async function fetchAppFactoryOverview(): Promise<{
+  generated_at: string | null
+  total_events: number
+  experiments: Record<string, { counts: Record<string, number>; emails: number; demand_score: number | null; verdict: string }>
+}> {
+  return api.get('/app-factory/overview')
+}
+
+// ── Economic Trajectory (REAL / PIPELINE / SCENARIO) ──
+// Las 3 capas nunca se suman: solo paid/net es cash medido.
+
+export interface TrajectoryPeriod {
+  period: string
+  realized_cash: number
+  paid_outcomes: number
+  accepted_outcomes: number
+  attempts: number
+  pipeline_value: number
+  speculative_value: number
+  hours_used: number
+  net_cash_per_hour: number | null
+}
+
+export interface TrajectoryChannel {
+  channel: string
+  attempts: number
+  accepted: number
+  awarded: number
+  paid: number
+  cash: number
+  average_cash: number | null
+  cash_per_hour: number | null
+  acceptance_rate: number | null
+  validation: string
+}
+
+export interface EconomicTrajectory {
+  generated_at: string
+  available_hours_per_week: number
+  real: { d90: TrajectoryPeriod; d180: TrajectoryPeriod; d365: TrajectoryPeriod; net_cash_per_hour: number | null }
+  pipeline: TrajectoryPeriod
+  speculative: { value: number; counted_as_cash: boolean; label: string }
+  calibration: { level: number; label: string; paid_outcomes: number; net_cash_per_hour: number | null; note: string }
+  channels: TrajectoryChannel[]
+  scenarios: { kind: string; label: string; is_forecast: boolean; horizons: Record<string, Record<string, number[]>> }
+  alerts: string[]
+  source_error: string | null
+}
+
+export interface MoneyLoopBlock {
+  stages: { targets_active: number; findings: Record<string, number>; reports: Record<string, number> }
+  pending_validations: { total: number; counts: Record<string, number>; top: { label: string; reason: string } | null }
+  funnel: { outcomes: number; paid: number; net_usd: number; net_per_hour: number | null; as_of: string | null; state: string }
+}
+
+/**
+ * FIRST PAID — superficie canónica del objetivo económico principal.
+ * UNA sola llamada: estado real (READY, PAID, P(CASH)) + el próximo paso
+ * humano con su endpoint. `p_cash_state` llega como texto honesto
+ * ("UNKNOWN (sin PAID propio todavía)") y NO se convierte a número.
+ */
+export interface TodayPlan {
+  generated_at: string
+  who?: Record<string, unknown>
+  state: {
+    paid_outcomes: number
+    p_cash_state: string
+    ready_to_deliver: number
+    ready_to_deliver_usd: number
+    review_queue: number
+    payout_rails_configured: number
+    config_complete_pct: number
+    day1_ok: boolean
+  }
+  automatic?: unknown[]
+  your_plan?: TodayStep[]
+  money: { expected_now_usd: number; paid_usd: number; label: string }
+  next_step: TodayStep
+}
+
+export interface TodayStep {
+  id: string
+  owner: string
+  title: string
+  why: string
+  endpoint: string
+  url: string
+  est_minutes: number
+  blocks: string
+  done: boolean
+  badge: string
+}
+
+/** FIRST PAID: 1 llamada. Degrada honestamente a null si el backend no responde. */
+export async function fetchTodayPlan(): Promise<TodayPlan | null> {
+  try {
+    return await api.get<TodayPlan>('/today')
+  } catch {
+    return null
+  }
+}
+
+export async function fetchEconomicTrajectory(hours?: { d90?: number; d180?: number; d365?: number }): Promise<EconomicTrajectory> {
+  const parts: string[] = []
+  if (hours?.d90) parts.push(`hours_d90=${hours.d90}`)
+  if (hours?.d180) parts.push(`hours_d180=${hours.d180}`)
+  if (hours?.d365) parts.push(`hours_d365=${hours.d365}`)
+  const qs = parts.length ? `?${parts.join('&')}` : ''
+  return api.get<EconomicTrajectory>(`/economic-trajectory/trajectory${qs}`)
+}
+
+export async function fetchEconomicGap(targetMonthly: number): Promise<{
+  target_monthly: number
+  realized: number
+  verifiable_pending: number
+  speculative_excluded: boolean
+  gap: number
+  required_cash_per_hour: number | null
+  is_math: boolean
+  note: string
+}> {
+  return api.get(`/economic-trajectory/gap?target_monthly=${targetMonthly}`)
+}
+
+export async function fetchHunterOverview(targetUsd?: number): Promise<HunterOverview> {
+  const qs = targetUsd != null ? `?target_usd=${targetUsd}` : ''
+  return api.get<HunterOverview>(`/mission-hub/overview${qs}`)
+}
+
+export async function setHunterTarget(targetUsd: number): Promise<{ success: boolean; target_usd: number }> {
+  return api.post<{ success: boolean; target_usd: number }>('/mission-hub/target', { target_usd: targetUsd })
+}
+
+export async function setWorkspaceActive(
+  workspaceId: string,
+  active: boolean,
+): Promise<{ success: boolean; workspace_id: string; active: boolean }> {
+  const action = active ? 'activate' : 'deactivate'
+  return api.post<{ success: boolean; workspace_id: string; active: boolean }>(
+    `/mission-hub/workspaces/${encodeURIComponent(workspaceId)}/${action}`,
+    {},
+  )
+}
+
+// ── E-commerce (Droppinglabel + Meli + IG/WA) ──
+
+export interface EcommerceStatus {
+  initialized: boolean
+  suppliers: number
+  products: number
+  orders: number
+  purchase_orders: number
+  active_products: number
+  pending_orders: number
+  sync_logs: number
+  adapters: Record<string, { available: boolean; reason?: string }>
+}
+
+export interface EcommerceProduct {
+  id: string
+  sku: string
+  name: string
+  category: string
+  cost_usd: number
+  sale_price_usd: number
+  margin_pct: number
+  status: string
+  listings: Record<string, string>
+}
+
+export interface EcommerceOrder {
+  id: string
+  marketplace: string
+  status: string
+  total_usd: number
+  margin_usd: number
+  next_action: string
+}
+
+export interface EcommerceMetrics {
+  period_days: number
+  total_orders: number
+  total_revenue_usd: number
+  total_margin_usd: number
+  avg_margin_pct: number
+  avg_order_value_usd: number
+  by_marketplace: Record<string, { orders: number; revenue_usd: number; margin_usd: number; margin_pct: number }>
+  top_products: { product_id: string; revenue_usd: number }[]
+}
+
+export async function fetchEcommerceStatus(): Promise<EcommerceStatus> {
+  return api.get<EcommerceStatus>('/api/ecommerce/status')
+}
+
+export async function fetchEcommerceProducts(): Promise<{ total: number; products: EcommerceProduct[] }> {
+  return api.get<{ total: number; products: EcommerceProduct[] }>('/api/ecommerce/products')
+}
+
+export async function fetchEcommerceOrders(): Promise<{ total: number; orders: EcommerceOrder[] }> {
+  return api.get<{ total: number; orders: EcommerceOrder[] }>('/api/ecommerce/orders')
+}
+
+export async function fetchEcommerceMetrics(days = 30): Promise<EcommerceMetrics> {
+  return api.get<EcommerceMetrics>('/api/ecommerce/metrics', { days })
+}
+
+export async function scoreSourcingOffer(payload: {
+  cost_usd: number
+  sale_price_usd: number
+  processing_days?: number
+  shipping_usd?: number
+  marketplace_fee_pct?: number
+}): Promise<{ verdict: string; margin_pct: number; margin_usd: number; note: string }> {
+  return api.post('/api/ecommerce/sourcing/score', payload)
+}
+
+export interface EcommerceSupplier {
+  id: string
+  name: string
+  type: string
+  active: boolean
+  website: string
+  commission_rate: number | null
+  processing_time_days: number
+  notes: string
+  outreach: { status: string; last_contact_at?: string | null }
+}
+
+export async function fetchEcommerceSuppliers(): Promise<{ total: number; suppliers: EcommerceSupplier[] }> {
+  return api.get('/api/ecommerce/suppliers')
+}
+
+export async function fetchSupplierOutreach(supplierId: string): Promise<{ supplier: { id: string; name: string; website: string }; message: { body: string; wa_url: string; category_key: string }; record: any }> {
+  return api.get(`/api/ecommerce/suppliers/${supplierId}/outreach`)
+}
+
+export async function markSupplierContacted(supplierId: string): Promise<{ success: boolean; wa_url: string; record: any }> {
+  return api.post(`/api/ecommerce/suppliers/${supplierId}/outreach/contact`)
+}
+
+export async function setSupplierOutreachStatus(supplierId: string, status: string, notes = ''): Promise<{ success: boolean; record: any }> {
+  return api.post(`/api/ecommerce/suppliers/${supplierId}/outreach/status`, { status, notes } as any)
+}
+
+// ── Client Acquisition (Adriel Webs) ──
+
+export interface AcquisitionStatus {
+  leads: number
+  proposals: number
+  projects: number
+  contracts: number
+  mrr_usd: number
+  funnel: Record<string, number>
+}
+
+export interface AcquisitionLead {
+  id: string
+  name: string
+  source: string
+  business_type: string
+  has_website: boolean
+  stage: string
+}
+
+export async function fetchAcquisitionStatus(): Promise<AcquisitionStatus> {
+  return api.get<AcquisitionStatus>('/api/client-acquisition/status')
+}
+
+export async function fetchAcquisitionLeads(): Promise<{ total: number; leads: AcquisitionLead[] }> {
+  return api.get<{ total: number; leads: AcquisitionLead[] }>('/api/client-acquisition/leads')
+}
+
+export async function captureAcquisitionLead(payload: {
+  name: string
+  contact?: string
+  source?: string
+  business_type?: string
+  has_website?: boolean
+}): Promise<{ success: boolean; id: string; stage: string }> {
+  return api.post('/api/client-acquisition/leads/capture', payload)
+}
+
+// ── Content Factory (MPT / TikTok) ──
+
+export interface ContentFactoryStatus {
+  mpt: { healthy: boolean; reason?: string; timestamp?: string }
+  material_key: { configured: boolean; reason?: string }
+}
+
+export interface ContentFactoryJob {
+  job_id: string
+  name: string
+  handler: string
+  schedule: string
+}
+
+export async function fetchContentFactoryStatus(): Promise<ContentFactoryStatus> {
+  return api.get<ContentFactoryStatus>('/api/content-factory/status')
+}
+
+export async function fetchContentFactoryJobs(): Promise<{ total: number; jobs: ContentFactoryJob[] }> {
+  return api.get<{ total: number; jobs: ContentFactoryJob[] }>('/api/content-factory/jobs')
+}
+
+// ── Local Jobs AR ──
+
+export interface LocalJobResult {
+  id: string
+  name: string
+  description: string
+  platform: string
+  board: string
+  url: string
+  tags: string[]
+  apply: string
+  modality: string
+  zone: string
+}
+
+export async function fetchLocalJobs(
+  zone = 'Zona Sur',
+  board = 'all',
+): Promise<{ query: string; zone: string; total: number; results: LocalJobResult[]; errors: string[]; apply: string }> {
+  return api.get('/api/local-jobs/search', { zone, board })
+}
+
+export async function fetchLocalJobBoards(): Promise<{
+  zone: string
+  boards: { board: string; url: string; apply: string }[]
+}> {
+  return api.get('/api/local-jobs/boards')
 }

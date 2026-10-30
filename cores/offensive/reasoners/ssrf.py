@@ -4,9 +4,9 @@ import logging
 import re
 from typing import Any
 
-from core.offensive.models import EndpointInfo, Hypothesis
-from core.offensive.reasoners.base import BaseReasoner
-from core.offensive.templates import SSRF_ALTERNATIVES
+from cores.offensive.models import EndpointInfo, Hypothesis
+from cores.offensive.reasoners.base import BaseReasoner
+from cores.offensive.templates import SSRF_ALTERNATIVES
 
 logger = logging.getLogger("orion.core.offensive.reasoners.ssrf")
 

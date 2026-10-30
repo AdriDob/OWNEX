@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.skyvern.connector")
 
@@ -76,7 +76,7 @@ class SkyvernSensorConnector(IConnector):
             return result or {}
         except Exception as exc:
             logger.error("Skyvern navigate failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en navegación Skyvern"}
 
     async def extract(self, url: str, fields: list[str] | None = None) -> dict:
         """Extract structured data from a page."""
@@ -87,7 +87,7 @@ class SkyvernSensorConnector(IConnector):
             return result or {}
         except Exception as exc:
             logger.error("Skyvern extract failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en extracción Skyvern"}
 
     async def monitor(self, url: str, selector: str = "") -> dict:
         """Monitor a page for visual/structural changes."""
@@ -98,4 +98,4 @@ class SkyvernSensorConnector(IConnector):
             return result or {}
         except Exception as exc:
             logger.error("Skyvern monitor failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en monitoreo Skyvern"}

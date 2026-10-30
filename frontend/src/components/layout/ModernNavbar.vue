@@ -188,7 +188,7 @@ function sendQuickMessage() {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #60A5FA;
+  background: var(--ownex-accent);
   animation: pulse-dot-mini 2s ease-in-out infinite;
 }
 
@@ -240,7 +240,7 @@ function sendQuickMessage() {
 }
 
 .search-input::placeholder {
-  color: #6b7280;
+  color: var(--ownex-text-muted);
 }
 
 .navbar-right {
@@ -262,7 +262,7 @@ function sendQuickMessage() {
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5rem;
-  color: #e8e8e8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -293,17 +293,17 @@ function sendQuickMessage() {
 .avatar-border {
   position: absolute;
   inset: 0;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 50%;
   animation: retro-border-mini 3s linear infinite;
 }
 
 @keyframes retro-border-mini {
-  0% { border-color: #4a5568; }
-  25% { border-color: #00d5ff; }
-  50% { border-color: #4a5568; }
-  75% { border-color: #00d5ff; }
-  100% { border-color: #4a5568; }
+  0% { border-color: var(--ownex-text-muted); }
+  25% { border-color: var(--ownex-accent); }
+  50% { border-color: var(--ownex-text-muted); }
+  75% { border-color: var(--ownex-accent); }
+  100% { border-color: var(--ownex-text-muted); }
 }
 
 .avatar-emoji {
@@ -313,7 +313,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
+  background: linear-gradient(135deg, var(--ownex-text-secondary) 0%, var(--ownex-accent) 100%);
   border-radius: 50%;
   font-size: 0.75rem;
   z-index: 1;
@@ -384,7 +384,7 @@ function sendQuickMessage() {
 .avatar-border-small {
   position: absolute;
   inset: 0;
-  border: 1px solid #4a5568;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 50%;
   animation: retro-border-mini 3s linear infinite;
 }
@@ -396,7 +396,7 @@ function sendQuickMessage() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #9CA3AF 0%, #00d5ff 100%);
+  background: linear-gradient(135deg, var(--ownex-text-secondary) 0%, var(--ownex-accent) 100%);
   border-radius: 50%;
   font-size: 0.625rem;
   z-index: 1;
@@ -407,7 +407,7 @@ function sendQuickMessage() {
   height: 24px;
   border: none;
   background: transparent;
-  color: #94A3B8;
+  color: var(--ownex-text-secondary);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -431,7 +431,7 @@ function sendQuickMessage() {
   border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 0.5rem;
   padding: 0.75rem;
-  color: #e8e8e8;
+  color: var(--ownex-text-secondary);
   font-size: 0.875rem;
 }
 

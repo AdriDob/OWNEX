@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onErrorCaptured } from 'vue'
-import { AlertTriangle, RefreshCw, ArrowLeft } from '@lucide/vue'
+import { AlertTriangle, ArrowLeft, RefreshCw } from '@lucide/vue'
+import { onErrorCaptured, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 defineProps<{

@@ -92,6 +92,19 @@ _STATUS_MAP: dict[int, tuple[str, RetryPolicy]] = {
 }
 
 
+def health_status_for(code: int) -> str:
+    """HealthStatus resultante de un código HTTP, o "unhealthy" si no está mapeado.
+
+    Usado por `adapters.OpenAICompatibleAdapter.check_health`, que antes
+    colapsaba todo non-200 a UNHEALTHY y sin `last_error`: un 401 (key
+    inválida) y un 429 (cuota) exigen acciones distintas y el owner no
+    tenía forma de saber cuál. Reutiliza `_STATUS_MAP` en vez de duplicar
+    la tabla.
+    """
+    mapped = _STATUS_MAP.get(code)
+    return mapped[0] if mapped else "unhealthy"
+
+
 class ErrorClassifier:
     """Clasifica excepciones/errores de proveedores a HealthStatus + política."""
 

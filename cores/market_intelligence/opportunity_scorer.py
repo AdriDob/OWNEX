@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from uuid import uuid4
 
-from core.market_intelligence.models import (
+from cores.market_intelligence.models import (
     Confidence,
     MarketDomain,
     OpportunityAssessment,

@@ -6,9 +6,9 @@
  */
 
 import { computed } from 'vue'
-import OwnexCard from '@/components/ui/OwnexCard.vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexButton from '@/components/ui/OwnexButton.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 
 interface KnowledgeEntry {
   id: string
@@ -70,7 +70,7 @@ const handleAction = (entry: KnowledgeEntry) => {
 
 <template>
   <OwnexCard variant="elevated" :padded="!compact">
-    <template #default>
+    <template var(--ownex-accent)ult>
       <div class="ownex-knowledge-feed">
         <!-- Header -->
         <div class="ownex-knowledge-feed__header">

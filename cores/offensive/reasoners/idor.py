@@ -11,9 +11,9 @@ import logging
 import re
 from typing import Any
 
-from core.offensive.models import EndpointInfo, Hypothesis
-from core.offensive.reasoners.base import BaseReasoner
-from core.offensive.templates import IDOR_ALTERNATIVES, IDOR_PATTERNS
+from cores.offensive.models import EndpointInfo, Hypothesis
+from cores.offensive.reasoners.base import BaseReasoner
+from cores.offensive.templates import IDOR_ALTERNATIVES, IDOR_PATTERNS
 
 logger = logging.getLogger("orion.core.offensive.reasoners.idor")
 

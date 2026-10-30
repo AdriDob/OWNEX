@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 
-from core.documentation.models import (
+from cores.documentation.models import (
     ApiDoc,
     CapabilityDoc,
     CommandDoc,
@@ -17,7 +17,7 @@ from core.documentation.models import (
     IntegrationDoc,
     ModuleDoc,
 )
-from core.documentation.registrar import register_module
+from cores.documentation.registrar import register_module
 
 logger = logging.getLogger("orion.core.documentation.introspect")
 
@@ -25,7 +25,7 @@ logger = logging.getLogger("orion.core.documentation.introspect")
 def introspect_capability_registry() -> list[CapabilityDoc]:
     """Read every registered capability and return as CapabilityDoc list."""
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         caps: list[CapabilityDoc] = []
@@ -116,7 +116,7 @@ def introspect_api_routers() -> list[ApiDoc]:
 def introspect_integrations() -> list[IntegrationDoc]:
     """Read the IntegrationRegistry and return as IntegrationDoc list."""
     try:
-        from core.integrations import init_integration_registry
+        from cores.integrations import init_integration_registry
 
         registry = init_integration_registry()
         summary = registry.summary()
@@ -136,7 +136,7 @@ def auto_register_core_modules() -> int:
 
     Returns the number of modules registered.
     """
-    count_before = len(__import__("core.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
+    count_before = len(__import__("cores.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
 
     # 1. Event Bus
     register_module(
@@ -248,14 +248,14 @@ def auto_register_core_modules() -> int:
                 EventDoc(event_type="system:*", direction="consumed", description="Trigger system audit decisions"),
             ],
             dependencies=[
-                "core.events.types",
-                "core.events.correlation",
-                "core.events.store",
-                "core.capabilities.registry",
-                "core.knowledge.graph",
-                "core.evidence_graph.graph",
-                "core.memory.store",
-                "core.copilot.*",
+                "cores.events.types",
+                "cores.events.correlation",
+                "cores.events.store",
+                "cores.capabilities.registry",
+                "cores.knowledge.graph",
+                "cores.evidence_graph.graph",
+                "cores.memory.store",
+                "cores.copilot.*",
             ],
         )
     )
@@ -530,16 +530,16 @@ def auto_register_core_modules() -> int:
                 ),
             ],
             dependencies=[
-                "core.events.types",
-                "core.events.event_bus",
-                "core.events.store",
-                "core.events.correlation",
-                "core.capabilities.registry",
-                "core.knowledge.graph",
-                "core.execution.*",
+                "cores.events.types",
+                "cores.events.event_bus",
+                "cores.events.store",
+                "cores.events.correlation",
+                "cores.capabilities.registry",
+                "cores.knowledge.graph",
+                "cores.execution.*",
             ],
         )
     )
 
-    after = len(__import__("core.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
+    after = len(__import__("cores.documentation.registrar", fromlist=["list_all_modules"]).list_all_modules())
     return after - count_before

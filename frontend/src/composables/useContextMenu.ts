@@ -1,8 +1,6 @@
-import { ref, type Ref } from 'vue'
+import { type Ref, ref } from 'vue'
 
-export type EntityType =
-  | 'target' | 'program' | 'endpoint' | 'finding'
-  | 'report' | 'session' | 'wallet' | 'prediction'
+export type EntityType = 'target' | 'program' | 'endpoint' | 'finding' | 'report' | 'session' | 'wallet' | 'prediction'
 
 export interface ContextAction {
   id: string
@@ -65,18 +63,42 @@ export function useEntityActions(entityType: EntityType) {
     if (entity?.id) {
       if (entityType === 'program') {
         actions.push({ id: 'view-plan', label: 'Ver plan de misión', action: () => callbacks.viewPlan?.(entity) })
-        actions.push({ id: 'estimate-payout', label: 'Estimar payout', action: () => callbacks.estimatePayout?.(entity) })
+        actions.push({
+          id: 'estimate-payout',
+          label: 'Estimar payout',
+          action: () => callbacks.estimatePayout?.(entity),
+        })
       }
       if (entityType === 'finding') {
         actions.push({ id: 'validate', label: 'Validar vulnerabilidad', action: () => callbacks.validate?.(entity) })
-        actions.push({ id: 'generate-report', label: 'Generar reporte', action: () => callbacks.generateReport?.(entity) })
-        actions.push({ id: 'check-duplicate', label: 'Verificar duplicado', action: () => callbacks.checkDuplicate?.(entity) })
-        actions.push({ id: 'estimate-payout', label: 'Estimar payout', action: () => callbacks.estimatePayout?.(entity) })
+        actions.push({
+          id: 'generate-report',
+          label: 'Generar reporte',
+          action: () => callbacks.generateReport?.(entity),
+        })
+        actions.push({
+          id: 'check-duplicate',
+          label: 'Verificar duplicado',
+          action: () => callbacks.checkDuplicate?.(entity),
+        })
+        actions.push({
+          id: 'estimate-payout',
+          label: 'Estimar payout',
+          action: () => callbacks.estimatePayout?.(entity),
+        })
       }
       if (entityType === 'report') {
         actions.push({ id: 'optimize', label: 'Optimizar reporte', action: () => callbacks.optimize?.(entity) })
-        actions.push({ id: 'check-acceptance', label: 'Probabilidad de aceptación', action: () => callbacks.checkAcceptance?.(entity) })
-        actions.push({ id: 'submit-simulation', label: 'Simular envío', action: () => callbacks.submitSimulation?.(entity) })
+        actions.push({
+          id: 'check-acceptance',
+          label: 'Probabilidad de aceptación',
+          action: () => callbacks.checkAcceptance?.(entity),
+        })
+        actions.push({
+          id: 'submit-simulation',
+          label: 'Simular envío',
+          action: () => callbacks.submitSimulation?.(entity),
+        })
       }
       if (entityType === 'endpoint') {
         actions.push({ id: 'analyze', label: 'Analizar endpoint', action: () => callbacks.analyze?.(entity) })
@@ -104,8 +126,16 @@ export function useEntityActions(entityType: EntityType) {
 
     actions.push({ id: 'separator-2', label: '', separator: true, action: () => {} })
 
-    actions.push({ id: 'add-queue', label: 'Agregar a cola de investigación', action: () => callbacks.addToQueue?.(entity) })
-    actions.push({ id: 'mark-priority', label: 'Marcar como prioritario', action: () => callbacks.markPriority?.(entity) })
+    actions.push({
+      id: 'add-queue',
+      label: 'Agregar a cola de investigación',
+      action: () => callbacks.addToQueue?.(entity),
+    })
+    actions.push({
+      id: 'mark-priority',
+      label: 'Marcar como prioritario',
+      action: () => callbacks.markPriority?.(entity),
+    })
     actions.push({ id: 'mark-ignore', label: 'Ignorar', danger: true, action: () => callbacks.markIgnore?.(entity) })
 
     return actions
@@ -117,7 +147,9 @@ export function useEntityActions(entityType: EntityType) {
 async function copy(text: string) {
   try {
     await navigator.clipboard.writeText(text)
-  } catch { /* fallback */ }
+  } catch {
+    /* fallback */
+  }
 }
 
 // Global click handler to close context menu

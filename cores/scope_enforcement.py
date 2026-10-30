@@ -32,7 +32,19 @@ class ScopeDecision(StrEnum):
 
     IN_SCOPE = "in_scope"
     OUT_OF_SCOPE = "out_of_scope"
+    # Sin policy configurada no se puede afirmar autorización. El motor sigue
+    # reportando UNKNOWN (nadie "sabe"), pero `enforce_*` ahora falla cerrado:
+    # no se ejecuta trabajo de seguridad sin scope verificado (spec §1/§79:
+    # NO SCOPE -> NO ACTION).
     UNKNOWN = "unknown"  # programa sin policy configurada
+
+
+class ScopeNotVerifiedError(Exception):
+    """Scope no verificado (UNKNOWN): trabajo de seguridad NO puede proceed.
+
+    Deliberadamente distinta de `ScopeViolationError`: no es "está fuera de
+    scope" (definitivo), es "no hay evidencia de que esté dentro" (no se sabe).
+    """
 
 
 class AssetType(StrEnum):
@@ -60,6 +72,19 @@ class ScopeRule:
     severity: str = "medium"  # critical/high/medium/low/info
 
 
+def _valid_tier(tier: object) -> tuple[float, float] | None:
+    """Valida un tier [min, max]: montos ≥ 0 y max ≥ min. None si inválido."""
+    try:
+        if not isinstance(tier, (list, tuple)) or len(tier) != 2:
+            return None
+        lo, hi = float(tier[0]), float(tier[1])
+        if lo < 0 or hi < 0 or hi < lo:
+            return None
+        return (lo, hi)
+    except (TypeError, ValueError):
+        return None
+
+
 @dataclass(frozen=True, slots=True)
 class ProgramScopePolicy:
     """Policy completa de alcance de un programa."""
@@ -71,6 +96,24 @@ class ProgramScopePolicy:
     raw_policy_text: str = ""
     last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: int = 1
+    # Bounty table del programa: severidad (lower) → [min_usd, max_usd].
+    # Vacío = desconocido (UNKNOWN honesto, jamás 0 inventado como techo).
+    bounty_tiers: dict[str, list[float]] = field(default_factory=dict)
+
+    def reward_range(self, severity: str) -> tuple[float | None, float | None]:
+        """Rango (min, max) USD para una severidad, o (None, None) si UNKNOWN."""
+        tier = (self.bounty_tiers or {}).get((severity or "").strip().lower())
+        valid = _valid_tier(tier)
+        return valid if valid is not None else (None, None)
+
+    def max_reward(self) -> float | None:
+        """Techo del programa (para ranking JACKPOT), o None si UNKNOWN."""
+        best: float | None = None
+        for tier in (self.bounty_tiers or {}).values():
+            valid = _valid_tier(tier)
+            if valid is not None and (best is None or valid[1] > best):
+                best = valid[1]
+        return best
 
     def is_asset_in_scope(self, asset_type: AssetType, value: str) -> ScopeDecision:
         """Verifica si un asset está in-scope, out-of-scope, o unknown.
@@ -200,20 +243,65 @@ class ScopeEnforcer:
         return decision
 
     def enforce_endpoint(self, program_id: str, url: str) -> None:
-        """Fuerza la verificación: lanza excepción si está out-of-scope."""
+        """Fuerza la verificación: lanza si está out-of-scope **o sin verificar**.
+
+        Fail-closed: un scope UNKNOWN (programa sin policy configurada) NO es
+        autorización. Antes sólo logueaba un warning y dejaba pasar.
+        """
         decision = self.check_endpoint(program_id, url)
         if decision == ScopeDecision.OUT_OF_SCOPE:
             raise ScopeViolationError(f"Endpoint {url} está OUT OF SCOPE para programa {program_id}")
         if decision == ScopeDecision.UNKNOWN:
-            LOG.warning("Scope unknown para programa %s, endpoint: %s", program_id, url)
+            raise ScopeNotVerifiedError(
+                f"Scope no verificado para programa {program_id} (endpoint: {url}). "
+                "Sin policy de scope no hay evidencia de autorización: fail closed. "
+                "Registrá la ProgramScopePolicy del programa para habilitar este endpoint."
+            )
 
     def enforce_asset(self, program_id: str, asset_type: AssetType, value: str) -> None:
-        """Fuerza la verificación de asset: lanza excepción si está out-of-scope."""
+        """Fuerza la verificación de asset: lanza si está out-of-scope **o sin verificar**.
+
+        Fail-closed: antes esta función no tenía rama UNKNOWN y pasaba en
+        silencio ante un programa sin policy.
+        """
         decision = self.check_asset(program_id, asset_type, value)
         if decision == ScopeDecision.OUT_OF_SCOPE:
             raise ScopeViolationError(
                 f"Asset {value} ({asset_type.value}) está OUT OF SCOPE para programa {program_id}"
             )
+        if decision == ScopeDecision.UNKNOWN:
+            raise ScopeNotVerifiedError(
+                f"Scope no verificado para programa {program_id} (asset: {asset_type.value}={value}). "
+                "Sin policy de scope no hay evidencia de autorización: fail closed. "
+                "Registrá la ProgramScopePolicy del programa para habilitar este asset."
+            )
+
+    def find_programs_for_endpoint(self, url: str) -> list[str]:
+        """Programas registrados que cubren un endpoint (matcher reverso).
+
+        Usa las policies directamente (sin emitir eventos: esto corre en loops
+        de ranking, no es una decisión de envío). Solo IN_SCOPE cuenta;
+        UNKNOWN jamás se presenta como cobertura.
+        """
+        found: list[str] = []
+        for program_id, policy in self._policies.items():
+            try:
+                if policy.is_endpoint_in_scope(url) == ScopeDecision.IN_SCOPE:
+                    found.append(program_id)
+            except Exception:
+                continue
+        return sorted(found)
+
+    def find_programs_for_asset(self, asset_type: AssetType, value: str) -> list[str]:
+        """Programas registrados que cubren un asset. Mismas reglas que endpoint."""
+        found: list[str] = []
+        for program_id, policy in self._policies.items():
+            try:
+                if policy.is_asset_in_scope(asset_type, value) == ScopeDecision.IN_SCOPE:
+                    found.append(program_id)
+            except Exception:
+                continue
+        return sorted(found)
 
     def _emit_event(self, program_id: str, target: str, decision: ScopeDecision, check_type: str) -> None:
         self._event_bus.publish(

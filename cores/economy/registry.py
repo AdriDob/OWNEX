@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -50,8 +50,8 @@ class Capability:
     success_rate: float = 1.0
     tags: tuple[str, ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def can_handle(self, task_type: str, budget: float) -> bool:
         if budget < self.min_price or budget > self.max_price:
@@ -73,8 +73,8 @@ class AgentProfile:
     avg_completion_time: float = 0.0
     stake: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    last_active: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_active: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_available(self) -> bool:
         return self.status == AgentStatus.ACTIVE and self.stake > 0
@@ -131,7 +131,7 @@ class CapabilityRegistry:
         if not agent:
             return False
         agent.status = status
-        agent.last_active = datetime.utcnow()
+        agent.last_active = datetime.now(UTC)
         return True
 
     def update_agent_reputation(self, agent_id: str, delta: float) -> float | None:
@@ -151,7 +151,7 @@ class CapabilityRegistry:
             agent.success_rate * (agent.total_jobs - 1) + (1.0 if success else 0.0)
         ) / agent.total_jobs
         agent.avg_completion_time = (agent.avg_completion_time * (agent.total_jobs - 1) + duration) / agent.total_jobs
-        agent.last_active = datetime.utcnow()
+        agent.last_active = datetime.now(UTC)
         return True
 
 

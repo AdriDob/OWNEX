@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from core.execution_queue.models import (
+from cores.execution_queue.models import (
     ExecState,
     ExecutionQueueStore,
     assert_transition,

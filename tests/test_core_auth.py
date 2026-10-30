@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from core.auth.credentials import CredentialStore
-from core.auth.injector import apply_auth_to_request_kwargs, create_auth_for_provider, inject_into_client
-from core.auth.manager import AuthManager, AuthTarget, get_auth_manager
-from core.auth.provider import (
+from cores.auth.credentials import CredentialStore
+from cores.auth.injector import apply_auth_to_request_kwargs, create_auth_for_provider, inject_into_client
+from cores.auth.manager import AuthManager, AuthTarget, get_auth_manager
+from cores.auth.provider import (
     APIKeyHeaderProvider,
     APIKeyQueryProvider,
     AuthConfig,

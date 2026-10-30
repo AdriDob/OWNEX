@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
 import { AlertTriangle, DollarSign, ListChecks, RefreshCw, Settings, TrendingUp, Wallet } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
+import { api } from '@/lib/api'
+import { useRouter } from 'vue-router'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface SummaryData {
   total_bets: number
@@ -39,9 +40,9 @@ async function fetchData() {
   error.value = ''
   try {
     const [sumRes, roiRes, perfRes] = await Promise.allSettled([
-      fetch('/api/odyssey/analytics/summary'),
-      fetch('/api/odyssey/analytics/roi'),
-      fetch('/api/odyssey/analytics/performance'),
+      api.get<any>('/api/odyssey/analytics/summary'),
+      api.get<any>('/api/odyssey/analytics/roi'),
+      api.get<any>('/api/odyssey/analytics/performance'),
     ])
     if (sumRes.status === 'fulfilled' && sumRes.value.ok) summary.value = await sumRes.value.json()
     if (roiRes.status === 'fulfilled' && roiRes.value.ok) roi.value = await roiRes.value.json()
@@ -60,7 +61,7 @@ async function fetchData() {
 onMounted(fetchData)
 
 const hasData = () => (summary.value?.total_bets ?? 0) > 0
-const profitClass = (v: number | undefined) => v != null ? (v >= 0 ? 'text-success' : 'text-destructive') : ''
+const profitClass = (v: number | undefined) => (v != null ? (v >= 0 ? 'text-success' : 'text-destructive') : '')
 </script>
 
 <template>

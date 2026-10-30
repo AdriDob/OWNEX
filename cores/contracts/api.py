@@ -6,7 +6,7 @@ All routers and components MUST import from here. No duplicate DTOs allowed.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 from uuid import uuid4
@@ -25,7 +25,7 @@ class ApiResponse(BaseModel):
     message: str | None = None
     data: Any | None = None
     error: str | None = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class PaginatedResponse(BaseModel):
@@ -100,8 +100,8 @@ class Opportunity(BaseModel):
     probability: float = 0.5  # 0-1 scale
     barrier_level: str = "medium"
     risk_level: str = "medium"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     deadline: datetime | None = None
     tags: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -226,7 +226,7 @@ class EconomicMetric(BaseModel):
     name: str
     value: float
     unit: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -292,7 +292,7 @@ class Notification(BaseModel):
     action_type: str | None = None
     action_id: str | None = None
     read: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -305,7 +305,7 @@ class PendingAction(BaseModel):
     description: str
     workflow_id: str | None = None
     priority: str = "medium"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -342,7 +342,7 @@ class DeviceInfo(BaseModel):
     device_name: str
     os_version: str | None = None
     app_version: str
-    last_seen: datetime = Field(default_factory=datetime.utcnow)
+    last_seen: datetime = Field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
 
 
@@ -354,7 +354,7 @@ class SyncEvent(BaseModel):
     entity_type: str
     entity_id: str
     device_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     version: int
     state: dict[str, Any]
     status: SyncStatus = SyncStatus.SYNCED
@@ -372,7 +372,7 @@ class AuthToken(BaseModel):
     refresh_token: str | None = None
     token_type: str = "bearer"
     expires_in: int
-    issued_at: datetime = Field(default_factory=datetime.utcnow)
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class UserProfile(BaseModel):
@@ -479,7 +479,7 @@ class WatchNotification(BaseModel):
     requires_action: bool = False
     action_type: str | None = None
     read: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class WatchApprovalRequest(BaseModel):
@@ -490,7 +490,7 @@ class WatchApprovalRequest(BaseModel):
     description: str
     workflow_id: str | None = None
     approved: bool | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class WatchStatus(BaseModel):
@@ -539,7 +539,7 @@ class CrossDeviceEvent(BaseModel):
     source_device_id: str
     target_device_types: list[DeviceType]  # Which devices should receive this
     priority: SyncPriority = SyncPriority.NORMAL
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     state: dict[str, Any]
     version: int = 1
     expires_at: datetime | None = None
@@ -552,7 +552,7 @@ class SyncAcknowledgment(BaseModel):
 
     event_id: str
     device_id: str
-    acknowledged_at: datetime = Field(default_factory=datetime.utcnow)
+    acknowledged_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     success: bool
     error: str | None = None
 
@@ -564,7 +564,7 @@ class SyncConflict(BaseModel):
     entity_type: str
     entity_id: str
     conflicting_events: list[CrossDeviceEvent]
-    detected_at: datetime = Field(default_factory=datetime.utcnow)
+    detected_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     resolution_strategy: str | None = None  # "source_wins", "target_wins", "manual", "merge"
     resolved_at: datetime | None = None
     resolved_by: str | None = None  # device_id or "system"
@@ -574,7 +574,7 @@ class SyncQueueItem(BaseModel):
     """Item in sync queue for offline support."""
 
     event: CrossDeviceEvent
-    queued_at: datetime = Field(default_factory=datetime.utcnow)
+    queued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     retry_count: int = 0
     max_retries: int = 5
     next_retry_at: datetime | None = None

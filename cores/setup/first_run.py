@@ -4,7 +4,7 @@ import logging
 import time
 from typing import Any
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.core.setup.first_run")
 
@@ -12,13 +12,13 @@ SETUP_MARKER = OWNEX_DIR / ".setup_complete"
 
 
 def is_setup_complete() -> bool:
-    from core.setup.wizard import _get_state
+    from cores.setup.wizard import _get_state
 
     return _get_state().completed or SETUP_MARKER.exists()
 
 
 def setup_status() -> dict[str, Any]:
-    from core.setup.wizard import wizard_status
+    from cores.setup.wizard import wizard_status
 
     ws = wizard_status()
     done = ws.get("completed", False) or SETUP_MARKER.exists()
@@ -56,7 +56,7 @@ def complete_setup() -> dict[str, Any]:
         results["config"] = f"error: {exc}"
 
     try:
-        from core.integrations import init_integration_registry
+        from cores.integrations import init_integration_registry
 
         init_integration_registry()
         results["integrations"] = "ok"
@@ -79,7 +79,7 @@ def complete_setup() -> dict[str, Any]:
 
 
 def init_vault() -> None:
-    from core.secrets.manager import get_secrets_manager
+    from cores.secrets.manager import get_secrets_manager
 
     get_secrets_manager()
 

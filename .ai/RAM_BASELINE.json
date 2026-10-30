@@ -1,0 +1,1 @@
+{"platform": "linux", "python": "3.14.4", "stages": {"baseline": {"stage": "baseline", "rss_mb": 13.92}, "oscompat": {"stage": "oscompat", "rss_mb": 16.98}, "state_load": {"stage": "state_load", "rss_mb": 20.06}, "scheduler_lock": {"stage": "scheduler_lock", "rss_mb": 18.55}, "boot_recovery": {"stage": "boot_recovery", "rss_mb": 25.02}}}

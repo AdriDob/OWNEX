@@ -48,7 +48,7 @@ class CombinedMetrics:
     revenue_7d: Decimal = Decimal("0")
     revenue_30d: Decimal = Decimal("0")
     estimated_annual: Decimal = Decimal("0")
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class MetricsTracker:
@@ -80,15 +80,30 @@ class MetricsTracker:
         if total_sev > 0:
             self._bounty.avg_cvss = (self._bounty.avg_cvss * (total_sev - 1) + cvss) / total_sev
 
-    def record_trade(self, pnl: Decimal, won: bool) -> None:
+    def record_trade(self, pnl: Decimal | None, won: bool | None) -> None:
+        """Registra un trade cerrado.
+
+        `pnl` y `won` aceptan None = PNL DESCONOCIDO. Antes ambos eran
+        obligatorios y el único caller pasaba `pnl=Decimal("0"), won=True`
+        fijo, lo que producia `win_rate = 100%` garantizado y
+        `total_pnl = 0` para siempre (auditoría 2026-10-05).
+
+        Con None NO se cuenta como ganar ni como perder: el trade se
+        contabiliza en `total_trades` pero no distorsiona el win_rate ni el
+        PnL acumulado. Un ratio calculado sobre datos que no existen es
+        inventado, y `win_rate=1.0` es exactamente el tipo de cifra que el
+        proyecto prohibe.
+        """
         self._trading.total_trades += 1
-        if won:
+        if won is True:
             self._trading.winning_trades += 1
-        else:
+        elif won is False:
             self._trading.losing_trades += 1
-        self._trading.total_pnl += pnl
-        if self._trading.total_trades > 0:
-            self._trading.win_rate = self._trading.winning_trades / self._trading.total_trades
+        if pnl is not None:
+            self._trading.total_pnl += pnl
+        decided = self._trading.winning_trades + self._trading.losing_trades
+        if decided > 0:
+            self._trading.win_rate = self._trading.winning_trades / decided
 
     def record_revenue(self, amount: Decimal, category: str, timestamp: datetime | None = None) -> None:
         self._revenue_history.append(
@@ -115,6 +130,14 @@ class MetricsTracker:
                 revenue_7d += amt
             if (now - ts).days < 30:
                 revenue_30d += amt
+
+        # Si nadie Alimentó el history local (auditoría 2026-10-05: `record_revenue`
+        # tenía 0 callers), Leemos el RevenueLedger canónico para no reportar
+        # 0 inventado. `RevenueLedger` es la SSOT de revenue del sistema.
+        if not self._revenue_history:
+            total_rev = self._revenue_from_ledger()
+
+        estimated_annual = revenue_30d * Decimal("12") if revenue_30d > 0 else Decimal("0")
         return CombinedMetrics(
             bounty=self._bounty,
             trading=self._trading,
@@ -122,9 +145,21 @@ class MetricsTracker:
             revenue_24h=revenue_24h,
             revenue_7d=revenue_7d,
             revenue_30d=revenue_30d,
-            estimated_annual=revenue_30d * Decimal("12"),
+            estimated_annual=estimated_annual,
             updated_at=now,
         )
+
+    @staticmethod
+    def _revenue_from_ledger() -> Decimal:
+        """Lee el total neto del RevenueLedger (SSOT). Devuelve 0 si falla."""
+        try:
+            from cores.revenue.ledger import get_revenue_ledger
+
+            summary = get_revenue_ledger().get_summary()
+            return Decimal(str(summary.get("total_net_usd", 0) or 0))
+        except Exception as exc:
+            logger.debug("RevenueLedger unavailable for metrics: %s", exc)
+            return Decimal("0")
 
     def to_dict(self) -> dict[str, Any]:
         cm = self.get_combined()

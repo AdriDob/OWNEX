@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from cores.platform.system import get_data_dir
+from cores.recon.parser import looks_like_path
 from cores.recon.runner import ReconRunner
 from database import models
 
@@ -28,6 +29,17 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     mode = (target_mode or "FAST").upper()
     if mode not in {"FAST", "DEEP", "API"}:
         raise HTTPException(status_code=400, detail=f"Invalid mode: {mode}. Use FAST, DEEP, or API")
+
+    # Higiene de escaneo (2026-09-18): dominio inválido = DNS imposible =
+    # scan condenado a 0 findings. Fail-closed antes de verificar tools.
+    from cores.recon.hostname import scannable_domain
+
+    effective = scannable_domain(target_name, target_domain)
+    if not effective:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Dominio no escaneable ({target_domain or target_name!r}): hostname DNS inválido. Corregí el target.",
+        )
 
     # Verify recon tools are available
     logger.info(f"Verifying recon tools for mode {mode}...")
@@ -85,9 +97,24 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
 
                 for entry in entries:
                     try:
-                        path = entry.get("normalized") or entry.get("path") or entry.get("raw")
-                        if not path:
-                            logger.warning(f"Skipping entry with no path: {entry}")
+                        # El fallback a `raw` era la fuente de la corrupción:
+                        # `raw` es la serialización sin parsear del crawler, y
+                        # cuando `normalized` y `path` faltaban se guardaba
+                        # ese blob en la columna `path`. Medido 2026-10-08:
+                        # **8.937 de 44.597 endpoints (20%)** con un path que
+                        # era en realidad
+                        # `//host/x.html","tag":"a","attribute":"href",…,"error":"max depth reached"}`.
+                        # Ese string entra al scoring (`unified_score`) y a la
+                        # detección de superficie por substring, así que la
+                        # basura contaminaba riesgo y superficie, no sólo el
+                        # texto de un insight. Ver KNOWN_DEBT #81.
+                        path = entry.get("normalized") or entry.get("path")
+                        if not path or not looks_like_path(path):
+                            logger.warning(
+                                "Skipping entry whose path is not a path "
+                                "(normalized/path ausentes o con JSON pegado): %s",
+                                str(entry)[:120],
+                            )
                             continue
 
                         method = entry.get("method", "GET").upper()

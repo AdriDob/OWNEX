@@ -10,8 +10,8 @@ import asyncio
 import logging
 from typing import Any
 
-from core.sensors.base import Sensor
-from core.sensors.observation import Observation
+from cores.sensors.base import Sensor
+from cores.sensors.observation import Observation
 from extensions.playwright.playwright_provider import get_playwright_provider
 
 logger = logging.getLogger("ownex.sensors.playwright_sensor")
@@ -46,7 +46,7 @@ class PlaywrightSensor(Sensor):
 
             # Registrar self en el CapabilityRegistry
             try:
-                from core.capabilities.registry import get_capability_registry
+                from cores.capabilities.registry import get_capability_registry
 
                 reg = get_capability_registry()
                 reg.register(
@@ -64,8 +64,8 @@ class PlaywrightSensor(Sensor):
             logger.info("[PLAYWRIGHT_SENSOR] Inicialización completada")
 
         except Exception as exc:
-            logger.error("[PLAYWRIGHT_SENSOR] Error al inicializar: %s", exc)
-            self._last_error = str(exc)
+            logger.warning("[PLAYWRIGHT_SENSOR] Error al inicializar: %s", exc)
+            self._last_error = "Error interno de inicialización"
             raise
 
     async def fetch(self) -> list[Observation]:
@@ -121,7 +121,7 @@ class PlaywrightSensor(Sensor):
 
         except Exception as exc:
             logger.error("[PLAYWRIGHT_SENSOR] Error en fetch: %s", exc)
-            self._last_error = str(exc)
+            self._last_error = "Error en operación de sensor"
             return []
 
     def _page_to_observations(self, url: str, page_data: dict[str, Any]) -> list[Observation]:

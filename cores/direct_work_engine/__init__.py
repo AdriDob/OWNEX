@@ -18,7 +18,9 @@ from cores.direct_work_engine.availability import (
     get_available_hours,
     recommend_max_task_hours,
 )
-from cores.direct_work_engine.engine import DirectWorkEngine, EngineStats
+from cores.direct_work_engine.delivery import DeliveryResult, DirectWorkDeliveryEngine, deliver_work_item
+from cores.direct_work_engine.engine import DirectWorkEngine, EngineStats, get_direct_work_engine
+from cores.direct_work_engine.evaluation import DirectWorkEvaluationEngine, EvaluationResult, evaluate_work_item
 from cores.direct_work_engine.evolution import (
     CapabilityExpansionDetector,
     CapabilityProposal,
@@ -28,11 +30,15 @@ from cores.direct_work_engine.evolution import (
     SkillEvolutionEngine,
     evolve_analysis,
 )
+from cores.direct_work_engine.execution import DirectWorkExecutionEngine, ExecutionResult, execute_work_item
 from cores.direct_work_engine.extension import ExtensionEvaluator, ExtensionProposal
 from cores.direct_work_engine.feedback import LearningRecord, apply_learning, build_history_from_revenue_tracker
+from cores.direct_work_engine.learning import DirectWorkLearningEngine, LearningResult, learn_from_outcome
 from cores.direct_work_engine.models import (
     INTERNATIONAL_PAYMENT_METHODS,
     PAYMENT_RELIABILITY,
+    AIPolicy,
+    AutomationLevel,
     BarrierLevel,
     DifficultyLevel,
     EmploymentType,
@@ -45,13 +51,21 @@ from cores.direct_work_engine.models import (
     UserProfile,
     WorkPlatform,
     ZeroBarrierScore,
+    ai_assist_allowed,
+    can_auto_act,
+    country_access_for,
+    payment_access_for,
 )
 from cores.direct_work_engine.negotiation import TermAnalyzer, TermAssessment
 from cores.direct_work_engine.profile_builder import IntelligentProfileBuilder, ProfileAssets
 from cores.direct_work_engine.recommendation import (
     DEFAULT_RECOMMENDER_CONFIG,
     FAST_INCOME_RECOMMENDER_CONFIG,
+    HIGH_UPSIDE_90D_RECOMMENDER_CONFIG,
+    JACKPOT_RECOMMENDER_CONFIG,
     MAX_SUCCESS_RECOMMENDER_CONFIG,
+    SECURE_INCOME_RECOMMENDER_CONFIG,
+    SECURE_PLUS_UPSIDE_RECOMMENDER_CONFIG,
     IntelligentRecommender,
     RecommenderConfig,
 )
@@ -60,6 +74,8 @@ from cores.direct_work_engine.skill_gap import SkillAmplifier, SkillGapReport
 from cores.direct_work_engine.workbank import WorkBank, WorkItem, get_workbank
 
 __all__ = [
+    "AIPolicy",
+    "AutomationLevel",
     "AvailabilityEngine",
     "AvailabilitySnapshot",
     "BarrierLevel",
@@ -68,9 +84,15 @@ __all__ = [
     "DEFAULT_RECOMMENDER_CONFIG",
     "DifficultyLevel",
     "DirectWorkEngine",
+    "DirectWorkEvaluationEngine",
+    "DirectWorkExecutionEngine",
+    "DirectWorkDeliveryEngine",
+    "DirectWorkLearningEngine",
     "EmploymentType",
     "EngineStats",
+    "EvaluationResult",
     "ExperienceLevel",
+    "EvaluationResult",
     "ExtensionEvaluator",
     "ExtensionProposal",
     "FAST_INCOME_RECOMMENDER_CONFIG",
@@ -79,8 +101,13 @@ __all__ = [
     "IntelligentProfileBuilder",
     "IntelligentRecommender",
     "LearningRecord",
+    "LearningResult",
     "LostOpportunityLesson",
     "MAX_SUCCESS_RECOMMENDER_CONFIG",
+    "SECURE_INCOME_RECOMMENDER_CONFIG",
+    "SECURE_PLUS_UPSIDE_RECOMMENDER_CONFIG",
+    "HIGH_UPSIDE_90D_RECOMMENDER_CONFIG",
+    "JACKPOT_RECOMMENDER_CONFIG",
     "Opportunity",
     "OpportunityCategory",
     "PAYMENT_RELIABILITY",
@@ -105,11 +132,19 @@ __all__ = [
     "apply_learning",
     "build_history_from_revenue_tracker",
     "can_accommodate_task",
+    "can_auto_act",
+    "country_access_for",
+    "ai_assist_allowed",
+    "evaluate_work_item",
     "evolve_analysis",
+    "execute_work_item",
     "get_available_hours",
     "get_availability_engine",
     "get_availability_snapshot",
+    "get_direct_work_engine",
     "get_workbank",
+    "learn_from_outcome",
+    "payment_access_for",
     "recommend_max_task_hours",
     "score_opportunities",
 ]

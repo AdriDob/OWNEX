@@ -14,13 +14,13 @@
  *   <router-view />
  * </StartupGate>
  */
-import { ref, onMounted, provide } from 'vue'
-import { useStartupSequence } from './composables/useStartupSequence'
-import { usePreloadData } from './composables/usePreloadData'
+import { onMounted, provide, ref } from 'vue'
 import { useReducedMotion } from '@/shared/composables/useReducedMotion'
-import ParticleField from './components/ParticleField.vue'
 import LogoReveal from './components/LogoReveal.vue'
+import ParticleField from './components/ParticleField.vue'
 import TransitionOverlay from './components/TransitionOverlay.vue'
+import { usePreloadData } from './composables/usePreloadData'
+import { useStartupSequence } from './composables/useStartupSequence'
 
 const { phase, progress, run } = useStartupSequence()
 const { cache: preloadCache, preload } = usePreloadData()

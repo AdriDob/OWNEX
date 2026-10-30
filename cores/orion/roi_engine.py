@@ -8,7 +8,7 @@ from typing import Any
 
 from sqlalchemy import text
 
-from core.orion.models import PlatformID, ROIScore
+from cores.orion.models import PlatformID, ROIScore
 
 logger = logging.getLogger("ownex.orion.roi")
 

@@ -11,9 +11,11 @@ from __future__ import annotations
 import logging
 from dataclasses import fields
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
 from cores.direct_work_engine.discovery import BaseDiscoveryAdapter
@@ -21,6 +23,9 @@ from cores.direct_work_engine.engine import DirectWorkEngine
 from cores.direct_work_engine.extension import ExtensionEvaluator
 from cores.direct_work_engine.feedback import LearningRecord, apply_learning
 from cores.direct_work_engine.models import (
+    CATEGORY_TO_STREAM,
+    PLATFORM_PRIMARY_STREAM,
+    STREAM_UI_CONFIG,
     DifficultyLevel,
     EmploymentType,
     ExperienceLevel,
@@ -31,11 +36,14 @@ from cores.direct_work_engine.models import (
     RankedOpportunity,
     UserProfile,
     WorkPlatform,
+    WorkStream,
+    get_stream_for_category,
 )
 from cores.direct_work_engine.negotiation import TermAnalyzer
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 from cores.direct_work_engine.skill_gap import SkillAmplifier
 from cores.direct_work_engine.workbank import get_workbank
+from cores.opportunity.executors.auto_submit import SubmissionStatus
 
 logger = logging.getLogger("ownex.api.direct_work")
 
@@ -110,8 +118,15 @@ def _resolve(value: Any, enum_cls: type[StrEnum] | None) -> Any:
         return value
     try:
         return enum_cls(value)
-    except ValueError:
-        return value
+    except ValueError as exc:
+        # Never let an invalid enum silently become a raw string: downstream
+        # code assumes enum members (`.value`, membership checks). Fail closed
+        # with a controlled 422 instead of corrupting the domain object.
+        allowed = ", ".join(sorted(m.value for m in enum_cls))
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid {enum_cls.__name__} value: {value!r}. Valid values: {allowed}",
+        ) from exc
 
 
 def _opportunity_from_dict(data: dict[str, Any]) -> Opportunity:
@@ -138,6 +153,9 @@ def _opportunity_to_dict(op: Opportunity) -> dict[str, Any]:
 def _profile_from_dict(data: dict[str, Any]) -> UserProfile:
     allowed = {f.name for f in fields(UserProfile)}
     kwargs: dict[str, Any] = {k: v for k, v in data.items() if k in allowed}
+    # El nombre es obligatorio en el dataclass pero no afecta el ranking;
+    # default "me" para que un profile sin name no rompa el recommend diario.
+    kwargs.setdefault("name", "me")
     if "languages" in kwargs and isinstance(kwargs["languages"], list):
         kwargs["languages"] = set(kwargs["languages"])
     if "skills" in kwargs and isinstance(kwargs["skills"], list):
@@ -208,6 +226,11 @@ def _income_max_profile(profile: dict[str, Any] | None) -> UserProfile:
 
 def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
     category = data.get("category")
+
+    def _opt_float(key: str) -> float | None:
+        value = data.get(key)
+        return float(value) if value is not None else None
+
     return LearningRecord(
         platform=str(data.get("platform", "")),
         accepted=bool(data.get("accepted", False)),
@@ -216,7 +239,33 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
         time_to_payout_days=(
             float(data["time_to_payout_days"]) if data.get("time_to_payout_days") is not None else None
         ),
+        predicted_amount=_opt_float("predicted_amount"),
+        predicted_hours=_opt_float("predicted_hours"),
+        predicted_probability=_opt_float("predicted_probability"),
+        actual_hours=_opt_float("actual_hours"),
+        # MONEY VALIDATION: ACCEPTED != PAID. paid only with real cash received.
+        paid=bool(data.get("paid", False)),
+        net_amount=_opt_float("net_amount"),
+        fees=float(data.get("fees", 0.0) or 0.0),
     )
+
+
+def _public_work_block(ranked: RankedOpportunity) -> dict[str, Any]:
+    """Peldaño + validación pública (capa de presentación, nunca rompe)."""
+    try:
+        from cores.direct_work_engine.public_work import enrich_ranked
+
+        return enrich_ranked(ranked)
+    except Exception:
+        return {
+            "rung": "beginner",
+            "rung_label_es": "Principiante",
+            "rung_goal_es": "",
+            "checks": [],
+            "proof": "PR ACEPTADO + PAGO",
+            "difficulty": 0.5,
+            "difficulty_unknown_inputs": True,
+        }
 
 
 def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
@@ -226,7 +275,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
     payout_method = ""
     payout_method_rationale = ""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         payout_net = get_payout_net()
         platform_key = str(ranked.opportunity.platform)
@@ -267,7 +316,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
 
         hours = float(getattr(ranked.opportunity, "estimated_time_hours", 0) or 0)
         proj = compute_htroi(
-            expected_income_usd=float(expected_cash["days_to_cash"] or 0) if False else float(ranked.expected_value),
+            expected_income_usd=float(ranked.expected_value),
             human_hours=hours,
         )
         htroi = {
@@ -302,6 +351,9 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
         "recommendation_reasoning": ranked.recommendation_reasoning,
         "payment_compat_score": ranked.payment_compat_score,
         "payment_compat_notes": ranked.payment_compat_notes,
+        "p_cash": getattr(ranked, "p_cash", None),
+        "p_cash_band": getattr(ranked, "p_cash_band", "UNKNOWN"),
+        "public_work": _public_work_block(ranked),
         "payout_method": payout_method,
         "payout_method_rationale": payout_method_rationale,
     }
@@ -330,6 +382,8 @@ class LearnRequest(BaseModel):
 
 class DiscoverRequest(BaseModel):
     limit: int = 20
+    languages: list[str] | None = None  # e.g. ["rust", "go", "solidity"] — solo GitHub bounty
+    keywords: list[str] | None = None  # e.g. ["aws", "azure", "terraform"] — stack GitHub bounty
 
 
 class OpportunityOnlyRequest(BaseModel):
@@ -366,6 +420,13 @@ class DeliverPrepareRequest(BaseModel):
 class AnalysisCardRequest(BaseModel):
     opportunity: dict[str, Any]
     profile: dict[str, Any] | None = None
+
+
+class MoonshotQueueRequest(BaseModel):
+    profile: dict[str, Any]
+    opportunities: list[dict[str, Any]] = []
+    limit: int = 10
+    min_reward: float = 500.0
 
 
 class IncomeProjectionRequest(BaseModel):
@@ -443,14 +504,33 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     - ``max_success`` (Success Maximizer): acceptance probability weighted
       highest (0.40) with a hard floor — only work the profile's real outcome
       history says is likely to win ever surfaces.
+    - ``high_upside_90d`` (HIGH_UPSIDE_90D): EV-led moonshot with niche
+      priority (AI/LLM -> Web3 -> API/Auth -> classic), freshness,
+      low-competition bonus and personal reward rate boost — 90-day
+      bounty upside maximization. Anti-casino: shows EV/h + probability +
+      time + competition + freshness + confidence, never headline alone.
+    - ``secure_income`` (SECURE_INCOME): base segura — acceptance 0.35 +
+      speed 0.25 with hard 0.50 floor and forced diversification
+      (2/platform, 3/category). Bug bounty only when it passes the floor.
+    - ``secure_plus_upside`` (SECURE_PLUS_UPSIDE, modo normal): secure base
+      plus measured upside — floor off, 0.30 minimum. Cada item expone
+      P(CASH) = prob. de cobrar realmente (acceptance x cobrabilidad).
 
     When no opportunities are supplied, the engine discovers them from its
-    registered real adapters first (Opire, IssueHunt, Freelancer).
+    registered real adapters first (Opire, IssueHunt, bug bounties, AI training).
+    Freelance channels (Workana/Fiverr) are OPTIONAL: only ACTIVE channels
+    participate; PAUSED/DISABLED/EXCLUDED are filtered before scoring.
     """
     profile = _profile_from_dict(request.profile)
     opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
     if not opportunities:
         opportunities = await get_engine().discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     ranked = get_engine().recommender.recommend(opportunities, profile, limit=request.limit, mode=request.mode)
     ranked_list = [_ranked_to_dict(r) for r in ranked]
     try:
@@ -478,15 +558,146 @@ async def direct_work_recommend(request: RecommendRequest) -> dict[str, Any]:
     }
 
 
+@router.post("/moonshot-queue")
+async def direct_work_moonshot_queue(request: MoonshotQueueRequest) -> dict[str, Any]:
+    """Cola moonshot: tareas complejas públicas de alta recompensa, listas para ejecutar.
+
+    Combina lo que ya existe sin duplicar: recomienda en modo ``high_upside_90d``
+    con ``zero_experience_only`` (sin experiencia; a lo sumo una evaluación),
+    conserva solo TASK_REWARD outcome-based en peldaños ADVANCED/EXPERT con
+    pago >= ``min_reward``, y adjunta a cada item su plan de ejecución
+    (minutos humanos, % automatizado, EV) vía ``plan_execution``.
+
+    La cola es de lectura: para preparar la entrega, el daily_cycle del
+    WorkBank la convierte en items ready_to_deliver y
+    ``POST /direct-work/workbank/{id}/deliver/prepare`` genera el paquete.
+    """
+    from cores.direct_work_engine.execution_planner import plan_execution
+    from cores.direct_work_engine.public_work import RewardKind, enrich_ranked
+    from cores.direct_work_engine.recommendation import is_outcome_based
+
+    profile = _profile_from_dict(request.profile)
+    opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
+    if not opportunities:
+        opportunities = await get_engine().discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
+    ranked = get_engine().recommender.recommend(
+        opportunities,
+        profile,
+        limit=max(request.limit * 3, request.limit),
+        mode="high_upside_90d",
+        zero_experience_only=True,
+    )
+    mode_effective = "high_upside_90d"
+    if not ranked:
+        # El evidence gate de high_upside_90d exige evidencia previa; con
+        # opps frescas la cola quedaría vacía siempre. Fallback honesto a
+        # balanced (misma elegibilidad, incertidumbre etiquetada UNKNOWN).
+        ranked = get_engine().recommender.recommend(
+            opportunities,
+            profile,
+            limit=max(request.limit * 3, request.limit),
+            mode="balanced",
+            zero_experience_only=True,
+        )
+        mode_effective = "balanced_fallback_evidence_thin"
+    queue: list[dict[str, Any]] = []
+    for r in ranked:
+        try:
+            block = enrich_ranked(r)
+        except Exception:
+            continue
+        if block.get("rung") not in ("advanced", "expert"):
+            continue
+        if block.get("reward_kind") != RewardKind.TASK_REWARD.value:
+            continue
+        try:
+            if not is_outcome_based(r.opportunity.employment_type):
+                continue
+        except Exception:
+            continue
+        try:
+            payment = float(getattr(r.opportunity, "payment", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if payment < request.min_reward:
+            continue
+        item = _ranked_to_dict(r)
+        try:
+            plan = plan_execution(
+                _opportunity_to_dict(r.opportunity),
+                success_probability=float(r.acceptance_probability),
+            )
+            item["execution_plan"] = plan.to_dict()
+        except Exception:
+            item["execution_plan"] = None
+        item["next_step"] = (
+            "WorkBank daily_cycle lo prepara como ready_to_deliver; "
+            "luego POST /direct-work/workbank/{id}/deliver/prepare genera el paquete."
+        )
+        queue.append(item)
+        if len(queue) >= request.limit:
+            break
+    return {
+        "queue": queue,
+        "count": len(queue),
+        "mode": "high_upside_90d",
+        "mode_effective": mode_effective,
+        "filters": {
+            "zero_experience_only": True,
+            "rungs": ["advanced", "expert"],
+            "reward_kind": RewardKind.TASK_REWARD.value,
+            "outcome_based_only": True,
+            "min_reward": request.min_reward,
+        },
+    }
+
+
 @router.post("/discover")
 async def direct_work_discover(request: DiscoverRequest) -> dict[str, Any]:
     """Run a live scan of registered sources and return scored opportunities.
 
     Implements the "morning scan" flow: discover real opportunities from the
     registered adapters, score them by Zero Barrier, and return the top N.
+
+    ``languages`` (e.g. ["rust", "go", "solidity"]) restricts the GitHub
+    bounty scan server-side via ``language:`` qualifiers; ``keywords``
+    (e.g. ["aws", "terraform"]) restricts by stack as free-text OR-group;
+    other sources scan unchanged (None = current behavior).
     """
     engine = get_engine()
-    opportunities = await engine.discovery.discover_all()
+    if request.languages or request.keywords:
+        others = [p for p in engine.discovery.get_registered_platforms() if p != WorkPlatform.GITHUB]
+        opportunities = await engine.discovery.discover_all(platforms=others)
+        gh = engine.discovery.adapters.get(WorkPlatform.GITHUB)
+        if gh is not None:
+            try:
+                try:
+                    opportunities += await gh.fetch_opportunities(
+                        languages=request.languages, keywords=request.keywords
+                    )
+                except TypeError:
+                    try:
+                        # Adapter registrado sin soporte de keywords: solo idiomas.
+                        opportunities += await gh.fetch_opportunities(languages=request.languages)
+                    except TypeError:
+                        # Adapter sin filtros: scan estándar.
+                        opportunities += await gh.fetch_opportunities()
+            except Exception as exc:
+                logger.warning("GitHub language scan failed: %s", exc)
+    else:
+        opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     scored = engine.scorer.score_opportunities(opportunities)
     return {
         "discovered": len(scored),
@@ -523,6 +734,12 @@ async def direct_work_workbank_cycle(request: WorkBankCycleRequest) -> dict[str,
     opportunities = [_opportunity_from_dict(o) for o in request.opportunities]
     if not opportunities:
         opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     bank = get_workbank()
     return bank.daily_cycle(opportunities, target=request.target, profile=_income_max_profile(request.profile))
 
@@ -533,6 +750,96 @@ async def direct_work_workbank() -> dict[str, Any]:
     return get_workbank().to_dict()
 
 
+@router.post("/workbank/purge-fixtures")
+async def direct_work_purge_fixtures() -> dict[str, Any]:
+    """Purga placeholders de test del WorkBank (`/program/1`, `/p/1`, `/op/1`).
+
+    No toca oportunidades reales (esas llevan /issues/, /pull/, slugs). Usar
+    una vez tras el fix de honestidad; el próximo daily_cycle repone con
+    oportunidades LIVE reales si hay credenciales.
+    """
+    purged = get_workbank().purge_fixtures()
+    return {"purged": purged, "count": len(purged)}
+
+
+@router.post("/workbank/purge-bug-bounty-programs")
+async def direct_work_purge_bug_bounty_programs() -> dict[str, Any]:
+    """Purga del WorkBank los *programas* de bug bounty (no son tareas entregables).
+
+    El `daily_cycle` ya no los admite desde la corrección de honestidad, pero
+    los añadidos antes conservaban `access_status="public"` y sus max bounties
+    publicados inflaban `pendiente_usd` a ~$3.97M de pipeline inexistente.
+
+    Sólo elimina datos derivados del discovery (reproducibles con el próximo
+    ciclo) y nunca toca nada `delivered`.
+    """
+    purged = get_workbank().purge_bug_bounty_programs()
+    return {"purged": purged, "count": len(purged)}
+
+
+@router.get("/workbank/{item_id}/file/{filename}")
+async def direct_work_get_delivery_file(item_id: str, filename: str) -> PlainTextResponse:
+    """Get the content of a file in a delivery package."""
+    import os
+
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    # Find the package directory
+    base_dir = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / "ownex")) / "submissions" / item.platform
+    if not base_dir.exists():
+        # Try the default location
+        base_dir = Path.home() / "ownex" / "submissions" / item.platform
+    if not base_dir.exists():
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    # Find the most recent timestamped directory for this item
+    dirs = sorted([d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith(item_id)], reverse=True)
+    if not dirs:
+        raise HTTPException(status_code=404, detail="Package not found")
+    work_dir = dirs[0]
+    file_path = work_dir / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    # Security: ensure file is within work_dir
+    try:
+        file_path.resolve().relative_to(work_dir.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid file path") from None
+    content = file_path.read_text(encoding="utf-8")
+    return PlainTextResponse(content, media_type="text/plain; charset=utf-8")
+
+
+@router.put("/workbank/{item_id}/file/{filename}")
+async def direct_work_put_delivery_file(item_id: str, filename: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Update the content of a file in a delivery package."""
+    import os
+
+    content = payload.get("content", "")
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    base_dir = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / "ownex")) / "submissions" / item.platform
+    if not base_dir.exists():
+        base_dir = Path.home() / "ownex" / "submissions" / item.platform
+    if not base_dir.exists():
+        raise HTTPException(status_code=404, detail="Package directory not found")
+    dirs = sorted([d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith(item_id)], reverse=True)
+    if not dirs:
+        raise HTTPException(status_code=404, detail="Package not found")
+    work_dir = dirs[0]
+    file_path = work_dir / filename
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    try:
+        file_path.resolve().relative_to(work_dir.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid file path") from None
+    file_path.write_text(content, encoding="utf-8")
+    return {"success": True, "file": filename, "path": str(file_path)}
+
+
 @router.post("/workbank/{item_id}/deliver/prepare")
 async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     """Prepare a delivery package for a work-bank item (files ready to submit on disk).
@@ -541,7 +848,7 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     package (README/proposal/work files), saves it to disk, and returns where it
     is plus one-click guidance. Does NOT submit anything.
     """
-    from core.opportunity.executors.assisted_mode import AssistedExecutor
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor
 
     item = get_workbank().get_item(item_id)
     if not item:
@@ -560,10 +867,21 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
 
     # Espejo canónico: paquete listo → QUEUED en la cola única (best-effort).
     try:
-        from core.execution_queue.mirror import mirror_workbank_packaged
+        from cores.execution_queue.mirror import mirror_workbank_packaged
 
         mirror_workbank_packaged(item_id)
     except Exception:  # el espejo jamás rompe la entrega
+        pass
+
+    # Funnel P4 (best-effort, jamás rompe la entrega): prepared.
+    try:
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, niche_for_category
+
+        category = getattr(getattr(item, "category", None), "value", getattr(item, "category", ""))
+        get_funnel_tracker().record(
+            str(item.id), "prepared", platform=str(item.platform), niche=niche_for_category(category)
+        )
+    except Exception:  # noqa: BLE001
         pass
 
     return {
@@ -584,8 +902,12 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
 async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     """Mark a work-bank item as delivered (user confirmed the submission landed).
 
-    Closes the loop: the item moves to ``delivered`` and the outcome is folded
-    into the user profile so future recommendations learn from it.
+    Honest semantics (Rule §39): delivery is NOT payment. The item moves to
+    ``delivered`` and the revenue opportunity moves to REVIEWING (submitted,
+    awaiting platform review). ACCEPTED arrives via confirmation
+    (polling/webhook/manual verify); PAID only via real payout evidence
+    (platform webhook ``payout_received`` or documented user declaration in
+    First Money). Learning folds verified outcomes only — never this approval.
     """
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -595,34 +917,101 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
 
     # Espejo canónico: la aprobación humana (gate) → SUBMITTED en la cola única.
     try:
-        from core.execution_queue.mirror import mirror_workbank_approved
+        from cores.execution_queue.mirror import mirror_workbank_approved
 
         mirror_workbank_approved(item_id)
     except Exception:  # jamás rompe el flujo de entrega
         pass
 
-    profile = UserProfile(
-        name="Adriel",
-        country="Argentina",
-        languages={"es", "en"},
-        skills={"python", "go", "unity", "typescript"},
-        remote_only=True,
-    )
-    category = getattr(item, "category", None)
-    record = LearningRecord(
-        platform=str(item.platform),
-        accepted=True,
-        amount=float(item.reward or 0.0),
-        category=_resolve(category, OpportunityCategory) if category else None,
-        time_to_payout_days=None,
-    )
-    apply_learning(profile, [record])
+    # Wire to RevenueTracker: create opportunity + process payment
+    revenue_result = None
+    try:
+        from datetime import UTC, datetime
+        from decimal import Decimal
+
+        from cores.revenue_tracker.execution_bridge import resolve_payment_platform
+        from cores.revenue_tracker.revenue_tracker import (
+            PaymentStatus,
+            RevenueOpportunity,
+            get_revenue_tracker,
+        )
+
+        tracker = get_revenue_tracker()
+
+        # Map WorkPlatform to PaymentPlatform (SSOT in execution_bridge).
+        # Freelance (Workana) is an OPTIONAL commercial channel: scored by
+        # the same engine, never a mandatory path.
+        _platform_key = str(item.platform).lower().replace("workplatform.", "")
+        platform = resolve_payment_platform(_platform_key)
+
+        # Create revenue opportunity
+        opp_id = f"wb_{item.id}"
+        revenue_opp = RevenueOpportunity(
+            id=opp_id,
+            platform=platform,
+            title=item.title,
+            description=item.description or " ".join(item.deliverables),
+            amount=Decimal(str(item.reward or 0)),
+            currency="USD",
+            status=PaymentStatus.PENDING,
+            deadline=None,
+            provider_info={"workbank_item_id": item_id, "url": item.url or ""},
+            tracking_data={"source": "workbank"},
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+            barriers=[],
+            difficulty="medium",
+            success_rate=0.5,
+            time_estimate="",
+            tags=["workbank", str(item.platform)],
+            skills_required=[],
+            url=item.url or "",
+            revenue_state="expected",
+            revenue_state_history=[{"state": "expected", "at": datetime.now(UTC).isoformat()}],
+        )
+        tracker.create_opportunity(revenue_opp)
+
+        # Process payment: PENDING -> REVIEWING -> ACCEPTED -> PAID
+        # (In real flow, user would confirm each step; here we move to REVIEWING as first step)
+        tracker.update_opportunity_status(
+            opp_id,
+            PaymentStatus.REVIEWING,
+            {
+                "workbank_item_id": item_id,
+                "user_confirmed_delivery": True,
+            },
+        )
+
+        # REVIEWING only: the submission landed (human-confirmed), the platform
+        # has NOT accepted anything yet. ACCEPTED arrives via platform
+        # confirmation (polling/webhook/manual verify); PAID only via real
+        # payout evidence (Rule §39: SUBMITTED→PAID forbidden).
+
+        revenue_result = tracker.get_platform_metrics(platform.value.lower())
+    except Exception as exc:
+        logger.warning("RevenueTracker wiring failed: %s", exc)
+
+    # No learning folded here: delivery approval is not an outcome. Verified
+    # outcomes (accepted/paid/failed) fold via build_history_from_revenue_tracker,
+    # closed_loop payments, or POST /direct-work/learn — never from approval.
+
+    # Funnel P4 (best-effort): approved (human gate passed, not a reward).
+    try:
+        from cores.direct_work_engine.reward_probability import get_funnel_tracker, niche_for_category
+
+        category = getattr(getattr(item, "category", None), "value", getattr(item, "category", ""))
+        get_funnel_tracker().record(
+            str(item.id), "approved", platform=str(item.platform), niche=niche_for_category(category)
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
     return {
         "item_id": item.id,
         "status": "delivered",
         "reward": item.reward,
-        "message": "Entregado. El resultado se plegó al perfil para mejores recomendaciones.",
+        "revenue_tracker": revenue_result,
+        "message": "Entregado y en revisión. El pago se registra solo con evidencia real.",
     }
 
 
@@ -633,8 +1022,8 @@ async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
     Checks trust engine criteria before auto-submitting. If approved, marks as
     auto-submitted and prepares delivery package.
     """
-    from core.opportunity.executors.assisted_mode import AssistedExecutor
-    from core.trust_engine import get_trust_engine
+    from cores.opportunity.executors.assisted_mode import AssistedExecutor
+    from cores.trust_engine import get_trust_engine
 
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -674,6 +1063,109 @@ async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
         "next_step": result.get("next_step"),
         "requires_manual_action": result.get("requires_manual_action", False),
     }
+
+
+@router.post("/workbank/{item_id}/submit")
+async def direct_work_submit(item_id: str, force: bool = False) -> dict[str, Any]:
+    """Real API submission of a WorkBank item to its platform.
+
+    Uses AutoSubmitEngine with:
+    - Platform-specific API clients (HackerOne, Bugcrowd, Opire, IssueHunt, etc.)
+    - Idempotency keys for safe retries
+    - Exponential backoff retry logic
+    - DLQ for failed submissions
+    - Confirmation polling
+    """
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    bank = get_workbank()
+    item = bank.get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+
+    if not item.ready_to_deliver:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Item {item_id} is not ready_to_deliver (status: {item.status})",
+        )
+
+    # Build opportunity dict from WorkItem
+    opportunity = {
+        "id": item.id,
+        "title": item.title,
+        "platform": item.platform,
+        "category": item.category,
+        "reward": item.reward,
+        "description": item.description,
+        "url": item.url,
+        "severity": "medium",  # default for bug bounty
+        "program": item.metadata.get("program", "") if hasattr(item, "metadata") else "",
+    }
+
+    engine = get_auto_submit_engine()
+    record = await engine.submit_workbank_item(
+        item_id=item.id,
+        platform=str(item.platform),
+        opportunity=opportunity,
+        force=force,
+    )
+
+    return {
+        "success": record.status in (SubmissionStatus.SUBMITTED, SubmissionStatus.CONFIRMED),
+        "submission_id": record.id,
+        "status": record.status.value,
+        "attempts": record.attempts,
+        "external_id": record.submission_result.get("external_id") if record.submission_result else None,
+        "url": record.submission_result.get("url") if record.submission_result else None,
+        "last_error": record.last_error,
+        "message": (
+            "Submitted successfully"
+            if record.status == SubmissionStatus.CONFIRMED
+            else "Submitted, awaiting review"
+            if record.status == SubmissionStatus.SUBMITTED
+            else f"Failed: {record.last_error}"
+        ),
+    }
+
+
+@router.get("/submissions")
+async def direct_work_list_submissions(status: str | None = None, platform: str | None = None) -> dict[str, Any]:
+    """List all submission records with optional filters."""
+    from cores.opportunity.executors.auto_submit import SubmissionStatus, get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    status_enum = SubmissionStatus(status) if status else None
+    platform_filter = platform.lower() if platform else None
+
+    submissions = engine.list_submissions(status=status_enum, platform=platform_filter)
+    return {
+        "total": len(submissions),
+        "submissions": [s.to_dict() for s in submissions],
+    }
+
+
+@router.get("/submissions/{submission_id}")
+async def direct_work_get_submission(submission_id: str) -> dict[str, Any]:
+    """Get a specific submission record by ID."""
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    record = engine.get_submission(submission_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    return record.to_dict()
+
+
+@router.post("/submissions/{submission_id}/retry")
+async def direct_work_retry_submission(submission_id: str) -> dict[str, Any]:
+    """Retry a failed/DLQ submission."""
+    from cores.opportunity.executors.auto_submit import get_auto_submit_engine
+
+    engine = get_auto_submit_engine()
+    record = engine.retry_dlq(submission_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Submission not found or not in DLQ")
+    return record.to_dict()
 
 
 @router.get("/deliver/pending")
@@ -830,6 +1322,63 @@ async def direct_work_income_dashboard(request: IncomeProjectionRequest) -> dict
     )
 
 
+@router.get("/revenue-ledger")
+async def direct_work_revenue_ledger(platform: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """Truthful revenue ledger: per-state buckets + every tracked opportunity.
+
+    Buckets follow the canonical lifecycle EXPECTED -> COMMITTED -> EARNED ->
+    PENDING -> PAID (-> NET). Only PAID/NET is cash; everything else is pipeline.
+    """
+    from datetime import UTC, datetime
+
+    from cores.revenue_tracker.revenue_tracker import get_revenue_tracker
+
+    tracker = get_revenue_tracker()
+    breakdown = tracker.get_revenue_state_breakdown(platform)
+    projection = tracker.get_revenue_projection(platform)
+
+    def _serialize(opp: Any) -> dict[str, Any]:
+        status = getattr(opp, "status", "")
+        created = getattr(opp, "created_at", None)
+        updated = getattr(opp, "updated_at", None)
+        return {
+            "id": str(getattr(opp, "id", "")),
+            "title": str(getattr(opp, "title", "")),
+            "platform": str(getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", ""))),
+            "status": str(getattr(status, "value", status)),
+            "revenue_state": str(getattr(opp, "revenue_state", "")),
+            "amount_usd": float(getattr(opp, "amount", 0) or 0),
+            "currency": str(getattr(opp, "currency", "USD")),
+            "url": str(getattr(opp, "url", "") or ""),
+            "created_at": created.isoformat() if hasattr(created, "isoformat") else None,
+            "updated_at": updated.isoformat() if hasattr(updated, "isoformat") else None,
+        }
+
+    key = (platform or "").strip().lower()
+    items = [
+        _serialize(opp)
+        for opp in tracker.opportunities.values()
+        if not key or str(getattr(getattr(opp, "platform", ""), "value", getattr(opp, "platform", ""))).lower() == key
+    ]
+    items.sort(key=lambda r: (r["revenue_state"], r["updated_at"] or ""), reverse=True)
+
+    def _usd(value: Any) -> Any:
+        if isinstance(value, dict):
+            return {k: _usd(v) for k, v in value.items()}
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return value
+
+    return {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "buckets_usd": {k: float(v) for k, v in breakdown.items()},
+        "projection_usd": _usd(projection),
+        "count": len(items),
+        "opportunities": items[: max(1, limit)],
+    }
+
+
 @router.post("/plan/objective")
 async def direct_work_plan_objective(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Universal request understanding: turn a loose request into a full blueprint.
@@ -930,6 +1479,20 @@ async def direct_work_daily_companion(
     )
 
 
+def _platform_configured(platform_key: str, access_status: str) -> str:
+    """MONEY VALIDATION tri-state for platform availability (no secrets in output)."""
+    if access_status == "public":
+        return "CONFIGURED"
+    if access_status == "needs_api_key":
+        try:
+            from cores.credentials.adapter_helpers import get_api_key
+
+            return "CONFIGURED" if get_api_key(platform_key, {}) else "NOT_CONFIGURED"
+        except Exception:
+            return "UNVERIFIED"
+    return "UNVERIFIED"
+
+
 @router.get("/access/explain")
 async def direct_work_access_explain() -> dict[str, Any]:
     """Account integration guide: what each platform needs, why, and how to unlock it.
@@ -955,6 +1518,11 @@ async def direct_work_access_explain() -> dict[str, Any]:
                 "analysis_cadence_hours": TIER_CADENCE_HOURS.get(tier, 24),
                 "registered": platform_key in registered,
                 "explanation": _access_explanation(status, requirement),
+                # MONEY VALIDATION: real availability, never invented.
+                # public -> CONFIGURED (nothing to set up); key-based -> vault
+                # presence (bool only, secrets never leave the vault); manual
+                # setup -> UNVERIFIED (not verifiable programmatically).
+                "configured": _platform_configured(platform_key, status),
             }
         )
     platforms.sort(key=lambda p: (p["tier"], p["platform"]))
@@ -979,6 +1547,44 @@ def _access_explanation(access_status: str, requirement: str) -> str:
     return f"Requiere un paso manual único. {reason}"
 
 
+@router.get("/channels")
+async def direct_work_channels() -> dict[str, Any]:
+    """Freelance channel status: ACTIVE/PAUSED/DISABLED/EXCLUDED.
+
+    Freelance is an OPTIONAL commercial engine. Only ACTIVE channels
+    participate in recommendations; the scoring engine decides whether
+    any freelance opportunity deserves the owner's time.
+    """
+    from cores.freelance.channel_status import list_channels
+
+    return {
+        "channels": list_channels(),
+        "note": "Primary engines (AI training, dev bounties, bug bounties) are always evaluated. "
+        "Freelance channels only participate when ACTIVE.",
+    }
+
+
+@router.post("/channels/{channel}")
+async def direct_work_set_channel(channel: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Set a freelance channel status (active/paused/disabled/excluded)."""
+    from cores.freelance.channel_status import FREELANCE_CHANNELS, get_status, set_status
+
+    key = (channel or "").strip().lower()
+    if key not in FREELANCE_CHANNELS:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unknown freelance channel: {channel!r}. Known: {sorted(FREELANCE_CHANNELS)}",
+        )
+    status = ((payload or {}).get("status") or "").strip().lower()
+    if not status:
+        raise HTTPException(status_code=400, detail="Missing 'status'. Use: active/paused/disabled/excluded")
+    try:
+        new_status = set_status(key, status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+    return {"channel": key, "status": new_status.value, "recommending": get_status(key).value == "active"}
+
+
 @router.post("/extensions/evaluate")
 async def direct_work_extensions_evaluate(request: ExtensionRequest) -> dict[str, Any]:
     """Reason about whether a proposed capability extension is worth acquiring."""
@@ -1001,6 +1607,12 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
     engine = get_engine()
     profile = _income_max_profile(request.profile)
     opportunities = await engine.discovery.discover_all()
+    try:
+        from cores.freelance.channel_status import filter_by_channel_status
+
+        opportunities = filter_by_channel_status(opportunities)
+    except Exception:
+        pass
     ranked = engine.recommender.recommend(opportunities, profile, limit=request.limit, mode=request.mode)
 
     top = ranked[0] if ranked else None
@@ -1035,10 +1647,26 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
         else "No zero-barrier opportunities found today."
     )
 
+    try:
+        from cores.copilot.semantics import build_daily_brief_semantics
+
+        _top_dict = _ranked_to_dict(top) if top else {}
+        _htroi = (_top_dict.get("htroi") or {}) if isinstance(_top_dict, dict) else {}
+        semantics = build_daily_brief_semantics(
+            scanned=len(opportunities),
+            top_title=top.opportunity.title if top else None,
+            top_score=float(top.overall_recommendation_score) if top else None,
+            top_ev_per_hour=float(_htroi.get("usd_per_hour")) if _htroi.get("usd_per_hour") is not None else None,
+            missing_skills=(learning or {}).get("missing_skills") if isinstance(learning, dict) else None,
+        ).to_dict()
+    except Exception:
+        semantics = {"FACT": [], "INFERENCE": [], "RECOMMENDATION": [], "UNKNOWN": []}
+
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "scanned": len(opportunities),
         "summary": summary,
+        "semantics": semantics,
         "top_opportunity": _ranked_to_dict(top) if top else None,
         "ranked": [_ranked_to_dict(r) for r in ranked],
         "fallbacks": _fallback_payload(ranked),
@@ -1072,12 +1700,17 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
       * lessons       — lost opportunities -> skill evolution path (learn)
       * capabilities  — market demand the user does not cover -> expansion proposal (build)
       * performance   — conversion + ROI per platform/category (income intelligence)
+      * calibration   — estimated-vs-actual prediction error (UNKNOWN when no predictions)
+      * repeatable    — REPEATABLE / NON_REPEATABLE / UNKNOWN patterns from history
     """
     from cores.direct_work_engine.evolution import (
         CapabilityExpansionDetector,
         PerformanceAnalyzer,
         SkillEvolutionEngine,
+        channel_economy,
         evolve_analysis,
+        identify_repeatable,
+        prediction_error_report,
     )
 
     profile = _profile_from_dict(request.profile)
@@ -1087,7 +1720,12 @@ async def direct_work_evolution(request: EvolutionRequest) -> dict[str, Any]:
     lessons = SkillEvolutionEngine().learn_from_lost(records, profile)
     proposals = CapabilityExpansionDetector().detect(opportunities, profile, min_evidence=request.min_evidence)
     performance = PerformanceAnalyzer().analyze(records, time_invested_hours=request.time_invested_hours)
-    return evolve_analysis(lessons, proposals, performance)
+    report = evolve_analysis(lessons, proposals, performance)
+    report["calibration"] = prediction_error_report(records)
+    report["repeatable"] = identify_repeatable(records)
+    # MONEY VALIDATION: personal empirical economy (PAID-only cash, measured hours).
+    report["economy"] = channel_economy(records)
+    return report
 
 
 class SourceIntelRequest(BaseModel):
@@ -1113,6 +1751,106 @@ async def direct_work_source_intel(request: SourceIntelRequest) -> dict[str, Any
         query=request.query,
         min_trust=request.min_trust,
     )
+
+
+class SourceOptRequest(BaseModel):
+    name: str
+    enabled: bool
+
+
+@router.get("/sources")
+async def direct_work_sources() -> dict[str, Any]:
+    """Las 100+ webs curadas con gates + liveness + opt-in. La superficie "optar".
+
+    `enabled=false` = opt-out del usuario o quarantine automático (3 probes
+    muertos). Nada acá inventa disponibilidad: ver `liveness.status`.
+    """
+    from cores.direct_work_engine.source_registry import sources_overview
+
+    return sources_overview()
+
+
+@router.post("/sources/opt")
+async def direct_work_sources_opt(request: SourceOptRequest) -> dict[str, Any]:
+    """Opt-in/out persistente de una fuente curada. 404 si el nombre no existe."""
+    from cores.direct_work_engine.source_registry import set_source_enabled
+
+    if not request.name.strip():
+        raise HTTPException(status_code=422, detail="name vacío")
+    ok = set_source_enabled(request.name.strip(), bool(request.enabled))
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"fuente desconocida: {request.name}")
+    return {"name": request.name.strip(), "enabled": bool(request.enabled)}
+
+
+class SourceUnlockRequest(BaseModel):
+    name: str
+
+
+@router.post("/sources/unlock-private")
+async def direct_work_sources_unlock_private(request: SourceUnlockRequest) -> dict[str, Any]:
+    """Desbloqueo explícito humano de un programa privado (acceso ganado).
+
+    404 si no existe o si no es privado. Sin este unlock, las privadas
+    quedan fuera del ranking, del radar DISCOVER y del daily brief.
+    """
+    from cores.direct_work_engine.source_registry import unlock_private_source
+
+    if not request.name.strip():
+        raise HTTPException(status_code=422, detail="name vacío")
+    ok = unlock_private_source(request.name.strip())
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"fuente desconocida o no privada: {request.name}")
+    return {"name": request.name.strip(), "unlocked": True}
+
+
+@router.post("/sources/probe")
+async def direct_work_sources_probe() -> dict[str, Any]:
+    """Corre el ciclo de liveness sobre las 119 fuentes (puede tardar minutos).
+
+    Nunca 500 por probes individuales: cada fuente falla por separado y el
+    resumen reporta live/dead/unknown + quarantined_now.
+    """
+    from cores.direct_work_engine.source_registry import run_source_probe_cycle
+
+    try:
+        return run_source_probe_cycle()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"probe falló: {exc}") from exc
+
+
+class PrepRequest(BaseModel):
+    name: str
+    use_ai: bool = True
+
+
+@router.post("/sources/prep")
+async def direct_work_sources_prep(request: PrepRequest) -> dict[str, Any]:
+    """Preparación para quedarte DENTRO de una web desde 0 (guía + IA opcional).
+
+    Determinista siempre (qué revisar + checklist + límites reales); si
+    ``use_ai``, genera el plan con IA free 24/7 (best-effort: cae al guía).
+    """
+    from cores.direct_work_engine.source_prep import build_prep_guide, generate_ai_prep
+
+    src = None
+    key = (request.name or "").strip().lower()
+    if src is None:
+        from cores.opportunity.global_sources import get_sources
+
+        for s in get_sources():
+            if key and key in s.name.strip().lower():
+                src = s
+                break
+    if src is None:
+        raise HTTPException(status_code=404, detail=f"fuente no encontrada: {request.name}")
+    guide = build_prep_guide(src)
+    if request.use_ai:
+        try:
+            return await generate_ai_prep(src)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"IA falló: {exc}") from exc
+    return guide
 
 
 class SuccessPlanRequest(BaseModel):
@@ -1304,3 +2042,185 @@ async def get_discovered_platforms(limit: int = 50, min_ev: float = 0.0) -> dict
         return {"total_discovered": 0, "returned": 0, "platforms": [], "error": str(e)}
     finally:
         await engine.stop()
+
+
+# ── Work Streams (Category-aware UI) ──
+
+
+@router.get("/streams")
+async def direct_work_streams() -> dict[str, Any]:
+    """Get all work streams with UI config (what to show/do per stream)."""
+    return {
+        "streams": [
+            {
+                "key": stream.value,
+                "label": config["label"],
+                "icon": config["icon"],
+                "description": config["description"],
+                "platforms": config["platforms"],
+                "access_type": config["access_type"],
+                "deliverables": config["deliverables"],
+                "quick_actions": config["quick_actions"],
+                "automation": config["automation"],
+                "user_decides": config["user_decides"],
+            }
+            for stream, config in STREAM_UI_CONFIG.items()
+        ],
+        "category_to_stream": {cat.value: stream.value for cat, stream in CATEGORY_TO_STREAM.items()},
+        "platform_to_stream": PLATFORM_PRIMARY_STREAM,
+    }
+
+
+@router.get("/streams/{stream_key}/opportunities")
+async def direct_work_stream_opportunities(
+    stream_key: str,
+    limit: int = Query(20, ge=1, le=100),
+    profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Get ranked opportunities filtered by work stream."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
+
+    engine = get_engine()
+    opportunities = await engine.discovery.discover_all() or []
+
+    # Filter by stream
+    stream_categories = [cat for cat, s in CATEGORY_TO_STREAM.items() if s == stream]
+    filtered = [
+        opp
+        for opp in opportunities
+        if (opp.category.value if hasattr(opp.category, "value") else str(opp.category))
+        in [c.value for c in stream_categories]
+    ]
+
+    # Score and rank
+    profile_obj = _income_max_profile(profile)
+    ranked = engine.recommender.recommend(filtered, profile_obj, limit=limit, mode="max_income")
+
+    return {
+        "stream": stream.value,
+        "stream_config": STREAM_UI_CONFIG.get(stream, {}),
+        "total_found": len(opportunities),
+        "filtered": len(filtered),
+        "ranked": [
+            {
+                "rank": r.rank,
+                "opportunity": {
+                    "id": r.opportunity.id,
+                    "title": r.opportunity.title,
+                    "platform": r.opportunity.platform.value
+                    if hasattr(r.opportunity.platform, "value")
+                    else str(r.opportunity.platform),
+                    "category": (
+                        r.opportunity.category.value
+                        if hasattr(r.opportunity.category, "value")
+                        else str(r.opportunity.category)
+                    ),
+                    "stream": get_stream_for_category(r.opportunity.category).value,
+                    "payment": r.opportunity.payment,
+                    "reward": r.opportunity.payment,
+                },
+                "overall_recommendation_score": r.overall_recommendation_score,
+                "expected_value": r.expected_value,
+                "barrier_score": getattr(
+                    r, "zero_barrier_score", r.barrier_score if hasattr(r, "barrier_score") else 0
+                ),
+                "payment_compat_score": getattr(r, "payment_compat_score", 100),
+                "payout_method": getattr(r, "payout_method", ""),
+            }
+            for r in ranked
+        ],
+    }
+
+
+@router.get("/streams/{stream_key}/workbank")
+async def direct_work_stream_workbank(stream_key: str) -> dict[str, Any]:
+    """Get work bank items filtered by work stream."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
+
+    bank = get_workbank()
+    items = list(bank._items.values())
+
+    # Filter by stream
+    stream_categories = [c.value for c, s in CATEGORY_TO_STREAM.items() if s == stream]
+    filtered = [i for i in items if i.category in stream_categories]
+
+    ready = [i for i in filtered if i.ready_to_deliver]
+    needs_access = [i for i in filtered if i.status == "needs_access"]
+    delivered = [i for i in filtered if i.status == "delivered"]
+
+    return {
+        "stream": stream.value,
+        "stream_config": STREAM_UI_CONFIG.get(stream, {}),
+        "total": len(filtered),
+        "ready_to_deliver": len(ready),
+        "needs_access": len(needs_access),
+        "delivered": len(delivered),
+        "items": {
+            "ready": [i.to_dict() for i in ready],
+            "needs_access": [i.to_dict() for i in needs_access],
+            "delivered": [i.to_dict() for i in delivered],
+        },
+        "targets": {h: bank.progress()[h] for h in ["daily", "weekly", "monthly"]},
+    }
+
+
+@router.post("/streams/{stream_key}/cycle")
+async def direct_work_stream_cycle(
+    stream_key: str,
+    target: int | None = None,
+    profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Run a work bank cycle for a specific stream only."""
+    try:
+        stream = WorkStream(stream_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Unknown stream: {stream_key}") from None
+
+    engine = get_engine()
+    stream_categories = [cat for cat, s in CATEGORY_TO_STREAM.items() if s == stream]
+
+    # Discover only for this stream's platforms
+    all_opportunities = await engine.discovery.discover_all() or []
+    filtered = [
+        opp
+        for opp in all_opportunities
+        if (opp.category.value if hasattr(opp.category, "value") else str(opp.category))
+        in [c.value for c in stream_categories]
+    ]
+
+    profile_obj = _income_max_profile(profile)
+    return get_workbank().daily_cycle(filtered, target=target, profile=profile_obj)
+
+
+# ── One Best Action ──
+
+
+@router.get("/one-best-action")
+async def get_one_best_action() -> dict[str, Any]:
+    """Get the single best action the user should take RIGHT NOW.
+
+    Returns a prioritized, actionable next step based on:
+    - Work Bank state (ready to deliver, needs access)
+    - Ranked opportunities (max-income mode)
+    - User availability (Profile Kit + calendar)
+    - Platform onboarding requirements
+    - Skill gaps for top opportunities
+
+    Priority order:
+    1. DELIVER_NOW → work completed, ready to submit
+    2. PREPARE_DELIVERY → work ready, package needs generation
+    3. CLAIM_OPPORTUNITY → high-value bounty/microtask claimable now
+    4. COMPLETE_ONBOARDING → platform setup blocking work
+    5. LEARN_SKILL → skill gap for top opportunity
+    6. RUN_WORKBANK_CYCLE → refresh opportunities
+    """
+    from cores.direct_work_engine.one_best_action import get_one_best_action
+
+    action = get_one_best_action()
+    return action.to_dict()

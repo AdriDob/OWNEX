@@ -42,7 +42,7 @@ def report(name: str, passed: bool, detail: str = "") -> None:
 
 def check_version_sync() -> None:
     """1. Version sync."""
-    from core.system.version_engine import VersionEngine
+    from cores.system.version_engine import VersionEngine
 
     ve = VersionEngine()
     info = ve.info()
@@ -149,19 +149,15 @@ def check_extensions() -> None:
         return
 
     expected = [
-        "lightrag",
-        "cognee",
-        "graphiti",
-        "skyvern",
+        "aider",
         "crawl4ai",
-        "composio",
-        "n8n",
-        "kestra",
-        "langfuse",
-        "graphify",
-        "skill_seekers",
-        "promptfoo",
-        "nanobot",
+        "git",
+        "graphiti",
+        "lightrag",
+        "mcp",
+        "playwright",
+        "qdrant",
+        "skyvern",
     ]
     found = 0
     for name in expected:

@@ -1,13 +1,25 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
-import Badge from '@/components/ui/Badge.vue'
-import Button from '@/components/ui/Button.vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import {
+  AlertTriangle,
+  BarChart3,
+  CreditCard,
+  DollarSign,
+  PiggyBank,
+  Plus,
+  RefreshCw,
+  RotateCw,
+  Save,
+  TrendingUp,
+  Wallet,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
-import { AlertTriangle, BarChart3, CreditCard, DollarSign, PiggyBank, Plus, RotateCw, RefreshCw, Save, TrendingUp, Wallet } from '@lucide/vue'
+import Badge from '@/components/ui/Badge.vue'
+import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface PlatformWithEarnings {
   provider: string
@@ -56,10 +68,10 @@ const payoutStatusData = computed(() => {
 })
 
 const earningsByPlatformLabels = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.provider) || []
+  return data.value?.platformEarnings?.map((p) => p.provider) || []
 })
 const earningsByPlatformData = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.earned) || []
+  return data.value?.platformEarnings?.map((p) => p.earned) || []
 })
 
 function platformIcon(platform: string) {
@@ -83,9 +95,10 @@ function cancelEdit() {
 async function saveAddress(walletId: string) {
   savingAddress.value = true
   try {
-    await api.put(`/identity-center/wallets/${walletId}`, { address: editAddress.value })
+    // Contrato real: POST /identity-center/wallets con body { [key]: address }
+    await api.post('/identity-center/wallets', { [walletId]: editAddress.value })
     if (data.value) {
-      const w = data.value.wallets.find(w => w.id === walletId)
+      const w = data.value.wallets.find((w) => w.id === walletId)
       if (w) w.address = editAddress.value
     }
     editingWallet.value = null
@@ -100,19 +113,28 @@ async function fetchWallets() {
   loading.value = true
   error.value = ''
   try {
-    const [walletsRes, statsRes, platformsRes] = await Promise.all([
-      api.get<{ wallets: WalletEntry[] }>('/identity-center/wallets'),
+    const [identityRes, statsRes, platformsRes] = await Promise.all([
+      // Contrato real: GET /identity-center → { wallets: { usdc, binance, takenos, public } }
+      api.get<{ wallets: Record<string, string> }>('/identity-center'),
       api.get<ReportStats>('/reports/stats').catch(() => null),
       api.get<{ accounts: PlatformWithEarnings[] }>('/opportunity/identity/accounts').catch(() => null),
     ])
     data.value = {
-      wallets: walletsRes.wallets || [],
+      // Normaliza dict key→address a la lista que la vista ya consume.
+      wallets: Object.entries(identityRes.wallets || {}).map(([id, address]) => ({
+        id,
+        platform: id,
+        address: address || '',
+      })),
       stats: statsRes,
-      platformEarnings: platformsRes?.accounts?.filter(a => a.earned)?.map(a => ({
-        provider: a.provider,
-        earned: a.earned || 0,
-        pending: a.pending || 0,
-      })) || [],
+      platformEarnings:
+        platformsRes?.accounts
+          ?.filter((a) => a.earned)
+          ?.map((a) => ({
+            provider: a.provider,
+            earned: a.earned || 0,
+            pending: a.pending || 0,
+          })) || [],
     }
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar billeteras'
@@ -130,7 +152,7 @@ onMounted(fetchWallets)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <!-- ═══ HEADER ═══ -->
     <div class="flex items-start justify-between gap-4 animate-in">
       <div class="space-y-1 min-w-0">
@@ -241,7 +263,7 @@ onMounted(fetchWallets)
           </div>
           <BarChart
             :labels="earningsByPlatformLabels"
-            :datasets="[{ label: 'Earnings', data: earningsByPlatformData, backgroundColor: ['#00d5ff', '#ffffff', '#16A34A', '#A16207', '#00d5ff'] }]"
+            :datasets="[{ label: 'Earnings', data: earningsByPlatformData, backgroundColor: ['var(--ownex-accent)', 'var(--ownex-text-primary)', 'var(--ownex-green)', 'var(--ownex-gold)', 'var(--ownex-accent)'] }]"
             :height="220"
             yLabel="USD"
             horizontal

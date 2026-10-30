@@ -9,12 +9,12 @@ export interface SpringPreset {
 }
 
 export const SpringPresets = {
-  snappy:   { stiffness: 200, damping: 20, mass: 0.5 },
-  gentle:   { stiffness: 120, damping: 14, mass: 1 },
-  bouncy:   { stiffness: 100, damping: 8,  mass: 1 },
-  liquid:   { stiffness: 80,  damping: 12, mass: 1.2 },
-  stiff:    { stiffness: 300, damping: 30, mass: 0.8 },
-  loading:  { stiffness: 150, damping: 18, mass: 1 },
+  snappy: { stiffness: 200, damping: 20, mass: 0.5 },
+  gentle: { stiffness: 120, damping: 14, mass: 1 },
+  bouncy: { stiffness: 100, damping: 8, mass: 1 },
+  liquid: { stiffness: 80, damping: 12, mass: 1.2 },
+  stiff: { stiffness: 300, damping: 30, mass: 0.8 },
+  loading: { stiffness: 150, damping: 18, mass: 1 },
 } as const
 
 export interface ServiceCheck {

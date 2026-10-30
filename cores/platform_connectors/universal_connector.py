@@ -14,10 +14,10 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from core.events.event_bus import get_event_bus
-from core.opportunity.adapters import get_adapters
-from core.sensors.adapters.generic_adapter import GenericAdapterSensor
-from core.sensors.base import SensorRegistry
+from cores.events.event_bus import get_event_bus
+from cores.opportunity.adapters import get_adapters
+from cores.sensors.adapters.generic_adapter import GenericAdapterSensor
+from cores.sensors.base import SensorRegistry
 
 logger = logging.getLogger("ownex.platform_connectors")
 
@@ -332,12 +332,7 @@ DEFAULT_PLATFORMS = [
         adapter_platform="linkedin",
         cadence_seconds=7200,
     ),
-    PlatformConfig(
-        name="upwork",
-        category=PlatformCategory.FREELANCE,
-        adapter_platform="upwork",
-        cadence_seconds=3600,
-    ),
+    # Upwork removed per owner (purge 2026-09-13): hiring funnel, not outcome-based.
 ]
 
 

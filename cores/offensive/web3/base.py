@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 
-from core.offensive.web3.models import SmartContractInfo, Web3Hypothesis
+from cores.offensive.web3.models import SmartContractInfo, Web3Hypothesis
 from cores.tools.slither import SlitherTool
 
 logger = logging.getLogger("orion.offensive.web3")

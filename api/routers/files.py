@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/files", tags=["files"])
 async def sync_methods() -> dict[str, Any]:
     """Obtener métodos de sync disponibles."""
     try:
-        from core.obsidian_sync_manager import get_sync_manager
+        from cores.obsidian_sync_manager import get_sync_manager
 
         return get_sync_manager().get_all_methods()
     except Exception as e:
@@ -30,7 +30,7 @@ async def sync_methods() -> dict[str, Any]:
 async def sync_guide(method: str) -> dict[str, Any]:
     """Obtener guía de setup para un método de sync."""
     try:
-        from core.obsidian_sync_manager import get_sync_manager
+        from cores.obsidian_sync_manager import get_sync_manager
 
         return get_sync_manager().get_setup_guide(method)
     except Exception as e:
@@ -41,7 +41,7 @@ async def sync_guide(method: str) -> dict[str, Any]:
 async def syncthing_status() -> dict[str, Any]:
     """Verificar si Syncthing está instalado."""
     try:
-        from core.obsidian_sync_manager import get_sync_manager
+        from cores.obsidian_sync_manager import get_sync_manager
 
         return get_sync_manager().check_syncthing_installed()
     except Exception as e:
@@ -52,7 +52,7 @@ async def syncthing_status() -> dict[str, Any]:
 async def sync_script(method: str) -> dict[str, Any]:
     """Generar script de sync."""
     try:
-        from core.obsidian_sync_manager import get_sync_manager
+        from cores.obsidian_sync_manager import get_sync_manager
 
         manager = get_sync_manager()
         script = manager.generate_sync_script(method)
@@ -67,7 +67,7 @@ async def sync_script(method: str) -> dict[str, Any]:
 @router.get("/obsidian/status")
 async def obsidian_status() -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         return sync.get_stats()
@@ -78,7 +78,7 @@ async def obsidian_status() -> dict[str, Any]:
 @router.get("/obsidian/notes")
 async def obsidian_notes(folder: str = "") -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         notes = sync.list_notes(folder)
@@ -90,7 +90,7 @@ async def obsidian_notes(folder: str = "") -> dict[str, Any]:
 @router.get("/obsidian/note/{note_path:path}")
 async def obsidian_read(note_path: str) -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         note = sync.read_note(note_path)
@@ -106,7 +106,7 @@ async def obsidian_read(note_path: str) -> dict[str, Any]:
 @router.post("/obsidian/note")
 async def obsidian_create(note: dict[str, Any]) -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         return sync.create_note(
@@ -122,7 +122,7 @@ async def obsidian_create(note: dict[str, Any]) -> dict[str, Any]:
 @router.put("/obsidian/note/{note_path:path}")
 async def obsidian_update(note_path: str, note: dict[str, Any]) -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         result = sync.update_note(note_path, note.get("content", ""))
@@ -138,7 +138,7 @@ async def obsidian_update(note_path: str, note: dict[str, Any]) -> dict[str, Any
 @router.delete("/obsidian/note/{note_path:path}")
 async def obsidian_delete(note_path: str) -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         deleted = sync.delete_note(note_path)
@@ -150,7 +150,7 @@ async def obsidian_delete(note_path: str) -> dict[str, Any]:
 @router.get("/obsidian/search")
 async def obsidian_search(query: str) -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         results = sync.search_notes(query)
@@ -162,7 +162,7 @@ async def obsidian_search(query: str) -> dict[str, Any]:
 @router.get("/obsidian/folders")
 async def obsidian_folders() -> dict[str, Any]:
     try:
-        from core.obsidian_sync import get_obsidian_sync
+        from cores.obsidian_sync import get_obsidian_sync
 
         sync = get_obsidian_sync()
         return {"folders": sync.get_folders()}
@@ -176,7 +176,7 @@ async def obsidian_folders() -> dict[str, Any]:
 @router.get("/browse")
 async def browse(path: str = "") -> dict[str, Any]:
     try:
-        from core.file_manager import get_file_manager
+        from cores.file_manager import get_file_manager
 
         fm = get_file_manager()
         return fm.list_directory(path)
@@ -187,7 +187,7 @@ async def browse(path: str = "") -> dict[str, Any]:
 @router.get("/search")
 async def file_search(query: str, path: str = "") -> dict[str, Any]:
     try:
-        from core.file_manager import get_file_manager
+        from cores.file_manager import get_file_manager
 
         fm = get_file_manager()
         results = fm.search_files(query, path)
@@ -199,7 +199,7 @@ async def file_search(query: str, path: str = "") -> dict[str, Any]:
 @router.get("/info/{file_path:path}")
 async def file_info(file_path: str) -> dict[str, Any]:
     try:
-        from core.file_manager import get_file_manager
+        from cores.file_manager import get_file_manager
 
         fm = get_file_manager()
         info = fm.get_file_info(file_path)
@@ -215,7 +215,7 @@ async def file_info(file_path: str) -> dict[str, Any]:
 @router.get("/read/{file_path:path}")
 async def file_read(file_path: str) -> dict[str, Any]:
     try:
-        from core.file_manager import get_file_manager
+        from cores.file_manager import get_file_manager
 
         fm = get_file_manager()
         content = fm.read_file(file_path)

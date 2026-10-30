@@ -140,8 +140,8 @@ class IdentityVault:
             )
         return result
 
-    def get_account(self, provider: str) -> dict[str, Any] | None:
-        data = _VAULT_DATA.get(provider)
+    def get_account(self, provider: str, workspace: str = "") -> dict[str, Any] | None:
+        data = self._lookup(provider, workspace)
         if not data:
             return None
         return {
@@ -160,10 +160,16 @@ class IdentityVault:
         token: str = "",
         password: str = "",
         metadata: dict[str, str] | None = None,
+        workspace: str = "",
     ) -> None:
         if provider not in self.SUPPORTED_PROVIDERS and provider not in _VAULT_DATA:
             logger.warning("Storing credentials for unsupported provider: %s", provider)
 
+        # Workspace isolation: scoped entries live under "ws::provider" so two
+        # workspaces never share (nor clobber) the same provider. "" = legacy
+        # unscoped namespace, preserved for backward compatibility.
+        ws = (workspace or "").strip()
+        key = f"{ws}::{provider}" if ws else provider
         entry = {
             "email": email,
             "session_state": "disconnected",
@@ -172,10 +178,11 @@ class IdentityVault:
             "encrypted_token": _encrypt(token) if token else "",
             "encrypted_password": _encrypt(password) if password else "",
             "metadata": json.dumps(metadata or {}),
+            "workspace": ws,
         }
 
-        if provider in _VAULT_DATA:
-            existing = _VAULT_DATA[provider]
+        if key in _VAULT_DATA:
+            existing = _VAULT_DATA[key]
             entry["session_state"] = existing.get("session_state", "disconnected")
             entry["health_status"] = existing.get("health_status", "unknown")
             if not token:
@@ -183,12 +190,19 @@ class IdentityVault:
             if not password:
                 entry["encrypted_password"] = existing.get("encrypted_password", "")
 
-        _VAULT_DATA[provider] = entry
+        _VAULT_DATA[key] = entry
         self._save()
         logger.info("Credentials stored for provider: %s (email: %s)", provider, email)
 
-    def get_credentials(self, provider: str) -> dict[str, str]:
-        data = _VAULT_DATA.get(provider)
+    def _lookup(self, provider: str, workspace: str = "") -> dict[str, Any]:
+        """Strict lookup: scoped workspace sees ONLY its namespace (never fallback)."""
+        ws = (workspace or "").strip()
+        if ws:
+            return _VAULT_DATA.get(f"{ws}::{provider}", {})
+        return _VAULT_DATA.get(provider, {})
+
+    def get_credentials(self, provider: str, workspace: str = "") -> dict[str, str]:
+        data = self._lookup(provider, workspace)
         if not data:
             return {}
 
@@ -207,26 +221,32 @@ class IdentityVault:
             **metadata,
         }
 
-    def remove_credentials(self, provider: str) -> None:
-        if provider in _VAULT_DATA:
-            del _VAULT_DATA[provider]
+    def remove_credentials(self, provider: str, workspace: str = "") -> None:
+        ws = (workspace or "").strip()
+        key = f"{ws}::{provider}" if ws else provider
+        if key in _VAULT_DATA:
+            del _VAULT_DATA[key]
             self._save()
             logger.info("Credentials removed for provider: %s", provider)
 
-    def update_session_state(self, provider: str, state: str) -> None:
-        if provider in _VAULT_DATA:
-            _VAULT_DATA[provider]["session_state"] = state
-            _VAULT_DATA[provider]["last_checked"] = datetime.now(UTC).isoformat()
+    def update_session_state(self, provider: str, state: str, workspace: str = "") -> None:
+        ws = (workspace or "").strip()
+        key = f"{ws}::{provider}" if ws else provider
+        if key in _VAULT_DATA:
+            _VAULT_DATA[key]["session_state"] = state
+            _VAULT_DATA[key]["last_checked"] = datetime.now(UTC).isoformat()
             self._save()
 
-    def update_health(self, provider: str, status: str) -> None:
-        if provider in _VAULT_DATA:
-            _VAULT_DATA[provider]["health_status"] = status
-            _VAULT_DATA[provider]["last_checked"] = datetime.now(UTC).isoformat()
+    def update_health(self, provider: str, status: str, workspace: str = "") -> None:
+        ws = (workspace or "").strip()
+        key = f"{ws}::{provider}" if ws else provider
+        if key in _VAULT_DATA:
+            _VAULT_DATA[key]["health_status"] = status
+            _VAULT_DATA[key]["last_checked"] = datetime.now(UTC).isoformat()
             self._save()
 
-    def check_session_health(self, provider: str) -> dict[str, Any]:
-        data = _VAULT_DATA.get(provider)
+    def check_session_health(self, provider: str, workspace: str = "") -> dict[str, Any]:
+        data = self._lookup(provider, workspace)
         if not data:
             return {"connected": False, "reason": "No credentials stored"}
 

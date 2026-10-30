@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from core.http_probe.analyzer import AnalysisResult, Analyzer
-from core.http_probe.engine import ProbeEngine
-from core.http_probe.probes import (
+from cores.http_probe.analyzer import AnalysisResult, Analyzer
+from cores.http_probe.engine import ProbeEngine
+from cores.http_probe.probes import (
     AuthBypassProbe,
     BaseProbe,
     IDORProbe,
@@ -12,7 +12,7 @@ from core.http_probe.probes import (
     SSRFProbe,
     XSSProbe,
 )
-from core.http_probe.templates import ProbeTemplate, ProbeTemplates
+from cores.http_probe.templates import ProbeTemplate, ProbeTemplates
 
 __all__ = [
     "Analyzer",

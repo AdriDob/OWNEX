@@ -19,6 +19,7 @@ from .interfaces import (
     ModelCapabilities,
     ProviderHealth,
 )
+from .resilience import health_status_for
 
 logger = logging.getLogger("oar.adapters")
 
@@ -28,7 +29,7 @@ class OllamaAdapter(AIProviderProtocol):
 
     def __init__(self, host: str | None = None, model: str | None = None):
         self._host = (host or os.getenv("OLLAMA_HOST", "http://localhost:11434")).rstrip("/")
-        self._model = model or os.getenv("OLLAMA_MODEL", "qwen3-coder:8b")
+        self._model = model or os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
         self._available: bool | None = None
         self._start_time = time.monotonic()
 
@@ -42,10 +43,17 @@ class OllamaAdapter(AIProviderProtocol):
 
     @property
     def supported_models(self) -> list[str]:
-        return [self._model, "qwen3-coder:8b", "llama3.1:8b", "codellama:7b", "mistral:7b"]
+        return [self._model]
 
     def get_model_capabilities(self, model_id: str) -> ModelCapabilities | None:
         caps = {
+            "qwen2.5:3b-instruct": ModelCapabilities(
+                model_id=model_id,
+                supports={Capability.CHAT, Capability.CODE, Capability.REASONING, Capability.TOOL_CALLING},
+                max_context_tokens=32768,
+                max_output_tokens=8192,
+                tool_call_format="openai",
+            ),
             "qwen3-coder:8b": ModelCapabilities(
                 model_id=model_id,
                 supports={Capability.CHAT, Capability.CODE, Capability.REASONING, Capability.TOOL_CALLING},
@@ -92,23 +100,29 @@ class OllamaAdapter(AIProviderProtocol):
                 uptime_seconds=time.monotonic() - self._start_time,
             )
 
-    def _format_messages(self, messages: list[dict[str, str]]) -> str:
-        parts = []
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if role == "system":
-                parts.append(f"System: {content}")
-            elif role == "user":
-                parts.append(f"User: {content}")
-            elif role == "assistant":
-                parts.append(f"Assistant: {content}")
-        parts.append("Assistant: ")
-        return "\n".join(parts)
+    @staticmethod
+    def _split_messages(
+        messages: list[dict[str, str]],
+    ) -> tuple[str, str]:
+        """Separa el system prompt del resto. NO se aplana a un solo string.
+
+        Aplanar con el prefijo "System:" hace que qwen (chino por defecto)
+        responda en chino — medido: "di OK" da español, pero
+        "System: X\nUser: di OK\nAssistant: " da chino. Ollama tiene campo
+        `system` propio, así que se usa en vez de simular el rol.
+        """
+        system = "\n\n".join(m["content"] for m in messages if m.get("role") == "system")
+        turns = [
+            f"{'User' if m.get('role') == 'user' else 'Assistant'}: {m.get('content', '')}"
+            for m in messages
+            if m.get("role") != "system"
+        ]
+        turns.append("Assistant:")
+        return system, "\n\n".join(turns)
 
     async def chat(self, request: AIRequest) -> AIResponse:
         start = time.monotonic()
-        prompt = self._format_messages(request.messages)
+        system, prompt = self._split_messages(request.messages)
 
         try:
             import urllib.request
@@ -157,7 +171,9 @@ class OllamaAdapter(AIProviderProtocol):
             )
 
     async def chat_stream(self, request: AIRequest) -> AsyncGenerator[str, None]:
-        prompt = self._format_messages(request.messages)
+        # Mismo motivo que en chat(): aplanar con "System:" hace que qwen
+        # responda en chino. El system va en su campo.
+        system, prompt = self._split_messages(request.messages)
         try:
             import urllib.request
 
@@ -240,9 +256,14 @@ class OpenAICompatibleAdapter(AIProviderProtocol):
     ):
         self._provider_id = provider_id
         self._name = name
-        self._api_key = api_key or os.getenv(env_key, "") if env_key else ""
+        self._api_key = api_key or (os.getenv(env_key, "") if env_key else "")
         self._base_url = (base_url or os.getenv(env_base, "")).rstrip("/") if base_url or env_base else ""
-        self._model = model or os.getenv(env_model, "") if env_model else ""
+        # Precedencia: el model explícito gana SIEMPRE; el env sólo se lee si
+        # vino su nombre. Antes `model or os.getenv(...) if env_model else ""`
+        # descartaba el model explícito cuando env_model venía vacío (todos los
+        # factories OpenAI-compatible) → supported_models == [] → el registro
+        # no podía mapear ningún model a su provider (routing roto en silencio).
+        self._model = model or (os.getenv(env_model, "") if env_model else "")
         self._pricing = pricing
         self._capabilities = capabilities or {Capability.CHAT}
         self._max_context = max_context
@@ -288,10 +309,26 @@ class OpenAICompatibleAdapter(AIProviderProtocol):
                     headers={"Authorization": f"Bearer {self._api_key}"},
                 )
             latency = (time.monotonic() - start) * 1000
+
+            if resp.status_code == 200:
+                return ProviderHealth(
+                    provider_id=self.provider_id,
+                    status=HealthStatus.HEALTHY,
+                    latency_ms=latency,
+                    uptime_seconds=time.monotonic() - self._start_time,
+                )
+
+            # Un non-200 no es todo lo mismo: 401/403 = key inválida (arreglar
+            # la key), 402/429 = cuota (esperar), 5xx = transitorio (reintentar).
+            # Colapsarlos a UNHEALTHY sin last_error dejaba al owner sin saber
+            # qué arreglar: el panel mostraba "—" para un 401.
+            status = HealthStatus(health_status_for(resp.status_code))
+            body = resp.text[:200].strip()
             return ProviderHealth(
                 provider_id=self.provider_id,
-                status=HealthStatus.HEALTHY if resp.status_code == 200 else HealthStatus.UNHEALTHY,
+                status=status,
                 latency_ms=latency,
+                last_error=f"HTTP {resp.status_code}: {body}" if body else f"HTTP {resp.status_code}",
                 uptime_seconds=time.monotonic() - self._start_time,
             )
         except Exception as e:
@@ -563,7 +600,7 @@ def create_cerebras_adapter(api_key: str | None = None, model: str = "llama3.1-7
 
 
 def create_nvidia_adapter(
-    api_key: str | None = None, model: str = "meta/llama-3.1-70b-instruct"
+    api_key: str | None = None, model: str = "deepseek-ai/deepseek-v4-flash-0731"
 ) -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="nvidia_nim",
@@ -572,7 +609,7 @@ def create_nvidia_adapter(
         base_url="https://integrate.api.nvidia.com/v1",
         model=model,
         env_key="NVIDIA_API_KEY",
-        pricing=(0.0009, 0.0009),
+        pricing=(0.0, 0.0),  # free personal key; modelo verificado 2026-09-15
         capabilities={
             Capability.CHAT,
             Capability.CODE,
@@ -585,7 +622,9 @@ def create_nvidia_adapter(
     )
 
 
-def create_fcc_adapter(api_key: str | None = None, model: str = "claude-sonnet-4-5") -> OpenAICompatibleAdapter:
+def create_fcc_adapter(
+    api_key: str | None = None, model: str = "claude-3-5-sonnet-20241022"
+) -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="fcc",
         name="FCC Proxy",
@@ -638,7 +677,7 @@ def create_lmstudio_adapter(
 def create_ollama_cloud_adapter(
     api_key: str | None = None,
     host: str = "https://ollama.com/v1",
-    model: str = "qwen3-coder",
+    model: str = "qwen2.5:7b-instruct",
 ) -> OpenAICompatibleAdapter:
     """Ollama Cloud — API OpenAI-compatible hosted por Ollama.
 
@@ -654,6 +693,72 @@ def create_ollama_cloud_adapter(
         env_key="OLLAMA_CLOUD_API_KEY",
         pricing=(0.0, 0.0),  # free tier asumido; cost tracker registra 0 hasta evidencia
         capabilities={Capability.CHAT, Capability.STREAMING, Capability.TOOL_CALLING, Capability.LONG_CONTEXT},
+        max_context=128000,
+    )
+
+
+def create_omniroute_adapter(
+    api_key: str | None = None,
+    host: str = "http://localhost:20128/v1",
+    model: str = "auto/best-free",
+) -> OpenAICompatibleAdapter:
+    """OmniRoute — orquestador local free 24/7 (localhost:20128, 576 modelos).
+
+    auto/* elige el mejor modelo free por familia; nunca un ID fijo. Free por
+    diseño; QuotaTracker trata los límites como UNKNOWN, jamás ilimitados.
+    """
+    return OpenAICompatibleAdapter(
+        provider_id="omniroute",
+        name="OmniRoute",
+        api_key=api_key,
+        base_url=os.getenv("OMNIROUTE_BASE_URL", host),
+        model=os.getenv("OMNIROUTE_MODEL", model),
+        env_key="OMNIROUTE_API_KEY",
+        pricing=(0.0, 0.0),
+        capabilities={
+            Capability.CHAT,
+            Capability.CODE,
+            Capability.REASONING,
+            Capability.TOOL_CALLING,
+            Capability.JSON_MODE,
+            Capability.LONG_CONTEXT,
+        },
+        max_context=128000,
+    )
+
+
+def create_freellmapi_adapter(
+    api_key: str | None = None,
+    host: str = "http://localhost:8787/v1",
+    model: str = "auto",
+) -> OpenAICompatibleAdapter:
+    """FreeLLMAPI — agregador self-hosted de free tiers detrás de un /v1.
+
+    34 providers / 635 endpoints con routing por cuota aprendida y failover.
+    SELF-HOSTED por diseño (Node 20+ / Docker): las keys del usuario viven
+    cifradas en su propio SQLite y se descifran en memoria por request — no
+    hay proxy externo viendo el tráfico.
+
+    Es UN provider más para OAR (que sigue siendo el SSOT del routing), no un
+    motor paralelo: reutiliza OpenAICompatibleAdapter, sin abstracción nueva.
+    Opt-in: sólo se registra si FREELLMAPI_BASE_URL está definido.
+    """
+    return OpenAICompatibleAdapter(
+        provider_id="freellmapi",
+        name="FreeLLMAPI (self-hosted)",
+        api_key=api_key,
+        base_url=os.getenv("FREELLMAPI_BASE_URL", host),
+        model=os.getenv("FREELLMAPI_MODEL", model),
+        env_key="FREELLMAPI_API_KEY",
+        pricing=(0.0, 0.0),  # free tiers por definición
+        capabilities={
+            Capability.CHAT,
+            Capability.CODE,
+            Capability.REASONING,
+            Capability.TOOL_CALLING,
+            Capability.JSON_MODE,
+            Capability.EMBEDDING,
+        },
         max_context=128000,
     )
 
@@ -758,7 +863,7 @@ class FreebuffAdapter(AIProviderProtocol):
 
         # Import Freebuff - try both paths
         try:
-            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+            from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
         except ImportError:
             try:
                 from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task

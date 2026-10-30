@@ -6,7 +6,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from core.offensive.models import EndpointInfo, Hypothesis
+from cores.offensive.models import EndpointInfo, Hypothesis
 
 logger = logging.getLogger("orion.core.offensive.reasoners.base")
 

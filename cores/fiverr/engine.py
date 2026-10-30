@@ -192,14 +192,104 @@ class AssetKnowledgeBase:
         }
 
 
+# ── Funnel ledger (MONEY VALIDATION) ──────────────────────────────────────────
+# A gig published is NOT income. The funnel measures every stage from
+# publication to withdrawn cash so OWNEX can demote a non-converting gig with
+# evidence instead of hope.
+
+FUNNEL_STAGES: tuple[str, ...] = (
+    "published",
+    "impressions",
+    "clicks",
+    "inquiries",
+    "orders",
+    "delivered",
+    "accepted",
+    "cleared",
+    "withdrawn",
+)
+
+
+class FunnelLedger:
+    """Persistent per-gig conversion funnel (counters only, no PII).
+
+    Stored at ``data/fiverr_funnel.json``; survives restarts. Counts are
+    cumulative and monotone (each stage ≤ previous is expected but not
+    enforced — the summary reports raw counts honestly).
+    """
+
+    def __init__(self, store_path: str | Path | None = None) -> None:
+        self._store_path = Path(store_path or Path(__file__).resolve().parents[3] / "data" / "fiverr_funnel.json")
+        self._counts: dict[str, dict[str, int]] = {}
+        self._load()
+
+    def record(self, gig_key: str, stage: str, count: int = 1) -> bool:
+        """Add ``count`` events to a gig's funnel stage. False when invalid."""
+        if not gig_key or stage not in FUNNEL_STAGES:
+            logger.warning("Invalid funnel event gig=%r stage=%r: ignored", gig_key, stage)
+            return False
+        try:
+            delta = int(count)
+        except (TypeError, ValueError):
+            return False
+        if delta < 0:
+            return False
+        entry = self._counts.setdefault(gig_key, dict.fromkeys(FUNNEL_STAGES, 0))
+        for known in FUNNEL_STAGES:  # backfill stages added after first record
+            entry.setdefault(known, 0)
+        entry[stage] += delta
+        self._save()
+        return True
+
+    def summary(self, gig_key: str | None = None) -> dict[str, Any]:
+        """Funnel counts per gig (or all gigs) with click/order conversion."""
+        keys = [gig_key] if gig_key else sorted(self._counts)
+        gigs = {}
+        for key in keys:
+            entry = self._counts.get(key, dict.fromkeys(FUNNEL_STAGES, 0))
+            clicks = entry.get("clicks", 0)
+            orders = entry.get("orders", 0)
+            gigs[key] = {
+                **{stage: entry.get(stage, 0) for stage in FUNNEL_STAGES},
+                "click_through_rate": round(clicks / entry["impressions"], 4) if entry.get("impressions") else None,
+                "order_conversion": round(orders / clicks, 4) if clicks else None,
+            }
+        return {"gigs": gigs, "stages": list(FUNNEL_STAGES)}
+
+    def _load(self) -> None:
+        try:
+            if not self._store_path.exists():
+                return
+            data = json.loads(self._store_path.read_text())
+            raw = data.get("funnel", {})
+            if isinstance(raw, dict):
+                self._counts = {
+                    str(k): {s: int(v.get(s, 0)) for s in FUNNEL_STAGES} for k, v in raw.items() if isinstance(v, dict)
+                }
+        except Exception as exc:  # pragma: no cover
+            logger.warning("Could not load Fiverr funnel store: %s", exc)
+
+    def _save(self) -> None:
+        try:
+            self._store_path.parent.mkdir(parents=True, exist_ok=True)
+            self._store_path.write_text(json.dumps({"funnel": self._counts}, indent=2))
+        except Exception as exc:  # pragma: no cover
+            logger.warning("Could not save Fiverr funnel store: %s", exc)
+
+
 # ── The engine ────────────────────────────────────────────────────────────────
 
 
 class FiverrEngine:
     """Strategic integration engine for the Fiverr revenue ecosystem."""
 
-    def __init__(self, knowledge_base: AssetKnowledgeBase | None = None) -> None:
+    def __init__(
+        self,
+        knowledge_base: AssetKnowledgeBase | None = None,
+        funnel: FunnelLedger | None = None,
+    ) -> None:
         self.knowledge_base = knowledge_base or AssetKnowledgeBase()
+        self.funnel = funnel or FunnelLedger()
 
     # ── Gig catalog ──
     def catalog(self, category: str | None = None) -> list[GigTemplate]:
@@ -276,7 +366,7 @@ class FiverrEngine:
         Reuses the established, tested execution layer instead of duplicating a
         submission pipeline (Golden Rule: extend, don't reimplement).
         """
-        from core.opportunity.executors.assisted_mode import AssistedExecutor
+        from cores.opportunity.executors.assisted_mode import AssistedExecutor
 
         order = self.plan_order(str(opportunity.get("id", "")), gig_key, opportunity.get("title", ""))
         executor = AssistedExecutor(base_executor=None)

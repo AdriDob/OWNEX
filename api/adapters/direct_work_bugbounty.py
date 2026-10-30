@@ -4,8 +4,9 @@ Works in two grades, auto-selected at fetch time:
 
 * **Public grade (no key required):** reads the community-maintained
   ``arkadiyt/bounty-targets-data`` datasets (HackerOne, Bugcrowd, Intigriti,
-  Immunefi) — open data with program name, URL, max payout and in-scope
-  targets. This is the "works with zero keys" path.
+  YesWeHack) — open data with program name, URL, published max payout
+  (``max_payout`` or ``max_bounty``) and in-scope targets. This is the
+  "works with zero keys" path.
 * **Authenticated grade (key detected in the identity vault):** same source
   plumbing, but each program is also given ``needs_api_key`` access so the
   assisted delivery queue surfaces the missing credential instead of pretending
@@ -51,6 +52,38 @@ _PLATFORM_BY_SOURCE: dict[str, WorkPlatform] = {
     "intigriti": WorkPlatform.INTIGRITI,
     "yeswehack": WorkPlatform.YES_WE_HACK,
 }
+
+
+def _parse_money(*candidates: Any) -> tuple[float, str | None]:
+    """First parseable amount wins. Never raises, never invents.
+
+    Shapes seen in the wild: number, numeric string, {"value", "currency"}.
+    Bools/objects without value -> 0.0 (unknown, not zero-earned).
+    """
+    for candidate in candidates:
+        if candidate is None or isinstance(candidate, bool):
+            continue
+        if isinstance(candidate, dict):
+            amount, _ = _parse_money(candidate.get("value"))
+            if amount > 0:
+                currency = candidate.get("currency")
+                code = str(currency).strip().upper() if currency else None
+                return amount, code if code and len(code) == 3 and code.isalpha() else None
+            continue
+        if isinstance(candidate, (int, float)):
+            if candidate > 0:
+                return float(candidate), None
+            continue
+        if isinstance(candidate, str):
+            cleaned = candidate.strip().replace("$", "").replace(",", "").replace(" ", "")
+            try:
+                amount = float(cleaned)
+            except ValueError:
+                continue
+            if amount > 0:
+                return amount, None
+    return 0.0, None
+
 
 # Categories by platform family.
 _CATEGORY_DEFAULT = OpportunityCategory.BUG_BOUNTY
@@ -125,7 +158,7 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
     def _credentials_for(source: str) -> dict[str, str]:
         """Resolve vault credentials for a platform (empty when not configured)."""
         try:
-            from core.credentials.vault import get_platform_credentials
+            from cores.credentials.vault import get_platform_credentials
 
             return get_platform_credentials(source) or {}
         except Exception as exc:  # pragma: no cover
@@ -148,13 +181,28 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
             slug = handle or name.lower().replace(" ", "_")
             url = f"https://{source}.com/{slug}"
 
-        max_payout = float(prog.get("max_payout") or 0.0)
+        # FIX 2026-09-11 (audit evidencia): Intigriti/YesWeHack publican
+        # max_bounty/min_bounty (objeto {value,currency} o número), NO
+        # max_payout. Leer ambas formas o ~190 programas con payout real
+        # entran como $0. H1 no trae max en el dataset (solo offers_bounties).
+        max_payout, max_currency = _parse_money(prog.get("max_payout"), prog.get("max_bounty"))
+        min_payout, min_currency = _parse_money(prog.get("min_payout"), prog.get("min_bounty"))
         offers_bounties = bool(prog.get("offers_bounties") or prog.get("offersBounties"))
         submission = str(prog.get("submission_state") or "open")
         if max_payout <= 0 and not offers_bounties:
             # Honest signal: a program that publishes no reward is still open,
             # but treat payout as unknown (0) so the strict bank filters it.
             max_payout = 0.0
+
+        currency = (max_currency or min_currency or "USD").upper()
+        payout_note = ""
+        if max_payout > 0 or min_payout > 0:
+            parts = []
+            if max_payout > 0:
+                parts.append(f"max {max_currency or 'USD'} {max_payout:,.0f}")
+            if min_payout > 0:
+                parts.append(f"piso {min_currency or max_currency or 'USD'} {min_payout:,.0f}")
+            payout_note = " [" + " · ".join(parts) + "]"
 
         targets = prog.get("targets") or {}
         in_scope = targets.get("in_scope") or []
@@ -169,11 +217,13 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
             platform=platform,
             category=category,
             url=url,
-            description=f"Open bug bounty program. Scope: {scope_desc}".strip()
-            or f"Open bug bounty program on {source}.",
+            description=(
+                f"Open bug bounty program. Scope: {scope_desc}{payout_note}".strip()
+                or f"Open bug bounty program on {source}.{payout_note}"
+            ),
             remote=True,
             payment=max_payout,
-            currency="USD",
+            currency=currency,
             payment_method=PaymentMethod.PLATFORM_CREDIT,
             international_payment=True,
             difficulty=DifficultyLevel.BEGINNER if easy else DifficultyLevel.INTERMEDIATE,

@@ -23,10 +23,9 @@ import logging
 import time
 from typing import Any
 
-from core.validation.adapters import HTTPAdapter
-from core.validation.confidence import ConfidenceEngine
-from core.validation.economic_scorer import EconomicScorer
-from core.validation.models import (
+from cores.validation.adapters import HTTPAdapter
+from cores.validation.economic_scorer import EconomicScorer
+from cores.validation.models import (
     AttackCandidate,
     ConfidenceScore,
     EconomicScore,
@@ -36,8 +35,8 @@ from core.validation.models import (
     ValidationPlan,
     ValidationResult,
 )
-from core.validation.planner import ValidationPlanner
-from core.validation.promoter import ValidationPromoter
+from cores.validation.planner import ValidationPlanner
+from cores.validation.promoter import ValidationPromoter
 
 logger = logging.getLogger("orion.core.validation.engine")
 
@@ -57,7 +56,6 @@ class ValidationEngine:
         self._scorer = EconomicScorer()
         self._planner = ValidationPlanner()
         self._adapter: HTTPAdapter | None = None
-        self._confidence = ConfidenceEngine()
         self._promoter = ValidationPromoter()
         self._probe_engine = probe_engine
 
@@ -114,7 +112,12 @@ class ValidationEngine:
         result = self._execute_plan(candidate, plan)
 
         # 4. Calcular confianza
-        confidence = self._confidence.evaluate(result)
+        #
+        # Antes: `self._confidence.evaluate(result)` (mismo alias muerto que en
+        # el promoter) ⇒ TypeError en cada run(), antes incluso de promover.
+        # Se usa la misma derivación que el promoter: el log debe reportar el
+        # número que de verdad decidió la promoción.
+        confidence = ConfidenceScore.from_validation_result(result)
 
         # 5. Promover a Finding
         decision = self._promoter.promote(candidate, result, session=session)

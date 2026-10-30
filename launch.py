@@ -97,7 +97,7 @@ def _check_env_file() -> bool:
 
 def mode_setup() -> int:
     """Run setup wizard."""
-    from core.setup_wizard import run_setup_wizard
+    from cores.setup_wizard import run_setup_wizard
 
     run_setup_wizard()
     return 0

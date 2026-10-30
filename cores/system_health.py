@@ -62,7 +62,6 @@ def collect_health() -> SystemHealthSummary:
     session = SessionLocal()
     try:
         from cores.intelligence.adaptive_memory import get_memory
-        from cores.observability import get_metrics
         from database.models import Endpoint, Evidence, Finding, ScanRun, Target, Verdict
 
         summary = SystemHealthSummary()
@@ -114,15 +113,24 @@ def collect_health() -> SystemHealthSummary:
         if conf_count:
             summary.avg_verdict_confidence = round(conf_sum / conf_count, 4)
 
-        # Pipeline timing from observability
-        obs_metrics = get_metrics()
-        for metric_name, stats in obs_metrics.items():
-            if ("pipeline" in metric_name or "score" in metric_name) and stats[
-                "count"
-            ] > summary.pipeline_latency_count:
-                summary.pipeline_latency_count = stats["count"]
-                summary.pipeline_latency_avg_ms = stats["avg_ms"]
-                summary.pipeline_latency_max_ms = stats["max_ms"]
+        # Pipeline timing from observability.
+        # Best-effort by design: self-diagnostics must NEVER 500 because an
+        # optional signal is missing. It previously did (unguarded import of a
+        # symbol shadowed by the cores/observability package -> 500 on
+        # GET /api/system/status).
+        try:
+            from cores.observability import get_metrics
+
+            obs_metrics = get_metrics()
+            for metric_name, stats in obs_metrics.items():
+                if ("pipeline" in metric_name or "score" in metric_name or "platform" in metric_name) and stats[
+                    "count"
+                ] > summary.pipeline_latency_count:
+                    summary.pipeline_latency_count = stats["count"]
+                    summary.pipeline_latency_avg_ms = stats["avg_ms"]
+                    summary.pipeline_latency_max_ms = stats["max_ms"]
+        except Exception as exc:
+            LOG.warning("Failed to collect observability metrics: %s", exc)
 
         # Intelligence state
         try:

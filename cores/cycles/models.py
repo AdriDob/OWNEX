@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -28,6 +28,19 @@ class CycleCategory(StrEnum):
     PULSE = "pulse"
     VAULT = "vault"
     ATLAS = "atlas"
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    """Tolera dict (columna JSON) y str (filas escritas antes del cambio a JSON)."""
+    if isinstance(value, dict):
+        return value
+    if not value:
+        return {}
+    try:
+        loaded = json.loads(value)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}
 
 
 class TaskStatus(StrEnum):
@@ -56,7 +69,7 @@ DEFAULT_CYCLES = [
         "name": "Security",
         "slug": "security",
         "description": "Bug bounty, vulnerability research, Rastro pipeline",
-        "category": "offensive",
+        "category": CycleCategory.SECURITY.value,
         "status": "idle",
         "enabled": True,
         "priority": 10,
@@ -69,7 +82,7 @@ DEFAULT_CYCLES = [
         "name": "Forge",
         "slug": "forge",
         "description": "Dev bounties, OSS contributions, code review rewards",
-        "category": "development",
+        "category": CycleCategory.FORGE.value,
         "status": "idle",
         "enabled": True,
         "priority": 8,
@@ -82,7 +95,7 @@ DEFAULT_CYCLES = [
         "name": "Pulse",
         "slug": "pulse",
         "description": "AI training, data annotation, microtask platforms",
-        "category": "ai_work",
+        "category": CycleCategory.PULSE.value,
         "status": "idle",
         "enabled": True,
         "priority": 6,
@@ -95,7 +108,7 @@ DEFAULT_CYCLES = [
         "name": "Vault",
         "slug": "vault",
         "description": "Portfolio management, crypto, DeFi, arbitrage, financial analysis",
-        "category": "finance",
+        "category": CycleCategory.VAULT.value,
         "status": "idle",
         "enabled": True,
         "priority": 7,
@@ -108,7 +121,7 @@ DEFAULT_CYCLES = [
         "name": "Atlas",
         "slug": "atlas",
         "description": "Research, OSINT, trend analysis, CVE tracking, market intelligence",
-        "category": "intelligence",
+        "category": CycleCategory.ATLAS.value,
         "status": "idle",
         "enabled": True,
         "priority": 5,
@@ -133,7 +146,7 @@ class Cycle(Base):
     status = Column(String(16), nullable=False, default=CycleStatus.INACTIVE.value, index=True)
     enabled = Column(Boolean, nullable=False, default=True)
     priority = Column(Integer, nullable=False, default=0)
-    config = Column(Text, default="{}")  # JSON config for cycle-specific settings
+    config = Column(JSON, default=dict)  # cycle-specific settings
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -150,7 +163,7 @@ class Cycle(Base):
             "status": self.status,
             "enabled": self.enabled,
             "priority": self.priority,
-            "config": json.loads(self.config or "{}"),
+            "config": _as_dict(self.config),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -158,7 +171,7 @@ class Cycle(Base):
     @property
     def config_dict(self) -> dict[str, Any]:
         try:
-            return json.loads(self.config or "{}")
+            return _as_dict(self.config)
         except (json.JSONDecodeError, TypeError):
             return {}
 
@@ -186,8 +199,8 @@ class Task(Base):
     actual_reward = Column(Float, nullable=True)
     target_id = Column(Integer, nullable=True)  # Reference to external target/finding/etc.
     target_type = Column(String(32), nullable=True)  # 'finding', 'opportunity', 'target', etc.
-    config = Column(Text, default="{}")  # JSON config for task-specific settings
-    result = Column(Text, default="{}")  # JSON result data
+    config = Column(JSON, default=dict)  # task-specific settings
+    result = Column(JSON, default=dict)  # result data
     error_message = Column(Text, nullable=True)
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
@@ -212,8 +225,8 @@ class Task(Base):
             "actual_reward": self.actual_reward,
             "target_id": self.target_id,
             "target_type": self.target_type,
-            "config": json.loads(self.config or "{}"),
-            "result": json.loads(self.result or "{}"),
+            "config": _as_dict(self.config),
+            "result": _as_dict(self.result),
             "error_message": self.error_message,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,

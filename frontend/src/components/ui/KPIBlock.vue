@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { Activity, DollarSign, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { cn } from '@/lib/utils'
-import { DollarSign, TrendingUp, Activity } from '@lucide/vue'
 
 interface Props {
   label: string
@@ -24,7 +24,9 @@ const displayValue = ref(0)
 const targetValue = ref(0)
 
 const iconMap: Record<string, any> = {
-  DollarSign, TrendingUp, Activity,
+  DollarSign,
+  TrendingUp,
+  Activity,
 }
 
 const colorMap: Record<string, string> = {
@@ -55,7 +57,7 @@ function animateValue(start: number, end: number, duration = 600) {
   function tick(now: number) {
     const elapsed = now - startTime
     const progress = Math.min(elapsed / duration, 1)
-    const eased = 1 - Math.pow(1 - progress, 3)
+    const eased = 1 - (1 - progress) ** 3
     displayValue.value = start + (end - start) * eased
     if (progress < 1) requestAnimationFrame(tick)
   }
@@ -67,13 +69,21 @@ function parseValue(val: string | number): number {
   return parseFloat(String(val).replace(/[^0-9.-]/g, '')) || 0
 }
 
-watch(() => props.value, (val) => {
-  targetValue.value = parseValue(val)
-}, { immediate: true })
+watch(
+  () => props.value,
+  (val) => {
+    targetValue.value = parseValue(val)
+  },
+  { immediate: true },
+)
 
-watch(targetValue, (end) => {
-  animateValue(displayValue.value || 0, end)
-}, { immediate: false })
+watch(
+  targetValue,
+  (end) => {
+    animateValue(displayValue.value || 0, end)
+  },
+  { immediate: false },
+)
 
 onMounted(() => {
   targetValue.value = parseValue(props.value)

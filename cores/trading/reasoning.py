@@ -14,7 +14,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from core.trading.store import TradingStore
+from cores.trading.store import TradingStore
 
 logger = logging.getLogger("catseye.trading.reasoning")
 
@@ -74,7 +74,7 @@ class DecisionCorrelator:
     def correlate(self, entries: list[dict[str, Any]] | None = None, limit: int = 500) -> list[StrategyDNA]:
         if entries is None:
             try:
-                from core.decision_journal.journal import get_decisions
+                from cores.decision_journal.journal import get_decisions
 
                 entries = get_decisions(app_id="trading", limit=limit)
             except Exception:
@@ -221,7 +221,7 @@ class AutoParamOptimizer:
     @staticmethod
     def _log_decision(proposal: ParamAdjustment, applied: bool) -> None:
         try:
-            from core.decision_journal.journal import log_decision
+            from cores.decision_journal.journal import log_decision
 
             log_decision(
                 app_id="trading",

@@ -52,12 +52,13 @@ class TestWorkBank:
 
     def test_needs_access_is_flagged_for_manual_platforms(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")
-        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.FREELANCER)], target=10)
+        # workana purged (2026-09): outlier is the manual-setup platform now.
+        bank.daily_cycle([make_opp(id="op-f", platform=WorkPlatform.OUTLIER)], target=10)
         item = bank.get_item("op-f")
         assert item is not None
         assert item.status == "needs_access"
         assert item.ready_to_deliver is False
-        assert "perfil" in item.access_requirement.lower()
+        assert "cuenta" in item.access_requirement.lower()
         assert bank.needs_access()
 
     def test_zero_barrier_filter_excludes_gated(self, tmp_path) -> None:
@@ -93,6 +94,8 @@ class TestWorkBank:
             skills={"python"},
             platform_success_rates={"opire": 0.2},
             category_success_rates={OpportunityCategory.DEV_BOUNTY: 0.2},
+            applications_submitted=5,
+            applications_accepted=1,
         )
         summary = bank.daily_cycle([low], target=10, profile=profile, success_floor=0.4)
         assert summary["success_floor_rejected"] == 1
@@ -110,6 +113,22 @@ class TestWorkBank:
         summary = bank.daily_cycle([low], target=10)
         assert summary["success_floor_rejected"] == 0
         assert bank.get_item("op-lp") is not None
+
+    def test_success_floor_is_noop_without_history(self, tmp_path) -> None:
+        """MONEY VALIDATION cold start: profile without submitted outcomes ->
+        floor is a no-op (no data to measure, otherwise day-1 bank is empty)."""
+        bank = WorkBank(tmp_path / "workbank.json")
+        low = make_opp(
+            id="op-cold",
+            payment=3000.0,
+            experience_required=ExperienceLevel.SENIOR,
+            portfolio_required=True,
+            interview_required=True,
+        )
+        profile = UserProfile(name="Cold", skills={"python"})
+        assert (profile.applications_submitted or 0) == 0
+        summary = bank.daily_cycle([low], target=10, profile=profile, success_floor=0.4)
+        assert summary["success_floor_rejected"] == 0
 
     def test_best_ready_orders_by_reward(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")
@@ -134,6 +153,46 @@ class TestWorkBank:
         assert item is not None
         assert item.status == "delivered"
         assert item.ready_to_deliver is False
+
+    def test_fixture_urls_flagged_for_revalidation(self, tmp_path) -> None:
+        from cores.direct_work_engine.workbank import fixture_item_ids, is_fixture_url
+
+        assert is_fixture_url("https://hackerone.com/program/1") is True
+        assert is_fixture_url("https://www.workana.com/p/1") is True
+        assert is_fixture_url("https://opire.com/op/1") is True
+        assert is_fixture_url("https://algora.io/org/repo/issues/123") is False
+        assert is_fixture_url("https://github.com/o/r/issues/42") is False
+        assert is_fixture_url("") is False
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp()], target=10)
+        item = bank.get_item("op-1")
+        assert item is not None
+        item.url = "https://hackerone.com/program/1"
+        assert fixture_item_ids(bank._items) == ["op-1"]
+        summary = bank._summary()
+        assert summary["fixture_urls"] == 1
+        assert summary["needs_revalidation"] == ["op-1"]
+
+    def test_fixtures_excluidos_del_ranking(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp(id="op-real", payment=200.0)], target=10)
+        real_item = bank.get_item("op-real")
+        assert real_item is not None
+        # URL real conserva ranking
+        assert bank.best_ready(limit=10)[0].id == "op-real"
+        # Fixture contamina pero no rankea
+        real_item.url = "https://hackerone.com/program/1"
+        assert bank.best_ready(limit=10) == []
+        assert bank.progress()["daily"]["achieved"] == 0
+
+    def test_purge_fixtures(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp()], target=10)
+        assert bank.get_item("op-1") is not None
+        bank.get_item("op-1").url = "https://opire.com/op/1"
+        purged = bank.purge_fixtures()
+        assert purged == ["op-1"]
+        assert bank.get_item("op-1") is None
 
     def test_daily_cycle_defaults_to_daily_goal(self, tmp_path) -> None:
         from cores.direct_work_engine.workbank import TARGETS
@@ -172,7 +231,7 @@ class TestWorkBank:
 
 class TestSchedulerJob:
     def test_direct_work_job_registered(self) -> None:
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         jobs = get_all_jobs()
         assert "direct_work" in jobs

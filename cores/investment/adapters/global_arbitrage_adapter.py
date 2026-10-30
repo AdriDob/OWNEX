@@ -27,6 +27,9 @@ class GlobalArbitrageAdapter:
         self._spread_sanity_max = self._config.get("spread_sanity_max", 10.0)
         # liquidez mínima (24h quoteVolume) suma de ambas puntas para ser ejecutable
         self._min_quote_volume_usd = self._config.get("min_quote_volume_usd", 500000.0)
+        # Fail-closed: sin allow_live explícito jamás se tocan exchanges reales
+        # (memecoin_adapter usa el mismo contrato).
+        self._allow_live = bool(self._config.get("allow_live", False))
         self._connected = False
 
     @property
@@ -130,6 +133,8 @@ class GlobalArbitrageAdapter:
 
     async def execute_trade(self, opportunity: dict[str, Any]) -> dict[str, Any]:
         """Execute an arbitrage trade pair (buy low on one exchange, sell high on another)."""
+        if not self._allow_live:
+            raise RuntimeError("allow_live=False: live execution bloqueada por defecto (opt-in explícito)")
         try:
             import ccxt.async_support as ccxt
 
@@ -187,3 +192,8 @@ class GlobalArbitrageAdapter:
             return {"total_usd": total, "details": details}
         except ImportError:
             return {"total_usd": 0, "details": {}}
+
+
+def build_global_arbitrage_adapter(config: dict[str, Any] | None = None) -> GlobalArbitrageAdapter:
+    """Factory function to create Global Arbitrage adapter."""
+    return GlobalArbitrageAdapter(config)

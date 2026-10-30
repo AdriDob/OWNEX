@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from threading import RLock
 from typing import Any
@@ -28,7 +28,7 @@ class ReputationEvent:
     event_type: ReputationEventType
     delta: float
     metadata: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     related_entity_id: str | None = None
 
 
@@ -39,7 +39,7 @@ class ReputationSnapshot:
     percentile: float
     tier: str
     components: dict[str, float]
-    calculated_at: datetime = field(default_factory=datetime.utcnow)
+    calculated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class ReputationEngine:
@@ -96,7 +96,7 @@ class ReputationEngine:
             return new_score
 
     def apply_decay(self, agent_id: str, now: datetime | None = None) -> float:
-        now = now or datetime.utcnow()
+        now = now or datetime.now(UTC)
         with self._lock:
             events = self._events.get(agent_id, [])
             if not events:
@@ -138,7 +138,7 @@ class ReputationEngine:
         with self._lock:
             score = self.get_score(agent_id)
             events = self._events.get(agent_id, [])
-            recent = [e for e in events if (datetime.utcnow() - e.timestamp).days <= 30]
+            recent = [e for e in events if (datetime.now(UTC) - e.timestamp).days <= 30]
             completed = len([e for e in recent if e.event_type == ReputationEventType.JOB_COMPLETED])
             failed = len([e for e in recent if e.event_type == ReputationEventType.JOB_FAILED])
             disputes_won = len([e for e in recent if e.event_type == ReputationEventType.DISPUTE_WON])

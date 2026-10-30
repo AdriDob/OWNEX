@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  Banknote,
+  Bitcoin,
+  Cable,
+  CheckCircle2,
+  ExternalLink,
+  Globe,
+  Link2,
+  Loader2,
+  RefreshCw,
+  RotateCw,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import {
-  AlertTriangle, Banknote, Bitcoin, Cable, CheckCircle2,
-  ExternalLink, Globe, Link2, Loader2, RefreshCw, RotateCw,
-} from '@lucide/vue'
+import { api } from '@/lib/api'
 
 interface AccountEntry {
   id: string
@@ -41,8 +50,8 @@ const error = ref('')
 const syncing = ref<string | null>(null)
 
 const accounts = computed(() => data.value?.accounts || [])
-const platforms = computed(() => accounts.value.filter(a => a.type === 'platform'))
-const wallets = computed(() => accounts.value.filter(a => a.type === 'crypto'))
+const platforms = computed(() => accounts.value.filter((a) => a.type === 'platform'))
+const wallets = computed(() => accounts.value.filter((a) => a.type === 'crypto'))
 
 function isConnected(entry: AccountEntry): boolean {
   if (entry.type === 'platform') return entry.connected === true
@@ -121,7 +130,7 @@ onMounted(fetchHub)
 </script>
 
 <template>
-  <div class="space-y-6 animate-in">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6 animate-in">
     <div class="flex items-center justify-between">
       <div class="space-y-1">
         <div class="flex items-center gap-2">

@@ -4,9 +4,9 @@ import logging
 import uuid
 from typing import Any
 
-from core.revenue_multiplier.config import RevenueMultiplierConfig
-from core.revenue_multiplier.models import Finding
-from core.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
+from cores.revenue_multiplier.config import RevenueMultiplierConfig
+from cores.revenue_multiplier.models import Finding
+from cores.revenue_multiplier.tool_registry import ToolRegistry, get_tool_registry
 
 logger = logging.getLogger("orion.revenue.bugbounty")
 
@@ -129,16 +129,37 @@ class BugBountyHunter:
                     logger.warning("  %s failed: %s", tool_name, e)
 
     def _stage_secrets(self, domain: str) -> None:
-        logger.info("Stage 7/7: Secret scanning — %s", domain)
+        """Stage 7/7: Secret scanning.
+
+        Gitleaks escanea **repos y paths locales**, no dominios. Antes se
+        armaba `https://github.com/{domain}` (ej.
+        `https://github.com/docs.hackerone.com`), que no es un repo: el clone
+        fallaba y el stage reportaba "0 secretos" cuando en realidad no se
+        escaneó nada.
+
+        Ahora sólo corre si `secret_scan_repos` trae repos reales para este
+        dominio (config explícita). Sin repo, el stage se salta con un log
+        honesto en vez de fingir un escaneo.
+        """
+        repos = self._config.secret_scan_repos or {}
+        targets = repos.get(domain) or []
+        if not targets:
+            logger.info("Stage 7/7: Secret scanning — sin repo configurado para %s (stage omitido)", domain)
+            return
+
         adapter = self._get_adapter("gitleaks")
-        if adapter:
+        if not adapter:
+            return
+        for repo_url in targets:
             try:
-                results = adapter.run(domain, repo_path=f"https://github.com/{domain}")
+                results = adapter.run(repo_url)
                 if results:
                     self._findings.extend(results)
-                    logger.warning("  gitleaks: %d secrets found!", len(results))
+                    logger.warning("  gitleaks: %d secretos en %s", len(results), repo_url)
+                else:
+                    logger.info("  gitleaks: 0 secretos en %s", repo_url)
             except Exception as e:
-                logger.warning("  gitleaks failed: %s", e)
+                logger.warning("  gitleaks falló en %s: %s", repo_url, e)
 
     def _deduplicate(self) -> None:
         seen: set[str] = set()
@@ -152,39 +173,39 @@ class BugBountyHunter:
 
     def _get_adapter(self, name: str) -> Any:
         if name == "nuclei":
-            from core.revenue_multiplier.adapters.base import NucleiAdapter
+            from cores.revenue_multiplier.adapters.base import NucleiAdapter
 
             return NucleiAdapter(binary=self._config.nuclei_binary)
         if name == "katana":
-            from core.revenue_multiplier.adapters.base import KatanaAdapter
+            from cores.revenue_multiplier.adapters.base import KatanaAdapter
 
             return KatanaAdapter(binary=self._config.katana_binary)
         if name == "ffuf":
-            from core.revenue_multiplier.adapters.base import FfufAdapter
+            from cores.revenue_multiplier.adapters.base import FfufAdapter
 
             return FfufAdapter(binary=self._config.ffuf_binary)
         if name == "subfinder":
-            from core.revenue_multiplier.adapters.base import SubfinderAdapter
+            from cores.revenue_multiplier.adapters.base import SubfinderAdapter
 
             return SubfinderAdapter(binary=self._config.subfinder_binary)
         if name == "assetfinder":
-            from core.revenue_multiplier.adapters.base import SubfinderAdapter
+            from cores.revenue_multiplier.adapters.base import SubfinderAdapter
 
             return SubfinderAdapter(binary="assetfinder")
         if name == "gau":
-            from core.revenue_multiplier.adapters.base import GauAdapter
+            from cores.revenue_multiplier.adapters.base import GauAdapter
 
             return GauAdapter()
         if name == "sqlmap":
-            from core.revenue_multiplier.adapters.base import SqlmapAdapter
+            from cores.revenue_multiplier.adapters.base import SqlmapAdapter
 
             return SqlmapAdapter()
         if name == "xsstrike":
-            from core.revenue_multiplier.adapters.base import XSStrikeAdapter
+            from cores.revenue_multiplier.adapters.base import XSStrikeAdapter
 
             return XSStrikeAdapter()
         if name == "gitleaks":
-            from core.revenue_multiplier.adapters.base import GitleaksAdapter
+            from cores.revenue_multiplier.adapters.base import GitleaksAdapter
 
             return GitleaksAdapter()
         return None

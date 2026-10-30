@@ -44,7 +44,7 @@ def _opp(**overrides) -> Opportunity:
         "title": "Fix login rate-limit bypass",
         "platform": "opire",
         "category": "dev_bounty",
-        "specialization": "backend",
+        "specialization": "game_backend",
         "remote": True,
         "payment": 120.0,
         "currency": "USD",
@@ -187,7 +187,7 @@ class TestIncomeChainE2E:
         assert metrics_after.total_amount >= metrics_after.completed_amount
 
     def test_exec_state_to_stage_bridge_is_lossless_forward(self) -> None:
-        from core.execution_queue import ExecState
+        from cores.execution_queue import ExecState
         from cores.revenue_tracker.revenue_tracker import stage_from_exec_state
 
         # Dinero solo existe en PAID; bloqueo/fallo/dead-letter son REJECTED ($0).
@@ -203,7 +203,7 @@ class TestIncomeChainE2E:
         assert stage_from_exec_state("estado-fantasma").value == "discovered"
 
     def test_paid_only_via_verification_transition(self) -> None:
-        from core.execution_queue import ExecState, ExecutionQueueStore, assert_transition
+        from cores.execution_queue import ExecState, ExecutionQueueStore, assert_transition
 
         with pytest.raises(ValueError):
             assert_transition(ExecState.SUBMITTED, ExecState.PAID)

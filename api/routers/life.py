@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/life", tags=["life"])
 async def get_tasks(status: str = "", category: str = "", priority: str = "") -> dict[str, Any]:
     """Get tasks with optional filters."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         tasks = assistant.get_tasks(status=status, category=category, priority=priority)
@@ -32,7 +32,7 @@ async def get_tasks(status: str = "", category: str = "", priority: str = "") ->
 async def get_today_tasks() -> dict[str, Any]:
     """Get today's tasks."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         tasks = assistant.get_today_tasks()
@@ -45,7 +45,7 @@ async def get_today_tasks() -> dict[str, Any]:
 async def add_task(task: dict[str, Any]) -> dict[str, Any]:
     """Add a new task."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_task = assistant.add_task(**task)
@@ -58,7 +58,7 @@ async def add_task(task: dict[str, Any]) -> dict[str, Any]:
 async def complete_task(task_id: str) -> dict[str, Any]:
     """Complete a task."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         task = assistant.complete_task(task_id)
@@ -75,7 +75,7 @@ async def complete_task(task_id: str) -> dict[str, Any]:
 async def delete_task(task_id: str) -> dict[str, Any]:
     """Delete a task."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         deleted = assistant.delete_task(task_id)
@@ -91,7 +91,7 @@ async def delete_task(task_id: str) -> dict[str, Any]:
 async def get_goals(status: str = "") -> dict[str, Any]:
     """Get goals with optional status filter."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         goals = assistant.get_goals(status=status)
@@ -104,7 +104,7 @@ async def get_goals(status: str = "") -> dict[str, Any]:
 async def add_goal(goal: dict[str, Any]) -> dict[str, Any]:
     """Add a new goal."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_goal = assistant.add_goal(**goal)
@@ -117,7 +117,7 @@ async def add_goal(goal: dict[str, Any]) -> dict[str, Any]:
 async def update_goal_progress(goal_id: str, value: float) -> dict[str, Any]:
     """Update goal progress."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         goal = assistant.update_goal_progress(goal_id, value)
@@ -137,7 +137,7 @@ async def update_goal_progress(goal_id: str, value: float) -> dict[str, Any]:
 async def get_habits() -> dict[str, Any]:
     """Get all habits."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         habits = assistant.get_habits()
@@ -150,7 +150,7 @@ async def get_habits() -> dict[str, Any]:
 async def get_today_habits() -> dict[str, Any]:
     """Get today's habits with completion status."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         habits = assistant.get_today_habits()
@@ -163,7 +163,7 @@ async def get_today_habits() -> dict[str, Any]:
 async def add_habit(habit: dict[str, Any]) -> dict[str, Any]:
     """Add a new habit."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_habit = assistant.add_habit(**habit)
@@ -176,7 +176,7 @@ async def add_habit(habit: dict[str, Any]) -> dict[str, Any]:
 async def complete_habit(habit_id: str, date: str = "") -> dict[str, Any]:
     """Mark a habit as completed."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         habit = assistant.complete_habit(habit_id, date)
@@ -196,7 +196,7 @@ async def complete_habit(habit_id: str, date: str = "") -> dict[str, Any]:
 async def get_health(days: int = 7) -> dict[str, Any]:
     """Get health entries for the last N days."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         entries = assistant.get_health(days)
@@ -209,7 +209,7 @@ async def get_health(days: int = 7) -> dict[str, Any]:
 async def log_health(entry: dict[str, Any]) -> dict[str, Any]:
     """Log health data for today."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_entry = assistant.log_health(**entry)
@@ -225,7 +225,7 @@ async def log_health(entry: dict[str, Any]) -> dict[str, Any]:
 async def get_learning(topic: str = "") -> dict[str, Any]:
     """Get learning entries."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         entries = assistant.get_learning(topic=topic)
@@ -238,7 +238,7 @@ async def get_learning(topic: str = "") -> dict[str, Any]:
 async def add_learning(entry: dict[str, Any]) -> dict[str, Any]:
     """Add a learning entry."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_entry = assistant.add_learning(**entry)
@@ -254,7 +254,7 @@ async def add_learning(entry: dict[str, Any]) -> dict[str, Any]:
 async def get_notes(category: str = "") -> dict[str, Any]:
     """Get personal notes."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         notes = assistant.get_notes(category=category)
@@ -267,7 +267,7 @@ async def get_notes(category: str = "") -> dict[str, Any]:
 async def add_note(note: dict[str, Any]) -> dict[str, Any]:
     """Add a personal note."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         new_note = assistant.add_note(**note)
@@ -283,7 +283,7 @@ async def add_note(note: dict[str, Any]) -> dict[str, Any]:
 async def get_daily_summary() -> dict[str, Any]:
     """Get comprehensive daily summary."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         return assistant.get_daily_summary()
@@ -298,7 +298,7 @@ async def get_daily_summary() -> dict[str, Any]:
 async def get_weekly_plan() -> dict[str, Any]:
     """Get the weekly plan."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         return assistant.get_weekly_plan()
@@ -313,7 +313,7 @@ async def get_weekly_plan() -> dict[str, Any]:
 async def ask_assistant(request: dict[str, Any]) -> dict[str, Any]:
     """Ask the AI assistant a question."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         response = await assistant.ask(

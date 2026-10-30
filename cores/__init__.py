@@ -7,3 +7,23 @@ Sub-packages:
   intelligence/ — Unification layer (dependency graph, events, cache, anti-drift)
   ... (existing engines remain unchanged)
 """
+
+from __future__ import annotations
+
+from pathlib import Path
+
+# Public constants — consolidated from the former core/__init__.py during
+# CORE-CORES consolidation (see .ai/DECISIONS.md). The legacy `core/` tree was
+# removed; `cores/` is the single canonical tree: `from cores import OWNEX_DIR`.
+__version__ = "7.7.7"
+
+OWNEX_DIR = Path.home() / ".ownex"
+
+# Workspace Registry exports
+from cores.workspaces.registry import (
+    WorkspaceRegistry,
+    WorkspaceContext,
+    WorkspaceType,
+    AutomationPolicy,
+    get_workspace_registry,
+)

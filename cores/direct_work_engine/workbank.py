@@ -14,9 +14,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
+from hashlib import sha1 as _sha1
 from pathlib import Path
+from typing import Any
 
 from cores.direct_work_engine.filters import StrictFilter
 from cores.direct_work_engine.models import (
@@ -33,6 +36,25 @@ from cores.direct_work_engine.recommendation import (
 from cores.direct_work_engine.scoring import ZeroBarrierScorer
 
 logger = logging.getLogger("ownex.direct_work_engine.workbank")
+
+#: Caracteres que rompen un path param en FastAPI/Starlette: `/` crea rutas
+#: nuevas y `#` trunca el fragmento ANTES de que el router matchee, así que
+#: ni siquiera `encodeURIComponent` los salva (medido: `a/b`, `a%2Fb` y
+#: `a%23b` dan 404 los tres).
+_UNSAFE_ID_CHARS = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _path_safe_id(raw: str) -> str:
+    """ID de WorkItem que se puede usar como path param.
+
+    Los IDs de oportunidad vienen de URLs (`github_bounty_github_owner/repo#7`)
+    y **los 11 items del banco eran inalcanzables por API**: el Work Room no
+    cargaba para ningún trabajo real. Se sanea conservando legibilidad y
+    unicidad: los separadores se vuelven `_`, y si el saneo colisiona con otro
+    id se agrega un hash corto del original para no perder items.
+    """
+    cleaned = _UNSAFE_ID_CHARS.sub("_", (raw or "").strip()).strip("_")
+    return cleaned or _sha1((raw or "").encode("utf-8")).hexdigest()[:16]
 
 
 def _build_learned_profile(profile: UserProfile) -> UserProfile:
@@ -72,24 +94,68 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "opire": ("public", ""),
     "issuehunt": ("public", ""),
     "algora": ("public", ""),
+    "bountyboard": ("public", ""),
+    "polar": ("public", ""),
+    "gitpay": ("public", ""),
+    "kaggle": ("public", ""),
+    "dework": ("public", ""),
+    "github": ("public", ""),
+    "github_bounty": ("public", ""),
     "hackerone": ("needs_api_key", "Configurar HACKERONE_API_KEY en opportunity.env para envío y sync de earnings."),
     "bugcrowd": ("needs_api_key", "Configurar BUGGROWD_API_KEY en opportunity.env para envío y sync de earnings."),
     "intigriti": ("needs_api_key", "Configurar INTIGRITI_API_KEY en opportunity.env para envío y sync de earnings."),
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
     "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
+    "hackenproof": (
+        "needs_api_key",
+        "Configurar HACKENPROOF_API_KEY en opportunity.env para envío y sync de earnings.",
+    ),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
-    "freelancer": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Freelancer."),
+    # workana removed (purge 2026-09): unknown platforms fall through to the
+    # generic needs_manual_setup message; the hard-exclude in
+    # cores/freelance/channel_status.py keeps them out of recommendations.
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
-    "upwork": ("needs_manual_setup", "Crear perfil y conectar método de pago en Upwork."),
+    # AI-eval platforms: the role is applied to individually (no public API),
+    # and entry is assessment-gated. Same class as Outlier/Mindrift — never
+    # "public", which would mark them autonomously deliverable.
+    "mercor": (
+        "needs_manual_setup",
+        "Crear cuenta en Mercor y completar el assessment inicial; se aplica por rol.",
+    ),
+    "turing": (
+        "needs_manual_setup",
+        "Crear cuenta en Turing y pasar el assessment; se aplica por proyecto.",
+    ),
+    "stellar": ("needs_manual_setup", "Crear cuenta y completar el onboarding en joinstellar.ai."),
+    "superteam": ("needs_manual_setup", "Aplicar a Superteam y esperar aprobación en superteam.fun."),
+    "gitcoin": ("needs_manual_setup", "Crear proyecto en Gitcoin Grants Stack y aplicar a ronda."),
+    "huntr": ("needs_manual_setup", "Crear cuenta en huntr.dev para reportar vuln en OSS."),
 }
 
-# Bug bounty platforms require only free registration (open programs). The
-# platform handles program discovery and submission publicly. These are
-# considered "public" access in the work bank.
-# (overrides for platforms whose access_status differs from PLATFORM_ACCESS above)
-_BUG_BOUNTY_PLATFORMS = {"hackerone", "bugcrowd", "intigriti", "yeswehack"}
-_PLATFORM_ACCESS_OVERRIDE: dict[str, tuple[str, str]] = {p: ("public", "") for p in _BUG_BOUNTY_PLATFORMS}
+# Bug bounty platforms publish *programs* with a max bounty, not deliverable
+# tasks. A program is not something you "deliver": you pick a vulnerability
+# inside it and report that. Keeping them in the deliverable bank made the bank
+# claim a $3M published max as ready-to-deliver work (and the resulting
+# `pendiente_usd` was ~99.99% program maxes, not deliverable income), while
+# the genuinely executable items were cut by the payment sort below.
+#
+# They remain fully available in the opportunity/radar layer — only the
+# deliverable bank excludes them. Actual bug bounty work enters through the
+# finding→promotion path, not through program discovery.
+_BUG_BOUNTY_PLATFORMS = {
+    "hackerone",
+    "bugcrowd",
+    "intigriti",
+    "yeswehack",
+    "imunefi",
+    "hackenproof",
+    "huntr",
+}
+
+#: `https://github.com/<owner>/<repo>/issues/<n>` → owner/repo. Used to group
+#: items by the repository that would actually pay the bounty.
+_GITHUB_ISSUE_RE = re.compile(r"^https?://github\.com/([^/]+)/([^/]+)/issues/\d+")
 
 # Single source of truth for discovery tiering: how autonomous a source is.
 # tier 1 = public, fully autonomous   → scan several times a day
@@ -104,6 +170,94 @@ PLATFORM_TIER: dict[str, int] = {
 TIER_CADENCE_HOURS: dict[int, int] = {1: 6, 2: 24, 3: 72}
 
 
+def _is_programmable_dev_work(opp: Any) -> bool:
+    """¿Es esto trabajo de desarrollo programable (es decir, un PR)?
+
+    Filtro agregado 2026-09-30. El banco se llenaba con trabajo que NO es
+    código: research, QA manual de un producto, carga de datos y artículos de
+    blog. Eso no se entrega con un pull request, y al mezclarse con código
+    real tapó el pipeline programable real bajo cifras infladas (un bounty de
+    $3.000 de "research" llegó a ser el 34% del total).
+
+    No se filtra por `category` — el radar conserva esas fuentes. Se filtra
+    por el contenido, porque un bounty legítimo que dice "security research" SÍ
+    es trabajo técnico.
+
+    Es un filtro de **exigencia explícita**: entra solo si el texto nombra
+    trabajo programable (implementar, fix, API, feature, test, refactor…).
+    Un título sin señal clara NO entra al banco de entregables, pero tampoco
+    se pierde: queda en el radar con el motivo `not_programmable_dev_work`
+    visible, que es preferible a declarar "ready" algo que quizá no sea
+    código. Ante duda, el filtro se relaja en la revisión humana, no acá.
+    """
+    title = str(getattr(opp, "title", "") or "").lower()
+    body = str(getattr(opp, "description", "") or "").lower()
+    text = f"{title} {body[:400]}"
+
+    # Trabajo explícitamente NO programable (ganan si aparecen).
+    non_dev = (
+        "write a blog",
+        "blog post",
+        "write an article",
+        "technical writing",
+        "content writing",
+        "write a paper",
+        "research proposal",
+        "collect and compare",
+        "add a valuable",
+        "add a newly launched",
+        "report the process",
+        "survey the",
+        "fill out a survey",
+        "translate ",
+    )
+    if any(sig in text for sig in non_dev):
+        return False
+
+    # Trabajo programable explícito (ganan si aparecen).
+    dev = (
+        "implement",
+        "build",
+        "fix",
+        "bug",
+        "feature",
+        "enhance",
+        "improve",
+        "add ",
+        "add support",
+        "add a test",
+        "test coverage",
+        "refactor",
+        "optimize",
+        "performance",
+        "api",
+        "endpoint",
+        "service",
+        "component",
+        " ui",
+        "ux",
+        "page",
+        "screen",
+        "preview",
+        "lock",
+        "support for",
+        "integration",
+        "sdk",
+        "library",
+        "package",
+        " cli",
+        "migration",
+        "security fix",
+        "vulnerability",
+        "algorithm",
+        "deterministic",
+        "n8n",
+        "workflow",
+        "changelog",
+    )
+    return any(sig in text for sig in dev)
+
+
 def platform_tier(access_status: str) -> int:
     """Map a PLATFORM_ACCESS status to its discovery tier."""
     return PLATFORM_TIER.get(access_status, 3)
@@ -112,6 +266,29 @@ def platform_tier(access_status: str) -> int:
 def tier_cadence_hours(tier: int) -> int:
     """How often OWNEX should re-analyze a source of a given tier."""
     return TIER_CADENCE_HOURS.get(tier, 24)
+
+
+# URLs de test que contaminaron el store real (bounty-1/freelance-1/opire-1
+# con /program/1, /p/1, /op/1): placeholders de un dígito, jamás una URL real
+# de bounty (esas llevan /issues/, /pull/, slugs). Puro y testeable.
+def is_fixture_url(url: str) -> bool:
+    """True si la URL es un placeholder de test, no una oportunidad real."""
+    import re
+
+    text = (url or "").strip()
+    if not text:
+        return False
+    lowered = text.lower()
+    for marker in ("example.com", "example.org", "localhost", "127.0.0.1"):
+        if marker in lowered:
+            return True
+    return re.search(r"/(program|p|op)/1(?:[/?#]|$)", text) is not None
+
+
+def fixture_item_ids(items: dict[str, WorkItem] | list[WorkItem]) -> list[str]:
+    """IDs con URL fixture (para revalidar antes del próximo daily_cycle)."""
+    values = items.values() if isinstance(items, dict) else items
+    return sorted([i.id for i in values if is_fixture_url(getattr(i, "url", ""))])
 
 
 # Production targets: how many delivery-ready jobs to accumulate.
@@ -140,16 +317,48 @@ class WorkItem:
     url: str = ""
     payout_method: str = ""
     payout_method_rationale: str = ""
+    # MONEY VALIDATION (2026-09-11): minimal human-time tracking. Timestamps are
+    # automatic (START/DELIVER); human_minutes_actual is the manual correction
+    # (covers PAUSE/RESUME without timesheet bureaucracy). All optional so
+    # legacy workbank.json files keep loading unchanged.
+    started_at: str | None = None
+    delivered_at: str | None = None
+    human_minutes_actual: float | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
 
+    def mark_started(self) -> None:
+        """Stamp work START (idempotent: first stamp wins)."""
+        if self.started_at is None:
+            self.started_at = datetime.now(UTC).isoformat()
+
+    def record_human_minutes(self, minutes: float) -> bool:
+        """Manual correction of real human minutes. Returns False when invalid."""
+        try:
+            value = float(minutes)
+        except (TypeError, ValueError):
+            logger.warning("Invalid human minutes %r for item %s: ignored", minutes, self.id)
+            return False
+        if value < 0:
+            logger.warning("Negative human minutes %.1f for item %s: ignored", value, self.id)
+            return False
+        self.human_minutes_actual = round(value, 1)
+        return True
+
 
 def _default_store_path() -> Path:
     """Data-dir aware default: frozen bundles get OWNEX_DATA_DIR
-    from start_backend.py (%LOCALAPPDATA%/OWNEX); dev keeps repo ./data."""
+    (%LOCALAPPDATA%/OWNEX); dev keeps repo ./data.
+
+    `parents[2]` is the repo root: file is `<repo>/cores/direct_work_engine/
+    workbank.py` → parents[0]=direct_work_engine, [1]=cores, [2]=<repo>.
+    It used to be `parents[3]`, which pointed one level ABOVE the repo and
+    wrote to `~/projects/data/` instead — so dev runs silently used a
+    different store than the real data-dir, and the two drifted apart.
+    """
     base = os.environ.get("OWNEX_DATA_DIR")
-    root = Path(base) if base else Path(__file__).resolve().parents[3] / "data"
+    root = Path(base) if base else Path(__file__).resolve().parents[2] / "data"
     return root / "workbank.json"
 
 
@@ -157,7 +366,7 @@ class WorkBank:
     """Persistent accumulator of prepared, delivery-ready jobs."""
 
     def __init__(self, store_path: str | Path | None = None) -> None:
-        self._store_path = store_path or _default_store_path()
+        self._store_path = Path(store_path) if store_path else _default_store_path()
         self._items: dict[str, WorkItem] = {}
         self._load()
 
@@ -177,11 +386,12 @@ class WorkBank:
         preference filters as the recommender apply (excluded categories and the
         minimum reward floor). Quality over quantity.
 
-        ``success_floor`` (Success Maximizer): when a profile is provided, jobs
-        whose real acceptance probability (derived from the profile's outcome
-        history, never invented) falls below the floor are rejected and reported
-        as ``success_floor_rejected`` — OWNEX only accumulates work it is likely
-        to win. Without a profile the floor is a no-op.
+        ``success_floor`` (Success Maximizer): when a profile WITH measured
+        history is provided, jobs whose real acceptance probability (derived
+        from the profile's outcome history, never invented) falls below the
+        floor are rejected and reported as ``success_floor_rejected`` — OWNEX
+        only accumulates work it is likely to win. Without a profile, or with
+        zero submitted outcomes yet, the floor is a no-op (no data to measure).
         """
         scorer = ZeroBarrierScorer()
         strict_filter = StrictFilter()
@@ -198,7 +408,12 @@ class WorkBank:
         rejected: dict[str, list[str]] = {}
         floor_rejected: dict[str, list[str]] = {}
         scanned_total = len(opportunities)
-        if profile is not None and success_floor > 0.0:
+        # MONEY VALIDATION: the success floor needs measured history. With zero
+        # submitted outcomes there is nothing to measure against, so the floor
+        # is a no-op (otherwise day-1 cold start rejects ~everything and the
+        # bank can never produce the first outcome to learn from).
+        has_history = bool(profile is not None and (profile.applications_submitted or 0) > 0)
+        if has_history and success_floor > 0.0 and profile is not None:
             success_filter = IntelligentRecommender(config=MAX_SUCCESS_RECOMMENDER_CONFIG)
             kept = success_filter.filter_by_success_floor(opportunities, profile)
             passed_ids = {o.id for o in kept}
@@ -214,6 +429,17 @@ class WorkBank:
             opp_category = getattr(opp.category, "value", opp.category)
             if str(opp_category) in excluded:
                 rejected[opp.id] = ["excluded_category"]
+                continue
+            # A bug bounty PROGRAM is not a deliverable task (see
+            # _BUG_BOUNTY_PLATFORMS). Excluded from the deliverable bank with a
+            # visible reason instead of silently vanishing, and still fully
+            # available in the opportunity/radar layer.
+            opp_platform = opp.platform.value if hasattr(opp.platform, "value") else str(opp.platform)
+            if opp_platform in _BUG_BOUNTY_PLATFORMS:
+                rejected[opp.id] = ["bug_bounty_program_not_a_deliverable_task"]
+                continue
+            if not _is_programmable_dev_work(opp):
+                rejected[opp.id] = ["not_programmable_dev_work"]
                 continue
             if (
                 profile is not None
@@ -241,16 +467,20 @@ class WorkBank:
         new_count = 0
         for opp, barrier in selected:
             platform_key = opp.platform.value if hasattr(opp.platform, "value") else str(opp.platform)
-            access_status, requirement = _PLATFORM_ACCESS_OVERRIDE.get(
-                platform_key,
-                PLATFORM_ACCESS.get(platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")),
+            # Access status comes from PLATFORM_ACCESS only. The previous
+            # `_PLATFORM_ACCESS_OVERRIDE` forced every bug bounty platform to
+            # "public", which hid the real requirement (HACKERONE/BC/INTIGRITI/
+            # YESWEHACK_API_KEY are empty, so `auto_submit` raises) behind a
+            # green "ready_to_deliver".
+            access_status, requirement = PLATFORM_ACCESS.get(
+                platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")
             )
 
             # Recommend payout method for this platform
             payout_method = ""
             payout_method_rationale = ""
             try:
-                from core.payout_net import get_payout_net
+                from cores.payout_net import get_payout_net
 
                 payout_net = get_payout_net()
                 rec = payout_net.recommend_for(platform_key)
@@ -262,7 +492,7 @@ class WorkBank:
                 logger.debug("Could not recommend payout method for %s: %s", platform_key, exc)
 
             item = WorkItem(
-                id=opp.id,
+                id=_path_safe_id(opp.id),
                 title=opp.title,
                 platform=platform_key,
                 category=opp.category.value if hasattr(opp.category, "value") else str(opp.category),
@@ -296,7 +526,7 @@ class WorkBank:
         # ready_to_deliver nacen QUALIFIED→READY en la cola única. Best-effort:
         # un fallo del espejo jamás rompe el banco. (Re-aplicado tras fb30df08)
         try:
-            from core.execution_queue.mirror import mirror_workbank_prepared
+            from cores.execution_queue.mirror import mirror_workbank_prepared
 
             for item in self._items.values():
                 if item.ready_to_deliver:
@@ -307,9 +537,64 @@ class WorkBank:
                             "platform": str(item.platform),
                             "reward": item.reward,
                             "title": item.title,
+                            "barrier_score": round(item.barrier_score, 1),
                         },
                     )
         except Exception:  # pragma: no cover — espejo defensivo
+            pass
+
+        # Human Gate: crear gate de delivery_approval para items ready_to_deliver
+        try:
+            from cores.autopilot import get_autopilot
+
+            ap = get_autopilot()
+            gate_system = ap.human_gate
+            for item in self._items.values():
+                if item.ready_to_deliver:
+                    import asyncio
+
+                    # Convertir WorkItem a deliverables compatibles
+                    deliverables = item.deliverables or [
+                        f"submission_draft: {item.title[:80]}",
+                        "terms_check: cumple los términos públicos de la plataforma",
+                        f"reward_verified: ${float(item.reward):.2f}" if item.reward > 0 else "",
+                    ]
+                    package_path = f"deliveries/{item.id}_{item.platform}"
+                    # Run the async gate request in the current event loop if available,
+                    # otherwise fall back to asyncio.run (for standalone script execution).
+                    try:
+                        loop = asyncio.get_running_loop()
+                        # We're in an async context - schedule the coroutine
+                        asyncio.run_coroutine_threadsafe(
+                            gate_system.request_delivery_approval(
+                                item_id=item.id,
+                                platform=item.platform,
+                                title=item.title,
+                                amount_usd=float(item.reward),
+                                deliverables=deliverables,
+                                delivery_package_path=package_path,
+                                submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
+                                if item.description
+                                else f"Entrega en {item.platform}",
+                            ),
+                            loop,
+                        ).result(timeout=30)
+                    except RuntimeError:
+                        # No running event loop - fall back to asyncio.run
+                        asyncio.run(
+                            gate_system.request_delivery_approval(
+                                item_id=item.id,
+                                platform=item.platform,
+                                title=item.title,
+                                amount_usd=float(item.reward),
+                                deliverables=deliverables,
+                                delivery_package_path=package_path,
+                                submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
+                                if item.description
+                                else f"Entrega en {item.platform}",
+                            )
+                        )
+        except Exception:  # pragma: no cover — human gate defensivo
             pass
 
         return self._summary(
@@ -355,6 +640,8 @@ class WorkBank:
             return False
         item.status = "delivered"
         item.ready_to_deliver = False
+        if item.delivered_at is None:
+            item.delivered_at = datetime.now(UTC).isoformat()
         self._save()
         return True
 
@@ -362,9 +649,85 @@ class WorkBank:
         return self._items.get(item_id)
 
     def _rank_ready(self, limit: int) -> list[WorkItem]:
-        ready = [i for i in self._items.values() if i.ready_to_deliver]
+        # Both conditions are required: the boolean AND the status. A marked
+        # non-paying bounty keeps neither, so it cannot rank as money.
+        ready = [
+            i
+            for i in self._items.values()
+            if i.ready_to_deliver and i.status == "ready_to_deliver" and not is_fixture_url(getattr(i, "url", ""))
+        ]
         ready.sort(key=lambda i: i.reward, reverse=True)
         return ready[:limit]
+
+    def purge_bug_bounty_programs(self) -> list[str]:
+        """Elimina del banco los *programas* de bug bounty (no son tareas).
+
+        `daily_cycle` ya no los admite (ver _BUG_BOUNTY_PLATFORMS), pero los
+        items añadidos antes de esa corrección siguen en el store con el
+        `access_status="public"` que el antiguo _PLATFORM_ACCESS_OVERRIDE les
+        forzaba — y sus `max_bounty` publicados ($50k–$3M) inflaban
+        `pendiente_usd` a ~$3.97M de pipeline inexistente.
+
+        Sólo toca datos derivados del discovery (reproducibles con el próximo
+        ciclo). No borra nada que el usuario haya creado ni entregado.
+        Devuelve los IDs purgados.
+        """
+        doomed = [
+            item.id
+            for item in self._items.values()
+            if item.platform in _BUG_BOUNTY_PLATFORMS and item.status != "delivered"
+        ]
+        for item_id in doomed:
+            self._items.pop(item_id, None)
+        if doomed:
+            self._save()
+        return doomed
+
+    def mark_unpaid_sources(self, repos_without_merges: dict[str, str]) -> list[str]:
+        """Marca como `unpaid_evidence` los items cuyo repo nunca mergeó.
+
+        Una bounty que promete "$960 al mergear" pero tiene 0 PRs mergeadas
+        en su historia **no ha pagado nunca**. Medido 2026-10-01 sobre los 4
+        repos que el discovery traía: 0 merges en 30+ PRs cerradas cada uno.
+
+        No borra nada: pasa el item a un estado visible con el motivo, para
+        que deje de sumar a `pendiente_usd` sin destruir la evidencia de qué
+        se descubrió. Un `delivered` real nunca se toca.
+
+        `repos_without_merges` mapea `owner/repo` → motivo verificable (el
+        caller lo obtiene de la API de GitHub, no lo infiere este módulo).
+        """
+        marked: list[str] = []
+        for item in self._items.values():
+            if item.status == "delivered" or item.status == "unpaid_evidence":
+                continue
+            match = _GITHUB_ISSUE_RE.match(item.url or "")
+            if not match:
+                continue
+            key = f"{match.group(1)}/{match.group(2)}"
+            reason = repos_without_merges.get(key)
+            if not reason:
+                continue
+            item.status = "unpaid_evidence"
+            item.access_status = "unpaid_evidence"
+            item.access_requirement = reason
+            marked.append(item.id)
+        if marked:
+            self._save()
+        return marked
+
+    def purge_fixtures(self) -> list[str]:
+        """Elimina del store los items con URL fixture (placeholders de test).
+
+        No borra evidencia real (URLs con /issues/, slugs). Devuelve IDs purgados.
+        Operación reversible solo vía re-discover.
+        """
+        doomed = fixture_item_ids(self._items)
+        for fid in doomed:
+            self._items.pop(fid, None)
+        if doomed:
+            self._save()
+        return doomed
 
     # ── Internals ──
     @staticmethod
@@ -387,11 +750,16 @@ class WorkBank:
         rejected: dict[str, list[str]] | None = None,
         success_floor_rejected: dict[str, list[str]] | None = None,
     ) -> dict:
-        ready = [i for i in self._items.values() if i.ready_to_deliver]
+        # A marked item has `status="unpaid_evidence"`; the boolean is
+        # cleared by `mark_unpaid_sources`, and we ALSO require the status so
+        # a stale flag can never keep a non-paying bounty in the pipeline.
+        ready = [i for i in self._items.values() if i.ready_to_deliver and i.status == "ready_to_deliver"]
         needs_access = [i for i in self._items.values() if i.status == "needs_access"]
         delivered = [i for i in self._items.values() if i.status == "delivered"]
+        unpaid = [i for i in self._items.values() if i.status == "unpaid_evidence"]
         rejected = rejected or {}
         success_floor_rejected = success_floor_rejected or {}
+        needs_revalidation = fixture_item_ids(self._items)
         return {
             "scanned": scanned,
             "eligible_zero_barrier": eligible,
@@ -402,6 +770,9 @@ class WorkBank:
             "ready_to_deliver": len(ready),
             "needs_access": len(needs_access),
             "delivered": len(delivered),
+            "unpaid_evidence": len(unpaid),
+            "fixture_urls": len(needs_revalidation),
+            "needs_revalidation": needs_revalidation,
             "rejected": rejected,
             "rejected_reasons": sorted(
                 {reason for reasons in rejected.values() for reason in reasons}
@@ -423,6 +794,17 @@ class WorkBank:
             if self._store_path.exists():
                 data = json.loads(self._store_path.read_text())
                 for raw in data.get("items", []):
+                    # Migración (2026-10-05): los items creados antes del fix
+                    # quedaron con ids que NO son path params (`owner/repo#7`),
+                    # o sea inalcanzables por API. Se renombran al cargar para
+                    # que el store legado también funcione; el resto del item
+                    # (incluido su `url` original) queda intacto.
+                    raw = dict(raw)
+                    raw_id = str(raw.get("id", ""))
+                    safe = _path_safe_id(raw_id)
+                    if safe != raw_id:
+                        logger.info("Migrando id de workbank: %s → %s", raw_id, safe)
+                    raw["id"] = safe
                     self._items[raw["id"]] = WorkItem(**raw)
         except Exception as exc:  # pragma: no cover
             logger.warning("Could not load workbank store: %s", exc)

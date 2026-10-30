@@ -47,9 +47,10 @@ class N8nConnector(IConnector):
                     error=None if resp.status_code == 200 else f"HTTP {resp.status_code}",
                 )
         except Exception as exc:
+            logger.error("n8n health check failed: %s", exc)
             return ConnectorHealth(
                 connected=False,
-                error=str(exc),
+                error="Error al verificar estado de n8n",
             )
 
     def get_config_fields(self) -> list[dict]:
@@ -79,7 +80,7 @@ class N8nConnector(IConnector):
                 }
         except Exception as exc:
             logger.error("n8n webhook trigger failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en trigger de webhook n8n"}
 
     async def create_webhook(self, name: str, path: str) -> dict:
         """Register a new webhook in n8n (requires API key)."""
@@ -96,7 +97,7 @@ class N8nConnector(IConnector):
                 return {"status": resp.status_code, "data": resp.json() if resp.status_code < 300 else {}}
         except Exception as exc:
             logger.error("n8n create workflow failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno al crear workflow n8n"}
 
     async def list_workflows(self) -> list[dict]:
         """List all n8n workflows."""

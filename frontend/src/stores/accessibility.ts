@@ -25,12 +25,18 @@ function load(): AccessibilityState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) return { ...DEFAULT_ACCESSIBILITY, ...JSON.parse(raw) }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { ...DEFAULT_ACCESSIBILITY }
 }
 
 function save(state: AccessibilityState) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch { /* ignore */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    /* ignore */
+  }
 }
 
 export const useAccessibilityStore = defineStore('accessibility', () => {
@@ -64,8 +70,8 @@ export const useAccessibilityStore = defineStore('accessibility', () => {
       root.style.setProperty('--duration-normal', '300ms')
     }
     if (state.value.highContrast) {
-      root.style.setProperty('--color-border', '#ffffff')
-      root.style.setProperty('--color-border-light', '#cccccc')
+      root.style.setProperty('--color-border', 'var(--ownex-text-primary)')
+      root.style.setProperty('--color-border-light', 'var(--ownex-text-secondary)')
     } else {
       root.style.removeProperty('--color-border')
       root.style.removeProperty('--color-border-light')

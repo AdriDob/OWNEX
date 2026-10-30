@@ -51,7 +51,11 @@ class TestTauriConf:
 class TestSidecarSpec:
     def test_spec_is_onefile_named_ownex_backend(self) -> None:
         spec = (REPO_ROOT / "OWNEX-Backend.spec").read_text(encoding="utf-8")
-        assert 'name="ownex-backend"' in spec, "sidecar exe name must match externalBin"
+        # Name may be literal (name="ownex-backend") or via EXE_NAME variable;
+        # either way the built exe must be "ownex-backend" to match externalBin.
+        assert 'EXE_NAME = "ownex-backend"' in spec or 'name="ownex-backend"' in spec, (
+            "sidecar exe name must match externalBin"
+        )
         # Onefile contract: a top-level EXE with all blobs, no COLLECT().
         assert "COLLECT(" not in spec, (
             "ONEFILE required: Tauri copies a single file per target-triple "
@@ -71,6 +75,34 @@ class TestSidecarSpec:
         """CI validates the built exe is >= 50MB (the 19.91MB stub incident)."""
         workflow = (REPO_ROOT / ".github" / "workflows" / "ownex-tauri-windows.yml").read_text(encoding="utf-8")
         assert "50" in workflow and ("Validate sidecar" in workflow or "minimum" in workflow.lower())
+
+    def test_ci_windows_sidecar_uses_triple_suffix(self) -> None:
+        """Tauri v2 resolves externalBin to binaries/<name>-<triple>.exe.
+
+        Regression guard for v7.1.0 CI: the Windows copy step dropped the
+        exe as plain `ownex-backend` and build-script-build failed with
+        "resource path binaries\\ownex-backend-x86_64-pc-windows-msvc.exe
+        doesn't exist" while all 3 sidecars were green.
+        """
+        workflow = (REPO_ROOT / ".github" / "workflows" / "ownex-tauri-windows.yml").read_text(encoding="utf-8")
+        assert "ownex-backend-x86_64-pc-windows-msvc.exe" in workflow
+
+    def test_windows_bundle_is_msi_only(self, tauri_conf: dict) -> None:
+        """MSI único por decisión 2026-09-09 (NSIS retirado del bundle).
+
+        `nsis: null` cuenta como ausente (deshabilitado en Tauri v2);
+        solo un objeto nsis con contenido reactivaría el setup.exe.
+        """
+        windows = tauri_conf["bundle"]["windows"]
+        assert "wix" in windows
+        assert windows.get("nsis") is None
+
+    def test_webview2_bootstrapper_pinned(self, tauri_conf: dict) -> None:
+        """WebView2 strategy explicit: silent downloadBootstrapper (needs
+        internet at install; Win11 Evergreen covers offline)."""
+        mode = tauri_conf["bundle"]["windows"].get("webviewInstallMode", {})
+        assert mode.get("type") == "downloadBootstrapper"
+        assert mode.get("silent") is True
 
 
 class TestVersionSync:

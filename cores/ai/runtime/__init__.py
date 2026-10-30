@@ -43,6 +43,13 @@ from .router import SmartRouter, create_smart_router
 logger = logging.getLogger("oar")
 
 
+class ProviderError(Exception):
+    """Raised when a provider returns an error response (finish_reason='error')."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class OAR:
     """OWNEX AI Runtime — Unified AI provider operating system."""
 
@@ -285,6 +292,10 @@ class OAR:
 
                 response = await provider.chat(request)
 
+                # Treat HTTP error responses as failures for failover
+                if response.finish_reason == "error":
+                    raise ProviderError(response.metadata.get("error", "Provider returned error"))
+
                 # Record success
                 if self._failover:
                     self._failover.record_success(provider_id)
@@ -425,7 +436,38 @@ class OAR:
             "cache": self._cache.get_stats() if self._cache else {},
             "learning": self._learning.get_provider_stats() if self._learning else {},
             "resilience": resilience,
+            "recent_routing": self._recent_routing(20),
         }
+
+    def _recent_routing(self, limit: int = 20) -> list[dict[str, Any]]:
+        """Last routing decisions (provider/model/task/latency/cost/fallbacks).
+
+        No prompts, no secrets — safe for status surfaces and audit trails.
+        """
+        history = []
+        try:
+            history = list(getattr(self._router, "_routing_history", []) or [])[-limit:]
+        except Exception:
+            return []
+        out = []
+        for decision in history:
+            try:
+                out.append(
+                    {
+                        "provider_id": getattr(decision, "provider_id", "?"),
+                        "model_id": getattr(decision, "model_id", "?"),
+                        "task_type": str(getattr(getattr(decision, "task_type", ""), "value", "")),
+                        "confidence": getattr(decision, "confidence", 0.0),
+                        "estimated_cost_usd": getattr(decision, "estimated_cost_usd", 0.0),
+                        "estimated_latency_ms": getattr(decision, "estimated_latency_ms", 0),
+                        "fallback_chain": list(getattr(decision, "fallback_chain", []) or []),
+                        "privacy_ok": bool(getattr(decision, "privacy_ok", True)),
+                        "timestamp": str(getattr(decision, "timestamp", "")),
+                    }
+                )
+            except Exception:
+                continue
+        return out
 
     def doctor(self) -> dict[str, Any]:
         """Comprehensive diagnostics."""
@@ -435,14 +477,31 @@ class OAR:
         healthy = self._health.get_healthy_providers() if self._health else []
         degraded = self._health.get_degraded_providers() if self._health else []
         unhealthy = self._health.get_unhealthy_providers() if self._health else []
+        total = len(healthy) + len(degraded) + len(unhealthy)
+
+        # `healthy if healthy else unhealthy` decía "healthy" con 1 de 10
+        # providers vivo: el aggregate no distinguía "todo bien" de "hay al
+        # menos uno". Un self-diagnostic que no puede empeorar es un eco.
+        if not total:
+            overall = "unknown"
+        elif len(unhealthy) == total:
+            overall = "unhealthy"
+        elif len(healthy) + len(degraded) == total:
+            overall = "healthy"
+        elif healthy or degraded:
+            overall = "degraded"
+        else:
+            overall = "unhealthy"
 
         return {
-            "overall": "healthy" if healthy else "unhealthy",
+            "overall": overall,
             "providers": {
                 "healthy": healthy,
                 "degraded": degraded,
                 "unhealthy": unhealthy,
-                "total": len(healthy) + len(degraded) + len(unhealthy),
+                "total": total,
+                # Fracción utilizable: cuántos aportan capacidad real ahora.
+                "usable": len(healthy),
             },
             "health_details": self._health.get_all_health() if self._health else {},
             "cost_budget": self._cost.get_budget_status() if self._cost else {},

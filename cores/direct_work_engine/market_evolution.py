@@ -191,10 +191,24 @@ class MarketKnowledgeBase:
 
 
 def _reward_usd(average_reward: str) -> float:
-    """Best-effort USD figure from a free-text reward range. Never fabricates."""
+    """Best-effort USD figure from a free-text reward range. Never fabricates.
+
+    A bare-comma class matched separators, so "$1,000+, $10,000 est."
+    yielded empty tokens -> ValueError -> the whole market report died.
+    The number pattern now requires a digit to start, and a malformed token is
+    skipped instead of exploding the caller.
+    """
     if not average_reward or average_reward in ("varies", "", "Unknown"):
         return 0.0
-    nums = [float(n.replace(",", "")) for n in re.findall(r"[\d,]+", average_reward)]
+    nums: list[float] = []
+    for token in re.findall(r"\d[\d,]*", average_reward):
+        cleaned = token.replace(",", "").strip()
+        if not cleaned:
+            continue
+        try:
+            nums.append(float(cleaned))
+        except ValueError:
+            continue
     if not nums:
         return 0.0
     return sum(nums) / len(nums) * (200 if "$" not in average_reward and "USD" not in average_reward else 1)

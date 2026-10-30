@@ -48,10 +48,17 @@ class TestEnvConfig:
         monkeypatch.setenv("CATEYE_PORT", "9090")
         monkeypatch.setenv("CATEYE_DESKTOP", "1")
         monkeypatch.setenv("CATEYE_DEBUG", "1")
-        # Clear the cached config instance and re-import
+        # Clear the cached config instance and re-import.
+        #
+        # monkeypatch.setattr (not a direct assignment) so the singleton is
+        # restored when the test ends. A plain `config_module._CONFIG_INSTANCE
+        # = None` left the instance cached with desktop=True/port=9090 for
+        # every later test in the session, which broke
+        # tests/test_cors_tauri.py::test_dev_branch_keeps_wildcard_without_credentials
+        # whenever desktop_release ran first (order-dependent failure).
         import cores.env.config as config_module
 
-        config_module._CONFIG_INSTANCE = None
+        monkeypatch.setattr(config_module, "_CONFIG_INSTANCE", None)
         from cores.env.config import get_config
 
         cfg = get_config()

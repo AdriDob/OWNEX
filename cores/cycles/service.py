@@ -9,8 +9,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from core.cycles.models import DEFAULT_CYCLES, Base, Cycle, CycleStatus
-from core.database.manager import get_db_manager
+from cores.cycles.models import DEFAULT_CYCLES, Base, Cycle, CycleStatus
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.core.cycles")
 

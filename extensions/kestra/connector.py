@@ -43,7 +43,11 @@ class KestraConnector(IConnector):
                     error=None if resp.status_code == 200 else f"HTTP {resp.status_code}",
                 )
         except Exception as exc:
-            return ConnectorHealth(connected=False, error=str(exc))
+            logger.error("Kestra health check failed: %s", exc)
+            return ConnectorHealth(
+                connected=False,
+                error="Error al verificar estado de Kestra",
+            )
 
     def get_config_fields(self) -> list[dict]:
         return [
@@ -64,7 +68,7 @@ class KestraConnector(IConnector):
                 return {"status": resp.status_code, "data": resp.json() if resp.status_code < 300 else {}}
         except Exception as exc:
             logger.error("Kestra execute_flow failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en ejecución de flujo Kestra"}
 
     async def create_flow(self, namespace: str, flow_yaml: str) -> dict:
         """Register a new flow from YAML definition."""
@@ -75,7 +79,7 @@ class KestraConnector(IConnector):
                 return {"status": resp.status_code, "data": resp.json() if resp.status_code < 300 else {}}
         except Exception as exc:
             logger.error("Kestra create_flow failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno al crear flujo Kestra"}
 
     async def list_executions(self, namespace: str = "", limit: int = 10) -> list[dict]:
         """List recent flow executions."""

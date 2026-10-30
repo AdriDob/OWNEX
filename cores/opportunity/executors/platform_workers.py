@@ -1,6 +1,6 @@
 """Platform Browser Workers — Browser automation for platforms without write APIs.
 
-Supports DataAnnotation, Outlier, Mindrift, Remotasks via Playwright.
+Supports DataAnnotation, Outlier, Mindrift via Playwright.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import logging
 import os
 from typing import Any
 
-from core.opportunity.executors import BaseExecutor, ExecutionResult
+from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
 try:
     from cores.automation.browser_agent import BrowserAgent
@@ -74,8 +74,15 @@ class DataAnnotationWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("DATAANNOTATION_EMAIL")
-        self.password = self.config.get("password") or os.getenv("DATAANNOTATION_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        # Explicit config wins, else IdentityVault, else env (never logged).
+        self.email = resolve_credential(str(self.config.get("email") or ""), "dataannotation", "email") or os.getenv(
+            "DATAANNOTATION_EMAIL"
+        )
+        self.password = resolve_credential(
+            str(self.config.get("password") or ""), "dataannotation", "password"
+        ) or os.getenv("DATAANNOTATION_PASSWORD")
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -479,8 +486,14 @@ class OutlierWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("OUTLIER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("OUTLIER_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        self.email = resolve_credential(str(self.config.get("email") or ""), "outlier", "email") or os.getenv(
+            "OUTLIER_EMAIL"
+        )
+        self.password = resolve_credential(str(self.config.get("password") or ""), "outlier", "password") or os.getenv(
+            "OUTLIER_PASSWORD"
+        )
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -847,8 +860,14 @@ class MindriftBrowserWorker(BaseExecutor):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("MINDRIFT_BROWSER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("MINDRIFT_BROWSER_PASSWORD")
+        from cores.automation.browser_agent import resolve_credential
+
+        self.email = resolve_credential(str(self.config.get("email") or ""), "mindrift", "email") or os.getenv(
+            "MINDRIFT_BROWSER_EMAIL"
+        )
+        self.password = resolve_credential(str(self.config.get("password") or ""), "mindrift", "password") or os.getenv(
+            "MINDRIFT_BROWSER_PASSWORD"
+        )
         self.base_url = self.config.get("base_url", "https://mindrift.com")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
@@ -911,78 +930,8 @@ class MindriftBrowserWorker(BaseExecutor):
             return ExecutionResult(result.success, "health_check", self.base_url)
 
 
-class RemotasksWorker(BaseExecutor):
-    """Worker for Remotasks.com — login, fetch tasks, submit results."""
-
-    platform = "remotasks"
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(config)
-        self.email = self.config.get("email") or os.getenv("REMOTASKS_EMAIL")
-        self.password = self.config.get("password") or os.getenv("REMOTASKS_PASSWORD")
-        self.base_url = self.config.get("base_url", "https://remotasks.com")
-
-    async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
-        if BrowserAgent is None:
-            return ExecutionResult(False, action, "", error="playwright not installed")
-
-        if action == "login":
-            return await self.login()
-        if action == "fetch_tasks":
-            return await self.fetch_tasks()
-        if action == "submit_result":
-            return await self.submit_result(kwargs.get("task_id", ""), kwargs.get("result", {}))
-        if action == "health_check":
-            return await self.health_check()
-        return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
-
-    async def login(self) -> ExecutionResult:
-        if not self.email or not self.password:
-            return ExecutionResult(False, "login", "", error="REMOTASKS_EMAIL/PASSWORD not configured")
-
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(f"{self.base_url}/login")
-            if not result.success:
-                return ExecutionResult(False, "login", "", error=result.error)
-
-            await agent._page.fill('input[name="email"]', self.email)
-            await agent._page.fill('input[name="password"]', self.password)
-            await agent._page.click('button[type="submit"]')
-            await agent._page.wait_for_load_state("networkidle")
-
-            return ExecutionResult(True, "login", "", message="Logged in to Remotasks")
-
-    async def fetch_tasks(self) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(f"{self.base_url}/tasks")
-            if not result.success:
-                return ExecutionResult(False, "fetch_tasks", "", error=result.error)
-
-            tasks = await agent._page.query_selector_all(".task-card")
-            task_data = [{"id": i, "title": await task.text_content()} for i, task in enumerate(tasks)]
-
-            return ExecutionResult(True, "fetch_tasks", "", data={"tasks": task_data, "count": len(task_data)})
-
-    async def submit_result(self, task_id: str, result_data: dict[str, Any]) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            nav_result = await agent.goto(f"{self.base_url}/tasks/{task_id}")
-            if not nav_result.success:
-                return ExecutionResult(False, "submit_result", task_id, error=nav_result.error)
-
-            await agent._page.click('button[type="submit"]')
-            await agent._page.wait_for_load_state("networkidle")
-
-            return ExecutionResult(True, "submit_result", task_id, data={"result": result_data})
-
-    async def health_check(self) -> ExecutionResult:
-        async with BrowserAgent(self.config) as agent:
-            result = await agent.goto(self.base_url)
-            return ExecutionResult(result.success, "health_check", self.base_url)
-
-
 __all__ = [
     "DataAnnotationWorker",
     "OutlierWorker",
     "MindriftBrowserWorker",
-    "RemotasksWorker",
 ]

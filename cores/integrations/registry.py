@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.extension.capabilities import Capability
+from cores.extension.capabilities import Capability
 
 logger = logging.getLogger("orion.core.integrations.registry")
 
@@ -80,6 +80,33 @@ class IntegrationRegistry:
                 status=status,
             )
         )
+
+    def load_all(self, definitions: list[Any]) -> int:
+        """Load `IntegrationDef` descriptors into the registry.
+
+        Consumer: `init_integration_registry()` (this module) and
+        `GET /api/core/integrations`. The descriptors come from
+        `cores.integrations.discovery.get_builtin_integrations()`; status stays
+        "unknown" until `refresh()` reads env/vault — registering is not
+        claiming a connection.
+        """
+        loaded = 0
+        for idef in definitions:
+            if self.get(idef.name) is not None:
+                continue  # already registered (idempotent init)
+            self.register(
+                IntegrationStatus(
+                    name=idef.name,
+                    category=idef.category,
+                    description=idef.description,
+                    icon=idef.icon,
+                    tags=list(idef.tags),
+                )
+            )
+            loaded += 1
+        if loaded:
+            logger.debug("Loaded %d built-in integrations", loaded)
+        return loaded
 
     def get(self, name: str) -> IntegrationStatus | None:
         return self._status_cache.get(name)
@@ -168,7 +195,7 @@ class IntegrationRegistry:
     def _env_check(self, status: IntegrationStatus) -> None:
         """Check env vars — if any required key is set, the integration is potentially config'd."""
         # Determine env keys from builtin defs
-        from core.integrations.discovery import get_integration
+        from cores.integrations.discovery import get_integration
 
         idef = get_integration(status.name)
         if idef and idef.env_keys:
@@ -184,13 +211,13 @@ class IntegrationRegistry:
 
     def _vault_check(self, status: IntegrationStatus) -> None:
         """Check if any secrets are stored in vault for this integration."""
-        from core.integrations.discovery import get_integration
+        from cores.integrations.discovery import get_integration
 
         idef = get_integration(status.name)
         if not idef or not idef.vault_provider:
             return
         try:
-            from core.secrets.manager import get_secrets_manager
+            from cores.secrets.manager import get_secrets_manager
 
             manager = get_secrets_manager()
             keys = manager.list_keys()
@@ -203,7 +230,7 @@ class IntegrationRegistry:
 
     def _health_check_callable(self, status: IntegrationStatus) -> None:
         """Try to import and run a custom health check function."""
-        from core.integrations.discovery import get_integration
+        from cores.integrations.discovery import get_integration
 
         idef = get_integration(status.name)
         if not idef or not idef.health_check:
@@ -244,7 +271,7 @@ def init_integration_registry(extension_registry: Any = None) -> IntegrationRegi
     discovered extensions as plugin integrations.
     """
     registry = get_integration_registry()
-    from core.integrations.discovery import get_builtin_integrations
+    from cores.integrations.discovery import get_builtin_integrations
 
     registry.load_all(get_builtin_integrations())
     if extension_registry is not None:

@@ -1,5 +1,21 @@
 # Generar Instalador Windows .exe
 
+> **ESTADO (2026-10-22) — RUTA LEGACY, NO LA CANÓNICA.**
+> Este documento describe la ruta NSIS antigua. Espera
+> `OWNEX-Desktop-Alpha.spec` y `dist\OWNEX-Desktop-Alpha\`, y ninguno de
+> los dos lo produce ningún build actual — seguirlo al pie de la letra falla.
+>
+> **Build canónico de Windows (MSI, según la decisión del 2026-09-09):**
+> ```powershell
+> python scripts/install_windows.py --installer
+> ```
+> o que lo haga CI: `.github/workflows/ownex-tauri-windows.yml` compila el
+> sidecar con `OWNEX-Backend.spec` y recoge
+> `src-tauri/target/release/bundle/msi/*.msi`.
+> El target del bundle es MSI, **no** NSIS — ver
+> `tests/test_tauri_packaging.py::test_windows_bundle_is_msi_only`.
+>
+> El script NSIS de abajo se conserva sólo como referencia del layout viejo.
 ## Opción 1: Desde Windows (Recomendado)
 
 ### Prerrequisitos

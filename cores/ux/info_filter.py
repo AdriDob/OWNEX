@@ -7,7 +7,7 @@ Rules:
   - Expand-on-demand only
 
 Usage:
-    from core.ux.info_filter import reduce_briefing
+    from cores.ux.info_filter import reduce_briefing
     clean = reduce_briefing(raw_briefing)
 """
 

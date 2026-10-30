@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from cores.direct_work_engine.economics import HumanTimeAdjustedROI
+
 
 class OpportunityCategory(StrEnum):
     """All IT ecosystem categories OWNEX can discover and score.
@@ -55,6 +57,8 @@ class OpportunityCategory(StrEnum):
     CODE_REVIEW = "code_review"
     GAME_DEVELOPMENT = "game_development"
     COMPETITIONS = "competitions"
+    EMPLOYMENT = "employment"
+    OPEN_CALL = "open_call"
 
 
 class GameDevSpecialization(StrEnum):
@@ -78,11 +82,185 @@ class GameDevSpecialization(StrEnum):
     PERFORMANCE_OPTIMIZATION = "performance_optimization"
     GAME_BACKEND = "game_backend"
     SDK_INTEGRATION = "sdk_integration"
-    MOBILE_GAMES = "mobile_games"
-    STEAM_INTEGRATION = "steam_integration"
-    CONSOLE_DEVELOPMENT = "console_development"
-    LIVE_SERVICE = "live_service"
-    BUILD_PIPELINES = "build_pipelines"
+
+
+class WorkStream(StrEnum):
+    """High-level work streams — what the user actually operates on.
+
+    Each stream bundles related OpportunityCategory, shares platform access
+    patterns, and has a distinct user workflow. OWNEX automates discovery,
+    scoring, and delivery prep; the user only: configures access, reviews
+    packages, and approves submissions.
+    """
+
+    # Security / Bug Bounty — public programs, API-key platforms, outcome-based
+    BUG_BOUNTY = "bug_bounty"
+
+    # Dev Bounty / Freelance — platforms where you submit code/PRs for rewards
+    DEV_BOUNTY = "dev_bounty"
+
+    # AI Work — evaluation, annotation, synthetic data (zero-barrier, assessment-based)
+    AI_WORK = "ai_work"
+
+    # Game Dev Programming — programming-only specializations
+    GAME_DEV = "game_dev"
+
+    # Open Source / Community — bounties, sponsors, grants
+    OPEN_SOURCE = "open_source"
+
+    # Technical Content — writing, docs, code review
+    TECH_CONTENT = "tech_content"
+
+
+# Canonical mapping: every OpportunityCategory → exactly one WorkStream.
+# This is the SSOT for UI filtering, platform grouping, and action routing.
+CATEGORY_TO_STREAM: dict[OpportunityCategory, WorkStream] = {
+    # Bug Bounty stream
+    OpportunityCategory.BUG_BOUNTY: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.SECURITY_RESEARCH: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.OSS_BOUNTIES: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.REVERSE_ENGINEERING: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.MALWARE_ANALYSIS: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.SMART_CONTRACTS: WorkStream.BUG_BOUNTY,
+    OpportunityCategory.COMPETITIONS: WorkStream.BUG_BOUNTY,
+    # Dev Bounty stream
+    OpportunityCategory.DEV_BOUNTY: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.SOFTWARE_ENGINEERING: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BACKEND: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.FRONTEND: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.FULL_STACK: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.DEVOPS: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.CLOUD: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.INFRASTRUCTURE: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.API_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.SDK_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BROWSER_AUTOMATION: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.QA_AUTOMATION: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.WEB_SCRAPING: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.CODE_REVIEW: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.MOBILE_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.DESKTOP_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.EMBEDDED: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.IOT: WorkStream.DEV_BOUNTY,
+    OpportunityCategory.BLOCKCHAIN_DEVELOPMENT: WorkStream.DEV_BOUNTY,
+    # AI Work stream
+    OpportunityCategory.AI_EVALUATION: WorkStream.AI_WORK,
+    OpportunityCategory.DATA_ANNOTATION: WorkStream.AI_WORK,
+    OpportunityCategory.SYNTHETIC_DATA: WorkStream.AI_WORK,
+    OpportunityCategory.AI_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.ML_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.LLM_ENGINEERING: WorkStream.AI_WORK,
+    OpportunityCategory.PROMPT_ENGINEERING: WorkStream.AI_WORK,
+    # Game Dev stream
+    OpportunityCategory.GAME_DEVELOPMENT: WorkStream.GAME_DEV,
+    # Open Source stream
+    OpportunityCategory.OPEN_SOURCE: WorkStream.OPEN_SOURCE,
+    OpportunityCategory.OSS_BOUNTIES: WorkStream.OPEN_SOURCE,  # also in bug bounty
+    # Tech Content stream
+    OpportunityCategory.TECHNICAL_WRITING: WorkStream.TECH_CONTENT,
+    OpportunityCategory.DOCUMENTATION: WorkStream.TECH_CONTENT,
+    OpportunityCategory.CODE_REVIEW: WorkStream.TECH_CONTENT,  # also in dev bounty
+}
+
+
+# What the user needs to SEE per stream (minimal, actionable)
+STREAM_UI_CONFIG: dict[WorkStream, dict] = {
+    WorkStream.BUG_BOUNTY: {
+        "label": "Bug Bounty",
+        "icon": "🎯",
+        "description": "Programas públicos de vulnerabilidades. Descubrimiento → hipótesis → reporte.",
+        "platforms": ["hackerone", "bugcrowd", "intigriti", "yeswehack", "immunefi"],
+        "access_type": "api_key",  # needs API key for earnings sync
+        "deliverables": ["PoC", "Report", "Steps to reproduce", "Impact assessment"],
+        "quick_actions": ["run_scan", "view_findings", "generate_report", "sync_earnings"],
+        "automation": "discover programs → score barriers → prep reports → queue delivery",
+        "user_decides": ["which programs to scan", "validate findings", "submit reports"],
+    },
+    WorkStream.DEV_BOUNTY: {
+        "label": "Dev Bounty",
+        "icon": "⚡",
+        "description": "Tareas de código con recompensa (Opire, IssueHunt, Algora, Freelancer).",
+        "platforms": ["opire", "issuehunt", "algora", "freelancer", "opencollective"],
+        "access_type": "mixed",  # public + manual setup
+        "deliverables": ["PR/Commit", "Tests passing", "Documentation", "README"],
+        "quick_actions": ["clone_repo", "analyze_issue", "generate_fix", "create_pr", "submit_work"],
+        "automation": "discover issues → analyze repo → generate fix → run tests → prep PR",
+        "user_decides": ["which issues to take", "review generated code", "approve PR"],
+    },
+    WorkStream.AI_WORK: {
+        "label": "AI Work",
+        "icon": "🤖",
+        "description": "Evaluación de modelos, anotación de datos, datos sintéticos (Outlier, Mindrift, etc.).",
+        "platforms": ["outlier", "mindrift", "alignerr", "mercor", "dataannotation"],
+        "access_type": "manual_setup",  # account + assessment
+        "deliverables": ["Completed tasks", "Quality metrics", "Time logs"],
+        "quick_actions": ["start_assessment", "view_queue", "submit_batch", "track_earnings"],
+        "automation": "discover tasks → filter by skill → prep workspace → queue submission",
+        "user_decides": ["which platforms to join", "complete assessments", "submit work"],
+    },
+    WorkStream.GAME_DEV: {
+        "label": "Game Dev",
+        "icon": "🎮",
+        "description": "Especializaciones de programación de videojuegos (Unity, Unreal, Godot, etc.).",
+        "platforms": ["freelancer", "opire", "algora"],
+        "access_type": "manual_setup",
+        "deliverables": ["Code modules", "Systems", "Tools", "Performance fixes"],
+        "quick_actions": ["filter_specialization", "view_tech_stack", "submit_unity_cpp"],
+        "automation": "filter by specialization → match tech stack → prep delivery",
+        "user_decides": ["specialization focus", "engine/language match", "review code"],
+    },
+    WorkStream.OPEN_SOURCE: {
+        "label": "Open Source",
+        "icon": "🌐",
+        "description": "Bounties, sponsors, grants en proyectos open source.",
+        "platforms": ["opencollective", "github_sponsors", "polar", "opire"],
+        "access_type": "manual_setup",
+        "deliverables": ["PR merged", "Issue resolved", "Documentation", "Release notes"],
+        "quick_actions": ["find_good_first_issues", "track_sponsors", "submit_pr"],
+        "automation": "discover repos → filter by label → assess effort → prep PR",
+        "user_decides": ["which projects to contribute", "review maintainer feedback"],
+    },
+    WorkStream.TECH_CONTENT: {
+        "label": "Tech Content",
+        "icon": "📝",
+        "description": "Escritura técnica, documentación, code review remunerado.",
+        "platforms": ["freelancer", "technical_writing_platforms", "docs_bounties"],
+        "access_type": "manual_setup",
+        "deliverables": ["Articles", "Docs", "Review reports", "Tutorials"],
+        "quick_actions": ["find_writing_gigs", "submit_draft", "track_publications"],
+        "automation": "match topics → outline → draft → review → deliver",
+        "user_decides": ["topic selection", "review/edit content", "approve publication"],
+    },
+}
+
+
+# Platform → primary stream (for quick filtering)
+PLATFORM_PRIMARY_STREAM: dict[str, WorkStream] = {
+    "hackerone": WorkStream.BUG_BOUNTY,
+    "bugcrowd": WorkStream.BUG_BOUNTY,
+    "intigriti": WorkStream.BUG_BOUNTY,
+    "yeswehack": WorkStream.BUG_BOUNTY,
+    "immunefi": WorkStream.BUG_BOUNTY,
+    "opire": WorkStream.DEV_BOUNTY,
+    "issuehunt": WorkStream.DEV_BOUNTY,
+    "algora": WorkStream.DEV_BOUNTY,
+    "opencollective": WorkStream.OPEN_SOURCE,
+    "outlier": WorkStream.AI_WORK,
+    "mindrift": WorkStream.AI_WORK,
+    "alignerr": WorkStream.AI_WORK,
+    "mercor": WorkStream.AI_WORK,
+    "dataannotation": WorkStream.AI_WORK,
+}
+
+
+def get_stream_for_category(category: OpportunityCategory) -> WorkStream:
+    """Get the primary work stream for a category."""
+    return CATEGORY_TO_STREAM.get(category, WorkStream.DEV_BOUNTY)
+
+
+def get_stream_for_platform(platform: str) -> WorkStream:
+    """Get the primary work stream for a platform."""
+    return PLATFORM_PRIMARY_STREAM.get(platform.lower(), WorkStream.DEV_BOUNTY)
 
 
 class WorkPlatform(StrEnum):
@@ -93,22 +271,39 @@ class WorkPlatform(StrEnum):
     SYNCACK = "synack"
     IMMUNEFI = "immunefi"
     ALGORA = "algora"
+    OPEN_SOURCE = "open_source"  # bounties OSS genéricos (bountyboard/polar/gitwork)
+    BOUNTYBOARD = "bountyboard"
+    POLAR = "polar"
     OPIRE = "opire"
     OPEN_COLLECTIVE = "opencollective"
     ISSUE_HUNT = "issuehunt"
-    FREELANCER = "freelancer"
-    UPWORK = "upwork"
     FIVERR = "fiverr"
     SUPER_TEAM = "superteam"
     GITHUB = "github"
     OUTLIER = "outlier"
     MINDRIFT = "mindrift"
-    DATA_ANNOTATION_PLATFORM = "data_annotation_platform"
+    # AI-evaluation platforms with a published, zero-experience entry path
+    # (2026-10-01). MERCOR/TURING were already in `global_sources` as
+    # catalog data with no adapter able to surface them.
+    MERCOR = "mercor"
+    TURING = "turing"
     LINKEDIN = "linkedin"
-    REMOTASKS = "remotasks"
+    WORKANA = "workana"
     OPYRE_MICROTASK = "opyre_microtask"
-    FREELANCER_MICROTASK = "freelancer_microtask"
     COMPANY_WEBSITE = "company_website"
+    CODE4RENA = "code4rena"
+    ZONAJOBS = "zonajobs"
+    BUMERAN = "bumeran"
+    COMPUTRABAJO = "computrabajo"
+    KAGGLE = "kaggle"
+    DEWORK = "dework"
+    CANTINA = "cantina"
+    CODEHAWKS = "codehawks"
+    GITCOIN = "gitcoin"
+    GITWORK = "gitwork"
+    HACKENPROOF = "hackenproof"
+    HATS_FINANCE = "hats_finance"
+    ONLYDUST = "onlydust"
     OTHER = "other"
 
 
@@ -125,6 +320,14 @@ class EmploymentType(StrEnum):
     ROLLING = "rolling"
     PROJECT = "project"
     RETAINER = "retainer"
+
+
+class Modality(StrEnum):
+    """Work modality. REMOTO default preserves legacy behavior (remote=True)."""
+
+    REMOTO = "remoto"
+    HIBRIDO = "hibrido"
+    PRESENCIAL = "presencial"
 
 
 class PaymentMethod(StrEnum):
@@ -151,6 +354,23 @@ class ExperienceLevel(StrEnum):
     JUNIOR = "junior"
     MID = "mid"
     SENIOR = "senior"
+
+
+class AIPolicy(StrEnum):
+    """Qué asistencia de IA permite el proyecto (vNext §8). UNKNOWN = no asumir."""
+
+    ALLOWED = "allowed"
+    LIMITED = "limited"
+    PROHIBITED = "prohibited"
+    UNKNOWN = "unknown"
+
+
+class AutomationLevel(StrEnum):
+    """Qué automatización permite la plataforma (vNext §1). UNKNOWN → NO AUTO-ACTION."""
+
+    ALLOWED = "allowed"
+    RESTRICTED = "restricted"
+    UNKNOWN = "unknown"
 
 
 class BarrierLevel(StrEnum):
@@ -281,6 +501,15 @@ class Opportunity:
     company: str = ""
     country: str = ""
     remote: bool = True
+    modality: Modality = Modality.REMOTO
+    zone: str = ""
+    commute_minutes: float | None = None
+    region: str = ""
+    allowed_countries: tuple[str, ...] = ()
+    vpn_required: bool = False
+    assessment_difficulty: str | None = None
+    assessment_duration_min: float | None = None
+    assessment_cost_usd: float | None = None
 
     payment: float = 0.0
     currency: str = "USD"
@@ -305,6 +534,12 @@ class Opportunity:
     compatibility: float = 0.5
 
     accepts_beginner: bool = True
+
+    # Universal Probability Contract fields (Phase 0-5). funnel is stamped
+    # from category via funnel_for_category() — empty means "not classified yet".
+    funnel: str = ""  # bug_bounty, dev_bounty, ai_training, client_work, employment, investment
+    funnel_stage: str = "DISCOVERED"  # current stage in category funnel
+    probability_type: str = "p_accept"  # which ProbabilityType is the decisive one
     accepts_freelancers: bool = True
     accepts_individuals: bool = True
     accepts_ai_tools: bool = True
@@ -323,6 +558,11 @@ class Opportunity:
     time_to_first_work_hours: float | None = None
     rate_source: str = "unknown"  # platform | ownex_history | unknown
 
+    # vNext eligibility (additive, 2026-09-28): AI assistance + automation level.
+    # Defaults UNKNOWN = no asumir permiso (ver AI_POLICY / AUTOMATION_*).
+    ai_policy: AIPolicy = AIPolicy.UNKNOWN
+    automation_level: AutomationLevel = AutomationLevel.UNKNOWN
+
     # Zero Barrier Score (populated by scorer)
     zero_barrier_score: ZeroBarrierScore | None = None
 
@@ -337,6 +577,22 @@ class Opportunity:
                 )
         if self.international_payment is None:
             self.international_payment = self.payment_method in INTERNATIONAL_PAYMENT_METHODS
+
+    # ── HIGH_CONFIDENCE_90 fields (additive, 2026-09-09) ──
+    evidence_quality: float = 0.0  # 0-1 composite: validity + uniqueness + completeness
+    uniqueness_score: float = 0.0  # 0-1 duplicate risk inverse
+    scope_verified: bool = False  # human-verified in scope
+    evidence_gate_status: str = (
+        "NOT_READY"  # NOT_READY|NEEDS_EVIDENCE|NEEDS_UNIQUENESS|HIGH_CONFIDENCE|READY_FOR_HUMAN_REVIEW
+    )
+    acceptance_probability: float = 0.0
+    acceptance_confidence: str = "NONE"  # NONE|LOW|MEDIUM|HIGH|VERY_HIGH
+    acceptance_sample_size: int = 0  # personal outcomes for this segment
+
+    # ── Observed competition facts (additive, PUBLIC WORK) ──
+    # {"active_claims": int, "source": str, "observed_at": str|None}.
+    # None = not observed (UNKNOWN) — never invent, never default to 0.
+    observed_claims: dict | None = None
 
     # ── Derived entry-model facts (single definition point) ──
 
@@ -377,6 +633,39 @@ class Opportunity:
         )
 
 
+def country_access_for(opp: Opportunity, user_country: str = "argentina") -> str:
+    """VERIFIED | CONDITIONAL | UNKNOWN (vNext §6). Puro, sin I/O.
+
+    VERIFIED solo con match explícito en allowed_countries. CONDITIONAL si
+    exige VPN (el humano decide legalidad/riesgo). Todo lo demás UNKNOWN.
+    """
+    allowed = [c.strip().lower() for c in (opp.allowed_countries or []) if c and c.strip()]
+    you = (user_country or "").strip().lower()
+    if you and you in allowed:
+        return "VERIFIED"
+    if opp.vpn_required:
+        return "CONDITIONAL"
+    return "UNKNOWN"
+
+
+def payment_access_for(opp: Opportunity, has_configured_rail: bool = False) -> str:
+    """VERIFIED | UNKNOWN. El rail lo resuelve el caller (payment_compat).
+
+    Sin rail configurado no hay cobrabilidad afirmable: UNKNOWN, jamás True.
+    """
+    return "VERIFIED" if has_configured_rail else "UNKNOWN"
+
+
+def can_auto_act(opp: Opportunity) -> bool:
+    """UNKNOWN → NO AUTO-ACTION (un ban optimiza ingresos a cero)."""
+    return opp.automation_level == AutomationLevel.ALLOWED
+
+
+def ai_assist_allowed(opp: Opportunity) -> bool:
+    """True solo con AI_POLICY explícito ALLOWED. LIMITED/PROHIBITED/UNKNOWN → humano decide."""
+    return opp.ai_policy == AIPolicy.ALLOWED
+
+
 @dataclass(slots=True)
 class UserProfile:
     """Real facts about the user. Used for compatibility, never invented."""
@@ -387,6 +676,9 @@ class UserProfile:
     skills: set[str] = field(default_factory=set)
     experience_level: ExperienceLevel = ExperienceLevel.NONE
     remote_only: bool = True
+    preferred_modality: Modality | None = None
+    zone: str = ""
+    max_commute_minutes: float | None = None
     accepts_ai_tools: bool = True
     availability_hours: float = 40.0
     portfolio_url: str = ""
@@ -395,6 +687,10 @@ class UserProfile:
     projects: list[str] = field(default_factory=list)
     has_portfolio: bool = False
     async_preferred: bool = True
+    # L4 application gating (opt-in). Defaults True = legacy behavior unchanged:
+    # interviews / CV-portfolio steps are allowed unless the user opts out.
+    allow_interview: bool = True
+    allow_cv_portfolio: bool = True
     preferred_payment_methods: list[PaymentMethod] = field(default_factory=list)
     preferred_currencies: list[str] = field(default_factory=lambda: ["USD"])
     preferred_employment_types: list[EmploymentType] = field(default_factory=list)
@@ -428,3 +724,8 @@ class RankedOpportunity:
     discovered_at: str = ""
     payment_compat_score: float = 100.0
     payment_compat_notes: list[str] = field(default_factory=list)
+    # P(CASH) — prob. de cobrar realmente (acceptance x cobrabilidad). None = UNKNOWN.
+    p_cash: float | None = None
+    p_cash_band: str = "UNKNOWN"
+    # HTROI — Human-Time Adjusted ROI (Fase C, Income Multiplier)
+    htroi: HumanTimeAdjustedROI | None = None

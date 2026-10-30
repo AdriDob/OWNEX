@@ -93,7 +93,7 @@ class PromptFooConnector(IConnector):
             return {"error": "eval timed out"}
         except Exception as exc:
             logger.error("PromptFoo eval failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en evaluación PromptFoo"}
 
     async def run_test_suite(self, config_path: str) -> dict:
         """Run a full PromptFoo test suite from a configuration file."""
@@ -115,7 +115,7 @@ class PromptFooConnector(IConnector):
             return {"error": "eval timed out"}
         except Exception as exc:
             logger.error("PromptFoo suite run failed: %s", exc)
-            return {"error": str(exc)}
+            return {"error": "Error interno en ejecución de suite PromptFoo"}
 
 
 async def on_evaluate_prompt(event: object) -> None:

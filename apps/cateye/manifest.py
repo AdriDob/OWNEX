@@ -19,7 +19,7 @@ See AGENTS.md → CATEYE.md → api/main.py for the full architecture.
 
 from __future__ import annotations
 
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 # CATEYE pipeline stages — registered with CoreScheduler for visibility
 _CATEYE_JOBS = [
@@ -84,7 +84,7 @@ _CATEYE_JOBS = [
 manifest = IAppPlugin(
     id="cateye",
     name="CATEYE",
-    version="7.0.0",
+    version="7.7.7",
     description="Bug Bounty Intelligence System — automated hunting, validation, and reporting",
     icon="Bug",
     order=1,

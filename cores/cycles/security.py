@@ -10,15 +10,15 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.cycles.executive_dashboard import ExecutiveDashboard
-from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from cores.cycles.executive_dashboard import ExecutiveDashboard
+from cores.cycles.knowledge_capture import KnowledgeCapture, LearningType
+from cores.cycles.models import Cycle, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.security")
 
 
 def _get_cycle_service():
-    from core.cycles.service import get_cycle_service
+    from cores.cycles.service import get_cycle_service
 
     return get_cycle_service()
 
@@ -60,7 +60,12 @@ class SecurityCycle:
                     "name": "Security",
                     "slug": "security",
                     "description": "Bug bounty, Rastro, vulnerability research",
-                    "category": "offensive",
+                    # CycleCategory.SECURITY, no "offensive": "offensive" no
+                    # existe en el enum y el test lo pinaba a "security".
+                    # Pasaba sólo porque el cycle ya existía en la DB con el
+                    # valor viejo; cuando otro flujo cambió metadata a JSON y
+                    # forzó el re-create, el bug salió a la luz.
+                    "category": "security",
                     "enabled": True,
                     "priority": 100,
                     "status": "idle",
@@ -86,7 +91,7 @@ class SecurityCycle:
 
     def _create_stage_tasks(self, cycle_id: int) -> list[Task]:
         """Create tasks for each pipeline stage."""
-        from core.database.manager import get_db_manager
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         db_session = mgr.get_session("cycles")
@@ -124,7 +129,7 @@ class SecurityCycle:
 
     def advance_stage(self, cycle_id: int, stage: str, result: dict[str, Any] | None = None) -> Task | None:
         """Mark a stage complete and advance to next."""
-        from core.database.manager import get_db_manager
+        from cores.database.manager import get_db_manager
 
         mgr = get_db_manager()
         db_session = mgr.get_session("cycles")
@@ -251,7 +256,7 @@ def register_security_cycle(registry) -> None:
     """Register Security cycle definition."""
     import contextlib
 
-    from core.cycles.registry import CycleDefinition
+    from cores.cycles.registry import CycleDefinition
 
     with contextlib.suppress(ValueError):
         registry.register(
@@ -259,7 +264,7 @@ def register_security_cycle(registry) -> None:
                 slug="security",
                 name="Security",
                 description="Bug bounty, vulnerability research, Rastro pipeline",
-                category="offensive",
+                category="security",
                 priority=10,
                 config={
                     "source_apps": ["rastro", "aegis"],

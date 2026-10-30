@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { ChevronRight, Home } from '@lucide/vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, Home } from '@lucide/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,9 +26,7 @@ const breadcrumbs = computed(() => {
     // Skip numeric IDs in breadcrumbs
     if (/^\d+$/.test(seg) && i > 0) continue
 
-    const label = seg
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, (c: string) => c.toUpperCase())
+    const label = seg.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
     if (i === segments.length - 1) {
       crumbs.push({ label: metaTitle || label })

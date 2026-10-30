@@ -5,14 +5,14 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from core.commands import (
+from cores.commands import (
     CommandDefinition,
     PermissionLevel,
     get_command_dispatcher,
     get_command_registry,
 )
-from core.commands.dispatcher import reset_command_dispatcher
-from core.commands.registry import reset_command_registry
+from cores.commands.dispatcher import reset_command_dispatcher
+from cores.commands.registry import reset_command_registry
 
 # ── Fixtures ─────────────────────────────────────────────────────
 

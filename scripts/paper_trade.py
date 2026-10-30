@@ -26,9 +26,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter
-from core.investment.allocation import get_allocation_controller, reset_allocation_controller
-from core.investment.manager import InvestmentManager
+from cores.investment.adapters.global_arbitrage_adapter import GlobalArbitrageAdapter
+from cores.investment.allocation import get_allocation_controller, reset_allocation_controller
+from cores.investment.manager import InvestmentManager
 
 logging.basicConfig(level=logging.WARNING)
 

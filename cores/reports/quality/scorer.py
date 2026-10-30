@@ -5,8 +5,8 @@ import json
 import logging
 from typing import Any
 
-from core.copilot.analyzer import CopilotContext, FindingAnalyzer
-from core.copilot.review import CopilotReview
+from cores.copilot.analyzer import CopilotContext, FindingAnalyzer
+from cores.copilot.review import CopilotReview
 from database import db
 from database.models import Evidence, Finding, Verdict
 

@@ -144,6 +144,37 @@ def update_single_report(report_id: int, body: ReportUpdate):
         session.close()
 
 
+@router.delete("/{report_id}")
+def delete_report(report_id: int):
+    """Delete a report."""
+    from database import db, models
+
+    session = db.SessionLocal()
+    try:
+        report = session.query(models.Report).filter(models.Report.id == report_id).first()
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        # Store info for event
+        report_title = report.title or f"Report #{report_id}"
+
+        session.delete(report)
+        session.commit()
+
+        # Publish event
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("report:deleted", {"id": report_id, "title": report_title})
+        except Exception:
+            pass
+
+        return {"id": report_id, "deleted": True}
+    finally:
+        session.close()
+
+
 @router.get("/{report_id}/export")
 def export_single_report(report_id: int, format: str = Query("markdown", pattern="^(markdown|html|pdf|txt)$")):
     try:

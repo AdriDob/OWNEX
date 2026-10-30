@@ -6,180 +6,14 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
-from fastapi.responses import PlainTextResponse
 
-from api.middleware.auth_middleware import AuthMiddleware
-from api.middleware.csrf_middleware import CSRFMiddleware
-from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware, http_exception_handler
-from api.middleware.rate_limit_middleware import RateLimitMiddleware
-from api.routers import (
-    accounts_hub,
-    activity,
-    agent_coordinator,
-    agents_router,
-    ai_security,
-    alerts,
-    assistant,
-    atlas_app,
-    atlas_cycle,
-    attack,
-    attack_surface,
-    auth,
-    auth_user,
-    auth_users,
-    authhub,
-    auto_apply,
-    auto_submit,
-    bank_payout,
-    bounty_pipeline,
-    canonical,
-    capability_expansion,
-    career,
-    commands,
-    connections,
-    contracts,
-    control,
-    copilot,
-    credentials_rotation,
-    crypto,
-    cycles,
-    daily,
-    daily_digest,
-    agenda,
-    daily_mode,
-    decision,
-    device,
-    devin,
-    differential_intelligence,
-    digest,
-    direct_work,
-    discovery,
-    dispute,
-    economic,
-    endpoints,
-    enhanced_personalization,
-    evidence,
-    evolution,
-    execution,
-    execution_queue,
-    files,
-    finance,
-    financial_sync,
-    financial_truth,
-    findings,
-    fiverr,
-    forge_app,
-    forge_cycle,
-    hunt,
-    hunter,
-    hypotheses,
-    identity,
-    identity_center,
-    idor,
-    infinite_sources,
-    intel,
-    intelligence,
-    investigations,
-    investment,
-    knowledge_bridge,
-    license,
-    life,
-    life_management,
-    market_intelligence,
-    mercenary_filter,
-    merlin,
-    micro,
-    mission,
-    mobile,
-    mobile_approvals,
-    modes,
-    notifications,
-    oar,
-    obsidian_sync,
-    offensive,
-    offensive_web3,
-    onboarding,
-    opensource,
-    operations,
-    opportunities,
-    opportunity_feedback,
-    opportunity_intelligence,
-    opportunity_score,
-    orchestrator,
-    orion,
-    orion_cli,
-    osint,
-    outlook,
-    overview,
-    payment_compat,
-    personal_infrastructure,
-    pipeline,
-    platforms,
-    productivity,
-    profile_kit,
-    progressive_scaling,
-    project_dashboard,
-    pulse_app,
-    pulse_cycle,
-    qa_cycle,
-    quick_wins,
-    recon,
-    remote_control,
-    report_pipeline,
-    reports,
-    reports_acceptance,
-    reports_quality,
-    result_based,
-    revenue,
-    revenue_app,
-    revenue_multiplier,
-    revenue_timeline,
-    roi,
-    sandbox,
-    scans,
-    screenshots,
-    security_cycle,
-    self_improvement,
-    settings_ai,
-    settings_runtime,
-    settings_unified,
-    setup,
-    stability,
-    supabase,
-    sync,
-    system,
-    system_state,
-    target_identity,
-    targets,
-    telegram_bot,
-    terminal_ws,
-    trading,
-    ultra_fast_income,
-    validation,
-    vault_app,
-    vault_cycle,
-    verdicts,
-    version,
-    version_backup,
-    voice,
-    voice_commands,
-    wear_os,
-    webhooks,
-    ws,
-    zap,
-    zero_barrier,
-)
-from api.routers.investment import register_investment_capabilities as _reg_inv_caps
-from cores.env.config import get_config
-from cores.learning.router import router as learning_router
-from cores.log_config import setup_logging
-from database import db
-
-
-# ── CLI Argument Parsing ─────────────────────────────────────────────────
+# ── Data directory + env BEFORE any local import ─────────────────────────
+# database.db creates its engine at import time from DATABASE_URL, and every
+# router imported below pulls it in transitively. This block must run HERE —
+# not 200 lines later — or the engine binds the wrong file (frozen-bundle
+# split-brain: engine on ./database/catseye.db while the app believes in
+# ~/.ownex/database/cateye.db). SSOT: %LOCALAPPDATA%/OWNEX (win) file
+# catseye.db, matching database/db.py::_default_db_url().
 def parse_args():
     parser = argparse.ArgumentParser(description="OWNEX Backend - FastAPI Server")
     parser.add_argument("--port", type=int, default=8000, help="Port to run the server on (default: 8000)")
@@ -205,21 +39,231 @@ def parse_args():
 # ours (pytest, IDE runners) — unknown flags must be ignored, never fatal.
 _ARGS, _UNKNOWN_ARGS = parse_args()
 
-# Configure data directory BEFORE any imports that might use it
 if _ARGS.data_dir:
     data_dir = Path(_ARGS.data_dir)
+elif os.getenv("OWNEX_DATA_DIR"):
+    data_dir = Path(os.environ["OWNEX_DATA_DIR"])
+elif os.getenv("CATEYE_DATA_DIR"):
+    data_dir = Path(os.environ["CATEYE_DATA_DIR"])
+elif sys.platform == "win32":
+    data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
 else:
-    # Platform-specific default
-    if sys.platform == "win32":
-        data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
-    else:
-        data_dir = Path.home() / ".ownex"
+    data_dir = Path.home() / ".ownex"
 
-# Set environment variables for downstream code
+# Unify downstream readers (database/db.py reads OWNEX_DATA_DIR,
+# cores/platform legacy reads CATEYE_DATA_DIR).
+os.environ["OWNEX_DATA_DIR"] = str(data_dir)
 os.environ["CATEYE_DATA_DIR"] = str(data_dir)
-_DB_PATH = data_dir / "database" / "cateye.db"
-_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
+_DB_PATH = data_dir / "database" / "catseye.db"
+if "DATABASE_URL" not in os.environ:
+    # An explicitly provided DATABASE_URL (pytest conftest isolation, docker,
+    # systemd) always wins and is never overwritten here.
+    _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import PlainTextResponse
+
+from api.middleware.auth_middleware import AuthMiddleware
+from api.middleware.csrf_middleware import CSRFMiddleware
+from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware, http_exception_handler
+from api.middleware.rate_limit_middleware import RateLimitMiddleware
+from api.routers import (
+    accounts_hub,
+    activity,
+    agenda,
+    agent_coordinator,
+    agents_router,
+    ai_frontier,
+    ai_security,
+    alerts,
+    approvals,
+    assistant,
+    atlas_app,
+    atlas_cycle,
+    attack,
+    attack_surface,
+    auth,
+    auth_user,
+    auth_users,
+    authhub,
+    auto_apply,
+    auto_submit,
+    autonomous_scheduler,
+    autopilot,
+    availability,
+    bank_payout,
+    bounty_pipeline,
+    canonical,
+    capability_expansion,
+    capital,
+    career,
+    chat,
+    command_center,
+    commands,
+    connections,
+    contracts,
+    control,
+    copilot,
+    credentials_rotation,
+    crypto,
+    cycles,
+    daily,
+    daily_brief,
+    daily_digest,
+    daily_mode,
+    decision,
+    dev_bounty,
+    device,
+    devin,
+    differential_intelligence,
+    digest,
+    direct_work,
+    discovery,
+    dispute,
+    economic,
+    endpoints,
+    enhanced_personalization,
+    evidence,
+    evidence_vault,
+    evolution,
+    execution,
+    execution_queue,
+    files,
+    finance,
+    financial_sync,
+    financial_truth,
+    finding_market,
+    findings,
+    fiverr,
+    forge_app,
+    forge_cycle,
+    help_center,
+    human_gate,
+    hunt,
+    hunter,
+    hypotheses,
+    identity,
+    identity_center,
+    idor,
+    income_experiments,
+    infinite_sources,
+    intel,
+    intelligence,
+    investigations,
+    investment,
+    knowledge_bridge,
+    knowledge_graph,
+    learning_loop,
+    license,
+    life,
+    life_management,
+    market_intelligence,
+    mercenary_filter,
+    merlin,
+    micro,
+    mission,
+    mobile,
+    mobile_approvals,
+    modes,
+    notification_center,
+    notifications,
+    oar,
+    obs,
+    observation,
+    obsidian_sync,
+    offensive,
+    offensive_web3,
+    onboarding,
+    opensource,
+    operations,
+    opportunities,
+    opportunity_feedback,
+    opportunity_intelligence,
+    opportunity_score,
+    orchestrator,
+    orion,
+    orion_cli,
+    osint,
+    outlook,
+    overview,
+    patrimony,
+    payment_compat,
+    personal_infrastructure,
+    pillars,
+    pipeline,
+    platform_webhooks,
+    platforms,
+    predictive,
+    productivity,
+    profile_kit,
+    progressive_scaling,
+    project_dashboard,
+    projects,
+    pulse_app,
+    pulse_cycle,
+    qa_cycle,
+    quick_capture,
+    quick_wins,
+    recon,
+    remote_control,
+    report_pipeline,
+    reports,
+    reports_acceptance,
+    reports_quality,
+    result_based,
+    revenue,
+    revenue_app,
+    revenue_multiplier,
+    revenue_timeline,
+    roi,
+    sandbox,
+    scans,
+    screenshots,
+    security_cycle,
+    self_healer,
+    self_improvement,
+    settings_ai,
+    settings_runtime,
+    settings_unified,
+    setup,
+    solver,
+    stability,
+    supabase,
+    sync,
+    system,
+    system_state,
+    target_identity,
+    targets,
+    team,
+    telegram_bot,
+    terminal_ws,
+    today,
+    training_pipeline,
+    ultra_fast_income,
+    unified_income,
+    validation,
+    vault_app,
+    vault_cycle,
+    verdicts,
+    version,
+    version_backup,
+    voice,
+    voice_commands,
+    wear_os,
+    webhooks,
+    worker_core,
+    ws,
+    zap,
+    zero_barrier,
+)
+from api.routers.investment import register_investment_capabilities as _reg_inv_caps
+from cores.env.config import get_config
+from cores.learning.router import router as learning_router
+from cores.log_config import setup_logging
+from database import db
 
 # Configure logging
 logging.basicConfig(
@@ -386,6 +430,23 @@ app = FastAPI(
     swagger_ui_parameters={"deepLinking": True, "displayRequestDuration": True},
 )
 
+# ══════════════════════════════════════════════════════════════════════════════
+# WORKAROUND: FastAPI 0.141.1 include_router bug
+# The include_router method doesn't properly add routes when router has a prefix.
+# Monkey-patch include_router to use router.routes.extend() which works correctly.
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def _include_router_workaround(app: FastAPI, router, **kwargs):
+    """Workaround for FastAPI 0.141.1 include_router bug.
+    Manually extends app.router.routes with router.routes which works correctly.
+    """
+    app.router.routes.extend(router.routes)
+
+
+# Monkey-patch include_router
+app.include_router = lambda router, **kwargs: app.router.routes.extend(router.routes)
+
 # Production: restrict to local origins + Tauri bundle origins.
 # Dev mode (OWNEX_DESKTOP/CATEYE_DESKTOP not set) uses * but without
 # credentials per Fetch spec. The packaged sidecar always sets
@@ -480,6 +541,7 @@ app.include_router(targets.router)
 app.include_router(endpoints.router)
 app.include_router(findings.router)
 app.include_router(evidence.router)
+app.include_router(evidence_vault.router)
 app.include_router(sandbox.router)
 app.include_router(dispute.router)
 app.include_router(obsidian_sync.router)
@@ -513,13 +575,19 @@ app.include_router(opportunity_feedback.router)
 app.include_router(opportunity_intelligence.router)
 app.include_router(mercenary_filter.router)
 app.include_router(auto_submit.router)
+app.include_router(autopilot.router)
+app.include_router(availability.router)
 app.include_router(bounty_pipeline.router)
+app.include_router(dev_bounty.router)
+app.include_router(unified_income.router)
+app.include_router(today.router)
 app.include_router(agent_coordinator.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
 app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
+app.include_router(notification_center.router)
 app.include_router(outlook.router)
 app.include_router(mobile.router)
 app.include_router(mobile_approvals.router)
@@ -544,14 +612,24 @@ app.include_router(files.router)
 app.include_router(life.router)
 app.include_router(control.router)
 app.include_router(copilot.router)
+app.include_router(chat.router)
+app.include_router(solver.router)
+app.include_router(projects.router)
 app.include_router(execution.router)
 app.include_router(execution_queue.router)
+from api.routers.finisher import router as finisher_router  # noqa: E402
+
+app.include_router(finisher_router)
+app.include_router(worker_core.router)
+app.include_router(daily_brief.router)
 app.include_router(license.router)
 app.include_router(learning_router)
 app.include_router(project_dashboard.router)
 app.include_router(ws.router)
+app.include_router(wear_os.router)
 app.include_router(terminal_ws.router)
-app.include_router(trading.router)
+# trading.router se monta una sola vez abajo (línea ~685, bloque Trading Dashboard)
+app.include_router(patrimony.router)
 app.include_router(idor.router)
 app.include_router(offensive.router)
 app.include_router(offensive_web3.router)
@@ -574,9 +652,17 @@ app.include_router(mission.router)
 app.include_router(progressive_scaling.router)
 app.include_router(ultra_fast_income.router)
 app.include_router(infinite_sources.router)
+app.include_router(income_experiments.router)
 app.include_router(auto_apply.router)
 app.include_router(alerts.router)
 app.include_router(modes.router)
+app.include_router(capital.router)
+app.include_router(approvals.router)
+app.include_router(pillars.router)
+app.include_router(learning_loop.router)
+app.include_router(command_center.router)
+app.include_router(obs.router)
+app.include_router(observation.router)
 app.include_router(activity.router)
 app.include_router(crypto.router)
 app.include_router(credentials_rotation.router)
@@ -590,12 +676,39 @@ app.include_router(investment.router)
 _reg_inv_caps()
 app.include_router(osint.router)
 app.include_router(hunt.router)
+app.include_router(human_gate.router)
 app.include_router(hunter.router)
 app.include_router(recon.router)
 app.include_router(telegram_bot.router)
 app.include_router(version.router)
 app.include_router(intel.router)
 app.include_router(ai_security.router)
+app.include_router(ai_frontier.router)
+
+
+# ── Trading Dashboard ──────────────────────────────────────────────
+from api.routers.trading_dashboard import router as trading_dashboard_router
+
+app.include_router(trading_dashboard_router)
+# Trading accionable (copy/masters/ingest/advisor/approve) — 2026-09-15:
+# el router vivía sin montar (el front consumía un contrato inexistente y el
+# dashboard siempre mostraba 0). Lo montamos: /api/trading/* real.
+from api.routers.trading import router as trading_router
+
+app.include_router(trading_router)
+
+from api.routers.mcp_integration import router as mcp_integration_router
+
+app.include_router(mcp_integration_router)
+
+from api.routers.trading_mt5 import router as mt5_router
+
+app.include_router(mt5_router)
+
+from api.routers.meme_copy import router as meme_copy_router
+
+app.include_router(meme_copy_router)
+
 app.include_router(opportunity_score.router)
 app.include_router(report_pipeline.router)
 app.include_router(voice.router)
@@ -603,6 +716,13 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(platform_webhooks.router)
+app.include_router(knowledge_graph.router)
+app.include_router(training_pipeline.router)
+app.include_router(team.router)
+app.include_router(finding_market.router)
+app.include_router(predictive.router)
+app.include_router(quick_capture.router)
 app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)
 app.include_router(decision.router)
@@ -618,6 +738,7 @@ app.include_router(finance.router)  # Personal Finance Command Center
 
 # Setup router
 app.include_router(setup.router)
+app.include_router(help_center.router)
 app.include_router(supabase.router)
 app.include_router(enhanced_personalization.router)
 
@@ -633,33 +754,117 @@ app.include_router(devin.router)
 # Onboarding router
 app.include_router(onboarding.router)
 
+# Platform Guides router (Zero-to-Earning onboarding)
+from api.routers.platform_guides import router as platform_guides_router  # noqa: E402
+
+app.include_router(platform_guides_router)
+
+# First Money router (Zero-to-Earning workflow)
+from api.routers.first_money import router as first_money_router  # noqa: E402
+
+app.include_router(first_money_router)
+
+# Mission Hub router (hunter overview: mission + levels + workspaces)
+from api.routers.mission_hub import router as mission_hub_router  # noqa: E402
+
+app.include_router(mission_hub_router)
+
 # Wear OS router
-app.include_router(wear_os.router)
 
 # Security Cycle router
 app.include_router(security_cycle.router)
 app.include_router(self_improvement.router)
+app.include_router(self_healer.router)
 app.include_router(forge_cycle.router)
 app.include_router(pulse_cycle.router)
 app.include_router(vault_cycle.router)
 app.include_router(atlas_cycle.router)
+app.include_router(autonomous_scheduler.router)
 app.include_router(qa_cycle.router)
 app.include_router(profile_kit.router)
 app.include_router(daily_digest.router)
 app.include_router(agenda.router)
 app.include_router(knowledge_bridge.router)
 app.include_router(payment_compat.router)
+from api.routers.ecommerce import router as ecommerce_router  # noqa: E402
+
+app.include_router(ecommerce_router)
+from api.routers.client_acquisition import router as client_acquisition_router  # noqa: E402
+
+app.include_router(client_acquisition_router)
+from api.routers.content_factory import router as content_factory_router  # noqa: E402
+
+app.include_router(content_factory_router)
+from api.routers.internal_dev import router as internal_dev_router  # noqa: E402
+
+app.include_router(internal_dev_router)
+from api.routers.local_jobs import router as local_jobs_router  # noqa: E402
+
+app.include_router(local_jobs_router)
+from api.routers.affiliate import router as affiliate_router  # noqa: E402
+
+app.include_router(affiliate_router)
+from api.routers.zero_invest import router as zero_invest_router  # noqa: E402
+
+app.include_router(zero_invest_router)
+from api.routers.business_tools import router as business_tools_router  # noqa: E402
+from api.routers.extra_work import router as extra_work_router  # noqa: E402
+
+app.include_router(business_tools_router)
+app.include_router(extra_work_router)
+from api.routers.economic_feedback import router as economic_feedback_router  # noqa: E402
+
+app.include_router(economic_feedback_router)
+from api.routers.economic_trajectory import router as economic_trajectory_router  # noqa: E402
+
+app.include_router(economic_trajectory_router)
+from api.routers.app_factory import router as app_factory_router  # noqa: E402
+
+app.include_router(app_factory_router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.
-from core.api.routers import router as core_router  # noqa: E402
+from cores.api.routers import router as core_router  # noqa: E402
 
 app.include_router(core_router)
-from core.app_registry import get_app_registry  # noqa: E402
+
+# ── ODYSSEY (analytics de apuestas) ──
+# Router del app plugin que NUNCA estuvo montado: `registry.mount_routers()`
+# corre antes de que `lifespan` llame a `registry.discover()`, así que en ese
+# momento `_apps` está vacío y no monta nada. Medido 2026-10-08: los 3
+# endpoints que pide `DashboardOdyssey.vue` (`/api/odyssey/analytics/{summary,
+# roi,performance}`) daban 404 aunque el router existe y la DB está
+# provisionada (`~/.ownex/database/odyssey.db`).
+#
+# Se monta SÓLO odyssey a propósito, no todo `apps/`: los prefijos que
+# declaran los demás plugins son inconsistentes (forge/pulse/vault en raíz,
+# aegis/atlas/odyssey bajo `/api`) y montarlos todos cambiaría el contrato de
+# `ROOT_MOUNTED_PREFIXES`. Ver KNOWN_DEBT #72.
+#
+# Este router ya trae su propio `prefix="/api/odyssey"`, así que no lleva
+# prefijo extra (y el `include_router` monkey-patcheado descarta los kwargs).
+from apps.odyssey.api.routers import router as odyssey_router  # noqa: E402
+
+app.include_router(odyssey_router)
+
+from api.routers.session import router as session_router  # noqa: E402
+
+app.include_router(session_router)
+
+from api.routers.system_health import router as system_health_router  # noqa: E402
+
+app.include_router(system_health_router)
+
+from cores.app_registry import get_app_registry  # noqa: E402
 
 registry = get_app_registry()
 registry.mount_routers(app)
 logger.info("[ORION] Core + app routers mounted")
+
+# El AuthMiddleware necesita saber qué paths están montados para distinguir
+# "endpoint que exige sesión" de "asset/SPA route que sirve el frontend".
+# Se registra después de `mount_routers`, cuando la lista ya está completa.
+AuthMiddleware._register_mounted(app)
 
 
 APP_VERSION = _APP_VERSION
@@ -722,9 +927,10 @@ def _get_db_size_mb() -> float:
     return 0.0
 
 
-@app.get("/api/version")
-async def get_version():
-    return {"version": APP_VERSION, "app": "OWNEX API", "build": APP_VERSION}
+# NOTE (ship-day 2026-09-28): el handler inline de /api/version se eliminó
+# — duplicaba api/routers/version.py (mismo path+método, inalcanzable por el
+# orden de registro de FastAPI) y su payload era subconjunto estricto del
+# ganador. El cliente (OnboardingWizard) lee solo `.version`, presente en ambos.
 
 
 @app.get("/api/stats")

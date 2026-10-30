@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -48,7 +48,7 @@ class RawKnowledgeDocument:
     external_id: str
     raw_content: dict[str, Any]
     payload_type: KnowledgeContentType = KnowledgeContentType.other
-    ingest_timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    ingest_timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: KnowledgeMetadata = field(
         default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown")
     )
@@ -66,15 +66,15 @@ class CanonicalKnowledgeArtifact:
     metadata: KnowledgeMetadata = field(
         default_factory=lambda: KnowledgeMetadata(source="unknown", source_id="unknown", source_type="unknown")
     )
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     version: int = 1
     fingerprint: str | None = None
     dedup_source_ids: list[str] = field(default_factory=list)
 
     def bump_version(self) -> None:
         self.version += 1
-        self.updated_at = datetime.utcnow().isoformat()
+        self.updated_at = datetime.now(UTC).isoformat()
 
 
 @dataclass
@@ -91,8 +91,8 @@ class KnowledgeEntity:
     severity: str | None = None
     references: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -103,5 +103,5 @@ class KnowledgeRelationship:
     relation_type: str
     metadata: dict[str, Any] = field(default_factory=dict)
     confidence: float = 0.0
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
