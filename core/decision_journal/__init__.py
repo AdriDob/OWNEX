@@ -9,7 +9,7 @@ Each entry records:
 - Feedback loop
 """
 # ruff: noqa: E402
-from core.decision_journal.journal import (
+from cores.decision_journal.journal import (
     get_decisions,
     log_decision,
     record_outcome,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from core.market_intelligence.models import (
+from cores.market_intelligence.models import (
     IntelligenceBrief,
     IntelligenceSource,
     OpportunityAssessment,

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { AlertTriangle, CheckCircle2, KeyRound, Loader2 } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { checkLicense, activateLicense } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
 import Button from '@/components/ui/Button.vue'
-import { KeyRound, CheckCircle2, AlertTriangle, Loader2 } from '@lucide/vue'
+import Card from '@/components/ui/Card.vue'
+import { activateLicense, checkLicense } from '@/lib/api'
 
 const router = useRouter()
 

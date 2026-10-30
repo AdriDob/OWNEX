@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.skill_seekers.connector")
 

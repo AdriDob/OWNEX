@@ -4,15 +4,15 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.revenue.converter import usd_to_ars
-from core.revenue.discovery import discover_daily_opportunities
-from core.revenue.models import (
+from cores.revenue.converter import usd_to_ars
+from cores.revenue.discovery import discover_daily_opportunities
+from cores.revenue.models import (
     ARGENTINA_METHODS,
     Payment,
     RevenueRecord,
     RevenueStats,
 )
-from core.revenue.tracker import PaymentTracker
+from cores.revenue.tracker import PaymentTracker
 
 logger = logging.getLogger("ownex.revenue")
 

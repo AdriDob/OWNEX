@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from core.interfaces.app import IAppPlugin
-from core.scheduler.jobs import get_pulse_jobs
+from cores.interfaces.app import IAppPlugin
+from cores.scheduler.jobs import get_pulse_jobs
 
 # Adapter provider strings for the adapter registry
 PULSE_ADAPTERS = [

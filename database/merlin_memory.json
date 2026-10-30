@@ -1,0 +1,53 @@
+{
+  "memories": [
+    {
+      "id": "conv_1787900464.328752",
+      "type": "conversation",
+      "title": "Conversation - 2026-08-28 07:01",
+      "content": "Q: Hola MERLIN\nA: \u00a1Saludos! MERLIN report\u00e1ndose para el servicio. \u2328\ufe0f",
+      "timestamp": "2026-08-28T07:01:04.328752",
+      "tags": [
+        "greeting"
+      ],
+      "metadata": {
+        "question": "Hola MERLIN",
+        "response": "\u00a1Saludos! MERLIN report\u00e1ndose para el servicio. \u2328\ufe0f"
+      },
+      "access_count": 0,
+      "last_accessed": null
+    },
+    {
+      "id": "conv_1787900465.677547",
+      "type": "conversation",
+      "title": "Conversation - 2026-08-28 07:01",
+      "content": "Q: TOOL_CALL: {\"tool\": \"check_capital\", \"args\": {}}\nA: \nMERLIN ha recibido tu mensaje: \"TOOL_CALL: {\"tool\": \"check_capital\", \"args\": {}}\"\n\nMERLIN puede ayudarte con:\n- An\u00e1lisis de targets y vulnerabilidades\n- Generaci\u00f3n de reportes automatizados\n- Optimizaci\u00f3n de workflows\n- An\u00e1lisis de datos e investigaci\u00f3n\n- Planificaci\u00f3n estrat\u00e9gica\n- Asistencia t\u00e9cnica\n\nPor favor, s\u00e9 m\u00e1s espec\u00edfico sobre lo que necesitas y MERLIN proporcionar\u00e1 asistencia detallada.\n",
+      "timestamp": "2026-08-28T07:01:05.677547",
+      "tags": [
+        "general"
+      ],
+      "metadata": {
+        "question": "TOOL_CALL: {\"tool\": \"check_capital\", \"args\": {}}",
+        "response": "\nMERLIN ha recibido tu mensaje: \"TOOL_CALL: {\"tool\": \"check_capital\", \"args\": {}}\"\n\nMERLIN puede ayudarte con:\n- An\u00e1lisis de targets y vulnerabilidades\n- Generaci\u00f3n de reportes automatizados\n- Optimizaci\u00f3n de workflows\n- An\u00e1lisis de datos e investigaci\u00f3n\n- Planificaci\u00f3n estrat\u00e9gica\n- Asistencia t\u00e9cnica\n\nPor favor, s\u00e9 m\u00e1s espec\u00edfico sobre lo que necesitas y MERLIN proporcionar\u00e1 asistencia detallada.\n"
+      },
+      "access_count": 0,
+      "last_accessed": null
+    },
+    {
+      "id": "conv_1787900691.319245",
+      "type": "conversation",
+      "title": "Conversation - 2026-08-28 07:04",
+      "content": "Q: Hola MERLIN\nA: MERLIN aqu\u00ed. \u00bfEn qu\u00e9 puedo ayudarte hoy? \ud83d\udda5\ufe0f",
+      "timestamp": "2026-08-28T07:04:51.319245",
+      "tags": [
+        "greeting"
+      ],
+      "metadata": {
+        "question": "Hola MERLIN",
+        "response": "MERLIN aqu\u00ed. \u00bfEn qu\u00e9 puedo ayudarte hoy? \ud83d\udda5\ufe0f"
+      },
+      "access_count": 0,
+      "last_accessed": null
+    }
+  ],
+  "last_updated": "2026-08-28T07:04:51.319295"
+}

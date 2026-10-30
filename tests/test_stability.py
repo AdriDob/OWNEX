@@ -92,11 +92,13 @@ def make_client(monkeypatch) -> TestClient:
 
 
 def test_stability_status_shape(monkeypatch) -> None:
+    from cores.version import OWNEX_VERSION
+
     client = make_client(monkeypatch)
     resp = client.get("/api/stability/status")
     assert resp.status_code == 200
     body = resp.json()
-    assert "version" in body and body["version"]["current"] == "7.0.0"
+    assert "version" in body and body["version"]["current"] == OWNEX_VERSION
     assert "sections" in body
     for section in ("core", "memory", "agents", "security", "tools", "storage", "updates"):
         assert section in body["sections"]

@@ -5,7 +5,7 @@ All CATEYE components should use this module instead of os.environ directly
 for config/log/data directory resolution.
 
 Usage:
-    from core.platform.system import get_platform, Platform, get_data_dir
+    from cores.platform.system import get_platform, Platform, get_data_dir
     plat = get_platform()
     data_dir = get_data_dir()
 """

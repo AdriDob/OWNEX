@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Mic, MicOff, Volume2, VolumeX, Settings as SettingsIcon } from '@lucide/vue'
+import { Mic, MicOff, Settings as SettingsIcon, Volume2, VolumeX } from '@lucide/vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const isListening = ref(false)
 const isProcessing = ref(false)

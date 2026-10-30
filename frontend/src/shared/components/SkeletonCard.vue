@@ -5,24 +5,27 @@
  */
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  /** Height class (Tailwind) */
-  height?: string
-  /** Width class (Tailwind) */
-  width?: string
-  /** Number of skeleton lines */
-  lines?: number
-  /** Show avatar circle */
-  avatar?: boolean
-  /** Border radius */
-  radius?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-}>(), {
-  height: 'h-4',
-  width: 'w-full',
-  lines: 3,
-  avatar: false,
-  radius: 'lg',
-})
+const props = withDefaults(
+  defineProps<{
+    /** Height class (Tailwind) */
+    height?: string
+    /** Width class (Tailwind) */
+    width?: string
+    /** Number of skeleton lines */
+    lines?: number
+    /** Show avatar circle */
+    avatar?: boolean
+    /** Border radius */
+    radius?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  }>(),
+  {
+    height: 'h-4',
+    width: 'w-full',
+    lines: 3,
+    avatar: false,
+    radius: 'lg',
+  },
+)
 
 const radiusClass = computed(() => {
   const map = { sm: 'rounded-sm', md: 'rounded-lg', lg: 'rounded-xl', xl: 'rounded-2xl', full: 'rounded-full' }

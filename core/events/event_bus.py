@@ -16,7 +16,7 @@ from typing import Any
 from sqlalchemy import Column, Float, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 
-from core.interfaces.event_bus import IEventBus
+from cores.interfaces.event_bus import IEventBus
 
 logger = logging.getLogger("orion.core.events")
 
@@ -116,7 +116,7 @@ class CoreEventBus(IEventBus):
 
     def _persist_event(self, event: str, data: dict) -> None:
         try:
-            from core.database.manager import get_db_manager
+            from cores.database.manager import get_db_manager
 
             dbm = get_db_manager()
             if not self._db_registered:

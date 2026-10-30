@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from core.opportunity.executors import BaseExecutor, ExecutionResult
+from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
 
 class AlgoraExecutor(BaseExecutor):

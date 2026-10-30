@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Settings from '@/pages/Settings.vue'
 
 const mockApi = vi.hoisted(() => ({
@@ -11,14 +11,92 @@ vi.mock('@/lib/api', () => ({ api: mockApi }))
 
 const mockSettingsStore = vi.hoisted(() => ({
   data: {
-    general: { userName: 'Test', language: 'es', theme: 'cyber', colors: 'default', accessibility: false, animations: true },
-    ai: { provider: 'ollama', ollamaHost: 'http://localhost:11434', ollamaModel: 'qwen3:8b', openaiKey: '', openaiBaseUrl: '', openaiModel: '', geminiKey: '', geminiModel: '', openrouterKey: '', openrouterModel: '', temperature: 0.7, maxContext: 4096, memory: true, reasoning: 'medium' },
-    tools: { nuclei: { installed: false, version: '' }, subfinder: { installed: false, version: '' }, amass: { installed: false, version: '' }, httpx: { installed: false, version: '' }, katana: { installed: false, version: '' }, ffuf: { installed: false, version: '' }, gau: { installed: false, version: '' }, naabu: { installed: false, version: '' }, assetfinder: { installed: false, version: '' }, dnsx: { installed: false, version: '' } },
-    apiKeys: { bugcrowd: '', hackerone: '', intigriti: '', yeswehack: '', synack: '', github: '', gitlab: '', shodan: '', censys: '', securitytrails: '', virustotal: '', openrouter: '', openai: '', anthropic: '', google: '', wallet: '', bank: '' },
-    missionControl: { autoMode: false, parallelism: 2, limits: 100, speed: 'normal', depth: 3, allowedTools: ['nuclei', 'subfinder', 'httpx', 'katana', 'ffuf'] },
-    system: { cpu: '', ram: '', disk: '', wsl: '', docker: '', python: '', node: '', ollama: '', models: '', internet: false, tools: '', database: '' },
+    general: {
+      userName: 'Test',
+      language: 'es',
+      theme: 'cyber',
+      colors: 'default',
+      accessibility: false,
+      animations: true,
+    },
+    ai: {
+      provider: 'ollama',
+      ollamaHost: 'http://localhost:11434',
+      ollamaModel: 'qwen3:8b',
+      openaiKey: '',
+      openaiBaseUrl: '',
+      openaiModel: '',
+      geminiKey: '',
+      geminiModel: '',
+      openrouterKey: '',
+      openrouterModel: '',
+      temperature: 0.7,
+      maxContext: 4096,
+      memory: true,
+      reasoning: 'medium',
+    },
+    tools: {
+      nuclei: { installed: false, version: '' },
+      subfinder: { installed: false, version: '' },
+      amass: { installed: false, version: '' },
+      httpx: { installed: false, version: '' },
+      katana: { installed: false, version: '' },
+      ffuf: { installed: false, version: '' },
+      gau: { installed: false, version: '' },
+      naabu: { installed: false, version: '' },
+      assetfinder: { installed: false, version: '' },
+      dnsx: { installed: false, version: '' },
+    },
+    apiKeys: {
+      bugcrowd: '',
+      hackerone: '',
+      intigriti: '',
+      yeswehack: '',
+      synack: '',
+      github: '',
+      gitlab: '',
+      shodan: '',
+      censys: '',
+      securitytrails: '',
+      virustotal: '',
+      openrouter: '',
+      openai: '',
+      anthropic: '',
+      google: '',
+      wallet: '',
+      bank: '',
+    },
+    missionControl: {
+      autoMode: false,
+      parallelism: 2,
+      limits: 100,
+      speed: 'normal',
+      depth: 3,
+      allowedTools: ['nuclei', 'subfinder', 'httpx', 'katana', 'ffuf'],
+    },
+    system: {
+      cpu: '',
+      ram: '',
+      disk: '',
+      wsl: '',
+      docker: '',
+      python: '',
+      node: '',
+      ollama: '',
+      models: '',
+      internet: false,
+      tools: '',
+      database: '',
+    },
     security: { permissions: {}, backups: false },
-    appearance: { theme: 'cyber', colors: 'default', icons: 'default', animations: true, density: 'normal', layout: 'default' },
+    appearance: {
+      theme: 'cyber',
+      colors: 'default',
+      icons: 'default',
+      animations: true,
+      density: 'normal',
+      layout: 'default',
+    },
     onboarding: { completed: true, skipped: false, currentStep: 0 },
   },
   syncing: false,
@@ -68,7 +146,7 @@ describe('Settings page', () => {
   it('renders all 8 tabs', () => {
     const wrapper = createWrapper()
     const tabs = wrapper.findAll('button')
-    const tabTexts = tabs.map(t => t.text())
+    const tabTexts = tabs.map((t) => t.text())
     expect(tabTexts).toContain('General')
     expect(tabTexts).toContain('IA')
     expect(tabTexts).toContain('Herramientas')
@@ -87,7 +165,7 @@ describe('Settings page', () => {
 
   it('switches to AI tab on click', async () => {
     const wrapper = createWrapper()
-    const aiBtn = wrapper.findAll('button').find(b => b.text().includes('IA'))
+    const aiBtn = wrapper.findAll('button').find((b) => b.text().includes('IA'))
     expect(aiBtn).toBeDefined()
     await aiBtn!.trigger('click')
     await wrapper.vm.$nextTick()
@@ -98,7 +176,7 @@ describe('Settings page', () => {
 
   it('switches to Mission Control tab', async () => {
     const wrapper = createWrapper()
-    const mcBtn = wrapper.findAll('button').find(b => b.text().includes('Mission Control'))
+    const mcBtn = wrapper.findAll('button').find((b) => b.text().includes('Mission Control'))
     await mcBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Configuración del agente')
@@ -107,7 +185,7 @@ describe('Settings page', () => {
 
   it('switches to API Keys tab', async () => {
     const wrapper = createWrapper()
-    const keyBtn = wrapper.findAll('button').find(b => b.text().includes('API Keys'))
+    const keyBtn = wrapper.findAll('button').find((b) => b.text().includes('API Keys'))
     await keyBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Central de API Keys')
@@ -117,7 +195,7 @@ describe('Settings page', () => {
 
   it('switches to System tab', async () => {
     const wrapper = createWrapper()
-    const sysBtn = wrapper.findAll('button').find(b => b.text().includes('Sistema'))
+    const sysBtn = wrapper.findAll('button').find((b) => b.text().includes('Sistema'))
     await sysBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Estado del sistema')
@@ -125,7 +203,7 @@ describe('Settings page', () => {
 
   it('switches to Seguridad tab', async () => {
     const wrapper = createWrapper()
-    const segBtn = wrapper.findAll('button').find(b => b.text().includes('Seguridad'))
+    const segBtn = wrapper.findAll('button').find((b) => b.text().includes('Seguridad'))
     await segBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Seguridad y datos')
@@ -134,7 +212,7 @@ describe('Settings page', () => {
 
   it('switches to Apariencia tab', async () => {
     const wrapper = createWrapper()
-    const appBtn = wrapper.findAll('button').find(b => b.text().includes('Apariencia'))
+    const appBtn = wrapper.findAll('button').find((b) => b.text().includes('Apariencia'))
     await appBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Personalización visual')
@@ -147,7 +225,7 @@ describe('Settings page', () => {
 
   it('shows tool list in tools tab', async () => {
     const wrapper = createWrapper()
-    const toolsBtn = wrapper.findAll('button').find(b => b.text().includes('Herramientas'))
+    const toolsBtn = wrapper.findAll('button').find((b) => b.text().includes('Herramientas'))
     await toolsBtn!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Herramientas del sistema')
@@ -157,10 +235,10 @@ describe('Settings page', () => {
 
   it('calls checkTools on verify button click', async () => {
     const wrapper = createWrapper()
-    const toolsBtn = wrapper.findAll('button').find(b => b.text().includes('Herramientas'))
+    const toolsBtn = wrapper.findAll('button').find((b) => b.text().includes('Herramientas'))
     await toolsBtn!.trigger('click')
     await wrapper.vm.$nextTick()
-    const verifyBtn = wrapper.findAll('.mock-btn').find(b => b.text().includes('Verificar'))
+    const verifyBtn = wrapper.findAll('.mock-btn').find((b) => b.text().includes('Verificar'))
     if (verifyBtn) {
       await verifyBtn.trigger('click')
       expect(mockSettingsStore.checkTools).toHaveBeenCalled()

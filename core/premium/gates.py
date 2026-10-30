@@ -14,7 +14,8 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger("ownex.premium")
 
@@ -24,17 +25,18 @@ _TIER_ORDER = {"free": 0, "supporter": 1, "professional": 2, "enterprise": 3}
 def _get_current_tier() -> str:
     """Read current tier from Ed25519 license or default to free."""
     try:
-        from cores.license import validator as lv
-
         # Check for tier in license file or env
         import os
+
         tier_env = os.getenv("OWNEX_TIER", "").lower()
         if tier_env in _TIER_ORDER:
             return tier_env
         license_path = os.path.expanduser("~/.ownex/license.json")
         if os.path.exists(license_path):
             import json
-            data = json.loads(open(license_path).read())
+
+            with open(license_path) as f:
+                data = json.loads(f.read())
             if data.get("valid") and data.get("tier"):
                 return data["tier"]
             if data.get("valid"):

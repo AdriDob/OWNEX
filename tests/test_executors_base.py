@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytest
 
-from core.opportunity.executors import BaseExecutor, ExecutionResult, get_executors
+from cores.opportunity.executors import BaseExecutor, ExecutionResult, get_executors
 
 
 @pytest.fixture

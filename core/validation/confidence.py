@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from core.validation.models import ConfidenceScore, ProbeResult, ValidationResult
+from cores.validation.models import ConfidenceScore, ProbeResult, ValidationResult
 
 logger = logging.getLogger("orion.core.validation.confidence")
 

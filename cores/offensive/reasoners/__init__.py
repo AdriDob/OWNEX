@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from core.offensive.reasoners.auth_bypass import AuthBypassReasoner
-from core.offensive.reasoners.base import BaseReasoner
-from core.offensive.reasoners.idor import IDORReasoner
-from core.offensive.reasoners.sqli import SQLiReasoner
-from core.offensive.reasoners.ssrf import SSRFReasoner
-from core.offensive.reasoners.xss import XSSReasoner
+from cores.offensive.reasoners.auth_bypass import AuthBypassReasoner
+from cores.offensive.reasoners.base import BaseReasoner
+from cores.offensive.reasoners.idor import IDORReasoner
+from cores.offensive.reasoners.sqli import SQLiReasoner
+from cores.offensive.reasoners.ssrf import SSRFReasoner
+from cores.offensive.reasoners.xss import XSSReasoner
 
 __all__ = [
     "BaseReasoner",

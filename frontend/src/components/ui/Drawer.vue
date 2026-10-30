@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted } from 'vue'
-import { cn } from '@/lib/utils'
 import { X } from '@lucide/vue'
+import { onMounted, onUnmounted, watch } from 'vue'
+import { cn } from '@/lib/utils'
 
 interface Props {
   open: boolean
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'close': []
+  close: []
   'update:open': [value: boolean]
 }>()
 
@@ -33,9 +33,12 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.open) close()
 }
 
-watch(() => props.open, (val) => {
-  document.body.style.overflow = val ? 'hidden' : ''
-})
+watch(
+  () => props.open,
+  (val) => {
+    document.body.style.overflow = val ? 'hidden' : ''
+  },
+)
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => {

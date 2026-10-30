@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 interface Mode {
   mode_key: string
@@ -193,7 +193,7 @@ const detailsMode = ref<Mode | null>(null)
 const activeCount = computed(() => Object.keys(activeModes.value).length)
 const conflictCount = computed(() => {
   let count = 0
-  Object.values(availableModes.value).forEach(mode => {
+  Object.values(availableModes.value).forEach((mode) => {
     if (hasConflict(mode)) count++
   })
   return count
@@ -202,7 +202,7 @@ const hasConflicts = computed(() => conflictCount.value > 0)
 
 const modesByCategory = computed(() => {
   const grouped: Record<string, Mode[]> = {}
-  Object.values(availableModes.value).forEach(mode => {
+  Object.values(availableModes.value).forEach((mode) => {
     if (!grouped[mode.category]) {
       grouped[mode.category] = []
     }
@@ -277,7 +277,7 @@ async function toggleMode(mode: Mode) {
     if (conflicts.length > 0) {
       conflictModalMode.value = mode
       conflictModalConflicts.value = conflicts
-      conflictModalSuggestions.value = conflicts.map(key => ({
+      conflictModalSuggestions.value = conflicts.map((key) => ({
         conflict: key,
         conflict_name: availableModes.value[key].name,
         action: 'deactivate',
@@ -346,7 +346,7 @@ onMounted(() => {
 <style scoped>
 .mode-manager-panel {
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #374151;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 12px;
   padding: 1.5rem;
   max-width: 1200px;
@@ -361,7 +361,7 @@ onMounted(() => {
 }
 
 .panel-header h2 {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   margin: 0;
 }
 
@@ -373,9 +373,9 @@ onMounted(() => {
 .refresh-btn,
 .history-btn {
   padding: 0.5rem 1rem;
-  background: #374151;
-  color: #f3f4f6;
-  border: 1px solid #374151;
+  background: var(--ownex-text-muted);
+  color: var(--ownex-bg-surface);
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -383,7 +383,7 @@ onMounted(() => {
 
 .refresh-btn:hover,
 .history-btn:hover {
-  background: #4b5563;
+  background: var(--ownex-text-muted);
 }
 
 .active-summary {
@@ -394,7 +394,7 @@ onMounted(() => {
 
 .summary-card {
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #374151;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 8px;
   padding: 1rem;
   flex: 1;
@@ -404,18 +404,18 @@ onMounted(() => {
 }
 
 .summary-label {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-size: 0.85rem;
 }
 
 .summary-value {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   font-weight: 700;
   font-size: 1.1rem;
 }
 
 .summary-value.has-conflicts {
-  color: #f59e0b;
+  color: var(--ownex-yellow);
 }
 
 .mode-categories {
@@ -425,7 +425,7 @@ onMounted(() => {
 }
 
 .category-section h3 {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
 }
@@ -438,7 +438,7 @@ onMounted(() => {
 
 .mode-item {
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #374151;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 8px;
   padding: 1rem;
   display: flex;
@@ -448,12 +448,12 @@ onMounted(() => {
 }
 
 .mode-item.active {
-  border-color: #10b981;
+  border-color: var(--ownex-green);
   background: rgba(16, 185, 129, 0.1);
 }
 
 .mode-item.conflict {
-  border-color: #f59e0b;
+  border-color: var(--ownex-yellow);
   background: rgba(245, 158, 11, 0.1);
 }
 
@@ -469,7 +469,7 @@ onMounted(() => {
 }
 
 .mode-name {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   font-weight: 600;
   font-size: 0.95rem;
 }
@@ -482,22 +482,22 @@ onMounted(() => {
 
 .mode-status.active {
   background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  color: var(--ownex-green);
 }
 
 .mode-status.inactive {
   background: rgba(107, 114, 128, 0.2);
-  color: #6b7280;
+  color: var(--ownex-text-muted);
 }
 
 .mode-description {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
 }
 
 .conflict-warning {
-  color: #f59e0b;
+  color: var(--ownex-yellow);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -518,23 +518,23 @@ onMounted(() => {
 }
 
 .toggle-btn.activate {
-  background: #10b981;
+  background: var(--ownex-green);
   color: white;
-  border-color: #10b981;
+  border-color: var(--ownex-green);
 }
 
 .toggle-btn.activate:hover {
-  background: #059669;
+  background: var(--ownex-green);
 }
 
 .toggle-btn.deactivate {
-  background: #374151;
-  color: #f3f4f6;
-  border-color: #374151;
+  background: var(--ownex-text-muted);
+  color: var(--ownex-bg-surface);
+  border-color: var(--ownex-text-muted);
 }
 
 .toggle-btn.deactivate:hover {
-  background: #4b5563;
+  background: var(--ownex-text-muted);
 }
 
 .toggle-btn:disabled {
@@ -544,9 +544,9 @@ onMounted(() => {
 
 .details-btn {
   padding: 0.5rem;
-  background: #374151;
-  color: #f3f4f6;
-  border: 1px solid #374151;
+  background: var(--ownex-text-muted);
+  color: var(--ownex-bg-surface);
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
@@ -554,7 +554,7 @@ onMounted(() => {
 }
 
 .details-btn:hover {
-  background: #4b5563;
+  background: var(--ownex-text-muted);
 }
 
 .modal-overlay {
@@ -571,8 +571,8 @@ onMounted(() => {
 }
 
 .modal-content {
-  background: #1f2937;
-  border: 1px solid #374151;
+  background: var(--ownex-bg-elevated);
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 12px;
   padding: 1.5rem;
   max-width: 600px;
@@ -587,14 +587,14 @@ onMounted(() => {
 }
 
 .modal-content h3 {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   margin: 0 0 1rem 0;
 }
 
 .conflict-details,
 .conflict-resolution,
 .details-content {
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
   margin-bottom: 1rem;
 }
 
@@ -613,16 +613,16 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid var(--ownex-text-muted);
 }
 
 .detail-label {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-weight: 600;
 }
 
 .detail-value {
-  color: #f3f4f6;
+  color: var(--ownex-bg-surface);
   text-align: right;
 }
 
@@ -635,9 +635,9 @@ onMounted(() => {
 
 .force-btn {
   padding: 0.75rem 1.5rem;
-  background: #f59e0b;
+  background: var(--ownex-yellow);
   color: white;
-  border: 1px solid #f59e0b;
+  border: 1px solid var(--ownex-yellow);
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
@@ -645,15 +645,15 @@ onMounted(() => {
 }
 
 .force-btn:hover {
-  background: #d97706;
+  background: var(--ownex-yellow);
 }
 
 .cancel-btn,
 .close-btn {
   padding: 0.75rem 1.5rem;
-  background: #374151;
-  color: #f3f4f6;
-  border: 1px solid #374151;
+  background: var(--ownex-text-muted);
+  color: var(--ownex-bg-surface);
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
@@ -662,7 +662,7 @@ onMounted(() => {
 
 .cancel-btn:hover,
 .close-btn:hover {
-  background: #4b5563;
+  background: var(--ownex-text-muted);
 }
 
 .history-list {
@@ -675,7 +675,7 @@ onMounted(() => {
 
 .history-item {
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid #374151;
+  border: 1px solid var(--ownex-text-muted);
   border-radius: 6px;
   padding: 0.75rem;
 }
@@ -687,13 +687,13 @@ onMounted(() => {
 }
 
 .history-mode {
-  color: #fbbf24;
+  color: var(--ownex-yellow);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 .history-time {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
   font-size: 0.8rem;
 }
 
@@ -701,26 +701,26 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #d1d5db;
+  color: var(--ownex-text-secondary);
   font-size: 0.85rem;
 }
 
 .old-value {
-  color: #6b7280;
+  color: var(--ownex-text-muted);
   text-decoration: line-through;
 }
 
 .new-value {
-  color: #10b981;
+  color: var(--ownex-green);
   font-weight: 600;
 }
 
 .arrow {
-  color: #9ca3af;
+  color: var(--ownex-text-secondary);
 }
 
 .auto-resolved {
-  color: #f59e0b;
+  color: var(--ownex-yellow);
   font-size: 0.8rem;
   margin-top: 0.25rem;
 }

@@ -252,6 +252,106 @@ class PerformanceAnalyzer:
         )
 
 
+def prediction_error_report(records: list[LearningRecord]) -> dict:
+    """Estimated-vs-actual calibration over records carrying prediction snapshots.
+
+    Honesty rule: records without predictions are excluded and counted;
+    with zero predicted records the verdict is UNKNOWN (never invented).
+    """
+    with_amount = [r for r in records if r.predicted_amount is not None]
+    with_hours = [r for r in records if r.predicted_hours is not None and r.actual_hours is not None]
+    with_prob = [r for r in records if r.predicted_probability is not None]
+
+    def _mae(pairs: list[tuple[float, float]]) -> float | None:
+        if not pairs:
+            return None
+        return round(sum(abs(a - p) for a, p in pairs) / len(pairs), 2)
+
+    mae_amount = _mae([(r.amount, r.predicted_amount) for r in with_amount if r.predicted_amount is not None])
+    mae_hours = _mae(
+        [
+            (r.actual_hours, r.predicted_hours)
+            for r in with_hours
+            if r.actual_hours is not None and r.predicted_hours is not None
+        ]
+    )
+    mean_prob_error = None
+    if with_prob:
+        mean_prob_error = round(
+            sum(abs((1.0 if r.accepted else 0.0) - float(r.predicted_probability or 0.0)) for r in with_prob)
+            / len(with_prob),
+            3,
+        )
+
+    if not with_amount and not with_hours and not with_prob:
+        verdict = "UNKNOWN"
+        note = "No hay predicciones registradas: imposible calibrar. Se necesitan predicted_amount/hours/probability en los outcomes."
+    else:
+        ids = {id(r) for r in with_amount + with_hours + with_prob}
+        verdict = "CALIBRATED" if len(ids) >= 3 else "THIN_EVIDENCE"
+        note = (
+            f"Calibración sobre {len(with_amount)} montos, {len(with_hours)} tiempos, "
+            f"{len(with_prob)} probabilidades ({len(ids)} outcomes)."
+        )
+
+    return {
+        "verdict": verdict,
+        "records_total": len(records),
+        "records_with_amount_prediction": len(with_amount),
+        "records_with_hours_prediction": len(with_hours),
+        "records_with_probability_prediction": len(with_prob),
+        "mae_amount_usd": mae_amount,
+        "mae_hours": mae_hours,
+        "mean_probability_error": mean_prob_error,
+        "note": note,
+    }
+
+
+def identify_repeatable(
+    records: list[LearningRecord],
+    min_accepted: int = 2,
+    min_conversion: float = 0.5,
+    min_evidence: int = 3,
+) -> list[dict]:
+    """Identify repeatable income patterns from verified history.
+
+    Verdicts: REPEATABLE (accepted >= min_accepted and conversion >=
+    min_conversion), NON_REPEATABLE (enough evidence, below bar), UNKNOWN
+    (insufficient evidence). RECURRING requires explicit subscription
+    evidence, which history alone cannot prove — never claimed here.
+    """
+    by_key: dict[tuple[str, str], list[LearningRecord]] = defaultdict(list)
+    for record in records:
+        category = record.category.value if record.category else ""
+        by_key[(record.platform, category)].append(record)
+
+    out: list[dict] = []
+    for (platform, category), items in sorted(by_key.items()):
+        accepted = [r for r in items if r.accepted]
+        total = len(items)
+        conversion = round(len(accepted) / total, 3) if total else 0.0
+        revenue = round(sum(r.amount for r in accepted), 2)
+        if total < min_evidence:
+            verdict = "UNKNOWN"
+        elif len(accepted) >= min_accepted and conversion >= min_conversion:
+            verdict = "REPEATABLE"
+        else:
+            verdict = "NON_REPEATABLE"
+        out.append(
+            {
+                "platform": platform,
+                "category": category,
+                "accepted": len(accepted),
+                "total": total,
+                "conversion": conversion,
+                "revenue_usd": revenue,
+                "verdict": verdict,
+            }
+        )
+    out.sort(key=lambda e: (-e["revenue_usd"], -e["conversion"]))
+    return out
+
+
 def evolve_analysis(
     lost_lessons: list[LostOpportunityLesson],
     proposals: list[CapabilityProposal],

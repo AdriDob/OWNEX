@@ -5,7 +5,7 @@ knowing module names: "Who can send email?" → Outlook.
 
 Usage:
 
-    from core.capabilities.registry import get_capability_registry
+    from cores.capabilities.registry import get_capability_registry
 
     reg = get_capability_registry()
     reg.register("send_email", "outlook", {"auth": "oauth2", "provider": "microsoft"})

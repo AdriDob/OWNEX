@@ -5,7 +5,7 @@ Each platform has different expectations for format, tone, and detail level.
 
 Usage::
 
-    from core.reports.templates import render_report
+    from cores.reports.templates import render_report
 
     # Render for HackerOne
     markdown = render_report("hackerone", {
@@ -500,7 +500,7 @@ def render_report_from_finding(
     Returns:
         Data dict ready for render_report().
     """
-    from core.evidence.composer import CVSS_SEVERITY_MAP, CWE_MAP
+    from cores.evidence.composer import CVSS_SEVERITY_MAP, CWE_MAP
 
     cvss_data = CVSS_SEVERITY_MAP.get(finding.get("severity", "medium"), (0.0, ""))
     cwe_data = CWE_MAP.get(finding.get("vulnerability_type", ""), ("", ""))

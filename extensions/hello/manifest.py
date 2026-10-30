@@ -1,6 +1,6 @@
 """Minimal ORION extension — Hello World."""
 
-from core.extension import (
+from cores.extension import (
     Capability,
     ExtensionManifest,
     SwitchField,

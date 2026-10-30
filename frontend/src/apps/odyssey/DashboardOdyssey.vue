@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
 import { AlertTriangle, DollarSign, ListChecks, RefreshCw, Settings, TrendingUp, Wallet } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface SummaryData {
   total_bets: number
@@ -60,7 +60,7 @@ async function fetchData() {
 onMounted(fetchData)
 
 const hasData = () => (summary.value?.total_bets ?? 0) > 0
-const profitClass = (v: number | undefined) => v != null ? (v >= 0 ? 'text-success' : 'text-destructive') : ''
+const profitClass = (v: number | undefined) => (v != null ? (v >= 0 ? 'text-success' : 'text-destructive') : '')
 </script>
 
 <template>

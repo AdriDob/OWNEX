@@ -20,11 +20,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from core.autonomy.code_generator import CodeGenerator, GenerationPlan
-from core.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
-from core.autonomy.pr_builder import PRBuilder, PRResult, create_pr_from_plan
-from core.autonomy.repo_analyzer import RepoAnalyzer, RepoInfo
-from core.autonomy.test_runner import TestRunner, TestRunSummary
+from cores.autonomy.code_generator import CodeGenerator, GenerationPlan
+from cores.autonomy.issue_analyzer import IssueAnalysis, IssueAnalyzer
+from cores.autonomy.pr_builder import PRBuilder, PRResult, create_pr_from_plan
+from cores.autonomy.repo_analyzer import RepoAnalyzer, RepoInfo
+from cores.autonomy.test_runner import TestRunner, TestRunSummary
 
 
 @dataclass

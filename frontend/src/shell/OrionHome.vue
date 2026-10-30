@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useToast } from '@/composables/useToast'
 import { Activity, Bug, Dices, TrendingUp } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface Widget {
   id: string
@@ -37,7 +37,13 @@ onMounted(async () => {
         })
       }
     }
-    w.push({ id: 'databases', label: 'Bases de datos', value: Object.keys(data.databases || {}).length, icon: 'Database', color: 'text-accent' })
+    w.push({
+      id: 'databases',
+      label: 'Bases de datos',
+      value: Object.keys(data.databases || {}).length,
+      icon: 'Database',
+      color: 'text-accent',
+    })
     widgets.value = w.length > 0 ? w : []
   } catch (e) {
     error.value = 'No se pudo conectar con el servidor'

@@ -9,8 +9,8 @@ import time
 import httpx
 
 from apps.atlas.connectors.base import AtlasConnector
-from core.interfaces.connector import ConnectorHealth
-from core.normalizer.base import NormalizedPortfolio, NormalizedPrice, NormalizedTransaction
+from cores.interfaces.connector import ConnectorHealth
+from cores.normalizer.base import NormalizedPortfolio, NormalizedPrice, NormalizedTransaction
 
 logger = logging.getLogger("orion.atlas.connectors.hummingbot")
 

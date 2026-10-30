@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from core.setup.steps import define_step
+from cores.setup.steps import define_step
 
 INTEGRATIONS_SCHEMA: dict[str, Any] = {
     "type": "integration_list",
@@ -46,7 +46,7 @@ def execute(state: dict[str, Any]) -> dict[str, Any]:
         integrations = {}
 
     try:
-        from core.integrations.registry import init_integration_registry
+        from cores.integrations.registry import init_integration_registry
 
         registry = init_integration_registry()
         registry.refresh()

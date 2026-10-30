@@ -7,11 +7,11 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.commands import (
+from cores.commands import (
     get_command_dispatcher,
     get_command_registry,
 )
-from core.commands.dispatcher import CommandDispatcher
+from cores.commands.dispatcher import CommandDispatcher
 
 logger = logging.getLogger("ownex.api.commands")
 

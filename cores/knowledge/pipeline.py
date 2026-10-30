@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from cores.knowledge.abstracts import (
@@ -43,7 +43,7 @@ class KnowledgeIngestPipeline(KnowledgePipeline):
 
         for idx, payload in enumerate(payloads, start=1):
             stage = KnowledgePipelineStage(name=f"artifact_{idx}")
-            stage.timestamp = datetime.utcnow().isoformat()
+            stage.timestamp = datetime.now(UTC).isoformat()
             if report.stages is not None:
                 report.stages.append(stage)
             try:

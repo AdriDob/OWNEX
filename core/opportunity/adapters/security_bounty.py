@@ -441,6 +441,202 @@ class YesWeHackAdapter(OpportunityAdapter):
             return []
 
 
+class ImmunefiAdapter(OpportunityAdapter):
+    """Immunefi platform adapter — Web3/smart contract bug bounty platform (Security cycle)."""
+
+    platform: str = "immunefi"
+    cycle: str = "security"
+
+    def __init__(self, config: dict | None = None):
+        merged_config = load_credentials("immunefi", config)
+        super().__init__(merged_config)
+        self.api_token = get_api_key("immunefi", merged_config)
+
+    async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
+        """Fetch open programs from Immunefi API."""
+        try:
+            headers = get_auth_headers("immunefi", self.config)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    "https://api.immunefi.com/v1/programs",
+                    headers=headers,
+                    params={"status": "active", "limit": 50},
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                programs = data.get("programs", data.get("data", []))
+
+                raw_opps: list[RawOpportunity] = []
+                for prog in programs:
+                    raw_opps.append(
+                        RawOpportunity(
+                            id=f"immunefi_{prog.get('id')}",
+                            name=prog.get("name") or "Immunefi Program",
+                            description=prog.get("description", "")[:500],
+                            platform="immunefi",
+                            url=prog.get("url"),
+                            reward=float(prog.get("max_reward", 0)) if prog.get("max_reward") else 0.0,
+                            effort_hours=10.0,  # Web3 bounties typically require more effort
+                            tags=prog.get("categories", ["web3", "smart_contract", "blockchain"]),
+                            cycle="security",
+                            source_type="platform",
+                            source_name="immunefi",
+                            metadata={"original": prog, "chain": prog.get("chain")},
+                            created_at=prog.get("created_at") or "",
+                        )
+                    )
+                return raw_opps
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("ownex.opportunity.adapters").warning("ImmunefiAdapter fetch failed: %s", e)
+            return []
+
+    async def fetch_submissions(self, personal: Any | None = None) -> list[RawOpportunity]:
+        """Fetch submitted reports as opportunities."""
+        try:
+            headers = get_auth_headers("immunefi", self.config)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    "https://api.immunefi.com/v1/submissions",
+                    headers=headers,
+                    params={"limit": 50},
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                submissions = data.get("submissions", data.get("data", []))
+
+                raw_opps: list[RawOpportunity] = []
+                for sub in submissions:
+                    raw_opps.append(
+                        RawOpportunity(
+                            id=f"immunefi_report_{sub.get('id')}",
+                            name=f"[Report] {sub.get('title', 'Immunefi Submission')}",
+                            description=sub.get("description", "")[:500],
+                            platform="immunefi",
+                            url=sub.get("url"),
+                            reward=float(sub.get("reward", 0)),
+                            effort_hours=3.0,
+                            tags=[sub.get("severity", "unknown")],
+                            cycle="security",
+                            source_type="submission",
+                            source_name="immunefi",
+                            metadata={"original": sub, "status": sub.get("status")},
+                            created_at=sub.get("created_at") or "",
+                        )
+                    )
+                return raw_opps
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("ownex.opportunity.adapters").warning("ImmunefiAdapter submissions fetch failed: %s", e)
+            return []
+
+
+class SynackAdapter(OpportunityAdapter):
+    """Synack platform adapter — Private/crowdsourced pentest platform (Security cycle)."""
+
+    platform: str = "synack"
+    cycle: str = "security"
+
+    def __init__(self, config: dict | None = None):
+        merged_config = load_credentials("synack", config)
+        super().__init__(merged_config)
+        self.api_token = get_api_key("synack", merged_config)
+
+    async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
+        """Fetch available missions from Synack API."""
+        try:
+            headers = get_auth_headers("synack", self.config)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    "https://platform.synack.com/api/missions",
+                    headers=headers,
+                    params={"status": "open", "limit": 50},
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                missions = data.get("missions", data.get("data", []))
+
+                raw_opps: list[RawOpportunity] = []
+                for mission in missions:
+                    raw_opps.append(
+                        RawOpportunity(
+                            id=f"synack_{mission.get('id')}",
+                            name=mission.get("name") or "Synack Mission",
+                            description=mission.get("description", "")[:500],
+                            platform="synack",
+                            url=mission.get("url"),
+                            reward=float(mission.get("reward", 0)) if mission.get("reward") else 0.0,
+                            effort_hours=6.0,
+                            tags=mission.get("categories", ["pentest", "vulnerability"]),
+                            cycle="security",
+                            source_type="platform",
+                            source_name="synack",
+                            metadata={"original": mission, "slug": mission.get("slug")},
+                            created_at=mission.get("created_at") or "",
+                        )
+                    )
+                return raw_opps
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("ownex.opportunity.adapters").warning("SynackAdapter fetch failed: %s", e)
+            return []
+
+    async def fetch_submissions(self, personal: Any | None = None) -> list[RawOpportunity]:
+        """Fetch submitted reports as opportunities."""
+        try:
+            headers = get_auth_headers("synack", self.config)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    "https://platform.synack.com/api/submissions",
+                    headers=headers,
+                    params={"limit": 50},
+                    timeout=15,
+                )
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                submissions = data.get("submissions", data.get("data", []))
+
+                raw_opps: list[RawOpportunity] = []
+                for sub in submissions:
+                    raw_opps.append(
+                        RawOpportunity(
+                            id=f"synack_report_{sub.get('id')}",
+                            name=f"[Report] {sub.get('title', 'Synack Submission')}",
+                            description=sub.get("description", "")[:500],
+                            platform="synack",
+                            url=sub.get("url"),
+                            reward=float(sub.get("payout", 0)),
+                            effort_hours=3.0,
+                            tags=[sub.get("severity", "unknown")],
+                            cycle="security",
+                            source_type="submission",
+                            source_name="synack",
+                            metadata={"original": sub, "status": sub.get("status")},
+                            created_at=sub.get("created_at") or "",
+                        )
+                    )
+                return raw_opps
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("ownex.opportunity.adapters").warning("SynackAdapter submissions fetch failed: %s", e)
+            return []
+
+
 # ── Factory ─────────────────────────────────────────────────────────
 
 

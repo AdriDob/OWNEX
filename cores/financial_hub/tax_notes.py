@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from core.financial_hub.models import TaxRecord
+from cores.financial_hub.models import TaxRecord
 from database.db import SessionLocal
 
 # Tax reference data for Argentina and common scenarios

@@ -17,7 +17,7 @@ from dataclasses import asdict, dataclass
 from enum import StrEnum
 from typing import Any
 
-from core.memory.store import get_memory_store
+from cores.memory.store import get_memory_store
 
 
 class AssistanceMode(StrEnum):

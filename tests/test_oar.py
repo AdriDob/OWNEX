@@ -241,3 +241,38 @@ class TestOARIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+
+class TestRecentRouting:
+    def test_recent_routing_empty_before_requests(self):
+        from cores.ai.runtime import OAR, OARConfig
+
+        oar = OAR(OARConfig(enabled_providers=[]))
+        recent = oar._recent_routing(20)
+        assert recent == []
+
+    def test_recent_routing_sanitizes_decisions(self):
+        from types import SimpleNamespace
+
+        from cores.ai.runtime import OAR, OARConfig
+
+        oar = OAR(OARConfig(enabled_providers=[]))
+
+        class _D:
+            provider_id = "fcc"
+            model_id = "m-1"
+            confidence = 0.9
+            estimated_cost_usd = 0.01
+            estimated_latency_ms = 120
+            fallback_chain = ["ollama"]
+            privacy_ok = True
+            task_type = SimpleNamespace(value="code")
+            timestamp = "2026-01-01"
+
+        oar._router = SimpleNamespace(_routing_history=[_D()])  # type: ignore[attr-defined]
+        recent = oar._recent_routing(20)
+        assert len(recent) == 1
+        row = recent[0]
+        assert row["provider_id"] == "fcc"
+        assert row["task_type"] == "code"
+        assert "messages" not in row and "prompt" not in row

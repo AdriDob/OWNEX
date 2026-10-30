@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum, StrEnum, auto
 from typing import Any
@@ -53,7 +53,7 @@ class Finding:
     evidence: str = ""
     confidence: float = 0.0
     raw_output: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
 
 
 @dataclass
@@ -67,7 +67,7 @@ class TradeSignal:
     quantity: Decimal
     reason: str = ""
     strategy: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
 
 
 @dataclass
@@ -77,7 +77,7 @@ class RevenueEvent:
     amount: Decimal
     currency: str = "USD"
     description: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -91,7 +91,7 @@ class CapitalState:
     daily_pnl: Decimal = Decimal("0")
     weekly_pnl: Decimal = Decimal("0")
     total_pnl: Decimal = Decimal("0")
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now(UTC))
 
 
 @dataclass
@@ -109,4 +109,4 @@ class RevenueReport:
     winning_trades: int = 0
     win_rate: float = 0.0
     estimated_yearly: Decimal = Decimal("0")
-    generated_at: datetime = field(default_factory=datetime.utcnow)
+    generated_at: datetime = field(default_factory=datetime.now(UTC))

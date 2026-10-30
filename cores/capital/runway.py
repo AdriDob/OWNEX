@@ -122,7 +122,7 @@ class RunwayEngine:
     def _get_invested_capital(self) -> float:
         """Get invested capital from investment manager."""
         try:
-            from core.investment.manager import get_investment_manager
+            from cores.investment.manager import get_investment_manager
 
             im = get_investment_manager()
             if hasattr(im, "get_snapshot"):

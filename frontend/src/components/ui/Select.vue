@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
 import { ChevronDown } from '@lucide/vue'
+import { cn } from '@/lib/utils'
 
 interface SelectOption {
   value: string | number

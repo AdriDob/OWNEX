@@ -5,7 +5,7 @@ import tarfile
 import time
 from pathlib import Path
 
-from core import OWNEX_DIR
+from cores import OWNEX_DIR
 
 logger = logging.getLogger("ownex.backup")
 

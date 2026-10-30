@@ -7,15 +7,18 @@
 import { onMounted } from 'vue'
 
 const emit = defineEmits<{
-  'done': []
+  done: []
 }>()
 
-const props = withDefaults(defineProps<{
-  /** Transition duration in ms */
-  duration?: number
-}>(), {
-  duration: 700,
-})
+const props = withDefaults(
+  defineProps<{
+    /** Transition duration in ms */
+    duration?: number
+  }>(),
+  {
+    duration: 700,
+  },
+)
 
 onMounted(() => {
   setTimeout(() => emit('done'), props.duration + 50)

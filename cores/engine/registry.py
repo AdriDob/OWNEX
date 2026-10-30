@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.engine.base import Engine
-from core.engine.contracts import EngineRegistration
+from cores.engine.base import Engine
+from cores.engine.contracts import EngineRegistration
 
 logger = logging.getLogger("ownex.registry")
 

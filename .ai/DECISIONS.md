@@ -1,3 +1,18 @@
+## 2026-09-09: NO-MERGE a main — 314 conflictos con trabajo concurrente (PR #37 queda abierto)
+
+- **Problema**: `feat/phase0-foundation` (línea 7.1.0 RC: P0 migración + P1–P3 + front + tests) está 82 commits por delante de `main`, pero `origin/main` avanzó en paralelo con trabajo concurrente (agent-runtime L0-L4, bug bounty B1+B2 OAR, max-effort-scenarios, income Opire real). Trial merge en worktree scratch → **314 archivos en conflicto** (api/, core/, cores/, .ai/, workflows, tests). Mergear ahora destruiría uno de los dos trabajos.
+- **Decisión**: NO mergear a `main` en esta sesión. PR #37 (`feat/phase0-foundation` → `main`, release report preliminar) queda **abierto y bloqueado** hasta sesión dedicada de resolución con el dueño del proceso concurrente. Veredicto de línea: **RC (no STABLE)** — suite 544/1, API 1665 rutas, vite+cargo OK, pero Tauri Windows rojo en CI y sin validación en hardware real. `core/` NO se borra (bloqueado por la misma validación).
+- **Evidencia**: trial merge `0857e7f2` + `origin/main` → `merge --abort` tras conteo (worktree scratch eliminado, árbol intacto).
+- **Regla permanente**: ningún merge a `main` con >10 archivos en conflicto sin coordinación explícita; los trial merges se hacen siempre en worktree scratch, jamás sobre el árbol de trabajo.
+
+## 2026-08-30: FEATURE SET FASE_40 — 11 features de productividad/automatización (ciclo diario completo)
+
+- **Problema**: El sistema preparaba paquetes pero no entregaba por API, no sincronizaba pagos en vivo, no visualizaba el conocimiento acumulado, y el hunter carecía de caminos de entrenamiento, cumplimiento, equipo y captura rápida.
+- **Decisión**: 11 adiciones con foco en cerrar loops y automatizar el máximo trabajo posible, manteniendo honestidad económica (probabilidades empíricas o UNKNOWN, nunca inventadas) y el patrón usuario-supervisor (gates humanos intactos).
+- **Implementación** (ver CURRENT_STATE): Auto-Submission (idempotency + retry + DLQ + polling), Dev Bounty Automation (WorkBank→CoderAgent→AutoSubmit), Webhooks con firma HMAC, validación siempre-on, Knowledge Graph UI sobre `core.knowledge.graph` canónico, Training con progreso, Tax/Compliance (W-8BEN/W-9/AFIP + deadlines), Team/Org (roles + revenue splits + approvals), Finding Marketplace (escrow + reputación), Predictive Prioritizer (empírico clampado, 7 días), Quick Capture + hotkeys.
+- **Evidencia**: 60 tests nuevos verdes; 144 passed combinado; ruff limpio en 14 archivos; `import api.main` OK; `vue-tsc` 0 errores; `vite build` OK. Tests destaparon y corregieron bugs reales: ordering de dataclasses, `day+7`→timedelta (fin de mes), roundtrip JSON anidado, `core.platforms.*` inexistente, cola no aislable, `keys or {}` en utilidades de test.
+- **Reglas permanentes**: (1) toda probabilidad predictiva es empírica clampada [0.05-0.95] o UNKNOWN etiquetado, jamás inventada; (2) cualquier cola/estado persistente debe ser data-dir aware (`OWNEX_DATA_DIR`) e inyectable en tests; (3) las fechas se computan con timedelta, nunca `replace(day=+N)`; (4) la persistencia JSON de dataclasses anidados usa dumper recursivo (dataclass/enum/date→dict/value/ISO).
+
 ## 2026-08-26 (Fase 1 CAPITAL SPINE): Atlas fix, sync→PayoutRecord, unified snapshot, freqtrade 2026.7
 
 - **Problema**: El pipeline de capital tenía 3 fallos críticos: (1) Atlas portfolio siempre $0 porque `_get_atlas_total()` llamaba `get_portfolio()` inexistente y `PortfolioEngine()` nacía sin conectores; (2) sync cada 30 min leía APIs reales pero descargaba resultados en dict in-memory, nunca escribía `PayoutRecord` → capital dashboards estancados en $0; (3) sin endpoint unificado de patrimonio.
@@ -858,3 +873,26 @@
 - **Verificación**: ruff limpio; 22 passed offscreen; repro de cadena `WINDOW CREATED OK`; suite fast 100 passed / 1 skipped; `import api.main` OK. Commits: `e7d64dfd4` (sidecar), `71eb42320` (guía). CI rebuild run `32021761419` en curso.
 - **Impacto**: El bundle Windows queda autocontenido (motor + UI en un proceso) → el exe del escritorio muestra datos reales desde el primer día. Guía guiada `README-INSTALACION.md` (raíz repo, git) + copiada al Desktop de Windows como `GUIA-INSTALACION-OWNEX.md`; sección nueva en `ownexinstalador/docs/WINDOWS_INSTALL.md` (gitignored).
 - **Condiciones para reabrir**: Si el boot del backend in-process (35 s) se considera lento → pantalla de progreso en la UI; si el bundle crece demasiado → podar `collect_all` con `hiddenimports` específicos; si se quiere firma → certificado de code signing (elimina SmartScreen).
+
+## 2026-09-09: CIERRE P2+P3 — safety gates + revenue durability + audit adversarial §44
+
+- **Problema**: (1) BrowserAgent podía enviar applications/claims y CoderAgent pushear PRs/ejecutar shell sin ningún gate humano — el megaprompt lo prohíbe explícitamente. (2) RevenueTracker solo-memoria: todo lo registrado se perdía al reiniciar (get_revenue_state_breakdown además crasheaba con enums). (3) Respuestas IA sin distinción hecho/inferencia. (4) Sin UI del ledger ni de calibración.
+- **Decisión**: gates HMAC un solo uso (single-process, documentado — no es auth cross-machine); denylist de comandos destructivos; redact de secretos en prompts; containment de repos; approval requerido por defecto en PR; OAR-first con fallback (no se migró el router entero: mínimo viable); semántica como contrato + bloque aditivo en daily-brief; reconcile idempotente en boot; Ledger UI + sección Aprendizaje.
+- **Evidencia**: 15 bridge+reconcile tests, 12 safety (estables ×3 — un flake real de colisión same-second cazado y fixeado con nonce), extends oar/copilot; suite 461/1; cargo check OK; vite 11.9s.
+- **Audit adversarial §44 (honesto)**:
+  - ¿Nuevo usuario puede usarlo? PARCIAL — funnel + guías + onboarding UI existen; instalador Windows sin validar en hardware real → NO.
+  - ¿Plataforma nunca tocada? SÍ (12 guías + first-opportunity + tips).
+  - ¿Explica cada paso? SÍ en daily-brief (semantics); chat libre copilot aún sin etiquetar (límite conocido).
+  - ¿Distingue hechos de supuestos? SÍ en daily-brief/evolution (UNKNOWN/THIN_EVIDENCE); resto pendiente.
+  - ¿Recomienda sensible? SÍ (EV + calibration + repeatable + channel filter).
+  - ¿Sobrevive caída de IA? SÍ por diseño Y por fault-injection (`tests/test_llm_fault_injection.py`, 8 tests: OAR→router→None/heurísticos, sin invención, secretos redactados).
+  - ¿Sobrevive caída de backend? PARCIAL (ErrorState+retry, strips que se ocultan, desktop dual-mode; sin test de caos dedicado).
+  - ¿Se recupera? SÍ (DLQ+retry, reconcile en boot, stale-scan recovery).
+  - ¿Preserva verdad de revenue? SÍ (Rule §39 testeada; PAID solo vía verification/webhook/manual).
+  - ¿Previene acciones externas no autorizadas? SÍ (nuevo: 4 gates browser + PR + denylist shell).
+  - ¿Corre en Windows? COMPILA (cargo check OK); runtime real NO validado aquí → NO.
+  - ¿Sobrevive restart sin perder estado? AHORA SÍ (reconcile; workbank/first-money/submissions ya persistían).
+  - ¿Guía al primer earning? SÍ (funnel UI + guías + next-action).
+  - ¿Identifica ingreso repetible? SÍ (REPEATABLE/NON_REPEATABLE/UNKNOWN; RECURRING excluido honestamente).
+  - ¿Evita completitud falsa? PARCIAL (UNKNOWN/THIN_EVIDENCE en lo nuevo; superficies legacy sin auditar una por una).
+- **Regla permanente**: toda acción externa irreversible exige approval token un solo uso; ningún camino automatizado alcanza PAID; RECURRING jamás se reclama sin evidencia de suscripción.

@@ -15,7 +15,7 @@ from apps.aegis.models import (
     ScanResult,
     VulnFinding,
 )
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 from .providers import PROVIDERS
 

@@ -53,8 +53,8 @@ def test_conversion_uses_curated_values() -> None:
 
     adapter = LegacyOpportunityDweAdapter(
         legacy=_FakeLegacy(),
-        name="Freelancer",
-        platform=WorkPlatform.FREELANCER,
+        name="Workana",
+        platform=WorkPlatform.WORKANA,
         category=OpportunityCategory.SOFTWARE_ENGINEERING,
         employment_type=EmploymentType.FREELANCE,
         payment_method=PaymentMethod.BANK_WIRE,

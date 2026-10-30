@@ -10,8 +10,8 @@ import asyncio
 import logging
 from typing import Any
 
-from core.sensors.base import Sensor
-from core.sensors.observation import Observation
+from cores.sensors.base import Sensor
+from cores.sensors.observation import Observation
 from extensions.playwright.playwright_provider import get_playwright_provider
 
 logger = logging.getLogger("ownex.sensors.playwright_sensor")
@@ -46,7 +46,7 @@ class PlaywrightSensor(Sensor):
 
             # Registrar self en el CapabilityRegistry
             try:
-                from core.capabilities.registry import get_capability_registry
+                from cores.capabilities.registry import get_capability_registry
 
                 reg = get_capability_registry()
                 reg.register(

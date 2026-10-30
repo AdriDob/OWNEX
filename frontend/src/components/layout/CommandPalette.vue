@@ -5,10 +5,10 @@
  * Scopes: > Acciones, / Navegación, @ Agentes, # Tags, $ Dinero
  */
 
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import OwnexCard from '@/components/ui/OwnexCard.vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexButton from '@/components/ui/OwnexButton.vue'
+import OwnexCard from '@/components/ui/OwnexCard.vue'
 
 interface CommandItem {
   id: string
@@ -56,7 +56,7 @@ const scopes = {
   '/': 'navigation',
   '@': 'agents',
   '#': 'tags',
-  '$': 'money',
+  $: 'money',
 } as const
 
 const scopeLabels = {
@@ -107,7 +107,9 @@ const filteredItems = computed(() => {
         item.description || '',
         ...(item.keywords || []),
         scopeLabels[item.category].toLowerCase(),
-      ].join(' ').toLowerCase()
+      ]
+        .join(' ')
+        .toLowerCase()
 
       return searchable.includes(searchTerms)
     })

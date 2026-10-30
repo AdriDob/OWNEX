@@ -214,7 +214,7 @@ def run_maintenance() -> None:
 
     # 2) Update availability (non-blocking)
     try:
-        from core.self_healing.update import SelfUpdateSystem
+        from cores.self_healing.update import SelfUpdateSystem
 
         su = SelfUpdateSystem()
         has_update, msg = su.check_for_updates()
@@ -227,7 +227,7 @@ def run_maintenance() -> None:
 
     # 3) Latest health snapshot
     try:
-        from core.health.engine import HealthCenter
+        from cores.health.engine import HealthCenter
 
         hc = HealthCenter()
         snap = hc.latest()
@@ -253,7 +253,7 @@ def system_status() -> None:
 
     # 1) Investment engine
     try:
-        from core.investment.manager import get_investment_manager
+        from cores.investment.manager import get_investment_manager
 
         snap = get_investment_manager().snapshot()
         print(f"  {BOLD}Inversión:{RESET}")
@@ -271,7 +271,7 @@ def system_status() -> None:
 
     # 2) Autonomous scheduler jobs (incl. revenue engine)
     try:
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         all_jobs = get_all_jobs()
         total_jobs = sum(len(j) for j in all_jobs.values())

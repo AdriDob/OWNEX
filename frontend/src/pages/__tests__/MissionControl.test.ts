@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { createRouter, createMemoryHistory } from 'vue-router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import MissionControl from '@/pages/MissionControl.vue'
 import type { OwnexDashboardData } from '@/services/ownexData'
 
@@ -30,10 +30,10 @@ vi.mock('@/stores/settings', () => ({
 function makeDashboard(overrides: Partial<OwnexDashboardData> = {}): OwnexDashboardData {
   return {
     throughputStages: [
-      { label: 'Detectado', value: 4, color: '#ffffff' },
-      { label: 'Validado', value: 2, color: '#9CA3AF' },
-      { label: 'Confirmado', value: 1, color: '#16A34A' },
-      { label: 'Reportado', value: 0, color: '#D97706' },
+      { label: 'Detectado', value: 4, color: 'var(--ownex-text-primary)' },
+      { label: 'Validado', value: 2, color: 'var(--ownex-text-secondary)' },
+      { label: 'Confirmado', value: 1, color: 'var(--ownex-green)' },
+      { label: 'Reportado', value: 0, color: 'var(--ownex-yellow)' },
     ],
     throughputEfficiency: 25,
     agents: [
@@ -103,7 +103,7 @@ describe('MissionControl page', () => {
   it('shows error state on API failure', async () => {
     mockFetchDashboard.mockRejectedValue(new Error('Connection refused'))
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Error al cargar Mission Control')
     expect(wrapper.text()).toContain('Connection refused')
@@ -112,7 +112,7 @@ describe('MissionControl page', () => {
   it('shows empty state when no targets and no findings', async () => {
     mockFetchDashboard.mockResolvedValue(makeDashboard())
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('OWNEX MISSION CONTROL')
     expect(wrapper.text()).toContain('Salud del sistema')
@@ -122,13 +122,22 @@ describe('MissionControl page', () => {
     mockFetchDashboard.mockResolvedValue(
       makeDashboard({
         throughputStages: [
-          { label: 'Detectado', value: 15, color: '#ffffff' },
-          { label: 'Validado', value: 8, color: '#9CA3AF' },
-          { label: 'Confirmado', value: 3, color: '#16A34A' },
-          { label: 'Reportado', value: 0, color: '#D97706' },
+          { label: 'Detectado', value: 15, color: 'var(--ownex-text-primary)' },
+          { label: 'Validado', value: 8, color: 'var(--ownex-text-secondary)' },
+          { label: 'Confirmado', value: 3, color: 'var(--ownex-green)' },
+          { label: 'Reportado', value: 0, color: 'var(--ownex-yellow)' },
         ],
         opportunities: [
-          { id: '1', title: 'Target A', source: 'bugcrowd', type: 'bug-bounty', reward: 1000, confidence: 85, effort: 'low', action: 'review' },
+          {
+            id: '1',
+            title: 'Target A',
+            source: 'bugcrowd',
+            type: 'bug-bounty',
+            reward: 1000,
+            confidence: 85,
+            effort: 'low',
+            action: 'review',
+          },
         ],
         nextAction: { title: 'Test SQLi', reason: 'High impact', effort: 'low', estimatedReward: 1000 },
         systemHealth: 92,
@@ -136,7 +145,7 @@ describe('MissionControl page', () => {
       }),
     )
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('OWNEX MISSION CONTROL')
     expect(wrapper.text()).toContain('Operador')
@@ -148,14 +157,14 @@ describe('MissionControl page', () => {
     mockFetchDashboard.mockResolvedValueOnce(makeDashboard())
     mockFetchDashboard.mockRejectedValueOnce(new Error('timeout'))
     const wrapper = createWrapper()
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     wrapper.vm.$options.methods
     // trigger a second load via the refresh button
-    const refreshBtn = wrapper.findAll('button').find(b => b.text().includes('Actualizar'))
+    const refreshBtn = wrapper.findAll('button').find((b) => b.text().includes('Actualizar'))
     expect(refreshBtn).toBeDefined()
     await refreshBtn!.trigger('click')
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('Datos parciales')
   })

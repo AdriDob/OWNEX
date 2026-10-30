@@ -140,7 +140,7 @@ class TestCategoryCoverage:
 
 class TestCapabilityRegistration:
     def test_register_career_engine_capabilities(self):
-        from core.capabilities.registry import get_capability_registry, reset_capability_registry
+        from cores.capabilities.registry import get_capability_registry, reset_capability_registry
 
         reset_capability_registry()
         register_capabilities()
@@ -151,7 +151,7 @@ class TestCapabilityRegistration:
         assert "build_roadmap" in entries[0].metadata["capabilities"]
 
     def test_register_all_capabilities_includes_direct_work_engine(self):
-        from core.capabilities.registry import get_capability_registry, reset_capability_registry
+        from cores.capabilities.registry import get_capability_registry, reset_capability_registry
 
         reset_capability_registry()
         register_all_capabilities()
@@ -163,7 +163,7 @@ class TestCapabilityRegistration:
         assert len(career) == 1
 
     def test_registration_is_idempotent(self):
-        from core.capabilities.registry import get_capability_registry, reset_capability_registry
+        from cores.capabilities.registry import get_capability_registry, reset_capability_registry
 
         reset_capability_registry()
         register_all_capabilities()

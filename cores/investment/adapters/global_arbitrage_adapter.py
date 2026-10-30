@@ -187,3 +187,8 @@ class GlobalArbitrageAdapter:
             return {"total_usd": total, "details": details}
         except ImportError:
             return {"total_usd": 0, "details": {}}
+
+
+def build_global_arbitrage_adapter(config: dict[str, Any] | None = None) -> GlobalArbitrageAdapter:
+    """Factory function to create Global Arbitrage adapter."""
+    return GlobalArbitrageAdapter(config)

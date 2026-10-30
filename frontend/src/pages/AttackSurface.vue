@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { BarChart3, Globe, PieChart } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '@/lib/api'
+import { BarChart, DoughnutChart } from '@/components/charts'
 import Card from '@/components/ui/Card.vue'
 import Select from '@/components/ui/Select.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { Globe, PieChart, BarChart3 } from '@lucide/vue'
-import { DoughnutChart, BarChart } from '@/components/charts'
+import { api } from '@/lib/api'
 
 interface Endpoint {
-  id: number; path: string; method: string; risk_score: number; vector: string
+  id: number
+  path: string
+  method: string
+  risk_score: number
+  vector: string
 }
 
 const router = useRouter()
@@ -23,8 +27,11 @@ onMounted(async () => {
     surfaces.value = res || {}
     const keys = Object.keys(surfaces.value)
     if (keys.length > 0 && !selected.value) selected.value = keys[0]
-  } catch { /* ignore */ }
-  finally { loading.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    loading.value = false
+  }
 })
 
 const keys = computed(() => Object.keys(surfaces.value))
@@ -37,7 +44,7 @@ function formatLabel(k: string) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Recon</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Attack Surface Map</h1>
@@ -77,7 +84,7 @@ function formatLabel(k: string) {
           </div>
           <BarChart
             :labels="currentEndpoints.slice(0, 10).map(e => e.path.length > 18 ? e.path.slice(0, 16) + '…' : e.path)"
-            :datasets="[{ label: 'Risk', data: currentEndpoints.slice(0, 10).map(e => e.risk_score), backgroundColor: '#D97706' }]"
+            :datasets="[{ label: 'Risk', data: currentEndpoints.slice(0, 10).map(e => e.risk_score), backgroundColor: 'var(--ownex-yellow)' }]"
             :horizontal="true"
             :height="220"
             yLabel="Endpoint"

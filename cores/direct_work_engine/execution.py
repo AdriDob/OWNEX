@@ -153,58 +153,110 @@ class DirectWorkExecutionEngine:
 
     def _execute_with_coder(self, work_item: Any) -> Any:
         """Execute using CoderAgent."""
-        from cores.autonomy.coder_agent import get_coder_agent
+        import asyncio
 
-        coder = get_coder_agent()
-        if not coder:
-            raise RuntimeError("CoderAgent not available")
+        from cores.autonomy.coder_agent import CoderAgent, CoderAgentConfig
 
-        # Prepare task for CoderAgent
-        task = {
-            "type": "code_generation",
-            "description": getattr(work_item, "description", ""),
+        coder = CoderAgent(CoderAgentConfig())
+
+        # Build issue dict for solve_issue
+        issue = {
+            "id": getattr(work_item, "opportunity_id", "") or getattr(work_item, "id", "unknown"),
             "title": getattr(work_item, "title", ""),
+            "description": getattr(work_item, "description", ""),
             "platform": getattr(work_item, "platform", ""),
+            "url": getattr(work_item, "url", ""),
+            "repo_url": getattr(work_item, "repo_url", ""),
             "category": getattr(work_item, "category", ""),
-            "requirements": getattr(work_item, "skills_required", []),
-            "technologies": getattr(work_item, "technologies", []),
         }
 
-        # Execute CoderAgent pipeline
-        result = coder.execute_task(task)
+        # Run async solve_issue
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # Already in async context — create task
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    result = pool.submit(asyncio.run, coder.solve_issue(issue)).result()
+            else:
+                result = asyncio.run(coder.solve_issue(issue))
+        except RuntimeError:
+            result = asyncio.run(coder.solve_issue(issue))
 
         return ExecutionResult(
-            success=result.get("success", False),
-            artifacts=result.get("artifacts", []),
-            evidence=result.get("evidence", []),
-            output=result.get("output", ""),
-            error=result.get("error"),
+            success=getattr(result, "success", False),
+            artifacts=getattr(result, "pr_result", None) and [getattr(result.pr_result, "pr_url", "")] or [],
+            evidence=[f"CoderAgent: {getattr(result, 'verdict', 'unknown')}"],
+            output=f"Issue {getattr(result, 'issue_id', '?')}: {getattr(result, 'verdict', 'unknown')}",
+            error=getattr(result, "error", None),
         )
 
     def _execute_with_browser(self, work_item: Any) -> Any:
-        """Execute using BrowserAgent."""
+        """Execute using BrowserAgent for platform-specific actions."""
+        import asyncio
+
         from cores.automation.browser_agent import BrowserAgent
 
-        browser = BrowserAgent()
-        if not browser.is_available():
-            raise RuntimeError("BrowserAgent not available")
+        url = getattr(work_item, "url", "")
+        platform = getattr(work_item, "platform", "").lower()
 
-        # Prepare browser task
-        task = {
-            "url": getattr(work_item, "url", ""),
-            "actions": getattr(work_item, "browser_actions", []),
-            "platform": getattr(work_item, "platform", ""),
-        }
+        async def _run_browser() -> ExecutionResult:
+            async with BrowserAgent() as browser:
+                if not url:
+                    return ExecutionResult(
+                        success=False,
+                        error="No URL provided for browser task",
+                    )
 
-        result = browser.execute_task(task)
+                # Navigate to the target
+                nav_result = await browser.goto(url)
+                if not nav_result.success:
+                    return ExecutionResult(
+                        success=False,
+                        error=f"Navigation failed: {nav_result.error}",
+                    )
 
-        return ExecutionResult(
-            success=result.get("success", False),
-            artifacts=result.get("artifacts", []),
-            evidence=result.get("evidence", []),
-            output=result.get("output", ""),
-            error=result.get("error"),
-        )
+                # Platform-specific actions
+                if platform == "linkedin" and "easy_apply" in str(getattr(work_item, "category", "")):
+                    result = await browser.easy_apply_linkedin(url)
+                    return ExecutionResult(
+                        success=result.success,
+                        artifacts=[url],
+                        evidence=[f"LinkedIn Easy Apply: {result.error or 'success'}"],
+                        output=result.error or "Easy Apply completed",
+                        error=result.error,
+                    )
+                elif platform == "algora":
+                    result = await browser.claim_algora_issue(url)
+                    return ExecutionResult(
+                        success=result.success,
+                        artifacts=[url],
+                        evidence=[f"Algora claim: {result.error or 'success'}"],
+                        output=result.error or "Issue claimed",
+                        error=result.error,
+                    )
+                else:
+                    # Generic: just navigate and report
+                    text = await browser.get_text("body")
+                    return ExecutionResult(
+                        success=True,
+                        artifacts=[url],
+                        evidence=[f"Visited {url}"],
+                        output=f"Page loaded: {len(text.output) if text.success else 0} chars",
+                    )
+
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import concurrent.futures
+
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    return pool.submit(asyncio.run, _run_browser()).result()
+            else:
+                return asyncio.run(_run_browser())
+        except RuntimeError:
+            return asyncio.run(_run_browser())
 
     def _execute_with_platform_executor(self, work_item: Any) -> Any:
         """Execute using platform-specific executor."""
@@ -258,15 +310,23 @@ class DirectWorkExecutionEngine:
             )
 
     def _execute_generic(self, work_item: Any) -> Any:
-        """Generic execution fallback."""
-        # For now, just mark as prepared
-        logger.info("Generic execution for work item %s", getattr(work_item, "id", "unknown"))
+        """Generic execution fallback — prepare deliverable for manual submission."""
+        work_id = getattr(work_item, "id", "unknown")
+        title = getattr(work_item, "title", "Untitled")
+        platform = getattr(work_item, "platform", "unknown")
+
+        logger.info(
+            "Generic execution for %s: %s (%s) — preparing deliverable",
+            work_id,
+            title,
+            platform,
+        )
 
         return ExecutionResult(
             success=True,
-            artifacts=[f"prepared_{getattr(work_item, 'id', 'unknown')}"],
-            evidence=["Work item prepared for manual execution"],
-            output="Work item prepared for manual execution",
+            artifacts=[f"deliverable_{work_id}"],
+            evidence=[f"Prepared submission for {platform}: {title}"],
+            output=f"Ready for manual submission on {platform}",
         )
 
 

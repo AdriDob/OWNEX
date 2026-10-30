@@ -26,11 +26,11 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import text
 
-from core.target_intelligence import TargetPrioritizer
 from cores.agents.types import EventType  # AÑADIR PipelineState
 from cores.env.config import get_config
 from cores.events.event_bus import get_event_bus  # AÑADIR
 from cores.intelligence.reward_learning import RewardLearner
+from cores.target_intelligence import TargetPrioritizer
 from cores.targets.models import TargetIntel
 from database import db, models
 
@@ -46,8 +46,8 @@ def _get_copilot():
     global _copilot_instance
     if _copilot_instance is None:
         try:
-            from core.copilot.agent import CopilotAgent
-            from core.copilot.permissions import AuthorityLevel
+            from cores.copilot.agent import CopilotAgent
+            from cores.copilot.permissions import AuthorityLevel
 
             _copilot_instance = CopilotAgent(authority=AuthorityLevel.SENIOR_HUNTER)
             logger.info("[COPILOT] Scheduler COPILOT initialized")
@@ -176,11 +176,21 @@ class ScanScheduler:
     async def _loop(self):
         while self._running:
             try:
-                self._recover_stale_scans()
-                await self._run_pipeline()
+                await self.run_cycle()
             except Exception as exc:
                 logger.warning("Pipeline cycle error: %s", exc)
             await asyncio.sleep(self.interval)
+
+    async def run_cycle(self) -> None:
+        """Run one full pipeline cycle (stale-scan recovery + stages).
+
+        Public entry point so external triggers (e.g. POST /api/hunt/start)
+        can kick a cycle immediately WITHOUT creating a second scheduler
+        instance or reaching into the private pipeline method. Honors the
+        same per-stage cooldowns as the interval loop.
+        """
+        self._recover_stale_scans()
+        await self._run_pipeline()
 
     def _recover_stale_scans(self) -> None:
         """Mark scans stuck in 'running' as failed before each cycle."""
@@ -334,7 +344,7 @@ class ScanScheduler:
             goals_met = 0
 
             try:
-                from core.reports.acceptance.scraper import feed_hacktivity_to_learner
+                from cores.reports.acceptance.scraper import feed_hacktivity_to_learner
 
                 fed = feed_hacktivity_to_learner(max_pages=1, delay=0.3)
                 if fed:
@@ -344,7 +354,7 @@ class ScanScheduler:
                 logger.debug("[RECOVERY] Hacktivity learning skipped")
 
             try:
-                from core.revenue.economic_memory import EconomicMemory
+                from cores.revenue.economic_memory import EconomicMemory
 
                 EconomicMemory().refresh()
                 goals_met += 1
@@ -716,7 +726,7 @@ class ScanScheduler:
         logger.info("[PROMOTE] Testing hypotheses against real endpoints...")
         session = db.SessionLocal()
         try:
-            from core.pipeline.hypothesis_bridge import run_promote
+            from cores.pipeline.hypothesis_bridge import run_promote
 
             stats = await asyncio.to_thread(run_promote, session)
             if stats["findings_created"] > 0:
@@ -809,7 +819,7 @@ class ScanScheduler:
         logger.info("[AUTO_VALIDATE] Running Validation Engine on hypotheses...")
         session = db.SessionLocal()
         try:
-            from core.validation.bridge import ValidationBridge
+            from cores.validation.bridge import ValidationBridge
 
             bridge = ValidationBridge()
 
@@ -1002,8 +1012,8 @@ class ScanScheduler:
 
                             # Acceptance prediction (no-op if no data yet)
                             try:
-                                from core.reports.acceptance.learner import AcceptanceLearner
-                                from core.reports.quality.scorer import QualityScorer
+                                from cores.reports.acceptance.learner import AcceptanceLearner
+                                from cores.reports.quality.scorer import QualityScorer
 
                                 learner = AcceptanceLearner(load_persisted=True)
                                 scorer = QualityScorer()
@@ -1050,7 +1060,7 @@ class ScanScheduler:
     async def _stage_ai_bounty(self):
         logger.info("[AI_BOUNTY] Checking AI bounty programs...")
         try:
-            from core.ai_bounty.engine import AIBountyEngine
+            from cores.ai_bounty.engine import AIBountyEngine
 
             engine = AIBountyEngine()
             challenges = engine.discover_all()

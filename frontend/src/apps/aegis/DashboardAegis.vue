@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
 import { Activity, Bug, Crosshair, Plus, Shield, Target, Zap } from '@lucide/vue'
-import Skeleton from '@/components/ui/Skeleton.vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 interface TargetSummary {
   id: number
@@ -75,7 +75,13 @@ async function fetchData() {
 }
 
 const severityColor = (s: string) => {
-  const map: Record<string, string> = { critical: 'text-destructive', high: 'text-warning', medium: 'text-accent', low: 'text-muted-foreground', info: 'text-muted' }
+  const map: Record<string, string> = {
+    critical: 'text-destructive',
+    high: 'text-warning',
+    medium: 'text-accent',
+    low: 'text-muted-foreground',
+    info: 'text-muted',
+  }
   return map[s] || 'text-muted-foreground'
 }
 

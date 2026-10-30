@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 
 from fastapi import APIRouter
 
-from core.interfaces.agent import IAgent
-from core.interfaces.scheduler import JobDefinition
+from cores.interfaces.agent import IAgent
+from cores.interfaces.scheduler import JobDefinition
 
 
 @dataclass

@@ -5,24 +5,27 @@
  */
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  /** Glass strength: light | default | strong */
-  variant?: 'light' | 'default' | 'strong'
-  /** Whether to add border highlight */
-  highlight?: boolean
-  /** Rounded size: sm | md | lg | xl | full | none */
-  radius?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'none'
-  /** Padding size (Tailwind scale) */
-  padding?: 'none' | 'sm' | 'md' | 'lg'
-  /** Tag to render as */
-  tag?: string
-}>(), {
-  variant: 'default',
-  highlight: false,
-  radius: 'md',
-  padding: 'md',
-  tag: 'div',
-})
+const props = withDefaults(
+  defineProps<{
+    /** Glass strength: light | default | strong */
+    variant?: 'light' | 'default' | 'strong'
+    /** Whether to add border highlight */
+    highlight?: boolean
+    /** Rounded size: sm | md | lg | xl | full | none */
+    radius?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'none'
+    /** Padding size (Tailwind scale) */
+    padding?: 'none' | 'sm' | 'md' | 'lg'
+    /** Tag to render as */
+    tag?: string
+  }>(),
+  {
+    variant: 'default',
+    highlight: false,
+    radius: 'md',
+    padding: 'md',
+    tag: 'div',
+  },
+)
 
 const classes = computed(() => {
   const map = {
@@ -53,7 +56,9 @@ const classes = computed(() => {
     map.padding[props.padding],
     props.highlight ? 'border-l-2 border-l-primary' : '',
     'gpu-layer',
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 })
 </script>
 

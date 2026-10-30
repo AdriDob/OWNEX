@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 
 class HelloConnector(IConnector):

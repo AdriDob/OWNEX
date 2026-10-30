@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from core.evidence.composer import (
+from cores.evidence.composer import (
     CAPEC_MAP,
     CWE_MAP,
     EvidenceBundle,
@@ -21,7 +21,7 @@ from core.evidence.composer import (
     generate_python,
     publish_evidence_event,
 )
-from core.offensive.models import Hypothesis
+from cores.offensive.models import Hypothesis
 
 # ── Fixtures ─────────────────────────────────────────────────────
 
@@ -363,7 +363,7 @@ class TestPublishEvidenceEvent:
 
     def test_handles_event_bus_failure_gracefully(self):
         bundle = EvidenceBundle(hypothesis_id="hyp-test")
-        with patch("core.events.event_bus.get_core_event_bus", side_effect=ImportError("No bus")):
+        with patch("cores.events.event_bus.get_core_event_bus", side_effect=ImportError("No bus")):
             publish_evidence_event("composed", bundle)  # should not raise
 
 

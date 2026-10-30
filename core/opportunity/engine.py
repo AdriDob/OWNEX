@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -85,7 +85,7 @@ class Opportunity:
     platform: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
     metrics: OpportunityMetrics = field(default_factory=OpportunityMetrics)
-    discovered_at: datetime = field(default_factory=datetime.utcnow)
+    discovered_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     decision: DecisionMode = DecisionMode.EXPLANATORY
     preparation_status: PreparationStatus = PreparationStatus.PENDING
     preparation_artifacts: dict[str, Any] = field(default_factory=dict)
@@ -387,25 +387,25 @@ class OpportunityOrchestrator:
 
     def __init__(self, mercenary_mode: bool = True) -> None:
         self.mercenary_mode = mercenary_mode
-        from core.opportunity.mercenary_filter import get_mercenary_filter
+        from cores.opportunity.mercenary_filter import get_mercenary_filter
 
         self.mercenary_filter = get_mercenary_filter()
 
         # Inicializar adaptadores for each cycle
-        from core.opportunity.adapters.forge_legacy import (
+        from cores.opportunity.adapters.forge_legacy import (
             AlgoraAdapter,
             OpireAdapter,
             SuperteamAdapter,
         )
-        from core.opportunity.adapters.issuehunt import IssueHuntAdapter
-        from core.opportunity.adapters.linkedin import LinkedInEasyApplyAdapter
-        from core.opportunity.adapters.pulse import (
+        from cores.opportunity.adapters.issuehunt import IssueHuntAdapter
+        from cores.opportunity.adapters.linkedin import LinkedInEasyApplyAdapter
+        from cores.opportunity.adapters.pulse import (
             DataAnnotationAdapter,
             MindriftAdapter,
             OutlierAdapter,
             RemotasksAdapter,
         )
-        from core.opportunity.adapters.security_bounty import (
+        from cores.opportunity.adapters.security_bounty import (
             BugcrowdAdapter,
             HackerOneAdapter,
             IntigritiAdapter,
@@ -433,12 +433,12 @@ class OpportunityOrchestrator:
         ]
 
         # Inicializar ejecutores
-        from core.opportunity.executors import BaseExecutor
-        from core.opportunity.executors.algora_executor import AlgoraExecutor
-        from core.opportunity.executors.freelancer_executor import FreelancerExecutor
-        from core.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-        from core.opportunity.executors.mindrift_executor import MindriftExecutor
-        from core.opportunity.executors.opire_executor import OpireExecutor
+        from cores.opportunity.executors import BaseExecutor
+        from cores.opportunity.executors.algora_executor import AlgoraExecutor
+        from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
+        from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
+        from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+        from cores.opportunity.executors.opire_executor import OpireExecutor
 
         self.forge_executors: dict[str, BaseExecutor] = {
             "freelancer": FreelancerExecutor(),
@@ -451,9 +451,9 @@ class OpportunityOrchestrator:
         }
 
         # Inicializar agentes autónomos
-        from core.automation.browser_agent import BrowserAgent
-        from core.autonomy.coder_agent import CoderAgent
-        from core.autonomy.workflow_engine import AutonomousWorkflow
+        from cores.automation.browser_agent import BrowserAgent
+        from cores.autonomy.coder_agent import CoderAgent
+        from cores.autonomy.workflow_engine import AutonomousWorkflow
 
         self.browser_agent = BrowserAgent()
         self.workflow_engine = AutonomousWorkflow()
@@ -478,7 +478,7 @@ class OpportunityOrchestrator:
                 logging.getLogger("ownex.orchestrator").error(f"Adapter {adapter.platform} fetch failed: {e}")
 
         # 2. Priorizar usando el engine de scoring (TargetPrioritizer)
-        from core.opportunity.tasks import prioritize_targets
+        from cores.opportunity.tasks import prioritize_targets
 
         prioritized = await prioritize_targets(raw_opps, cycle=cycle)
 

@@ -15,7 +15,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from core.opportunity.mercenary_filter import (
+from cores.opportunity.mercenary_filter import (
     CATEGORY_PRIORITIES,
     MercenaryAttributes,
     OpportunityCategory,

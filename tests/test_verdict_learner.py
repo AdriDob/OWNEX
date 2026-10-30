@@ -54,7 +54,7 @@ def mock_finding_details():
 @pytest.fixture
 def mock_learner():
     """Mock AcceptanceLearner."""
-    with patch("core.learning.verdict_learner.get_acceptance_learner") as mock:
+    with patch("cores.learning.verdict_learner.get_acceptance_learner") as mock:
         instance = MagicMock()
         instance.record_manual_outcome.return_value = None
         instance.get_summary.return_value = {
@@ -77,7 +77,7 @@ def mock_learner():
 @pytest.fixture
 def mock_bus():
     """Mock EventBus."""
-    with patch("core.learning.verdict_learner.get_bus") as mock:
+    with patch("cores.learning.verdict_learner.get_bus") as mock:
         instance = MagicMock()
         instance.publish = MagicMock()
         mock.return_value = instance
@@ -87,7 +87,7 @@ def mock_bus():
 @pytest.fixture
 def verdict_learner(mock_learner, mock_bus):
     """VerdictAutoLearner with mocked dependencies."""
-    from core.learning.verdict_learner import VerdictAutoLearner
+    from cores.learning.verdict_learner import VerdictAutoLearner
 
     vl = VerdictAutoLearner()
     vl._learner = mock_learner
@@ -181,7 +181,7 @@ class TestHandleFindingStatusChanged:
         mock_learner.record_manual_outcome.assert_not_called()
 
     def test_error_on_missing_finding(self, verdict_learner, mock_learner):
-        with patch("core.learning.verdict_learner.get_finding_details", return_value=None):
+        with patch("cores.learning.verdict_learner.get_finding_details", return_value=None):
             result = verdict_learner.handle_finding_status_changed(CONFIRMED_PAYLOAD)
         assert result["action"] == "error"
         mock_learner.record_manual_outcome.assert_not_called()
@@ -218,7 +218,7 @@ class TestStatus:
         assert "hackerone" in s["platforms"]
 
     def test_status_error_handling(self):
-        from core.learning.verdict_learner import VerdictAutoLearner
+        from cores.learning.verdict_learner import VerdictAutoLearner
 
         vl = VerdictAutoLearner()
         vl._learner = object()  # type: ignore
@@ -241,8 +241,8 @@ class TestGetQualityDimensions:
             "confidence": 0.9,
         }
 
-        with patch("core.reports.quality.scorer.QualityScorer.score", return_value=mock_score):
-            from core.learning.verdict_learner import get_quality_dimensions
+        with patch("cores.reports.quality.scorer.QualityScorer.score", return_value=mock_score):
+            from cores.learning.verdict_learner import get_quality_dimensions
 
             dims = get_quality_dimensions(1)
             assert dims is not None
@@ -250,8 +250,8 @@ class TestGetQualityDimensions:
             assert dims["clarity"] == 0.85
 
     def test_quality_dimensions_failure_returns_defaults(self):
-        with patch("core.reports.quality.scorer.QualityScorer", side_effect=ImportError("no scorer")):
-            from core.learning.verdict_learner import get_quality_dimensions
+        with patch("cores.reports.quality.scorer.QualityScorer", side_effect=ImportError("no scorer")):
+            from cores.learning.verdict_learner import get_quality_dimensions
 
             dims = get_quality_dimensions(1)
             assert dims is None
@@ -282,7 +282,7 @@ class TestDetectPlatform:
 
             mock_session.query.side_effect = query_side_effect
 
-            from core.learning.verdict_learner import VerdictAutoLearner
+            from cores.learning.verdict_learner import VerdictAutoLearner
 
             vl = VerdictAutoLearner()
             result = vl._detect_platform(1)
@@ -292,7 +292,7 @@ class TestDetectPlatform:
         with patch("database.db.SessionLocal") as m:
             m.return_value.__enter__.return_value.query.return_value.filter.return_value.first.return_value = None
 
-            from core.learning.verdict_learner import VerdictAutoLearner
+            from cores.learning.verdict_learner import VerdictAutoLearner
 
             vl = VerdictAutoLearner()
             result = vl._detect_platform(999)
@@ -304,7 +304,7 @@ class TestDetectPlatform:
 
 class TestSingleton:
     def test_get_verdict_learner_returns_singleton(self):
-        from core.learning import verdict_learner as _vl_mod
+        from cores.learning import verdict_learner as _vl_mod
 
         _vl_mod._LEARNER = None
         v1 = _vl_mod.get_verdict_learner()

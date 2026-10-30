@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useFindingsStore } from '@/stores/findings'
 
 const mockApi = vi.hoisted(() => ({
@@ -15,13 +15,40 @@ beforeEach(() => {
 })
 
 const mockFindings = [
-  { id: 1, target_id: 1, title: 'SQLi', severity: 'critical', payout: 5000, target_name: 'test.com', endpoint_path: '/api?id=1' },
-  { id: 2, target_id: 1, title: 'XSS', severity: 'high', payout: 2000, target_name: 'test.com', endpoint_path: '/search?q=1' },
-  { id: 3, target_id: 1, title: 'Info', severity: 'info', payout: 0, target_name: 'test.com', endpoint_path: '/robots.txt' },
+  {
+    id: 1,
+    target_id: 1,
+    title: 'SQLi',
+    severity: 'critical',
+    payout: 5000,
+    target_name: 'test.com',
+    endpoint_path: '/api?id=1',
+  },
+  {
+    id: 2,
+    target_id: 1,
+    title: 'XSS',
+    severity: 'high',
+    payout: 2000,
+    target_name: 'test.com',
+    endpoint_path: '/search?q=1',
+  },
+  {
+    id: 3,
+    target_id: 1,
+    title: 'Info',
+    severity: 'info',
+    payout: 0,
+    target_name: 'test.com',
+    endpoint_path: '/robots.txt',
+  },
 ]
 
 const mockPipeline = {
-  detected: [{ id: 1 }], validated: [{ id: 2 }], confirmed: [{ id: 3 }], reported: [],
+  detected: [{ id: 1 }],
+  validated: [{ id: 2 }],
+  confirmed: [{ id: 3 }],
+  reported: [],
 }
 
 describe('findings store', () => {

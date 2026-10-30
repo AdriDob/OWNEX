@@ -41,7 +41,7 @@ PLATFORMS = [
 async def check_secrets_health() -> dict[str, Any]:
     """Check health of all credential secrets.
 
-    Scheduler handler: ``core.credentials.health:check_secrets_health``
+    Scheduler handler: ``cores.credentials.health:check_secrets_health``
     """
     try:
         creds = get_credentials()

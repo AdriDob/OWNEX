@@ -155,7 +155,7 @@ class CapitalTimeline:
     def add_event_from_ledger(self, ledger_entry: dict[str, Any] | Any) -> str | None:
         """Create timeline event from ledger entry."""
         try:
-            from core.execution_queue.models import LedgerEntryData
+            from cores.execution_queue.models import LedgerEntryData
 
             if isinstance(ledger_entry, LedgerEntryData):
                 entry_dict = {

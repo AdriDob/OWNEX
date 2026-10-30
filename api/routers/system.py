@@ -173,7 +173,7 @@ def restart_api():
     try:
         from pathlib import Path
 
-        from core.self_update.system import ProcessManager
+        from cores.self_update.system import ProcessManager
 
         root = Path(__file__).resolve().parent.parent.parent
         pm = ProcessManager(root)

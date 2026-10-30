@@ -14,8 +14,8 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from core.interfaces import IScheduler
-from core.interfaces.scheduler import JobDefinition
+from cores.interfaces import IScheduler
+from cores.interfaces.scheduler import JobDefinition
 
 logger = logging.getLogger("orion.core.scheduler")
 
@@ -30,7 +30,7 @@ class CoreScheduler(IScheduler):
         self._on_job_due: Callable[[JobDefinition], Any] | None = None
         # Hardening spec §12: guard anti-solapamiento + run ledger persistente.
         self._active_runs: set[str] = set()
-        from core.scheduler.runs import SchedulerRunLedger
+        from cores.scheduler.runs import SchedulerRunLedger
 
         self._ledger = SchedulerRunLedger()
 
@@ -119,7 +119,7 @@ class CoreScheduler(IScheduler):
         - Si otro proceso sostiene el flock del job → skipped_locked (registrado).
         - Toda corrida queda en el JSONL con job_id/run_id/attempt/status/error.
         """
-        from core.scheduler.runs import RunRecord, _default_ledger_path, job_lock
+        from cores.scheduler.runs import RunRecord, _default_ledger_path, job_lock
 
         if job_id in self._active_runs:
             logger.debug("Job %s aún corriendo — skip overlap", job_id)

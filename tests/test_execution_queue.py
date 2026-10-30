@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.execution_queue import assert_transition, can_transition, is_terminal
+from cores.execution_queue import assert_transition, can_transition, is_terminal
 
 
 def test_happy_path_to_paid() -> None:

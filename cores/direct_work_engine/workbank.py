@@ -78,10 +78,9 @@ PLATFORM_ACCESS: dict[str, tuple[str, str]] = {
     "yeswehack": ("needs_api_key", "Configurar YESWEHACK_API_KEY en opportunity.env para envío y sync de earnings."),
     "imunefi": ("needs_api_key", "Configurar IMMUNEFI_API_KEY en opportunity.env para envío y sync de earnings."),
     "opencollective": ("needs_manual_setup", "Presentar una propuesta de financiamiento en cada colectivo."),
-    "freelancer": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Freelancer."),
+    "workana": ("needs_manual_setup", "Completar el perfil y verificar el método de pago en Workana (Payoneer/banco)."),
     "outlier": ("needs_manual_setup", "Crear cuenta y completar la prueba inicial en Outlier."),
     "mindrift": ("needs_manual_setup", "Crear cuenta y completar el onboarding de Mindrift."),
-    "upwork": ("needs_manual_setup", "Crear perfil y conectar método de pago en Upwork."),
 }
 
 # Bug bounty platforms require only free registration (open programs). The
@@ -250,7 +249,7 @@ class WorkBank:
             payout_method = ""
             payout_method_rationale = ""
             try:
-                from core.payout_net import get_payout_net
+                from cores.payout_net import get_payout_net
 
                 payout_net = get_payout_net()
                 rec = payout_net.recommend_for(platform_key)
@@ -296,7 +295,7 @@ class WorkBank:
         # ready_to_deliver nacen QUALIFIED→READY en la cola única. Best-effort:
         # un fallo del espejo jamás rompe el banco. (Re-aplicado tras fb30df08)
         try:
-            from core.execution_queue.mirror import mirror_workbank_prepared
+            from cores.execution_queue.mirror import mirror_workbank_prepared
 
             for item in self._items.values():
                 if item.ready_to_deliver:
@@ -307,9 +306,43 @@ class WorkBank:
                             "platform": str(item.platform),
                             "reward": item.reward,
                             "title": item.title,
+                            "barrier_score": round(item.barrier_score, 1),
                         },
                     )
         except Exception:  # pragma: no cover — espejo defensivo
+            pass
+
+        # Human Gate: crear gate de delivery_approval para items ready_to_deliver
+        try:
+            from cores.autopilot import get_autopilot
+
+            ap = get_autopilot()
+            gate_system = ap.human_gate
+            for item in self._items.values():
+                if item.ready_to_deliver:
+                    import asyncio
+
+                    # Convertir WorkItem a deliverables compatibles
+                    deliverables = item.deliverables or [
+                        f"submission_draft: {item.title[:80]}",
+                        "terms_check: cumple los términos públicos de la plataforma",
+                        f"reward_verified: ${float(item.reward):.2f}" if item.reward > 0 else "",
+                    ]
+                    package_path = f"deliveries/{item.id}_{item.platform}"
+                    asyncio.run(
+                        gate_system.request_delivery_approval(
+                            item_id=item.id,
+                            platform=item.platform,
+                            title=item.title,
+                            amount_usd=float(item.reward),
+                            deliverables=deliverables,
+                            delivery_package_path=package_path,
+                            submission_guide=f"Entrega en {item.platform}: {item.description[:200]}"
+                            if item.description
+                            else f"Entrega en {item.platform}",
+                        )
+                    )
+        except Exception:  # pragma: no cover — human gate defensivo
             pass
 
         return self._summary(

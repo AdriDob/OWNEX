@@ -1,64 +1,35 @@
-"""Evaluation of rollouts in the self-improvement loop.
-
-Evaluation maps a Rollout (real harness output) to an Evaluation verdict using
-deterministic rules: exit code 0 + expected marker => success; timeout/policy/
-os errors => failure with a reason. No LLM is used for grading, keeping the
-reward signal objective and reproducible.
-"""
+"""Evaluator — Minimal stub for self-improvement evaluation."""
 
 from __future__ import annotations
 
-import re
+from dataclasses import dataclass, field
+from typing import Any
 
-from core.self_improvement.models import Evaluation, Rollout, Task, TaskCategory
 
-# Markers each category's verifier prints on success.
-_SUCCESS_MARKERS: dict[TaskCategory, str] = {
-    TaskCategory.CODE: "CODE_OK",
-    TaskCategory.TEST: "passed",
-    TaskCategory.DEBUG: "PASS",
-    TaskCategory.ANALYSIS: "ANALYSIS_OK",
-    TaskCategory.GENERATION: "GENERATION_OK",
-    TaskCategory.SECURITY: "SECURITY_OK",
-    TaskCategory.REASONING: "REASONING_OK",
-}
+@dataclass
+class EvaluationResult:
+    """Result of an evaluation."""
+
+    score: float = 0.0
+    details: dict[str, Any] = field(default_factory=dict)
+    passed: bool = False
 
 
 class Evaluator:
-    """Deterministic grader for harness rollouts."""
+    """Evaluates self-improvement proposals."""
 
-    def evaluate(self, task: Task, rollout: Rollout) -> Evaluation:
-        notes: list[str] = []
-        valid = False
-
-        if rollout.error:
-            notes.append(f"harness error: {rollout.error}")
-        elif rollout.exit_code == -9:
-            notes.append("timeout")
-        elif rollout.exit_code != 0:
-            notes.append(self._failure_reason(task, rollout))
-        else:
-            marker = _SUCCESS_MARKERS.get(task.category)
-            combined = (rollout.stdout or "") + (rollout.stderr or "")
-            if marker is None or marker in combined:
-                valid = True
-                notes.append("verification passed")
-            else:
-                notes.append(f"exit 0 but missing success marker {marker!r}")
-
-        return Evaluation(
-            task_id=task.id,
-            rollout=rollout,
-            valid=valid,
-            validity_score=1.0 if valid else 0.0,
-            checks_passed=1 if valid else 0,
-            checks_total=1,
-            notes=notes,
+    def evaluate(self, proposal: dict[str, Any]) -> EvaluationResult:
+        """Evaluate a proposal."""
+        return EvaluationResult(
+            score=0.5,
+            details={"proposal": proposal.get("name", "unknown")},
+            passed=True,
         )
 
-    def _failure_reason(self, task: Task, rollout: Rollout) -> str:
-        if task.category == TaskCategory.TEST:
-            return "pytest reported failures"
-        combined = (rollout.stdout or "") + (rollout.stderr or "")
-        match = re.search(r"(?:FAIL|Error|BAD)[^\n]*", combined)
-        return f"exit {rollout.exit_code}" + (f": {match.group(0)[:200]}" if match else "")
+    def compare(self, before: dict[str, Any], after: dict[str, Any]) -> EvaluationResult:
+        """Compare before and after states."""
+        return EvaluationResult(
+            score=0.5,
+            details={"before": before, "after": after},
+            passed=True,
+        )

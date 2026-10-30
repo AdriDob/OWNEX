@@ -4,30 +4,34 @@
  * Used for System Readiness Score, completion percentages.
  * Animates on mount with spring physics.
  */
-import { computed, ref, onMounted } from 'vue'
+
 import { animate } from 'motion'
+import { computed, onMounted, ref } from 'vue'
 import { useReducedMotion } from '../composables/useReducedMotion'
 
-const props = withDefaults(defineProps<{
-  /** Value 0-100 */
-  value: number
-  /** Size in px */
-  size?: number
-  /** Stroke width */
-  strokeWidth?: number
-  /** Color for filled portion */
-  color?: string
-  /** Show percentage text inside */
-  showLabel?: boolean
-  /** Label font size (Tailwind) */
-  labelSize?: string
-}>(), {
-  size: 120,
-  strokeWidth: 8,
-  color: '#ffffff',
-  showLabel: true,
-  labelSize: 'text-2xl',
-})
+const props = withDefaults(
+  defineProps<{
+    /** Value 0-100 */
+    value: number
+    /** Size in px */
+    size?: number
+    /** Stroke width */
+    strokeWidth?: number
+    /** Color for filled portion */
+    color?: string
+    /** Show percentage text inside */
+    showLabel?: boolean
+    /** Label font size (Tailwind) */
+    labelSize?: string
+  }>(),
+  {
+    size: 120,
+    strokeWidth: 8,
+    color: 'var(--ownex-text-primary)',
+    showLabel: true,
+    labelSize: 'text-2xl',
+  },
+)
 
 const { shouldReduce } = useReducedMotion()
 const radius = computed(() => (props.size - props.strokeWidth) / 2)
@@ -38,10 +42,10 @@ const center = computed(() => props.size / 2)
 const offset = ref(circumference.value) // start at full (empty)
 
 const statusColor = computed(() => {
-  if (props.value >= 80) return '#16A34A'  // green
-  if (props.value >= 50) return '#D97706'  // amber
-  if (props.value >= 25) return '#D97706'  // orange
-  return '#00d5ff'                         // red
+  if (props.value >= 80) return 'var(--ownex-green)' // green
+  if (props.value >= 50) return 'var(--ownex-yellow)' // amber
+  if (props.value >= 25) return 'var(--ownex-yellow)' // orange
+  return 'var(--ownex-accent)' // red
 })
 
 onMounted(() => {
@@ -54,7 +58,9 @@ onMounted(() => {
     type: 'spring',
     stiffness: 80,
     damping: 14,
-    onUpdate: (latest: number) => { offset.value = latest },
+    onUpdate: (latest: number) => {
+      offset.value = latest
+    },
   })
 })
 </script>

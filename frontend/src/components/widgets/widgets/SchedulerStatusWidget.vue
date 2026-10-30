@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Clock } from '@lucide/vue'
-import StatusDot from '@/components/ui/StatusDot.vue'
+import { computed } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
+import StatusDot from '@/components/ui/StatusDot.vue'
 
 interface Props {
   data?: any

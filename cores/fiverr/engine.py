@@ -276,7 +276,7 @@ class FiverrEngine:
         Reuses the established, tested execution layer instead of duplicating a
         submission pipeline (Golden Rule: extend, don't reimplement).
         """
-        from core.opportunity.executors.assisted_mode import AssistedExecutor
+        from cores.opportunity.executors.assisted_mode import AssistedExecutor
 
         order = self.plan_order(str(opportunity.get("id", "")), gig_key, opportunity.get("title", ""))
         executor = AssistedExecutor(base_executor=None)

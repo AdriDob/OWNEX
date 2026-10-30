@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from core.revenue.models import Payment, RevenueRecord, RevenueStats
+from cores.revenue.models import Payment, RevenueRecord, RevenueStats
 
 
 class PaymentTracker:

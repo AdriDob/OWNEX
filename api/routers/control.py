@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api", tags=["control-panel"])
 async def mega_fast_status() -> dict[str, Any]:
     """Get Mega Fast Mode status."""
     try:
-        from core.mega_fast_mode import get_mega_fast_mode
+        from cores.mega_fast_mode import get_mega_fast_mode
 
         return get_mega_fast_mode().get_status()
     except Exception as e:
@@ -30,7 +30,7 @@ async def mega_fast_status() -> dict[str, Any]:
 async def mega_fast_activate() -> dict[str, Any]:
     """Activate Mega Fast Mode."""
     try:
-        from core.mega_fast_mode import get_mega_fast_mode
+        from cores.mega_fast_mode import get_mega_fast_mode
 
         mode = get_mega_fast_mode()
         result = mode.activate()
@@ -43,7 +43,7 @@ async def mega_fast_activate() -> dict[str, Any]:
 async def mega_fast_deactivate() -> dict[str, Any]:
     """Deactivate Mega Fast Mode."""
     try:
-        from core.mega_fast_mode import get_mega_fast_mode
+        from cores.mega_fast_mode import get_mega_fast_mode
 
         get_mega_fast_mode().deactivate()
         return {"success": True}
@@ -58,7 +58,7 @@ async def mega_fast_deactivate() -> dict[str, Any]:
 async def first_time_status() -> dict[str, Any]:
     """Get First-Time Mode status."""
     try:
-        from core.first_time_mode import get_first_time_mode
+        from cores.first_time_mode import get_first_time_mode
 
         return get_first_time_mode().get_progress()
     except Exception as e:
@@ -69,7 +69,7 @@ async def first_time_status() -> dict[str, Any]:
 async def first_time_activate() -> dict[str, Any]:
     """Activate First-Time Mode."""
     try:
-        from core.first_time_mode import get_first_time_mode
+        from cores.first_time_mode import get_first_time_mode
 
         mode = get_first_time_mode()
         result = mode.activate()
@@ -82,7 +82,7 @@ async def first_time_activate() -> dict[str, Any]:
 async def first_time_deactivate() -> dict[str, Any]:
     """Deactivate First-Time Mode."""
     try:
-        from core.first_time_mode import get_first_time_mode
+        from cores.first_time_mode import get_first_time_mode
 
         result = get_first_time_mode().deactivate()
         return {"success": True, **(result or {})}
@@ -97,7 +97,7 @@ async def first_time_deactivate() -> dict[str, Any]:
 async def vpn_info() -> dict[str, Any]:
     """Estado VPN real: IP, país, compatibilidad + qué te falta instalar."""
     try:
-        from core.vpn_assistant import get_vpn_assistant
+        from cores.vpn_assistant import get_vpn_assistant
 
         assistant = get_vpn_assistant()
         status = assistant.detect()
@@ -122,7 +122,7 @@ async def vpn_info() -> dict[str, Any]:
 async def vpn_check_outlier() -> dict[str, Any]:
     """Chequear si la IP actual permitiría entrar a Outlier/DataAnnotation."""
     try:
-        from core.vpn_assistant import get_vpn_assistant
+        from cores.vpn_assistant import get_vpn_assistant
 
         return get_vpn_assistant().check_outlier()
     except Exception as e:
@@ -133,7 +133,7 @@ async def vpn_check_outlier() -> dict[str, Any]:
 async def vpn_install_windscribe() -> dict[str, Any]:
     """Instalar Windscribe CLI en Linux/WSL (gratis)."""
     try:
-        from core.vpn_assistant import get_vpn_assistant
+        from cores.vpn_assistant import get_vpn_assistant
 
         return get_vpn_assistant().install_windscribe_linux()
     except Exception as e:
@@ -147,7 +147,7 @@ async def vpn_install_windscribe() -> dict[str, Any]:
 async def obsidian_sync() -> dict[str, Any]:
     """Sync memory / notes a Obsidian."""
     try:
-        from core.obsidian_sync import ObsidianSync
+        from cores.obsidian_sync import ObsidianSync
 
         syncer = ObsidianSync()
         if not syncer.is_connected:
@@ -162,7 +162,7 @@ async def obsidian_sync() -> dict[str, Any]:
 async def vpn_windscribe_connect() -> dict[str, Any]:
     """Detectar/abrir Windscribe en Windows y guiar la conexión a US."""
     try:
-        from core.vpn_assistant import get_vpn_assistant
+        from cores.vpn_assistant import get_vpn_assistant
 
         return get_vpn_assistant().windscribe_on_windows()
     except Exception as e:
@@ -176,7 +176,7 @@ async def vpn_windscribe_connect() -> dict[str, Any]:
 async def applications_plan() -> dict[str, Any]:
     """Plan asistido de postulación a plataformas de ingreso con qué poner en cada campo."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         return get_application_assistant().get_plan()
     except Exception as e:
@@ -187,7 +187,7 @@ async def applications_plan() -> dict[str, Any]:
 async def applications_overview() -> dict[str, Any]:
     """Resumen de progreso + próxima acción recomendada."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         return get_application_assistant().overview()
     except Exception as e:
@@ -209,7 +209,7 @@ async def applications_income_plan() -> dict[str, Any]:
 async def application_complete_step(platform: str, step_id: str) -> dict[str, Any]:
     """Marcar un paso de postulación como completado."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         return get_application_assistant().complete_step(platform, step_id)
     except KeyError as e:
@@ -222,7 +222,7 @@ async def application_complete_step(platform: str, step_id: str) -> dict[str, An
 async def application_set_status(platform: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Actualizar el estado de una postulación (pending/applied/in_review/accepted/rejected/paused)."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         status = str(payload.get("status", ""))
         return get_application_assistant().set_status(platform, status)
@@ -238,7 +238,7 @@ async def application_set_status(platform: str, payload: dict[str, Any]) -> dict
 async def application_onboarding(platform: str) -> dict[str, Any]:
     """Onboarding state para una plataforma: readiness %, checklist, next action."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         return get_application_assistant().get_onboarding(platform)
     except KeyError as e:
@@ -251,7 +251,7 @@ async def application_onboarding(platform: str) -> dict[str, Any]:
 async def all_onboarding() -> dict[str, Any]:
     """Onboarding summary para todas las plataformas."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         results = get_application_assistant().get_all_onboarding()
         return {"platforms": results, "count": len(results)}
@@ -263,7 +263,7 @@ async def all_onboarding() -> dict[str, Any]:
 async def platform_ranking() -> dict[str, Any]:
     """¿En qué plataforma me conviene trabajar AHORA? Rankeado por effective $/h."""
     try:
-        from core.application_assistant import get_application_assistant
+        from cores.application_assistant import get_application_assistant
 
         ranked = get_application_assistant().get_platform_ranking()
         top = ranked[0] if ranked else None
@@ -276,7 +276,7 @@ async def platform_ranking() -> dict[str, Any]:
 async def master_guide() -> dict[str, Any]:
     """Guía maestra paso a paso con estado real de todas las categorías."""
     try:
-        from core.master_guide import master_guide as build_guide
+        from cores.master_guide import master_guide as build_guide
 
         return build_guide()
     except Exception as e:
@@ -290,7 +290,7 @@ async def master_guide() -> dict[str, Any]:
 async def money_plan_get() -> dict[str, Any]:
     """Obtener el plan de plata configurado + proyección semanal."""
     try:
-        from core.money_plan import get_money_plan
+        from cores.money_plan import get_money_plan
 
         plan = get_money_plan()
         return {"success": True, "plan": plan.get(), "projection": plan.project_weekly()}
@@ -302,7 +302,7 @@ async def money_plan_get() -> dict[str, Any]:
 async def money_plan_update(payload: dict[str, Any]) -> dict[str, Any]:
     """Actualizar el plan de plata (horas/día, metas, prioridades)."""
     try:
-        from core.money_plan import get_money_plan
+        from cores.money_plan import get_money_plan
 
         plan = get_money_plan()
         updated = plan.update(payload)
@@ -315,7 +315,7 @@ async def money_plan_update(payload: dict[str, Any]) -> dict[str, Any]:
 async def task_assistant_analyze(payload: dict[str, Any]) -> dict[str, Any]:
     """Analizar una tarea pegada y devolver material de referencia para trabajarla."""
     try:
-        from core.task_assistant import analyze_task
+        from cores.task_assistant import analyze_task
 
         task = payload.get("task", "")
         return await analyze_task(task)
@@ -330,7 +330,7 @@ async def task_assistant_analyze(payload: dict[str, Any]) -> dict[str, Any]:
 async def dev_bounty_status() -> dict[str, Any]:
     """Estado del autopiloto de dev bounts."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         return get_dev_bounty_autopilot().get_status()
     except Exception as e:
@@ -341,7 +341,7 @@ async def dev_bounty_status() -> dict[str, Any]:
 async def dev_bounty_activate() -> dict[str, Any]:
     """Activar auto-discovery + auto-proposal de dev bounts."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         return get_dev_bounty_autopilot().activate()
     except Exception as e:
@@ -352,7 +352,7 @@ async def dev_bounty_activate() -> dict[str, Any]:
 async def dev_bounty_deactivate() -> dict[str, Any]:
     """Desactivar el autopilote de dev bounts."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         return get_dev_bounty_autopilot().deactivate()
     except Exception as e:
@@ -363,7 +363,7 @@ async def dev_bounty_deactivate() -> dict[str, Any]:
 async def dev_bounty_run() -> dict[str, Any]:
     """Correr un ciclo de descubrimiento + preparar propuestas."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         return await get_dev_bounty_autopilot().run_discovery_cycle()
     except Exception as e:
@@ -374,7 +374,7 @@ async def dev_bounty_run() -> dict[str, Any]:
 async def dev_bounty_queue() -> dict[str, Any]:
     """Propuestas listas para validar."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         return get_dev_bounty_autopilot().get_validation_queue()
     except Exception as e:
@@ -385,7 +385,7 @@ async def dev_bounty_queue() -> dict[str, Any]:
 async def dev_bounty_beginner_mode(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Activa/desactiva el filtro de bounts aptos para principiantes."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         if payload is None:
             payload = {}
@@ -399,8 +399,8 @@ async def dev_bounty_beginner_mode(payload: dict[str, Any] | None = None) -> dic
 async def dev_bounty_validate(proposal_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Validar una propuesta (approved/rejected)."""
     try:
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
-        from core.profile_builder import get_profile_builder
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.profile_builder import get_profile_builder
 
         if payload is None:
             payload = {}
@@ -440,7 +440,7 @@ async def dev_bounty_validate(proposal_id: str, payload: dict[str, Any] | None =
 async def profile_builder_status() -> dict[str, Any]:
     """Estado del perfil de GitHub vinculado a OWNEX."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         return get_profile_builder().get_status()
     except Exception as e:
@@ -451,7 +451,7 @@ async def profile_builder_status() -> dict[str, Any]:
 async def profile_builder_link(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Vincular cuenta de GitHub (username)."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         if payload is None:
             payload = {}
@@ -465,7 +465,7 @@ async def profile_builder_link(payload: dict[str, Any] | None = None) -> dict[st
 async def profile_builder_audit() -> dict[str, Any]:
     """Re-auditar el perfil vinculado."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         return get_profile_builder().audit()
     except Exception as e:
@@ -476,7 +476,7 @@ async def profile_builder_audit() -> dict[str, Any]:
 async def profile_builder_portfolio_repo(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Configurar repo portfolio (usuario/repo) para auto-push."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         if payload is None:
             payload = {}
@@ -489,7 +489,7 @@ async def profile_builder_portfolio_repo(payload: dict[str, Any] | None = None) 
 async def profile_builder_auto_push(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Activar/desactivar auto-push de bounties validados al repo portfolio."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         if payload is None:
             payload = {}
@@ -502,7 +502,7 @@ async def profile_builder_auto_push(payload: dict[str, Any] | None = None) -> di
 async def profile_builder_recommendations() -> dict[str, Any]:
     """Acciones recomendadas para mejorar el perfil."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         return {"success": True, "recommendations": get_profile_builder().recommendations()}
     except Exception as e:
@@ -513,7 +513,7 @@ async def profile_builder_recommendations() -> dict[str, Any]:
 async def profile_builder_readme() -> dict[str, Any]:
     """Generar README.md del perfil."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         return get_profile_builder().generate_readme()
     except Exception as e:
@@ -524,7 +524,7 @@ async def profile_builder_readme() -> dict[str, Any]:
 async def profile_builder_record_contribution(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar contribución manual (opcional)."""
     try:
-        from core.profile_builder import get_profile_builder
+        from cores.profile_builder import get_profile_builder
 
         if payload is None:
             payload = {}
@@ -543,7 +543,7 @@ async def profile_builder_record_contribution(payload: dict[str, Any] | None = N
 async def daily_tasks_get(force_refresh: bool = False) -> dict[str, Any]:
     """Tareas del día propuestas por OWNEX."""
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         return get_daily_task_board().get_tasks(force_refresh=force_refresh)
     except Exception as e:
@@ -554,7 +554,7 @@ async def daily_tasks_get(force_refresh: bool = False) -> dict[str, Any]:
 async def daily_tasks_set_status(task_id: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Actualizar el estado de una tarea (pending/doing/done)."""
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         if payload is None:
             payload = {}
@@ -567,7 +567,7 @@ async def daily_tasks_set_status(task_id: str, payload: dict[str, Any] | None = 
 async def daily_tasks_advance() -> dict[str, Any]:
     """Avanzar al próximo día (demo/prueba)."""
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         return get_daily_task_board().advance_day()
     except Exception as e:
@@ -578,7 +578,7 @@ async def daily_tasks_advance() -> dict[str, Any]:
 async def daily_tasks_refresh() -> dict[str, Any]:
     """Forzar regeneración de tareas del día."""
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         return get_daily_task_board().get_tasks(force_refresh=True)
     except Exception as e:
@@ -589,7 +589,7 @@ async def daily_tasks_refresh() -> dict[str, Any]:
 async def daily_tasks_complete_done() -> dict[str, Any]:
     """Marca como done las tareas cuyo hito ya está resuelto en el sistema."""
     try:
-        from core.daily_tasks import get_daily_task_board
+        from cores.daily_tasks import get_daily_task_board
 
         result = get_daily_task_board().complete_done_from_state()
         board = get_daily_task_board().get_tasks()
@@ -605,13 +605,13 @@ async def daily_tasks_complete_done() -> dict[str, Any]:
 async def config_progress() -> dict[str, Any]:
     """Progreso global de configuración OWNEX (0-100%)."""
     try:
-        from core.credentials.vault import get_credentials
-        from core.goal_evaluator import get_goal_evaluator
-        from core.money_plan import get_money_plan
-        from core.payout_net import get_payout_net
-        from core.platform_connectors import get_platform_manager
-        from core.profile_builder import get_profile_builder
-        from core.vpn_assistant import get_vpn_assistant
+        from cores.credentials.vault import get_credentials
+        from cores.goal_evaluator import get_goal_evaluator
+        from cores.money_plan import get_money_plan
+        from cores.payout_net import get_payout_net
+        from cores.platform_connectors import get_platform_manager
+        from cores.profile_builder import get_profile_builder
+        from cores.vpn_assistant import get_vpn_assistant
 
         # Checklist completo
         checks = []
@@ -721,16 +721,15 @@ async def config_progress() -> dict[str, Any]:
             "yeswehack",
             "immunefi",
             "opire",
-            "freelancer",
+            "workana",
             "outlier",
             "mindrift",
-            "dataannotation",
         ]
         payout_assigned = sum(1 for p in platforms_payout if any(m.get("platform") == p for m in pn_methods))
         checks.append(
             {
                 "id": "payout_per_platform",
-                "name": "Payout por plataforma (10)",
+                "name": "Payout por plataforma (9)",
                 "done": payout_assigned,
                 "total": len(platforms_payout),
                 "cat": "payout",
@@ -741,7 +740,7 @@ async def config_progress() -> dict[str, Any]:
         checks.append({"id": "vpn_installed", "name": "VPN instalada", "done": vpn_ready, "total": 1, "cat": "sync"})
 
         # 14. Dev Bounty Autopilot active
-        from core.dev_bounty_autopilot import get_dev_bounty_autopilot
+        from cores.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         autopilot_active = get_dev_bounty_autopilot().is_active()
         checks.append(
@@ -819,7 +818,7 @@ async def config_progress() -> dict[str, Any]:
 async def skill_method_status() -> dict[str, Any]:
     """Estado de la ruta de estudio Skill Method."""
     try:
-        from core.skill_method import get_skill_method
+        from cores.skill_method import get_skill_method
 
         return get_skill_method().get_status()
     except Exception as e:
@@ -830,7 +829,7 @@ async def skill_method_status() -> dict[str, Any]:
 async def skill_method_set_track(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Cambiar el track activo (web/mobile/cloud/web3)."""
     try:
-        from core.skill_method import get_skill_method
+        from cores.skill_method import get_skill_method
 
         if payload is None:
             payload = {}
@@ -843,7 +842,7 @@ async def skill_method_set_track(payload: dict[str, Any] | None = None) -> dict[
 async def skill_method_register_session(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar una sesión de evidencia real y avanzar skills."""
     try:
-        from core.skill_method import get_skill_method
+        from cores.skill_method import get_skill_method
 
         if payload is None:
             payload = {}
@@ -864,7 +863,7 @@ async def skill_method_register_session(payload: dict[str, Any] | None = None) -
 async def capital_bar_get_status() -> dict[str, Any]:
     """Estado del pool de capital y umbrales pasivos."""
     try:
-        from core.capital_bar import get_capital_bar
+        from cores.capital_bar import get_capital_bar
 
         return get_capital_bar().get_status()
     except Exception as e:
@@ -875,7 +874,7 @@ async def capital_bar_get_status() -> dict[str, Any]:
 async def capital_bar_set_ratio(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Configurar el % de cada ingreso que alimenta el pool."""
     try:
-        from core.capital_bar import get_capital_bar
+        from cores.capital_bar import get_capital_bar
 
         if payload is None:
             payload = {}
@@ -888,7 +887,7 @@ async def capital_bar_set_ratio(payload: dict[str, Any] | None = None) -> dict[s
 async def capital_bar_record_income(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar un ingreso percibido (lo alimenta el pool)."""
     try:
-        from core.capital_bar import get_capital_bar
+        from cores.capital_bar import get_capital_bar
 
         if payload is None:
             payload = {}
@@ -905,7 +904,7 @@ async def capital_bar_record_income(payload: dict[str, Any] | None = None) -> di
 async def capital_bar_adjust(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Ajuste manual del pool (aportes / retiros)."""
     try:
-        from core.capital_bar import get_capital_bar
+        from cores.capital_bar import get_capital_bar
 
         if payload is None:
             payload = {}
@@ -921,7 +920,7 @@ async def capital_bar_adjust(payload: dict[str, Any] | None = None) -> dict[str,
 async def goal_evaluator_status() -> dict[str, Any]:
     """Estado del evaluador de metas (historial)."""
     try:
-        from core.goal_evaluator import get_goal_evaluator
+        from cores.goal_evaluator import get_goal_evaluator
 
         return get_goal_evaluator().get_status()
     except Exception as e:
@@ -932,7 +931,7 @@ async def goal_evaluator_status() -> dict[str, Any]:
 async def goal_evaluator_evaluate(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Evaluar una meta: {goal_type: 'monthly'|'multiplier', amount, multiplier}."""
     try:
-        from core.goal_evaluator import get_goal_evaluator
+        from cores.goal_evaluator import get_goal_evaluator
 
         if payload is None:
             payload = {}
@@ -952,7 +951,7 @@ async def goal_evaluator_evaluate(payload: dict[str, Any] | None = None) -> dict
 async def work_log_get() -> dict[str, Any]:
     """Sesiones de trabajo reales + acumulados."""
     try:
-        from core.work_log import get_work_log
+        from cores.work_log import get_work_log
 
         return get_work_log().get_status()
     except Exception as e:
@@ -963,7 +962,7 @@ async def work_log_get() -> dict[str, Any]:
 async def work_log_register(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar una sesión de trabajo (horas, foco, momentum)."""
     try:
-        from core.work_log import get_work_log
+        from cores.work_log import get_work_log
 
         if payload is None:
             payload = {}
@@ -984,7 +983,7 @@ async def work_log_register(payload: dict[str, Any] | None = None) -> dict[str, 
 async def postmortem_get() -> dict[str, Any]:
     """Episodios de aprendizaje registrados."""
     try:
-        from core.postmortem import get_postmortem
+        from cores.postmortem import get_postmortem
 
         return get_postmortem().get_status()
     except Exception as e:
@@ -995,7 +994,7 @@ async def postmortem_get() -> dict[str, Any]:
 async def postmortem_register(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar un episodio (outcome: approved/rejected/closed/paused)."""
     try:
-        from core.postmortem import get_postmortem
+        from cores.postmortem import get_postmortem
 
         if payload is None:
             payload = {}
@@ -1018,7 +1017,7 @@ async def postmortem_register(payload: dict[str, Any] | None = None) -> dict[str
 async def account_health_get(platform: str = "") -> dict[str, Any]:
     """Salud de cuentas y alertas de riesgo/ban."""
     try:
-        from core.account_health import get_account_health
+        from cores.account_health import get_account_health
 
         return get_account_health().get_status(platform=platform)
     except Exception as e:
@@ -1029,7 +1028,7 @@ async def account_health_get(platform: str = "") -> dict[str, Any]:
 async def account_health_register(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Registrar una cuenta nueva por plataforma."""
     try:
-        from core.account_health import get_account_health
+        from cores.account_health import get_account_health
 
         if payload is None:
             payload = {}
@@ -1042,7 +1041,7 @@ async def account_health_register(payload: dict[str, Any] | None = None) -> dict
 async def account_health_event(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Reportar un evento de riesgo (qa_fail, warn, vpn_issue, suspend_risk)."""
     try:
-        from core.account_health import get_account_health
+        from cores.account_health import get_account_health
 
         if payload is None:
             payload = {}
@@ -1063,7 +1062,7 @@ async def account_health_event(payload: dict[str, Any] | None = None) -> dict[st
 async def payout_planner_get() -> dict[str, Any]:
     """Plan de cobro en AR por plataforma."""
     try:
-        from core.payout_planner import get_payout_planner
+        from cores.payout_planner import get_payout_planner
 
         return get_payout_planner().get_status()
     except Exception as e:
@@ -1074,7 +1073,7 @@ async def payout_planner_get() -> dict[str, Any]:
 async def payout_planner_configure(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Marcar una plataforma como configurada (ruta de cobro lista)."""
     try:
-        from core.payout_planner import get_payout_planner
+        from cores.payout_planner import get_payout_planner
 
         if payload is None:
             payload = {}
@@ -1090,7 +1089,7 @@ async def payout_planner_configure(payload: dict[str, Any] | None = None) -> dic
 async def brand_writer_get() -> dict[str, Any]:
     """Borradores de contenido público generados."""
     try:
-        from core.brand_writer import get_brand_writer
+        from cores.brand_writer import get_brand_writer
 
         return get_brand_writer().get_status()
     except Exception as e:
@@ -1101,7 +1100,7 @@ async def brand_writer_get() -> dict[str, Any]:
 async def brand_writer_generate(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Generar borradores para X/LinkedIn desde una evidencia."""
     try:
-        from core.brand_writer import get_brand_writer
+        from cores.brand_writer import get_brand_writer
 
         if payload is None:
             payload = {}
@@ -1118,7 +1117,7 @@ async def brand_writer_generate(payload: dict[str, Any] | None = None) -> dict[s
 async def brand_writer_publish(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Marcar un borrador como publicado."""
     try:
-        from core.brand_writer import get_brand_writer
+        from cores.brand_writer import get_brand_writer
 
         if payload is None:
             payload = {}
@@ -1134,7 +1133,7 @@ async def brand_writer_publish(payload: dict[str, Any] | None = None) -> dict[st
 async def vault_lock_get() -> dict[str, Any]:
     """Estado de protección del vault (secretos)."""
     try:
-        from core.vault_lock import get_vault_lock
+        from cores.vault_lock import get_vault_lock
 
         return get_vault_lock().get_status()
     except Exception as e:
@@ -1145,7 +1144,7 @@ async def vault_lock_get() -> dict[str, Any]:
 async def vault_lock_secure(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Qué le faló: activar passphrase y fingerprint."""
     try:
-        from core.vault_lock import get_vault_lock
+        from cores.vault_lock import get_vault_lock
 
         if payload is None:
             payload = {}
@@ -1158,7 +1157,7 @@ async def vault_lock_secure(payload: dict[str, Any] | None = None) -> dict[str, 
 async def vault_lock_unlock(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Desbloquear con passphrase (fingerprint match)."""
     try:
-        from core.vault_lock import get_vault_lock
+        from cores.vault_lock import get_vault_lock
 
         if payload is None:
             payload = {}
@@ -1174,7 +1173,7 @@ async def vault_lock_unlock(payload: dict[str, Any] | None = None) -> dict[str, 
 async def emergency_mode_get() -> dict[str, Any]:
     """Estado/último análisis de emergencia."""
     try:
-        from core.emergency_mode import get_emergency_mode
+        from cores.emergency_mode import get_emergency_mode
 
         return get_emergency_mode().get_status()
     except Exception as e:
@@ -1185,7 +1184,7 @@ async def emergency_mode_get() -> dict[str, Any]:
 async def emergency_mode_analyze(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Analizar el mes contra la meta y devolver plan de emergencia."""
     try:
-        from core.emergency_mode import get_emergency_mode
+        from cores.emergency_mode import get_emergency_mode
 
         if payload is None:
             payload = {}
@@ -1204,7 +1203,7 @@ async def emergency_mode_analyze(payload: dict[str, Any] | None = None) -> dict[
 async def payout_net_catalog(cat: str = "") -> dict[str, Any]:
     """Catálogo de métodos de cobro (solo KYC) por categoría."""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         return get_payout_net().get_catalog(cat=cat)
     except Exception as e:
@@ -1215,7 +1214,7 @@ async def payout_net_catalog(cat: str = "") -> dict[str, Any]:
 async def payout_net_status() -> dict[str, Any]:
     """Estado/incidentes registrados de la red de cobro."""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         return get_payout_net().get_status()
     except Exception as e:
@@ -1226,7 +1225,7 @@ async def payout_net_status() -> dict[str, Any]:
 async def payout_net_recommend(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Recomendar métodos por plataforma (forge/pulse/bounty/...)"""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         if payload is None:
             payload = {}
@@ -1239,7 +1238,7 @@ async def payout_net_recommend(payload: dict[str, Any] | None = None) -> dict[st
 async def payout_net_resolve(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Resolver un problema con un método (fallback + fix)."""
     try:
-        from core.payout_net import get_payout_net
+        from cores.payout_net import get_payout_net
 
         if payload is None:
             payload = {}
@@ -1255,7 +1254,7 @@ async def payout_net_resolve(payload: dict[str, Any] | None = None) -> dict[str,
 async def finance_guru_status() -> dict[str, Any]:
     """Estado del guru financiero (consultas + resoluciones)."""
     try:
-        from core.finance_guru import get_finance_guru
+        from cores.finance_guru import get_finance_guru
 
         return get_finance_guru().get_status()
     except Exception as e:
@@ -1266,7 +1265,7 @@ async def finance_guru_status() -> dict[str, Any]:
 async def finance_guru_accounts() -> dict[str, Any]:
     """Catálogo de cuentas internacionales/USA abribles desde AR."""
     try:
-        from core.finance_guru import get_finance_guru
+        from cores.finance_guru import get_finance_guru
 
         return get_finance_guru().get_accounts()
     except Exception as e:
@@ -1277,7 +1276,7 @@ async def finance_guru_accounts() -> dict[str, Any]:
 async def finance_guru_ask(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Preguntar en lenguaje natural (cobro, cuentas, KYC, retenciones, LLC)."""
     try:
-        from core.finance_guru import get_finance_guru
+        from cores.finance_guru import get_finance_guru
 
         if payload is None:
             payload = {}
@@ -1290,7 +1289,7 @@ async def finance_guru_ask(payload: dict[str, Any] | None = None) -> dict[str, A
 async def finance_guru_resolve(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Resolver un problema concreto con una cuenta."""
     try:
-        from core.finance_guru import get_finance_guru
+        from cores.finance_guru import get_finance_guru
 
         if payload is None:
             payload = {}
@@ -1303,7 +1302,7 @@ async def finance_guru_resolve(payload: dict[str, Any] | None = None) -> dict[st
 async def finance_guru_recommend(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     """Recomendar cuentas según propósito (freelance/bounty/crypto/product/llc)."""
     try:
-        from core.finance_guru import get_finance_guru
+        from cores.finance_guru import get_finance_guru
 
         if payload is None:
             payload = {}
@@ -1323,7 +1322,7 @@ async def finance_guru_recommend(payload: dict[str, Any] | None = None) -> dict[
 async def tax_ar_status() -> dict[str, Any]:
     """Estado monotributo, facturas, gastos, recategorización."""
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().get_status()
     except Exception as e:
@@ -1335,7 +1334,7 @@ async def tax_ar_set_cuil(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().set_cuil(payload.get("cuil", ""))
     except Exception as e:
@@ -1347,7 +1346,7 @@ async def tax_ar_set_cat(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().set_categoria(payload.get("categoria", ""))
     except Exception as e:
@@ -1359,7 +1358,7 @@ async def tax_ar_add_income(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().registrar_ingreso_usd(payload.get("usd", 0), payload.get("fecha", ""))
     except Exception as e:
@@ -1371,7 +1370,7 @@ async def tax_ar_calc_gastos(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().calcular_gastos_deducibles(payload.get("ingresos_usd", 0), payload.get("usd_ars", 1000))
     except Exception as e:
@@ -1383,7 +1382,7 @@ async def tax_ar_add_factura(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().registrar_factura_e(
             payload.get("cliente", ""), payload.get("usd", 0), payload.get("fecha", ""), payload.get("cae", "")
@@ -1397,7 +1396,7 @@ async def tax_ar_export_csv(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.tax_ar import get_tax_ar
+        from cores.tax_ar import get_tax_ar
 
         return get_tax_ar().exportar_csv_contador(payload.get("path", ""))
     except Exception as e:
@@ -1410,7 +1409,7 @@ async def tax_ar_export_csv(payload: dict[str, Any] = None) -> dict[str, Any]:
 @router.get("/invoicer-ar")
 async def invoicer_ar_status() -> dict[str, Any]:
     try:
-        from core.invoicer_ar import get_invoicer_ar
+        from cores.invoicer_ar import get_invoicer_ar
 
         return get_invoicer_ar().get_status()
     except Exception as e:
@@ -1422,7 +1421,7 @@ async def invoicer_ar_config(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.invoicer_ar import get_invoicer_ar
+        from cores.invoicer_ar import get_invoicer_ar
 
         return get_invoicer_ar().configurar(
             payload.get("cuit", ""),
@@ -1440,7 +1439,7 @@ async def invoicer_ar_emitir(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.invoicer_ar import get_invoicer_ar
+        from cores.invoicer_ar import get_invoicer_ar
 
         return get_invoicer_ar().emitir_factura_e(
             payload.get("cliente_cuit", ""),
@@ -1459,7 +1458,7 @@ async def invoicer_ar_pdf(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.invoicer_ar import get_invoicer_ar
+        from cores.invoicer_ar import get_invoicer_ar
 
         return get_invoicer_ar().generar_pdf(payload)
     except Exception as e:
@@ -1472,7 +1471,7 @@ async def invoicer_ar_pdf(payload: dict[str, Any] = None) -> dict[str, Any]:
 @router.get("/offramp")
 async def offramp_status() -> dict[str, Any]:
     try:
-        from core.offramp_executor import get_offramp_executor
+        from cores.offramp_executor import get_offramp_executor
 
         return get_offramp_executor().get_status()
     except Exception as e:
@@ -1482,7 +1481,7 @@ async def offramp_status() -> dict[str, Any]:
 @router.get("/offramp/providers")
 async def offramp_providers() -> dict[str, Any]:
     try:
-        from core.offramp_executor import get_offramp_executor
+        from cores.offramp_executor import get_offramp_executor
 
         return get_offramp_executor().get_providers()
     except Exception as e:
@@ -1494,7 +1493,7 @@ async def offramp_set_default(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.offramp_executor import get_offramp_executor
+        from cores.offramp_executor import get_offramp_executor
 
         return get_offramp_executor().set_default(payload.get("provider", ""))
     except Exception as e:
@@ -1506,7 +1505,7 @@ async def offramp_execute(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.offramp_executor import get_offramp_executor
+        from cores.offramp_executor import get_offramp_executor
 
         return get_offramp_executor().build_url(
             payload.get("provider", ""), payload.get("amount_usd", 0), payload.get("extra")
@@ -1520,7 +1519,7 @@ async def offramp_done(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.offramp_executor import get_offramp_executor
+        from cores.offramp_executor import get_offramp_executor
 
         return get_offramp_executor().mark_done(payload.get("execution_id", ""), payload.get("txid", ""))
     except Exception as e:
@@ -1533,7 +1532,7 @@ async def offramp_done(payload: dict[str, Any] = None) -> dict[str, Any]:
 @router.get("/platforms")
 async def platforms_status() -> dict[str, Any]:
     try:
-        from core.platform_connectors import get_platform_manager
+        from cores.platform_connectors import get_platform_manager
 
         return get_platform_manager().get_status()
     except Exception as e:
@@ -1545,7 +1544,7 @@ async def platforms_config(payload: dict[str, Any] = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
-        from core.platform_connectors import get_platform_manager
+        from cores.platform_connectors import get_platform_manager
 
         return get_platform_manager().set_config(
             payload.get("platform", ""),
@@ -1559,7 +1558,7 @@ async def platforms_config(payload: dict[str, Any] = None) -> dict[str, Any]:
 @router.post("/platforms/sync")
 async def platforms_sync() -> dict[str, Any]:
     try:
-        from core.platform_connectors import get_platform_manager
+        from cores.platform_connectors import get_platform_manager
 
         return await get_platform_manager().sync_all()
     except Exception as e:
@@ -1571,7 +1570,7 @@ async def platforms_sync() -> dict[str, Any]:
 async def life_cycle() -> dict[str, Any]:
     """Run a quick life / personal cycle and return the daily summary."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         summary = assistant.get_daily_summary()
@@ -1584,7 +1583,7 @@ async def life_cycle() -> dict[str, Any]:
 async def life_snapshot() -> dict[str, Any]:
     """Snapshot rápido de la vida / tareas del día."""
     try:
-        from core.life_assistant import get_life_assistant
+        from cores.life_assistant import get_life_assistant
 
         assistant = get_life_assistant()
         tasks = assistant.get_today_tasks()
@@ -1651,7 +1650,7 @@ async def startup_checks() -> dict[str, Any]:
 async def run_full_cycle() -> dict[str, Any]:
     """Ejecutar un ciclo completo autónomo on-demand."""
     try:
-        from core.full_auto import get_full_auto
+        from cores.full_auto import get_full_auto
 
         result = await get_full_auto().run_full_cycle()
         return {"success": True, "result": result}
@@ -1671,7 +1670,7 @@ async def automation_modules() -> dict[str, Any]:
 
     modules = {}
     try:
-        from core.auto_submission import get_submission_engine
+        from cores.auto_submission import get_submission_engine
 
         modules["submission"] = {
             "name": "Auto-Submission",
@@ -1682,7 +1681,7 @@ async def automation_modules() -> dict[str, Any]:
         modules["submission"] = {"name": "Auto-Submission", "enabled": False}
 
     try:
-        from core.auto_tax import get_tax_tracker
+        from cores.auto_tax import get_tax_tracker
 
         modules["tax"] = {
             "name": "Auto-Tax",
@@ -1693,7 +1692,7 @@ async def automation_modules() -> dict[str, Any]:
         modules["tax"] = {"name": "Auto-Tax", "enabled": False}
 
     try:
-        from core.auto_optimizer import get_optimizer
+        from cores.auto_optimizer import get_optimizer
 
         modules["optimizer"] = {
             "name": "Auto-Optimizer",
@@ -1704,7 +1703,7 @@ async def automation_modules() -> dict[str, Any]:
         modules["optimizer"] = {"name": "Auto-Optimizer", "enabled": False}
 
     try:
-        from core.auto_account import get_account_setup
+        from cores.auto_account import get_account_setup
 
         modules["accounts"] = {
             "name": "Auto-Account",
@@ -1715,7 +1714,7 @@ async def automation_modules() -> dict[str, Any]:
         modules["accounts"] = {"name": "Auto-Account", "enabled": False}
 
     try:
-        from core.auto_communication import get_communication
+        from cores.auto_communication import get_communication
 
         modules["communication"] = {
             "name": "Auto-Communication",
@@ -1733,7 +1732,7 @@ async def automation_modules() -> dict[str, Any]:
 async def payment_tracker_status() -> dict[str, Any]:
     """Estado del tracker de pagos."""
     try:
-        from core.payment_tracker import get_payment_tracker
+        from cores.payment_tracker import get_payment_tracker
 
         return get_payment_tracker().get_status()
     except Exception as e:
@@ -1744,7 +1743,7 @@ async def payment_tracker_status() -> dict[str, Any]:
 async def payment_tracker_webhook(payload: dict[str, Any]) -> dict[str, Any]:
     """Recibir webhook de pago desde una plataforma."""
     try:
-        from core.payment_tracker import get_payment_tracker
+        from cores.payment_tracker import get_payment_tracker
 
         platform = payload.get("platform", "unknown")
         payment = get_payment_tracker().receive_webhook(platform, payload)
@@ -1757,7 +1756,7 @@ async def payment_tracker_webhook(payload: dict[str, Any]) -> dict[str, Any]:
 async def payment_tracker_config(payload: dict[str, Any]) -> dict[str, Any]:
     """Configurar webhook/polling para una plataforma."""
     try:
-        from core.payment_tracker import get_payment_tracker
+        from cores.payment_tracker import get_payment_tracker
 
         tracker = get_payment_tracker()
         tracker.register_webhook_config(
@@ -1776,7 +1775,7 @@ async def payment_tracker_config(payload: dict[str, Any]) -> dict[str, Any]:
 async def payment_tracker_confirm(payload: dict[str, Any]) -> dict[str, Any]:
     """Confirmar un pago (manual o auto-confirmado)."""
     try:
-        from core.payment_tracker import get_payment_tracker
+        from cores.payment_tracker import get_payment_tracker
 
         payment = get_payment_tracker().confirm_payment(payload.get("payment_id", ""))
         return {"success": True, "payment": payment.to_dict() if payment else None}
@@ -1788,7 +1787,7 @@ async def payment_tracker_confirm(payload: dict[str, Any]) -> dict[str, Any]:
 async def payment_tracker_pending() -> dict[str, Any]:
     """Listar pagos pendientes de confirmación."""
     try:
-        from core.payment_tracker import get_payment_tracker
+        from cores.payment_tracker import get_payment_tracker
 
         pending = get_payment_tracker().get_pending_payments()
         return {"pending": [p.to_dict() for p in pending], "total": len(pending)}
@@ -1803,7 +1802,7 @@ async def payment_tracker_pending() -> dict[str, Any]:
 async def trust_engine_status() -> dict[str, Any]:
     """Estado del motor de confianza."""
     try:
-        from core.trust_engine import get_trust_engine
+        from cores.trust_engine import get_trust_engine
 
         return get_trust_engine().get_status()
     except Exception as e:
@@ -1814,7 +1813,7 @@ async def trust_engine_status() -> dict[str, Any]:
 async def trust_engine_platform(platform: str) -> dict[str, Any]:
     """Métricas de confianza para una plataforma específica."""
     try:
-        from core.trust_engine import get_trust_engine
+        from cores.trust_engine import get_trust_engine
 
         metrics = get_trust_engine().get_platform_trust(platform)
         return metrics.to_dict() if metrics else {"error": "Platform not found"}
@@ -1826,7 +1825,7 @@ async def trust_engine_platform(platform: str) -> dict[str, Any]:
 async def trust_engine_config(payload: dict[str, Any]) -> dict[str, Any]:
     """Actualizar configuración de auto-aprobación."""
     try:
-        from core.trust_engine import get_trust_engine
+        from cores.trust_engine import get_trust_engine
 
         get_trust_engine().update_config(**payload)
         return {"success": True}
@@ -1838,7 +1837,7 @@ async def trust_engine_config(payload: dict[str, Any]) -> dict[str, Any]:
 async def trust_engine_outcome(payload: dict[str, Any]) -> dict[str, Any]:
     """Registrar resultado (aceptado/rechazado, pagado/no pagado)."""
     try:
-        from core.trust_engine import get_trust_engine
+        from cores.trust_engine import get_trust_engine
 
         get_trust_engine().record_outcome(
             platform=payload.get("platform", ""),
@@ -1856,7 +1855,7 @@ async def trust_engine_outcome(payload: dict[str, Any]) -> dict[str, Any]:
 async def trust_engine_can_auto_approve(payload: dict[str, Any]) -> dict[str, Any]:
     """Verificar si una oportunidad puede ser auto-aprobada."""
     try:
-        from core.trust_engine import get_trust_engine
+        from cores.trust_engine import get_trust_engine
 
         can_approve, reason = get_trust_engine().can_auto_approve(
             platform=payload.get("platform", ""),
@@ -1874,7 +1873,7 @@ async def trust_engine_can_auto_approve(payload: dict[str, Any]) -> dict[str, An
 async def closed_loop_status() -> dict[str, Any]:
     """Estado del sistema de closed-loop."""
     try:
-        from core.closed_loop import get_closed_loop_manager
+        from cores.closed_loop import get_closed_loop_manager
 
         return get_closed_loop_manager().get_status()
     except Exception as e:
@@ -1885,7 +1884,7 @@ async def closed_loop_status() -> dict[str, Any]:
 async def closed_loop_process_payment(payload: dict[str, Any]) -> dict[str, Any]:
     """Procesar un pago confirmado y actualizar trust/perfil."""
     try:
-        from core.closed_loop import get_closed_loop_manager
+        from cores.closed_loop import get_closed_loop_manager
 
         result = get_closed_loop_manager().process_payment(payload.get("payment_id", ""))
         return result
@@ -1897,7 +1896,7 @@ async def closed_loop_process_payment(payload: dict[str, Any]) -> dict[str, Any]
 async def closed_loop_process_rejection(payload: dict[str, Any]) -> dict[str, Any]:
     """Procesar un rechazo y actualizar trust."""
     try:
-        from core.closed_loop import get_closed_loop_manager
+        from cores.closed_loop import get_closed_loop_manager
 
         result = get_closed_loop_manager().process_rejection(
             platform=payload.get("platform", ""),
@@ -1913,7 +1912,7 @@ async def closed_loop_process_rejection(payload: dict[str, Any]) -> dict[str, An
 async def closed_loop_config(payload: dict[str, Any]) -> dict[str, Any]:
     """Actualizar configuración del closed-loop."""
     try:
-        from core.closed_loop import ClosedLoopConfig, get_closed_loop_manager
+        from cores.closed_loop import ClosedLoopConfig, get_closed_loop_manager
 
         config = ClosedLoopConfig(
             auto_learn_from_payments=payload.get("auto_learn_from_payments", True),
@@ -1942,7 +1941,7 @@ async def closed_loop_config(payload: dict[str, Any]) -> dict[str, Any]:
 async def platform_webhook(platform: str, payload: dict[str, Any]) -> dict[str, Any]:
     """Recibir webhook desde plataforma (HackerOne, Opire, Freelancer)."""
     try:
-        from core.platform_webhooks import handle_platform_webhook
+        from cores.platform_webhooks import handle_platform_webhook
 
         result = handle_platform_webhook(platform, payload)
         return result

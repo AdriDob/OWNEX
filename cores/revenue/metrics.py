@@ -6,7 +6,7 @@ acceptance rate, time-to-payout, and monthly revenue.
 
 Usage::
 
-    from core.revenue.metrics import RevenueMetrics
+    from cores.revenue.metrics import RevenueMetrics
     metrics = RevenueMetrics()
     dashboard = metrics.full_dashboard()
 """
@@ -432,7 +432,7 @@ class RevenueMetrics:
         }
 
         try:
-            from core.revenue.economic_memory import EconomicMemory
+            from cores.revenue.economic_memory import EconomicMemory
 
             econ = EconomicMemory()
             base["program_ranking"] = econ.rank_programs()[:10]
@@ -456,7 +456,7 @@ class RevenueMetrics:
             base["economic_memory"] = {}
 
         try:
-            from core.target_intelligence.prioritizer import TargetPrioritizer
+            from cores.target_intelligence.prioritizer import TargetPrioritizer
             from database.models import Target
 
             session = SessionLocal()

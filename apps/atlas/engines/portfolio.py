@@ -6,8 +6,8 @@ import logging
 from typing import Any
 
 from apps.atlas.models import Asset
-from core.database.manager import get_db_manager
-from core.normalizer.base import NormalizedPortfolio, NormalizedPosition
+from cores.database.manager import get_db_manager
+from cores.normalizer.base import NormalizedPortfolio, NormalizedPosition
 
 logger = logging.getLogger("orion.atlas.engines.portfolio")
 

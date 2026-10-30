@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.opportunity.executors.algora_executor import AlgoraExecutor
+from cores.opportunity.executors.algora_executor import AlgoraExecutor
 
 
 class _MockClient:

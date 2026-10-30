@@ -88,7 +88,13 @@ export async function getVpnInfo(): Promise<VpnInfo> {
   return api.get<VpnInfo>('/api/vpn/info').catch(() => ({ success: false }))
 }
 
-export async function checkVpnOutlier(): Promise<{ compatible: boolean; country?: string; country_code?: string; ip?: string; verdict?: string }> {
+export async function checkVpnOutlier(): Promise<{
+  compatible: boolean
+  country?: string
+  country_code?: string
+  ip?: string
+  verdict?: string
+}> {
   return api.post('/api/vpn/check-outlier', {}).catch(() => ({ compatible: false, verdict: 'Sin conexión al API' }))
 }
 
@@ -106,7 +112,9 @@ export interface WindscribeConnect {
 }
 
 export async function connectWindscribeWindows(): Promise<WindscribeConnect> {
-  return api.post<WindscribeConnect>('/api/vpn/windscribe-connect', {}).catch(() => ({ success: false, next_steps: ['Error al contactar el asistente VPN.'] }))
+  return api
+    .post<WindscribeConnect>('/api/vpn/windscribe-connect', {})
+    .catch(() => ({ success: false, next_steps: ['Error al contactar el asistente VPN.'] }))
 }
 
 // ── Obsidian ──
@@ -143,8 +151,14 @@ export async function listObsidianFiles(): Promise<{ files: ObsidianFile[]; stat
   return { files: filesRes.files || [], state: stateRes }
 }
 
-export async function syncObsidianFile(path: string, content = '', title = 'File'): Promise<{ success: boolean; result?: unknown; error?: string }> {
-  return api.post('/obsidian/sync', { path, content, title }).catch(() => ({ success: false, error: 'API no disponible' }))
+export async function syncObsidianFile(
+  path: string,
+  content = '',
+  title = 'File',
+): Promise<{ success: boolean; result?: unknown; error?: string }> {
+  return api
+    .post('/obsidian/sync', { path, content, title })
+    .catch(() => ({ success: false, error: 'API no disponible' }))
 }
 
 export async function deleteObsidianFile(fileId: string): Promise<{ deleted: boolean }> {
@@ -152,11 +166,15 @@ export async function deleteObsidianFile(fileId: string): Promise<{ deleted: boo
 }
 
 export async function syncObsidianFull(): Promise<ObsidianSyncResult & { synced?: number }> {
-  return api.post<ObsidianSyncResult & { synced?: number }>('/obsidian/sync/all', {}).catch(() => ({ success: false, error: 'API no disponible' }))
+  return api
+    .post<ObsidianSyncResult & { synced?: number }>('/obsidian/sync/all', {})
+    .catch(() => ({ success: false, error: 'API no disponible' }))
 }
 
 export async function syncObsidian(): Promise<ObsidianSyncResult> {
-  return api.post<ObsidianSyncResult>('/api/obsidian/sync', {}).catch(() => ({ success: false, error: 'API no disponible' }))
+  return api
+    .post<ObsidianSyncResult>('/api/obsidian/sync', {})
+    .catch(() => ({ success: false, error: 'API no disponible' }))
 }
 
 // ── Life Assistant ──
@@ -190,14 +208,16 @@ export interface ActionRequiredItem {
 }
 
 export async function getActionRequired(): Promise<ActionRequiredItem[]> {
-  const res = await api.get<{ items?: ActionRequiredItem[]; actions?: ActionRequiredItem[] }>(
-    '/api/investment/action-required',
-  ).catch(() => null)
+  const res = await api
+    .get<{ items?: ActionRequiredItem[]; actions?: ActionRequiredItem[] }>('/api/investment/action-required')
+    .catch(() => null)
   return res?.items || res?.actions || []
 }
 
 export async function resolveActionRequired(id: string): Promise<{ success: boolean }> {
-  return api.post<{ success: boolean }>(`/api/investment/action-required/${id}/resolve`, {}).catch(() => ({ success: false }))
+  return api
+    .post<{ success: boolean }>(`/api/investment/action-required/${id}/resolve`, {})
+    .catch(() => ({ success: false }))
 }
 
 // ── File Manager ──
@@ -244,7 +264,9 @@ export interface MasterGuideData {
 }
 
 export async function fetchMasterGuide(): Promise<MasterGuideData> {
-  return api.get<MasterGuideData>('/api/guide/master').catch(() => ({ success: false, categories: [], total_steps: 0, done_steps: 0, progress: 0 }))
+  return api
+    .get<MasterGuideData>('/api/guide/master')
+    .catch(() => ({ success: false, categories: [], total_steps: 0, done_steps: 0, progress: 0 }))
 }
 
 // ── Money Plan ──
@@ -293,7 +315,9 @@ export interface TaskAssistantResult {
 }
 
 export async function analyzeTask(task: string): Promise<TaskAssistantResult> {
-  return api.post<TaskAssistantResult>('/api/task-assistant/analyze', { task }).catch(() => ({ success: false, error: 'No se pudo conectar' }))
+  return api
+    .post<TaskAssistantResult>('/api/task-assistant/analyze', { task })
+    .catch(() => ({ success: false, error: 'No se pudo conectar' }))
 }
 
 // ── Dev Bounty Autopilot ──
@@ -340,7 +364,12 @@ export async function deactivateDevBounty(): Promise<DevBountyStatus> {
   return api.post<DevBountyStatus>('/api/dev-bounty/deactivate', {}).catch(() => ({}))
 }
 
-export async function runDevBountyCycle(): Promise<{ success?: boolean; discovered?: number; proposals_ready?: number; pending_validation?: number }> {
+export async function runDevBountyCycle(): Promise<{
+  success?: boolean
+  discovered?: number
+  proposals_ready?: number
+  pending_validation?: number
+}> {
   return api.post('/api/dev-bounty/run', {}).catch(() => ({ success: false }))
 }
 
@@ -348,11 +377,16 @@ export async function getDevBountyQueue(): Promise<DevBountyQueue> {
   return api.get<DevBountyQueue>('/api/dev-bounty/queue').catch(() => ({ success: false }))
 }
 
-export async function validateDevBounty(proposalId: string, action: string = 'approved'): Promise<{ success: boolean }> {
+export async function validateDevBounty(
+  proposalId: string,
+  action: string = 'approved',
+): Promise<{ success: boolean }> {
   return api.post(`/api/dev-bounty/validate/${proposalId}`, { action }).catch(() => ({ success: false }))
 }
 
-export async function setDevBountyBeginnerMode(enabled: boolean): Promise<{ success: boolean; beginner_mode?: boolean }> {
+export async function setDevBountyBeginnerMode(
+  enabled: boolean,
+): Promise<{ success: boolean; beginner_mode?: boolean }> {
   return api.post('/api/dev-bounty/beginner-mode', { enabled }).catch(() => ({ success: false }))
 }
 
@@ -372,13 +406,22 @@ export async function saveEvidenceClaim(
   findingId: string,
   data: { outcome?: string; detail?: string; bountyId?: string; extra?: Record<string, unknown> },
 ): Promise<EvidenceClaim> {
-  return api.post<EvidenceClaim>('/api/evidence/claim', {
-    finding_id: findingId,
-    outcome: data.outcome ?? 'done',
-    detail: data.detail ?? '',
-    bounty_id: data.bountyId ?? null,
-    extra: data.extra ?? {},
-  }).catch(() => ({ finding_id: findingId, outcome: data.outcome ?? 'done', detail: data.detail ?? '', timestamp_utc: new Date().toISOString(), sha256: '', path: '' }))
+  return api
+    .post<EvidenceClaim>('/api/evidence/claim', {
+      finding_id: findingId,
+      outcome: data.outcome ?? 'done',
+      detail: data.detail ?? '',
+      bounty_id: data.bountyId ?? null,
+      extra: data.extra ?? {},
+    })
+    .catch(() => ({
+      finding_id: findingId,
+      outcome: data.outcome ?? 'done',
+      detail: data.detail ?? '',
+      timestamp_utc: new Date().toISOString(),
+      sha256: '',
+      path: '',
+    }))
 }
 
 // ── Sandbox Mode ──
@@ -416,15 +459,29 @@ export interface SandboxState {
 }
 
 export async function getSandboxState(): Promise<SandboxState> {
-  return api.get<SandboxState>('/api/sandbox/state').catch(() => ({ bounties: [], progress: { total_bounties: 0, completed: 0, total_reward_usd: 0, completion_rate: 0, submissions: 0 } }))
+  return api
+    .get<SandboxState>('/api/sandbox/state')
+    .catch(() => ({
+      bounties: [],
+      progress: { total_bounties: 0, completed: 0, total_reward_usd: 0, completion_rate: 0, submissions: 0 },
+    }))
 }
 
 export async function submitSandboxBounty(
   bountyId: string,
   solution: string,
   files: Record<string, string>,
-): Promise<{ success: boolean; approved: boolean; matches: number; total_parts: number; payout_tx?: string; message: string }> {
-  return api.post('/api/sandbox/submit', { bounty_id: bountyId, solution, files }).catch(() => ({ success: false, approved: false, matches: 0, total_parts: 0, message: 'Error al enviar' }))
+): Promise<{
+  success: boolean
+  approved: boolean
+  matches: number
+  total_parts: number
+  payout_tx?: string
+  message: string
+}> {
+  return api
+    .post('/api/sandbox/submit', { bounty_id: bountyId, solution, files })
+    .catch(() => ({ success: false, approved: false, matches: 0, total_parts: 0, message: 'Error al enviar' }))
 }
 
 export async function resetSandbox(): Promise<{ success: boolean; message: string }> {
@@ -432,7 +489,6 @@ export async function resetSandbox(): Promise<{ success: boolean; message: strin
 }
 
 // ── Profile Builder ──
-
 
 export interface ProfileBuilderStatus {
   success?: boolean
@@ -445,7 +501,13 @@ export interface ProfileBuilderStatus {
   score_detail?: Record<string, { points: number; [key: string]: unknown }>
   audit?: Record<string, unknown>
   recommendations?: Array<{ priority: string; action: string; why: string }>
-  contributions?: Array<{ kind: string; title: string; url: string; created_at: string; push?: { success?: boolean; message?: string; folder?: string; commit?: string } }>
+  contributions?: Array<{
+    kind: string
+    title: string
+    url: string
+    created_at: string
+    push?: { success?: boolean; message?: string; folder?: string; commit?: string }
+  }>
 }
 
 export interface ProfileBuilderReadme {
@@ -466,7 +528,9 @@ export async function auditProfileBuilder(): Promise<ProfileBuilderStatus> {
   return api.post<ProfileBuilderStatus>('/api/profile-builder/audit', {}).catch(() => ({}))
 }
 
-export async function setProfilePortfolioRepo(repo: string): Promise<{ success: boolean; portfolio_repo?: string; message?: string }> {
+export async function setProfilePortfolioRepo(
+  repo: string,
+): Promise<{ success: boolean; portfolio_repo?: string; message?: string }> {
   return api.post('/api/profile-builder/portfolio-repo', { repo }).catch(() => ({ success: false }))
 }
 
@@ -474,7 +538,10 @@ export async function setProfileAutoPush(enabled: boolean): Promise<{ success: b
   return api.post('/api/profile-builder/auto-push', { enabled }).catch(() => ({ success: false }))
 }
 
-export async function getProfileBuilderRecommendations(): Promise<{ success: boolean; recommendations: Array<{ priority: string; action: string; why: string }> }> {
+export async function getProfileBuilderRecommendations(): Promise<{
+  success: boolean
+  recommendations: Array<{ priority: string; action: string; why: string }>
+}> {
   return api.get('/api/profile-builder/recommendations').catch(() => ({ success: false, recommendations: [] }))
 }
 
@@ -482,7 +549,11 @@ export async function generateProfileReadme(): Promise<ProfileBuilderReadme> {
   return api.post<ProfileBuilderReadme>('/api/profile-builder/readme', {}).catch(() => ({ success: false }))
 }
 
-export async function recordProfileContribution(kind: string, title: string, url: string): Promise<{ success: boolean; contributions?: number }> {
+export async function recordProfileContribution(
+  kind: string,
+  title: string,
+  url: string,
+): Promise<{ success: boolean; contributions?: number }> {
   return api.post('/api/profile-builder/record-contribution', { kind, title, url }).catch(() => ({ success: false }))
 }
 
@@ -514,7 +585,10 @@ export async function getDailyTasks(forceRefresh: boolean = false): Promise<Dail
   return api.get<DailyTasksResult>(`/api/daily-tasks${forceRefresh ? '?force_refresh=true' : ''}`).catch(() => ({}))
 }
 
-export async function setDailyTaskStatus(taskId: string, status: string): Promise<{ success: boolean; task_id?: string; status?: string }> {
+export async function setDailyTaskStatus(
+  taskId: string,
+  status: string,
+): Promise<{ success: boolean; task_id?: string; status?: string }> {
   return api.post(`/api/daily-tasks/${taskId}/status`, { status }).catch(() => ({ success: false }))
 }
 
@@ -609,8 +683,15 @@ export async function setSkillTrack(trackId: string): Promise<{ success: boolean
   return api.post('/api/skill-method/track', { track_id: trackId }).catch(() => ({ success: false }))
 }
 
-export async function registerSkillSession(trackId: string, sessionType: string, title: string, notes: string): Promise<{ success: boolean; completed?: number; entry?: SkillSession }> {
-  return api.post('/api/skill-method/session', { track_id: trackId, session_type: sessionType, title, notes }).catch(() => ({ success: false }))
+export async function registerSkillSession(
+  trackId: string,
+  sessionType: string,
+  title: string,
+  notes: string,
+): Promise<{ success: boolean; completed?: number; entry?: SkillSession }> {
+  return api
+    .post('/api/skill-method/session', { track_id: trackId, session_type: sessionType, title, notes })
+    .catch(() => ({ success: false }))
 }
 
 // ── Capital Bar ──
@@ -653,7 +734,11 @@ export async function setCapitalRatio(ratio: number): Promise<{ success: boolean
   return api.post('/api/capital-bar/ratio', { ratio }).catch(() => ({ success: false }))
 }
 
-export async function recordCapitalIncome(amount: number, source: string, note: string): Promise<{ success: boolean; pool?: number; feed?: number }> {
+export async function recordCapitalIncome(
+  amount: number,
+  source: string,
+  note: string,
+): Promise<{ success: boolean; pool?: number; feed?: number }> {
   return api.post('/api/capital-bar/income', { amount, source, note }).catch(() => ({ success: false }))
 }
 
@@ -686,7 +771,9 @@ export interface GoalEvalResult {
 }
 
 export async function evaluateGoal(goalType: string, amount: number, multiplier: number): Promise<GoalEvalResult> {
-  return api.post<GoalEvalResult>('/api/goal-evaluator/evaluate', { goal_type: goalType, amount, multiplier }).catch(() => ({}))
+  return api
+    .post<GoalEvalResult>('/api/goal-evaluator/evaluate', { goal_type: goalType, amount, multiplier })
+    .catch(() => ({}))
 }
 
 export interface GoalEvaluatorStatus {
@@ -726,7 +813,12 @@ export async function getWorkLog(): Promise<WorkLogStatus> {
   return api.get<WorkLogStatus>('/api/work-log').catch(() => ({}))
 }
 
-export async function registerWorkSession(hours: number, foco: string, detail: string, momentum: number): Promise<{ success: boolean }> {
+export async function registerWorkSession(
+  hours: number,
+  foco: string,
+  detail: string,
+  momentum: number,
+): Promise<{ success: boolean }> {
   return api.post('/api/work-log/session', { hours, foco, detail, momentum }).catch(() => ({ success: false }))
 }
 
@@ -757,8 +849,17 @@ export async function getPostMortem(): Promise<PostMortemStatus> {
   return api.get<PostMortemStatus>('/api/postmortem').catch(() => ({}))
 }
 
-export async function registerPostMortem(itemType: string, itemTitle: string, outcome: string, learned: string, repeat: string, avoid: string): Promise<{ success: boolean }> {
-  return api.post('/api/postmortem/register', { item_type: itemType, item_title: itemTitle, outcome, learned, repeat, avoid }).catch(() => ({ success: false }))
+export async function registerPostMortem(
+  itemType: string,
+  itemTitle: string,
+  outcome: string,
+  learned: string,
+  repeat: string,
+  avoid: string,
+): Promise<{ success: boolean }> {
+  return api
+    .post('/api/postmortem/register', { item_type: itemType, item_title: itemTitle, outcome, learned, repeat, avoid })
+    .catch(() => ({ success: false }))
 }
 
 // ── Account Health ──
@@ -794,8 +895,15 @@ export async function registerHealthAccount(platform: string, name: string): Pro
   return api.post('/api/account-health/register', { platform, name }).catch(() => ({ success: false }))
 }
 
-export async function reportHealthEvent(platform: string, eventType: string, detail: string, impact: number): Promise<{ success: boolean }> {
-  return api.post('/api/account-health/event', { platform, event_type: eventType, detail, impact }).catch(() => ({ success: false }))
+export async function reportHealthEvent(
+  platform: string,
+  eventType: string,
+  detail: string,
+  impact: number,
+): Promise<{ success: boolean }> {
+  return api
+    .post('/api/account-health/event', { platform, event_type: eventType, detail, impact })
+    .catch(() => ({ success: false }))
 }
 
 // ── Payout Planner ──
@@ -849,7 +957,11 @@ export async function getBrandWriter(): Promise<BrandWriterStatus> {
   return api.get<BrandWriterStatus>('/api/brand-writer').catch(() => ({}))
 }
 
-export async function generateBrandDraft(topic: string, detail: string, channels?: string[]): Promise<{ success: boolean; entry?: BrandDraftEntry }> {
+export async function generateBrandDraft(
+  topic: string,
+  detail: string,
+  channels?: string[],
+): Promise<{ success: boolean; entry?: BrandDraftEntry }> {
   return api.post('/api/brand-writer/generate', { topic, detail, channels }).catch(() => ({ success: false }))
 }
 
@@ -873,11 +985,15 @@ export async function getVaultLock(): Promise<VaultLockStatus> {
 }
 
 export async function secureVault(passphrase: string): Promise<{ success: boolean; message?: string }> {
-  return api.post('/api/vault-lock/secure', { passphrase }).catch(() => ({ success: false, message: 'API no disponible' }))
+  return api
+    .post('/api/vault-lock/secure', { passphrase })
+    .catch(() => ({ success: false, message: 'API no disponible' }))
 }
 
 export async function unlockVault(passphrase: string): Promise<{ success: boolean; message?: string }> {
-  return api.post('/api/vault-lock/unlock', { passphrase }).catch(() => ({ success: false, message: 'API no disponible' }))
+  return api
+    .post('/api/vault-lock/unlock', { passphrase })
+    .catch(() => ({ success: false, message: 'API no disponible' }))
 }
 
 // ── Emergency Mode ──
@@ -901,7 +1017,9 @@ export interface EmergencyAnalysis {
 }
 
 export async function analyzeEmergency(targetMonthly: number, goalType: string): Promise<EmergencyAnalysis> {
-  return api.post<EmergencyAnalysis>('/api/emergency-mode/analyze', { target_monthly: targetMonthly, goal_type: goalType }).catch(() => ({}))
+  return api
+    .post<EmergencyAnalysis>('/api/emergency-mode/analyze', { target_monthly: targetMonthly, goal_type: goalType })
+    .catch(() => ({}))
 }
 
 export async function getEmergencyStatus(): Promise<{ success?: boolean; last?: string; triggered_at?: string }> {
@@ -941,7 +1059,9 @@ export async function getPayoutCatalog(cat: string = ''): Promise<PayoutCatalog>
   return api.get<PayoutCatalog>(`/api/payout-net${cat ? `?cat=${cat}` : ''}`).catch(() => ({}))
 }
 
-export async function recommendPayout(source: string): Promise<{ success?: boolean; source?: string; recommended?: PayoutMethod[] }> {
+export async function recommendPayout(
+  source: string,
+): Promise<{ success?: boolean; source?: string; recommended?: PayoutMethod[] }> {
   return api.post('/api/payout-net/recommend', { source }).catch(() => ({}))
 }
 
@@ -1043,8 +1163,13 @@ export async function getPlatformTrust(platform: string): Promise<TrustMetrics |
   return api.get<TrustMetrics>(`/api/trust-engine/platform/${platform}`).catch(() => null)
 }
 
-export async function checkAutoApprove(platform: string, amountUsd: number): Promise<{ can_approve: boolean; reason: string }> {
-  return api.post('/api/trust-engine/can-auto-approve', { platform, amount_usd: amountUsd }).catch(() => ({ can_approve: false, reason: 'Error' }))
+export async function checkAutoApprove(
+  platform: string,
+  amountUsd: number,
+): Promise<{ can_approve: boolean; reason: string }> {
+  return api
+    .post('/api/trust-engine/can-auto-approve', { platform, amount_usd: amountUsd })
+    .catch(() => ({ can_approve: false, reason: 'Error' }))
 }
 
 // ── Closed Loop ──
@@ -1136,14 +1261,24 @@ export async function askFinanceGuru(query: string): Promise<FinanceAskResult> {
 }
 
 export async function resolveFinanceAccount(accountId: string, problem: string): Promise<FinanceResolveResult> {
-  return api.post<FinanceResolveResult>('/api/finance-guru/resolve', { account_id: accountId, problem }).catch(() => ({}))
+  return api
+    .post<FinanceResolveResult>('/api/finance-guru/resolve', { account_id: accountId, problem })
+    .catch(() => ({}))
 }
 
-export async function getFinanceAccounts(): Promise<{ success?: boolean; total?: number; accounts?: FinanceAccount[] }> {
+export async function getFinanceAccounts(): Promise<{
+  success?: boolean
+  total?: number
+  accounts?: FinanceAccount[]
+}> {
   return api.get('/api/finance-guru/accounts').catch(() => ({}))
 }
 
-export async function getFinanceGuruStatus(): Promise<{ success?: boolean; accounts_total?: number; qa_count?: number }> {
+export async function getFinanceGuruStatus(): Promise<{
+  success?: boolean
+  accounts_total?: number
+  qa_count?: number
+}> {
   return api.get('/api/finance-guru').catch(() => ({}))
 }
 
@@ -1176,11 +1311,19 @@ export async function addTaxIncome(usd: number, fecha: string): Promise<{ succes
   return api.post('/api/tax-ar/ingreso', { usd, fecha }).catch(() => ({ success: false }))
 }
 
-export async function calcTaxGastos(ingresos_usd: number, usd_ars: number): Promise<{ success: boolean; gastos?: Record<string, number> }> {
+export async function calcTaxGastos(
+  ingresos_usd: number,
+  usd_ars: number,
+): Promise<{ success: boolean; gastos?: Record<string, number> }> {
   return api.post('/api/tax-ar/gastos', { ingresos_usd, usd_ars }).catch(() => ({ success: false }))
 }
 
-export async function addTaxFactura(cliente: string, usd: number, fecha: string, cae: string): Promise<{ success: boolean }> {
+export async function addTaxFactura(
+  cliente: string,
+  usd: number,
+  fecha: string,
+  cae: string,
+): Promise<{ success: boolean }> {
   return api.post('/api/tax-ar/factura', { cliente, usd, fecha, cae }).catch(() => ({ success: false }))
 }
 
@@ -1213,8 +1356,16 @@ export async function getInvoicerAR(): Promise<InvoicerARStatus> {
   return api.get<InvoicerARStatus>('/api/invoicer-ar').catch(() => ({}))
 }
 
-export function configInvoicerAR(cuit: string, cert: string, key: string, pv: number, modo: string): Promise<{ success: boolean }> {
-  return api.post('/api/invoicer-ar/config', { cuit, cert_path: cert, key_path: key, punto_venta: pv, modo }).catch(() => ({ success: false }))
+export function configInvoicerAR(
+  cuit: string,
+  cert: string,
+  key: string,
+  pv: number,
+  modo: string,
+): Promise<{ success: boolean }> {
+  return api
+    .post('/api/invoicer-ar/config', { cuit, cert_path: cert, key_path: key, punto_venta: pv, modo })
+    .catch(() => ({ success: false }))
 }
 
 export function emitInvoicerAR(f: InvoicerFactura): Promise<{ success: boolean }> {
@@ -1256,7 +1407,11 @@ export interface OfframpStatus {
   providers?: Record<string, OfframpProvider>
 }
 
-export async function getOfframpProviders(): Promise<{ success?: boolean; providers?: Record<string, OfframpProvider>; default?: string }> {
+export async function getOfframpProviders(): Promise<{
+  success?: boolean
+  providers?: Record<string, OfframpProvider>
+  default?: string
+}> {
   return api.get('/api/offramp/providers').catch(() => ({}))
 }
 
@@ -1268,7 +1423,11 @@ export async function setOfframpDefault(provider: string): Promise<{ success: bo
   return api.post('/api/offramp/default', { provider }).catch(() => ({ success: false }))
 }
 
-export async function executeOfframp(provider: string, amount_usd: number, extra?: Record<string, any>): Promise<{ success?: boolean; execution?: OfframpExecution }> {
+export async function executeOfframp(
+  provider: string,
+  amount_usd: number,
+  extra?: Record<string, any>,
+): Promise<{ success?: boolean; execution?: OfframpExecution }> {
   return api.post('/api/offramp/execute', { provider, amount_usd, extra }).catch(() => ({}))
 }
 
@@ -1293,7 +1452,11 @@ export async function getPlatformsStatus(): Promise<PlatformStatus> {
   return api.get<PlatformStatus>('/api/platforms').catch(() => ({}))
 }
 
-export async function setPlatformConfig(platform: string, enabled: boolean, credentials?: Record<string, string>): Promise<{ success: boolean }> {
+export async function setPlatformConfig(
+  platform: string,
+  enabled: boolean,
+  credentials?: Record<string, string>,
+): Promise<{ success: boolean }> {
   return api.post('/api/platforms/config', { platform, enabled, credentials }).catch(() => ({ success: false }))
 }
 
@@ -1325,7 +1488,7 @@ export async function getConfigProgress(): Promise<ConfigProgressResult> {
     done: 0,
     total: 0,
     checks: [],
-    categories: {}
+    categories: {},
   }))
 }
 
@@ -1353,7 +1516,8 @@ export async function openDispute(
   evidence: Record<string, unknown>,
   platformRef?: string,
 ): Promise<{ remote: { success: boolean; dispute_id?: string; error?: string }; local: DisputeItem['local'] }> {
-  return api.post('/api/dispute/open', { platform, finding_id: findingId, reason, evidence, platform_ref: platformRef })
+  return api
+    .post('/api/dispute/open', { platform, finding_id: findingId, reason, evidence, platform_ref: platformRef })
     .catch(() => ({ remote: { success: false, error: 'Error al abrir disputa' }, local: {} }))
 }
 

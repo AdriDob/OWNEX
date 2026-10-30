@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.reports.critic import CriticCheck, CriticResult, ReportCritic
+from cores.reports.critic import CriticCheck, CriticResult, ReportCritic
 
 
 def test_critic_check_defaults():

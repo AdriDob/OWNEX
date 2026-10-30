@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -62,7 +62,7 @@ class Workflow:
     description: str
     tasks: list[WorkflowTask] = field(default_factory=list)
     status: WorkflowStatus = WorkflowStatus.PENDING
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -146,7 +146,7 @@ class WorkflowEngine:
             return False
 
         workflow.status = WorkflowStatus.RUNNING
-        workflow.started_at = datetime.utcnow()
+        workflow.started_at = datetime.now(UTC)
         self._active_workflow = workflow_id
         logger.info(f"[WORKFLOW] Started workflow {workflow_id}")
         return True
@@ -165,7 +165,7 @@ class WorkflowEngine:
 
         task.agent_id = agent_id
         task.status = TaskStatus.ASSIGNED
-        task.assigned_at = datetime.utcnow()
+        task.assigned_at = datetime.now(UTC)
         logger.info(f"[WORKFLOW] Assigned task {task_id} to {agent_id}")
         return True
 
@@ -180,7 +180,7 @@ class WorkflowEngine:
             return False
 
         task.status = TaskStatus.IN_PROGRESS
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(UTC)
         logger.info(f"[WORKFLOW] Task {task_id} started")
         return True
 
@@ -196,13 +196,13 @@ class WorkflowEngine:
 
         task.status = TaskStatus.COMPLETED
         task.result = result
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(UTC)
         logger.info(f"[WORKFLOW] Task {task_id} completed")
 
         # Check if workflow is complete
         if workflow.is_complete():
             workflow.status = WorkflowStatus.COMPLETED
-            workflow.completed_at = datetime.utcnow()
+            workflow.completed_at = datetime.now(UTC)
             logger.info(f"[WORKFLOW] Workflow {workflow_id} completed")
 
         return True
@@ -219,13 +219,13 @@ class WorkflowEngine:
 
         task.status = TaskStatus.FAILED
         task.error = error
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(UTC)
         logger.error(f"[WORKFLOW] Task {task_id} failed: {error}")
 
         # Check if workflow has failed
         if workflow.is_failed():
             workflow.status = WorkflowStatus.FAILED
-            workflow.completed_at = datetime.utcnow()
+            workflow.completed_at = datetime.now(UTC)
             logger.error(f"[WORKFLOW] Workflow {workflow_id} failed")
 
         return True
@@ -261,7 +261,7 @@ class WorkflowEngine:
             return False
 
         workflow.status = WorkflowStatus.CANCELLED
-        workflow.completed_at = datetime.utcnow()
+        workflow.completed_at = datetime.now(UTC)
         logger.info(f"[WORKFLOW] Workflow {workflow_id} cancelled")
         return True
 

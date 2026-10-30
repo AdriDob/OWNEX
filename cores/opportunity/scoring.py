@@ -71,13 +71,18 @@ class Top5Engine:
 
 
 class PersonalHistoryTracker:
-    """Learning from user acceptance/rejection feedback."""
+    """Learning from user acceptance/rejection feedback.
+
+    Consolidated from the diverged twin (core/opportunity/scoring.py):
+    per-severity hit-rate factors, updated on accept/reject.
+    """
 
     def __init__(self, user_id: int | None = None) -> None:
         self.user_id = user_id
         self.factors: dict[str, float] = {
             "critical_hit_rate": 0.5,
-            "medium_hit_rate": 0.3,
+            "high_hit_rate": 0.3,
+            "medium_hit_rate": 0.2,
             "low_hit_rate": 0.1,
             "retry_boost": 1.2,
             "avoid_boost": 0.5,
@@ -89,8 +94,9 @@ class PersonalHistoryTracker:
             finding = session.query(Finding).filter(Finding.id == finding_id).first()
             if not finding:
                 return
-            key = f"{finding.severity}_{finding.difficulty}"
-            self.factors[key] = self.factors.get(key, 0.0) + 0.05
+            severity = _normalize_severity(finding.severity)
+            key = f"{severity}_hit_rate"
+            self.factors[key] = min(1.0, self.factors.get(key, 0.3) + 0.05)
         finally:
             session.close()
 
@@ -100,14 +106,20 @@ class PersonalHistoryTracker:
             finding = session.query(Finding).filter(Finding.id == finding_id).first()
             if not finding:
                 return
-            key = f"{finding.severity}_{finding.difficulty}"
-            self.factors[key] = max(0.0, self.factors.get(key, 0.0) - 0.05)
+            severity = _normalize_severity(finding.severity)
+            key = f"{severity}_hit_rate"
+            self.factors[key] = max(0.0, self.factors.get(key, 0.1) - 0.05)
         finally:
             session.close()
 
     def get_personal_factor(self, severity: str, difficulty: float) -> float:
-        key = f"{severity}_{difficulty}"
-        return self.factors.get(key, 1.0)
+        """Return the personal multiplier for a severity/difficulty pair.
+
+        Reads ``{severity}_{difficulty_bucket}`` from the learning factors,
+        falling back to 1.0 when no history exists.
+        """
+        bucket = _difficulty_bucket(difficulty)
+        return self.factors.get(f"{severity}_{bucket}", 1.0)
 
 
 def _normalize_severity(s: str) -> str:
@@ -125,6 +137,28 @@ def _normalize_severity(s: str) -> str:
     if s.startswith("info") or s.startswith("information") or s == "inf":
         return "info"
     return "medium"
+
+
+# Legacy constants for backward compatibility
+_REWARD_BASE_MAP = {"critical": 5000, "high": 2000, "medium": 500, "low": 100, "info": 50}
+_TIER_SEV_MULT = {"critical": 1.0, "high": 0.7, "medium": 0.3, "low": 0.1, "info": 0.05}
+_FALLBACK_SEV_MULT = {"info": 0.05}
+
+
+def _difficulty_bucket(d: float) -> str:
+    """Bucket a difficulty float into a scoring bucket key."""
+    if d >= 0.7:
+        return "high"
+    if d >= 0.4:
+        return "med"
+    if d >= 0.25:
+        return "hit_rate"
+    return "low"
+
+
+class FeedbackOutcome(StrEnum):
+    ACCEPT = "accept"
+    REJECT = "reject"
 
 
 class OpportunityEngine:
@@ -216,9 +250,113 @@ class OpportunityEngine:
                 session.close()
 
 
-class FeedbackOutcome(StrEnum):
-    ACCEPT = "accept"
-    REJECT = "reject"
+# Legacy engine for backward compatibility
+class OpportunityEngineLegacy:
+    """Legacy orchestrator for scoring and prioritization (Finding-based)."""
+
+    def __init__(self) -> None:
+        self.unified_scorer = UnifiedScore
+        self.top5 = Top5Engine()
+        self.tracker = PersonalHistoryTracker()
+
+    def compute_opportunities(self, limit: int = 50) -> list[UnifiedScore]:
+        session = db.SessionLocal()
+        try:
+            findings = session.query(Finding).filter(Finding.status == "confirmed").all()
+            candidates = []
+            for f in findings:
+                reward = self._estimate_reward(f, session=session)
+                difficulty = f.difficulty or 0.3
+                acceptance_prob = f.confidence or 0.5
+
+                target = getattr(f, "target", None)
+                program_id = getattr(target, "program_id", 0) or 0
+
+                evh = (reward * acceptance_prob) / max(f.estimated_effort_hours or 2.0, 0.5)
+
+                personal = self.tracker.get_personal_factor(_normalize_severity(f.severity), difficulty)
+
+                candidate = UnifiedScore(
+                    opportunity_id=f.id,
+                    target_id=f.target_id,
+                    program_id=program_id,
+                    title=f.title or f"Finding #{f.id}",
+                    severity=_normalize_severity(f.severity),
+                    reward=reward,
+                    difficulty=difficulty,
+                    acceptance_prob=acceptance_prob,
+                    evh=evh,
+                    diversity_bonus=1.0,
+                    personal_factor=personal,
+                )
+                candidates.append(candidate)
+
+            candidates.sort(key=lambda c: c.final_score, reverse=True)
+            return candidates[:limit]
+        finally:
+            session.close()
+
+    def _estimate_reward(self, finding: Finding, session=None) -> float:
+        """Estimate the monetary reward for a finding."""
+        owns_session = session is None
+        session = session or db.SessionLocal()
+        try:
+            raw_severity = (finding.severity or "").lower()
+            severity = _normalize_severity(raw_severity)
+            is_known = raw_severity in _REWARD_BASE_MAP
+            target = getattr(finding, "target", None)
+            pid = getattr(target, "program_id", None) if target else None
+            program = session.query(Program).filter(Program.id == pid).first() if pid is not None else None
+            if program:
+                tier = session.query(BountyTier).filter(BountyTier.program_id == program.id).first()
+                if tier:
+                    return round((tier.max_reward or 0) * _TIER_SEV_MULT.get(severity, 0.05), 2)
+
+            # Fallback with no program/tiers
+            if is_known:
+                return float(_REWARD_BASE_MAP[severity])
+            return _REWARD_BASE_MAP["info"] * _FALLBACK_SEV_MULT["info"]
+        finally:
+            if owns_session:
+                session.close()
+
+    def get_top5_by_domain(self, limit: int = 50) -> list[Top5Entry]:
+        candidates = self.compute_opportunities(limit)
+        return self.top5.compute(candidates)
+
+    def record_feedback(self, finding_id: int, outcome: str) -> None:
+        if outcome == "accept":
+            session = db.SessionLocal()
+            try:
+                finding = session.query(Finding).filter(Finding.id == finding_id).first()
+                if finding:
+                    self.tracker.on_accept(
+                        finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3
+                    )
+            finally:
+                session.close()
+        elif outcome == "reject":
+            session = db.SessionLocal()
+            try:
+                finding = session.query(Finding).filter(Finding.id == finding_id).first()
+                if finding:
+                    self.tracker.on_reject(
+                        finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3
+                    )
+            finally:
+                session.close()
+        else:
+            raise ValueError(f"Invalid outcome: {outcome}")
+
+
+_LEGACY_ENGINE: OpportunityEngineLegacy | None = None
+
+
+def get_legacy_engine() -> OpportunityEngineLegacy:
+    global _LEGACY_ENGINE
+    if _LEGACY_ENGINE is None:
+        _LEGACY_ENGINE = OpportunityEngineLegacy()
+    return _LEGACY_ENGINE
 
 
 _ENGINE: OpportunityEngine | None = None

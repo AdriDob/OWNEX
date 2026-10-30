@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.opportunity.mercenary_filter import (
+from cores.opportunity.mercenary_filter import (
     CATEGORY_PRIORITIES,
     MercenaryAttributes,
     MercenaryFilter,

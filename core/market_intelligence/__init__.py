@@ -2,10 +2,10 @@ from __future__ import annotations
 
 """ORION Market Intelligence — análisis de fuentes externas, señales y oportunidades."""
 # ruff: noqa: E402
-from core.market_intelligence.anti_hype import get_anti_hype
-from core.market_intelligence.brief import generate_brief
-from core.market_intelligence.memory import get_intel_memory
-from core.market_intelligence.models import (
+from cores.market_intelligence.anti_hype import get_anti_hype
+from cores.market_intelligence.brief import generate_brief
+from cores.market_intelligence.memory import get_intel_memory
+from cores.market_intelligence.models import (
     Confidence,
     IntelligenceBrief,
     IntelligenceSource,
@@ -17,15 +17,15 @@ from core.market_intelligence.models import (
     SourceSignal,
     SourceTier,
 )
-from core.market_intelligence.opportunity_scorer import get_opportunity_scorer
-from core.market_intelligence.signal_classifier import (
+from cores.market_intelligence.opportunity_scorer import get_opportunity_scorer
+from cores.market_intelligence.signal_classifier import (
     classify_signal,
     classify_signal_type,
     detect_domain,
     detect_sentiment,
     extract_entities,
 )
-from core.market_intelligence.source_manager import get_source_manager, reset_source_manager
+from cores.market_intelligence.source_manager import get_source_manager, reset_source_manager
 
 __all__ = [
     "SourceTier",

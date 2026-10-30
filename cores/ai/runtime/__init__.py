@@ -425,7 +425,38 @@ class OAR:
             "cache": self._cache.get_stats() if self._cache else {},
             "learning": self._learning.get_provider_stats() if self._learning else {},
             "resilience": resilience,
+            "recent_routing": self._recent_routing(20),
         }
+
+    def _recent_routing(self, limit: int = 20) -> list[dict[str, Any]]:
+        """Last routing decisions (provider/model/task/latency/cost/fallbacks).
+
+        No prompts, no secrets — safe for status surfaces and audit trails.
+        """
+        history = []
+        try:
+            history = list(getattr(self._router, "_routing_history", []) or [])[-limit:]
+        except Exception:
+            return []
+        out = []
+        for decision in history:
+            try:
+                out.append(
+                    {
+                        "provider_id": getattr(decision, "provider_id", "?"),
+                        "model_id": getattr(decision, "model_id", "?"),
+                        "task_type": str(getattr(getattr(decision, "task_type", ""), "value", "")),
+                        "confidence": getattr(decision, "confidence", 0.0),
+                        "estimated_cost_usd": getattr(decision, "estimated_cost_usd", 0.0),
+                        "estimated_latency_ms": getattr(decision, "estimated_latency_ms", 0),
+                        "fallback_chain": list(getattr(decision, "fallback_chain", []) or []),
+                        "privacy_ok": bool(getattr(decision, "privacy_ok", True)),
+                        "timestamp": str(getattr(decision, "timestamp", "")),
+                    }
+                )
+            except Exception:
+                continue
+        return out
 
     def doctor(self) -> dict[str, Any]:
         """Comprehensive diagnostics."""

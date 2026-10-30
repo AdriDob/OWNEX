@@ -6,8 +6,8 @@ from typing import Any
 
 import httpx
 
-from core.credentials.adapter_helpers import get_api_key, load_credentials
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.credentials.adapter_helpers import get_api_key, load_credentials
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 
 class IssueHuntAdapter(OpportunityAdapter):

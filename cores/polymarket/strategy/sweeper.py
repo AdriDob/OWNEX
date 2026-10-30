@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from core.polymarket.client import PolymarketClient, get_client
+from cores.polymarket.client import PolymarketClient, get_client
 
 logger = logging.getLogger("orion.polymarket.strategy.sweeper")
 

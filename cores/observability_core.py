@@ -13,7 +13,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -77,7 +77,7 @@ class AgentExecution:
     reward_rate: float = 0.0  # USD/hora
 
     def complete(self, outcome: str, reward: float = 0.0, error: str | None = None, category: str | None = None):
-        self.completed_at = datetime.utcnow()
+        self.completed_at = datetime.now(UTC)
         self.duration_seconds = (self.completed_at - self.started_at).total_seconds()
         self.outcome = outcome
         self.reward_usd = reward
@@ -220,7 +220,7 @@ class MetricsCollector:
                 name=name,
                 value=self._counters[name],
                 metric_type=MetricType.COUNTER,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 labels=labels or {},
             )
             self._metrics[name].append(point)
@@ -229,7 +229,7 @@ class MetricsCollector:
         with self._lock:
             self._gauges[name] = value
             point = MetricPoint(
-                name=name, value=value, metric_type=MetricType.GAUGE, timestamp=datetime.utcnow(), labels=labels or {}
+                name=name, value=value, metric_type=MetricType.GAUGE, timestamp=datetime.now(UTC), labels=labels or {}
             )
             self._metrics[name].append(point)
 
@@ -240,7 +240,7 @@ class MetricsCollector:
                 name=name,
                 value=value,
                 metric_type=MetricType.HISTOGRAM,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 labels=labels or {},
             )
             self._metrics[name].append(point)
@@ -252,7 +252,7 @@ class MetricsCollector:
                 name=name,
                 value=duration_seconds,
                 metric_type=MetricType.TIMER,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 labels=labels or {},
             )
             self._metrics[name].append(point)
@@ -326,7 +326,7 @@ class MetricsCollector:
             title=title,
             message=message,
             source=source,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             metadata=metadata or {},
         )
 
@@ -355,7 +355,7 @@ class MetricsCollector:
 
     def get_metric_stats(self, name: str, window_minutes: int = 60) -> dict[str, float]:
         """Estadísticas de una métrica en ventana temporal"""
-        cutoff = datetime.utcnow() - timedelta(minutes=window_minutes)
+        cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
         points = [p for p in self._metrics.get(name, []) if p.timestamp > cutoff]
 
         if not points:
@@ -374,7 +374,7 @@ class MetricsCollector:
 
     def get_execution_stats(self, agent: str = None, hours: int = 24) -> dict[str, Any]:
         """Estadísticas de ejecuciones"""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
 
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -437,7 +437,7 @@ class MetricsCollector:
 
     def get_error_analysis(self, hours: int = 168) -> dict[str, Any]:
         """Análisis de errores por categoría"""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
 
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -486,7 +486,7 @@ class MetricsCollector:
         stats_1h = self.get_execution_stats(hours=1)
 
         health = SystemHealth(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             active_agents=active_agents,
             queued_tasks=queued_tasks,
             running_tasks=running_tasks,
@@ -548,7 +548,7 @@ class MetricsCollector:
         return health
 
     def get_recent_health(self, hours: int = 24) -> list[SystemHealth]:
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
 
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
@@ -595,7 +595,7 @@ class ExecutionTracker:
             task_id=task_id,
             task_type=task_type,
             platform=platform,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
             metadata=metadata or {},
         )
 
@@ -626,7 +626,7 @@ class ExecutionTracker:
             task_id=task_id,
             task_type=task_type,
             platform=platform,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
             metadata=metadata or {},
         )
 

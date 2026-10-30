@@ -37,7 +37,7 @@ const emit = defineEmits<{
 
 const newTabCounter = ref(1)
 
-const activeTab = computed(() => props.tabs.find(t => t.id === props.modelValue))
+const activeTab = computed(() => props.tabs.find((t) => t.id === props.modelValue))
 
 const handleTabClick = (tab: Tab) => {
   emit('update:modelValue', tab.id)

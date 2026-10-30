@@ -3,7 +3,7 @@
 #
 # OWNEX Backend — PyInstaller build spec for standalone FastAPI sidecar.
 # Entrypoint: src-tauri/binaries/start_backend.py
-# Output: dist/ownex-backend.exe  (ONEFILE — self-contained)
+# Output: dist/ownex-backend  (ONEFILE — self-contained)
 #
 # ONEFILE is required by the Tauri externalBin contract: Tauri bundles and
 # spawns exactly one file per target triple. A ONEDIR exe copied without its
@@ -21,13 +21,14 @@
 #   --log-level <level> (default: INFO)
 
 import os
+import fnmatch
 import shutil
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 IS_WINDOWS = sys.platform.startswith("win")
-ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "cateye.ico") if IS_WINDOWS else None
+IS_MACOS = sys.platform == "darwin"
 
 # ── Auto-discover router modules ─────────────────────────────────────
 ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
@@ -113,7 +114,6 @@ if version_file.exists():
     datas.append((str(version_file), "."))
 
 # ── Exclude runtime DB files ──────────────────────────────────────────
-import fnmatch
 _filtered = []
 for src, dest in datas:
     if any(fnmatch.fnmatch(src, p) for p in (
@@ -148,13 +148,16 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
+# Output name without extension (Tauri expects base name without platform suffix)
+EXE_NAME = "ownex-backend"
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
     [],
-    name="ownex-backend",
+    name=EXE_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -166,5 +169,18 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    icon=ICON_PATH,
+    icon=None,
 )
+
+# ── macOS .app bundle (only on macOS) ─────────────────────────────────
+if IS_MACOS:
+    app = BUNDLE(
+        exe,
+        name="OWNE Backend",
+        icon=None,
+        bundle_identifier="ai.orion.ownex.backend",
+        info_plist={
+            "LSUIElement": True,  # No dock icon
+            "LSBackgroundOnly": True,
+        },
+    )

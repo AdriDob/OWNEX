@@ -93,7 +93,7 @@ class AutonomousWorkflow:
                 url=opp.url,
                 created_at=opp.created_at,
                 personal=self.personal,
-                original=opp.metadata,
+                original=opp.original,
             )
             if scored_opp.score.overall >= self.min_score_threshold:
                 scored.append(scored_opp)
@@ -355,8 +355,8 @@ async def create_autonomous_workflow(
     config: dict[str, Any] | None = None,
 ) -> AutonomousWorkflow:
     """Create workflow with default executors."""
-    from core.opportunity.executors.algora_executor import AlgoraExecutor
-    from core.opportunity.executors.freelancer_executor import FreelancerExecutor
+    from cores.opportunity.executors.algora_executor import AlgoraExecutor
+    from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
 
     executors = {
         "algora": AlgoraExecutor(config.get("algora") if config else None),

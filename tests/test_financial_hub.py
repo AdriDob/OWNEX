@@ -117,12 +117,12 @@ def _clean_db(_db_setup):
 @pytest.fixture
 def client(_db_setup):
     """Create test client with patched SessionLocal (isolated DB)."""
-    import core.financial_hub.documents_checklist as _dc
-    import core.financial_hub.emergency_routes as _er
-    import core.financial_hub.kyc_manager as _km
-    import core.financial_hub.route_optimizer as _ro
-    import core.financial_hub.tax_notes as _tn
-    import core.financial_hub.verification_tracker as _vt
+    import cores.financial_hub.documents_checklist as _dc
+    import cores.financial_hub.emergency_routes as _er
+    import cores.financial_hub.kyc_manager as _km
+    import cores.financial_hub.route_optimizer as _ro
+    import cores.financial_hub.tax_notes as _tn
+    import cores.financial_hub.verification_tracker as _vt
 
     _patch = {
         _km: "SessionLocal",
@@ -266,7 +266,7 @@ def init_defaults():
 @pytest.fixture
 def kyc_manager():
     """KYCManager patched to use test session."""
-    from core.financial_hub.kyc_manager import KYCManager
+    from cores.financial_hub.kyc_manager import KYCManager
 
     mgr = KYCManager()
 
@@ -341,7 +341,7 @@ def kyc_manager():
 @pytest.fixture
 def docs_checklist():
     """DocumentsChecklist patched to use test session."""
-    from core.financial_hub.documents_checklist import DocumentsChecklist
+    from cores.financial_hub.documents_checklist import DocumentsChecklist
 
     mgr = DocumentsChecklist()
 
@@ -426,7 +426,7 @@ def docs_checklist():
 @pytest.fixture
 def tax_notes():
     """TaxNotes patched to use test session."""
-    from core.financial_hub.tax_notes import TaxNotes
+    from cores.financial_hub.tax_notes import TaxNotes
 
     mgr = TaxNotes()
 
@@ -456,7 +456,7 @@ def tax_notes():
 @pytest.fixture
 def route_optimizer():
     """RouteOptimizer patched to use test session."""
-    from core.financial_hub.route_optimizer import RouteOptimizer
+    from cores.financial_hub.route_optimizer import RouteOptimizer
 
     mgr = RouteOptimizer()
 
@@ -864,7 +864,7 @@ class TestTaxNotes:
         assert resp.status_code == 404
 
     def test_by_category(self, tax_notes, init_defaults):
-        from core.financial_hub.tax_notes import TaxNotes
+        from cores.financial_hub.tax_notes import TaxNotes
 
         mgr = TaxNotes()
 
@@ -905,7 +905,7 @@ class TestTaxNotes:
 
 class TestPayoutAdvisorUnit:
     def test_simulate_with_preferred_method(self):
-        from core.financial_hub.payout_advisor import PayoutAdvisor
+        from cores.financial_hub.payout_advisor import PayoutAdvisor
 
         advisor = PayoutAdvisor()
         result = advisor.simulate_payout(1000, "hackerone", preferred_method="usdc_crypto")
@@ -913,14 +913,14 @@ class TestPayoutAdvisorUnit:
         assert len(result.route_steps) > 0
 
     def test_simulate_unknown_platform(self):
-        from core.financial_hub.payout_advisor import PayoutAdvisor
+        from cores.financial_hub.payout_advisor import PayoutAdvisor
 
         advisor = PayoutAdvisor()
         result = advisor.simulate_payout(500, "void")
         assert "Unknown platform" in result.risks
 
     def test_simulate_high_fee_triggers_recommendation(self):
-        from core.financial_hub.payout_advisor import PayoutAdvisor
+        from cores.financial_hub.payout_advisor import PayoutAdvisor
 
         advisor = PayoutAdvisor()
         result = advisor.simulate_payout(100, "intigriti")
@@ -928,7 +928,7 @@ class TestPayoutAdvisorUnit:
         assert result.total_fees_usd > 0
 
     def test_net_amount_calculation(self):
-        from core.financial_hub.payout_advisor import PayoutAdvisor
+        from cores.financial_hub.payout_advisor import PayoutAdvisor
 
         advisor = PayoutAdvisor()
         result = advisor.simulate_payout(1000, "bugcrowd")
@@ -958,7 +958,7 @@ class TestKYCManagerUnit:
 
 class TestFeesCalculatorUnit:
     def test_zero_fees(self):
-        from core.financial_hub.fees_calculator import FeesCalculator
+        from cores.financial_hub.fees_calculator import FeesCalculator
 
         calc = FeesCalculator()
         result = calc.estimate(1000, "wallet", 0.0, 0.0)
@@ -966,7 +966,7 @@ class TestFeesCalculatorUnit:
         assert result["net"]["amount"] == 1000.0
 
     def test_compare_sorts_by_total(self):
-        from core.financial_hub.fees_calculator import FeesCalculator
+        from cores.financial_hub.fees_calculator import FeesCalculator
 
         calc = FeesCalculator()
         methods = [
@@ -983,14 +983,14 @@ class TestFeesCalculatorUnit:
 
 class TestPlatformRegistryUnit:
     def test_unknown_platform(self):
-        from core.financial_hub.platform_registry import PlatformRegistry
+        from cores.financial_hub.platform_registry import PlatformRegistry
 
         reg = PlatformRegistry()
         result = reg.get_platform("nobody")
         assert result is None
 
     def test_all_known_platforms_exist(self):
-        from core.financial_hub.platform_registry import PlatformRegistry
+        from cores.financial_hub.platform_registry import PlatformRegistry
 
         reg = PlatformRegistry()
         platforms = reg.list_platforms()

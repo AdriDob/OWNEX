@@ -5,7 +5,7 @@ import logging
 import subprocess
 from typing import Any
 
-from core.revenue_multiplier.models import Finding
+from cores.revenue_multiplier.models import Finding
 
 logger = logging.getLogger("orion.revenue.adapter")
 

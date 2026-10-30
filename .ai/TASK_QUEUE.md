@@ -13,6 +13,16 @@
 > qué existe: `core/cycles/`, `cores/cycles/stages/`, `core/opportunity/`, `core/execution/`,
 > `core/autonomy/`, `apps/*`. El pipeline CATEYE real corre en `api/scheduler.py`.
 
+> **⚠️ AUDITORÍA 2026-09-08 (FINAL BUILD — LEER ANTES DE PROGRAMAR):** Audit del master
+> prompt FINAL BUILD con evidencia runtime (detalle en CURRENT_STATE.md 2026-09-08).
+> Checklist rankeado resultante:
+> - **P0 ✅ RESUELTO**: enum safety fail-closed (`_resolve` → 422, direct_work.py) — 49 tests, fast 100/1.
+> - **P1 ⏳ PENDIENTE**: versión canónica única (`.VERSION.txt`/`VERSION.txt`/`VERSION` + pyproject + package.json).
+> - **P1 ⏳ PENDIENTE**: consolidación core/→cores/ por evidencia runtime (la tree viva es `core/`; §31 del prompt decía lo inverso → corregido el plan). CONGELADA hasta aprobación.
+> - **P1 ✅ RESUELTO (2026-09-08)**: barrido `datetime.utcnow()` COMPLETO — 0 usos restantes en código de producción (cognee vendored excluido). Wave 1: 37 sitios con tests + migración naive (`hhd_tracker::_from_iso_utc`). Wave 2: ~110 sitios adicionales (llamadas + `default_factory` + gemelos core/cores). DB Column defaults preservados NAIVE deliberadamente (`_naive_utcnow` en content_factory/models.py, comentarios en hunter/operations) para mantener compatibilidad con `func.now()` y filas existentes. Excepción documentada: `core|cores/self_improvement/models.py` usa helper `utcnow_iso()` (aware) — nombrelegacy, valor correcto.
+> - **P2 ✅ RESUELTO**: hunt.py reúsa el scheduler vivo (`scheduler_instance` + método público `run_cycle()`) — 3 tests nuevos.
+> - **P2 ✅ RESUELTO**: B904 ×5 en direct_work.py (raise con `from None`).
+
 ## OWNEX Architecture
 
 ```
@@ -113,6 +123,7 @@
 | AUD-6 | **Executive Dashboard frontend** (CEO view): página + ruta + llamada a `/api/cycles/security/dashboard` | ✅ COMPLETADO 2026-07-31 — `frontend/src/pages/ExecutiveDashboard.vue` + ruta `/security/executive` + ítem sidebar "CEO View"; contrato verificado con token real (200, 9 keys) | M |
 | AUD-7 | **GamingConsole con datos reales**: conectar a API (hoy es mock, muestra $0) | ✅ COMPLETADO 2026-07-31 — el servicio ya conectaba a 8 endpoints; el bloqueo real era `/api/cycles` (500: `config: Text` JSON string vs schema `dict`). Fix: field_validator en `CycleRead` → 200 con 5 ciclos; GamingConsole mostraba fallbacks solo por ese 500. 8/8 endpoints verificados con token | S |
 | AUD-8 | Montar routers de ciclos faltantes: `/api/cycles/forge` (existe sin montar), crear pulse/vault/atlas | ✅ COMPLETADO 2026-08-01 — `VaultCycle` y `AtlasCycle` creados en `core/cycles/vault.py` y `core/cycles/atlas.py`; routers `vault_cycle.py` y `atlas_cycle.py` creados y montados en `api/main.py`. Forge y Pulse ya estaban montados. 6 ciclos operativos (security, forge, pulse, vault, atlas, direct_work). | S |
+| DEV-1 | **Dev Bounty Pipeline E2E**: discover → analyze → clone → generate → test → PR → submit | ✅ COMPLETADO 2026-08-28 — `core/autonomy/dev_bounty_pipeline.py` + `api/routers/dev_bounty.py` + tests; 5 plataformas (freelancer, opire, issuehunt, mindrift, outlier); 8 tests pasando | M |
 ### P2 — Estabilidad / limpieza
 
 | ID | Task | Estado real | Esfuerzo |

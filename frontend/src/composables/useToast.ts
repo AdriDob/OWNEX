@@ -1,5 +1,5 @@
-import { ref, type Component } from 'vue'
-import { CheckCircle2, AlertTriangle, AlertOctagon, Info, X } from '@lucide/vue'
+import { AlertOctagon, AlertTriangle, CheckCircle2, Info, X } from '@lucide/vue'
+import { type Component, ref } from 'vue'
 
 export interface Toast {
   id: string
@@ -42,7 +42,7 @@ function addToast(type: Toast['type'], title: string, message?: string, duration
 }
 
 function removeToast(id: string) {
-  const idx = toasts.value.findIndex(t => t.id === id)
+  const idx = toasts.value.findIndex((t) => t.id === id)
   if (idx >= 0) toasts.value.splice(idx, 1)
 }
 

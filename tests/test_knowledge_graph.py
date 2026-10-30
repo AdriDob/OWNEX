@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from core.knowledge.graph import (
+from cores.knowledge.graph import (
     EdgeTypes,
     KnowledgeGraph,
     NodeTypes,

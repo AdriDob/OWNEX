@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from core.offensive.attack.models import AttackStep, TestPlan
-from core.offensive.models import Hypothesis
+from cores.offensive.attack.models import AttackStep, TestPlan
+from cores.offensive.models import Hypothesis
 
 logger = logging.getLogger("orion.core.offensive.attack_planner")
 

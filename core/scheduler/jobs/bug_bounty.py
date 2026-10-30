@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 
-from core.scheduler.life_scheduler import JobDefinition, JobResult, JobType, get_life_scheduler
+from cores.scheduler.life_scheduler import JobDefinition, JobResult, JobType, get_life_scheduler
 
 logger = logging.getLogger("orion.scheduler.jobs.bug_bounty")
 

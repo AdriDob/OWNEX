@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
 
@@ -42,7 +42,7 @@ class PerformanceMetrics:
     start_balance: Decimal = Decimal()
     end_balance: Decimal = Decimal()
     return_pct: float = 0.0
-    calculated_at: datetime = field(default_factory=datetime.utcnow)
+    calculated_at: datetime = field(default_factory=datetime.now(UTC))
 
 
 def calculate_performance(

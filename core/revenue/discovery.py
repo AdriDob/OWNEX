@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from core.opportunity.models import ScoredOpportunity
+from cores.opportunity.models import ScoredOpportunity
 
 
 def discover_daily_opportunities(

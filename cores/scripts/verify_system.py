@@ -52,7 +52,7 @@ async def check_executors(verbose: bool = False):
     """Test every executor in dry-run mode."""
     print(f"\n{BOLD}Executors{BOLD}")
 
-    from core.opportunity.executors import get_executors
+    from cores.opportunity.executors import get_executors
 
     executors = get_executors(config={"enabled": True})
     log_result(f"Executor factory: {len(executors)} registered", "pass", f"({', '.join(executors.keys())})")
@@ -84,7 +84,7 @@ async def check_workflow_engine(quick: bool = False):
     """Test workflow engine in dry-run mode."""
     print(f"\n{BOLD}Workflow Engine{BOLD}")
 
-    from core.autonomy.workflow_engine import AutonomousWorkflow, WorkPlan
+    from cores.autonomy.workflow_engine import AutonomousWorkflow, WorkPlan
 
     # 1. Configuration
     wf = AutonomousWorkflow(config={"enabled": True, "dry_run": True})
@@ -93,7 +93,7 @@ async def check_workflow_engine(quick: bool = False):
     log_result("Configuration defaults", "pass")
 
     # 2. Dry-run plan execution
-    from core.opportunity.executors import BaseExecutor, ExecutionResult
+    from cores.opportunity.executors import BaseExecutor, ExecutionResult
 
     class DummyExecutor(BaseExecutor):
         platform = "test"
@@ -116,7 +116,7 @@ async def check_workflow_engine(quick: bool = False):
     log_result("Dry-run execution", "pass")
 
     # 3. Plan creation for each platform type
-    from core.opportunity.scorer import score_opportunity
+    from cores.opportunity.scorer import score_opportunity
 
     for platform, opp_id, label in [
         ("algora", "algora-1", "OSS bounty plan"),
@@ -293,7 +293,7 @@ async def check_scheduler():
     print(f"\n{BOLD}Scheduler{BOLD}")
 
     try:
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         all_jobs = get_all_jobs()
         total_jobs = sum(len(jobs) for jobs in all_jobs.values())

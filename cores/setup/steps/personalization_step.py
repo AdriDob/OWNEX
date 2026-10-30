@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.setup.steps import define_step
+from cores.setup.steps import define_step
 
 logger = logging.getLogger("ownex.core.setup.personalization")
 

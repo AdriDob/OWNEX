@@ -3,7 +3,7 @@
    Uses IntersectionObserver with remove-once semantics.
    ══════════════════════════════════════════════════════════ */
 
-import { ref, onMounted, onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, type Ref, ref } from 'vue'
 
 interface UseInViewportOptions {
   threshold?: number
@@ -12,10 +12,7 @@ interface UseInViewportOptions {
   once?: boolean
 }
 
-export function useInViewport(
-  targetRef: Ref<HTMLElement | null | undefined>,
-  options: UseInViewportOptions = {},
-) {
+export function useInViewport(targetRef: Ref<HTMLElement | null | undefined>, options: UseInViewportOptions = {}) {
   const isIntersecting = ref(false)
   const entry = ref<IntersectionObserverEntry | null>(null)
   let observer: IntersectionObserver | null = null

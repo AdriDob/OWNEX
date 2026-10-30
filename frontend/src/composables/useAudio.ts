@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 
 // Audio configuration
 export const AUDIO_CONFIG = {
@@ -42,7 +42,12 @@ function getAudioContext(): AudioContext {
 }
 
 // Sound effects synthesis (Web Audio API)
-function generateTone(frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.5): AudioBuffer {
+function generateTone(
+  frequency: number,
+  duration: number,
+  type: OscillatorType = 'sine',
+  volume: number = 0.5,
+): AudioBuffer {
   const ctx = getAudioContext()
   const sampleRate = ctx.sampleRate
   const frameCount = sampleRate * duration
@@ -135,7 +140,7 @@ const soundEffects = {
 
   success: () => {
     // Major chord arpeggio: C4 → E4 → G4 → C5
-    const frequencies = [261.63, 329.63, 392.00, 523.25]
+    const frequencies = [261.63, 329.63, 392.0, 523.25]
     const ctx = getAudioContext()
 
     frequencies.forEach((freq, i) => {
@@ -237,7 +242,7 @@ const soundEffects = {
 
   mission_completed: () => {
     // Triumphant chord: C4 → E4 → G4 → C5 with longer duration
-    const frequencies = [261.63, 329.63, 392.00, 523.25]
+    const frequencies = [261.63, 329.63, 392.0, 523.25]
     const ctx = getAudioContext()
 
     frequencies.forEach((freq, i) => {
@@ -312,8 +317,7 @@ export function useAudio() {
   }
 
   const isSupported = computed(() => {
-    return typeof window !== 'undefined' &&
-      (window.AudioContext || (window as any).webkitAudioContext)
+    return typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext)
   })
 
   return {

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useGuidedMode } from '@/composables/useGuidedMode'
 import { useFirstDayGuide } from '@/composables/useFirstDayGuide'
+import { useGuidedMode } from '@/composables/useGuidedMode'
 import { fetchDirectWorkDailyBrief, fetchDirectWorkWorkBank, runDirectWorkCycle } from '@/services/ownexData'
-import ModeSelector from './ModeSelector.vue'
+import type { DailyBrief, GuidedMode } from '@/types/guided'
 import FirstDayGuide from './FirstDayGuide.vue'
 import IncomeGuidanceAssistant from './IncomeGuidanceAssistant.vue'
+import ModeSelector from './ModeSelector.vue'
 import UniversalExplanationLayer from './UniversalExplanationLayer.vue'
-import type { DailyBrief, GuidedMode } from '@/types/guided'
 
 const { currentMode, initMode, setMode } = useGuidedMode()
 const { fetchFirstDayGuide, fetchFirstDayProgress, completeFirstDayStep } = useFirstDayGuide()
@@ -27,8 +27,12 @@ const incomeGuidance = computed(() => {
   return {
     title: opp.title,
     summary: `Oportunidad ${opp.category} en ${opp.platform} con recompensa de $${opp.payment}`,
-    difficulty: (opp.estimated_time_hours || 0) <= 4 ? 'beginner' :
-                (opp.estimated_time_hours || 0) <= 8 ? 'intermediate' : 'advanced',
+    difficulty:
+      (opp.estimated_time_hours || 0) <= 4
+        ? 'beginner'
+        : (opp.estimated_time_hours || 0) <= 8
+          ? 'intermediate'
+          : 'advanced',
     required: {
       programming: opp.technology_tags && opp.technology_tags.length > 0,
       portfolio: opp.portfolio_required,
@@ -44,14 +48,20 @@ const incomeGuidance = computed(() => {
       nextStep: 'Revisa los detalles, prepara tu entrega y confirma cuando esté listo.',
     },
     confidence: {
-      level: (opp.zero_barrier_score?.total || 0) >= 70 ? 'high' :
-             (opp.zero_barrier_score?.total || 0) >= 40 ? 'medium' : 'low',
+      level:
+        (opp.zero_barrier_score?.total || 0) >= 70
+          ? 'high'
+          : (opp.zero_barrier_score?.total || 0) >= 40
+            ? 'medium'
+            : 'low',
       detail: `Score de barrera: ${opp.zero_barrier_score?.total || 0}/100. Probabilidad: ${Math.round((opp.acceptance_probability || 0) * 100)}%.`,
     },
   }
 })
 
-const showFirstDay = computed(() => firstDayGuide.value && firstDayGuide.value.steps && firstDayGuide.value.steps.length > 0)
+const showFirstDay = computed(
+  () => firstDayGuide.value && firstDayGuide.value.steps && firstDayGuide.value.steps.length > 0,
+)
 
 async function loadAll() {
   loading.value = true
@@ -206,7 +216,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__error {
   background: rgba(148, 163, 184, 0.15);
   border: 1px solid rgba(148, 163, 184, 0.3);
-  color: #94a3b8;
+  color: var(--ownex-text-secondary);
   padding: 16px;
   border-radius: 12px;
   display: flex;
@@ -215,7 +225,7 @@ watch(currentMode, (mode) => {
 }
 
 .guided-dashboard__retry-btn {
-  background: linear-gradient(135deg, #00d5ff, #1e40ff);
+  background: linear-gradient(135deg, var(--ownex-accent), var(--ownex-accent));
   border: none;
   color: white;
   padding: 8px 16px;
@@ -230,14 +240,14 @@ watch(currentMode, (mode) => {
   align-items: center;
   gap: 12px;
   padding: 40px;
-  color: #888;
+  color: var(--ownex-text-secondary);
 }
 
 .guided-dashboard__spinner {
   width: 32px;
   height: 32px;
   border: 3px solid rgba(59, 130, 246, 0.3);
-  border-top-color: #3b82f6;
+  border-top-color: var(--ownex-danger);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -267,7 +277,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
   margin: 0 0 16px;
 }
 
@@ -281,7 +291,7 @@ watch(currentMode, (mode) => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  background: linear-gradient(135deg, var(--ownex-danger), var(--ownex-accent));
   border: none;
   color: white;
   font-size: 0.875rem;
@@ -294,7 +304,7 @@ watch(currentMode, (mode) => {
 
 .guided-dashboard__quick-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px color-mix(in srgb, #3b82f6 40%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--ownex-danger) 40%, transparent);
 }
 
 .guided-dashboard__quick-btn:disabled {
@@ -328,7 +338,7 @@ watch(currentMode, (mode) => {
 
 .guided-dashboard__bank-label {
   font-size: 0.75rem;
-  color: #888;
+  color: var(--ownex-text-secondary);
   display: block;
   margin-bottom: 4px;
 }
@@ -336,7 +346,7 @@ watch(currentMode, (mode) => {
 .guided-dashboard__bank-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f0f0f0;
+  color: var(--ownex-text-primary);
 }
 
 @media (max-width: 768px) {

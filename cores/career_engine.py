@@ -264,7 +264,7 @@ class CareerEngine:
 def register_capabilities() -> None:
     """Register Career Engine capabilities in the CapabilityRegistry (auto-integration)."""
     try:
-        from core.capabilities.registry import get_capability_registry
+        from cores.capabilities.registry import get_capability_registry
 
         reg = get_capability_registry()
         reg.unregister("career_analysis", "career_engine")

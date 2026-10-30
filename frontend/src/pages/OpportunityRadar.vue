@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import Skeleton from '@/components/ui/Skeleton.vue'
-import Card from '@/components/ui/Card.vue'
+import { AlertTriangle, ExternalLink, Globe, Radar, Search, TrendingUp } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import BarChart from '@/components/charts/BarChart.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Input from '@/components/ui/Input.vue'
-import { Radar, Search, ExternalLink, TrendingUp, Globe, AlertTriangle } from '@lucide/vue'
-import BarChart from '@/components/charts/BarChart.vue'
+import Skeleton from '@/components/ui/Skeleton.vue'
+import { api } from '@/lib/api'
 
 interface Program {
   id: number
@@ -25,10 +25,17 @@ const error = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const res = await api.get<{ items: Program[]; total: number }>('/targets', { limit: 50, sort_by: 'opportunity_score', sort_order: 'desc' })
+    const res = await api.get<{ items: Program[]; total: number }>('/targets', {
+      limit: 50,
+      sort_by: 'opportunity_score',
+      sort_order: 'desc',
+    })
     programs.value = res.items || []
-  } catch (e: any) { error.value = e?.message || 'Error al cargar oportunidades' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar oportunidades'
+  } finally {
+    loading.value = false
+  }
 })
 
 function scoreColor(s?: number) {
@@ -41,14 +48,14 @@ function scoreColor(s?: number) {
 const filtered = computed(() => {
   if (!search.value) return programs.value
   const q = search.value.toLowerCase()
-  return programs.value.filter(p =>
-    p.name.toLowerCase().includes(q) || (p.domain && p.domain.toLowerCase().includes(q))
+  return programs.value.filter(
+    (p) => p.name.toLowerCase().includes(q) || (p.domain && p.domain.toLowerCase().includes(q)),
   )
 })
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Discovery</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Opportunity Radar</h1>

@@ -42,7 +42,7 @@ def report(name: str, passed: bool, detail: str = "") -> None:
 
 def check_version_sync() -> None:
     """1. Version sync."""
-    from core.system.version_engine import VersionEngine
+    from cores.system.version_engine import VersionEngine
 
     ve = VersionEngine()
     info = ve.info()

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core.acceptance.analyzer import AcceptanceAnalyzer
-from core.acceptance.models import AcceptanceOutcome
-from core.acceptance.optimizer import AcceptanceOptimizer
-from core.acceptance.predictor import AcceptancePredictor
+from cores.acceptance.analyzer import AcceptanceAnalyzer
+from cores.acceptance.models import AcceptanceOutcome
+from cores.acceptance.optimizer import AcceptanceOptimizer
+from cores.acceptance.predictor import AcceptancePredictor
 from database.db import SessionLocal
 from database.models import Finding
 

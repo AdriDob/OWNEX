@@ -5,18 +5,21 @@
  */
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  status: 'success' | 'warning' | 'error' | 'pending' | 'off' | 'active'
-  /** Show pulse animation */
-  pulse?: boolean
-  /** Size: sm (6px) | md (8px) | lg (12px) */
-  size?: 'sm' | 'md' | 'lg'
-  /** Optional label shown alongside */
-  label?: string
-}>(), {
-  pulse: false,
-  size: 'md',
-})
+const props = withDefaults(
+  defineProps<{
+    status: 'success' | 'warning' | 'error' | 'pending' | 'off' | 'active'
+    /** Show pulse animation */
+    pulse?: boolean
+    /** Size: sm (6px) | md (8px) | lg (12px) */
+    size?: 'sm' | 'md' | 'lg'
+    /** Optional label shown alongside */
+    label?: string
+  }>(),
+  {
+    pulse: false,
+    size: 'md',
+  },
+)
 
 const dotClass = computed(() => {
   const sizeClasses = { sm: 'w-1.5 h-1.5', md: 'w-2 h-2', lg: 'w-3 h-3' }
@@ -29,7 +32,9 @@ const dotClass = computed(() => {
     props.status === 'pending' ? 'bg-muted animate-pulse' : '',
     props.status === 'off' ? 'bg-surface-hover' : '',
     props.pulse ? 'animate-pulse' : '',
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 })
 </script>
 

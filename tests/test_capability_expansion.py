@@ -14,12 +14,12 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers.capability_expansion import capabilities_router, router
-from core.capabilities.expansion import (
+from cores.capabilities.expansion import (
     KNOWN_CANDIDATES,
     CapabilityExpansionEngine,
     reset_expansion_engine,
 )
-from core.capabilities.registry import CapabilityRegistry, reset_capability_registry
+from cores.capabilities.registry import CapabilityRegistry, reset_capability_registry
 
 
 @pytest.fixture()
@@ -218,7 +218,7 @@ def test_install_api_dry_run_default(client: TestClient) -> None:
 
 def test_record_usage_api(client: TestClient) -> None:
     # register via engine so there's an entry to record against
-    from core.capabilities.registry import get_capability_registry
+    from cores.capabilities.registry import get_capability_registry
 
     get_capability_registry().register("test_cap_x", "test")
     resp = client.post("/api/capabilities/test_cap_x/usage", json={"duration_ms": 50.0})

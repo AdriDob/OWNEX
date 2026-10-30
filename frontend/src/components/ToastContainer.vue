@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useToast } from '@/composables/useToast'
 import { X } from '@lucide/vue'
+import { useToast } from '@/composables/useToast'
 
 const { toasts, removeToast, iconMap, iconColorMap } = useToast()
 </script>

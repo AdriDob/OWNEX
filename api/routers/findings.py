@@ -356,3 +356,33 @@ def export_finding_pdf(finding_id: int):
         )
     finally:
         session.close()
+
+
+@router.delete("/{finding_id}")
+def delete_finding(finding_id: int):
+    """Delete a finding."""
+    session = db.SessionLocal()
+    try:
+        finding = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
+        if not finding:
+            raise HTTPException(status_code=404, detail="Finding not found")
+
+        # Store info for event
+        finding_title = finding.title or f"Finding #{finding_id}"
+        target_id = finding.target_id
+
+        session.delete(finding)
+        session.commit()
+
+        # Publish event
+        try:
+            from cores.events.event_bus import get_event_bus
+
+            bus = get_event_bus()
+            bus.publish("finding:deleted", {"id": finding_id, "title": finding_title, "target_id": target_id})
+        except Exception:
+            pass
+
+        return {"id": finding_id, "deleted": True}
+    finally:
+        session.close()

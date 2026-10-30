@@ -2,27 +2,27 @@
 
 :root {
   /* Primary Colors — Tesla/Jarvis Dark */
-  --bg-primary: #0a0a0a;
+  --bg-primary: var(--ownex-bg-surface);
   --bg-secondary: #111111;
-  --bg-tertiary: #1a1a1a;
-  --bg-elevated: #222222;
+  --bg-tertiary: var(--ownex-bg-elevated);
+  --bg-elevated: var(--ownex-bg-elevated);
   --bg-hover: #2a2a2a;
 
   /* Accent Colors — Tesla Red/Jarvis Blue */
-  --accent-primary: #1E40FF; /* Tesla Red */
+  --accent-primary: var(--ownex-accent); /* Tesla Red */
   --accent-secondary: #00d4ff; /* Jarvis Blue */
   --accent-tertiary: #00ff88; /* Success Green */
-  --accent-warning: #ffaa00; /* Warning Orange */
-  --accent-error: #3B82F6; /* Error Red */
+  --accent-warning: var(--ownex-yellow); /* Warning Orange */
+  --accent-error: var(--ownex-danger); /* Error Red */
 
   /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b0b0b0;
-  --text-tertiary: #707070;
-  --text-muted: #505050;
+  --text-primary: var(--ownex-text-primary);
+  --text-secondary: var(--ownex-text-secondary);
+  --text-tertiary: var(--ownex-text-muted);
+  --text-muted: var(--ownex-text-muted);
 
   /* Border Colors */
-  --border-primary: #333333;
+  --border-primary: var(--ownex-border);
   --border-secondary: #444444;
   --border-accent: var(--accent-primary);
   --border-success: var(--accent-tertiary);
@@ -73,8 +73,8 @@
   --radius-full: 9999px;
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -203,7 +203,8 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -212,7 +213,8 @@ body {
 }
 
 @keyframes glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: var(--glow-primary);
   }
   50% {
@@ -260,7 +262,8 @@ body {
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -269,19 +272,28 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-5px);
   }
-  20%, 40%, 60%, 80% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(5px);
   }
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

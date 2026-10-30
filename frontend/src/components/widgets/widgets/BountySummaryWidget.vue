@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { TrendingUp } from '@lucide/vue'
+import { computed } from 'vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
 
 interface Props {

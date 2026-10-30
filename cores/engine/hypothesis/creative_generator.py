@@ -104,6 +104,7 @@ def _call_oar_for_creative(prompt: str) -> str | None:
             asyncio.get_running_loop()
             # Already in async context — use thread
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as pool:
                 future = pool.submit(asyncio.run, _do_chat())
                 response = future.result(timeout=60)

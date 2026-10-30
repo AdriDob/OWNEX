@@ -5,7 +5,7 @@ import subprocess
 import time
 from typing import Any
 
-from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
+from cores.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
 logger = logging.getLogger("orion.copilot.providers.opencode")
 

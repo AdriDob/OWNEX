@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from core.extension.hooks import on_hook
+from cores.extension.hooks import on_hook
 
 logger = logging.getLogger("orion.ext.hello")
 

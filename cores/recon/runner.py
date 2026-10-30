@@ -205,7 +205,7 @@ class ReconRunner:
 
         router_path = None
         try:
-            from core.recon.router import ReconRouter
+            from cores.recon.router import ReconRouter
 
             router = ReconRouter()
             router_result = router.route(domain, output_dir=self.recon_dir)

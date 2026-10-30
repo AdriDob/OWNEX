@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from core.copilot.agent import CopilotAgent
-from core.copilot.permissions import AuthorityLevel
-from core.copilot.recommender import Recommendation
-from core.copilot.system_context import CopilotContext, SystemContextBuilder
+from cores.copilot.agent import CopilotAgent
+from cores.copilot.permissions import AuthorityLevel
+from cores.copilot.recommender import Recommendation
+from cores.copilot.system_context import CopilotContext, SystemContextBuilder
 
 # ── SystemContextBuilder ─────────────────────────────────────────────
 

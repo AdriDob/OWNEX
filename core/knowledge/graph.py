@@ -5,7 +5,7 @@ decisions, CVEs, technologies, wallets, exchanges, and everything else.
 
 Usage:
 
-    from core.knowledge.graph import get_knowledge_graph
+    from cores.knowledge.graph import get_knowledge_graph
 
     kg = get_knowledge_graph()
 
@@ -33,8 +33,8 @@ from typing import Any
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from core.database.manager import get_db_manager
-from core.knowledge.models import Base, KGEdge, KGNode
+from cores.database.manager import get_db_manager
+from cores.knowledge.models import Base, KGEdge, KGNode
 
 logger = logging.getLogger("orion.core.knowledge.graph")
 

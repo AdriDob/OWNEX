@@ -1,0 +1,71 @@
+{
+  "scenarios": {
+    "description": "Four distinct scenarios: Floor, Base (Realistic), Upside (Optimistic), Extreme",
+    "floor": {
+      "description": "Worst functional scenario - not catastrophic but minimal",
+      "assumptions": [
+        "Only AI Eval Generalist works",
+        "1 platform onboards successfully",
+        "50% assessment failure rate",
+        "0 security/dev bounty income",
+        "2h/day effective",
+        "No private invites",
+        "$0 some months"
+      ],
+      "monthly": 0,
+      "yearly": 0
+    },
+    "base_realistic": {
+      "description": "Expected outcome with failures, learning curve, imperfect automation",
+      "assumptions": [
+        "AI Eval (2 platforms) + 1 Dev Bounty platform + 1 Security public",
+        "30% assessment pass rate",
+        "Normal capacity (1.3h/day eff)",
+        "Private invites at month 6",
+        "30% duplicate/reject rate",
+        "Fees/latency included",
+        "Reputation 1.5x by month 12"
+      ],
+      "monthly_range": "$300-5,000 (growing)",
+      "yearly": "$15k-40k"
+    },
+    "upside_optimistic": {
+      "description": "Good performance without jackpots",
+      "assumptions": [
+        "AI Eval (3 platforms, specialist) + 2 Dev Bounty + Security private (M6) + Web3 (M9)",
+        "50% assessment pass",
+        "High capacity (2h/day eff)",
+        "Reputation 2x by month 12",
+        "1-2 high payouts ($5k-20k)",
+        "Automation effective"
+      ],
+      "monthly_range": "$3,000-8,000 (growing)",
+      "yearly": "$50k-120k"
+    },
+    "extreme": {
+      "description": "Outlier events, not baseline",
+      "assumptions": [
+        "All categories firing",
+        "3+ platforms each",
+        "Extreme capacity (2.8h/day)",
+        "Reputation 3x",
+        "Multiple critical bounties ($50k+)",
+        "Audit contest wins ($100k+)",
+        "Web3 bull market 3x payouts",
+        "LOW PROBABILITY (<5%)"
+      ],
+      "monthly_range": "$15,000-100,000",
+      "yearly": "$250k-1M+"
+    },
+    "jackpot_tail": {
+      "description": "Events that change everything",
+      "events": [
+        {"event": "Critical bug bounty $100k+", "probability": "0.5-2%/year", "impact": "Single month +$50k-500k"},
+        {"event": "Critical Web3 $500k+", "probability": "0.1-0.5%/year", "impact": "Single month +$250k-1M"},
+        {"event": "Audit contest $1M+", "probability": "0.05-0.1%/year", "impact": "Single month +$500k-5M"},
+        {"event": "LayerZero $15M", "probability": "<0.01%/year", "impact": "Life-changing single event"}
+      ],
+      "note": "These must NEVER be budgeted as expected income. They are upside options, not forecast."
+    }
+  }
+}

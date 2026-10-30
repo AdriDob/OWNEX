@@ -367,7 +367,7 @@ def _workbank_items() -> list[dict[str, Any]]:
 
 def _load_target() -> float:
     def _read() -> float:
-        from core.memory.store import get_memory_store
+        from cores.memory.store import get_memory_store
 
         entry = get_memory_store().get(TARGET_MEMORY_NAMESPACE, TARGET_MEMORY_KEY)
         if not entry:
@@ -384,7 +384,7 @@ def _save_target(daily_target_usd: float) -> None:
     if daily_target_usd <= 0:
         return
     try:
-        from core.memory.store import get_memory_store
+        from cores.memory.store import get_memory_store
 
         get_memory_store().store(
             namespace=TARGET_MEMORY_NAMESPACE,

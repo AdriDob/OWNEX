@@ -41,9 +41,9 @@ export function usePreloadData() {
 
     // Fetch all endpoints in parallel; don't block on failures
     const results = await Promise.allSettled([
-      fetch('/api/system/health').then(r => r.ok ? r.json() : null),
-      fetch('/api/system/readiness').then(r => r.ok ? r.json() : null),
-      fetch('/api/dashboard/summary').then(r => r.ok ? r.json() : null),
+      fetch('/api/system/health').then((r) => (r.ok ? r.json() : null)),
+      fetch('/api/system/readiness').then((r) => (r.ok ? r.json() : null)),
+      fetch('/api/dashboard/summary').then((r) => (r.ok ? r.json() : null)),
     ])
 
     cache.value = {
@@ -52,7 +52,7 @@ export function usePreloadData() {
       summary: results[2].status === 'fulfilled' ? results[2].value : null,
     }
 
-    if (results.every(r => r.status === 'rejected')) {
+    if (results.every((r) => r.status === 'rejected')) {
       error.value = 'No se pudo conectar con el backend'
     }
 

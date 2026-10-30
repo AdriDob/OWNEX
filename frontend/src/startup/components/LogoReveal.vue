@@ -4,8 +4,9 @@
  * Uses framer-motion/dom spring to animate scale + opacity.
  * The SVG paths draw in (stroke-dashoffset → 0) for the premium feel.
  */
-import { ref, onMounted } from 'vue'
+
 import { animate } from 'motion'
+import { onMounted, ref } from 'vue'
 
 const logoLoaded = ref(false)
 

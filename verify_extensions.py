@@ -79,16 +79,16 @@ def main():
     # Check extension registry integration
     print("\n5. Extension Registry Integration:")
     try:
-        import core.extension.capabilities as caps_mod
-        import core.extension.hooks as hooks_mod
-        import core.extension.registry as reg_mod
+        import cores.extension.capabilities as caps_mod
+        import cores.extension.hooks as hooks_mod
+        import cores.extension.registry as reg_mod
 
         # Reset registry state to test fresh loading
         reg_mod._registry = None
         hooks_mod._registry = None
         caps_mod._registry = None
 
-        from core.extension.registry import get_extension_registry
+        from cores.extension.registry import get_extension_registry
 
         reg = get_extension_registry()
         discovered = reg.discover()

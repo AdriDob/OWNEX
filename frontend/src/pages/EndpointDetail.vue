@@ -1,14 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  BarChart3,
+  Bug,
+  DollarSign,
+  Hash,
+  RefreshCw,
+  Server,
+  Shield,
+  Zap,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '@/lib/api'
-import type { FindingItem } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import { BarChart } from '@/components/charts'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { BarChart } from '@/components/charts'
-import { Activity, AlertTriangle, ArrowLeft, BarChart3, Bug, DollarSign, Hash, RefreshCw, Server, Shield, Zap } from '@lucide/vue'
+import type { FindingItem } from '@/lib/api'
+import { api } from '@/lib/api'
 
 interface EndpointDetail {
   id: number
@@ -64,8 +76,11 @@ async function handleValidate() {
       url: endpoint.value.path,
       method: endpoint.value.method,
     })
-  } catch { /* surfaced via status polling / toast elsewhere */ }
-  finally { validating.value = false }
+  } catch {
+    /* surfaced via status polling / toast elsewhere */
+  } finally {
+    validating.value = false
+  }
 }
 
 async function handleIdorScan() {
@@ -81,8 +96,11 @@ async function handleIdorScan() {
       method: endpoint.value.method,
       identity_baseline_id: 0,
     })
-  } catch { /* ignore */ }
-  finally { scanning.value = false }
+  } catch {
+    /* ignore */
+  } finally {
+    scanning.value = false
+  }
 }
 
 const riskColor = computed(() => {
@@ -98,17 +116,23 @@ const chartData = computed(() => {
   if (!endpoint.value) return { labels: [], datasets: [] }
   return {
     labels: ['Risk Score', 'Parameter Count'],
-    datasets: [{
-      label: 'Valor',
-      data: [endpoint.value.risk_score * 10, endpoint.value.parameter_count],
-      backgroundColor: ['rgba(0, 213, 255,0.7)', 'rgba(255, 255, 255,0.7)'],
-    }],
+    datasets: [
+      {
+        label: 'Valor',
+        data: [endpoint.value.risk_score * 10, endpoint.value.parameter_count],
+        backgroundColor: ['rgba(0, 213, 255,0.7)', 'rgba(255, 255, 255,0.7)'],
+      },
+    ],
   }
 })
 
 function severityVariant(sev: string) {
   const map: Record<string, 'destructive' | 'warning' | 'info' | 'success' | 'default'> = {
-    critical: 'destructive', high: 'warning', medium: 'info', low: 'success', info: 'default',
+    critical: 'destructive',
+    high: 'warning',
+    medium: 'info',
+    low: 'success',
+    info: 'default',
   }
   return map[sev.toLowerCase()] || 'default'
 }
@@ -117,7 +141,7 @@ onMounted(fetchData)
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="flex items-center gap-3 animate-in">
       <Button variant="ghost" size="icon" @click="router.back()">
         <ArrowLeft class="h-4 w-4" />

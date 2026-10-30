@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { ChevronDown, ChevronRight, Info } from '@lucide/vue'
 import type { Component } from 'vue'
+import { computed, ref } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = withDefaults(defineProps<{
-  title: string
-  open?: boolean
-  icon?: Component
-}>(), {
-  open: false,
-  icon: Info,
-})
+const props = withDefaults(
+  defineProps<{
+    title: string
+    open?: boolean
+    icon?: Component
+  }>(),
+  {
+    open: false,
+    icon: Info,
+  },
+)
 
 const isOpen = ref(props.open)
 

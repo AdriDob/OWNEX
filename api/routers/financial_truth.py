@@ -317,7 +317,7 @@ def capital_snapshot() -> dict[str, Any]:
     # ── Investment portfolio (InvestmentManager) ──────────────────
     investment = {"total_usd": 0.0, "estrategias": []}
     try:
-        from core.investment.manager import get_investment_manager
+        from cores.investment.manager import get_investment_manager
 
         im = get_investment_manager()
         snap = im.get_snapshot()

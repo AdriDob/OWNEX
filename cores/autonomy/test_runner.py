@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from core.autonomy.repo_analyzer import RepoInfo
+from cores.autonomy.repo_analyzer import RepoInfo
 
 
 @dataclass
@@ -145,7 +145,7 @@ class TestRunner:
 
         # Detect language if not provided
         if repo_info is None:
-            from core.autonomy.repo_analyzer import RepoAnalyzer
+            from cores.autonomy.repo_analyzer import RepoAnalyzer
 
             analyzer = RepoAnalyzer()
             repo_info = await analyzer.analyze_repo(repo_path)
@@ -195,7 +195,19 @@ class TestRunner:
         command: str,
         env: dict[str, str] | None = None,
     ) -> TestResult:
-        """Run a single test command."""
+        """Run a single test command (destructive commands are blocked, never executed)."""
+        from cores.automation.safety import check_command
+
+        allowed, reason = check_command(command, self.config.get("extra_blocked_commands"))
+        if not allowed:
+            return TestResult(
+                command=command,
+                success=False,
+                stdout="",
+                stderr=f"Blocked by safety policy: {reason}",
+                returncode=-1,
+                duration_seconds=0.0,
+            )
         start = time.time()
         test_env = {**os.environ, **(env or {})}
 
@@ -349,7 +361,7 @@ class TestRunner:
     ) -> TestResult:
         """Run a specific test file."""
         if repo_info is None:
-            from core.autonomy.repo_analyzer import RepoAnalyzer
+            from cores.autonomy.repo_analyzer import RepoAnalyzer
 
             analyzer = RepoAnalyzer()
             repo_info = await analyzer.analyze_repo(repo_path)

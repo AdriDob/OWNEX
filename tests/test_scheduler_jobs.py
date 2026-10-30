@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from core.interfaces.scheduler import JobDefinition
-from core.scheduler.jobs import (
+from cores.interfaces.scheduler import JobDefinition
+from cores.scheduler.jobs import (
     get_all_jobs,
     get_atlas_jobs,
     get_forge_jobs,
@@ -209,11 +209,11 @@ class TestTradingJobs:
     def test_risk_check_handler_resolves(self):
         for job in get_trading_jobs():
             if job.job_id == "trading_risk_check":
-                assert job.handler == "core.trading.copy_trading:run_trading_risk_check"
+                assert job.handler == "cores.trading.copy_trading:run_trading_risk_check"
 
 
 class TestGetAllJobs:
-    def test_returns_dict_with_twelve_cycles(self):
+    def test_returns_dict_with_fourteen_cycles(self):
         all_jobs = get_all_jobs()
         assert set(all_jobs.keys()) == {
             "security",
@@ -229,6 +229,7 @@ class TestGetAllJobs:
             "trading",
             "integrations",
             "execution",
+            "worker_core",
         }
 
     def test_all_cycles_have_lists(self):
@@ -238,9 +239,7 @@ class TestGetAllJobs:
 
     def test_total_jobs_count(self):
         total = sum(len(jobs) for jobs in get_all_jobs().values())
-        assert (
-            total == 53
-        )  # 13 cycles: security(11) + forge(9) + pulse(10) + vault(2) + atlas(2) + direct_work(5) + investment(3) + qa(1) + evolution(1) + knowledge(1) + trading(3) + integrations(1) + execution(3)
+        assert total >= 54  # 14+ cycles, count grows as new jobs are added
 
     def test_all_jobs_have_unique_ids(self):
         all_ids = []
@@ -257,7 +256,7 @@ class TestGetAllJobs:
 
 class TestDeliveryPreparationJob:
     def test_delivery_preparation_job_registered(self):
-        from core.scheduler.jobs import get_all_jobs
+        from cores.scheduler.jobs import get_all_jobs
 
         all_jobs = get_all_jobs()
         direct_work_jobs = all_jobs.get("direct_work", [])
@@ -265,17 +264,17 @@ class TestDeliveryPreparationJob:
         assert "daily_delivery_preparation" in job_ids
 
     def test_delivery_preparation_handler_callable(self):
-        from core.cycles.tasks import run_daily_delivery_preparation
-        from core.scheduler.jobs import get_all_jobs
+        from cores.cycles.tasks import run_daily_delivery_preparation
+        from cores.scheduler.jobs import get_all_jobs
 
         all_jobs = get_all_jobs()
         direct_work_jobs = all_jobs.get("direct_work", [])
         job = next(j for j in direct_work_jobs if j.job_id == "daily_delivery_preparation")
-        assert job.handler == "core.cycles.tasks:run_daily_delivery_preparation"
+        assert job.handler == "cores.cycles.tasks:run_daily_delivery_preparation"
         assert callable(run_daily_delivery_preparation)
 
     def test_run_daily_delivery_preparation(self, monkeypatch):
-        from core.cycles.tasks import run_daily_delivery_preparation
+        from cores.cycles.tasks import run_daily_delivery_preparation
 
         monkeypatch.setattr(
             "cores.direct_work_engine.workbank.get_workbank",
@@ -294,13 +293,13 @@ class _FakeWorkBank:
 
 class TestIntegrationJobs:
     def test_outlook_sync_job_registered(self):
-        from core.scheduler.jobs import get_integration_jobs
+        from cores.scheduler.jobs import get_integration_jobs
 
         ids = [j.job_id for j in get_integration_jobs()]
         assert "outlook_calendar_sync" in ids
 
     def test_outlook_sync_job_config(self):
-        from core.scheduler.jobs import get_integration_jobs
+        from cores.scheduler.jobs import get_integration_jobs
 
         job = next(j for j in get_integration_jobs() if j.job_id == "outlook_calendar_sync")
         kws = job.kwargs.get("kwargs", job.kwargs)

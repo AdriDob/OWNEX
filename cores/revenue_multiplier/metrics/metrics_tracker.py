@@ -48,7 +48,7 @@ class CombinedMetrics:
     revenue_7d: Decimal = Decimal("0")
     revenue_30d: Decimal = Decimal("0")
     estimated_annual: Decimal = Decimal("0")
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=datetime.now(UTC))
 
 
 class MetricsTracker:

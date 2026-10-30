@@ -119,7 +119,7 @@ class NoiseReductionEngine:
     """
     Deterministic noise reduction pipeline.
 
-    Consumes scored endpoint dicts (from core.engine.unified_scoring + identity fields)
+    Consumes scored endpoint dicts (from cores.engine.unified_scoring + identity fields)
     and applies a sequential filter chain to separate signal from noise.
 
     Designed as a pre-processor for Hypothesis Engine.

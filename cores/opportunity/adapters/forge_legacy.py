@@ -9,8 +9,8 @@ from typing import Any
 
 import httpx
 
-from core.credentials.adapter_helpers import get_api_key, get_auth_headers, load_credentials
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.credentials.adapter_helpers import get_api_key, get_auth_headers, load_credentials
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 
 class ForgeAdapter(OpportunityAdapter):
@@ -22,7 +22,7 @@ class ForgeAdapter(OpportunityAdapter):
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
         """Fetch dev bounty opportunities from configured platforms."""
         try:
-            from core.opportunity import get_engine
+            from cores.opportunity import get_engine
 
             engine = get_engine()
             opportunities = engine.get_all()

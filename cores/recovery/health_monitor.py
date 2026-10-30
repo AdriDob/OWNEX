@@ -93,7 +93,7 @@ class HealthMonitor:
     def _check_all(self) -> None:
         """Delegate all checks to HealthCenter, then feed results to RecoveryEngine."""
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snapshot = center.run_all()
@@ -150,7 +150,7 @@ class HealthMonitor:
 
     def _check_eventbus(self) -> bool:
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snap = center.run_category("system")
@@ -161,7 +161,7 @@ class HealthMonitor:
 
     def _check_agent_bus(self) -> bool:
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snap = center.run_category("system")
@@ -171,7 +171,7 @@ class HealthMonitor:
 
     def _check_agents(self) -> bool:
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snap = center.run_all()
@@ -181,7 +181,7 @@ class HealthMonitor:
 
     def _check_database(self) -> bool:
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snap = center.run_category("system")
@@ -192,7 +192,7 @@ class HealthMonitor:
 
     def _check_memory(self) -> bool:
         try:
-            from core.health.engine import get_health_center
+            from cores.health.engine import get_health_center
 
             center = get_health_center()
             snap = center.run_all()

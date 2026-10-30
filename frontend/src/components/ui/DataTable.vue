@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ChevronDown, ChevronUp, Search, X } from '@lucide/vue'
+import { computed, ref } from 'vue'
 import { cn } from '@/lib/utils'
-import { ChevronUp, ChevronDown, Search, X } from '@lucide/vue'
 import Skeleton from './Skeleton.vue'
 
 export interface Column<T = any> {
@@ -54,11 +54,11 @@ const filtered = computed(() => {
   let result = Array.isArray(props.items) ? [...props.items] : []
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    result = result.filter(item =>
-      props.columns.some(col => {
+    result = result.filter((item) =>
+      props.columns.some((col) => {
         const val = item[col.key]
         return val != null && String(val).toLowerCase().includes(q)
-      })
+      }),
     )
   }
   if (sortKey.value) {

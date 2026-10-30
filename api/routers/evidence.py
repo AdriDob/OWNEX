@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from api.schemas.models import PaginatedResponse
 from api.services.data_service import list_evidence
-from core.evidence.composer import EvidenceComposer, publish_evidence_event
+from cores.evidence.composer import EvidenceComposer, publish_evidence_event
 from cores.platform.system import get_data_dir
 
 logger = logging.getLogger("ownex.api.evidence")

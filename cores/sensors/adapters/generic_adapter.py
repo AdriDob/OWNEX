@@ -9,9 +9,9 @@ from __future__ import annotations
 import logging
 from datetime import UTC, datetime
 
-from core.opportunity.adapters import OpportunityAdapter
-from core.sensors.base import Sensor
-from core.sensors.observation import Observation
+from cores.opportunity.adapters import OpportunityAdapter
+from cores.sensors.base import Sensor
+from cores.sensors.observation import Observation
 
 logger = logging.getLogger("ownex.sensors.generic")
 

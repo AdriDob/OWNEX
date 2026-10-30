@@ -9,8 +9,8 @@ from typing import Any
 from fastapi import APIRouter, FastAPI
 from sqlalchemy.orm import declarative_base
 
-from core.interfaces.app import IAppPlugin
-from core.plugin.discovery import discover_manifests
+from cores.interfaces.app import IAppPlugin
+from cores.plugin.discovery import discover_manifests
 
 logger = logging.getLogger("orion.core.registry")
 

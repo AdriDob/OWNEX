@@ -232,7 +232,7 @@ def check_investment_risk() -> int:
     """Run risk guardian checks."""
     notified = 0
     try:
-        from core.investment.risk_guardian import get_risk_guardian
+        from cores.investment.risk_guardian import get_risk_guardian
 
         guardian = get_risk_guardian()
         results = guardian.check_all_strategies()
@@ -273,7 +273,7 @@ def run_all_checks() -> dict[str, int]:
 def register_check_job() -> None:
     """Register the periodic check job with LifeScheduler."""
     try:
-        from core.scheduler.jobs import JobDefinition, JobResult, JobType, get_life_scheduler
+        from cores.scheduler.jobs import JobDefinition, JobResult, JobType, get_life_scheduler
 
         async def _run_checks() -> JobResult:
             try:

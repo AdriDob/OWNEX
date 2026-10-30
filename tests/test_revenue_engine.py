@@ -79,7 +79,7 @@ def test_revenue_engine_methods():
 
 def test_revenue_engine_discover():
     engine = RevenueEngine()
-    from core.opportunity.models import ScoredOpportunity, UnifiedScore
+    from cores.opportunity.models import ScoredOpportunity, UnifiedScore
 
     scored = [
         ScoredOpportunity(
@@ -123,7 +123,7 @@ def test_revenue_tracker_summary():
 
 
 def test_ar_get_payment_methods():
-    from core.revenue.models import ARGENTINA_METHODS
+    from cores.revenue.models import ARGENTINA_METHODS
 
     assert "wise" in ARGENTINA_METHODS
     assert "paypal" in ARGENTINA_METHODS

@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from core.capabilities.registry import get_capability_registry
+from cores.capabilities.registry import get_capability_registry
 from cores.events.correlation import get_or_create_correlation_id
 from cores.events.types import Events
 

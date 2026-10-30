@@ -13,7 +13,7 @@ from apps.atlas.engines.portfolio import get_configured_engine
 from apps.atlas.engines.risk import RiskEngine
 from apps.atlas.engines.strategy import StrategyEngine
 from apps.atlas.models import Asset, Transaction, Wallet
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.atlas.api")
 router = APIRouter(prefix="/api/atlas", tags=["atlas"])

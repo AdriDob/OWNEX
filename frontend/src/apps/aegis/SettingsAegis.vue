@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ArrowLeft, Plus, Shield, Trash2 } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
-import { ArrowLeft, Plus, Shield, Trash2 } from '@lucide/vue'
 
 const router = useRouter()
 const { toast } = useToast()

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from core.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
+from cores.copilot.providers.base import BaseProvider, ProviderConfig, ProviderResponse
 
 logger = logging.getLogger("core.ai.providers.custom")
 

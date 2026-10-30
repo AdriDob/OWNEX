@@ -1,6 +1,6 @@
 {
   "name": "ownex-omega",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "private": true,
   "workspaces": [
     "frontend",
@@ -12,11 +12,13 @@
     "dev:frontend": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
     "test": "cd frontend && npm run test",
+    "test:e2e": "playwright test",
     "test:backend": "pytest tests/ -v",
     "lint": "ruff check . && cd frontend && npm run lint",
     "tauri:build": "cd frontend && npm run tauri:build"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
     "concurrently": "^9.0.1"
   },
   "dependencies": {

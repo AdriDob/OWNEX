@@ -20,11 +20,10 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core.backup.engine import backup_status
-from core.capabilities.registry import get_capability_registry
-from core.health.engine import get_health_center
-from core.update.engine import UpdateManager
-from core.version import OWNEX_CODENAME, OWNEX_VERSION
+from cores.backup.engine import backup_status
+from cores.capabilities.registry import get_capability_registry
+from cores.update.engine import UpdateManager
+from cores.version import OWNEX_CODENAME, OWNEX_VERSION
 
 logger = logging.getLogger("orion.stability")
 

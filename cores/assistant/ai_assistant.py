@@ -561,7 +561,7 @@ class InvestigationNarrator:
             findings = session.query(models.Finding).all()
             verdicts = session.query(models.Verdict).all()
 
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
             twenty_four_hours = now - timedelta(hours=24)
 
             recent_endpoints = [ep for ep in endpoints if ep.discovered_at and ep.discovered_at >= twenty_four_hours]

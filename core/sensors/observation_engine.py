@@ -10,9 +10,9 @@ import contextlib
 import logging
 from typing import Any
 
-from core.engine.base import Engine
-from core.sensors.base import ObservationCache, Sensor
-from core.sensors.observation import Observation
+from cores.engine.base import Engine
+from cores.sensors.base import ObservationCache, Sensor
+from cores.sensors.observation import Observation
 
 logger = logging.getLogger("ownex.sensors.observation_engine")
 

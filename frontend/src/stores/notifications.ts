@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { getToken } from '@/lib/api'
 import { wsUrl } from '@/lib/backend'
 
@@ -18,7 +18,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = ref<Notification[]>([])
   const wsConnected = ref(false)
 
-  const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
+  const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length)
 
   const groupedByDate = computed(() => {
     const groups: { label: string; items: Notification[] }[] = []
@@ -34,7 +34,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       else if (dateStr === yesterdayStr) label = 'Ayer'
       else label = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
 
-      let group = groups.find(g => g.label === label)
+      let group = groups.find((g) => g.label === label)
       if (!group) {
         group = { label, items: [] }
         groups.push(group)
@@ -57,16 +57,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   function markRead(id: string) {
-    const n = notifications.value.find(n => n.id === id)
+    const n = notifications.value.find((n) => n.id === id)
     if (n) n.read = true
   }
 
   function markAllRead() {
-    notifications.value.forEach(n => n.read = true)
+    notifications.value.forEach((n) => (n.read = true))
   }
 
   function remove(id: string) {
-    notifications.value = notifications.value.filter(n => n.id !== id)
+    notifications.value = notifications.value.filter((n) => n.id !== id)
   }
 
   function clearAll() {
@@ -79,7 +79,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
       const token = getToken()
       const url = wsUrl('/api/ws', token ?? undefined)
       const ws = new WebSocket(url)
-      ws.onopen = () => { wsConnected.value = true }
+      ws.onopen = () => {
+        wsConnected.value = true
+      }
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
@@ -112,20 +114,36 @@ export const useNotificationsStore = defineStore('notifications', () => {
               completed: 'success',
               recalculated: 'success',
             }
-            const key = Object.keys(titles).find(k => eventType.includes(k.split(':').slice(1).join(':')))
+            const key = Object.keys(titles).find((k) => eventType.includes(k.split(':').slice(1).join(':')))
             const title = titles[eventType] || (key ? titles[key] : `Evento: ${eventType}`)
             const severity = Object.entries(sev).find(([s]) => eventType.includes(s))?.[1] || 'info'
             add({ type: severity, title, message: data.payload?.error || '', source: eventType.split(':')[0] })
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
-      ws.onclose = () => { wsConnected.value = false }
-      ws.onerror = () => { wsConnected.value = false }
-    } catch { /* ignore */ }
+      ws.onclose = () => {
+        wsConnected.value = false
+      }
+      ws.onerror = () => {
+        wsConnected.value = false
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   return {
-    notifications, unreadCount, groupedByDate, wsConnected,
-    add, markRead, markAllRead, remove, clearAll, connectWs,
+    notifications,
+    unreadCount,
+    groupedByDate,
+    wsConnected,
+    add,
+    markRead,
+    markAllRead,
+    remove,
+    clearAll,
+    connectWs,
   }
 })

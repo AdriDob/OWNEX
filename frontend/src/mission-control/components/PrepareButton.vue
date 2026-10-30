@@ -14,17 +14,21 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'prepare': []
-  'cancel': []
-  'rescan': []
+  prepare: []
+  cancel: []
+  rescan: []
 }>()
 
 const buttonText = computed(() => {
   switch (props.phase) {
-    case 'scanning': return 'Escaneando sistema…'
-    case 'preparing': return 'Preparando OWNEX…'
-    case 'ready': return '✓ Sistema listo'
-    default: return props.score >= 80 ? 'Verificar de nuevo' : '🚀 Prepare OWNEX'
+    case 'scanning':
+      return 'Escaneando sistema…'
+    case 'preparing':
+      return 'Preparando OWNEX…'
+    case 'ready':
+      return '✓ Sistema listo'
+    default:
+      return props.score >= 80 ? 'Verificar de nuevo' : '🚀 Prepare OWNEX'
   }
 })
 

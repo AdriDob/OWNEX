@@ -108,7 +108,10 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   // discovered (or surface a real error after the grace window) instead of
   // firing into a dead port and degrading every panel to fake-empty states.
   if (isTauri && !(await whenBackendReady(20000))) {
-    throw new ApiError(0, 'Backend no disponible — el sistema está iniciando o el sidecar falló. Reintentá en unos segundos.')
+    throw new ApiError(
+      0,
+      'Backend no disponible — el sistema está iniciando o el sidecar falló. Reintentá en unos segundos.',
+    )
   }
 
   // Normalize legacy double-prefixed paths (~150 call sites pass '/api/...')

@@ -8,7 +8,7 @@ Each hypothesis stores:
 The Copilot queries this to make informed decisions.
 """
 # ruff: noqa: E402
-from core.evidence_graph.graph import EvidenceGraph, get_evidence_graph
+from cores.evidence_graph.graph import EvidenceGraph, get_evidence_graph
 
 __all__ = [
     "EvidenceGraph",

@@ -12,6 +12,9 @@ PLATFORM_NS = "platform"
 
 
 class OWNEXMode(StrEnum):
+    LITE = "lite"
+    FULL = "full"
+    CAPITAL = "capital"
     MANUAL = "manual"
     AUTOMATIC = "automatic"
 

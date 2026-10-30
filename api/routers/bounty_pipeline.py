@@ -14,7 +14,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from core.autonomy.bounty_pipeline import get_bounty_pipeline
+from cores.autonomy.bounty_pipeline import get_bounty_pipeline
 
 router = APIRouter(prefix="/api/bounty-pipeline", tags=["bounty-pipeline"])
 logger = getLogger(__name__)

@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from typing import Any
 
-from core.sensors.observation import Observation
+from cores.sensors.observation import Observation
 
 logger = logging.getLogger("ownex.sensors")
 

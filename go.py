@@ -32,7 +32,7 @@ logger = logging.getLogger("orion.go")
 
 def cmd_setup() -> int:
     """Run setup wizard."""
-    from core.setup_wizard import run_setup_wizard
+    from cores.setup_wizard import run_setup_wizard
 
     run_setup_wizard()
     return 0
@@ -131,7 +131,7 @@ def cmd_full_cycle() -> int:
     """Run a full autonomous cycle manually."""
 
     async def _run():
-        from core.full_auto import get_full_auto
+        from cores.full_auto import get_full_auto
 
         auto = get_full_auto()
         result = await auto.run_full_cycle()

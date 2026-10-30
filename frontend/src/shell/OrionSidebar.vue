@@ -1,15 +1,41 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
 import {
-  LayoutDashboard, Target, Search, Bug, Shield, BarChart3,
-  FileText, ClipboardList, DollarSign, Wallet, Coins, Link2,
-  Settings, Cpu, Zap, Bell, ChevronLeft, ChevronRight,
-  Brain, MessageSquare, Database, HardDrive, Globe, Activity,
-  Users, Key, RefreshCw, Terminal, BookOpen, Sparkles, TrendingUp
+  Activity,
+  BarChart3,
+  Bell,
+  BookOpen,
+  Brain,
+  Bug,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Coins,
+  Cpu,
+  Database,
+  DollarSign,
+  FileText,
+  Globe,
+  HardDrive,
+  Key,
+  LayoutDashboard,
+  Link2,
+  MessageSquare,
+  RefreshCw,
+  Search,
+  Settings,
+  Shield,
+  Sparkles,
+  Target,
+  Terminal,
+  TrendingUp,
+  Users,
+  Wallet,
+  Zap,
 } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Skeleton from '@/components/ui/Skeleton.vue'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,9 +45,7 @@ const collapsed = ref(false)
 const navSections = [
   {
     section: 'MISIÓN',
-    items: [
-      { name: 'Mission Control', path: '/', icon: LayoutDashboard, exact: true },
-    ],
+    items: [{ name: 'Mission Control', path: '/', icon: LayoutDashboard, exact: true }],
   },
   {
     section: 'SEGURIDAD ● Rastro',
@@ -112,7 +136,7 @@ function isActive(item: NavItem): boolean {
     return route.path === item.path
   }
   if (item.children) {
-    return item.children.some(child => route.path === child || route.path.startsWith(child + '/'))
+    return item.children.some((child) => route.path === child || route.path.startsWith(child + '/'))
   }
   return route.path === item.path || route.path.startsWith(item.path + '/')
 }

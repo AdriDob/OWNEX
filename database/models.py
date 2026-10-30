@@ -1097,6 +1097,85 @@ class MobileApproval(Base):
     __table_args__ = (Index("ix_mobile_approvals_entity", "entity_type", "entity_id"),)
 
 
+class WorkerCheckpoint(Base):
+    """Persisted checkpoints for WorkerCore work items enabling resume capability."""
+
+    __tablename__ = "worker_checkpoints"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Work item identification
+    work_item_id = Column(String, nullable=False, index=True)
+    work_item_title = Column(String, nullable=True)
+    work_item_platform = Column(String, nullable=True)
+    work_item_category = Column(String, nullable=True)
+
+    # Checkpoint metadata
+    phase = Column(
+        String, nullable=False, index=True
+    )  # discover, evaluate, select, prepare, execute, validate, deliver, learn
+    checkpoint_data = Column(Text, nullable=True)  # JSON serialized checkpoint data
+    phase_completed = Column(String, nullable=False, default="false")  # "true"/"false"
+
+    # Error tracking
+    error = Column(Text, nullable=True)
+
+    # Retry tracking
+    retry_count = Column(Integer, nullable=False, default=0)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (Index("ix_worker_checkpoints_work_item", "work_item_id", "phase"),)
+
+
+class WorkerAuditLog(Base):
+    """Immutable audit trail for WorkerCore actions.
+
+    Records every significant action with workflow_id, execution_id,
+    trace_id, and full context for forensic analysis.
+    """
+
+    __tablename__ = "worker_audit_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Identification
+    workflow_id = Column(String, nullable=False, index=True)
+    execution_id = Column(String, nullable=False, index=True)
+    trace_id = Column(String, nullable=True, index=True)
+    work_item_id = Column(String, nullable=True, index=True)
+
+    # Action details
+    action = Column(String, nullable=False, index=True)  # discover, evaluate, execute, deliver, etc.
+    phase = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="pending")  # pending, success, failed, blocked, rejected
+
+    # Context
+    details = Column(Text, nullable=True)  # JSON with full context
+    error = Column(Text, nullable=True)
+    cost_usd = Column(Float, nullable=True, default=0.0)
+
+    # Human control
+    requires_approval = Column(String, nullable=True, default="false")  # "true"/"false"
+    approved_by = Column(String, nullable=True)  # "human" / "auto" / None
+    approval_reason = Column(Text, nullable=True)
+
+    # Autonomy
+    autonomy_level = Column(String, nullable=True)
+    would_block_if_restricted = Column(String, nullable=True, default="false")
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("ix_worker_audit_workflow", "workflow_id", "action"),
+        Index("ix_worker_audit_execution", "execution_id", "phase"),
+    )
+
+
 # Backward-compatible alias — import as CATEYEConfig or RastroConfig
 RastroConfig = CATEYEConfig
 # OWNEX settings service imports the config model under the OWNEX name

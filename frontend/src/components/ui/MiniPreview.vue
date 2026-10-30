@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue'
+import { Copy, ExternalLink, Eye } from '@lucide/vue'
+import { onUnmounted, ref, watch } from 'vue'
 import { useUIStore } from '@/stores/ui'
-import { ExternalLink, Copy, Eye } from '@lucide/vue'
 import Badge from './Badge.vue'
 
 const store = useUIStore()
@@ -11,18 +11,22 @@ const position = ref({ x: 0, y: 0 })
 let showTimeout: ReturnType<typeof setTimeout> | null = null
 let hideTimeout: ReturnType<typeof setTimeout> | null = null
 
-watch(() => store.miniPreview, (preview) => {
-  if (!preview) {
-    clearTimeout(showTimeout!)
-    visible.value = false
-    return
-  }
-  clearTimeout(hideTimeout!)
-  showTimeout = setTimeout(() => {
-    position.value = { x: preview.x, y: preview.y }
-    visible.value = true
-  }, 300)
-}, { deep: true })
+watch(
+  () => store.miniPreview,
+  (preview) => {
+    if (!preview) {
+      clearTimeout(showTimeout!)
+      visible.value = false
+      return
+    }
+    clearTimeout(hideTimeout!)
+    showTimeout = setTimeout(() => {
+      position.value = { x: preview.x, y: preview.y }
+      visible.value = true
+    }, 300)
+  },
+  { deep: true },
+)
 
 function handleMouseLeave() {
   hideTimeout = setTimeout(() => {

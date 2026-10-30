@@ -21,39 +21,39 @@
      ══════════════════════════════════════════════════════════ */
 
   /* ── Core Palette (Neutral Monochrome) ── */
-  --color-background: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #141414;
-  --color-border: #1f1f1f;
-  --color-border-light: #2e2e2e;
-  --color-muted: #4a4a4a;
-  --color-muted-foreground: #8a8a8a;
-  --color-foreground: #f5f5f5;
+  --color-background: var(--ownex-bg-deep);
+  --color-surface: var(--ownex-bg-surface);
+  --color-surface-hover: var(--ownex-bg-base);
+  --color-border: var(--color-border);
+  --color-border-light: var(--ownex-border-light);
+  --color-muted: var(--ownex-text-disabled);
+  --color-muted-foreground: var(--ownex-text-secondary);
+  --color-foreground: var(--ownex-text-primary);
 
   /* ── Identity ── */
-  --color-primary: #ffffff;
-  --color-primary-foreground: #000000;
-  --color-accent: #00d5ff;
-  --color-accent-foreground: #ffffff;
-  --color-destructive: #00d5ff;
-  --color-warning: #d97706;
-  --color-success: #16a34a;
-  --color-gold: #b45309;
+  --color-primary: var(--ownex-text-primary);
+  --color-primary-foreground: var(--ownex-bg-deep);
+  --color-accent: var(--ownex-accent);
+  --color-accent-foreground: var(--ownex-text-primary);
+  --color-destructive: var(--ownex-accent);
+  --color-warning: var(--ownex-yellow);
+  --color-success: var(--ownex-green);
+  --color-gold: var(--ownex-gold);
 
   /* ── Platform Colors (desaturated, subdued) ── */
-  --color-hackerone: #16a34a;
-  --color-bugcrowd: #b45309;
-  --color-intigriti: #9CA3AF;
-  --color-synack: #ffffff;
-  --color-yeswehack: #9CA3AF;
+  --color-hackerone: var(--ownex-green);
+  --color-bugcrowd: var(--ownex-gold);
+  --color-intigriti: var(--ownex-text-secondary);
+  --color-synack: var(--ownex-text-primary);
+  --color-yeswehack: var(--ownex-text-secondary);
 
   /* ── Cycle Colors (monochrome hierarchy, red = odyssey) ── */
-  --color-cycle-security: #f5f5f5;
-  --color-cycle-forge: #9ca3af;
-  --color-cycle-pulse: #16a34a;
-  --color-cycle-vault: #d97706;
-  --color-cycle-atlas: #d4d4d8;
-  --color-cycle-odyssey: #00d5ff;
+  --color-cycle-security: var(--ownex-text-primary);
+  --color-cycle-forge: var(--ownex-text-secondary);
+  --color-cycle-pulse: var(--ownex-green);
+  --color-cycle-vault: var(--ownex-yellow);
+  --color-cycle-atlas: var(--ownex-text-secondary);
+  --color-cycle-odyssey: var(--ownex-accent);
 
   /* ── Typography ── */
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
@@ -98,10 +98,10 @@
 
 [data-accent="default"] { }
 [data-accent="gold"] {
-  --color-primary: #f5f5f5;
-  --color-primary-foreground: #000000;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #000000;
+  --color-primary: var(--ownex-text-primary);
+  --color-primary-foreground: var(--ownex-bg-deep);
+  --color-accent: var(--ownex-text-primary);
+  --color-accent-foreground: var(--ownex-bg-deep);
 }
 
 [data-density="compact"] { --spacing-unit: 0.75; }
@@ -131,7 +131,7 @@
 
   ::selection {
     background-color: rgba(255, 255, 255, 0.15);
-    color: #f5f5f5;
+    color: var(--ownex-text-primary);
   }
 
   ::-webkit-scrollbar {
@@ -157,7 +157,7 @@
    TESLA — Splash Screen Tokens
    ════════════════════════════════════════════════════════════ */
 .splash-bg {
-  --splash-bg: #000000;
+  --splash-bg: var(--ownex-bg-deep);
   --splash-glow-color: rgba(255, 255, 255, 0.05);
   --splash-glow-radius: 400px;
   --splash-logo-size: 80px;
@@ -165,10 +165,10 @@
   --splash-subtitle-size: 0.75rem;
   --splash-title-weight: 700;
   --splash-title-tracking: 0.35em;
-  --splash-progress-bar: #ffffff;
+  --splash-progress-bar: var(--ownex-text-primary);
   --splash-progress-bg: rgba(255, 255, 255, 0.08);
-  --splash-text: #f5f5f5;
-  --splash-text-muted: #6b7280;
+  --splash-text: var(--ownex-text-primary);
+  --splash-text-muted: var(--ownex-text-muted);
   --splash-particle-color: rgba(255, 255, 255, 0.08);
 }
 @layer utilities {
@@ -227,30 +227,30 @@
     border-radius: 50%;
   }
   .status-dot-green {
-    background: #16a34a;
+    background: var(--ownex-green);
     box-shadow: 0 0 6px rgba(22, 163, 74, 0.4);
   }
   .status-dot-amber {
-    background: #d97706;
+    background: var(--ownex-yellow);
     box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
   }
   .status-dot-red {
-    background: #00d5ff;
-    box-shadow: 0 0 6px rgba(0, 213, 255, 0.4);
+    background: var(--ownex-accent);
+    box-shadow: 0 0 6px rgba(232, 33, 39, 0.36);
   }
   .status-dot-off {
-    background: #27272a;
+    background: var(--ownex-bg-elevated);
   }
 
   /* ── Gradient text (monochrome) ── */
   .text-gradient {
-    background: linear-gradient(135deg, #f5f5f5, #8a8a8a);
+    background: linear-gradient(135deg, var(--ownex-text-primary), var(--ownex-text-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .text-gradient-gold {
-    background: linear-gradient(135deg, #f5f5f5, #9ca3af);
+    background: linear-gradient(135deg, var(--ownex-text-primary), var(--ownex-text-secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -333,27 +333,27 @@
   }
   .cycle-badge-security {
     background: rgba(245, 245, 245, 0.1);
-    color: #f5f5f5;
+    color: var(--ownex-text-primary);
   }
   .cycle-badge-forge {
     background: rgba(156, 163, 175, 0.12);
-    color: #9ca3af;
+    color: var(--ownex-text-secondary);
   }
   .cycle-badge-pulse {
     background: rgba(22, 163, 74, 0.12);
-    color: #4ade80;
+    color: var(--ownex-green);
   }
   .cycle-badge-vault {
     background: rgba(217, 119, 6, 0.12);
-    color: #fbbf24;
+    color: var(--ownex-yellow);
   }
   .cycle-badge-atlas {
     background: rgba(212, 212, 216, 0.08);
-    color: #d4d4d8;
+    color: var(--ownex-text-secondary);
   }
   .cycle-badge-odyssey {
     background: rgba(0, 213, 255, 0.12);
-    color: #00d5ff;
+    color: var(--ownex-accent);
   }
 
   /* ── Staggered list ── */
@@ -424,10 +424,10 @@
     height: 8px;
     border-radius: 50%;
   }
-  .lamp-green { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.4); }
-  .lamp-amber { background: #d97706; box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
-  .lamp-red { background: #00d5ff; box-shadow: 0 0 6px rgba(0, 213, 255, 0.4); }
-  .lamp-off { background: #27272a; }
+  .lamp-green { background: var(--ownex-green); box-shadow: 0 0 6px rgba(22, 163, 74, 0.4); }
+  .lamp-amber { background: var(--ownex-yellow); box-shadow: 0 0 6px rgba(217, 119, 6, 0.4); }
+  .lamp-red { background: var(--ownex-accent); box-shadow: 0 0 6px rgba(0, 213, 255, 0.4); }
+  .lamp-off { background: var(--ownex-bg-elevated); }
 
   /* ── Chart bar enter ── */
   .chart-bar-enter {

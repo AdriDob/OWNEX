@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.intel.llm_scanner import (
+from cores.intel.llm_scanner import (
     LLMScanResult,
     scan_llm_endpoint,
     scan_local_model,

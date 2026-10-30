@@ -12,8 +12,8 @@ import time
 import httpx
 
 from apps.odyssey.connectors.base import OdysseyConnector
-from core.interfaces.connector import ConnectorHealth
-from core.normalizer.base import NormalizedBet, NormalizedMarket
+from cores.interfaces.connector import ConnectorHealth
+from cores.normalizer.base import NormalizedBet, NormalizedMarket
 
 logger = logging.getLogger("orion.odyssey.connectors.the_odds_api")
 

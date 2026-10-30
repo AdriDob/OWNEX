@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from core.credentials.health import PLATFORMS, check_secrets_health
-from core.credentials.vault import (
+from cores.credentials.health import PLATFORMS, check_secrets_health
+from cores.credentials.vault import (
     backup_vault,
     get_credentials,
     get_platform_credentials,
@@ -18,7 +18,7 @@ from core.credentials.vault import (
 
 @pytest.fixture(autouse=True)
 def _clear_credentials_singleton(monkeypatch):
-    from core.credentials import vault as _vault
+    from cores.credentials import vault as _vault
 
     _vault._credentials = None
     # Clear env vars that may be set in dev environment
@@ -112,7 +112,7 @@ class TestValidateCredentials:
 
 class TestBackupVault:
     def test_backup_creates_file(self, with_env, tmp_path):
-        from core.credentials import vault as _vault
+        from cores.credentials import vault as _vault
 
         original = _vault.Path
         _vault.Path = lambda *a, **kw: tmp_path
@@ -128,7 +128,7 @@ class TestBackupVault:
         _vault.Path = original
 
     def test_backup_redacts_secrets(self, with_env, tmp_path):
-        from core.credentials import vault as _vault
+        from cores.credentials import vault as _vault
 
         original = _vault.Path
         _vault.Path = lambda *a, **kw: tmp_path

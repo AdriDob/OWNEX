@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { History, Zap } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { api } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
 import Badge from '@/components/ui/Badge.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import { Zap, History } from '@lucide/vue'
+import { api } from '@/lib/api'
 
 const route = useRoute()
 const targetId = route.params.id as string | undefined
 
 interface ActionItem {
-  id: string; label: string; action_type: string; route?: string
+  id: string
+  label: string
+  action_type: string
+  route?: string
 }
 interface HistoryEntry {
-  label?: string; action_id: string; status: string; duration_ms?: number
+  label?: string
+  action_id: string
+  status: string
+  duration_ms?: number
 }
 
 const actions = ref<ActionItem[]>([])
@@ -33,13 +39,16 @@ onMounted(async () => {
     if (aRes.status === 'fulfilled') actions.value = aRes.value.actions || []
     if (hRes.status === 'fulfilled') history.value = hRes.value.history || []
     if (sRes.status === 'fulfilled') stats.value = sRes.value
-  } catch { error.value = true }
-  finally { loading.value = false }
+  } catch {
+    error.value = true
+  } finally {
+    loading.value = false
+  }
 })
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto space-y-6">
+  <div class="max-w-2xl mx-auto space-y-4 p-4 sm:space-y-6 sm:p-6">
     <div class="animate-in space-y-1">
       <p class="text-xs font-bold uppercase tracking-widest text-primary">Operations</p>
       <h1 class="font-display text-2xl font-bold text-foreground">Actions</h1>

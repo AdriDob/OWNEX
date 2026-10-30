@@ -8,7 +8,7 @@ from typing import Any
 
 from apps.odyssey.engines.kelly import KellyEngine
 from apps.odyssey.models import Bet
-from core.database.manager import get_db_manager
+from cores.database.manager import get_db_manager
 
 logger = logging.getLogger("orion.odyssey.engines.alert")
 

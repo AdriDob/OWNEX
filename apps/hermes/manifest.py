@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.interfaces.app import IAppPlugin
+from cores.interfaces.app import IAppPlugin
 
 manifest = IAppPlugin(
     id="hermes",

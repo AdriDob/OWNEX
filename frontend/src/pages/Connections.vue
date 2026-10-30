@@ -1,17 +1,38 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { api } from '@/lib/api'
-import type { PlatformAccount, PayoutAccount, Withdrawal, SubmissionRecord } from '@/lib/api'
-import Card from '@/components/ui/Card.vue'
+import {
+  AlertTriangle,
+  ArrowRight,
+  Banknote,
+  Building2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Coins,
+  CreditCard,
+  DollarSign,
+  ExternalLink,
+  Globe,
+  History,
+  Info,
+  Link,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Scan,
+  Settings,
+  Trash2,
+  Unlink,
+  Wallet,
+  XCircle,
+} from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
+import Card from '@/components/ui/Card.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
-import {
-  Globe, Unlink, Link, Banknote, Wallet, History, CheckCircle2,
-  XCircle, Clock, DollarSign, ExternalLink, RefreshCw, Plus,
-  ArrowRight, Building2, CreditCard, AlertTriangle, Trash2,
-  Coins, ChevronDown, ChevronUp, Loader2, Info, Scan, Settings,
-} from '@lucide/vue'
+import type { PayoutAccount, PlatformAccount, SubmissionRecord, Withdrawal } from '@/lib/api'
+import { api } from '@/lib/api'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -61,7 +82,9 @@ async function loadPayoutRecommendations() {
   try {
     const res = await api.get<{ methods: any[] }>('/connections/payout-recommendations')
     payoutMethods.value = res.methods || []
-  } catch { /* optional */ }
+  } catch {
+    /* optional */
+  }
 }
 
 async function loadPlatformPayout(platformId: string) {
@@ -69,7 +92,9 @@ async function loadPlatformPayout(platformId: string) {
   try {
     const res = await api.get<any>(`/connections/payout-recommendations/${platformId}`)
     platformPayouts.value[platformId] = res
-  } catch { /* optional */ }
+  } catch {
+    /* optional */
+  }
 }
 
 // ── Payout account wizard ──
@@ -109,10 +134,13 @@ const statusColor = (s: string) => {
   return 'default'
 }
 
-const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({ platforms: [], osint_services: [] })
-const allPlatforms = computed(() => definitions.value.platforms.map(p => p.name))
+const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({
+  platforms: [],
+  osint_services: [],
+})
+const allPlatforms = computed(() => definitions.value.platforms.map((p) => p.name))
 
-const connectedProvs = computed(() => accounts.value.map(a => a.provider.toLowerCase()))
+const connectedProvs = computed(() => accounts.value.map((a) => a.provider.toLowerCase()))
 
 function platformIcon(provider: string) {
   return platformMeta[provider.toLowerCase()]?.color || 'text-muted-foreground'
@@ -127,15 +155,20 @@ async function loadData() {
       api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', { limit: 20 }),
       api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals'),
-      api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>('/system/definitions'),
+      api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>(
+        '/system/definitions',
+      ),
     ])
     if (acctRes.status === 'fulfilled') accounts.value = acctRes.value.accounts || []
     if (payoutRes.status === 'fulfilled') payoutAccounts.value = payoutRes.value.accounts || []
     if (subRes.status === 'fulfilled') submissions.value = subRes.value.submissions || []
     if (wdRes.status === 'fulfilled') withdrawals.value = wdRes.value.withdrawals || []
     if (defRes.status === 'fulfilled') definitions.value = defRes.value
-  } catch (e: any) { error.value = e?.message || 'Error al cargar conexiones' }
-  finally { loading.value = false }
+  } catch (e: any) {
+    error.value = e?.message || 'Error al cargar conexiones'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function syncAll() {
@@ -157,8 +190,11 @@ async function syncPlatform(provider: string) {
   try {
     await api.post(`/connections/sync/${provider}`, {})
     await loadData()
-  } catch { /* per-platform sync error handled silently */ }
-  finally { syncingPlatform.value = null }
+  } catch {
+    /* per-platform sync error handled silently */
+  } finally {
+    syncingPlatform.value = null
+  }
 }
 
 onMounted(() => {
@@ -171,21 +207,27 @@ async function connectPlatform(provider: string) {
   if (!connectEmail.value || !connectToken.value) return
   try {
     await api.post('/opportunity/identity/store', {
-      provider, email: connectEmail.value, token: connectToken.value,
+      provider,
+      email: connectEmail.value,
+      token: connectToken.value,
     })
     showConnectForm.value = null
     connectEmail.value = ''
     connectToken.value = ''
     const res = await api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
     accounts.value = res.accounts || []
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function disconnectPlatform(provider: string) {
   try {
     await api.post(`/opportunity/identity/remove/${provider}`, {})
     accounts.value = accounts.value.filter((a: any) => a.provider !== provider)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 // ── Full platform registration wizard ──
@@ -216,11 +258,15 @@ async function savePlatformRegistration() {
     })
     if (p.token) {
       await api.post('/opportunity/identity/store', {
-        provider: p.provider, email: p.email, token: p.token,
+        provider: p.provider,
+        email: p.email,
+        token: p.token,
       })
     }
     platformSuccess.value = `${p.provider} registrada correctamente`
-    setTimeout(() => { showPlatformWizard.value = false }, 1500)
+    setTimeout(() => {
+      showPlatformWizard.value = false
+    }, 1500)
     await loadData()
   } catch (e: any) {
     platformError.value = e.message || 'Error al registrar plataforma'
@@ -269,7 +315,9 @@ async function savePayoutAccount() {
       is_default: p.is_default,
     })
     payoutSuccess.value = 'Cuenta registrada correctamente'
-    setTimeout(() => { showPayoutWizard.value = false }, 1500)
+    setTimeout(() => {
+      showPayoutWizard.value = false
+    }, 1500)
     await loadData()
   } catch (e: any) {
     payoutError.value = e.message || 'Error al registrar cuenta'
@@ -282,7 +330,9 @@ async function removePayoutAccount(id: string) {
   try {
     await api.delete(`/connections/payout-accounts/${id}`)
     payoutAccounts.value = payoutAccounts.value.filter((a: any) => a.id !== id)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 function formatMoney(n: number | null | undefined) {
@@ -292,7 +342,7 @@ function formatMoney(n: number | null | undefined) {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 p-4 sm:space-y-6 sm:p-6">
     <template v-if="loading">
       <div class="space-y-4">
         <Skeleton class="h-6 w-56" />
@@ -388,7 +438,7 @@ function formatMoney(n: number | null | undefined) {
                 <template v-if="accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.has_credentials">
                   <Badge variant="success" class="text-[9px]">ACTIVO</Badge>
                   <button
-                    @click="disconnectPlatform(platform.toLowerCase())"
+                    aria-label="Disconnectplatform(Platform.Tolowercase" @click="disconnectPlatform(platform.toLowerCase())"
                     class="text-muted-foreground hover:text-destructive transition-colors"
                     title="Desconectar"
                   >
@@ -440,7 +490,7 @@ function formatMoney(n: number | null | undefined) {
                       {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_sync?.slice(0, 10) || accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_checked?.slice(0, 10) || '—' }}
                     </p>
                     <button
-                      @click="syncPlatform(platform.toLowerCase())"
+                      aria-label="Syncplatform(Platform.Tolowercase" @click="syncPlatform(platform.toLowerCase())"
                       :disabled="syncingPlatform === platform.toLowerCase()"
                       class="text-muted-foreground/50 hover:text-foreground transition-colors"
                       title="Sincronizar ahora"
@@ -467,7 +517,7 @@ function formatMoney(n: number | null | undefined) {
             <!-- Payout methods for this platform -->
             <div class="mt-3 border-t border-border/30 pt-3">
               <button
-                @click="expandedPlatformPayout = expandedPlatformPayout === platform.toLowerCase() ? null : platform.toLowerCase(); if (expandedPlatformPayout === platform.toLowerCase()) loadPlatformPayout(platform.toLowerCase())"
+                aria-label="Expandedplatformpayout = Expandedplatformpayout === Platform.Tolowercase() ? Null : Platform.Tolowercase(); If (Expandedplatformpayout === Platform.Tolowercase()) Loadplatformpayout(Platform.Tolowercase" @click="expandedPlatformPayout = expandedPlatformPayout === platform.toLowerCase() ? null : platform.toLowerCase(); if (expandedPlatformPayout === platform.toLowerCase()) loadPlatformPayout(platform.toLowerCase())"
                 class="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
               >
                 <span class="flex items-center gap-1">
@@ -582,7 +632,7 @@ function formatMoney(n: number | null | undefined) {
                   <p class="text-lg font-bold tabular-nums text-foreground">{{ formatMoney(acct.withdrawable) }}</p>
                   <p class="text-[9px] text-muted-foreground">disponible</p>
                 </div>
-                <button @click="removePayoutAccount(acct.id)" class="text-muted-foreground hover:text-destructive transition-colors" title="Eliminar">
+                <button aria-label="Removepayoutaccount(Acct.Id" @click="removePayoutAccount(acct.id)" class="text-muted-foreground hover:text-destructive transition-colors" title="Eliminar">
                   <Trash2 class="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -655,7 +705,7 @@ function formatMoney(n: number | null | undefined) {
         <div class="w-full max-w-md rounded-2xl border border-border/50 bg-background p-6 shadow-2xl">
           <div class="mb-4 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-foreground">Registrar plataforma</h3>
-            <button @click="showPlatformWizard = false" class="text-muted-foreground hover:text-foreground">
+            <button aria-label="Showplatformwizard = False" @click="showPlatformWizard = false" class="text-muted-foreground hover:text-foreground">
               <XCircle class="h-4 w-4" />
             </button>
           </div>
@@ -666,7 +716,7 @@ function formatMoney(n: number | null | undefined) {
             <div class="grid grid-cols-2 gap-2">
               <button
                 v-for="p in allPlatforms" :key="p"
-                @click="newPlatform.provider = p.toLowerCase()"
+                aria-label="Newplatform.Provider = P.Tolowercase" @click="newPlatform.provider = p.toLowerCase()"
                 :class="[
                   'rounded-xl border px-3 py-2.5 text-left transition-all',
                   newPlatform.provider === p.toLowerCase()
@@ -736,7 +786,7 @@ function formatMoney(n: number | null | undefined) {
             <h3 class="text-sm font-semibold text-foreground">
               {{ payoutType === 'bank' ? 'Registrar cuenta bancaria' : payoutType === 'crypto' ? 'Registrar dirección crypto' : 'Conectar PayPal' }}
             </h3>
-            <button @click="showPayoutWizard = false" class="text-muted-foreground hover:text-foreground">
+            <button aria-label="Showpayoutwizard = False" @click="showPayoutWizard = false" class="text-muted-foreground hover:text-foreground">
               <XCircle class="h-4 w-4" />
             </button>
           </div>

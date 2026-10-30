@@ -5,15 +5,15 @@ from pathlib import Path
 
 import pytest
 
-from core.self_improvement.capability import CapabilityTracker
-from core.self_improvement.config import SelfImprovementConfig
-from core.self_improvement.engine import SelfImprovementEngine
-from core.self_improvement.experience import ExperienceStore
-from core.self_improvement.frontier import DifficultyFrontier
-from core.self_improvement.harness import Harness
-from core.self_improvement.models import ScaffoldStep, Task, TaskCategory
-from core.self_improvement.rollout import DeterministicSolver, RolloutRunner
-from core.self_improvement.task_generator import TaskGenerator
+from cores.self_improvement.capability import CapabilityTracker
+from cores.self_improvement.config import SelfImprovementConfig
+from cores.self_improvement.engine import SelfImprovementEngine
+from cores.self_improvement.experience import ExperienceStore
+from cores.self_improvement.frontier import DifficultyFrontier
+from cores.self_improvement.harness import Harness
+from cores.self_improvement.models import ScaffoldStep, Task, TaskCategory
+from cores.self_improvement.rollout import DeterministicSolver, RolloutRunner
+from cores.self_improvement.task_generator import TaskGenerator
 
 
 @pytest.fixture
@@ -273,7 +273,7 @@ class TestExperienceStore:
         store = ExperienceStore(config)
         initial_count = store.count()
         # Create a minimal experience
-        from core.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
+        from cores.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
 
         task = Task(
             id="exp-1",
@@ -312,7 +312,7 @@ class TestExperienceStore:
 
     def test_success_rate(self, config):
         store = ExperienceStore(config)
-        from core.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
+        from cores.self_improvement.models import Evaluation, Experience, Rollout, Scaffold
 
         for i in range(3):
             task = Task(

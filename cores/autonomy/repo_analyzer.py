@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-# from core.autonomy.browser_agent import BrowserResult  # Will import after browser_agent is fixed
+# from cores.autonomy.browser_agent import BrowserResult  # Will import after browser_agent is fixed
 
 
 @dataclass

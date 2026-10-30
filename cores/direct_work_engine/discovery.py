@@ -10,6 +10,8 @@ from typing import Any
 
 from cores.direct_work_engine.models import (
     DifficultyLevel,
+    EmploymentType,
+    EntryMechanism,
     ExperienceLevel,
     GameDevSpecialization,
     Opportunity,
@@ -95,6 +97,11 @@ class BaseDiscoveryAdapter(ABC):
         accepts_ai_tools: bool = True,
         asynchronous: bool = True,
         specialization: GameDevSpecialization | None = None,
+        employment_type: EmploymentType = EmploymentType.CONTRACT,
+        entry_mechanism: EntryMechanism = EntryMechanism.DIRECT,
+        hourly_rate_usd: float | None = None,
+        time_to_first_work_hours: float | None = None,
+        rate_source: str = "unknown",
         **kwargs: Any,
     ) -> Opportunity:
         """Helper to create a normalized Opportunity with defaults."""
@@ -130,6 +137,11 @@ class BaseDiscoveryAdapter(ABC):
             accepts_ai_tools=accepts_ai_tools,
             asynchronous=asynchronous,
             specialization=specialization,
+            employment_type=employment_type,
+            entry_mechanism=entry_mechanism,
+            hourly_rate_usd=hourly_rate_usd,
+            time_to_first_work_hours=time_to_first_work_hours,
+            rate_source=rate_source,
         )
 
 

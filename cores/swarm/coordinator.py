@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from threading import Lock
 from typing import Any
@@ -46,7 +46,7 @@ class SwarmAgent:
     status: str = "idle"
     current_task: str | None = None
     performance_score: float = 1.0
-    last_heartbeat: datetime = field(default_factory=datetime.utcnow)
+    last_heartbeat: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -61,7 +61,7 @@ class SwarmTask:
     assigned_agent: str | None = None
     result: dict[str, Any] | None = None
     error: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     retries: int = 0
@@ -78,7 +78,7 @@ class Swarm:
     agents: dict[str, SwarmAgent] = field(default_factory=dict)
     tasks: dict[str, SwarmTask] = field(default_factory=dict)
     graph_id: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -248,7 +248,7 @@ class SwarmCoordinator:
         agent = swarm.agents.get(task.assigned_agent)
         executor = self._agent_executors.get(task.role)
         task.status = TaskStatus.IN_PROGRESS
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(UTC)
         if agent:
             agent.status = "busy"
         try:
@@ -258,13 +258,13 @@ class SwarmCoordinator:
                 result = {"status": "simulated", "data": f"completed {task.name}"}
             task.result = result
             task.status = TaskStatus.COMPLETED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
             if agent:
                 agent.performance_score = min(2.0, agent.performance_score * 1.05)
         except Exception as e:
             task.error = str(e)
             task.status = TaskStatus.FAILED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
             if agent:
                 agent.performance_score = max(0.1, agent.performance_score * 0.9)
         finally:
@@ -298,7 +298,7 @@ class SwarmCoordinator:
             return False
         self.decompose_objective(swarm_id, swarm.objective)
         swarm.status = SwarmStatus.ACTIVE
-        swarm.started_at = datetime.utcnow()
+        swarm.started_at = datetime.now(UTC)
         self.assign_tasks(swarm_id)
         return True
 

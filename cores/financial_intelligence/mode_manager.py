@@ -40,6 +40,7 @@ class ModeType(StrEnum):
     VOICE = "voice"
     DECISION = "decision"
     RUNTIME = "runtime"
+    PRIMARY = "primary"
 
 
 class ModeValue(StrEnum):
@@ -80,6 +81,11 @@ class ModeValue(StrEnum):
     DECISION_EXPLANATORY = "explanatory"
     DECISION_AUTOMATIC = "automatic"
     DECISION_EXPERT = "expert"
+
+    # Primary Mode (3 operational modes)
+    PRIMARY_LITE = "lite"
+    PRIMARY_FULL = "full"
+    PRIMARY_CAPITAL = "capital"
 
 
 @dataclass
@@ -237,6 +243,42 @@ MODE_CONFIGS: dict[str, ModeConfig] = {
         priority=30,
         mutually_exclusive_with=["assistance_guided", "assistance_assisted", "assistance_autonomous"],
         compatible_with=["general_automatic"],
+        requires=["general_automatic"],
+        excludes=["general_manual"],
+    ),
+    # Primary Mode (3 operational modes)
+    "primary_lite": ModeConfig(
+        mode_type=ModeType.PRIMARY,
+        mode_value=ModeValue.PRIMARY_LITE,
+        name="LITE",
+        description="Earn More - Minimalista, next best action, maximizar EV/hora",
+        category="Operational",
+        priority=100,
+        mutually_exclusive_with=["primary_full", "primary_capital"],
+        compatible_with=["general_manual", "assistance_guided", "assistance_assisted"],
+        excludes=["general_automatic"],
+    ),
+    "primary_full": ModeConfig(
+        mode_type=ModeType.PRIMARY,
+        mode_value=ModeValue.PRIMARY_FULL,
+        name="FULL",
+        description="Operate Everything - Completo, toda la complejidad visible",
+        category="Operational",
+        priority=100,
+        mutually_exclusive_with=["primary_lite", "primary_capital"],
+        compatible_with=["general_automatic", "assistance_autonomous", "assistance_expert"],
+        requires=["general_automatic"],
+        excludes=["general_manual"],
+    ),
+    "primary_capital": ModeConfig(
+        mode_type=ModeType.PRIMARY,
+        mode_value=ModeValue.PRIMARY_CAPITAL,
+        name="CAPITAL",
+        description="Keep & Compound - Patrimonio, asignación, proyección $1M",
+        category="Operational",
+        priority=100,
+        mutually_exclusive_with=["primary_lite", "primary_full"],
+        compatible_with=["general_automatic", "assistance_autonomous"],
         requires=["general_automatic"],
         excludes=["general_manual"],
     ),

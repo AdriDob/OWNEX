@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { Sun, Moon, Sparkles } from '@lucide/vue'
-import { useThemeEngine, type ThemeMode } from '@/composables/useThemeEngine'
+import { Moon, Sparkles, Sun } from '@lucide/vue'
+import { onMounted, ref } from 'vue'
+import { type ThemeMode, useThemeEngine } from '@/composables/useThemeEngine'
 
 const { themeMode, setThemeMode } = useThemeEngine()
 const cycle = ref(['auto', 'light', 'dark'])
@@ -13,7 +13,9 @@ function next() {
   setThemeMode(nextMode)
 }
 
-onMounted(() => { /* engine init handles apply */ })
+onMounted(() => {
+  /* engine init handles apply */
+})
 </script>
 
 <template>

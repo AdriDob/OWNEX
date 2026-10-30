@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.opportunity.executors.freelancer_executor import FreelancerExecutor
+from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
 
 
 class _MockClient:
