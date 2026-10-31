@@ -73,9 +73,7 @@ class IntegrationOrchestrator:
         """Watch for security cycle events, adjust opportunity priorities."""
         pass
 
-    def emit_event(
-        self, source: str, target: str, type_: str, payload: dict[str, Any], priority: int = 5
-    ) -> IntegrationEvent:
+    def emit_event(self, source: str, target: str, type_: str, payload: dict[str, Any], priority: int = 5) -> IntegrationEvent:
         event = IntegrationEvent(
             id=f"{source}_{type_}_{datetime.now().timestamp()}",
             source=source,

@@ -484,12 +484,7 @@ def route_optimizer():
     def _calc(amount_usd, source_platform):
         session = _TestSession()
         try:
-            routes = (
-                session.query(_WithdrawalRoute)
-                .filter_by(is_active=True)
-                .order_by(_WithdrawalRoute.priority.desc())
-                .all()
-            )
+            routes = session.query(_WithdrawalRoute).filter_by(is_active=True).order_by(_WithdrawalRoute.priority.desc()).all()
             results = []
             for route in routes:
                 total_fee = amount_usd * (route.fee_percent / 100.0) + route.fee_fixed
@@ -872,12 +867,7 @@ class TestTaxNotes:
         def _by_category(country="AR"):
             session = _TestSession()
             try:
-                records = (
-                    session.query(_TaxRecord)
-                    .filter_by(country=country.upper(), is_active=True)
-                    .order_by(_TaxRecord.category)
-                    .all()
-                )
+                records = session.query(_TaxRecord).filter_by(country=country.upper(), is_active=True).order_by(_TaxRecord.category).all()
                 categories: dict[str, list] = {}
                 for r in records:
                     cat = r.category

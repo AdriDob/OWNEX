@@ -269,15 +269,7 @@ class NotificationHub:
         summary = []
         for notif_type, items in groups.items():
             priorities = [n.priority for n in items]
-            highest = (
-                "critical"
-                if "critical" in priorities
-                else "high"
-                if "high" in priorities
-                else "medium"
-                if "medium" in priorities
-                else "low"
-            )
+            highest = "critical" if "critical" in priorities else "high" if "high" in priorities else "medium" if "medium" in priorities else "low"
             summary.append(
                 {
                     "type": notif_type,

@@ -7,9 +7,7 @@ from cores.env.config import get_config
 UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 
 NUMERIC_SEGMENT_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
-ID_PATTERN = re.compile(
-    r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I
-)
+ID_PATTERN = re.compile(r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I)
 NOUN_ID_PATTERN = re.compile(r"/(?:[A-Za-z]+)-?(?:id|uuid|key|token)(?:/|$)", re.I)
 
 STATIC_EXTENSIONS: set[str] = {
@@ -523,11 +521,7 @@ def score(
     risk_score = round(min(score_val, 100.0), 1)
     vector = _rank_attack_vector(safe_path, safe_params)
     potential_idor = (
-        "id_parameter" in labels
-        or "idor_candidate" in attack_surface
-        or "ownership_boundary" in attack_surface
-        or bool(auth_smells)
-        or has_object_ref
+        "id_parameter" in labels or "idor_candidate" in attack_surface or "ownership_boundary" in attack_surface or bool(auth_smells) or has_object_ref
     )
 
     confidence = round(min(risk_score / 100.0, 1.0), 2)
@@ -710,25 +704,16 @@ def generate_suggestions(path: str, method: str, params: dict[str, Any]) -> list
     )
 
     if has_ownership:
-        suggestions.append(
-            "Modificar el identificador de recurso (user_id/order_id/file_id) y reproducir con otra cuenta de sesión."
-        )
+        suggestions.append("Modificar el identificador de recurso (user_id/order_id/file_id) y reproducir con otra cuenta de sesión.")
         suggestions.append("Intentar acceso cruzado entre cuentas para detectar debilidad en límites de propiedad.")
     if "graphql" in lower:
-        suggestions.append(
-            "Enviar consultas GraphQL con parámetros de usuario/objeto alternados para detectar filtrado débil."
-        )
+        suggestions.append("Enviar consultas GraphQL con parámetros de usuario/objeto alternados para detectar filtrado débil.")
     if method in {"POST", "PUT", "PATCH", "DELETE"}:
-        suggestions.append(
-            "Probar manipulación de parámetros en solicitudes mutadoras "
-            "para escalar privilegios o alterar asociaciones."
-        )
+        suggestions.append("Probar manipulación de parámetros en solicitudes mutadoras para escalar privilegios o alterar asociaciones.")
     if any(token in lower for token in ["export", "download"]):
         suggestions.append("Solicitar recursos con IDs de otros usuarios para probar exposición de datos.")
     if any(token in lower for token in ["auth", "login", "token", "session"]):
         suggestions.append("Intentar bypass de autorización usando tokens inválidos o IDs de usuario distintos.")
     if not suggestions:
-        suggestions.append(
-            "Revisar esta ruta por lógica de negocio relevante y posibles controles de autorización débiles."
-        )
+        suggestions.append("Revisar esta ruta por lógica de negocio relevante y posibles controles de autorización débiles.")
     return suggestions

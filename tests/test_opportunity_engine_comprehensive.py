@@ -220,9 +220,7 @@ class TestTop5Engine:
 
         candidates = []
         for i, (domain, score) in enumerate(domains_and_scores):
-            candidates.append(
-                UnifiedScore(i + 1, i + 1, i + 1, f"{domain} issue", "medium", float(score), 0.5, 0.5, float(score))
-            )
+            candidates.append(UnifiedScore(i + 1, i + 1, i + 1, f"{domain} issue", "medium", float(score), 0.5, 0.5, float(score)))
 
         result = engine.compute(candidates)
         assert len(result) == 5  # Should only get top 5 domains

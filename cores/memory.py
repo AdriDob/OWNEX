@@ -542,11 +542,7 @@ class MemorySystem:
                 # Check if they're semantic opposites
                 if isinstance(v1, bool) and isinstance(v2, bool) and v1 != v2:
                     return True
-                if (
-                    isinstance(v1, (int, float))
-                    and isinstance(v2, (int, float))
-                    and abs(v1 - v2) / max(abs(v1), abs(v2), 1) > 0.5
-                ):
+                if isinstance(v1, (int, float)) and isinstance(v2, (int, float)) and abs(v1 - v2) / max(abs(v1), abs(v2), 1) > 0.5:
                     return True
         return False
 

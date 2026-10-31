@@ -21,9 +21,7 @@ from pathlib import Path
 from typing import Any
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger("ownex.installer")
 
 
@@ -123,9 +121,7 @@ class OwnexInstaller:
             # Install requirements
             requirements_file = self.install_dir / "requirements.txt"
             if requirements_file.exists():
-                subprocess.run(
-                    [str(pip_path), "install", "-r", str(requirements_file)], check=True, capture_output=True
-                )
+                subprocess.run([str(pip_path), "install", "-r", str(requirements_file)], check=True, capture_output=True)
                 logger.info("✓ Dependencias instaladas")
             else:
                 logger.warning("No se encontró requirements.txt, instalando dependencias básicas...")
@@ -201,9 +197,7 @@ class OwnexInstaller:
         # Ask for modules
         print("\n¿Qué módulos quieres habilitar?")
         print("(Deja vacío para usar los módulos recomendados)")
-        print(
-            "Módulos disponibles: forge, pulse, vault, atlas, security, copilot, analytics, reports, targets, integrations"
-        )
+        print("Módulos disponibles: forge, pulse, vault, atlas, security, copilot, analytics, reports, targets, integrations")
 
         modules_input = input("Módulos (separados por coma): ").strip()
         modules = [m.strip() for m in modules_input.split(",")] if modules_input else []

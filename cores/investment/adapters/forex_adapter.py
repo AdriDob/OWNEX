@@ -20,11 +20,7 @@ class ForexAdapter:
         self._account_id = self._config.get("account_id", "")
         self._environment = self._config.get("environment", "practice")
         self._connected = False
-        self._base_url = (
-            "https://api-fxpractice.oanda.com/v3"
-            if self._environment == "practice"
-            else "https://api-fxtrade.oanda.com/v3"
-        )
+        self._base_url = "https://api-fxpractice.oanda.com/v3" if self._environment == "practice" else "https://api-fxtrade.oanda.com/v3"
 
     @property
     def name(self) -> str:
@@ -80,9 +76,7 @@ class ForexAdapter:
                             "pair": p["instrument"],
                             "bid": float(p["bids"][0]["price"]),
                             "ask": float(p["asks"][0]["price"]),
-                            "spread_pips": round(
-                                (float(p["asks"][0]["price"]) - float(p["bids"][0]["price"])) * 10000, 1
-                            ),
+                            "spread_pips": round((float(p["asks"][0]["price"]) - float(p["bids"][0]["price"])) * 10000, 1),
                             "time": p["time"],
                         }
                         for p in data.get("prices", [])
@@ -94,9 +88,7 @@ class ForexAdapter:
             logger.error("Failed to get prices: %s", exc)
             return []
 
-    async def place_order(
-        self, pair: str, units: int, side: str, sl_pips: int | None = None, tp_pips: int | None = None
-    ) -> dict[str, Any]:
+    async def place_order(self, pair: str, units: int, side: str, sl_pips: int | None = None, tp_pips: int | None = None) -> dict[str, Any]:
         try:
             import httpx
 
@@ -104,13 +96,9 @@ class ForexAdapter:
             stop_loss_price: str | None = None
             take_profit_price: str | None = None
             if sl_pips:
-                stop_loss_price = str(
-                    round(price - (sl_pips * 0.0001 if "USD" in pair or "EUR" in pair else sl_pips * 0.01), 5)
-                )
+                stop_loss_price = str(round(price - (sl_pips * 0.0001 if "USD" in pair or "EUR" in pair else sl_pips * 0.01), 5))
             if tp_pips:
-                take_profit_price = str(
-                    round(price + (tp_pips * 0.0001 if "USD" in pair or "EUR" in pair else tp_pips * 0.01), 5)
-                )
+                take_profit_price = str(round(price + (tp_pips * 0.0001 if "USD" in pair or "EUR" in pair else tp_pips * 0.01), 5))
 
             order: dict[str, Any] = {
                 "order": {

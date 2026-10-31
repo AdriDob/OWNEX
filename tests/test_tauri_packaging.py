@@ -27,9 +27,7 @@ class TestTauriConf:
     def test_parseable_and_branded(self, tauri_conf: dict) -> None:
         assert tauri_conf["productName"] == "OWNEX Alpha"
         assert tauri_conf["version"]
-        assert not tauri_conf["productName"].lower().startswith("omega"), (
-            "Omega branding must not leak into the product name"
-        )
+        assert not tauri_conf["productName"].lower().startswith("omega"), "Omega branding must not leak into the product name"
 
     def test_frontend_dist_exists_with_entry(self, tauri_conf: dict) -> None:
         dist = REPO_ROOT / "src-tauri" / tauri_conf["build"]["frontendDist"]
@@ -54,8 +52,7 @@ class TestSidecarSpec:
         assert 'name="ownex-backend"' in spec, "sidecar exe name must match externalBin"
         # Onefile contract: a top-level EXE with all blobs, no COLLECT().
         assert "COLLECT(" not in spec, (
-            "ONEFILE required: Tauri copies a single file per target-triple "
-            "(the Gen2 ONEDIR MSI shipped without _internal/ for weeks)"
+            "ONEFILE required: Tauri copies a single file per target-triple (the Gen2 ONEDIR MSI shipped without _internal/ for weeks)"
         )
 
     def test_entry_accepts_port_host_data_dir(self) -> None:

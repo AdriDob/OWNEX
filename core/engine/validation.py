@@ -71,9 +71,7 @@ class PoCReproducibleValidator(Validator):
             return {
                 "passed": False,
                 "message": "PoC missing reproduction steps",
-                "suggestion": (
-                    "Add step-by-step reproduction including HTTP requests, payloads, and expected vs actual behavior"
-                ),
+                "suggestion": ("Add step-by-step reproduction including HTTP requests, payloads, and expected vs actual behavior"),
             }
         return {"passed": True, "message": f"PoC has {len(steps)} reproduction steps"}
 

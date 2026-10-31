@@ -151,7 +151,4 @@ BOT_ROLES: tuple[BotRole, ...] = (
 
 
 def get_bot_roles() -> list[dict]:
-    return [
-        {"role_id": b.role_id, "name": b.name, "mission": b.mission, "agents": [k.value for k in b.uses_agents]}
-        for b in BOT_ROLES
-    ]
+    return [{"role_id": b.role_id, "name": b.name, "mission": b.mission, "agents": [k.value for k in b.uses_agents]} for b in BOT_ROLES]

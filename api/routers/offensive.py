@@ -151,9 +151,7 @@ def get_ownership_graph(
     transitive = engine.build_transitive_ownership_graph(direct)
     return {
         "direct_edges": [
-            {"parent": e.parent_resource, "child": e.child_resource, "confidence": e.confidence}
-            for e in direct
-            if e.confidence >= min_confidence
+            {"parent": e.parent_resource, "child": e.child_resource, "confidence": e.confidence} for e in direct if e.confidence >= min_confidence
         ],
         "transitive_edges": [
             {

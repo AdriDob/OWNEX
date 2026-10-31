@@ -158,9 +158,7 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
 
         targets = prog.get("targets") or {}
         in_scope = targets.get("in_scope") or []
-        scope_desc = "; ".join(
-            str(t.get("target") or t.get("uri") or t.get("name")) for t in in_scope[:3] if isinstance(t, dict)
-        )
+        scope_desc = "; ".join(str(t.get("target") or t.get("uri") or t.get("name")) for t in in_scope[:3] if isinstance(t, dict))
 
         easy = max_payout < 200
         return Opportunity(
@@ -169,8 +167,7 @@ class BugBountyDweAdapter(LegacyOpportunityDweAdapter):
             platform=platform,
             category=category,
             url=url,
-            description=f"Open bug bounty program. Scope: {scope_desc}".strip()
-            or f"Open bug bounty program on {source}.",
+            description=f"Open bug bounty program. Scope: {scope_desc}".strip() or f"Open bug bounty program on {source}.",
             remote=True,
             payment=max_payout,
             currency="USD",

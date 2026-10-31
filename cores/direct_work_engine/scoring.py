@@ -371,9 +371,7 @@ class ZeroBarrierScorer:
 
         # Overall reasoning
         reasoning.append(f"Zero Barrier Score: {sum(factors[k] * getattr(self.weights, k) for k in factors):.1f}/100")
-        reasoning.append(
-            f"Barrier Level: {self._determine_barrier_level(sum(factors[k] * getattr(self.weights, k) for k in factors)).value}"
-        )
+        reasoning.append(f"Barrier Level: {self._determine_barrier_level(sum(factors[k] * getattr(self.weights, k) for k in factors)).value}")
 
         if blockers:
             reasoning.append("Blockers: " + "; ".join(blockers))
@@ -421,9 +419,7 @@ def barrier_profile(opportunity) -> dict:
     exp = getattr(opportunity, "experience_required", None)
     exp_value = str(getattr(exp, "value", exp) or "").strip().lower()
     factors = {
-        label: (
-            exp_value not in ("", "none") if attr == "experience_required" else bool(getattr(opportunity, attr, False))
-        )
+        label: (exp_value not in ("", "none") if attr == "experience_required" else bool(getattr(opportunity, attr, False)))
         for attr, label in _BARRIER_FACTOR_LABELS
     }
     remote = bool(getattr(opportunity, "remote", True))
@@ -437,10 +433,7 @@ def barrier_profile(opportunity) -> dict:
 
     if not blocking and not geo_restricted:
         note = " Requiere registro gratuito." if factors.get("registro") else ""
-        explanation = (
-            "Zero Barrier: sin entrevista, portfolio, experiencia previa, "
-            "prueba técnica ni restricción geográfica para Argentina." + note
-        )
+        explanation = "Zero Barrier: sin entrevista, portfolio, experiencia previa, prueba técnica ni restricción geográfica para Argentina." + note
         candidate = True
     else:
         detail = ", ".join(blocking) if blocking else "restricción geográfica"

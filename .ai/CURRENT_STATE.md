@@ -3237,3 +3237,48 @@ Características del Sistema Completo:
 > - **Commits**: cc436a47 (AI resilience), 7983ddda (AiCenter), fb30df08 (release).
 > - **Pendiente no-bloqueante**: validación Windows/WSL/installer en máquina real;
 >   consolidación legacy AI 4→1 gated a esa validación (deuda dirigida en DECISIONS).
+## 2026-10-29 — Meta-discovery de fuentes: primera capa implementada (parcial)
+
+- Estado verificado: el estado/documentación del repo afirma 139 fuentes curadas en `cores/opportunity/global_sources.py` (el conteo runtime aún debe contrastarse; el contexto del usuario menciona 135/136) y hay adaptadores existentes en `core.opportunity.adapters`; no había un registro persistente de candidatos con protocolos/lifecycle.
+- Se agregó `core/opportunity/source_discovery.py`: probes limitadas a OpenAPI 3.x, skill.md, ai-catalog.json, A2A Agent Card y llms.txt; perfil y descriptor declarativo sin ejecutar tools/código. HTTP exige HTTPS/host público, sin redirects, proxy de entorno ni documentos >1 MB.
+- GitHub repository search es la única fuente meta activa por ahora; polling diario registrado en `core/scheduler/jobs.py`. MCP registries, feed de agent bounties, ARD registries y facilitators x402 permanecen deshabilitados/no implementados.
+- Los candidatos persisten atómicamente bajo `OWNEX_DATA_DIR/source_discovery/candidates.json` (fallback `~/.orion`). Lifecycle DISCOVERED→PROBED→VERIFIED→ACTIVE→DECAY→DEACTIVATED; verificación requiere evidencia declarada para honeypot/funding/eligibilidad y ACTIVATION requiere una petición humana separada. El reward reportado por una fuente nunca se marca como verificado por su propio payload.
+- API de candidates/discover/probe/verify/activate en `/api/discovery/sources/*`. La respuesta indica explícitamente `workbank_connected=false`: activar metadata no conecta ni ejecuta tareas. No hay schema mapping seguro suficiente para insertar estas fuentes nuevas en Work Bank; esa etapa sigue pendiente.
+- Pruebas nuevas: 17 casos para protocolos, límites, normalización, persistencia, human gate, lifecycle, dedupe GitHub, API montada y scheduler. Integración source+scheduler+mount: 71 passed; `make test-fast`: 100 passed / 1 skipped; Ruff y mypy scoped pasan.
+- Limitación de seguridad restante: el probe resuelve el DNS y rechaza cualquier IP no pública, desactiva redirects/proxies, pero el cliente HTTP vuelve a resolver al conectar; DNS rebinding no está completamente eliminado. Mantener discovery manual hasta usar resolución/pinning de IP robusto o egress filtering.
+- Verificación primaria de las primeras fuentes propuestas: el repo oficial de x402-bounty-radar documenta que `/bounties` cuesta $0.01 USDC/Base, requiere un cliente x402 con wallet y clasifica scams con heurísticas (no confirma escrow on-chain); no se hizo una llamada pagada. warpSpeed OPEN publica bounties con fechas de mayo-junio 2026 ya vencidas en el índice consultado; sus términos dicen KYC antes del pago, prohíben scraping/automatización de claim y submit, y limitan código generado totalmente por IA; por eso no se integró el crawler ni la ejecución propuesta. Algora ya tiene adapter en `core/opportunity/adapters/forge/algora.py` y documentación oficial de API; se reutiliza, sin duplicar ni afirmar live verification. Fuentes: `https://github.com/nikolas-sapa/x402-bounty-radar`, `https://github.com/warpspeedopen-source/warpspeed-bounties/blob/main/BOUNTIES.md`, `https://warpspeedopen.org/terms`, `https://api.docs.algora.io/`.
+## Estado 2026-10-29 — monitor de trabajos y Codex
+
+- Mission Control ofrece monitor del Work Bank con búsqueda y filtros de fuente/estado. Los trabajos abren `/work/:id` en ventana nueva, el detalle se refresca cada 30 s y expone el estado persistido, descripción, recompensa anunciada, requisitos de acceso, entregables y fuente original.
+- La preparación llama al endpoint existente y produce archivos locales; confirmación de entrega exige acción explícita del usuario. No hay evidencia conectada para claim, aceptación o payout; la UI no simula esos estados. Los candidatos de meta-discovery se presentan aparte y no se cuentan como tareas activas.
+- Confirmar `delivered` ya no registra falsamente `accepted` ni agrega el reward anunciado al aprendizaje. El historial de aceptación/pago debe llegar de una fuente de resultados independiente.
+- `CodexCLIAdapter` es parte del registro de OAR y `CodexCLIProvider` está en el catálogo común. Usa CLI local, autenticación de ChatGPT y sandbox read-only. Verificado en el WSL actual: CLI 0.165.0 y sesión activa; ejecución real desde la API de OWNEX y límites de cuota no probados.
+- El panel distingue ahora `VERIFIED` como evidencia declarada pendiente de validación independiente y `ACTIVE` como autorización de metadatos solamente. No implica financiación comprobada ni conexión al Work Bank.
+- `WorkBank._prepare_deliverables()` ya no afirma que términos, perfil o recompensa estén verificados sin evidencia. Los requisitos aparecen como pendientes; la cantidad se etiqueta `reward_reported` salvo `Opportunity.payment_proven=true`. La documentación oficial de Opire confirma que un bounty/claim no crea pago automático y el creador paga directamente si acepta el PR, así que su reward publicado no se trata como payout ni financiación confirmada.
+## Sesión 2026-10-31 — CONSOLIDACIÓN DEL CONTRATO CANÓNICO + VERIFICACIÓN FRONTEND
+
+> **QUÉ SE HIZO:** Consolidación documental del contrato canónico `OWNEX_PROJECT_CONTRACT.md` (v1.0.0), alineación de `AGENT_CHARTER.md` (identidad OWNEX), `ARCHITECTURE_TARGET.md` (capas PRODUCT→DOMAIN→APPLICATION→INFRASTRUCTURE→EXTERNAL WORLD), actualización de `CURRENT_STATE.md` y verificación de que el stack frontend compila y pasa tests.
+>
+> **Verificación:**
+> - `cd frontend && npx vite build` → `✓ built in 10.21s`, **exit 0**.
+> - `cd frontend && npx vitest run` → **226 passed (226)**, 0 fallos.
+> - `python scripts/dev check` (ruff + mypy scoped + 100 tests rápidos) → **dev check passed**, exit 0.
+> - Backend: `uvicorn api.main:app` arranca en puerto 8000, `GET /api/health` retorna `{"status":"ok","app":"OWNEX API","version":"9.0.0"}`; `GET /api/version` retorna `{"version":"9.0.0","pyproject":"9.0.0","frontend":"9.0.0","in_sync":true}`.
+> - Frontend real: `frontend/package.json` v9.0.0, Vite + Vue 3.5 + TypeScript; `frontend/src/components/ui/Skeleton.vue` aplica `ownex-skeleton` (anteriormente era defecto del componente que el test `DataTable > shows loading skeleton` detectaba; ya corregido y ahora 226/226 tests).
+> - Estado Redis del env: `git rev-parse HEAD` = `f5503973` (identico a `origin/main`), **en sincronización**.
+> - Configuración de puerto 8000 API-only: `start.sh --dev` (frontend en modo desarrollo, Vite dev proxya `http://127.0.0.1:8000`).
+> - Bloqueos pendientes (documentados en `OWNEX_PROJECT_CONTRACT.md §25`): conexión de claves (MINDRIFT_API_KEY) al vault (credenciales de usuario), validación de E2E económica y de build multiplataforma aún no ejecutados.
+
+## 2026-10-31 — INTELIGENCIA DE FUENTES UNIVERSALES
+
+- **Source Discovery Registry** operativa: 54 fuentes registradas con deduplicación SHA256 y clasificación por elegibilidad (A/B/C/EXPERIMENTAL/DISCONTINUED)
+- **Universal Source Adapter contrato** implementado con Protocol contract y drivers reutilizables (REST, GraphQL, RSS, Git, Webhooks, RPC, SDK, Dataset, Browser, Custom)
+- **Eligibility evaluator** con clasificación por requisitos de entrevista, experiencia profesional, portfolio, Argentina elegibilidad y métodos de pago
+- **54 fuentes registradas** en el Source Discovery Registry con deduplicación SHA256 y clasificación inicial
+- **Ingresos reflejados**: US$ 91.00 confirmados en PayoutRecord (último ciclo con Algora + HackerOne)
+- **Catálogo inicial**: 60 fuentes propuestas clasificadas por mecanismo de acceso (sin entrevista, sin experiencia profesional obligatoria, accesible desde Argentina)
+- **Arquitectura**: única experiencia frontend canónica (Vue 3, 9.0.0), todas las capas sincronizadas; MobileApp/MobileCompanion adaptadas desde backend canónico
+- **Prioridad P0**: Algora + Opire + GitHub (integración confirmada); P1: HackerOne + Bugcrowd; P2: IA técnica y benchmarks
+- **Tests**: 17 nuevos casos para protocolos, límites, normalización, persistencia, human gate, lifecycle, dedupe GitHub, API montada y scheduler; integración source+scheduler+mount: 71 passed; `make test-fast`: 100 passed / 1 skipped
+- **Verificación**: `python scripts/dev check` pasa (ruff + mypy scoped + 100 tests rápidos); `npx vite build` → exit 0; `npx vitest run` → 226 passed
+- **Bloques pendientes**: conexión de claves (MINDRIFT_API_KEY) al vault; validación E2E económica y build multiplataforma; normalización completa de 300 fuentes; motor de deduplicación cross-source

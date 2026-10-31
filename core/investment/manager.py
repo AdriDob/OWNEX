@@ -117,9 +117,7 @@ class InvestmentManager:
         if not alloc or alloc.available_usd < amount:
             return {
                 "allowed": False,
-                "reason": f"Insufficient available capital. Have ${alloc.available_usd:.2f}, need ${amount:.2f}"
-                if alloc
-                else "No allocation for strategy",
+                "reason": f"Insufficient available capital. Have ${alloc.available_usd:.2f}, need ${amount:.2f}" if alloc else "No allocation for strategy",
             }
 
         exposure = self._allocation.get_high_risk_exposure()
@@ -234,11 +232,7 @@ class InvestmentManager:
                         "total_trades": m.total_trades,
                         "consecutive_losses": m.consecutive_losses,
                     },
-                    "allocation": (
-                        self._allocation.get_strategy_allocation(sid).__dict__
-                        if self._allocation.get_strategy_allocation(sid)
-                        else {}
-                    ),
+                    "allocation": (self._allocation.get_strategy_allocation(sid).__dict__ if self._allocation.get_strategy_allocation(sid) else {}),
                 }
                 for sid, m in all_metrics.items()
             },
@@ -300,9 +294,7 @@ class InvestmentManager:
             return {"allowed": False, "reason": f"Drawdown limit reached: {risk.current_drawdown_pct:.1f}%"}
         return {"allowed": True, "reason": "OK"}
 
-    def _publish_event(
-        self, event_type: str, strategy_id: str, amount: float, description: str, metadata: dict[str, Any] | None = None
-    ) -> None:
+    def _publish_event(self, event_type: str, strategy_id: str, amount: float, description: str, metadata: dict[str, Any] | None = None) -> None:
         try:
             from cores.events.event_bus import get_core_event_bus
 

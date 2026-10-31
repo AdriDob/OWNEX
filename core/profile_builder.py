@@ -302,9 +302,7 @@ class ProfileBuilder:
 
         pinned = audit.get("pinned_count", 0)
         detail["pinned_repos"] = {
-            "points": SCORE_WEIGHTS["pinned_repos"]
-            if pinned >= 3
-            else (SCORE_WEIGHTS["pinned_repos"] // 2 if pinned else 0),
+            "points": SCORE_WEIGHTS["pinned_repos"] if pinned >= 3 else (SCORE_WEIGHTS["pinned_repos"] // 2 if pinned else 0),
             "pinned": pinned,
         }
 
@@ -434,10 +432,7 @@ class ProfileBuilder:
         u = audit.get("user", {})
         name = u.get("name") or username
 
-        stats = (
-            f"[![GitHub followers](https://img.shields.io/github/followers/{username}?style=flat-square)]"
-            f"(https://github.com/{username})"
-        )
+        stats = f"[![GitHub followers](https://img.shields.io/github/followers/{username}?style=flat-square)](https://github.com/{username})"
         lines = [
             f"# Hola, soy {name} 👋",
             "",
@@ -475,9 +470,7 @@ class ProfileBuilder:
 
     # ── Registro de contribuciones (con auto-push opcional) ──
 
-    def record_contribution(
-        self, kind: str, title: str, url: str = "", solution: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def record_contribution(self, kind: str, title: str, url: str = "", solution: dict[str, Any] | None = None) -> dict[str, Any]:
         state = self._load()
         push_result: dict[str, Any] | None = None
 

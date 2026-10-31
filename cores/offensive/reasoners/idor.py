@@ -168,9 +168,7 @@ class IDORReasoner(BaseReasoner):
             severity=severity,
             summary=self._build_summary(endpoint, params_of_interest),
             description=self._build_description(endpoint, params_of_interest, method),
-            why_human_would_investigate=self._build_triager_justification(
-                endpoint, params_of_interest, method, signals
-            ),
+            why_human_would_investigate=self._build_triager_justification(endpoint, params_of_interest, method, signals),
             parameters_of_interest=params_of_interest,
             signals=signals,
             test_instructions=self._build_test_instructions(endpoint, params_of_interest, method),
@@ -251,19 +249,13 @@ class IDORReasoner(BaseReasoner):
             instructions.extend(
                 IDOR_PATTERNS.get("test_instructions", [])
                 + [
-                    f"Try replacing {param} with a value belonging to a different user "
-                    f"(e.g., add 1 to a numeric ID, or substitute a known UUID).",
-                    "Send the request as an unprivileged user and observe if the response "
-                    "contains data that does not belong to that user.",
-                    f"If the endpoint returns data for the substituted {param}, "
-                    f"without proper authorization — it's an IDOR.",
+                    f"Try replacing {param} with a value belonging to a different user (e.g., add 1 to a numeric ID, or substitute a known UUID).",
+                    "Send the request as an unprivileged user and observe if the response contains data that does not belong to that user.",
+                    f"If the endpoint returns data for the substituted {param}, without proper authorization — it's an IDOR.",
                 ]
             )
         if method.upper() == "GET":
-            instructions.append(
-                "Test mass enumeration: iterate through sequential IDs "
-                "and check if responses differ between authenticated users."
-            )
+            instructions.append("Test mass enumeration: iterate through sequential IDs and check if responses differ between authenticated users.")
         return instructions
 
     def _build_alternatives(self, endpoint: EndpointInfo, params: list[str]) -> list[dict[str, Any]]:

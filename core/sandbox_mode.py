@@ -162,9 +162,7 @@ def submit_sandbox_bounty(bounty_id: str, solution: str, files: dict[str, str]) 
         "matches": matches,
         "total_parts": len(key_parts),
         "payout_tx": record["payout_tx"],
-        "message": "🎉 ¡Validado! Has completado tu primera bounty sandbox."
-        if approved
-        else "⚠️ Intenta de nuevo. Revisa la solución esperada vs tu código.",
+        "message": "🎉 ¡Validado! Has completado tu primera bounty sandbox." if approved else "⚠️ Intenta de nuevo. Revisa la solución esperada vs tu código.",
     }
 
 

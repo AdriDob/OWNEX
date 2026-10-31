@@ -286,15 +286,11 @@ class ValidationEngine:
     ) -> str:
         """Construye resumen legible de la evidencia."""
         parts: list[str] = []
-        parts.append(
-            f"Validation of {candidate.vulnerability_type.value.upper()} on {candidate.method.upper()} {candidate.endpoint_path}"
-        )
+        parts.append(f"Validation of {candidate.vulnerability_type.value.upper()} on {candidate.method.upper()} {candidate.endpoint_path}")
         parts.append("")
 
         if baseline:
-            parts.append(
-                f"Baseline: {baseline.status_code} ({baseline.response_time_ms:.0f}ms, {baseline.response_size} bytes)"
-            )
+            parts.append(f"Baseline: {baseline.status_code} ({baseline.response_time_ms:.0f}ms, {baseline.response_size} bytes)")
         if probes:
             for i, p in enumerate(probes):
                 parts.append(
@@ -430,16 +426,13 @@ class ValidationEngineResult:
     @property
     def summary(self) -> str:
         parts = [
-            f"[{self.candidate.vulnerability_type.value.upper()}] "
-            f"{self.candidate.method} {self.candidate.endpoint_path}",
+            f"[{self.candidate.vulnerability_type.value.upper()}] {self.candidate.method} {self.candidate.endpoint_path}",
         ]
         if self.dry_run:
             parts.append(f"  Plan: {len(self.plan.probes)} probes, {self.plan.estimated_cost} requests")
             parts.append("  ⏭ Dry run — no se ejecutaron requests")
         elif self.decision.promoted:
-            parts.append(
-                f"  ✅ Promoted → Finding #{self.decision.finding_id}" if self.decision.finding_id else "✅ Promoted"
-            )
+            parts.append(f"  ✅ Promoted → Finding #{self.decision.finding_id}" if self.decision.finding_id else "✅ Promoted")
             parts.append(f"  Confianza: {self.confidence.score:.1%}" if self.confidence else "")
         else:
             parts.append(f"  ❌ Rejected: {self.decision.rejected_reason}")

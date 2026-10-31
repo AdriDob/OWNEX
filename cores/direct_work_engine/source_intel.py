@@ -137,11 +137,7 @@ class SourceIntelEngine:
         transparency = 1.0 if source_type in _HIGH_TRANSPARENCY_TYPES else (0.6 if source_type == "forum" else 0.4)
 
         trust_score = round(
-            quality * 100
-            - (10 if interview else 0)
-            - (8 if portfolio else 0)
-            - (8 if experience else 0)
-            - (5 if source_type in ("job_board", "forum") else 0),
+            quality * 100 - (10 if interview else 0) - (8 if portfolio else 0) - (8 if experience else 0) - (5 if source_type in ("job_board", "forum") else 0),
             1,
         )
         trust_score = max(5.0, min(98.0, trust_score))

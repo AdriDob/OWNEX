@@ -322,10 +322,7 @@ def cmd_status():
         print("Opportunity Discovery System: ACTIVE")
         print(f"Total sources: {total}")
         for cat, count in counts.items():
-            print(
-                f"  {cat.replace('_', ' ').title()}: {count} sources, "
-                f"{len(get_favorites(OpportunityCategory(cat)))} favorites"
-            )
+            print(f"  {cat.replace('_', ' ').title()}: {count} sources, {len(get_favorites(OpportunityCategory(cat)))} favorites")
         latest = sorted(DATA_DIR.glob("discovery_*.json"), reverse=True)
         if latest:
             print(f"Last scan: {latest[0].stat().st_mtime}")

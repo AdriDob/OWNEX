@@ -154,20 +154,10 @@ class DistillationPipeline:
         from cores.learning import embed_engagement
 
         x_train = np.array([embed_engagement(s.input_data) for s in train_samples])
-        y_train = np.array(
-            [
-                list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0
-                for s in train_samples
-            ]
-        )
+        y_train = np.array([list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0 for s in train_samples])
 
         x_val = np.array([embed_engagement(s.input_data) for s in val_samples])
-        y_val = np.array(
-            [
-                list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0
-                for s in val_samples
-            ]
-        )
+        y_val = np.array([list(s.teacher_output.values())[0] if isinstance(s.teacher_output, dict) and s.teacher_output else 0.0 for s in val_samples])
 
         # Train simple linear model
         if architecture == "linear":

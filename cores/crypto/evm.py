@@ -380,18 +380,14 @@ class EVMConnector(CryptoConnector):
                         if tx_data.get("blockNumber", "0").startswith("0x")
                         else int(tx_data.get("blockNumber", 0)),
                         timestamp=datetime.fromtimestamp(
-                            int(tx_data.get("timeStamp", "0"), 16)
-                            if tx_data.get("timeStamp", "0").startswith("0x")
-                            else int(tx_data.get("timeStamp", 0)),
+                            int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)),
                             tz=UTC,
                         ).isoformat(),
                         from_address=tx_data.get("from", ""),
                         to_address=tx_data.get("to", ""),
                         asset=self._chain_info["currency"],
                         amount=_parse_hex_amount(tx_data.get("value", "0x0"), self._chain_info["decimals"]),
-                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9)
-                        * int(tx_data.get("gasUsed", "0"), 16)
-                        / 1e9
+                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9) * int(tx_data.get("gasUsed", "0"), 16) / 1e9
                         if tx_data.get("gasUsed", "0").startswith("0x")
                         else 0,
                         fee_asset=self._chain_info["currency"],
@@ -455,18 +451,14 @@ class EVMConnector(CryptoConnector):
                         asset=self._chain_info["currency"],
                         amount=_parse_hex_amount(tx_data.get("value", "0x0"), self._chain_info["decimals"]),
                         destination_address=tx_data.get("to", ""),
-                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9)
-                        * int(tx_data.get("gasUsed", "0"), 16)
-                        / 1e9
+                        fee=_parse_hex_amount(tx_data.get("gasPrice", "0x0"), 9) * int(tx_data.get("gasUsed", "0"), 16) / 1e9
                         if tx_data.get("gasUsed", "0").startswith("0x")
                         else 0,
                         status="confirmed" if tx_data.get("isError") == "0" else "failed",
                         confirmations=int(tx_data.get("confirmations", "0")),
                         confirmations_required=12,
                         timestamp=datetime.fromtimestamp(
-                            int(tx_data.get("timeStamp", "0"), 16)
-                            if tx_data.get("timeStamp", "0").startswith("0x")
-                            else int(tx_data.get("timeStamp", 0)),
+                            int(tx_data.get("timeStamp", "0"), 16) if tx_data.get("timeStamp", "0").startswith("0x") else int(tx_data.get("timeStamp", 0)),
                             tz=UTC,
                         ).isoformat(),
                     )

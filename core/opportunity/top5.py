@@ -91,10 +91,7 @@ class Top5Engine:
         top_ev = selected[0].score.expected_value
         top_cycle = selected[0].cycle
         cycles_covered = len(set(o.cycle for o in selected))
-        return (
-            f"Top 1: {top_name} (${top_ev:.0f} EV, {top_cycle}). "
-            f"Scored {total} opportunities across {cycles_covered} cycles."
-        )
+        return f"Top 1: {top_name} (${top_ev:.0f} EV, {top_cycle}). Scored {total} opportunities across {cycles_covered} cycles."
 
     def _build_diversification_note(self, selected: list[ScoredOpportunity], total: int) -> str:
         if not selected:

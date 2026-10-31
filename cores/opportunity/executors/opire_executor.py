@@ -57,9 +57,7 @@ class OpireExecutor(BaseExecutor):
                 if resp.status_code in (200, 201):
                     data = resp.json()
                     return ExecutionResult(True, "claim_bounty", bounty_id, data={"response": data})
-                return ExecutionResult(
-                    False, "claim_bounty", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "claim_bounty", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "claim_bounty", bounty_id, error=str(e))
 
@@ -77,9 +75,7 @@ class OpireExecutor(BaseExecutor):
                 if resp.status_code in (200, 201):
                     data = resp.json()
                     return ExecutionResult(True, "submit_work", bounty_id, data={"response": data})
-                return ExecutionResult(
-                    False, "submit_work", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "submit_work", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "submit_work", bounty_id, error=str(e))
 
@@ -95,9 +91,7 @@ class OpireExecutor(BaseExecutor):
                 if resp.status_code == 200:
                     data = resp.json()
                     return ExecutionResult(True, "get_bounties", status, data={"bounties": data})
-                return ExecutionResult(
-                    False, "get_bounties", status, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "get_bounties", status, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "get_bounties", status, error=str(e))
 
@@ -112,9 +106,7 @@ class OpireExecutor(BaseExecutor):
                 if resp.status_code == 200:
                     data = resp.json()
                     return ExecutionResult(True, "get_bounty", bounty_id, data={"bounty": data})
-                return ExecutionResult(
-                    False, "get_bounty", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "get_bounty", bounty_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "get_bounty", bounty_id, error=str(e))
 

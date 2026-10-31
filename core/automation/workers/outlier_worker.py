@@ -32,7 +32,5 @@ class OutlierWorker:
         if action == "claim_and_solve_task":
             return await self.claim_and_solve_task(kwargs.get("task_id", ""), kwargs.get("task_data", {}))
         if action == "submit_answer":
-            return await self.submit_answer(
-                kwargs.get("task_id", ""), kwargs.get("answer", ""), kwargs.get("confidence", 0.0)
-            )
+            return await self.submit_answer(kwargs.get("task_id", ""), kwargs.get("answer", ""), kwargs.get("confidence", 0.0))
         return {"success": False, "error": f"Unknown action: {action}"}

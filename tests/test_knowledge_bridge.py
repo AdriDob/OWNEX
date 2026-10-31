@@ -330,6 +330,8 @@ def test_api_status_disconnected(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_api_full_flow(cfg: dict, vault: Path) -> None:
     client = _authed_client("pytest-kb-flow")
+    connected = client.post("/api/knowledge/connect", params={"path": str(vault)})
+    assert connected.status_code == 200
     resp = client.get("/api/knowledge/")
     assert resp.status_code == 200
     assert resp.json()["connected"] is True

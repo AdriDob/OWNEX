@@ -476,9 +476,7 @@ def integrations_status() -> dict[str, Any]:
             "ultima_sincronizacion": "",
             "ultimo_exito": "",
             "fallos_consecutivos": 0,
-            "error": ""
-            if t_status == "green"
-            else "Sin datos cargados — usá CSV, balance manual o vinculá wallet Solana",
+            "error": "" if t_status == "green" else "Sin datos cargados — usá CSV, balance manual o vinculá wallet Solana",
         }
     except Exception:
         integrations["takenos"] = {

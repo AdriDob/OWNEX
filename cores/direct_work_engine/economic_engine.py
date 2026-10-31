@@ -226,9 +226,7 @@ class EconomicEngine:
 
         return profile_data
 
-    def compute_batch(
-        self, opportunities: list[Opportunity], profile: UserProfile | None = None
-    ) -> list[OpportunityEconomicProfile]:
+    def compute_batch(self, opportunities: list[Opportunity], profile: UserProfile | None = None) -> list[OpportunityEconomicProfile]:
         """Compute profiles for multiple opportunities efficiently."""
         results = []
         for opp in opportunities:
@@ -248,9 +246,7 @@ class EconomicEngine:
                 )
         return results
 
-    def rank_opportunities(
-        self, profiles: list[OpportunityEconomicProfile], mode: str = "risk_adjusted"
-    ) -> list[OpportunityEconomicProfile]:
+    def rank_opportunities(self, profiles: list[OpportunityEconomicProfile], mode: str = "risk_adjusted") -> list[OpportunityEconomicProfile]:
         """Rank opportunities by the specified metric."""
         if mode == "risk_adjusted":
             return sorted(profiles, key=lambda p: p.risk_adjusted_expected_value_per_user_hour, reverse=True)
@@ -267,9 +263,7 @@ class EconomicEngine:
         else:
             return sorted(profiles, key=lambda p: p.risk_adjusted_expected_value_per_user_hour, reverse=True)
 
-    def get_next_best_action(
-        self, profiles: list[OpportunityEconomicProfile], available_hours: float | None = None
-    ) -> OpportunityEconomicProfile | None:
+    def get_next_best_action(self, profiles: list[OpportunityEconomicProfile], available_hours: float | None = None) -> OpportunityEconomicProfile | None:
         """Get the single best action for the user right now."""
         if not profiles:
             return None
@@ -297,22 +291,16 @@ class EconomicEngine:
             platform=platform_str,
             organization=opp.company,
             category=category_str,
-            task_type=opp.employment_type.value
-            if hasattr(opp.employment_type, "value")
-            else str(getattr(opp, "employment_type", "")),
+            task_type=opp.employment_type.value if hasattr(opp.employment_type, "value") else str(getattr(opp, "employment_type", "")),
             payment=float(opp.payment or 0),
             payment_currency=opp.currency or "USD",
-            payment_method=opp.payment_method.value
-            if hasattr(opp.payment_method, "value")
-            else str(opp.payment_method),
+            payment_method=opp.payment_method.value if hasattr(opp.payment_method, "value") else str(opp.payment_method),
             difficulty=float(getattr(opp, "difficulty", 0.5) or 0.5),
             urgency=0.5,
             source_confidence=0.5,
         )
 
-    def _compute_probabilities(
-        self, profile: OpportunityEconomicProfile, inputs: EconomicInputs
-    ) -> OpportunityEconomicProfile:
+    def _compute_probabilities(self, profile: OpportunityEconomicProfile, inputs: EconomicInputs) -> OpportunityEconomicProfile:
         """Compute acceptance, availability, qualification probabilities from history."""
         # Platform acceptance from revenue history
         if inputs.revenue_history:
@@ -349,17 +337,13 @@ class EconomicEngine:
 
         return profile
 
-    def _estimate_times(
-        self, profile: OpportunityEconomicProfile, inputs: EconomicInputs
-    ) -> OpportunityEconomicProfile:
+    def _estimate_times(self, profile: OpportunityEconomicProfile, inputs: EconomicInputs) -> OpportunityEconomicProfile:
         """Estimate all time components."""
         opp = inputs.opportunity
 
         # Qualification time - check if any qualification gate exists
         has_qualification_gate = (
-            getattr(opp, "interview_required", False)
-            or getattr(opp, "technical_test_required", False)
-            or getattr(opp, "portfolio_required", False)
+            getattr(opp, "interview_required", False) or getattr(opp, "technical_test_required", False) or getattr(opp, "portfolio_required", False)
         )
         if has_qualification_gate:
             profile.qualification_time_hours = float(getattr(opp, "qualification_hours", 2.0))
@@ -391,9 +375,7 @@ class EconomicEngine:
 
         return profile
 
-    def _assess_risk_competition(
-        self, profile: OpportunityEconomicProfile, inputs: EconomicInputs
-    ) -> OpportunityEconomicProfile:
+    def _assess_risk_competition(self, profile: OpportunityEconomicProfile, inputs: EconomicInputs) -> OpportunityEconomicProfile:
         """Assess competition, freshness, rejection risk."""
         # Competition level
         if inputs.competition_data:
@@ -415,18 +397,14 @@ class EconomicEngine:
             profile.freshness_score = 1.0  # assume fresh if unknown
 
         # Rejection probability
-        profile.rejection_probability = (
-            1 - (profile.acceptance_probability or 0.5)
-        ) * 0.7 + profile.competition_level * 0.3
+        profile.rejection_probability = (1 - (profile.acceptance_probability or 0.5)) * 0.7 + profile.competition_level * 0.3
 
         # Duplicate probability
         profile.duplicate_probability = 0.1 if profile.competition_level > 0.7 else 0.05
 
         return profile
 
-    def _compute_compatibility(
-        self, profile: OpportunityEconomicProfile, inputs: EconomicInputs
-    ) -> OpportunityEconomicProfile:
+    def _compute_compatibility(self, profile: OpportunityEconomicProfile, inputs: EconomicInputs) -> OpportunityEconomicProfile:
         """Compute geo, payment, skill compatibility."""
         # Geo compatibility (Argentina focus)
         profile.geo_compatibility = 1.0  # default compatible
@@ -523,9 +501,7 @@ class EconomicEngine:
         # Combines: expected value, risk, cash speed, availability
         availability_factor = (profile.task_availability_probability or 0.5) * (profile.acceptance_probability or 0.5)
         cash_factor = cash_speed
-        profile.risk_adjusted_expected_value_per_user_hour = (
-            profile.risk_adjusted_hourly_value * availability_factor * cash_factor
-        )
+        profile.risk_adjusted_expected_value_per_user_hour = profile.risk_adjusted_hourly_value * availability_factor * cash_factor
 
         return profile
 
@@ -590,18 +566,12 @@ class EconomicEngine:
 
         return profile
 
-    def _determine_next_action(
-        self, profile: OpportunityEconomicProfile, inputs: EconomicInputs
-    ) -> OpportunityEconomicProfile:
+    def _determine_next_action(self, profile: OpportunityEconomicProfile, inputs: EconomicInputs) -> OpportunityEconomicProfile:
         """Determine the concrete next action for the user."""
         if profile.qualification_time_hours and profile.qualification_time_hours > 0:
-            profile.next_action = (
-                f"Completar assessment/calificación en {profile.platform} (~{profile.qualification_time_hours:.1f}h)"
-            )
+            profile.next_action = f"Completar assessment/calificación en {profile.platform} (~{profile.qualification_time_hours:.1f}h)"
         elif profile.payment_compatibility < 0.5:
-            profile.next_action = (
-                f"Configurar método de pago compatible ({profile.payment_method or 'ver Payment Compat'})"
-            )
+            profile.next_action = f"Configurar método de pago compatible ({profile.payment_method or 'ver Payment Compat'})"
         elif profile.geo_compatibility < 0.5:
             profile.next_action = "Verificar compatibilidad geográfica para Argentina"
         else:
@@ -624,22 +594,16 @@ def get_economic_engine() -> EconomicEngine:
     return _economic_engine
 
 
-def compute_economic_profile(
-    opportunity: Opportunity, profile: UserProfile | None = None
-) -> OpportunityEconomicProfile:
+def compute_economic_profile(opportunity: Opportunity, profile: UserProfile | None = None) -> OpportunityEconomicProfile:
     """Convenience function for single opportunity."""
     engine = get_economic_engine()
     inputs = EconomicInputs(opportunity=opportunity, profile=profile)
     return engine.compute_profile(inputs)
 
 
-def rank_opportunities(
-    profiles: list[OpportunityEconomicProfile], mode: str = "risk_adjusted"
-) -> list[OpportunityEconomicProfile]:
+def rank_opportunities(profiles: list[OpportunityEconomicProfile], mode: str = "risk_adjusted") -> list[OpportunityEconomicProfile]:
     return get_economic_engine().rank_opportunities(profiles, mode)
 
 
-def get_next_best_action(
-    profiles: list[OpportunityEconomicProfile], available_hours: float | None = None
-) -> OpportunityEconomicProfile | None:
+def get_next_best_action(profiles: list[OpportunityEconomicProfile], available_hours: float | None = None) -> OpportunityEconomicProfile | None:
     return get_economic_engine().get_next_best_action(profiles, available_hours)

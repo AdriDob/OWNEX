@@ -197,9 +197,7 @@ class QuotaTracker:
         # Límites declarados (None = UNKNOWN). Settable vía headers o config.
         self._limits: dict[str, dict[str, int | None]] = defaultdict(lambda: {"rpm": None, "rpd": None, "tpd": None})
 
-    def set_declared_limit(
-        self, provider_id: str, rpm: int | None = None, rpd: int | None = None, tpd: int | None = None
-    ) -> None:
+    def set_declared_limit(self, provider_id: str, rpm: int | None = None, rpd: int | None = None, tpd: int | None = None) -> None:
         """Registra límites DECLARADOS por el proveedor (o los deja UNKNOWN)."""
         with self._lock:
             lim = self._limits[provider_id]

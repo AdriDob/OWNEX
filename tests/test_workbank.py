@@ -49,6 +49,17 @@ class TestWorkBank:
         assert item.status == "ready_to_deliver"
         assert item.access_status == "public"
         assert item.deliverables
+        assert "reward_reported: USD 500.00" in item.deliverables
+        assert "terms_check_pending: revisar términos actuales y elegibilidad antes de enviar" in item.deliverables
+        assert not any(entry.startswith("reward_verified:") for entry in item.deliverables)
+
+    def test_reward_is_verified_only_with_explicit_payment_evidence(self, tmp_path) -> None:
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([make_opp(id="verified-reward", payment_proven=True)], target=1)
+        item = bank.get_item("verified-reward")
+        assert item is not None
+        assert "reward_verified: USD 500.00" in item.deliverables
+        assert not any(entry.startswith("reward_reported:") for entry in item.deliverables)
 
     def test_needs_access_is_flagged_for_manual_platforms(self, tmp_path) -> None:
         bank = WorkBank(tmp_path / "workbank.json")

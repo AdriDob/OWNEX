@@ -26,15 +26,11 @@ router = APIRouter(prefix="/api/payment-compat", tags=["payment_compat"])
 
 
 class EvaluateRequest(BaseModel):
-    method: str = Field(
-        default="crypto", description="Payout method (ach, wire, sepa, cbu, cvu, paypal, crypto, p2p...)"
-    )
+    method: str = Field(default="crypto", description="Payout method (ach, wire, sepa, cbu, cvu, paypal, crypto, p2p...)")
     currency: str = Field(default="USDC", description="Currency of the payout")
     region: str = Field(default="global", description="Jurisdiction required (usa, argentina, eu, global)")
     amount: float = Field(default=0.0, description="Expected payout amount in USD")
-    required_documentation: str = Field(
-        default="", description="Documentation the platform demands (kyc, llc, us_residency...)"
-    )
+    required_documentation: str = Field(default="", description="Documentation the platform demands (kyc, llc, us_residency...)")
     platform: str = Field(default="", description="Platform paying the bounty")
 
 

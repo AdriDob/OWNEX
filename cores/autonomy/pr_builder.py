@@ -300,9 +300,7 @@ class PRBuilder:
         ]
 
         if issue.reproduction_steps:
-            sections.extend(
-                ["### Reproduction Steps", *[f"{i + 1}. {s}" for i, s in enumerate(issue.reproduction_steps)], ""]
-            )
+            sections.extend(["### Reproduction Steps", *[f"{i + 1}. {s}" for i, s in enumerate(issue.reproduction_steps)], ""])
 
         if issue.expected_behavior:
             sections.extend(["### Expected Behavior", issue.expected_behavior, ""])

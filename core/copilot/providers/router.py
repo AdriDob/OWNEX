@@ -46,9 +46,7 @@ class ProviderRouter:
                 return p
         return None
 
-    async def route(
-        self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any
-    ) -> ProviderResponse:
+    async def route(self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any) -> ProviderResponse:
         messages = messages or []
         if task_type == TASK_SYSTEM:
             return ProviderResponse(content="", provider="system", model="deterministic")
@@ -79,9 +77,7 @@ class ProviderRouter:
 
         return ProviderResponse(content="No available provider", provider="none", error="all providers unavailable")
 
-    async def route_stream(
-        self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any
-    ):
+    async def route_stream(self, task_type: str = TASK_CHAT, messages: list[dict[str, str]] | None = None, **kwargs: Any):
         messages = messages or []
 
         # OmniRoute first (free models, same as IDE/MERLIN)
@@ -90,12 +86,7 @@ class ProviderRouter:
                 yield token
             return
 
-        if (
-            task_type == TASK_REASON
-            and (provider := self.get_provider("fcc"))
-            and await provider.check()
-            and hasattr(provider, "chat_stream")
-        ):
+        if task_type == TASK_REASON and (provider := self.get_provider("fcc")) and await provider.check() and hasattr(provider, "chat_stream"):
             async for token in await provider.chat_stream(messages, **kwargs):  # type: ignore
                 yield token
             return

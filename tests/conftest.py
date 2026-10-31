@@ -16,10 +16,7 @@ os.environ["DATABASE_URL"] = f"sqlite:////tmp/cateye_test_{os.getpid()}.db"
 from database.db import DATABASE_URL as _DB_URL  # noqa: E402
 
 if "catseye.db" in _DB_URL:
-    raise RuntimeError(
-        "Refusing to run tests against the real database "
-        f"(DATABASE_URL={_DB_URL!r}). Set DATABASE_URL to a temp path first."
-    )
+    raise RuntimeError(f"Refusing to run tests against the real database (DATABASE_URL={_DB_URL!r}). Set DATABASE_URL to a temp path first.")
 
 
 @pytest.fixture(scope="session", autouse=True)

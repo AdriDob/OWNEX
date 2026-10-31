@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shutil
+import subprocess
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 from dataclasses import dataclass, field
@@ -94,6 +96,14 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
         env_key="",
         default_host="devin",
         default_model="default",
+    ),
+    ProviderSpec(
+        id="codex",
+        label="OpenAI Codex CLI (cuenta ChatGPT)",
+        models=["codex-cli"],
+        env_host="CODEX_BIN",
+        default_host="codex",
+        default_model="codex-cli",
     ),
     ProviderSpec(
         id="local",
@@ -436,9 +446,7 @@ class LocalFallbackProvider(AIProvider):
         last_lower = last.lower()
 
         if "hola" in last_lower or "hello" in last_lower or "qué tal" in last_lower:
-            return (
-                "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
-            )
+            return "Estoy listo para analizar tu ecosistema. Pregúntame sobre targets, oportunidades, o qué hacer ahora."
         if "quiénes soy" in last_lower or "qué eres" in last_lower:
             return (
                 "Soy CATEYE AI, el analista principal del sistema. "
@@ -525,6 +533,69 @@ class FreebuffProvider(AIProvider):
         }
 
 
+class CodexCLIProvider(AIProvider):
+    """Read-only chat provider backed by the authenticated local Codex CLI."""
+
+    def __init__(self, executable: str | None = None, timeout: int = 120):
+        self.executable = executable or os.environ.get("CODEX_BIN", "codex")
+        self.timeout = timeout
+
+    @staticmethod
+    def _cli_environment() -> dict[str, str]:
+        """Pass only runtime/auth-location settings, not application secrets."""
+        allowed = ("PATH", "HOME", "CODEX_HOME", "TMPDIR", "TEMP", "TMP", "TERM", "LANG", "LC_ALL", "XDG_CONFIG_HOME")
+        return {key: os.environ[key] for key in allowed if os.environ.get(key)}
+
+    @property
+    def name(self) -> str:
+        return "codex/cli"
+
+    def is_available(self) -> bool:
+        executable = shutil.which(self.executable)
+        if not executable:
+            return False
+        try:
+            status = subprocess.run(
+                [executable, "login", "status"], capture_output=True, text=True, timeout=5, check=False,
+                env=self._cli_environment(),
+            )
+            return status.returncode == 0 and "logged in" in f"{status.stdout} {status.stderr}".lower()
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
+        executable = shutil.which(self.executable)
+        if not executable or not self.is_available():
+            raise RuntimeError("Codex CLI no está instalado o no tiene sesión iniciada")
+        prompt = (
+            "Respondé como proveedor de conversación de OWNEX. Usa el contexto incluido; "
+            "no ejecutes cambios, no envíes acciones externas y no afirmes hechos sin evidencia. "
+            f"Limitá la respuesta a {max(64, min(max_tokens, 4096))} tokens.\n\n"
+            + "\n\n".join(f"{m.get('role', 'user').upper()}: {m.get('content', '')}" for m in messages)
+        )
+        result = subprocess.run(
+            [executable, "exec", "--sandbox", "read-only", "--ephemeral", "--json", "--color", "never", "-"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=self.timeout,
+            check=False,
+            env=self._cli_environment(),
+        )
+        if result.returncode != 0:
+            logger.warning("Codex CLI request failed (exit %s)", result.returncode)
+            raise RuntimeError("Codex CLI no pudo completar la consulta; revisá sesión y límites de la cuenta")
+        for line in reversed(result.stdout.splitlines()):
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            item = event.get("item", {})
+            if event.get("type") == "item.completed" and item.get("type") == "agent_message":
+                return str(item.get("text", "")).strip()
+        return result.stdout.strip()
+
+
 class ProviderRegistry:
     """Manages provider lifecycle with DB-persisted config and env fallback."""
 
@@ -579,6 +650,11 @@ class ProviderRegistry:
 
     def build_provider(self, cfg: dict) -> AIProvider:
         ptype = cfg.get("provider_type", "openai")  # Default to OpenAI-compatible (OmniRoute)
+        if ptype == "codex":
+            provider = CodexCLIProvider(executable=cfg.get("codex_path") or None)
+            if provider.is_available():
+                return provider
+            logger.info("Codex CLI unavailable or unauthenticated, trying alternatives")
         # 1. Try OpenRouter if explicitly requested (premium models)
         if ptype in ("openrouter",):
             from .providers.openrouter_provider import OpenRouterProvider
@@ -678,6 +754,8 @@ class ProviderRegistry:
                         devin_path=os.environ.get(spec.env_host, spec.default_host),
                     )
                     available = p.is_available()
+                elif spec.id == "codex":
+                    available = CodexCLIProvider(executable=os.environ.get(spec.env_host, spec.default_host)).is_available()
                 elif spec.id == "openai":
                     available = bool(os.environ.get("OPENAI_API_KEY") or self._load_config().get("api_key"))
                 elif spec.id == "freebuff":

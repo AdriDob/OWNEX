@@ -185,9 +185,7 @@ class PatternExtractor:
             # Endpoint similarity (naive: check if regex patterns are close)
             if existing.get("endpoint_regex") == new_endpoint_regex:
                 score += 3
-            elif "/".join(new_endpoint_regex.split("/")[:3]) == "/".join(
-                existing.get("endpoint_regex", "").split("/")[:3]
-            ):
+            elif "/".join(new_endpoint_regex.split("/")[:3]) == "/".join(existing.get("endpoint_regex", "").split("/")[:3]):
                 score += 1
 
             # Entity type match

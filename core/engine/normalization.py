@@ -203,9 +203,7 @@ class GenericNormalizer(Normalizer):
         if raw_id and raw_id != ":":
             observation.checksum = hashlib.sha256(raw_id.encode()).hexdigest()[:16]
         else:
-            observation.checksum = hashlib.sha256(
-                f"{observation.sensor_id}:{observation.external_id}".encode()
-            ).hexdigest()[:16]
+            observation.checksum = hashlib.sha256(f"{observation.sensor_id}:{observation.external_id}".encode()).hexdigest()[:16]
 
         return observation
 

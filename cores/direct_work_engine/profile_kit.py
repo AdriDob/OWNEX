@@ -231,19 +231,13 @@ class ProfileKitEngine:
         # ── Descripción ──
         if platform == "fiverr":
             fields.append({"key": "fiverr_title", "label": "Título del gig", "text": self._fiverr_title(profile)})
-            fields.append(
-                {"key": "fiverr_description", "label": "Descripción", "text": self._fiverr_description(profile, lang)}
-            )
-            fields.append(
-                {"key": "fiverr_ask", "label": "Preguntas frecuentes", "text": self._fiverr_ask(profile, lang)}
-            )
+            fields.append({"key": "fiverr_description", "label": "Descripción", "text": self._fiverr_description(profile, lang)})
+            fields.append({"key": "fiverr_ask", "label": "Preguntas frecuentes", "text": self._fiverr_ask(profile, lang)})
             fields.append({"key": "fiverr_faq", "label": "FAQ", "text": self._fiverr_faq(profile, lang)})
         elif platform == "github":
             fields.append({"key": "github_bio", "label": "Bio", "text": self._github_bio(profile)})
             fields.append({"key": "github_skills", "label": "Stack técnico", "text": self._github_skills(profile)})
-            fields.append(
-                {"key": "github_projects", "label": "Proyectos destacados", "text": self._github_projects(profile)}
-            )
+            fields.append({"key": "github_projects", "label": "Proyectos destacados", "text": self._github_projects(profile)})
             fields.append({"key": "github_links", "label": "Enlaces", "text": self._github_links(profile)})
         elif platform in _BB_PLATFORMS:
             field_types = (
@@ -258,15 +252,11 @@ class ProfileKitEngine:
         elif platform == "opire":
             fields.append({"key": "opire_bio", "label": "Bio del operador", "text": self._opire_bio(profile)})
             fields.append({"key": "opire_skills", "label": "Stack técnico", "text": self._opire_skills(profile)})
-            fields.append(
-                {"key": "opire_projects", "label": "Proyectos destacados", "text": self._opire_projects(profile)}
-            )
+            fields.append({"key": "opire_projects", "label": "Proyectos destacados", "text": self._opire_projects(profile)})
             fields.append({"key": "opire_links", "label": "Enlaces", "text": self._opire_links(profile)})
         elif platform == "issuehunt":
             fields.append({"key": "issuehunt_bio", "label": "Bio del operador", "text": self._issuehunt_bio(profile)})
-            fields.append(
-                {"key": "issuehunt_skills", "label": "Stack técnico", "text": self._issuehunt_skills(profile)}
-            )
+            fields.append({"key": "issuehunt_skills", "label": "Stack técnico", "text": self._issuehunt_skills(profile)})
             fields.append(
                 {
                     "key": "issuehunt_projects",
@@ -278,16 +268,12 @@ class ProfileKitEngine:
         elif platform == "algora":
             fields.append({"key": "algora_bio", "label": "Bio del operador", "text": self._algora_bio(profile)})
             fields.append({"key": "algora_skills", "label": "Stack técnico", "text": self._algora_skills(profile)})
-            fields.append(
-                {"key": "algora_projects", "label": "Proyectos destacados", "text": self._algora_projects(profile)}
-            )
+            fields.append({"key": "algora_projects", "label": "Proyectos destacados", "text": self._algora_projects(profile)})
             fields.append({"key": "algora_links", "label": "Enlaces", "text": self._algora_links(profile)})
         elif platform == "outlier":
             fields.append({"key": "outlier_bio", "label": "Bio del operador", "text": self._outlier_bio(profile)})
             fields.append({"key": "outlier_skills", "label": "Stack técnico", "text": self._outlier_skills(profile)})
-            fields.append(
-                {"key": "outlier_availability", "label": "Disponibilidad", "text": self._outlier_availability(profile)}
-            )
+            fields.append({"key": "outlier_availability", "label": "Disponibilidad", "text": self._outlier_availability(profile)})
         elif platform == "mindrift":
             fields.append({"key": "mindrift_bio", "label": "Bio del operador", "text": self._mindrift_bio(profile)})
             fields.append({"key": "mindrift_skills", "label": "Stack técnico", "text": self._mindrift_skills(profile)})
@@ -299,19 +285,11 @@ class ProfileKitEngine:
                 }
             )
         elif platform == "linkedin":
-            fields.append(
-                {"key": "linkedin_headline", "label": "Headline del perfil", "text": self._linkedin_headline(profile)}
-            )
-            fields.append(
-                {"key": "linkedin_summary", "label": "Resumen del perfil", "text": self._linkedin_summary(profile)}
-            )
+            fields.append({"key": "linkedin_headline", "label": "Headline del perfil", "text": self._linkedin_headline(profile)})
+            fields.append({"key": "linkedin_summary", "label": "Resumen del perfil", "text": self._linkedin_summary(profile)})
             fields.append({"key": "linkedin_skills", "label": "Stack técnico", "text": self._linkedin_skills(profile)})
-            fields.append(
-                {"key": "linkedin_projects", "label": "Proyectos destacados", "text": self._linkedin_projects(profile)}
-            )
-            fields.append(
-                {"key": "linkedin_about_full", "label": "About (completo)", "text": self._linkedin_about_full(profile)}
-            )
+            fields.append({"key": "linkedin_projects", "label": "Proyectos destacados", "text": self._linkedin_projects(profile)})
+            fields.append({"key": "linkedin_about_full", "label": "About (completo)", "text": self._linkedin_about_full(profile)})
             fields.append(
                 {
                     "key": "linkedin_experience",
@@ -319,9 +297,7 @@ class ProfileKitEngine:
                     "text": self._linkedin_experience(profile),
                 }
             )
-            fields.append(
-                {"key": "linkedin_featured", "label": "Sección Featured", "text": self._linkedin_featured(profile)}
-            )
+            fields.append({"key": "linkedin_featured", "label": "Sección Featured", "text": self._linkedin_featured(profile)})
 
         return fields
 
@@ -426,9 +402,7 @@ class ProfileKitEngine:
         return f"Operador {profile.country} especializado en {', '.join(sorted(profile.skills)[:3]) if profile.skills else 'seguridad'} — {self._exp_label(profile)}."
 
     def _intigriti_specialty(self, profile: UserProfile) -> str:
-        return (
-            f"Especialidad: {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'bug bounty, API, backend'}"
-        )
+        return f"Especialidad: {', '.join(sorted(profile.skills)[:5]) if profile.skills else 'bug bounty, API, backend'}"
 
     def _intigriti_languages(self, profile: UserProfile) -> str:
         return f"Idiomas: {', '.join(sorted(profile.languages))}"
@@ -577,10 +551,7 @@ class ProfileKitEngine:
     def _linkedin_experience(self, profile: UserProfile) -> str:
         skills = ", ".join(sorted(profile.skills)[:3]) if profile.skills else "software engineering"
         bullets = [
-            (
-                f"Ingeniería de software ({self._exp_label(profile)}): Python, APIs, automatización "
-                f"y pipelines de datos ({skills})."
-            ),
+            (f"Ingeniería de software ({self._exp_label(profile)}): Python, APIs, automatización y pipelines de datos ({skills})."),
             "Bug bounty: metodología recon → hipótesis → validación → reporte profesional de vulnerabilidades.",
             "Sistemas autónomos: orquestación multi-agente, scheduling adaptativo e inferencia local-first.",
         ]

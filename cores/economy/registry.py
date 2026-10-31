@@ -147,9 +147,7 @@ class CapabilityRegistry:
             return False
         agent.total_jobs += 1
         agent.total_earnings += earnings
-        agent.success_rate = (
-            agent.success_rate * (agent.total_jobs - 1) + (1.0 if success else 0.0)
-        ) / agent.total_jobs
+        agent.success_rate = (agent.success_rate * (agent.total_jobs - 1) + (1.0 if success else 0.0)) / agent.total_jobs
         agent.avg_completion_time = (agent.avg_completion_time * (agent.total_jobs - 1) + duration) / agent.total_jobs
         agent.last_active = datetime.utcnow()
         return True

@@ -42,10 +42,7 @@ def generate_insights() -> list[dict[str, Any]]:
                     "type": "high_roi_target",
                     "severity": "high",
                     "title": f"Target con alto ROI: {tgt['name']}",
-                    "detail": (
-                        f"ROI {tgt['roi_score']:.0f} · Prioridad {tgt['priority']:.0f} · "
-                        f"{tgt['ep_count']} endpoints · Calidad {tgt['quality']:.0f}"
-                    ),
+                    "detail": (f"ROI {tgt['roi_score']:.0f} · Prioridad {tgt['priority']:.0f} · {tgt['ep_count']} endpoints · Calidad {tgt['quality']:.0f}"),
                     "score": tgt["roi_score"],
                     "action": f"Analizar {tgt['name']} para encontrar vectores de ataque",
                 }
@@ -78,10 +75,7 @@ def generate_insights() -> list[dict[str, Any]]:
                 "type": "recommended_attack",
                 "severity": "critical",
                 "title": f"Ataque recomendado: {best_tgt['name']}",
-                "detail": (
-                    f"ROI {best_tgt['roi_score']:.0f} · Prioridad {best_tgt['priority']:.0f} · "
-                    f"{len(tgt_actionable)} endpoints accionables"
-                ),
+                "detail": (f"ROI {best_tgt['roi_score']:.0f} · Prioridad {best_tgt['priority']:.0f} · {len(tgt_actionable)} endpoints accionables"),
                 "score": best_tgt["priority"],
                 "action": f"Iniciar validación contra {best_tgt['name']}",
             }

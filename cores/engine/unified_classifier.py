@@ -102,9 +102,7 @@ def classify(
     auth_smells: list[str] = []
     attack_surface: list[str] = []
 
-    is_api = (
-        "/api/" in lower or lower.startswith("api") or lower.endswith("graphql") or "/v1/" in lower or "/v2/" in lower
-    )
+    is_api = "/api/" in lower or lower.startswith("api") or lower.endswith("graphql") or "/v1/" in lower or "/v2/" in lower
     if is_api:
         labels.append("api")
     else:

@@ -232,9 +232,7 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
             log("SKIP", f"[dry-run] Would update release {tag}")
             return url
 
-        r = gh(
-            ["release", "edit", tag, "--draft=false", "--prerelease=false", "--latest", f"--notes-file={notes_path}"]
-        )
+        r = gh(["release", "edit", tag, "--draft=false", "--prerelease=false", "--latest", f"--notes-file={notes_path}"])
         if r.returncode == 0:
             log("OK", f"Release {tag} updated (draft=false, prerelease=false, latest=true)")
         else:

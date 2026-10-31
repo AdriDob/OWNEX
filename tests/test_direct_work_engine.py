@@ -170,9 +170,7 @@ class TestZeroBarrierScorer:
         easy = ZeroBarrierScorer().score(make_opportunity())
         assert easy.enablers
         assert "No interview required" in easy.enablers
-        hard = ZeroBarrierScorer().score(
-            make_opportunity(id="op-hard", experience_required=ExperienceLevel.SENIOR, portfolio_required=True)
-        )
+        hard = ZeroBarrierScorer().score(make_opportunity(id="op-hard", experience_required=ExperienceLevel.SENIOR, portfolio_required=True))
         assert any("experience" in b.lower() for b in hard.blockers)
         assert any("portfolio" in b.lower() for b in hard.blockers)
 
@@ -307,9 +305,7 @@ class TestIntelligentRecommender:
 
     def test_payment_compat_factor_affects_overall_score(self) -> None:
         paypal = make_opportunity(id="op-pp", title="Paypal task", payment_method=PaymentMethod.PAYPAL, payment=500.0)
-        stable = make_opportunity(
-            id="op-st", title="Stablecoin task", payment_method=PaymentMethod.STABLECOIN, payment=500.0
-        )
+        stable = make_opportunity(id="op-st", title="Stablecoin task", payment_method=PaymentMethod.STABLECOIN, payment=500.0)
         ranked = IntelligentRecommender().recommend([paypal, stable], make_profile(), limit=2)
         by_id = {r.opportunity.id: r for r in ranked}
         assert by_id["op-st"].payment_compat_score > by_id["op-pp"].payment_compat_score
@@ -437,9 +433,7 @@ class TestLearningFeedback:
 
         now = datetime.now(UTC)
 
-        def opp(
-            status: str, platform: str = "bug_bounty", amount: float = 100.0, provider: dict | None = None
-        ) -> SimpleNamespace:
+        def opp(status: str, platform: str = "bug_bounty", amount: float = 100.0, provider: dict | None = None) -> SimpleNamespace:
             return SimpleNamespace(
                 status=status,
                 platform=platform,

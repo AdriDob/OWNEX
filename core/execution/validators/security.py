@@ -41,17 +41,11 @@ class SecurityValidator(BaseValidator):
         for node in workflow.nodes:
             # ── 1. No secrets in plaintext config ────────────────
             for key, value in node.config.items():
-                if (
-                    isinstance(value, str)
-                    and any(s in key.lower() for s in self.SENSITIVE_CONFIG_KEYS)
-                    and value
-                    and not value.startswith("$")
-                ):
+                if isinstance(value, str) and any(s in key.lower() for s in self.SENSITIVE_CONFIG_KEYS) and value and not value.startswith("$"):
                     result.errors.append(
                         self._error(
                             "SEC_PLAINTEXT_SECRET",
-                            f"Node '{node.label or node.id}' has potential secret '{key}' "
-                            f"in plaintext config. Use ${{SECRET_NAME}} placeholders instead.",
+                            f"Node '{node.label or node.id}' has potential secret '{key}' in plaintext config. Use ${{SECRET_NAME}} placeholders instead.",
                             node_id=node.id,
                             exposed_key=key,
                         )
@@ -66,8 +60,7 @@ class SecurityValidator(BaseValidator):
                     result.errors.append(
                         self._error(
                             "SEC_DANGEROUS_NO_APPROVAL",
-                            f"Capability '{cap_name}' ({DANGEROUS_CAPABILITIES[cap_name]}) "
-                            f"requires an APPROVAL node in the workflow",
+                            f"Capability '{cap_name}' ({DANGEROUS_CAPABILITIES[cap_name]}) requires an APPROVAL node in the workflow",
                             node_id=node.id,
                             capability=cap_name,
                             risk=DANGEROUS_CAPABILITIES[cap_name],
@@ -122,8 +115,7 @@ class SecurityValidator(BaseValidator):
             result.warnings.append(
                 self._warning(
                     "SEC_EXCESSIVE_PERMISSIONS",
-                    f"Workflow requires {len(all_perms)} permission scopes "
-                    f"(max recommended: {self.MAX_WORKFLOW_PERMISSIONS})",
+                    f"Workflow requires {len(all_perms)} permission scopes (max recommended: {self.MAX_WORKFLOW_PERMISSIONS})",
                     permissions=list(all_perms),
                 )
             )

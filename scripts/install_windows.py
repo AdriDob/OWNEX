@@ -17,6 +17,7 @@ Build steps:
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import subprocess
 import sys
@@ -25,10 +26,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
-BUILD_SCRIPT = ROOT / "desktop" / "build" / "build_desktop.py"
 OUTPUT = ROOT / "dist" / "install-windows"
-
-VERSION_FILE = ROOT / "api" / "main.py"
+VERSION_FILE = ROOT / "VERSION"
 
 
 def _banner(msg: str) -> None:
@@ -45,31 +44,27 @@ def _run(cmd: list[str], cwd: Path | None = None, **kwargs) -> subprocess.Comple
 
 
 def _get_version() -> str:
-    for line in VERSION_FILE.read_text().splitlines():
-        if "APP_VERSION" in line:
-            return line.split("=")[-1].strip().strip('"')
-    return "0.4.0"
+    return VERSION_FILE.read_text(encoding="utf-8").strip()
 
 
 def _ensure_frontend_built() -> None:
-    dist_dir = FRONTEND / "dist"
-    if dist_dir.is_dir() and (dist_dir / "index.html").exists():
-        print("  Frontend dist exists — skipping build (delete frontend/dist to force)")
-        return
     _banner("Building frontend")
     _run(["npm", "ci"], cwd=FRONTEND)
     _run(["npm", "run", "build"], cwd=FRONTEND)
+    if not (FRONTEND / "dist" / "index.html").is_file():
+        raise RuntimeError("Frontend build completed without frontend/dist/index.html")
     print("  ✓ Frontend built")
 
 
 def _run_pyinstaller() -> Path:
     _banner("Running PyInstaller bundler")
-    _run([sys.executable, str(BUILD_SCRIPT), "--onedir", "--rebuild-frontend"])
-    build_dist = ROOT / "desktop" / "build" / "dist"
-    exe = build_dist / "CATEYE" / "CATEYE.exe"
-    if not exe.exists():
+    _run([sys.executable, "-m", "PyInstaller", "CATEYE.spec", "-y"], cwd=ROOT)
+    build_dist = ROOT / "dist"
+    executable_name = "CATEYE.exe" if sys.platform.startswith("win") else "CATEYE"
+    exe = build_dist / "CATEYE" / executable_name
+    if not exe.is_file():
         print(f"  ERROR: expected executable not found at {exe}")
-        print("  Check desktop/build/dist/ for the build output")
+        print("  Check dist/CATEYE/ for the PyInstaller output")
         sys.exit(1)
     print(f"  ✓ PyInstaller bundle ready: {exe}")
     return build_dist
@@ -77,10 +72,10 @@ def _run_pyinstaller() -> Path:
 
 def _assemble_portable(version: str, build_dist: Path) -> Path:
     _banner("Assembling portable folder")
-    if OUTPUT.exists():
-        shutil.rmtree(OUTPUT)
     bundle = OUTPUT / f"CATEYE-{version}-win64"
-    bundle.mkdir(parents=True, exist_ok=True)
+    if bundle.exists():
+        raise FileExistsError(f"Refusing to overwrite existing release folder: {bundle}")
+    bundle.mkdir(parents=True)
 
     pyinstaller_out = build_dist / "CATEYE"
     for item in pyinstaller_out.iterdir():
@@ -102,15 +97,15 @@ def _assemble_portable(version: str, build_dist: Path) -> Path:
 Run:  CATEYE.exe
 
 First launch will:
-  - Initialize the database in %APPDATA%\\CATEYE\\database\\
-  - Create logs in %APPDATA%\\CATEYE\\logs\\
+  - Initialize the database in the OWNEX_DATA_DIR selected by the runtime
+  - Keep user data outside the installation folder
   - Open the web interface in your default browser
 
 System Requirements:
   - Windows 10 or later (64-bit)
   - No Python or Node.js required
 
-To uninstall, delete this folder and %APPDATA%\\CATEYE\\
+To uninstall, delete this folder. User data is stored separately.
 """
     )
 
@@ -121,6 +116,8 @@ To uninstall, delete this folder and %APPDATA%\\CATEYE\\
 def _create_zip(bundle: Path) -> Path:
     _banner("Creating release zip")
     zip_path = bundle.parent / f"{bundle.name}.zip"
+    if zip_path.exists():
+        raise FileExistsError(f"Refusing to overwrite existing release archive: {zip_path}")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for file in bundle.rglob("*"):
             arcname = str(file.relative_to(bundle.parent))
@@ -136,6 +133,9 @@ def _try_nsis_installer(version: str, bundle: Path) -> Path | None:
 
     _banner("Creating NSIS installer")
     nsis_script = OUTPUT / "installer.nsi"
+    installer = OUTPUT / f"CATEYE-{version}-setup-win64.exe"
+    if nsis_script.exists() or installer.exists():
+        raise FileExistsError("Refusing to overwrite an existing NSIS script or installer")
     nsis_script.write_text(
         f"""!define PRODUCT_NAME "CATEYE"
 !define PRODUCT_VERSION "{version}"
@@ -174,7 +174,6 @@ SectionEnd
 """
     )
     _run(["makensis", str(nsis_script)], cwd=OUTPUT)
-    installer = OUTPUT / f"CATEYE-{version}-setup-win64.exe"
     if installer.exists():
         print(f"  ✓ NSIS installer: {installer} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
         return installer
@@ -188,7 +187,12 @@ def main() -> None:
     parser.add_argument("--installer", action="store_true", help="Attempt NSIS installer creation")
     args = parser.parse_args()
 
+    if sys.platform != "win32":
+        parser.error("Windows packaging must run with native Windows Python; WSL/Linux builds cannot produce a Windows executable")
+
     version = args.version
+    if not re.fullmatch(r"\d+(?:\.\d+){1,3}", version):
+        parser.error("--version must contain two to four numeric components, for example 9.0.0")
     print(f"Building CATEYE v{version} for Windows")
     print(f"Output: {OUTPUT}")
 

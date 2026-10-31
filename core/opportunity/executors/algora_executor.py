@@ -69,9 +69,7 @@ class AlgoraExecutor(BaseExecutor):
                         data={"claim_id": data.get("claim_id"), "expires_at": data.get("expires_at")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "claim_issue", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "claim_issue", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "claim_issue", bounty_id, error=str(e))
 
@@ -101,9 +99,7 @@ class AlgoraExecutor(BaseExecutor):
                         data={"submission_id": data.get("submission_id"), "status": data.get("status")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "submit_pr", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "submit_pr", bounty_id, error=f"Algora API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "submit_pr", bounty_id, error=str(e))
 
@@ -159,13 +155,9 @@ class AlgoraExecutor(BaseExecutor):
                 )
                 if branch_resp.status_code not in (200, 201):
                     # Branch might exist, try to get it
-                    branch_resp = await client.get(
-                        f"{self.github_base}/repos/{repo}/git/ref/heads/{branch}", headers=headers
-                    )
+                    branch_resp = await client.get(f"{self.github_base}/repos/{repo}/git/ref/heads/{branch}", headers=headers)
                     if branch_resp.status_code != 200:
-                        return ExecutionResult(
-                            False, "create_pr", repo, error=f"Branch creation failed: {branch_resp.text}"
-                        )
+                        return ExecutionResult(False, "create_pr", repo, error=f"Branch creation failed: {branch_resp.text}")
 
                 # 3. If files provided, commit them
                 if files:

@@ -15,7 +15,7 @@ OWNEX OMEGA integra Devin CLI como un provider de IA gratuito para tareas de des
 
 ## Archivos
 
-- `cores/ai/devin_tool.py` — Tool principal para ejecutar comandos de Devin CLI
+- `core/ai/devin_tool.py` — Tool principal para ejecutar comandos de Devin CLI
 - `api/routers/devin.py` — API endpoints para usar Devin desde OWNEX
 - `core/ai/model_router.py` — Devin agregado como ProviderTier y modelos
 
@@ -74,7 +74,7 @@ Devin CLI está integrado en el ModelRouter como:
 ### Desde OWNEX Backend
 
 ```python
-from cores.ai.devin_tool import get_devin_tool
+from core.ai.devin_tool import get_devin_tool
 
 tool = get_devin_tool()
 
@@ -116,7 +116,7 @@ from core.ai.model_router import get_model_router
 router = get_model_router()
 
 # El router automáticamente usará Devin para tareas de código
-decision = router.route_task(task_type=TaskType.CODE, prompt="Implement user authentication", privacy_required=False)
+decision = router.route(task_type=TaskType.CODE, prompt="Implement user authentication", privacy_required=False)
 
 # decision.selected_model será "devin-claude-sonnet"
 ```
@@ -182,9 +182,7 @@ task = tool.implement_feature(
 ```python
 tool = get_devin_tool()
 
-task = tool.debug_code(
-    error_description="Fix infinite loop in data processing", files=["src/processing.py"], model=DevinModel.DEEPSEEK_V4
-)
+task = tool.debug_code(error_description="Fix infinite loop in data processing", files=["src/processing.py"], model=DevinModel.DEEPSEEK_V4)
 ```
 
 ### Generación de Tests

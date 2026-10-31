@@ -243,10 +243,7 @@ class LearningScorer:
         # Build reasoning
         reasoning = []
         if similar_patterns:
-            reasoning.append(
-                f"Pattern known ({len(similar_patterns)} similar found, "
-                f"best match score={similar_patterns[0].get('similarity_score', 0)})"
-            )
+            reasoning.append(f"Pattern known ({len(similar_patterns)} similar found, best match score={similar_patterns[0].get('similarity_score', 0)})")
         if waf_detected:
             reasoning.append("WAF detected in similar endpoints (penalty applied)")
         if entity_vuln_stats and entity_type in entity_vuln_stats:

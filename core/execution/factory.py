@@ -455,9 +455,7 @@ class ExecutionFactory:
 
 
 def _default_format(platform: str) -> str:
-    return {"github": "Pull Request", "algora": "Work submission", "outlier": "CSV/JSON", "freelancer": "Proposal"}.get(
-        platform, "generic upload"
-    )
+    return {"github": "Pull Request", "algora": "Work submission", "outlier": "CSV/JSON", "freelancer": "Proposal"}.get(platform, "generic upload")
 
 
 def _dependency_manifest(tech: list[str]) -> str:

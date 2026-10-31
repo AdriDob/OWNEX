@@ -158,9 +158,7 @@ _register_builtin(
             FormField(name="program", kind=FieldKind.DROPDOWN, label="Program"),
             FormField(name="vulnerability_title", kind=FieldKind.TEXT, label="Title"),
             FormField(name="vulnerability_report", kind=FieldKind.TEXTAREA, label="Description"),
-            FormField(
-                name="severity", kind=FieldKind.SELECT, label="Priority", options=["critical", "high", "medium", "low"]
-            ),
+            FormField(name="severity", kind=FieldKind.SELECT, label="Priority", options=["critical", "high", "medium", "low"]),
         ],
         submit_button="Submit Report",
         success_indicators=["Submission received", "Thank you"],

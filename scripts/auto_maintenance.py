@@ -25,9 +25,7 @@ class AutoMaintenance:
         issues = []
 
         try:
-            result = subprocess.run(
-                ["pip", "list", "--outdated", "--format=json"], capture_output=True, text=True, timeout=30
-            )
+            result = subprocess.run(["pip", "list", "--outdated", "--format=json"], capture_output=True, text=True, timeout=30)
 
             if result.returncode == 0:
                 outdated = json.loads(result.stdout)
@@ -59,9 +57,7 @@ class AutoMaintenance:
         issues = []
 
         try:
-            result = subprocess.run(
-                ["npm", "outdated", "--json"], capture_output=True, text=True, timeout=30, cwd=PROJECT_ROOT / "frontend"
-            )
+            result = subprocess.run(["npm", "outdated", "--json"], capture_output=True, text=True, timeout=30, cwd=PROJECT_ROOT / "frontend")
 
             if result.returncode == 0:
                 outdated = json.loads(result.stdout)
@@ -122,9 +118,7 @@ class AutoMaintenance:
         issues = []
 
         try:
-            result = subprocess.run(
-                ["python", "-m", "pytest", "--timeout=60", "-q"], capture_output=True, text=True, timeout=60
-            )
+            result = subprocess.run(["python", "-m", "pytest", "--timeout=60", "-q"], capture_output=True, text=True, timeout=60)
 
             if result.returncode != 0:
                 failed_tests = result.stdout.count("FAILED")

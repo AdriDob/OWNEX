@@ -28,12 +28,7 @@ def status_l2(data: dict[str, Any]) -> str:
     pipelines = data.get("pipelines_active", 0)
     events = data.get("events_24h", 0)
     pending = data.get("pending_findings", 0)
-    return (
-        f"{base}\n\n"
-        f"📊 *Detalles*\n"
-        f"Agentes: {agents}  |  Pipelines: {pipelines}\n"
-        f"Pendientes: {pending}  |  Eventos 24h: {events}"
-    )
+    return f"{base}\n\n📊 *Detalles*\nAgentes: {agents}  |  Pipelines: {pipelines}\nPendientes: {pending}  |  Eventos 24h: {events}"
 
 
 def status_l3(data: dict[str, Any]) -> str:
@@ -86,12 +81,7 @@ def revenue_l1(data: dict[str, Any]) -> str:
     total = data.get("total_revenue", 0)
     monthly = data.get("monthly_revenue", 0)
     yearly = data.get("estimated_annual", 0)
-    return (
-        f"💰 *Revenue Multiplier*\n"
-        f"Total: ${float(total):.2f}\n"
-        f"Este mes: ${float(monthly):.2f}\n"
-        f"Proyección anual: ${float(yearly):.2f}"
-    )
+    return f"💰 *Revenue Multiplier*\nTotal: ${float(total):.2f}\nEste mes: ${float(monthly):.2f}\nProyección anual: ${float(yearly):.2f}"
 
 
 def revenue_l2(data: dict[str, Any]) -> str:

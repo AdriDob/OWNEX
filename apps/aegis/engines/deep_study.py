@@ -320,9 +320,7 @@ class DeepStudyEngine:
             try:
                 urls = [f"https://{domain}{ep.get('path', '')}" for ep in classified[:50]]
                 httpx_results = self._httpx.probe(urls, tech_detect=True, timeout=60)
-                technologies = TechAnalyzer.aggregate_from_httpx(
-                    [r.to_dict() if hasattr(r, "to_dict") else r for r in httpx_results]
-                )
+                technologies = TechAnalyzer.aggregate_from_httpx([r.to_dict() if hasattr(r, "to_dict") else r for r in httpx_results])
             except Exception as exc:
                 logger.debug("httpx probe failed: %s", exc)
         if not technologies:
@@ -360,17 +358,13 @@ class DeepStudyEngine:
         copilot_plan = None
         if self._copilot is not None:
             try:
-                plan = self._copilot.create_plan(
-                    finding={"vulnerability_type": "generic", "title": f"Deep study: {target_name}"}
-                )
+                plan = self._copilot.create_plan(finding={"vulnerability_type": "generic", "title": f"Deep study: {target_name}"})
                 if plan:
                     copilot_plan = plan.to_dict() if hasattr(plan, "to_dict") else {"id": str(plan.id)}
             except Exception:
                 pass
 
-        summary = self._compose_summary(
-            target_name, domain, final_score, technologies, len(classified), len(tech_hypotheses)
-        )
+        summary = self._compose_summary(target_name, domain, final_score, technologies, len(classified), len(tech_hypotheses))
 
         return DeepStudyResult(
             target_name=target_name,

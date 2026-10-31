@@ -221,9 +221,7 @@ class TestCode4renaAdapter:
         assert opp.url == "https://code4rena.com/contests/live-one"
         assert "hyperliquid" not in opp.tags or True
 
-    @pytest.mark.parametrize(
-        "bad_html", ["", "<html>no chunks</html>", '<script>self.__next_f.push([1,"broken"])</script>']
-    )
+    @pytest.mark.parametrize("bad_html", ["", "<html>no chunks</html>", '<script>self.__next_f.push([1,"broken"])</script>'])
     def test_structural_changes_degrade_to_empty(self, bad_html: str) -> None:
         adapter = Code4renaAdapter()
 

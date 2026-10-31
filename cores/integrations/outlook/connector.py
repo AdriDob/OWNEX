@@ -712,18 +712,14 @@ class OutlookConnector:
                 {"auth": "oauth2", "provider": "microsoft_graph"},
                 description="Send email via Microsoft Graph API",
             )
-            reg.register(
-                "list_emails", "outlook", {"max_results": 100}, description="Fetch recent emails from Outlook inbox"
-            )
+            reg.register("list_emails", "outlook", {"max_results": 100}, description="Fetch recent emails from Outlook inbox")
             reg.register(
                 "create_calendar_event",
                 "outlook",
                 {"supports": ["online", "location", "attendees"]},
                 description="Create calendar event in Outlook",
             )
-            reg.register(
-                "list_calendar_events", "outlook", {"max_days_ahead": 365}, description="Fetch upcoming calendar events"
-            )
+            reg.register("list_calendar_events", "outlook", {"max_days_ahead": 365}, description="Fetch upcoming calendar events")
             reg.register(
                 "update_calendar_event",
                 "outlook",

@@ -49,9 +49,7 @@ class EconomicMemory:
 
     def refresh(self, estimated_hours: float = 0.0) -> dict[str, list[str]]:
         programs: dict[str, dict[str, Any]] = {}
-        vulns: dict[str, dict[str, Any]] = defaultdict(
-            lambda: {"total_payout": 0.0, "count": 0, "accepted": 0, "rejected": 0, "duplicate": 0}
-        )
+        vulns: dict[str, dict[str, Any]] = defaultdict(lambda: {"total_payout": 0.0, "count": 0, "accepted": 0, "rejected": 0, "duplicate": 0})
         total_payout = 0.0
         total_accepted = 0
         total_rejected = 0
@@ -179,9 +177,7 @@ class EconomicMemory:
             "total_hours": estimated_hours,
             "overall_usd_per_hour": round(total_payout / max(estimated_hours or 1, 1), 2),
             "best_program": best,
-            "overall_accepted_rate": round(
-                total_accepted / max(total_accepted + total_rejected + total_duplicate, 1), 3
-            ),
+            "overall_accepted_rate": round(total_accepted / max(total_accepted + total_rejected + total_duplicate, 1), 3),
             "last_updated": datetime.now(UTC).isoformat(),
         }
         self._store.store(NS, "summary:overall", content="economic_summary", metadata=summary, tags=["summary"])

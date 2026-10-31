@@ -131,9 +131,7 @@ def test_api_client_get_never_raises_on_error(monkeypatch, tmp_path):
 
 def test_api_client_fetch_targets_items(monkeypatch, tmp_path):
     fake = _FakeTransport()
-    fake.get_responses["http://127.0.0.1:8000/api/targets"] = _Resp(
-        200, {"items": [{"id": 3, "name": "x.com"}], "total": 1}
-    )
+    fake.get_responses["http://127.0.0.1:8000/api/targets"] = _Resp(200, {"items": [{"id": 3, "name": "x.com"}], "total": 1})
     monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
     client = ApiClient(data_dir=Path(tmp_path))
     assert client.fetch_targets() == [{"id": 3, "name": "x.com"}]
@@ -181,9 +179,7 @@ def test_api_client_download_writes_file(monkeypatch, tmp_path):
 
 def test_api_client_export_report_writes_file(monkeypatch, tmp_path):
     fake = _FakeTransport()
-    fake.get_responses["http://127.0.0.1:8000/api/reports/5/export?format=markdown"] = _BinaryResp(
-        200, b"# Final report\n"
-    )
+    fake.get_responses["http://127.0.0.1:8000/api/reports/5/export?format=markdown"] = _BinaryResp(200, b"# Final report\n")
     monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
     client = ApiClient(data_dir=Path(tmp_path))
     dest = client.export_report(5, fmt="markdown")
@@ -194,9 +190,7 @@ def test_api_client_export_report_writes_file(monkeypatch, tmp_path):
 
 def test_api_client_fetch_reports_items(monkeypatch, tmp_path):
     fake = _FakeTransport()
-    fake.get_responses["http://127.0.0.1:8000/api/reports"] = _Resp(
-        200, {"items": [{"id": 1, "title": "R"}], "total": 1}
-    )
+    fake.get_responses["http://127.0.0.1:8000/api/reports"] = _Resp(200, {"items": [{"id": 1, "title": "R"}], "total": 1})
     monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
     client = ApiClient(data_dir=Path(tmp_path))
     assert client.fetch_reports() == [{"id": 1, "title": "R"}]
@@ -204,9 +198,7 @@ def test_api_client_fetch_reports_items(monkeypatch, tmp_path):
 
 def test_api_client_fetch_operations_timeline_events(monkeypatch, tmp_path):
     fake = _FakeTransport()
-    fake.get_responses["http://127.0.0.1:8000/api/operations/timeline"] = _Resp(
-        200, {"events": [{"type": "finding"}], "total": 1}
-    )
+    fake.get_responses["http://127.0.0.1:8000/api/operations/timeline"] = _Resp(200, {"events": [{"type": "finding"}], "total": 1})
     monkeypatch.setattr("desktop.native.services.api_client.httpx.get", fake.get)
     client = ApiClient(data_dir=Path(tmp_path))
     assert client.fetch_operations_timeline() == [{"type": "finding"}]
@@ -742,9 +734,7 @@ def test_surface_view_add_target_duplicate_notice(qapp, monkeypatch):
     )
     monkeypatch.setattr("desktop.native.ui.views.surface.QInputDialog.getText", lambda *a: ("dup.example.com", True))
     notices: list[str] = []
-    monkeypatch.setattr(
-        "desktop.native.ui.views.surface.QMessageBox.information", lambda *a, **k: notices.append(str(a[2]))
-    )
+    monkeypatch.setattr("desktop.native.ui.views.surface.QMessageBox.information", lambda *a, **k: notices.append(str(a[2])))
     view = SurfaceView()
     view._mission = _M()  # type: ignore[assignment]  # noqa: SLF001
     view._add_target()  # noqa: SLF001

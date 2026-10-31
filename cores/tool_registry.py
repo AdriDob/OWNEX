@@ -203,9 +203,7 @@ class BaseTool(ABC):
                 self._last_executed = datetime.now(UTC)
                 self._last_error = None
 
-                record_execution_action(
-                    action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=True
-                )
+                record_execution_action(action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=True)
 
                 return output
 
@@ -217,9 +215,7 @@ class BaseTool(ABC):
                 is_retryable = any(retry_err in error_str for retry_err in self.manifest.retryable_errors)
 
                 if attempt < self.manifest.max_retries and is_retryable:
-                    logger.warning(
-                        "Tool %s attempt %d failed, retrying: %s", self.manifest.name, attempt + 1, error_str
-                    )
+                    logger.warning("Tool %s attempt %d failed, retrying: %s", self.manifest.name, attempt + 1, error_str)
                     await asyncio.sleep(2**attempt)  # Exponential backoff
                     continue
                 else:
@@ -229,9 +225,7 @@ class BaseTool(ABC):
         duration = time.time() - start_time
         self._last_error = str(last_exception)
 
-        record_execution_action(
-            action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=False
-        )
+        record_execution_action(action_type=self.manifest.name, capability=self.manifest.category, duration=duration, success=False)
 
         if last_exception:
             raise last_exception

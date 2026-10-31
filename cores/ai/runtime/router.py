@@ -265,9 +265,7 @@ class SmartRouter:
 
         return decision
 
-    def record_outcome(
-        self, decision: RoutingDecision, success: bool, latency_ms: float, quality: float, cost_usd: float
-    ) -> None:
+    def record_outcome(self, decision: RoutingDecision, success: bool, latency_ms: float, quality: float, cost_usd: float) -> None:
         """Record outcome for learning."""
         # Update provider health metrics
         health = self._health.get_health(decision.provider_id)

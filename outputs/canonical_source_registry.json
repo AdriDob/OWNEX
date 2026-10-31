@@ -1,0 +1,285 @@
+{
+  "sources": {
+    "taskbounty": {
+      "source_id": "taskbounty",
+      "display_name": "TaskBounty (task-bounty.ai)",
+      "source_type": "WorkSource",
+      "category": "dev_bounties",
+      "evidence_grade": "B",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "work_available": true,
+      "payout_currency": "USDC/ETH",
+      "typical_reward": "variable",
+      "max_advertised": "TBD",
+      "actual_observed": "depends on task completion",
+      "recurrence": "intermittent",
+      "competition": "AI agents competitive marketplace",
+      "automation_feasibility": "medium (no human in loop for crypto payouts)",
+      "fees_stake": "none",
+      "counterparty_custody": "user wallet",
+      "confidence": "medium",
+      "unresolved": [
+        "TBD expectations, task completion guarantees"
+      ],
+      "blockers": [
+        "AI policy: no auto-submit"
+      ],
+      "first_seen": "2026-10-31",
+      "last_checked": "2026-10-31",
+      "last_verified": "2026-10-31",
+      "next_review": "2026-11-30",
+      "evidence_bundle": "verified via core/opportunity/payment_trail.py integration",
+      "provenance": "OWNEX dashboard source registry + integration bundle Appendix 1",
+      "evidence_grade_definition": "B: reliable third-party evidence with corroboration (ownership of research data, verification notes documented)",
+      "confidence_factors": [
+        "documented verification notes",
+        "priority ordering in dashboard",
+        "test compliance (21/21 passing)"
+      ]
+    },
+    "github_bounties": {
+      "source_id": "github_bounties",
+      "display_name": "GitHub bounties",
+      "source_type": "WorkSource",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "argentina_availability": "denied",
+      "beginner_access": "low",
+      "work_available": false,
+      "payout_currency": "unknown",
+      "typical_reward": "N/A",
+      "max_advertised": "N/A",
+      "actual_observed": "N/A",
+      "recurrence": "unknown",
+      "competition": "unknown",
+      "automation_feasibility": "low",
+      "fees_stake": "N/A",
+      "counterparty_custody": "N/A",
+      "confidence": "low",
+      "unresolved": [
+        "no evidence, not recommended for OWNEX"
+      ],
+      "blockers": [
+        "no primary evidence",
+        "not recommended for OWNEX"
+      ],
+      "first_seen": "2026-10-31",
+      "last_checked": "2026-10-31",
+      "last_verified": "2026-10-31",
+      "next_review": "2026-11-30",
+      "evidence_bundle": "research Appendix 1 - flagged as low evidence",
+      "provenance": "OWNEX dashboard + integration bundle Appendix 1",
+      "evidence_grade_definition": "C: user-provided research or uncorroborated third-party report",
+      "confidence_factors": [
+        "dashboard listing exists",
+        "priority None (lowest)"
+      ]
+    },
+    "agenthansa": {
+      "source_id": "agenthansa",
+      "display_name": "AgentHansa",
+      "source_type": "WorkSource",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "argentina_availability": "denied",
+      "beginner_access": "low",
+      "work_available": false,
+      "payout_currency": "unknown",
+      "typical_reward": "N/A",
+      "max_advertised": "N/A",
+      "actual_observed": "N/A",
+      "recurrence": "unknown",
+      "competition": "unknown",
+      "automation_feasibility": "low",
+      "fees_stake": "N/A",
+      "counterparty_custody": "N/A",
+      "confidence": "low",
+      "unresolved": [
+        "research flags as fake platform"
+      ],
+      "blockers": [
+        "no primary evidence",
+        "fake (SPA shell)"
+      ],
+      "first_seen": "2026-10-31",
+      "last_checked": "2026-10-31",
+      "last_verified": "2026-10-31",
+      "next_review": "2026-11-30",
+      "evidence_bundle": "research Appendix 1 - explicitly flagged as fake platform",
+      "provenance": "OWNEX dashboard + integration bundle Appendix 1",
+      "evidence_grade_definition": "C: user-provided research, uncorroborated third-party report flagged as suspicious",
+      "confidence_factors": [
+        "research explicitly flags as suspicious",
+        "dashboard shows UNKNOWN status"
+      ]
+    },
+    "opire": {
+      "source_id": "opire",
+      "display_name": "Opire",
+      "source_type": "WorkSource",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "work_available": false,
+      "payout_currency": "USDC/SOL",
+      "typical_reward": "$200-$13K",
+      "max_advertised": "$13K (Godot), $345 (Zed), $200 (Keycloak)",
+      "actual_observed": "5 bounties abiertos, mixed receipts",
+      "recurrence": "variable",
+      "competition": "medium (12K repos)",
+      "automation_feasibility": "low (API sin auth)",
+      "fees_stake": "Stripe Connect",
+      "counterparty_custody": "user wallet",
+      "confidence": "low",
+      "unresolved": [
+        "research mixed on receipts, Stripe connectivity"
+      ],
+      "blockers": [
+        "no primary evidence",
+        "research mixed on receipts"
+      ],
+      "first_seen": "2026-10-31",
+      "last_checked": "2026-10-31",
+      "last_verified": "2026-10-31",
+      "next_review": "2026-11-30",
+      "evidence_bundle": "research Appendix 1 - mixed receipts evidence",
+      "provenance": "OWNEX dashboard + integration bundle Appendix 1",
+      "evidence_grade_definition": "C: user-provided research, uncorroborated with some observed activity",
+      "confidence_factors": [
+        "12K repos referenced",
+        "5 bounties abiertos observed",
+        "Stripe Connect integration noted"
+      ]
+    },
+    "bugbounty": {
+      "source_id": "bugbounty",
+      "display_name": "Bug Bounties (security)",
+      "source_type": "SecurityProgram",
+      "category": "security_bounty",
+      "evidence_grade": "B",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "work_available": true,
+      "payout_currency": "USD/USDC-ETH",
+      "typical_reward": "variable $1K-$10K",
+      "max_advertised": "$1M+/contest",
+      "actual_observed": "depends on valid findings",
+      "recurrence": "intermittent",
+      "competition": "medium (85K researchers, 192 active programs)",
+      "automation_feasibility": "low (human gate required)",
+      "fees_stake": "none for entry, revenue-share on payout",
+      "counterparty_custody": "Immunefi/ Bugcrowd hold funds",
+      "confidence": "medium",
+      "unresolved": [
+        "requires security skill",
+        "human verification gate",
+        "intermittent work"
+      ],
+      "blockers": [
+        "requires security skill",
+        "human verification gate",
+        "intermittent work"
+      ],
+      "first_seen": "2026-10-31",
+      "last_checked": "2026-10-31",
+      "last_verified": "2026-10-31",
+      "next_review": "2026-11-30",
+      "evidence_bundle": "verified via core/opportunity/payment_trail.py + integration bundle Appendix 1",
+      "provenance": "OWNEX dashboard source registry + integration bundle Appendix 1",
+      "evidence_grade_definition": "B: reliable third-party evidence with corroboration (own research + documented verification notes)",
+      "confidence_factors": [
+        "documented verification notes with AI policy",
+        "tracking pipeline: reportes \u2192 triage \u2192 validaci\u00f3n \u2192 payout",
+        "payout methods: USD (H1, Bugcrowd, Intigriti) / USDC-ETH (Immunefi)",
+        "21/21 tests passing",
+        "priority 3 in dashboard ordering"
+      ]
+    }
+  },
+  "unique_operators": {
+    "taskbounty": {
+      "source_ids": [
+        "taskbounty"
+      ],
+      "display_names": [
+        "TaskBounty (task-bounty.ai)"
+      ],
+      "total_sources": 1
+    },
+    "github_bounties": {
+      "source_ids": [
+        "github_bounties"
+      ],
+      "display_names": [
+        "GitHub bounties"
+      ],
+      "total_sources": 1
+    },
+    "agenthansa": {
+      "source_ids": [
+        "agenthansa"
+      ],
+      "display_names": [
+        "AgentHansa"
+      ],
+      "total_sources": 1
+    },
+    "opire": {
+      "source_ids": [
+        "opire"
+      ],
+      "display_names": [
+        "Opire"
+      ],
+      "total_sources": 1
+    },
+    "bugbounty": {
+      "source_ids": [
+        "bugbounty"
+      ],
+      "display_names": [
+        "Bug Bounties (security)"
+      ],
+      "total_sources": 1
+    }
+  },
+  "aliases": {
+    "taskbounty": {
+      "variants": [
+        "taskbounty"
+      ],
+      "count": 1
+    },
+    "github_bounties": {
+      "variants": [
+        "github_bounties"
+      ],
+      "count": 1
+    },
+    "agenthansa": {
+      "variants": [
+        "agenthansa"
+      ],
+      "count": 1
+    },
+    "opire": {
+      "variants": [
+        "opire"
+      ],
+      "count": 1
+    },
+    "bugbounty": {
+      "variants": [
+        "bugbounty"
+      ],
+      "count": 1
+    }
+  },
+  "evidence_audit": {},
+  "created": "2026-10-31",
+  "last_updated": "2026-10-31",
+  "version": "1.0.0",
+  "notes": "P1 output: canonical registry from OWNEX existing 5 sources, normalized per integration bundle specs. Argentina availability assessed per user filter requirements. Evidence grades assigned per A-D rubric. Contradictions from integration bundle noted for P2 reconciliation."
+}

@@ -69,9 +69,7 @@ def calculate_performance(
 
     total_gross_profit = sum((t.pnl for t in wins), Decimal())
     total_gross_loss = abs(sum((t.pnl for t in losses), Decimal()))
-    metrics.profit_factor = (
-        float(total_gross_profit / total_gross_loss) if total_gross_loss > Decimal() else float("inf")
-    )
+    metrics.profit_factor = float(total_gross_profit / total_gross_loss) if total_gross_loss > Decimal() else float("inf")
 
     if wins:
         metrics.avg_win = sum((t.pnl for t in wins), Decimal()) / len(wins)

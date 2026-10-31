@@ -118,12 +118,8 @@ class TestAllocationController:
 
         from core.investment.models import StrategyAllocation
 
-        ctrl._strategies["memecoin"] = StrategyAllocation(
-            strategy_id="memecoin", allocated_usd=200.0, deployed_usd=200.0
-        )
-        ctrl._strategies["polymarket"] = StrategyAllocation(
-            strategy_id="polymarket", allocated_usd=50.0, deployed_usd=50.0
-        )
+        ctrl._strategies["memecoin"] = StrategyAllocation(strategy_id="memecoin", allocated_usd=200.0, deployed_usd=200.0)
+        ctrl._strategies["polymarket"] = StrategyAllocation(strategy_id="polymarket", allocated_usd=50.0, deployed_usd=50.0)
 
         exposure = ctrl.get_high_risk_exposure()
         assert exposure["high_risk_deployed"] == 250.0
@@ -151,9 +147,7 @@ class TestAllocationController:
 
         from core.investment.models import StrategyAllocation
 
-        ctrl._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        ctrl._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         success = ctrl.deploy_capital("ccxt_spot", 200.0)
         assert success is True
@@ -238,9 +232,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0)
 
         mgr._active_strategies["ccxt_spot"] = {
             "strategy_id": "ccxt_spot",
@@ -261,9 +253,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         check = mgr.can_deploy("ccxt_spot", 100.0)
         assert check["allowed"] is True
@@ -281,9 +271,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         result = mgr.deploy("ccxt_spot", 200.0)
         assert result["success"] is True
@@ -300,9 +288,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0)
         mgr._active_strategies["ccxt_spot"] = {
             "strategy_id": "ccxt_spot",
             "deployed_at": "",
@@ -326,9 +312,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, deployed_usd=200.0, available_usd=300.0)
         mgr._active_strategies["ccxt_spot"] = {
             "strategy_id": "ccxt_spot",
             "deployed_at": "",
@@ -360,9 +344,7 @@ class TestInvestmentManager:
 
         from core.investment.models import StrategyAllocation
 
-        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        mgr.allocation._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         mgr.deploy("ccxt_spot", 200.0)
         result = mgr.activate_max_revenue_mode()
@@ -617,9 +599,7 @@ class TestInvestmentAPI:
 
         ctrl = get_allocation_controller()
         ctrl.update_capital(10000.0)
-        ctrl._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        ctrl._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         response = client.post("/api/investment/strategies/ccxt_spot/deploy", json={"amount": 200.0})
         assert response.status_code == 200
@@ -637,9 +617,7 @@ class TestInvestmentAPI:
 
         ctrl = get_allocation_controller()
         ctrl.update_capital(10000.0)
-        ctrl._strategies["ccxt_spot"] = StrategyAllocation(
-            strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0
-        )
+        ctrl._strategies["ccxt_spot"] = StrategyAllocation(strategy_id="ccxt_spot", allocated_usd=500.0, available_usd=500.0)
 
         mgr = get_investment_manager()
         mgr.deploy("ccxt_spot", 200.0)

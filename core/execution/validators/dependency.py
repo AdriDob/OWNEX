@@ -84,8 +84,7 @@ class DependencyValidator(BaseValidator):
                     result.warnings.append(
                         self._warning(
                             "DEP_INTEGRATION_NOT_READY",
-                            f"Integration '{integ}' is configured but status is "
-                            f"'{integ_info.get('status', 'unknown')}'",
+                            f"Integration '{integ}' is configured but status is '{integ_info.get('status', 'unknown')}'",
                             node_id=node.id,
                             integration=integ,
                             status=integ_info.get("status"),

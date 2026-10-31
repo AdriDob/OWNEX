@@ -218,8 +218,7 @@ def capture_screenshot(output_path: str | Path | None = None) -> str | Path:
             pass
 
     raise RuntimeError(
-        "No screenshot tool available. Install one of: scrot, import (ImageMagick), "
-        "maim, xfce4-screenshooter, Pillow, or screencapture (macOS)."
+        "No screenshot tool available. Install one of: scrot, import (ImageMagick), maim, xfce4-screenshooter, Pillow, or screencapture (macOS)."
     )
 
 
@@ -278,9 +277,7 @@ def execute_action(action: Action) -> dict[str, Any]:
 
         elif action.type == ActionType.TYPE_TEXT:
             if action.text:
-                pyautogui.typewrite(action.text, interval=0.02) if action.text.isascii() else pyautogui.write(
-                    action.text
-                )
+                pyautogui.typewrite(action.text, interval=0.02) if action.text.isascii() else pyautogui.write(action.text)
                 result["typed"] = len(action.text)
 
         elif action.type == ActionType.PRESS_KEY:
@@ -769,8 +766,7 @@ class ComputerUseTool:
     def is_available(self) -> bool:
         """Check if computer use is possible (screenshot + pyautogui)."""
         has_screenshot = (
-            any(shutil.which(t) for t in ("scrot", "import", "maim", "screencapture", "xfce4-screenshooter"))
-            or os.name == "nt"
+            any(shutil.which(t) for t in ("scrot", "import", "maim", "screencapture", "xfce4-screenshooter")) or os.name == "nt"
         )  # PowerShell fallback on Windows
         has_vision = self._config.vision_provider == "openai_compatible" or shutil.which("ollama") is not None
         return has_screenshot and has_vision

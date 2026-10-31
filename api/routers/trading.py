@@ -33,9 +33,7 @@ _engine: CopyTradingEngine | None = None
 def _get_engine() -> CopyTradingEngine:
     global _engine
     if _engine is None:
-        _engine = CopyTradingEngine(
-            store=TradingStore(), config=TradingConfig(), executor=create_executor(TradingConfig())
-        )
+        _engine = CopyTradingEngine(store=TradingStore(), config=TradingConfig(), executor=create_executor(TradingConfig()))
     return _engine
 
 
@@ -173,9 +171,7 @@ def validate_trader(metrics: TraderMetrics) -> dict[str, Any]:
 
 
 @router.post("/intelligence/alerts")
-def check_alerts(
-    metrics: TraderMetrics, current_dd_pct: float | None = None, rolling_win_rate: float | None = None
-) -> dict[str, Any]:
+def check_alerts(metrics: TraderMetrics, current_dd_pct: float | None = None, rolling_win_rate: float | None = None) -> dict[str, Any]:
     alerts = LiveTraderMonitor().check(metrics, current_dd_pct=current_dd_pct, rolling_win_rate=rolling_win_rate)
     return {"success": True, "alerts": alerts, "count": len(alerts)}
 

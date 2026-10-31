@@ -98,9 +98,7 @@ class TestSwitchRecord:
     def test_to_dict(self):
         from core.ai_router.engine import SwitchRecord
 
-        r = SwitchRecord(
-            timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test"
-        )
+        r = SwitchRecord(timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test")
         d = r.to_dict()
         assert d["timestamp"] == "now"
         assert d["success"] is True
@@ -401,9 +399,7 @@ class TestAIRouterEngine:
     def test_record_switch_appends_to_history(self, engine):
         from core.ai_router.engine import SwitchRecord
 
-        r = SwitchRecord(
-            timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test"
-        )
+        r = SwitchRecord(timestamp="now", from_provider="a", from_model="m1", to_provider="b", to_model="m2", reason="test")
         engine.record_switch(r)
         assert len(engine._history) == 1
         assert engine._history[0].from_provider == "a"
@@ -412,9 +408,7 @@ class TestAIRouterEngine:
         from core.ai_router.engine import SwitchRecord
 
         for i in range(5):
-            r = SwitchRecord(
-                timestamp=str(i), from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x"
-            )
+            r = SwitchRecord(timestamp=str(i), from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x")
             engine._history.append(r)
         assert len(engine.get_history(limit=3)) == 3
         assert len(engine.get_history(limit=10)) == 5
@@ -422,12 +416,8 @@ class TestAIRouterEngine:
     def test_clear_history_empties(self, engine):
         from core.ai_router.engine import SwitchRecord
 
-        engine._history.append(
-            SwitchRecord(timestamp="t", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x")
-        )
-        engine._history.append(
-            SwitchRecord(timestamp="t2", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x")
-        )
+        engine._history.append(SwitchRecord(timestamp="t", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x"))
+        engine._history.append(SwitchRecord(timestamp="t2", from_provider="a", from_model="m", to_provider="b", to_model="m", reason="x"))
         engine.clear_history()
         assert len(engine._history) == 0
 

@@ -51,9 +51,7 @@ class InvoicerAR:
         with open(self.state_path, "w", encoding="utf-8") as f:
             json.dump(s, f, indent=2, ensure_ascii=False)
 
-    def configurar(
-        self, cuit: str, cert_path: str, key_path: str, punto_venta: int = 1, modo: str = "homologacion"
-    ) -> dict[str, Any]:
+    def configurar(self, cuit: str, cert_path: str, key_path: str, punto_venta: int = 1, modo: str = "homologacion") -> dict[str, Any]:
         cuit = cuit.replace("-", "").replace(" ", "")
         if len(cuit) != 11:
             return {"success": False, "message": "CUIT inválido."}

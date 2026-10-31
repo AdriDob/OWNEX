@@ -89,9 +89,7 @@ class DecisionMemory:
             if d.get("outcome") in ("success", "completed"):
                 if action is None or d.get("action") == action:
                     scored.append(1)
-            elif d.get("outcome") in ("failure", "error", "dismissed") and (
-                action is None or d.get("action") == action
-            ):
+            elif d.get("outcome") in ("failure", "error", "dismissed") and (action is None or d.get("action") == action):
                 scored.append(0)
         if not scored:
             return 0.5

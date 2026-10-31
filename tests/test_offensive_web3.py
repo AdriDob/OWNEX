@@ -264,9 +264,7 @@ class TestWeb3OffensiveEngine:
         assert not c.has_function("nope")
 
     def test_contract_has_function_prefix(self):
-        c = SmartContractInfo(
-            address="0x1", chain="ethereum", name="T", functions=["withdraw(uint256)", "_withdrawFee()"]
-        )
+        c = SmartContractInfo(address="0x1", chain="ethereum", name="T", functions=["withdraw(uint256)", "_withdrawFee()"])
         assert c.has_function_prefix("withdraw")
         assert c.has_function_prefix("_withdraw")
         assert not c.has_function_prefix("nope")

@@ -109,14 +109,10 @@ def check_target(name: str) -> TargetStatus:
     if ttype == "rclone":
         rclone_path = shutil.which("rclone")
         if not rclone_path:
-            return TargetStatus(
-                name=name, type="rclone", enabled=enabled, available=False, error="rclone not installed"
-            )
+            return TargetStatus(name=name, type="rclone", enabled=enabled, available=False, error="rclone not installed")
         remote = cfg.get("config", {}).get("remote", "")
         if not remote:
-            return TargetStatus(
-                name=name, type="rclone", enabled=enabled, available=False, error="No remote configured"
-            )
+            return TargetStatus(name=name, type="rclone", enabled=enabled, available=False, error="No remote configured")
         try:
             r = subprocess.run(
                 [rclone_path, "lsf", remote, "--max-depth", "1"],
@@ -126,9 +122,7 @@ def check_target(name: str) -> TargetStatus:
             )
             if r.returncode == 0:
                 return TargetStatus(name=name, type="rclone", enabled=enabled, available=True)
-            return TargetStatus(
-                name=name, type="rclone", enabled=enabled, available=False, error=r.stderr.strip()[:200]
-            )
+            return TargetStatus(name=name, type="rclone", enabled=enabled, available=False, error=r.stderr.strip()[:200])
         except subprocess.TimeoutExpired:
             return TargetStatus(name=name, type="rclone", enabled=enabled, available=False, error="Timeout")
         except OSError as exc:

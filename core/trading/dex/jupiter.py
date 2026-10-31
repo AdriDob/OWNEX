@@ -232,15 +232,7 @@ class JupiterClient:
         accounts = data.get("result", {}).get("value", [])
         if not accounts:
             return 0
-        return int(
-            accounts[0]
-            .get("account", {})
-            .get("data", {})
-            .get("parsed", {})
-            .get("info", {})
-            .get("tokenAmount", {})
-            .get("amount", 0)
-        )
+        return int(accounts[0].get("account", {}).get("data", {}).get("parsed", {}).get("info", {}).get("tokenAmount", {}).get("amount", 0))
 
     def _get_sol_balance(self, wallet_address: str) -> int:
         payload = {

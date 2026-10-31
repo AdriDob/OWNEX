@@ -414,9 +414,7 @@ class RevenueEngine:
             opportunity.update_confidence(confidence)
             self.opportunities[opportunity_id] = opportunity
 
-            print(
-                f"[RevenueEngine] 📊 CREATED: Data Annotation opportunity {opportunity_id} - ${opportunity.base_reward}"
-            )
+            print(f"[RevenueEngine] 📊 CREATED: Data Annotation opportunity {opportunity_id} - ${opportunity.base_reward}")
 
 
 # Global revenue engine instance
@@ -435,9 +433,7 @@ def publish_platform_discovery(platform: PlatformType, data: list[dict[str, Any]
 
 def publish_opportunity_evaluation(opportunity_id: str, confidence: float):
     """Publish opportunity evaluation event - Phase 2: EVALUATION."""
-    _revenue_engine.event_bus.publish(
-        "opportunity.evaluated", {"opportunity_id": opportunity_id, "confidence": confidence}
-    )
+    _revenue_engine.event_bus.publish("opportunity.evaluated", {"opportunity_id": opportunity_id, "confidence": confidence})
 
 
 def publish_opportunity_selection(opportunity_id: str):
@@ -457,9 +453,7 @@ def publish_opportunity_execution(opportunity_id: str, agent: str = "auto"):
 
 def publish_opportunity_delivery(opportunity_id: str, delivery_type: str = "auto"):
     """Publish opportunity delivery event - Phase 6: DELIVERY."""
-    _revenue_engine.event_bus.publish(
-        "opportunity.delivered", {"opportunity_id": opportunity_id, "delivery_type": delivery_type}
-    )
+    _revenue_engine.event_bus.publish("opportunity.delivered", {"opportunity_id": opportunity_id, "delivery_type": delivery_type})
 
 
 def publish_opportunity_validation(opportunity_id: str, valid: bool = True):

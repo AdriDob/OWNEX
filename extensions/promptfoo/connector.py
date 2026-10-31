@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.promptfoo.connector")
 

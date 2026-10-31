@@ -288,10 +288,7 @@ class LearningEngine(Engine):
         pattern = LearnedPattern(
             id=pattern_id,
             pattern=(
-                f"Acceptance rate for {record.platform} ({record.source_type}): "
-                f"{success}/{total} = {success / total:.0%}"
-                if total > 0
-                else "No data yet"
+                f"Acceptance rate for {record.platform} ({record.source_type}): {success}/{total} = {success / total:.0%}" if total > 0 else "No data yet"
             ),
             confidence=min(0.3 + total * 0.05, 0.95),
             source_type=record.source_type,

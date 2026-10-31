@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -246,9 +247,7 @@ class TestLegacyDweAdapter:
         from core.opportunity.adapters import RawOpportunity
         from cores.direct_work_engine.models import EmploymentType, OpportunityCategory, WorkPlatform
 
-        raw = RawOpportunity(
-            id="f1", name="Build a landing page", description="", platform="freelancer", reward=1500.0, effort_hours=20
-        )
+        raw = RawOpportunity(id="f1", name="Build a landing page", description="", platform="freelancer", reward=1500.0, effort_hours=20)
         with patch("core.opportunity.adapters.freelancer.FreelancerAdapter") as mock_cls:
             mock_cls.return_value.fetch_opportunities = AsyncMock(return_value=[raw])
             adapter = LegacyOpportunityDweAdapter(
@@ -333,11 +332,64 @@ def make_opp(**overrides) -> Opportunity:
 
 
 class TestDeliveryFlow:
+    def test_delivery_confirmation_does_not_record_acceptance_or_earnings(self, tmp_path, monkeypatch) -> None:
+        from api.routers.direct_work import direct_work_deliver_approve
+        from core.execution_queue import mirror
+        from cores.direct_work_engine.workbank import WorkBank, WorkItem
+
+        bank = WorkBank(tmp_path / "wb-delivered.json")
+        bank._items["delivery-only"] = WorkItem(
+            id="delivery-only", title="Fix issue", platform="algora", category="dev_bounty", reward=200,
+            barrier_score=80, employment_type="bounty", ready_to_deliver=True,
+        )
+        monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
+        monkeypatch.setattr("api.routers.direct_work.apply_learning", lambda *_args: pytest.fail("delivery is not acceptance"))
+        monkeypatch.setattr(mirror, "mirror_workbank_approved", lambda *_args: None)
+
+        result = asyncio.run(direct_work_deliver_approve("delivery-only"))
+        assert result["status"] == "delivered"
+        assert "aceptación y pago siguen sin confirmar" in result["message"].lower()
+
+    def test_workbank_item_detail_returns_persisted_context(self, tmp_path, monkeypatch) -> None:
+        import asyncio
+
+        from api.routers.direct_work import direct_work_workbank_item
+        from cores.direct_work_engine.workbank import WorkBank, WorkItem
+
+        bank = WorkBank(tmp_path / "wb-detail.json")
+        monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
+        bank._items["detail-1"] = WorkItem(
+            id="detail-1", title="Fix auth", platform="algora", category="dev_bounty", reward=100,
+            barrier_score=75, employment_type="bounty", description="Reproduce and fix issue",
+            url="https://example.test/issue/1",
+        )
+
+        item = asyncio.run(direct_work_workbank_item("detail-1"))
+        assert item["description"] == "Reproduce and fix issue"
+        assert item["url"] == "https://example.test/issue/1"
+
+    def test_workbank_item_detail_missing_returns_404(self, tmp_path, monkeypatch) -> None:
+        import asyncio
+
+        from fastapi import HTTPException
+
+        from api.routers.direct_work import direct_work_workbank_item
+        from cores.direct_work_engine.workbank import WorkBank
+
+        monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: WorkBank(tmp_path / "empty.json"))
+        with pytest.raises(HTTPException) as exc:
+            asyncio.run(direct_work_workbank_item("missing"))
+        assert exc.value.status_code == 404
+
     def test_prepare_approve_flow(self, tmp_path, monkeypatch) -> None:
         from cores.direct_work_engine.workbank import WorkBank
 
         bank = WorkBank(tmp_path / "workbank.json")
         monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
+        monkeypatch.setattr(
+            "api.routers.direct_work.apply_learning",
+            lambda *_args: pytest.fail("submission confirmation must not be learned as acceptance or payment"),
+        )
 
         bank.daily_cycle(
             [
@@ -363,6 +415,7 @@ class TestDeliveryFlow:
         assert done.status_code == 200
         assert done.json()["status"] == "delivered"
         assert done.json()["reward"] == 120.0
+        assert "aceptación y pago siguen sin confirmar" in done.json()["message"]
 
         item = bank.get_item("deliv-1")
         assert item is not None
@@ -656,6 +709,38 @@ class TestMaxSuccessMode:
         assert len(ranked) == 2
         assert ranked[0]["opportunity"]["id"] == "high-accept"
 
+
+class TestAutoSubmitTruthfulness:
+    @pytest.mark.asyncio
+    async def test_auto_submit_does_not_report_submission_without_platform_executor(self, tmp_path, monkeypatch) -> None:
+        from types import SimpleNamespace
+
+        from api.routers import direct_work
+        from cores.direct_work_engine.models import Opportunity, OpportunityCategory, WorkPlatform
+        from cores.direct_work_engine.workbank import WorkBank
+
+        bank = WorkBank(tmp_path / "workbank.json")
+        bank.daily_cycle([
+            Opportunity(
+                id="not-submitted",
+                title="Fix an issue",
+                platform=WorkPlatform.OPIRE,
+                category=OpportunityCategory.DEV_BOUNTY,
+                payment=100,
+            )
+        ])
+        monkeypatch.setattr(direct_work, "get_workbank", lambda: bank)
+        monkeypatch.setattr(
+            "core.trust_engine.get_trust_engine",
+            lambda: SimpleNamespace(can_auto_approve=lambda _platform, _amount: (True, "test approval")),
+        )
+
+        result = await direct_work.direct_work_auto_submit("not-submitted")
+
+        assert result["success"] is False
+        assert result["status"] == "manual_submission_required"
+        assert result["submitted"] is False
+        assert result["requires_manual_action"] is True
 
 class TestSourceIntelApi:
     def test_radar_reports_curated_database(self) -> None:

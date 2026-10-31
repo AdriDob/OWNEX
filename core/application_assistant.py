@@ -533,8 +533,7 @@ class ApplicationAssistant:
             }
             if next_step
             else None,
-            "payment_ready": any(c["id"] == "payment_setup" and c["done"] for c in checklist)
-            or entry["status"] in ("ACTIVE", "QUALIFIED"),
+            "payment_ready": any(c["id"] == "payment_setup" and c["done"] for c in checklist) or entry["status"] in ("ACTIVE", "QUALIFIED"),
             "pay_range": meta.get("pay_range", ""),
             "payout": meta.get("payout", ""),
             "why": meta.get("why", ""),

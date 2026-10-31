@@ -63,11 +63,7 @@ class LearningExecutor(BaseStageExecutor):
                         metadata=lesson.get("metadata", {}),
                     )
                     if entry:
-                        entries.append(
-                            entry._asdict()
-                            if hasattr(entry, "_asdict")
-                            else {"id": str(entry), "lesson": lesson["lesson"]}
-                        )
+                        entries.append(entry._asdict() if hasattr(entry, "_asdict") else {"id": str(entry), "lesson": lesson["lesson"]})
 
             except Exception as exc:
                 self.logger.debug("KnowledgeCapture integration not available: %s", exc)
@@ -110,12 +106,7 @@ class LearningExecutor(BaseStageExecutor):
             try:
                 db_target = session.query(TargetModel).filter(TargetModel.name == target).first()
                 if db_target:
-                    findings = (
-                        session.query(Finding)
-                        .filter(Finding.target_id == db_target.id)
-                        .filter(Finding.status.in_(["confirmed", "rejected"]))
-                        .all()
-                    )
+                    findings = session.query(Finding).filter(Finding.target_id == db_target.id).filter(Finding.status.in_(["confirmed", "rejected"])).all()
                     for finding in findings:
                         entry = kc.capture_from_finding(finding)
                         if entry:
@@ -216,10 +207,7 @@ class LearningExecutor(BaseStageExecutor):
                     lessons.append(
                         {
                             "type": "report_structure",
-                            "lesson": (
-                                f"Report quality gaps identified: {', '.join(list(gaps)[:3])}. "
-                                f"Improve evidence collection for these areas."
-                            ),
+                            "lesson": (f"Report quality gaps identified: {', '.join(list(gaps)[:3])}. Improve evidence collection for these areas."),
                             "confidence": 0.8,
                             "vuln_type": None,
                             "platform": None,

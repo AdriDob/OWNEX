@@ -664,11 +664,7 @@ class ToolRegistry:
 
     def search(self, query: str) -> list[ToolDef]:
         q = query.lower()
-        return [
-            t
-            for t in self._tools.values()
-            if q in t.name.lower() or q in t.description.lower() or any(q in k.lower() for k in t.keywords)
-        ]
+        return [t for t in self._tools.values() if q in t.name.lower() or q in t.description.lower() or any(q in k.lower() for k in t.keywords)]
 
 
 _TOOL_REGISTRY: ToolRegistry | None = None

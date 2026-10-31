@@ -49,12 +49,8 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
     IntegrationDef("intigriti", "platform", "Intigriti bug bounty platform", tags=["bugbounty"]),
     IntegrationDef("immunefi", "platform", "Immunefi blockchain bug bounty platform", tags=["bugbounty"]),
     # ── AI Providers ──
-    IntegrationDef(
-        "openai", "ai", "OpenAI API (GPT models)", env_keys=["OPENAI_API_KEY"], vault_provider="openai", tags=["llm"]
-    ),
-    IntegrationDef(
-        "gemini", "ai", "Google Gemini API", env_keys=["GEMINI_API_KEY"], vault_provider="gemini", tags=["llm"]
-    ),
+    IntegrationDef("openai", "ai", "OpenAI API (GPT models)", env_keys=["OPENAI_API_KEY"], vault_provider="openai", tags=["llm"]),
+    IntegrationDef("gemini", "ai", "Google Gemini API", env_keys=["GEMINI_API_KEY"], vault_provider="gemini", tags=["llm"]),
     IntegrationDef("ollama", "ai", "Local Ollama inference server", env_keys=["OLLAMA_HOST"], tags=["llm", "local"]),
     # ── Exchanges ──
     IntegrationDef(
@@ -82,12 +78,8 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
         tags=["crypto"],
     ),
     # ── Crypto Wallets / Chains ──
-    IntegrationDef(
-        "solana", "blockchain", "Solana blockchain wallet", vault_provider="solana", tags=["crypto", "wallet"]
-    ),
-    IntegrationDef(
-        "bitcoin", "blockchain", "Bitcoin blockchain wallet", vault_provider="btc", tags=["crypto", "wallet"]
-    ),
+    IntegrationDef("solana", "blockchain", "Solana blockchain wallet", vault_provider="solana", tags=["crypto", "wallet"]),
+    IntegrationDef("bitcoin", "blockchain", "Bitcoin blockchain wallet", vault_provider="btc", tags=["crypto", "wallet"]),
     IntegrationDef(
         "evm",
         "blockchain",
@@ -98,9 +90,7 @@ BUILTIN_INTEGRATIONS: list[IntegrationDef] = [
     IntegrationDef("tron", "blockchain", "Tron blockchain wallet", vault_provider="tron", tags=["crypto", "wallet"]),
     # ── Financial ──
     IntegrationDef("coingecko", "financial", "CoinGecko cryptocurrency price feed", tags=["prices"]),
-    IntegrationDef(
-        "takenos", "financial", "Takenos fiat/crypto payment processor", vault_provider="takenos", tags=["payments"]
-    ),
+    IntegrationDef("takenos", "financial", "Takenos fiat/crypto payment processor", vault_provider="takenos", tags=["payments"]),
     # ── Messaging ──
     IntegrationDef(
         "gmail",

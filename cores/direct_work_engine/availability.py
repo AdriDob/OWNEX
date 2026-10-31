@@ -60,9 +60,7 @@ class AvailabilityEngine:
     def get_snapshot(self) -> AvailabilitySnapshot:
         """Get current availability snapshot (today/week/month)."""
         profile = self._load_profile()
-        base_weekly = (
-            float(profile.availability_hours) if profile.availability_hours and profile.availability_hours > 0 else 40.0
-        )
+        base_weekly = float(profile.availability_hours) if profile.availability_hours and profile.availability_hours > 0 else 40.0
 
         # If calendar exists, refine with actual free/busy
         if self._calendar_path.exists():
@@ -253,9 +251,7 @@ class AvailabilityEngine:
                 continue
             if start >= cutoff or end <= datetime.now(UTC):
                 continue
-            blocks.append(
-                TimeBlock(start=ev["start"], end=ev["end"], type=ev.get("type", "busy"), title=ev.get("title", ""))
-            )
+            blocks.append(TimeBlock(start=ev["start"], end=ev["end"], type=ev.get("type", "busy"), title=ev.get("title", "")))
         blocks.sort(key=lambda b: b.start)
         return blocks
 

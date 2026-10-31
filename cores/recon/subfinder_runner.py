@@ -14,9 +14,7 @@ class SubfinderRunner:
     async def run_subfinder(self, domain: str, out_file: str = "subfinder.txt") -> Path:
         path = self.output_dir / out_file
         cmd = [self._binary, "-d", domain, "-silent"]
-        proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-        )
+        proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         try:
             stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=self.timeout)
         except TimeoutError:

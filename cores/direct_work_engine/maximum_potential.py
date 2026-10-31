@@ -161,9 +161,7 @@ class MaxPotentialEngine:
             except Exception:
                 pass
         avg = automation / len(items)
-        hours_saved = round(
-            sum(_to_float(i.to_dict().get("reward")) for i in items) * avg / 100 / max(1, len(items)), 1
-        )
+        hours_saved = round(sum(_to_float(i.to_dict().get("reward")) for i in items) * avg / 100 / max(1, len(items)), 1)
         return {
             "prepared_jobs": len(items),
             "avg_automation_pct": round(avg, 0),
@@ -230,18 +228,12 @@ class MaxPotentialEngine:
         lines.append(f"Completed improvements: {len(report['completed_improvements'])}")
         perf = report["performance_gains"]
         if "conversion_rate" in perf:
-            lines.append(
-                f"Performance gains: conversion {perf['conversion_rate']}, "
-                f"ROI ${perf['roi_usd_per_hour']}/h, revenue ${perf['revenue_usd']}"
-            )
+            lines.append(f"Performance gains: conversion {perf['conversion_rate']}, ROI ${perf['roi_usd_per_hour']}/h, revenue ${perf['revenue_usd']}")
         else:
             lines.append(f"Performance gains: {perf.get('note', 'n/a')}")
         aut = report["automation_gains"]
         if "prepared_jobs" in aut:
-            lines.append(
-                f"Automation gains: {aut['prepared_jobs']} trabajos preparados, "
-                f"{aut['avg_automation_pct']}% automatización promedio"
-            )
+            lines.append(f"Automation gains: {aut['prepared_jobs']} trabajos preparados, {aut['avg_automation_pct']}% automatización promedio")
         else:
             lines.append(f"Automation gains: {aut.get('note', 'n/a')}")
         lines.append(f"New capabilities: {', '.join(report['new_capabilities'][:3]) or 'n/a'}")
@@ -252,10 +244,7 @@ class MaxPotentialEngine:
         impact = report["expected_impact"]
         projection = impact.get("projection", {})
         if "months_to_target" in projection and projection["months_to_target"]:
-            lines.append(
-                f"Expected impact: objetivo en {projection['months_to_target']} meses "
-                f"con capital ${projection.get('capital_at_target_usd', 0)}"
-            )
+            lines.append(f"Expected impact: objetivo en {projection['months_to_target']} meses con capital ${projection.get('capital_at_target_usd', 0)}")
         else:
             lines.append(f"Expected impact: {projection.get('note', 'n/a')}")
         return {"text": "\n".join(lines)}

@@ -79,9 +79,7 @@ def _publish_event(event_type: str, payload: dict[str, Any]) -> None:
         logger.debug("EventBus not available, skipping event: %s", event_type)
 
 
-def _create_finding(
-    session: Any, endpoint: Any, target: Any, analysis: Any, hypothesis_id: str
-) -> models.Finding | None:
+def _create_finding(session: Any, endpoint: Any, target: Any, analysis: Any, hypothesis_id: str) -> models.Finding | None:
     """Create a Finding record in the database from a confirmed probe result."""
     try:
         confidence = getattr(analysis, "confidence", 0.0)
@@ -191,13 +189,7 @@ def run_promote(session: Any) -> dict[str, Any]:
         return stats
 
     # Check which endpoints already have findings to avoid duplicates
-    endpoint_ids_with_findings = {
-        r[0]
-        for r in session.query(models.Finding.endpoint_id)
-        .filter(models.Finding.endpoint_id.isnot(None))
-        .distinct()
-        .all()
-    }
+    endpoint_ids_with_findings = {r[0] for r in session.query(models.Finding.endpoint_id).filter(models.Finding.endpoint_id.isnot(None)).distinct().all()}
 
     engine = ProbeEngine()
 
@@ -320,9 +312,7 @@ def _infer_vuln_type_from_endpoint(endpoint: Any, target: Any) -> str | None:
     if any(k.lower() in id_patterns for k in param_keys) and method in ("GET", "DELETE"):
         return "idor"
 
-    if any(
-        k.lower().startswith("url") or k.lower().startswith("redirect") or k in ("next", "path") for k in param_keys
-    ):
+    if any(k.lower().startswith("url") or k.lower().startswith("redirect") or k in ("next", "path") for k in param_keys):
         return "ssrf"
 
     if any(k.lower() in ("q", "query", "search", "s") for k in param_keys) and method in ("GET", "POST"):

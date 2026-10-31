@@ -208,15 +208,12 @@ class PaymentCompatibilityEngine:
         documentation = self._check_documentation(req)
         if documentation:
             missing.append(documentation)
-            honest_notes.append(
-                "La plataforma exige documentación que OWNEX no tiene; no se sugiere ningún workaround."
-            )
+            honest_notes.append("La plataforma exige documentación que OWNEX no tiene; no se sugiere ningún workaround.")
 
         method_region = _REGION_BOUND_METHODS.get(req.method.lower())
         if method_region and req.region != method_region:
             missing.append(
-                f"El método {_METHOD_LABELS.get(req.method, req.method)} "
-                f"requiere cuenta en {method_region.upper()}, pedida para {req.region.upper()}."
+                f"El método {_METHOD_LABELS.get(req.method, req.method)} requiere cuenta en {method_region.upper()}, pedida para {req.region.upper()}."
             )
         matches = self._find_matches(req)
 
@@ -361,9 +358,7 @@ class PaymentCompatibilityEngine:
 
     def _match_reason(self, account: OwnAccount, req: PaymentRequirement, is_off_ramp: bool) -> str:
         if is_off_ramp:
-            return (
-                f"Recibe {req.currency.upper()} y convierte a salida local; retiro disponible según cuenta/condiciones."
-            )
+            return f"Recibe {req.currency.upper()} y convierte a salida local; retiro disponible según cuenta/condiciones."
         method_label = _METHOD_LABELS.get(req.method, req.method)
         region = req.region.upper()
         return f"Compatible con {account.name}. {req.currency.upper()} · {method_label} · {region}."

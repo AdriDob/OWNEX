@@ -51,20 +51,14 @@ async def main():
     print("-" * 30)
 
     # Store some context
-    await memory.store(
-        namespace="user_preferences", key="focus_areas", value=["web_security", "api_testing", "smart_contracts"]
-    )
+    await memory.store(namespace="user_preferences", key="focus_areas", value=["web_security", "api_testing", "smart_contracts"])
 
-    await memory.store(
-        namespace="session_context", key="current_targets", value=["target1.com", "target2.io", "target3.org"]
-    )
+    await memory.store(namespace="session_context", key="current_targets", value=["target1.com", "target2.io", "target3.org"])
 
     # Ask with context
     print("\n👤 You: Based on my preferences and current targets, what should I focus on?")
     try:
-        response = await merlin.chat(
-            "Based on my preferences and current targets, what should I focus on?", context="personalized"
-        )
+        response = await merlin.chat("Based on my preferences and current targets, what should I focus on?", context="personalized")
         print(f"🤖 MERLIN: {response[:300]}...")
     except Exception as e:
         print(f"   (Demo mode - requires configured system: {e})")
@@ -75,9 +69,7 @@ async def main():
 
     print("\n👤 You: Plan my bug bounty workflow for today")
     try:
-        plan = await merlin.plan_workflow(
-            goal="Complete bug bounty recon and initial testing", constraints={"hours": 4, "focus": "web_apps"}
-        )
+        plan = await merlin.plan_workflow(goal="Complete bug bounty recon and initial testing", constraints={"hours": 4, "focus": "web_apps"})
         print("🤖 MERLIN Workflow Plan:")
         for step in plan.steps[:5]:
             print(f"   {step.order}. {step.description} ({step.estimated_minutes} min)")

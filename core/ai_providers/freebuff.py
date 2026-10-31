@@ -299,10 +299,7 @@ def check_allowed_paths(workspace: str, config: FreebuffConfig) -> bool:
     # Also check if any parent is allowed
     parent = os.path.dirname(workspace_resolved)
     while parent != os.path.dirname(parent):
-        if any(
-            parent.startswith(os.path.realpath(p) + os.sep) or parent == os.path.realpath(p)
-            for p in config.allowed_paths
-        ):
+        if any(parent.startswith(os.path.realpath(p) + os.sep) or parent == os.path.realpath(p) for p in config.allowed_paths):
             return True
         parent = os.path.dirname(parent)
 
@@ -509,9 +506,7 @@ def execute_freebuff_task(request: FreebuffTaskRequest, config: FreebuffConfig) 
         # Test results (if applicable)
         if request.task_type in ("code", "tests", "validation"):
             # Try to extract test results from output
-            test_indicators = re.findall(
-                r"(test|pytest|unittest).*?(passed|failed|ok|FAIL)", diff_output, re.IGNORECASE
-            )
+            test_indicators = re.findall(r"(test|pytest|unittest).*?(passed|failed|ok|FAIL)", diff_output, re.IGNORECASE)
             result.tests_passed = len([t for t in test_indicators if "pass" in t.lower() or "ok" in t.lower()])
             result.tests_failed = len([t for t in test_indicators if "fail" in t.lower() or "FAIL" in t.upper()])
         else:

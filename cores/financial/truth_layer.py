@@ -231,14 +231,7 @@ class FinancialState:
 
     @property
     def total_balance(self) -> float:
-        return (
-            self.verified_balance
-            + self.pending_balance
-            + self.withdrawn_balance
-            + self.estimated_balance
-            + self.manual_balance
-            + self.disputed_balance
-        )
+        return self.verified_balance + self.pending_balance + self.withdrawn_balance + self.estimated_balance + self.manual_balance + self.disputed_balance
 
     @property
     def real_balance(self) -> float:

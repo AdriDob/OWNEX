@@ -18,9 +18,7 @@ class CostTracker(CostTrackerProtocol):
         self._config = config or get_config()
         self._metrics: dict[str, CostMetrics] = {}  # key: "provider_id:model_id"
         self._daily_spent: dict[str, float] = {}  # key: "YYYY-MM-DD"
-        self._provider_pricing: dict[
-            str, dict[str, tuple[float, float]]
-        ] = {}  # provider -> model -> (input_cost, output_cost)
+        self._provider_pricing: dict[str, dict[str, tuple[float, float]]] = {}  # provider -> model -> (input_cost, output_cost)
         self._load_default_pricing()
 
     def _load_default_pricing(self) -> None:
@@ -101,9 +99,7 @@ class CostTracker(CostTrackerProtocol):
 
         # Calculate cost if not provided
         if cost_usd is None:
-            cost_usd = (
-                metrics.cost_per_1k_input * input_tokens / 1000 + metrics.cost_per_1k_output * output_tokens / 1000
-            )
+            cost_usd = metrics.cost_per_1k_input * input_tokens / 1000 + metrics.cost_per_1k_output * output_tokens / 1000
 
         metrics.total_input_tokens += input_tokens
         metrics.total_output_tokens += output_tokens
@@ -165,10 +161,7 @@ class CostTracker(CostTrackerProtocol):
             "daily_remaining_usd": max(0, budget - daily_spent) if budget else None,
             "budget_exceeded": budget and daily_spent > budget,
             "total_cost_usd": self.get_total_cost(),
-            "by_provider": {
-                pid: sum(m.total_cost_usd for m in metrics.values())
-                for pid, metrics in self._group_by_provider().items()
-            },
+            "by_provider": {pid: sum(m.total_cost_usd for m in metrics.values()) for pid, metrics in self._group_by_provider().items()},
         }
 
     def _group_by_provider(self) -> dict[str, dict[str, CostMetrics]]:
@@ -187,9 +180,7 @@ class CostTracker(CostTrackerProtocol):
             metrics.last_reset = datetime.now()
         logger.info("Daily cost counters reset")
 
-    def set_model_pricing(
-        self, provider_id: str, model_id: str, input_cost_per_1k: float, output_cost_per_1k: float
-    ) -> None:
+    def set_model_pricing(self, provider_id: str, model_id: str, input_cost_per_1k: float, output_cost_per_1k: float) -> None:
         """Set custom pricing for a model."""
         if provider_id not in self._provider_pricing:
             self._provider_pricing[provider_id] = {}

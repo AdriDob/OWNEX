@@ -72,9 +72,35 @@ def check_version() -> bool:
         return True
 
 
+def load_operating_context() -> bool:
+    """Step 2.1: Load the Operating Context.
+
+    Checks that the context file exists, is readable, and can be loaded.
+    Fails safe: if the context cannot be loaded, the system is blocked.
+    """
+    from core.operating_context import OperatingContext
+
+    oc = OperatingContext()
+    ok = oc.load()
+    if not ok:
+        print(f"  {RED}✗ Operating Context no pudo cargarse{RESET}")
+        return False
+
+    # Validate the context
+    valid, msg = oc.validate()
+    if not valid:
+        print(f"  {YELLOW}⚠ Operating Context no valido: {msg}{RESET}")
+        return False
+
+    print(f"  {GREEN}✓ Operating Context v1.0 loaded and validated (docs/OPERATING_CONTEXT.md){RESET}")
+    return True
+
+
 def read_state_summary() -> None:
-    """Step 2: State snapshot."""
+    "Step 2: State snapshot."
     header("STEP 2: State Snapshot")
+
+    load_operating_context()
 
     checkpoint = AI_DIR / "SESSION_CHECKPOINT.md"
     if checkpoint.exists():

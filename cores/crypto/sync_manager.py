@@ -95,9 +95,7 @@ class CryptoSyncManager:
                     wallet_id,
                     finalized,
                 )
-            logger.info(
-                "Crypto sync OK: %s — %.2f USD (%d balances)", wallet_id, snapshot.total_usd, len(snapshot.balances)
-            )
+            logger.info("Crypto sync OK: %s — %.2f USD (%d balances)", wallet_id, snapshot.total_usd, len(snapshot.balances))
         else:
             publish_financial_event(
                 "financial:sync_failed",

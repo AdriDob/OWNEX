@@ -182,10 +182,7 @@ class MemoryPatternLibrary:
             try:
                 pattern = json.loads(record.details)
 
-                if (
-                    pattern.get("vulnerability_type") == vulnerability_type
-                    and pattern.get("entity_type") == endpoint_entity
-                ):
+                if pattern.get("vulnerability_type") == vulnerability_type and pattern.get("entity_type") == endpoint_entity:
                     mutations = pattern.get("successful_mutations", [])
                     if mutations:
                         templates.extend(mutations)
@@ -244,10 +241,7 @@ class MemoryPatternLibrary:
         """Estimate payout for finding based on type and history."""
         for sess in self._session():
             historical_payouts = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.category == "finding_payout")
-                .filter(MemoryRecord.key == f"{finding_type}:{entity_type}")
-                .all()
+                sess.query(MemoryRecord).filter(MemoryRecord.category == "finding_payout").filter(MemoryRecord.key == f"{finding_type}:{entity_type}").all()
             )
             break
 
@@ -323,13 +317,7 @@ class MemoryEngine:
 
     def recent(self, category: str, limit: int = 20) -> list[MemoryRecord]:
         for sess in self._session():
-            result = (
-                sess.query(MemoryRecord)
-                .filter(MemoryRecord.category == category)
-                .order_by(MemoryRecord.created_at.desc())
-                .limit(limit)
-                .all()
-            )
+            result = sess.query(MemoryRecord).filter(MemoryRecord.category == category).order_by(MemoryRecord.created_at.desc()).limit(limit).all()
             return result
         return []
 

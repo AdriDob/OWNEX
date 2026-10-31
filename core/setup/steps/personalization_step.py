@@ -147,9 +147,7 @@ def _get_default_modules_for_use_case(use_case: str) -> list[str]:
     return modules_map.get(use_case, ["forge", "pulse", "copilot", "analytics"])
 
 
-def _build_personalized_config(
-    use_case: str, modules: list[str], custom_name: str, expertise_level: str, primary_platforms: list[str]
-) -> dict[str, Any]:
+def _build_personalized_config(use_case: str, modules: list[str], custom_name: str, expertise_level: str, primary_platforms: list[str]) -> dict[str, Any]:
     """Build personalized configuration based on user preferences."""
     config = {
         "use_case": use_case,
@@ -234,9 +232,7 @@ def _get_feature_flags(expertise_level: str, modules: list[str]) -> dict[str, bo
 def _get_platform_config(primary_platforms: list[str]) -> dict[str, Any]:
     """Get platform configuration based on primary platforms."""
     return {
-        "enabled_platforms": primary_platforms
-        if primary_platforms != ["all"]
-        else ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"],
+        "enabled_platforms": primary_platforms if primary_platforms != ["all"] else ["hackerone", "bugcrowd", "intigriti", "yeswehack", "synack"],
         "auto_discovery": True,
         "notification_frequency": "realtime",
         "sync_interval": 300,  # 5 minutes

@@ -83,9 +83,7 @@ class AdaptivePrioritizer:
             return [PrioritizedItem(f, 0.0, []) for f in findings]
 
         result = []
-        favorite_classes = [
-            c.get("class", "").lower() for c in (profile.favorite_bug_classes or []) if c.get("count", 0) > 0
-        ]
+        favorite_classes = [c.get("class", "").lower() for c in (profile.favorite_bug_classes or []) if c.get("count", 0) > 0]
 
         for f in findings:
             score = 0.0
@@ -94,11 +92,7 @@ class AdaptivePrioritizer:
 
             if bug_class in favorite_classes:
                 class_count = next(
-                    (
-                        c.get("count", 0)
-                        for c in (profile.favorite_bug_classes or [])
-                        if c.get("class", "").lower() == bug_class
-                    ),
+                    (c.get("count", 0) for c in (profile.favorite_bug_classes or []) if c.get("class", "").lower() == bug_class),
                     0,
                 )
                 score += class_count * 1.5

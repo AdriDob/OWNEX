@@ -40,9 +40,7 @@ class CommanderConfig:
 
     mode: CommanderMode = CommanderMode.SUPERVISOR
     max_concurrent_tasks: int = 3
-    approval_required_for: list[str] = field(
-        default_factory=lambda: ["submit_report", "make_payment", "execute_code", "deploy_changes"]
-    )
+    approval_required_for: list[str] = field(default_factory=lambda: ["submit_report", "make_payment", "execute_code", "deploy_changes"])
     auto_approve_threshold_evh: float = 50.0
     task_timeout_minutes: int = 60
     health_check_interval: int = 300
@@ -338,9 +336,7 @@ class CommanderAgent(BaseAgent):
 
         return task_plan
 
-    def _plan_for_category(
-        self, category: str, opportunity: RankedOpportunity
-    ) -> tuple[str, list[str], list[dict[str, Any]]]:
+    def _plan_for_category(self, category: str, opportunity: RankedOpportunity) -> tuple[str, list[str], list[dict[str, Any]]]:
         """Plan steps based on opportunity category."""
 
         plans = {
@@ -425,11 +421,7 @@ class CommanderAgent(BaseAgent):
         # Note: This is synchronous check - in async context we'd fetch more detail
         # For now, use simple heuristic
         for _task_id, completed_task in self.completed_tasks.items():
-            if (
-                hasattr(completed_task, "opportunity_id")
-                and completed_task.opportunity_id
-                and platform in str(completed_task.opportunity_id)
-            ):
+            if hasattr(completed_task, "opportunity_id") and completed_task.opportunity_id and platform in str(completed_task.opportunity_id):
                 completed_platforms.add(platform)
         if platform not in completed_platforms:
             return True
@@ -444,9 +436,7 @@ class CommanderAgent(BaseAgent):
             reasons.append(f"Mode is {self.config.mode.value}")
 
         if opportunity.evh < self.config.auto_approve_threshold_evh:
-            reasons.append(
-                f"EVH (${opportunity.evh:.0f}/hr) below auto-approve threshold (${self.config.auto_approve_threshold_evh}/hr)"
-            )
+            reasons.append(f"EVH (${opportunity.evh:.0f}/hr) below auto-approve threshold (${self.config.auto_approve_threshold_evh}/hr)")
 
         for step in steps:
             if step.get("tool") in self.config.approval_required_for:
@@ -607,10 +597,7 @@ class CommanderAgent(BaseAgent):
                 if self.discovery_engine:
                     queued = await self.discovery_engine.get_queued_opportunities()
                     for opp in queued:
-                        if (
-                            opp.opportunity.id == task.opportunity_id
-                            and opp.evh >= self.config.auto_approve_threshold_evh
-                        ):
+                        if opp.opportunity.id == task.opportunity_id and opp.evh >= self.config.auto_approve_threshold_evh:
                             await self._approve_task(task_id)
                             break
 
@@ -779,9 +766,7 @@ class CommanderAgent(BaseAgent):
 
     def _on_daily_plan_ready(self, plan: DailyPlan) -> None:
         """Callback when daily plan is ready."""
-        logger.info(
-            "Daily plan ready for %s: %d opportunities prioritized", plan.date, len(plan.prioritized_opportunities)
-        )
+        logger.info("Daily plan ready for %s: %d opportunities prioritized", plan.date, len(plan.prioritized_opportunities))
         self.event_bus.publish("commander:daily_plan_ready", plan=plan.__dict__)
 
     # ── Public API ───────────────────────────────────────────────────

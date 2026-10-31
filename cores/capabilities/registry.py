@@ -50,9 +50,7 @@ class CapabilityRegistry:
 
     # ── Registration ────────────────────────────────────────────
 
-    def register(
-        self, capability: str, module: str, metadata: dict[str, Any] | None = None, description: str = ""
-    ) -> None:
+    def register(self, capability: str, module: str, metadata: dict[str, Any] | None = None, description: str = "") -> None:
         """Register a module as providing a capability."""
         with self._lock:
             entry = CapabilityEntry(

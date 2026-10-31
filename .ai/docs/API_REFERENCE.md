@@ -500,9 +500,7 @@ response = client.get("http://127.0.0.1:8000/api/health")
 print(response.json())
 
 # Discover opportunities
-response = client.post(
-    "http://127.0.0.1:8000/api/opportunities/discover", json={"target": "example.com", "platform": "hackerone"}
-)
+response = client.post("http://127.0.0.1:8000/api/opportunities/discover", json={"target": "example.com", "platform": "hackerone"})
 print(response.json())
 ```
 

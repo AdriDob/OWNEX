@@ -229,3 +229,19 @@
     --transition-slow: 0.01ms;
   }
 }
+
+:root {
+/* ── Expansión de colores para componentes mission-control ── */
+--ownex-cyan:            #00D5FF;
+--ownex-emerald:         #00E39A;
+--ownex-decision:        #FF7A1A;
+--ownex-success:         var(--ownex-green);
+--ownex-warning:         var(--ownex-yellow);
+--ownex-gray-500:        #6B7280;
+--ownex-gray-100:        #94A3B8;
+--ownex-gray-50:         #E5E7EB;
+--ownex-amber:           #FBBF24;
+--ownex-light-red:       #FECACA;
+--ownex-light-blue:      #93C5FD;
+--ownex-green-light:     #4ADE80;
+}

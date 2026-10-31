@@ -93,9 +93,7 @@ class ObservationEngine(Engine):
         Returns:
             List of unique (non-duplicate) observations.
         """
-        target_sensors = (
-            [self._sensors[sensor_id]] if sensor_id and sensor_id in self._sensors else list(self._sensors.values())
-        )
+        target_sensors = [self._sensors[sensor_id]] if sensor_id and sensor_id in self._sensors else list(self._sensors.values())
 
         all_new: list[Observation] = []
 

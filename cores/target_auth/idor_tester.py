@@ -15,9 +15,7 @@ IDOR_PARAM_PATTERNS = [
         r"\b(id|uid|user_id|account_id|customer_id|profile_id|order_id|invoice_id|document_id|file_id|ticket_id|msg_id|post_id|article_id|product_id|sku|reference|token|key)\b",
         re.I,
     ),
-    re.compile(
-        r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/(\d+)"
-    ),
+    re.compile(r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/(\d+)"),
     re.compile(
         r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/([a-f0-9-]{36})"
     ),

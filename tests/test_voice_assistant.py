@@ -51,9 +51,7 @@ class TestOpportunityEvaluator:
 
 class TestVoiceAssistantApi:
     def test_assistant_returns_reply(self) -> None:
-        response = client.post(
-            "/voice/assistant", json={"text": "Buscá bounties de desarrollo para cobrar esta semana"}
-        )
+        response = client.post("/voice/assistant", json={"text": "Buscá bounties de desarrollo para cobrar esta semana"})
         assert response.status_code == 200
         body = response.json()
         assert body["id"] > 0

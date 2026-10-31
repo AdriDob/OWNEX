@@ -166,9 +166,7 @@ class TestIDORProbe:
 class TestSSRFProbe:
     def test_build_probe_requests_injects_internal_hosts(self) -> None:
         probe = SSRFProbe()
-        requests = probe.build_probe_requests(
-            "http://test.local/api/fetch", "GET", params={"url": "http://example.com"}
-        )
+        requests = probe.build_probe_requests("http://test.local/api/fetch", "GET", params={"url": "http://example.com"})
         assert len(requests) >= 2
         payloads = [r["payload"] for r in requests]
         assert any("127.0.0.1" in str(p) for p in payloads)
@@ -178,9 +176,7 @@ class TestSSRFProbe:
         probe = SSRFProbe()
         baseline = _ok_response("normal page")
         probe_resp = _ok_response("root:x:0:0:root on 127.0.0.1:/root:/bin/bash")
-        status, conf, evidence, indicators = probe.analyze_responses(
-            baseline, [probe_resp], {"url": "http://127.0.0.1"}
-        )
+        status, conf, evidence, indicators = probe.analyze_responses(baseline, [probe_resp], {"url": "http://127.0.0.1"})
         assert status == "confirmed"
         assert conf >= 0.5
         assert any("internal" in i.lower() for i in indicators)
@@ -189,9 +185,7 @@ class TestSSRFProbe:
         probe = SSRFProbe()
         baseline = _ok_response("normal")
         probe_resp = _ok_response("ami-id: ami-12345678\ninstance-id: i-abc123")
-        status, conf, evidence, indicators = probe.analyze_responses(
-            baseline, [probe_resp], {"url": "http://169.254.169.254"}
-        )
+        status, conf, evidence, indicators = probe.analyze_responses(baseline, [probe_resp], {"url": "http://169.254.169.254"})
         assert status == "confirmed"
         assert conf >= 0.5
 
@@ -218,9 +212,7 @@ class TestXSSProbe:
         probe = XSSProbe()
         baseline = _ok_response("<html>search results</html>")
         probe_resp = _ok_response("<html>results for <script>xssprobe12345</script></html>")
-        status, conf, evidence, indicators = probe.analyze_responses(
-            baseline, [probe_resp], {"q": "<script>xssprobe12345</script>"}
-        )
+        status, conf, evidence, indicators = probe.analyze_responses(baseline, [probe_resp], {"q": "<script>xssprobe12345</script>"})
         assert status == "confirmed"
         assert conf >= 0.5
 

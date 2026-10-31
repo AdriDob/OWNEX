@@ -154,9 +154,7 @@ PROGRAMS = [
         "rewards_text": "$500 - $10,000 per vulnerability",
         "exclusions_text": "DoS, rate limiting, self-XSS, clickjacking without impact, social engineering",
         "technologies": json.dumps(["Elixir", "Python", "React", "Rust", "ScyllaDB"]),
-        "assets": json.dumps(
-            ["discord.com", "*.discord.com", "cdn.discord.com", "api.discord.com", "gateway.discord.gg"]
-        ),
+        "assets": json.dumps(["discord.com", "*.discord.com", "cdn.discord.com", "api.discord.com", "gateway.discord.gg"]),
         "orion_score": 9.2,
         "priority": "critical",
         "tiers": [
@@ -851,9 +849,7 @@ MEMORY_RECORDS = [
     (
         "xss_patterns",
         "stored_xss_markdown",
-        json.dumps(
-            {"pattern": "Stored XSS in markdown/MR descriptions", "count": 23, "platforms": ["gitlab", "hackerone"]}
-        ),
+        json.dumps({"pattern": "Stored XSS in markdown/MR descriptions", "count": 23, "platforms": ["gitlab", "hackerone"]}),
     ),
     (
         "crypto_failures",
@@ -863,16 +859,12 @@ MEMORY_RECORDS = [
     (
         "auth_failures",
         "missing_rate_limiting",
-        json.dumps(
-            {"pattern": "Missing rate limiting on auth endpoints", "count": 56, "platforms": ["discord", "shopfiy"]}
-        ),
+        json.dumps({"pattern": "Missing rate limiting on auth endpoints", "count": 56, "platforms": ["discord", "shopfiy"]}),
     ),
     (
         "info_disclosure",
         "user_enumeration",
-        json.dumps(
-            {"pattern": "User enumeration via public REST endpoints", "count": 78, "platforms": ["wordpess", "gitlab"]}
-        ),
+        json.dumps({"pattern": "User enumeration via public REST endpoints", "count": 78, "platforms": ["wordpess", "gitlab"]}),
     ),
     (
         "tech_profiles",
@@ -1142,9 +1134,7 @@ def seed():
                 endpoint_id=finding.endpoint_id,
                 status=vstatus,
                 confidence=json.dumps({"overall": vconf, "rule_match": vconf + 0.1, "evidence": vconf - 0.05}),
-                reproducibility_score=json.dumps(
-                    {"attempt_1": "consistent", "attempt_2": "consistent", "attempt_3": "partial"}
-                ),
+                reproducibility_score=json.dumps({"attempt_1": "consistent", "attempt_2": "consistent", "attempt_3": "partial"}),
                 validation_report=json.dumps(
                     {
                         "passed_rules": ["sqli_detected", "param_tampering"],
@@ -1152,9 +1142,7 @@ def seed():
                         "details": f"Validation pipeline confirmed {finding.title}",
                     }
                 ),
-                confidence_details=json.dumps(
-                    {"method": "automated_validation", "signals": vconf * 10, "noise_floor": 0.2}
-                ),
+                confidence_details=json.dumps({"method": "automated_validation", "signals": vconf * 10, "noise_floor": 0.2}),
                 evidence_links=json.dumps([f"evidence_{fi}_1", f"evidence_{fi}_2"]),
                 reason=f"Automated validation result for {finding.title}. Status: {vstatus}. Confidence: {vconf:.0%}.",
                 retry_count=3,
@@ -1181,9 +1169,7 @@ def seed():
                     request_body=json.dumps({"query": f"test payload for {finding.title}"}),
                     auth_label="user_session",
                     response_status=200 if verdict.status == "confirmed" else 403,
-                    response_headers=json.dumps(
-                        {"content-type": "application/json", "x-request-id": f"req_{fi}_{attempt}"}
-                    ),
+                    response_headers=json.dumps({"content-type": "application/json", "x-request-id": f"req_{fi}_{attempt}"}),
                     response_body=json.dumps({"status": verdict.status, "details": "simulated response for demo"}),
                     response_body_hash=f"hash_{fi}_{attempt}",
                     status_match="true" if verdict.status == "confirmed" else "false",

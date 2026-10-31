@@ -18,16 +18,9 @@ class OpenCodeProvider(BaseProvider):
     """
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
-        super().__init__(
-            config
-            or ProviderConfig(name="opencode", priority=10, models=["opencode/deepseek-v4-flash-free"], timeout_s=180)
-        )
+        super().__init__(config or ProviderConfig(name="opencode", priority=10, models=["opencode/deepseek-v4-flash-free"], timeout_s=180))
         self._binary = self._config.extra.get("binary", "opencode")
-        self._model = (
-            self._config.extra.get("model", self._config.models[0])
-            if self._config.models
-            else "opencode/deepseek-v4-flash-free"
-        )
+        self._model = self._config.extra.get("model", self._config.models[0]) if self._config.models else "opencode/deepseek-v4-flash-free"
 
     async def check(self) -> bool:
         try:
@@ -51,15 +44,11 @@ class OpenCodeProvider(BaseProvider):
             if self._model:
                 cmd.extend(["--model", self._model])
 
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=self._config.timeout_s, cwd=project_dir
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=self._config.timeout_s, cwd=project_dir)
             dur = (time.monotonic() - t0) * 1000
 
             if result.returncode == 0:
-                return ProviderResponse(
-                    content=result.stdout or "(no output)", provider="opencode", model=self._model, duration_ms=dur
-                )
+                return ProviderResponse(content=result.stdout or "(no output)", provider="opencode", model=self._model, duration_ms=dur)
             else:
                 return ProviderResponse(
                     content=result.stderr or result.stdout,
@@ -77,9 +66,7 @@ class OpenCodeProvider(BaseProvider):
                 duration_ms=(time.monotonic() - t0) * 1000,
             )
         except FileNotFoundError:
-            return ProviderResponse(
-                content="", provider="opencode", model=self._model, error="opencode binary not found"
-            )
+            return ProviderResponse(content="", provider="opencode", model=self._model, error="opencode binary not found")
         except Exception as exc:
             return ProviderResponse(
                 content="",

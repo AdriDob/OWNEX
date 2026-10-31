@@ -175,9 +175,7 @@ class SlitherTool(BaseTool):
                 "impact": impact,
                 "confidence": confidence,
                 "description": description,
-                "elements": [
-                    {"source_mapping": e.get("source_mapping", {}), "type": e.get("type", "")} for e in elements
-                ],
+                "elements": [{"source_mapping": e.get("source_mapping", {}), "type": e.get("type", "")} for e in elements],
             }
 
             target = ""

@@ -58,10 +58,7 @@ class ExpectedValueResult:
     warnings: tuple[str, ...] = ()
 
 
-_UNKNOWN_WARNING = (
-    "task_availability=UNKNOWN -> partial EV; ranking must break ties by "
-    "tier/recency instead of assuming the task exists"
-)
+_UNKNOWN_WARNING = "task_availability=UNKNOWN -> partial EV; ranking must break ties by tier/recency instead of assuming the task exists"
 
 
 def compute_expected_value(

@@ -128,11 +128,7 @@ class BaseAgent(ABC):
                 if loop and loop.is_running():
                     task = asyncio.ensure_future(result)
                     task.add_done_callback(
-                        lambda t: (
-                            logger.error("[AGENT] %s async handler failed: %s", self.agent_id.value, t.exception())
-                            if t.exception()
-                            else None
-                        )
+                        lambda t: logger.error("[AGENT] %s async handler failed: %s", self.agent_id.value, t.exception()) if t.exception() else None
                     )
                 else:
                     # No running loop — run in background thread to avoid blocking
@@ -148,9 +144,7 @@ class BaseAgent(ABC):
             self.last_error = str(exc)
             self.status = AgentStatus.ERROR
             elapsed = (time.monotonic() - t0) * 1000
-            logger.error(
-                "[AGENT] %s error processing %s: %s (%.0fms)", self.agent_id.value, event.event_type, exc, elapsed
-            )
+            logger.error("[AGENT] %s error processing %s: %s (%.0fms)", self.agent_id.value, event.event_type, exc, elapsed)
             self.bus.publish(
                 AgentEvent(
                     event_type=EventType.SYSTEM_ERROR,

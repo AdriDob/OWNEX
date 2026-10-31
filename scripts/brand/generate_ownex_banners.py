@@ -73,9 +73,7 @@ def _mark(cx: float, cy: float, r: float, stroke: float, color: str) -> str:
         y0 = cy + r * math.sin(math.radians(a0))
         x1 = cx + r * math.cos(math.radians(a1))
         y1 = cy + r * math.sin(math.radians(a1))
-        parts.append(
-            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="{color}" stroke-width="{stroke:.1f}" stroke-linecap="round"/>'
-        )
+        parts.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="{color}" stroke-width="{stroke:.1f}" stroke-linecap="round"/>')
     length = r * 0.80
     parts.append(
         f'<rect x="{cx - stroke / 2:.1f}" y="{cy - length:.1f}" width="{stroke:.1f}" height="{2 * length:.1f}" rx="{stroke / 2:.1f}" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
@@ -86,9 +84,7 @@ def _mark(cx: float, cy: float, r: float, stroke: float, color: str) -> str:
     nx = cx + r * 1.10
     ny = cy - r * 1.10
     parts.append(f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.66:.1f}" fill="{DEEP_BLUE}"/>')
-    parts.append(
-        f'<rect x="{cx - 4.2}" y="{cy - 4.2}" width="8.4" height="8.4" fill="{color}" transform="rotate(45 {cx} {cy})"/>'
-    )
+    parts.append(f'<rect x="{cx - 4.2}" y="{cy - 4.2}" width="8.4" height="8.4" fill="{color}" transform="rotate(45 {cx} {cy})"/>')
     return "".join(parts)
 
 

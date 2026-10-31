@@ -51,9 +51,7 @@ class OmniRouteProvider(BaseProvider):
                 timeout_s=60,
             )
         )
-        self._base_url = self._config.extra.get(
-            "base_url", os.getenv("OMNIROUTE_BASE_URL", "http://localhost:20128/v1")
-        )
+        self._base_url = self._config.extra.get("base_url", os.getenv("OMNIROUTE_BASE_URL", "http://localhost:20128/v1"))
         self._api_key = self._config.extra.get("api_key", os.getenv("OMNIROUTE_API_KEY", "omniroute"))
         self._default_model = self._config.models[0]
         # NVIDIA integration for models not available via OmniRoute
@@ -127,12 +125,7 @@ class OmniRouteProvider(BaseProvider):
         t0 = time.monotonic()
 
         # Check if model is a NVIDIA model
-        is_nvidia_model = (
-            model in _NVIDIA_MODELS
-            or model.startswith("nvidia/")
-            or model.startswith("nv-")
-            or model.startswith("meta/")
-        )
+        is_nvidia_model = model in _NVIDIA_MODELS or model.startswith("nvidia/") or model.startswith("nv-") or model.startswith("meta/")
 
         # Try OmniRoute first for non-NVIDIA models
         if not is_nvidia_model:
@@ -239,12 +232,7 @@ class OmniRouteProvider(BaseProvider):
         import httpx
 
         model = kwargs.get("model", self._default_model)
-        is_nvidia_model = (
-            model in _NVIDIA_MODELS
-            or model.startswith("nvidia/")
-            or model.startswith("nv-")
-            or model.startswith("meta/")
-        )
+        is_nvidia_model = model in _NVIDIA_MODELS or model.startswith("nvidia/") or model.startswith("nv-") or model.startswith("meta/")
 
         # Try OmniRoute first for non-NVIDIA models
         if not is_nvidia_model:

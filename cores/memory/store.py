@@ -231,9 +231,7 @@ class UnifiedMemoryStore:
         db = get_db_manager().get_session(DB_ID)
         try:
             now = datetime.now(UTC)
-            count = (
-                db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).delete()
-            )
+            count = db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).delete()
             db.commit()
             if count:
                 logger.info("Pruned %d expired memory entries", count)
@@ -253,9 +251,7 @@ class UnifiedMemoryStore:
             total = db.query(MemoryEntry).count()
             namespaces = db.query(MemoryEntry.namespace).distinct().count()
             now = datetime.now(UTC)
-            expired_rows = (
-                db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).count()
-            )
+            expired_rows = db.query(MemoryEntry).filter(MemoryEntry.expires_at.isnot(None), MemoryEntry.expires_at <= now).count()
             return {
                 "total_entries": total,
                 "namespaces": namespaces,

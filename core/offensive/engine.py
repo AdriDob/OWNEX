@@ -201,9 +201,7 @@ class OffensiveEngine:
             hyp.acceptance_prediction.probability = triage["acceptance_prediction"]["probability"]
             hyp.acceptance_prediction.positive_signals = triage["acceptance_prediction"]["positive_signals"]
             hyp.acceptance_prediction.risk_factors = triage["acceptance_prediction"]["risk_factors"]
-            hyp.acceptance_prediction.questions_triager_will_ask = triage["acceptance_prediction"][
-                "questions_triager_will_ask"
-            ]
+            hyp.acceptance_prediction.questions_triager_will_ask = triage["acceptance_prediction"]["questions_triager_will_ask"]
 
         # ── Step 5: Generate investigation plans ──────────────────
         for hyp in result.hypotheses:
@@ -258,9 +256,7 @@ class OffensiveEngine:
                     results.append(future.result())
                 except Exception as exc:
                     ep = futures[future]
-                    logger.exception(
-                        "[BATCH] Failed to analyze %s %s: %s", ep.get("method", "GET"), ep.get("path", ""), exc
-                    )
+                    logger.exception("[BATCH] Failed to analyze %s %s: %s", ep.get("method", "GET"), ep.get("path", ""), exc)
                     # Return empty result instead of failing entirely
                     results.append(
                         ReasonerResult(

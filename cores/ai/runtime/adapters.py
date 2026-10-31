@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -156,6 +157,7 @@ class OllamaAdapter(AIProviderProtocol):
                 metadata={"error": str(e)},
             )
 
+
     async def chat_stream(self, request: AIRequest) -> AsyncGenerator[str, None]:
         prompt = self._format_messages(request.messages)
         try:
@@ -219,6 +221,86 @@ class OllamaAdapter(AIProviderProtocol):
     async def close(self) -> None:
         """Cleanup resources."""
         pass
+
+
+class CodexCLIAdapter(AIProviderProtocol):
+    """Codex account-backed provider, invoked through the local read-only CLI."""
+
+    def __init__(self):
+        from cores.ai.provider import CodexCLIProvider
+
+        self._provider = CodexCLIProvider()
+        self._start_time = time.monotonic()
+
+    @property
+    def provider_id(self) -> str:
+        return "codex"
+
+    @property
+    def name(self) -> str:
+        return "OpenAI Codex CLI (ChatGPT account)"
+
+    @property
+    def supported_models(self) -> list[str]:
+        return ["codex-cli"]
+
+    def get_model_capabilities(self, model_id: str) -> ModelCapabilities | None:
+        if model_id != "codex-cli":
+            return None
+        return ModelCapabilities(
+            model_id=model_id,
+            supports={Capability.CHAT, Capability.CODE, Capability.REASONING},
+            max_context_tokens=32768,
+            max_output_tokens=4096,
+        )
+
+    async def check_health(self) -> ProviderHealth:
+        start = time.monotonic()
+        healthy = await asyncio.to_thread(self._provider.is_available)
+        return ProviderHealth(
+            provider_id=self.provider_id,
+            status=HealthStatus.HEALTHY if healthy else HealthStatus.AUTH_FAILED,
+            latency_ms=(time.monotonic() - start) * 1000,
+            last_error=None if healthy else "Codex CLI no instalado o sesión ausente",
+            uptime_seconds=time.monotonic() - self._start_time,
+        )
+
+    async def chat(self, request: AIRequest) -> AIResponse:
+        start = time.monotonic()
+        try:
+            content = await asyncio.to_thread(self._provider.chat, request.messages, request.max_tokens)
+            return AIResponse(
+                content=content,
+                provider_id=self.provider_id,
+                model_id=request.model or "codex-cli",
+                task_type=request.task_type,
+                usage={"prompt_tokens": sum(len(m.get("content", "")) for m in request.messages) // 4, "completion_tokens": len(content) // 4},
+                cost_usd=0.0,
+                latency_ms=(time.monotonic() - start) * 1000,
+                finish_reason="stop",
+                metadata={"billing": "ChatGPT account limits apply; per-call cost unavailable", "cost_known": False},
+            )
+        except Exception as exc:
+            return AIResponse(
+                content="",
+                provider_id=self.provider_id,
+                model_id=request.model or "codex-cli",
+                task_type=request.task_type,
+                latency_ms=(time.monotonic() - start) * 1000,
+                finish_reason="error",
+                metadata={"error": str(exc)},
+            )
+
+    async def chat_stream(self, request: AIRequest) -> AsyncGenerator[str, None]:
+        response = await self.chat(request)
+        if response.content:
+            yield response.content
+
+    async def embed(self, texts: list[str], model: str | None = None) -> list[list[float]]:
+        raise NotImplementedError("Codex CLI no ofrece embeddings por este adaptador")
+
+    async def close(self) -> None:
+        return None
 
 
 class OpenAICompatibleAdapter(AIProviderProtocol):
@@ -502,9 +584,7 @@ def create_groq_adapter(api_key: str | None = None, model: str = "llama-3.1-70b-
     )
 
 
-def create_together_adapter(
-    api_key: str | None = None, model: str = "meta-llama/Llama-3.1-70B-Instruct-Turbo"
-) -> OpenAICompatibleAdapter:
+def create_together_adapter(api_key: str | None = None, model: str = "meta-llama/Llama-3.1-70B-Instruct-Turbo") -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="together",
         name="Together AI",
@@ -525,9 +605,7 @@ def create_together_adapter(
     )
 
 
-def create_deepinfra_adapter(
-    api_key: str | None = None, model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct"
-) -> OpenAICompatibleAdapter:
+def create_deepinfra_adapter(api_key: str | None = None, model: str = "meta-llama/Meta-Llama-3.1-70B-Instruct") -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="deepinfra",
         name="DeepInfra",
@@ -562,9 +640,7 @@ def create_cerebras_adapter(api_key: str | None = None, model: str = "llama3.1-7
     )
 
 
-def create_nvidia_adapter(
-    api_key: str | None = None, model: str = "meta/llama-3.1-70b-instruct"
-) -> OpenAICompatibleAdapter:
+def create_nvidia_adapter(api_key: str | None = None, model: str = "meta/llama-3.1-70b-instruct") -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="nvidia_nim",
         name="NVIDIA NIM",
@@ -620,9 +696,7 @@ def create_opencode_adapter(model: str = "deepseek-v4-flash-free") -> OpenAIComp
     )
 
 
-def create_lmstudio_adapter(
-    host: str = "http://localhost:1234/v1", model: str = "local-model"
-) -> OpenAICompatibleAdapter:
+def create_lmstudio_adapter(host: str = "http://localhost:1234/v1", model: str = "local-model") -> OpenAICompatibleAdapter:
     return OpenAICompatibleAdapter(
         provider_id="lmstudio",
         name="LM Studio",

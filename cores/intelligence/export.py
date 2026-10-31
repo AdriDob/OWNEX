@@ -45,10 +45,7 @@ def export_history(history: Any, fmt: str) -> str:
         buf.write("\n## Top Vulnerability Types\n\n")
         for vt in d.get("top_vulnerability_types", []):
             if isinstance(vt, dict):
-                buf.write(
-                    f"- {vt.get('vulnerability_type', '?')}: {vt.get('total_count', 0)} occurrences, "
-                    f"{vt.get('acceptance_rate', 0):.0%} acceptance\n"
-                )
+                buf.write(f"- {vt.get('vulnerability_type', '?')}: {vt.get('total_count', 0)} occurrences, {vt.get('acceptance_rate', 0):.0%} acceptance\n")
         return buf.getvalue()
     return str(d)
 
@@ -90,10 +87,7 @@ def export_trends(trends: Any, fmt: str) -> str:
                 continue
             buf.write(f"## {category.replace('_', ' ').title()}\n\n")
             for signal in items:
-                buf.write(
-                    f"- **{signal.get('label', '?')}**: {signal.get('current_value', 0)} "
-                    f"(confidence: {signal.get('confidence', 0):.0%})\n"
-                )
+                buf.write(f"- **{signal.get('label', '?')}**: {signal.get('current_value', 0)} (confidence: {signal.get('confidence', 0):.0%})\n")
             buf.write("\n")
         return buf.getvalue()
     return str(d)
@@ -126,9 +120,7 @@ def export_recommendations(recs: Any, fmt: str) -> str:
                 continue
             buf.write(f"## {label}\n\n")
             for item in items:
-                score = (
-                    item.get("priority_score") or item.get("quick_win_score") or item.get("acceptance_probability") or 0
-                )
+                score = item.get("priority_score") or item.get("quick_win_score") or item.get("acceptance_probability") or 0
                 name = item.get("target_name") or item.get("surface") or item.get("title") or "?"
                 reason = item.get("reason", "")
                 buf.write(f"- **{name}** (score: {score}): {reason}\n")

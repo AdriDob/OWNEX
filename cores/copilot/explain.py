@@ -133,8 +133,4 @@ class ExplanationEngine:
         chosen_weight: float,
     ) -> str:
         """Explain why an alternative explanation was discarded."""
-        return (
-            f"Alternativa descartada: '{alt_description}' "
-            f"(peso: {alt_weight:.2f}) vs. '{chosen_description}' "
-            f"(peso: {chosen_weight:.2f})"
-        )
+        return f"Alternativa descartada: '{alt_description}' (peso: {alt_weight:.2f}) vs. '{chosen_description}' (peso: {chosen_weight:.2f})"

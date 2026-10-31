@@ -53,9 +53,7 @@ def corner_marks() -> str:
 
 def hero_svg() -> str:
     mark = mark_svg("alpha", size=512)
-    mark_scaled = (
-        f'<g transform="translate(944, 270) scale(1.0)"><g transform="translate(-256, -256) scale(1.45)">{mark}</g></g>'
-    )
+    mark_scaled = f'<g transform="translate(944, 270) scale(1.0)"><g transform="translate(-256, -256) scale(1.45)">{mark}</g></g>'
     body = f"""
   <text x="1200" y="972" text-anchor="middle" font-family="Space Grotesk, sans-serif"
         font-weight="700" font-size="150" fill="#F6F8FB" letter-spacing="14">OWNEX</text>

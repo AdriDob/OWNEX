@@ -1,0 +1,141 @@
+{
+  "audit_date": "2026-10-31",
+  "context_date_discrepancy": "Research appendices dated 31 October 2026; working context current date may differ. Record discrepancy and treat future-dated claims as unverified.",
+  "total_contradictions": 5,
+  "needs_re_evaluation": 1,
+  "already_resolved": 4,
+  "contradictions": {
+    "hats_finance": {
+      "conflicting_claims": [
+        {
+          "source": "Appendix 1 (Crypto Bounties)",
+          "status": "SHUT DOWN",
+          "date": "Dec 2025",
+          "details": "Hats Finance SHUT DOWN"
+        },
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "active",
+          "date": "Oct 2026",
+          "details": "Hats Finance appears both as closed and active/permissionless. 100% permissionless. On-chain."
+        }
+      ],
+      "resolution_status": "UNDER_REVIEW",
+      "evidence_grade": "D",
+      "blockers": [
+        "shut down claim in one inventory, active in another",
+        "no first-party documentation"
+      ],
+      "research_material_refs": [
+        "Appendix 1 (Crypto Bounties)",
+        "Appendix 1 (Dev Bounties)"
+      ],
+      "action_required": "Verify current Hats Finance status via official channels; do not promote to VERIFIED_ACTIVE without evidence"
+    },
+    "github": {
+      "conflicting_claims": [
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "NXDOMAIN / shutdown",
+          "date": "2026",
+          "details": "Gitcoin NXDOMAIN"
+        },
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "available",
+          "date": "Oct 2026",
+          "details": "Gitcoin bounties and Gitcoin Grants listed as available"
+        }
+      ],
+      "resolution_status": "SEPARATED",
+      "evidence_grade": "C",
+      "blockers": [
+        "Need to separate Gitcoin Grants from Gitcoin bounties/platform",
+        "verify current official status"
+      ],
+      "research_material_refs": [
+        "Appendix 1 (Dev Bounties) - both entries"
+      ],
+      "action_required": "Separate Gitcoin Grants (funding) from Gitcoin bounties (work platform); verify current official Gitcoin status"
+    },
+    "code4rena_cantina": {
+      "conflicting_claims": [
+        {
+          "source": "Appendix 1 (Security Bounties)",
+          "status": "Cantina 0 live bounties, only audit competitions",
+          "date": "Oct 2026"
+        },
+        {
+          "source": "Appendix 1 (Security Bounties)",
+          "status": "Cantina $500K-$2M+ bounties, 24K researchers",
+          "date": "Oct 2026"
+        }
+      ],
+      "resolution_status": "DISTINGUISHED",
+      "evidence_grade": "C",
+      "blockers": [
+        "Distinguish public bug bounties from private/public audit contests",
+        "No live bounty \u2260 No active contests"
+      ],
+      "research_material_refs": [
+        "Appendix 1 (Security Bounties) - entries 28-29"
+      ],
+      "action_required": "Record Cantina as 'audit contests only' with 0 live bounties; do not conflate with public bug bounty programs"
+    },
+    "algora": {
+      "conflicting_claims": [
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "$740 owed, $0 received, 15% merge",
+          "date": "Oct 2026"
+        },
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "141 bounties abiertos, $66,425 total",
+          "date": "sep 2026"
+        }
+      ],
+      "resolution_status": "PAYMENT_RISK",
+      "evidence_grade": "C",
+      "blockers": [
+        "$740 owed, $0 received claim requires payment-risk classification",
+        "separately verify platform activity and payment reliability"
+      ],
+      "research_material_refs": [
+        "Appendix 1 (Dev Bounties) - Algora.io entry"
+      ],
+      "action_required": "Classify Algora as PAYMENT_RISK with $740 owed/$0 received noted separately from $66K+ bounties abiertos. Verify actual payment reliability."
+    },
+    "bountycaster": {
+      "conflicting_claims": [
+        {
+          "source": "Appendix 1 (Dev Bounties)",
+          "status": "alta (social), bajo pero constante, 0% fee",
+          "date": "Oct 2026"
+        },
+        {
+          "source": "Appendix 1 (Dev Bounties) ranking",
+          "status": "declining activity/reliability assessment",
+          "date": "Oct 2026"
+        }
+      ],
+      "resolution_status": "PRESERVE_BOTH_ASSESSMENTS",
+      "evidence_grade": "C",
+      "blockers": [
+        "Preserve differing activity/reliability assessments rather than selecting the more optimistic one"
+      ],
+      "research_material_refs": [
+        "Appendix 1 (Dev Bounties) - Bountycaster entry",
+        "Appendix 1 (ranking final) - Bountycaster in $50-$500 range"
+      ],
+      "action_required": "Preserve both assessments in the registry: activity/reliability AND volume/ranking. Do not consolidate into single assessment."
+    }
+  },
+  "recommendations": [
+    "Record date discrepancy and treat future-dated claims as unverified until their date and supporting evidence can be established",
+    "Keep all uncertainty signals visible in OWNEX (small/zero observed payouts, low acceptance/merge rates, high competition, KYC friction, payment risks, low median x402 seller revenue, platform shutdown/deprecation reports, speculative income projections)",
+    "Never label a source VERIFIED_ACTIVE based only on these supplied lists. Require current first-party evidence or clearly identify a weaker evidence grade.",
+    "For every material source claim, record evidence grade: A (first-party docs), B (reliable third-party), C (user research), D (inference/estimate/marketing)",
+    "Keep source activity, user eligibility, task availability, and actual payout reliability as separate fields - never imply payment reliability from evidence grade alone"
+  ]
+}

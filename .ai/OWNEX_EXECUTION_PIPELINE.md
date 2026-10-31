@@ -188,9 +188,7 @@ class PlanningEngine:
                 capability="llm_reasoning",
                 estimated_minutes=10,
             ),
-            PlanStep(
-                "submit", "Submit", "Submit completed work", order=4, capability="api_interaction", estimated_minutes=2
-            ),
+            PlanStep("submit", "Submit", "Submit completed work", order=4, capability="api_interaction", estimated_minutes=2),
         ],
     }
 
@@ -223,9 +221,7 @@ class PlanningEngine:
                     capability="code_execution",
                     estimated_minutes=60,
                 ),
-                PlanStep(
-                    "submit", "Submission", "Submit results", order=3, capability="api_interaction", estimated_minutes=5
-                ),
+                PlanStep("submit", "Submission", "Submit results", order=3, capability="api_interaction", estimated_minutes=5),
             ]
 
         plan = ExecutionPlan(

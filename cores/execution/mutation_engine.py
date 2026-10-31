@@ -559,11 +559,7 @@ class SmartMutationEngine:
             plan.reasoning += " [sqlmap-optimized: encoding + WAF bypass only]"
 
         elif tool_name == "dalfox":
-            filtered = [
-                v
-                for v in plan.variants
-                if v.sub_strategy in ("double_url_encode", "case_switching", "unicode", "mixed", "newline_injection")
-            ]
+            filtered = [v for v in plan.variants if v.sub_strategy in ("double_url_encode", "case_switching", "unicode", "mixed", "newline_injection")]
             plan.variants = filtered[: self._max_variants]
             plan.reasoning += " [dalfox-optimized: XSS-relevant variants only]"
 

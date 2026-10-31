@@ -118,18 +118,12 @@ class AutoOptimizer:
         # Find platforms with high success but low attempts
         for platform, data in by_platform.items():
             if data.get("success_rate", 0) > 70 and data["attempts"] < 10:
-                recommendations.append(
-                    f"🔍 {platform}: High success rate ({data['success_rate']}%) but low volume. "
-                    f"Increase scanning frequency."
-                )
+                recommendations.append(f"🔍 {platform}: High success rate ({data['success_rate']}%) but low volume. Increase scanning frequency.")
 
         # Find sources with low success
         for source, data in by_source.items():
             if data.get("success_rate", 0) < 30 and data["attempts"] > 20:
-                recommendations.append(
-                    f"⚠️ {source}: Low success rate ({data.get('success_rate', 0)}%) with high volume. "
-                    f"Review approach or reduce effort."
-                )
+                recommendations.append(f"⚠️ {source}: Low success rate ({data.get('success_rate', 0)}%) with high volume. Review approach or reduce effort.")
 
         # Revenue concentration
         total_revenue = sum(d["revenue"] for d in by_platform.values())

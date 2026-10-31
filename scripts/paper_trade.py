@@ -73,9 +73,7 @@ async def run_paper(runs: int, capital: float, min_spread: float, exchanges: lis
     )
 
     print("=== PAPER TRADING — arbitraje global (sin riesgo) ===")
-    print(
-        f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}% | Min liq 24h: ${min_qv:,.0f}"
-    )
+    print(f"Capital virtual: ${capital:.2f} | Runs: {runs} | Min spread: {min_spread}% | Fee sim: {FEE_PCT}% | Min liq 24h: ${min_qv:,.0f}")
     print(f"Exchanges: {', '.join(exchanges)}")
     print(f"Estrategia: {STRATEGY} | Fecha: {datetime.now(UTC).isoformat()}\n")
 

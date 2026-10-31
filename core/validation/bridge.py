@@ -97,10 +97,7 @@ class ValidationBridge:
         # Determinar si requiere auth
         requires_auth = bool(
             hypothesis.why_triager_might_reject
-            and any(
-                kw in hypothesis.why_triager_might_reject.lower()
-                for kw in ["auth", "authentication", "login", "session"]
-            )
+            and any(kw in hypothesis.why_triager_might_reject.lower() for kw in ["auth", "authentication", "login", "session"])
         )
 
         candidate = AttackCandidate(
@@ -125,9 +122,7 @@ class ValidationBridge:
 
         return candidate
 
-    def from_reasoner_result(
-        self, result: Any, target_id: int = 0, min_priority: int = 3, max_candidates: int = 10
-    ) -> list[AttackCandidate]:
+    def from_reasoner_result(self, result: Any, target_id: int = 0, min_priority: int = 3, max_candidates: int = 10) -> list[AttackCandidate]:
         """Convierte un ReasonerResult completo en AttackCandidates priorizados.
 
         Args:
@@ -161,9 +156,7 @@ class ValidationBridge:
         Un solo paso: analyze + convert + score + filter.
         """
         result = self._offensive.analyze_endpoint(endpoint_data)
-        return self.from_reasoner_result(
-            result, target_id=target_id, min_priority=min_priority, max_candidates=max_candidates
-        )
+        return self.from_reasoner_result(result, target_id=target_id, min_priority=min_priority, max_candidates=max_candidates)
 
     # ── Full pipeline ──────────────────────────────────────────
 
@@ -265,10 +258,7 @@ class ValidationBridge:
         results: list[Any] = []
 
         with ThreadPoolExecutor(max_workers=4) as pool:
-            futures = {
-                pool.submit(self.validate_endpoint, ep, target_id, session, dry_run, min_priority): ep
-                for ep in endpoints
-            }
+            futures = {pool.submit(self.validate_endpoint, ep, target_id, session, dry_run, min_priority): ep for ep in endpoints}
             for future in as_completed(futures, timeout=120):
                 try:
                     ep_results = future.result()
@@ -301,9 +291,7 @@ class ValidationBridge:
         outcome = ValidationOutcome(
             target_id=target_id or candidate.target_id or 0,
             target_name="",
-            vulnerability_type=candidate.vulnerability_type.value
-            if hasattr(candidate.vulnerability_type, "value")
-            else str(candidate.vulnerability_type),
+            vulnerability_type=candidate.vulnerability_type.value if hasattr(candidate.vulnerability_type, "value") else str(candidate.vulnerability_type),
             confidence=engine_result.confidence.score if engine_result.confidence else 0.0,
             promoted=engine_result.promoted or False,
             severity="medium",

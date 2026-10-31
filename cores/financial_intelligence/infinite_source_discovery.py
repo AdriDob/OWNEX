@@ -120,9 +120,7 @@ class InfiniteSourceDiscovery:
     Auto-apply where possible via APIs.
     """
 
-    def __init__(
-        self, criteria: ZeroBarrierCriteria | None = None, state_file: Path = Path("data/infinite_sources_state.json")
-    ):
+    def __init__(self, criteria: ZeroBarrierCriteria | None = None, state_file: Path = Path("data/infinite_sources_state.json")):
         self.criteria = criteria or ZeroBarrierCriteria()
         self.state_file = state_file
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
@@ -140,9 +138,7 @@ class InfiniteSourceDiscovery:
                 with open(self.state_file) as f:
                     data = json.load(f)
                     self._source_rotation_index = data.get("rotation_index", 0)
-                    self._last_scan_time = datetime.fromisoformat(
-                        data.get("last_scan_time", datetime.now(UTC).isoformat())
-                    )
+                    self._last_scan_time = datetime.fromisoformat(data.get("last_scan_time", datetime.now(UTC).isoformat()))
                     self._blocked_sources = set(data.get("blocked_sources", []))
                 logger.info(f"Loaded infinite sources state: {len(self._blocked_sources)} blocked sources")
             except Exception as e:

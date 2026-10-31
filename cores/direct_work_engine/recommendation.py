@@ -282,9 +282,7 @@ class IntelligentRecommender:
         # 2b. Hard success floor (Success Maximizer): drop any opportunity whose
         #     real acceptance probability is below the configured floor.
         if self.config.enforce_acceptance_floor:
-            scored_opps = [
-                opp for opp in scored_opps if opp.acceptance_probability >= self.config.min_acceptance_probability
-            ]
+            scored_opps = [opp for opp in scored_opps if opp.acceptance_probability >= self.config.min_acceptance_probability]
             if not scored_opps:
                 return []
 
@@ -385,9 +383,7 @@ class IntelligentRecommender:
 
             method = _PAYMENT_METHOD_MAP.get(opp.payment_method.value)
             if method is None:
-                ranked.payment_compat_notes.append(
-                    f"Método {opp.payment_method.value}: sin cuenta curada en la red de pagos (no evaluado)."
-                )
+                ranked.payment_compat_notes.append(f"Método {opp.payment_method.value}: sin cuenta curada en la red de pagos (no evaluado).")
                 return
             verdict = get_payment_engine().evaluate(
                 PaymentRequirement(
@@ -401,14 +397,9 @@ class IntelligentRecommender:
             if verdict.compatible:
                 ranked.payment_compat_notes.append("Pago cobrable con las cuentas configuradas de OWNEX.")
             elif verdict.matches:
-                ranked.payment_compat_notes.append(
-                    f"Pago parcialmente viable ({verdict.score:.0f}/100): " + "; ".join(verdict.missing[:2])
-                )
+                ranked.payment_compat_notes.append(f"Pago parcialmente viable ({verdict.score:.0f}/100): " + "; ".join(verdict.missing[:2]))
             else:
-                ranked.payment_compat_notes.append(
-                    f"Pago NO cobrable ({verdict.score:.0f}/100): "
-                    + "; ".join(verdict.missing[:2] or verdict.honest_notes[:1])
-                )
+                ranked.payment_compat_notes.append(f"Pago NO cobrable ({verdict.score:.0f}/100): " + "; ".join(verdict.missing[:2] or verdict.honest_notes[:1]))
         except Exception:
             ranked.payment_compat_notes.append("Evaluación de pago no disponible (motor no responde).")
 

@@ -29,9 +29,7 @@ class UnifiedScore:
     final_score: float = 0.0
 
     def __post_init__(self) -> None:
-        self.final_score = (
-            self.reward * self.acceptance_prob * (1.0 - self.difficulty) * self.diversity_bonus * self.personal_factor
-        )
+        self.final_score = self.reward * self.acceptance_prob * (1.0 - self.difficulty) * self.diversity_bonus * self.personal_factor
 
 
 @dataclass
@@ -174,11 +172,7 @@ class OpportunityEngine:
     def _estimate_reward(self, finding: Finding) -> float:
         session = db.SessionLocal()
         try:
-            program = (
-                session.query(Program).filter(Program.id == finding.target.program_id).first()
-                if finding.target
-                else None
-            )
+            program = session.query(Program).filter(Program.id == finding.target.program_id).first() if finding.target else None
             if program:
                 tiers = session.query(BountyTier).filter(BountyTier.program_id == program.id).all()
                 if tiers:

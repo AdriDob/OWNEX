@@ -88,12 +88,7 @@ class MemoryStore:
     def delete(self, category: str, key: str) -> bool:
         session = self._session()
         try:
-            deleted = (
-                session.query(MemoryRecord)
-                .filter(MemoryRecord.category == category)
-                .filter(MemoryRecord.key == key)
-                .delete()
-            )
+            deleted = session.query(MemoryRecord).filter(MemoryRecord.category == category).filter(MemoryRecord.key == key).delete()
             session.commit()
             return deleted > 0
         finally:
@@ -103,12 +98,7 @@ class MemoryStore:
         session = self._session()
         try:
             cutoff = datetime.utcnow() - timedelta(days=days)
-            deleted = (
-                session.query(MemoryRecord)
-                .filter(MemoryRecord.category == category)
-                .filter(MemoryRecord.created_at < cutoff)
-                .delete()
-            )
+            deleted = session.query(MemoryRecord).filter(MemoryRecord.category == category).filter(MemoryRecord.created_at < cutoff).delete()
             session.commit()
             return deleted
         finally:

@@ -98,9 +98,7 @@ class PipelineSnapshot:
     summary: str = ""
 
 
-def from_pipeline_output(
-    pipeline_result: dict[str, Any], target_info: dict[str, Any] | None = None
-) -> PipelineSnapshot:
+def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str, Any] | None = None) -> PipelineSnapshot:
     endpoints = [
         EndpointSnapshot(
             path=ep.get("path", "/"),

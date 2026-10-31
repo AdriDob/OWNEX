@@ -48,7 +48,5 @@ class MindriftBrowserWorker:
         if action == "claim_task":
             return await self.claim_task(kwargs.get("task_url", ""))
         if action == "submit_task":
-            return await self.submit_task(
-                kwargs.get("task_id", ""), kwargs.get("solution_url", ""), kwargs.get("description", "")
-            )
+            return await self.submit_task(kwargs.get("task_id", ""), kwargs.get("solution_url", ""), kwargs.get("description", ""))
         return {"success": False, "error": f"Unknown action: {action}"}

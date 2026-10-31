@@ -114,9 +114,7 @@ class BayesianLearner:
     def predict(self, platform: str, quality_score: float) -> BayesianAcceptancePrediction:
         posterior = self._posteriors.get(platform.lower())
         if posterior is None or posterior.total < 3:
-            return BayesianAcceptancePrediction(
-                probability=0.5, ci_lower=0.05, ci_upper=0.95, std=0.25, n_observations=0, is_reliable=False
-            )
+            return BayesianAcceptancePrediction(probability=0.5, ci_lower=0.05, ci_upper=0.95, std=0.25, n_observations=0, is_reliable=False)
 
         base_prob = posterior.mean
         ci_lower, ci_upper = posterior.credible_interval()

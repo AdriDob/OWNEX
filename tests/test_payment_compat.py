@@ -66,9 +66,7 @@ def test_us_account_function_classification() -> None:
 
 def test_usdc_chain_viable() -> None:
     """USDC/Base bounty: receive + off-ramp to ARS is viable."""
-    verdict = get_payment_engine().evaluate_chain(
-        PaymentRequirement(method="crypto", currency="USDC", region="global", amount=250, platform="Bounty")
-    )
+    verdict = get_payment_engine().evaluate_chain(PaymentRequirement(method="crypto", currency="USDC", region="global", amount=250, platform="Bounty"))
     assert verdict.compatible is True
     assert verdict.viable is True
     assert verdict.score > 50
@@ -79,9 +77,7 @@ def test_usdc_chain_viable() -> None:
 
 def test_ach_usa_viable_with_grabrfi() -> None:
     """ACH USA payout: GrabrFi makes the receive viable (conversion manual)."""
-    verdict = get_payment_engine().evaluate_chain(
-        PaymentRequirement(method="ach", currency="USD", region="usa", amount=250)
-    )
+    verdict = get_payment_engine().evaluate_chain(PaymentRequirement(method="ach", currency="USD", region="usa", amount=250))
     assert verdict.compatible is True
     assert verdict.viable is True
     assert any(m.account_id == "grabrfi" for m in verdict.matches)
@@ -97,9 +93,7 @@ def test_region_mismatch_incompatible() -> None:
 
 def test_documentation_honesty_rule() -> None:
     """Platform requiring an LLC → incompatible, no workaround suggested."""
-    verdict = get_payment_engine().evaluate(
-        PaymentRequirement(method="ach", currency="USD", region="usa", required_documentation="llc")
-    )
+    verdict = get_payment_engine().evaluate(PaymentRequirement(method="ach", currency="USD", region="usa", required_documentation="llc"))
     assert verdict.compatible is False
     assert verdict.score == 0.0
     assert any("LLC" in m for m in verdict.missing)
@@ -108,17 +102,13 @@ def test_documentation_honesty_rule() -> None:
 
 def test_kyc_documentation_does_not_block() -> None:
     """Platform requiring personal KYC → accounts remain compatible."""
-    verdict = get_payment_engine().evaluate(
-        PaymentRequirement(method="crypto", currency="USDC", region="global", required_documentation="kyc")
-    )
+    verdict = get_payment_engine().evaluate(PaymentRequirement(method="crypto", currency="USDC", region="global", required_documentation="kyc"))
     assert verdict.compatible is True
 
 
 def test_local_cvu_payout_viable() -> None:
     """ARS CVU payout → local accounts (Mercado Pago, Ualá...) match."""
-    verdict = get_payment_engine().evaluate(
-        PaymentRequirement(method="cvu", currency="ARS", region="argentina", amount=100)
-    )
+    verdict = get_payment_engine().evaluate(PaymentRequirement(method="cvu", currency="ARS", region="argentina", amount=100))
     assert verdict.compatible is True
     assert any(m.account_id == "mercadopago" for m in verdict.matches)
 

@@ -140,12 +140,8 @@ class TestPersistEarnings:
         init_db()
 
         sched = FinancialSyncScheduler()
-        result_a = SyncResult(
-            success=True, earnings=[{"id": "1", "amount": 100.0}], total_earned=100.0, total_pending=0.0
-        )
-        result_b = SyncResult(
-            success=True, earnings=[{"id": "1", "amount": 200.0}], total_earned=200.0, total_pending=0.0
-        )
+        result_a = SyncResult(success=True, earnings=[{"id": "1", "amount": 100.0}], total_earned=100.0, total_pending=0.0)
+        result_b = SyncResult(success=True, earnings=[{"id": "1", "amount": 200.0}], total_earned=200.0, total_pending=0.0)
 
         # Same external_id "platform_a:1" and "platform_b:1" should be different
         ia, sa = sched._persist_earnings("platform_a", result_a)

@@ -439,6 +439,17 @@ def get_direct_work_jobs() -> list[JobDefinition]:
             },
         ),
         _cron_job(
+            job_id="meta_source_discovery_daily",
+            app_id="direct-work",
+            handler="core.opportunity.source_discovery:run_daily_meta_discovery",
+            cron="0 8 * * *",
+            args=[],
+            metadata={
+                "type": "meta_discovery",
+                "desc": "detecta repositorios candidatos en GitHub; no activa fuentes automáticamente",
+            },
+        ),
+        _cron_job(
             job_id="daily_delivery_preparation",
             app_id="direct-work",
             handler="core.cycles.tasks:run_daily_delivery_preparation",

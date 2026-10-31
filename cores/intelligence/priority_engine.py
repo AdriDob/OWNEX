@@ -241,9 +241,7 @@ class PriorityEngine:
         memory = get_decision_memory()
         return {
             "total_decisions": memory.count_decisions(),
-            "success_rate_by_type": {
-                at: memory.get_success_rate(at) for at in set(a.action_type for a in self._actions.values())
-            },
+            "success_rate_by_type": {at: memory.get_success_rate(at) for at in set(a.action_type for a in self._actions.values())},
         }
 
 

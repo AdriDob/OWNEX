@@ -580,9 +580,42 @@ export interface WorkBankItem {
   access_requirement: string
   deliverables: string[]
   created_at: string
+  description?: string
+  url?: string
   ready_to_deliver: boolean
   payout_method: string
   payout_method_rationale: string
+}
+
+export interface DiscoveredSourceCandidate {
+  id: string
+  name: string
+  source_url: string
+  lifecycle: string
+  discovered_at: string
+  activated_at?: string | null
+  last_error?: string | null
+  verification_evidence: string[]
+  profile?: {
+    adapter_type?: string
+    probed_at?: string
+    endpoints?: Array<{ path?: string; method?: string }>
+    capabilities?: string[]
+    evidence?: Array<{ url?: string; kind?: string }>
+  } | null
+}
+
+export async function fetchDiscoveredSources(): Promise<{ candidates: DiscoveredSourceCandidate[]; total: number; enabled_feeds: string[]; unsupported_feeds: string[] }> {
+  return api.get('/discovery/sources/candidates')
+}
+
+export async function discoverSourceCandidates(): Promise<{ source: string; new_candidates: number; errors: string[]; activation_requires_human: boolean }> {
+  return api.post('/discovery/sources/discover', {})
+}
+
+export async function probeSourceCandidate(sourceId: string): Promise<DiscoveredSourceCandidate> {
+  const result = await api.post<{ candidate: DiscoveredSourceCandidate }>(`/discovery/sources/${encodeURIComponent(sourceId)}/probe`, {})
+  return result.candidate
 }
 
 export interface WorkBankState {
@@ -627,6 +660,10 @@ export interface DailyBrief {
 
 export async function fetchDirectWorkWorkBank(): Promise<WorkBankState> {
   return api.get<WorkBankState>('/direct-work/workbank')
+}
+
+export async function fetchWorkBankItem(itemId: string): Promise<WorkBankItem> {
+  return api.get<WorkBankItem>(`/direct-work/workbank/${encodeURIComponent(itemId)}`)
 }
 
 export async function runDirectWorkCycle(target: number = 10): Promise<WorkBankState> {

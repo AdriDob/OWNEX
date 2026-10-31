@@ -109,10 +109,7 @@ class ReportGate:
         if verdict.status == "confirmed":
             if verdict.confidence >= threshold:
                 return f"Verdict is confirmed — confidence {verdict.confidence:.2f} >= {verdict.vulnerability_type} threshold {threshold:.2f}."
-            return (
-                f"Confirmed but below {verdict.vulnerability_type} threshold: "
-                f"confidence {verdict.confidence:.2f} < {threshold:.2f}"
-            )
+            return f"Confirmed but below {verdict.vulnerability_type} threshold: confidence {verdict.confidence:.2f} < {threshold:.2f}"
         if verdict.status == "rejected":
             reasons = ["status=rejected", f"confidence={verdict.confidence:.2f}", f"threshold={threshold:.2f}"]
             if verdict.validation.failed_rules:

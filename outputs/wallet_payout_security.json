@@ -1,0 +1,124 @@
+{
+  "generated": "2026-10-31",
+  "methodology": "Per integration bundle section 11: wallets/blockchains/payment providers/off-ramps separately from work sources",
+  "critical_warnings": [
+    "Do not infer that a wallet-compatible token can be cashed out legally, cheaply, or reliably in Argentina",
+    "Do not connect to, store credentials for, or initiate activity on any payout provider until its current status and security are verified",
+    "Never store seed phrases or private keys in application configuration, logs, source code, database backups, or GitHub",
+    "Prefer user-controlled wallets and explicit transaction signing",
+    "Human approval required for transfers, swaps, bridges, staking, deposits, paid onboarding, paid assessments, grant submissions with legal commitments",
+    "Include chain ID, token contract, destination, amount, fees, and simulation/quote evidence before approval"
+  ],
+  "argentina_off_ramp_analysis": {
+    "taskbounty": {
+      "availability": "conditional",
+      "payout_currency": "USDC/ETH",
+      "argentina_routes": [
+        "Route requires end-to-end verification before use",
+        "USDC -> AirTM/Mercuryo (0%, minutos)",
+        "USDC -> LBank/OKX (0% fees)"
+      ],
+      "route_warnings": [
+        "AirTM 2.2% fee for MP/Santander conversion",
+        "Verify LBank/OKX Argentina withdrawal support"
+      ],
+      "blockers_related_to_ar": []
+    },
+    "github_bounties": {
+      "availability": "denied",
+      "payout_currency": "unknown",
+      "argentina_routes": [
+        "Argentina explicitly blocked - do NOT attempt payout route"
+      ],
+      "route_warnings": [
+        "Source explicitly denies Argentina payout access"
+      ],
+      "blockers_related_to_ar": [
+        "no primary evidence"
+      ]
+    },
+    "agenthansa": {
+      "availability": "denied",
+      "payout_currency": "unknown",
+      "argentina_routes": [
+        "Argentina explicitly blocked - do NOT attempt payout route"
+      ],
+      "route_warnings": [
+        "Source explicitly denies Argentina payout access"
+      ],
+      "blockers_related_to_ar": [
+        "no primary evidence"
+      ]
+    },
+    "opire": {
+      "availability": "conditional",
+      "payout_currency": "USDC/SOL",
+      "argentina_routes": [
+        "Route requires end-to-end verification before use",
+        "USDC -> AirTM/Mercuryo (0%, minutos)",
+        "USDC -> LBank/OKX (0% fees)"
+      ],
+      "route_warnings": [
+        "AirTM 2.2% fee for MP/Santander conversion",
+        "Verify LBank/OKX Argentina withdrawal support"
+      ],
+      "blockers_related_to_ar": [
+        "no primary evidence",
+        "research mixed on receipts"
+      ]
+    },
+    "bugbounty": {
+      "availability": "conditional",
+      "payout_currency": "USD/USDC-ETH",
+      "argentina_routes": [
+        "Route requires end-to-end verification before use",
+        "USDC -> AirTM/Mercuryo (0%, minutos)",
+        "USDC -> LBank/OKX (0% fees)"
+      ],
+      "route_warnings": [
+        "AirTM 2.2% fee for MP/Santander conversion",
+        "Verify LBank/OKX Argentina withdrawal support"
+      ],
+      "blockers_related_to_ar": []
+    }
+  },
+  "payout_providers": {
+    "taskbounty": {
+      "usdc_base": "USDC on Base network (Ethereum L2, lowest fees)",
+      "usdc_solana": "USDC on Solana network",
+      "usdc_polygon": "USDC on Polygon network",
+      "minimum_withdrawal": "Typically $10-$100 depending on provider",
+      "fees": "0% on LBank/OKX, 2.2% on AirTM for MP/Santander",
+      "custody": "User-controlled wallet recommended; avoid storing on exchange long-term"
+    },
+    "github_bounties": {},
+    "agenthansa": {},
+    "opire": {
+      "usdc_base": "USDC on Base network (Ethereum L2, lowest fees)",
+      "usdc_solana": "USDC on Solana network",
+      "usdc_polygon": "USDC on Polygon network",
+      "minimum_withdrawal": "Typically $10-$100 depending on provider",
+      "fees": "0% on LBank/OKX, 2.2% on AirTM for MP/Santander",
+      "custody": "User-controlled wallet recommended; avoid storing on exchange long-term"
+    },
+    "bugbounty": {
+      "usdc_base": "USDC on Base network (Ethereum L2, lowest fees)",
+      "usdc_solana": "USDC on Solana network",
+      "usdc_polygon": "USDC on Polygon network",
+      "minimum_withdrawal": "Typically $10-$100 depending on provider",
+      "fees": "0% on LBank/OKX, 2.2% on AirTM for MP/Santander",
+      "custody": "User-controlled wallet recommended; avoid storing on exchange long-term"
+    }
+  },
+  "blockchain_networks": {
+    "USDC_Base": "USDC on Base network (Ethereum L2, low fees, x402 primary network)",
+    "USDC_Solana": "USDC on Solana network (high speed, lower fees than ETH, but Solana-specific routes)",
+    "USDC_Polygon": "USDC on Polygon network (Ethereum L2, moderate fees)",
+    "SOL_Solana": "SOLana native (native token for transaction fees, Phantom wallet)",
+    "$SX": "Solana-based $SX token (bounties.prize pool)",
+    "OP_Optimism": "OP token on Optimism (Optimism RetroPGF, grants)",
+    "ETH_Ethereum": "ETH on Ethereum mainnet (highest security, highest gas fees)",
+    "BTRST_Braintrust": "BTRST token (Braintrust platform, 0% fee to workers)"
+  },
+  "key_principles": []
+}

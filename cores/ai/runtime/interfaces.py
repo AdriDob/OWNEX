@@ -185,9 +185,7 @@ class AIResponse:
     provider_id: str
     model_id: str
     task_type: TaskType
-    usage: dict[str, int] = field(
-        default_factory=dict
-    )  # {"prompt_tokens": ..., "completion_tokens": ..., "total_tokens": ...}
+    usage: dict[str, int] = field(default_factory=dict)  # {"prompt_tokens": ..., "completion_tokens": ..., "total_tokens": ...}
     cost_usd: float = 0.0
     latency_ms: float = 0.0
     finish_reason: str | None = None
@@ -318,9 +316,7 @@ class RouterProtocol(ABC):
         ...
 
     @abstractmethod
-    def record_outcome(
-        self, decision: RoutingDecision, success: bool, latency_ms: float, quality: float, cost_usd: float
-    ) -> None:
+    def record_outcome(self, decision: RoutingDecision, success: bool, latency_ms: float, quality: float, cost_usd: float) -> None:
         """Record outcome for learning."""
         ...
 
@@ -329,9 +325,7 @@ class CostTrackerProtocol(ABC):
     """Interface for cost tracking."""
 
     @abstractmethod
-    def record_usage(
-        self, provider_id: str, model_id: str, input_tokens: int, output_tokens: int, cost_usd: float
-    ) -> None:
+    def record_usage(self, provider_id: str, model_id: str, input_tokens: int, output_tokens: int, cost_usd: float) -> None:
         """Record token usage and cost."""
         ...
 
@@ -369,9 +363,7 @@ class BenchmarkEngineProtocol(ABC):
     """Interface for automated benchmarking."""
 
     @abstractmethod
-    async def benchmark_provider(
-        self, provider_id: str, model_id: str, task_types: list[TaskType] | None = None
-    ) -> list[BenchmarkResult]:
+    async def benchmark_provider(self, provider_id: str, model_id: str, task_types: list[TaskType] | None = None) -> list[BenchmarkResult]:
         """Run benchmarks for a provider/model."""
         ...
 
@@ -427,6 +419,7 @@ class OARConfig:
     enabled_providers: list[str] = field(
         default_factory=lambda: [
             "ollama",
+            "codex",
             "opencode",
             "fcc",
             "openrouter",

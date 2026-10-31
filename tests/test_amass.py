@@ -45,9 +45,7 @@ def test_amass_parse_malformed():
 
 def test_amass_unified_result_structure():
     tool = AmassTool()
-    results = tool._parse_json_lines(
-        '{"name":"api.example.com","domain":"example.com","addresses":[{"ip":"10.0.0.1"}],"event_type":"subdomain","tag":"dns"}'
-    )
+    results = tool._parse_json_lines('{"name":"api.example.com","domain":"example.com","addresses":[{"ip":"10.0.0.1"}],"event_type":"subdomain","tag":"dns"}')
     assert len(results) == 1
     r = results[0]
     assert isinstance(r, UnifiedResult)

@@ -99,9 +99,7 @@ class BaseProbe:
     def vulnerability_type(self) -> str:
         raise NotImplementedError
 
-    def build_baseline(
-        self, endpoint: str, method: str, params: dict[str, str] | None = None, headers: dict[str, str] | None = None
-    ) -> dict[str, Any]:
+    def build_baseline(self, endpoint: str, method: str, params: dict[str, str] | None = None, headers: dict[str, str] | None = None) -> dict[str, Any]:
         """Build a clean baseline request (no malicious payload)."""
         return {
             "url": endpoint,
@@ -250,12 +248,7 @@ class IDORProbe(BaseProbe):
                 evidence.append(f"Baseline: {baseline.status_code}, Probe: {resp.status_code}, URL: {resp.url}")
 
             # 200 response with different content = possible data leakage
-            if (
-                resp.status_code == 200
-                and baseline.status_code == 200
-                and resp.body != baseline.body
-                and len(resp.body) > 10
-            ):
+            if resp.status_code == 200 and baseline.status_code == 200 and resp.body != baseline.body and len(resp.body) > 10:
                 indicators.append("Response body differs from baseline (possible data leakage)")
                 confidence += 0.4
                 snippet = resp.body[:500]
@@ -318,11 +311,7 @@ class SSRFProbe(BaseProbe):
             ("http://2130706433", "ssrf_decimal_ip"),
         ]
 
-        target_params = [
-            k
-            for k in clean_params
-            if any(w in k.lower() for w in ["url", "file", "redirect", "target", "src", "path", "uri", "fetch", "load"])
-        ]
+        target_params = [k for k in clean_params if any(w in k.lower() for w in ["url", "file", "redirect", "target", "src", "path", "uri", "fetch", "load"])]
         if not target_params:
             target_params = list(clean_params.keys())[:2]
 
@@ -380,20 +369,13 @@ class SSRFProbe(BaseProbe):
                     break
 
             # Error with internal info
-            if resp.status_code == 500 and any(
-                w in body_lower for w in ["internal", "stack trace", "traceback", "exception"]
-            ):
+            if resp.status_code == 500 and any(w in body_lower for w in ["internal", "stack trace", "traceback", "exception"]):
                 indicators.append("Server error with internal info leaked")
                 confidence += 0.2
                 evidence.append(f"Error response with internal info: {resp.body[:300]}")
 
             # Status 200 with different content than baseline
-            if (
-                resp.status_code == 200
-                and baseline.status_code == 200
-                and resp.body != baseline.body
-                and len(resp.body) > len(baseline.body) * 1.1
-            ):
+            if resp.status_code == 200 and baseline.status_code == 200 and resp.body != baseline.body and len(resp.body) > len(baseline.body) * 1.1:
                 indicators.append("Response body significantly larger (possible proxied content)")
                 confidence += 0.2
 
@@ -609,12 +591,7 @@ class SQLiProbe(BaseProbe):
             ):
                 indicators.append("Error in probe response, not in baseline")
                 confidence += 0.3
-            elif (
-                resp.status_code == 200
-                and baseline.status_code == 200
-                and resp.body != baseline.body
-                and len(resp.body) > len(baseline.body) * 1.5
-            ):
+            elif resp.status_code == 200 and baseline.status_code == 200 and resp.body != baseline.body and len(resp.body) > len(baseline.body) * 1.5:
                 indicators.append("Response body significantly larger (more data returned)")
                 confidence += 0.3
 
@@ -625,12 +602,8 @@ class SQLiProbe(BaseProbe):
                 evidence.append(f"500 error on SQLi payload: {resp.body[:300]}")
 
             # Time-based detection
-            if (
-                "SLEEP" in str(payload_used) or "WAITFOR" in str(payload_used)
-            ) and resp.elapsed_ms > baseline.elapsed_ms + 2500:
-                indicators.append(
-                    f"Time delay detected: {resp.elapsed_ms:.0f}ms vs baseline {baseline.elapsed_ms:.0f}ms"
-                )
+            if ("SLEEP" in str(payload_used) or "WAITFOR" in str(payload_used)) and resp.elapsed_ms > baseline.elapsed_ms + 2500:
+                indicators.append(f"Time delay detected: {resp.elapsed_ms:.0f}ms vs baseline {baseline.elapsed_ms:.0f}ms")
                 confidence += 0.7
                 evidence.append(f"Time-based SQLi: {resp.elapsed_ms:.0f}ms response time")
 

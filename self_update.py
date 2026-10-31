@@ -93,9 +93,7 @@ class ConstitutionComplianceValidator:
 
         # Check every constitutional principle
         for principle_id, violation_info in CONSTITUTIONAL_VIOLATIONS.items():
-            is_violation = self._check_constitutional_principle(
-                principle_id, violation_info, change_description, change_impact
-            )
+            is_violation = self._check_constitutional_principle(principle_id, violation_info, change_description, change_impact)
             if is_violation:
                 self.compliance_violations.append(
                     {
@@ -134,9 +132,7 @@ class ConstitutionComplianceValidator:
             print("\n✅ CONSTITUTIONAL COMPLIANCE VERIFIED - All checks passed")
             return True
 
-    def _check_constitutional_principle(
-        self, principle_id: str, violation_info: dict, change_description: str, change_impact: dict
-    ) -> bool:
+    def _check_constitutional_principle(self, principle_id: str, violation_info: dict, change_description: str, change_impact: dict) -> bool:
         """
         Check if a change violates a specific constitutional principle.
 
@@ -212,9 +208,9 @@ class ConstitutionComplianceValidator:
         # For now, this is a general check
 
         # Example: Check MINIMUM INTERVENTION or EVIDENCE DRIVEN
-        return (
-            "MINIMUM INTERVENTION" in principle and change_impact.get("intervention_level", "high") == "excessive"
-        ) or ("EVIDENCE DRIVEN" in principle and not change_impact.get("evidence_based", False))
+        return ("MINIMUM INTERVENTION" in principle and change_impact.get("intervention_level", "high") == "excessive") or (
+            "EVIDENCE DRIVEN" in principle and not change_impact.get("evidence_based", False)
+        )
 
     def _check_integration_requirement(self, requirement: str, change_description: str, change_impact: dict) -> bool:
         """
@@ -395,9 +391,7 @@ class SelfEvolutionSystem:
             return False
 
         # 4. Evolution successful completion
-        successful_evolutions = len(
-            [change for change in self.evolution_history if change.get("status") == "applied_successfully"]
-        )
+        successful_evolutions = len([change for change in self.evolution_history if change.get("status") == "applied_successfully"])
         if successful_evolutions < 3:
             print("❌ Insufficient evolution success history - Cannot advance autonomy")
             return False
@@ -430,8 +424,7 @@ class SelfEvolutionSystem:
             "compliance_track_record": 10.0 if "FULLY_COMPLIANT" in self.system_metrics["compliance_status"] else 5.0,
             "evolution_success_rate": min(
                 10.0,
-                len([change for change in self.evolution_history if change.get("status") == "applied_successfully"])
-                / 0.5,
+                len([change for change in self.evolution_history if change.get("status") == "applied_successfully"]) / 0.5,
             ),
             "system_intelligence": 8.5,  # Based on current system metrics
         }
@@ -461,9 +454,7 @@ class SelfEvolutionSystem:
         change_impact = self._generate_change_impact_assessment(opportunity)
 
         # Validate constitutional compliance
-        is_constitutional = self.constitution_validator.validate_change(
-            change_description=opportunity["description"], change_impact=change_impact
-        )
+        is_constitutional = self.constitution_validator.validate_change(change_description=opportunity["description"], change_impact=change_impact)
 
         if not is_constitutional:
             print("❌ CONSTITUTIONAL VIOLATION DETECTED - Change cannot be proposed")
@@ -1142,9 +1133,7 @@ def main():
     print("\n📊 EVOLUTION SUMMARY:")
     print(f"   Opportunities Detected: {len(opportunities)}")
     print(f"   Evolution Actions Proposed: {len(evolution_actions)}")
-    print(
-        f"   Compliance Report: {compliance_report['compliance_status']} ({compliance_report['compliance_percentage']:.2f}%)"
-    )
+    print(f"   Compliance Report: {compliance_report['compliance_status']} ({compliance_report['compliance_percentage']:.2f}%)")
     print(f"   Current Autonomy Level: {evolution_system.autonomy_level}")
     print(f"   Evolution Level: {evolution_system.evolution_level}")
 

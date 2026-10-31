@@ -51,9 +51,7 @@ class OddsHarvesterConnector(OdysseyConnector):
             return ConnectorHealth(
                 connected=resp.status_code == 200,
                 latency_ms=round(latency, 1),
-                rate_limit_remaining=int(resp.headers.get("x-requests-remaining", 0))
-                if "x-requests-remaining" in resp.headers
-                else None,
+                rate_limit_remaining=int(resp.headers.get("x-requests-remaining", 0)) if "x-requests-remaining" in resp.headers else None,
             )
         except Exception as exc:
             return ConnectorHealth(connected=False, error=str(exc))

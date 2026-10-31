@@ -51,10 +51,7 @@ def compute_macd(prices: list[float]) -> tuple[float, float, float]:
     ema12 = _ema(prices, fast)
     ema26 = _ema(prices, slow)
     macd_line = ema12 - ema26
-    macd_hist = [
-        _ema([p for p in prices[: i + 1] if p], fast) - _ema([p for p in prices[: i + 1] if p], slow)
-        for i in range(len(prices))
-    ]
+    macd_hist = [_ema([p for p in prices[: i + 1] if p], fast) - _ema([p for p in prices[: i + 1] if p], slow) for i in range(len(prices))]
     macd_hist = [x for x in macd_hist if x != 0.0]
     signal_line = _ema(macd_hist[-signal:] if len(macd_hist) >= signal else macd_hist, min(signal, len(macd_hist)))
     histogram = macd_line - signal_line

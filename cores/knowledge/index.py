@@ -262,10 +262,7 @@ class KnowledgeIndex:
             return {"added": 0, "updated": 0, "removed": 0}
 
         with self._lock:
-            known = {
-                row["path"]: (row["mtime"], row["size"], row["sha256"])
-                for row in self._conn.execute("SELECT path, mtime, size, sha256 FROM notes")
-            }
+            known = {row["path"]: (row["mtime"], row["size"], row["sha256"]) for row in self._conn.execute("SELECT path, mtime, size, sha256 FROM notes")}
 
         added: list[tuple[Path, float, int, str]] = []
         updated: list[tuple[Path, float, int, str]] = []
@@ -508,9 +505,7 @@ class KnowledgeIndex:
 
     def notes_without_embeddings(self) -> list[str]:
         with self._lock:
-            rows = self._conn.execute(
-                "SELECT path FROM notes WHERE path NOT IN (SELECT note_path FROM embeddings)"
-            ).fetchall()
+            rows = self._conn.execute("SELECT path FROM notes WHERE path NOT IN (SELECT note_path FROM embeddings)").fetchall()
             return [r["path"] for r in rows]
 
     # ── stats / health ─────────────────────────────────────────────────────

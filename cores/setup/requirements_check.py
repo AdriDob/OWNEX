@@ -35,9 +35,7 @@ def check_python() -> CheckResult:
     return CheckResult(
         name="python",
         status="ok" if ok else "error",
-        message=f"Python {v.major}.{v.minor}.{v.micro}"
-        if ok
-        else f"Python {v.major}.{v.minor} — requiere >= {MIN_PYTHON[0]}.{MIN_PYTHON[1]}",
+        message=f"Python {v.major}.{v.minor}.{v.micro}" if ok else f"Python {v.major}.{v.minor} — requiere >= {MIN_PYTHON[0]}.{MIN_PYTHON[1]}",
         detail=f"{v.major}.{v.minor}.{v.micro}",
         category="system",
     )
@@ -72,9 +70,7 @@ def check_ollama() -> CheckResult:
         version = r.stdout.strip() or r.stderr.strip()
         return CheckResult("ollama", "ok", f"Ollama {version}", detail=version, category="system")
     except FileNotFoundError:
-        return CheckResult(
-            "ollama", "warning", "Ollama no instalado", "apt install ollama o https://ollama.com", "system"
-        )
+        return CheckResult("ollama", "warning", "Ollama no instalado", "apt install ollama o https://ollama.com", "system")
 
 
 def check_ollama_models() -> CheckResult:
@@ -126,9 +122,7 @@ def check_permissions() -> CheckResult:
         test_file.unlink()
         return CheckResult("permissions", "ok", "Permisos de escritura correctos", category="system")
     except OSError as exc:
-        return CheckResult(
-            "permissions", "error", f"Sin permisos de escritura en {OWNEX_DIR}: {exc}", category="system"
-        )
+        return CheckResult("permissions", "error", f"Sin permisos de escritura en {OWNEX_DIR}: {exc}", category="system")
 
 
 def check_vault() -> CheckResult:
@@ -151,9 +145,7 @@ def check_secrets() -> CheckResult:
         manager = get_secrets_manager()
         keys = manager.list_keys()
         if keys:
-            return CheckResult(
-                "secrets", "ok", f"{len(keys)} secreto(s) almacenado(s)", detail=str(keys), category="security"
-            )
+            return CheckResult("secrets", "ok", f"{len(keys)} secreto(s) almacenado(s)", detail=str(keys), category="security")
         return CheckResult(
             "secrets",
             "warning",
@@ -174,13 +166,9 @@ def check_all() -> dict[str, Any]:
     for fn in SYSTEM_CHECKS + SECURITY_CHECKS:
         try:
             r = fn()
-            results.append(
-                {"name": r.name, "status": r.status, "message": r.message, "detail": r.detail, "category": r.category}
-            )
+            results.append({"name": r.name, "status": r.status, "message": r.message, "detail": r.detail, "category": r.category})
         except Exception as exc:
-            results.append(
-                {"name": fn.__name__, "status": "error", "message": f"Check falló: {exc}", "category": "system"}
-            )
+            results.append({"name": fn.__name__, "status": "error", "message": f"Check falló: {exc}", "category": "system"})
 
     by_category: dict[str, list[dict[str, Any]]] = {}
     for r in results:

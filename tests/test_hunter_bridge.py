@@ -152,9 +152,7 @@ class TestRunHunterScan:
             mock_check.return_value = {"installed": True}
             with patch("shutil.which") as mock_which:
                 mock_which.return_value = "/usr/bin/python3"
-                with patch(
-                    "subprocess.run", side_effect=__import__("subprocess").TimeoutExpired(cmd="test", timeout=600)
-                ):
+                with patch("subprocess.run", side_effect=__import__("subprocess").TimeoutExpired(cmd="test", timeout=600)):
                     result = run_hunter_scan("test.com")
                     assert result["status"] == "timeout"
 

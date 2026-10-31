@@ -36,7 +36,16 @@ class ActiveSettings:
     @classmethod
     def from_session(cls, session: ArmSession | None) -> ActiveSettings:
         if session is None:
-            return cls(armed=False, purpose="", expires_at=0.0, max_lot=0.0, max_open=0, max_daily_loss_pct=0.0, whitelist=[], kill=False)
+            return cls(
+                armed=False,
+                purpose="",
+                expires_at=0.0,
+                max_lot=0.0,
+                max_open=0,
+                max_daily_loss_pct=0.0,
+                whitelist=[],
+                kill=False,
+            )
         return cls(
             armed=session.armed,
             purpose=session.purpose,

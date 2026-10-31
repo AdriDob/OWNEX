@@ -90,9 +90,7 @@ class GigTemplate:
     estimated_hours: float
     difficulty: str
     demands: list[str] = field(default_factory=list)
-    pricing: PricingRecommendation = field(
-        default_factory=lambda: PricingRecommendation(starter=0, standard=0, premium=0, band="low")
-    )
+    pricing: PricingRecommendation = field(default_factory=lambda: PricingRecommendation(starter=0, standard=0, premium=0, band="low"))
 
     def to_dict(self) -> dict[str, Any]:
         return {

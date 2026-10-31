@@ -19,9 +19,7 @@ class PowerShellRunner(BaseTool):
         if platform.system() != "Windows":
             return ToolResult(False, "PowerShell only available on Windows")
         try:
-            r = subprocess.run(
-                ["powershell", "-Command", "$PSVersionTable.PSVersion"], capture_output=True, text=True, timeout=10
-            )
+            r = subprocess.run(["powershell", "-Command", "$PSVersionTable.PSVersion"], capture_output=True, text=True, timeout=10)
             if r.returncode == 0:
                 return ToolResult(True, f"PowerShell available: {r.stdout.strip()}")
             return ToolResult(False, r.stderr.strip())

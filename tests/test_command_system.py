@@ -268,8 +268,10 @@ def client():
     import uuid
 
     from api.main import app
+    from cores.gateway.rate_limit import reset_rate_limiter
     from cores.license.validator import generate_license
 
+    reset_rate_limiter()
     c = TestClient(app)
     lic = generate_license(expiry_days=365)
     c.post("/api/license/activate", json={"key": lic})

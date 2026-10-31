@@ -158,14 +158,10 @@ class SolanaConnector(CryptoConnector):
                 tx_type = "send" if is_outgoing else "receive"
 
                 if is_outgoing:
-                    to_addr = next(
-                        (key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] < post_balances[i]), ""
-                    )
+                    to_addr = next((key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] < post_balances[i]), "")
                     from_addr = self._address
                 else:
-                    from_addr = next(
-                        (key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] > post_balances[i]), ""
-                    )
+                    from_addr = next((key for i, key in enumerate(keys) if i != addr_idx and pre_balances[i] > post_balances[i]), "")
                     to_addr = self._address
 
                 tx = CryptoTransaction(

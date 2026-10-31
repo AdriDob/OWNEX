@@ -69,9 +69,7 @@ LOW_VALUE_PATTERNS = [
     r"/ping",
 ]
 
-ID_PATTERN = re.compile(
-    r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I
-)
+ID_PATTERN = re.compile(r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I)
 NOUN_ID_PATTERN = re.compile(r"/(?:[A-Za-z]+)-?(?:id|uuid|key|token)(?:/|$)", re.I)
 PATH_PARAM_PATTERN = re.compile(r"\{?[A-Za-z0-9_]+\}?")
 
@@ -214,16 +212,11 @@ class AttackDecisionEngine:
         top = entries[:10]
 
         ownership = [e for e in top if e["ownership_risk"]]
-        attack_vectors = [
-            {"vector": vector, "endpoints": [e["path"] for e in items], "count": len(items)}
-            for vector, items in by_vector.items()
-        ]
+        attack_vectors = [{"vector": vector, "endpoints": [e["path"] for e in items], "count": len(items)} for vector, items in by_vector.items()]
 
         suggested_manual_tests: list[str] = []
         for item in top:
-            suggested_manual_tests.extend(
-                [f"[{item['vector']}] {item['path']} -> {suggestion}" for suggestion in item["suggestions"]]
-            )
+            suggested_manual_tests.extend([f"[{item['vector']}] {item['path']} -> {suggestion}" for suggestion in item["suggestions"]])
 
         vector_summary = ", ".join(sorted({item["vector"] for item in top})) if top else "ninguno"
         summary = (

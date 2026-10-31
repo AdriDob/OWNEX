@@ -131,7 +131,9 @@ def compute_allocation_scores(
                 "balance": round(balance, 2),
                 "score": round(score, 4),
                 "action": action,
-                "suggested_allocation_pct": round(max(MIN_ALLOCATION, score / remaining_score * 100) if remaining_score > 0 else 0, 2),
+                "suggested_allocation_pct": round(
+                    max(MIN_ALLOCATION, score / remaining_score * 100) if remaining_score > 0 else 0, 2
+                ),
             }
 
         platform_rec["score"] = round(remaining_score / len(platform_balances), 4) if platform_balances else 0.0
@@ -179,7 +181,9 @@ def compute_allocation_scores(
                 "score": round(score, 4),
                 "30d_return": round(hist_return, 2) if hist_return else 0.0,
                 "action": action,
-                "suggested_allocation_pct": round(max(MIN_ALLOCATION, score / remaining_score * 100) if remaining_score > 0 else 0, 2),
+                "suggested_allocation_pct": round(
+                    max(MIN_ALLOCATION, score / remaining_score * 100) if remaining_score > 0 else 0, 2
+                ),
             }
 
         crypto_rec["score"] = round(remaining_score / len(by_coin), 4) if by_coin else 0.0
@@ -237,7 +241,9 @@ def compute_allocation_scores(
     overall_score = round(sum(all_scores) / len(all_scores), 4) if all_scores else 0.0
 
     # Overall recommendation based on weighted analysis
-    total_portfolio = platform_total + crypto_total + (sum(firefly_balances.values()) if firefly_balances else 0.0) + takenos_balance
+    total_portfolio = (
+        platform_total + crypto_total + (sum(firefly_balances.values()) if firefly_balances else 0.0) + takenos_balance
+    )
 
     if overall_score > 0.6 and total_portfolio > 10_000:
         overall_rec = "SCALE"  # Growing portfolio, increase allocation

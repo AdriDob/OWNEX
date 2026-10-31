@@ -187,11 +187,7 @@ def _get_report_status() -> dict:
 def _get_target_details(name: str) -> dict:
     session = _get_session()
     try:
-        t = (
-            session.query(models.Target)
-            .filter((models.Target.name.ilike(f"%{name}%")) | (models.Target.id == _parse_int(name)))
-            .first()
-        )
+        t = session.query(models.Target).filter((models.Target.name.ilike(f"%{name}%")) | (models.Target.id == _parse_int(name))).first()
         if not t:
             return {"error": f"No se encontró target: {name}"}
 
@@ -235,11 +231,7 @@ async def _web_search(query: str) -> dict:
                 "https://html.duckduckgo.com/html/",
                 params={"q": query},
                 headers={
-                    "User-Agent": (
-                        "Mozilla/5.0 (X11; Linux x86_64) "
-                        "AppleWebKit/537.36 (KHTML, like Gecko) "
-                        "Chrome/120.0.0.0 Safari/537.36"
-                    ),
+                    "User-Agent": ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
                 },
             )
         soup = BeautifulSoup(resp.text, "html.parser")

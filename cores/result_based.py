@@ -104,9 +104,7 @@ class ResultBasedClassifier:
         # entry via assessment with no experience requirement is low
         # friction by design, not a hiring funnel.
         assessed_stream = (
-            assessment_only
-            and employment in _TRADITIONAL_EMPLOYMENT
-            and str(opportunity.get("entry_mechanism") or "") in {"assessment", "training", "test"}
+            assessment_only and employment in _TRADITIONAL_EMPLOYMENT and str(opportunity.get("entry_mechanism") or "") in {"assessment", "training", "test"}
         )
         if (employment in {"microtask", "challenge", "prize"} and not is_funnel) or assessed_stream:
             base = 55.0 if not assessed_stream else 50.0
@@ -114,9 +112,7 @@ class ResultBasedClassifier:
             reasons = [f"Trabajo por unidad/aceptación ({employment}), simple registro"] + friction_flags
             expectations = ["Calidad aceptada = pago; reputación puede crecer con cada entrega."]
             if assessed_stream:
-                reasons = [
-                    f"Stream por hora con entry por assessment ({employment}); sin experiencia previa requerida"
-                ] + friction_flags
+                reasons = [f"Stream por hora con entry por assessment ({employment}); sin experiencia previa requerida"] + friction_flags
                 expectations = ["Assessment único al entrar; después ingreso recurrente mientras haya tareas."]
             return LevelAssessment(
                 level="A",

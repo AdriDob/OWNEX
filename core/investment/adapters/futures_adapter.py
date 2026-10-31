@@ -71,9 +71,7 @@ class FuturesAdapter:
             logger.error("Failed to set leverage: %s", exc)
             return False
 
-    async def open_position(
-        self, symbol: str, side: str, size_usd: float, exchange: str = "binance", leverage: int | None = None
-    ) -> dict[str, Any]:
+    async def open_position(self, symbol: str, side: str, size_usd: float, exchange: str = "binance", leverage: int | None = None) -> dict[str, Any]:
         lev = leverage or self._default_leverage
         try:
             import ccxt.async_support as ccxt

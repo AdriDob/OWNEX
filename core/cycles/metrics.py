@@ -54,9 +54,7 @@ class CycleMetricsEngine:
             completed_tasks = len([o for o in opportunities if getattr(o, "status", None) == "completed"])
 
             # Calculate estimated value from opportunities with payout info
-            estimated_value = sum(
-                float(getattr(o, "reward_min", 0) + getattr(o, "reward_max", 0)) / 2 for o in opportunities
-            )
+            estimated_value = sum(float(getattr(o, "reward_min", 0) + getattr(o, "reward_max", 0)) / 2 for o in opportunities)
 
             # Calculate success rate based on opportunity confidence/stage
             success_rate = 0.7 if opportunities_found > 0 else 0.0

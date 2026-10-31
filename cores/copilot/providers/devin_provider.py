@@ -18,9 +18,7 @@ class DevinProvider(BaseProvider):
     """
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
-        super().__init__(
-            config or ProviderConfig(name="devin", priority=15, models=["default", "swe-1.6-slow"], timeout_s=300)
-        )
+        super().__init__(config or ProviderConfig(name="devin", priority=15, models=["default", "swe-1.6-slow"], timeout_s=300))
         self._binary = self._config.extra.get("binary", "devin")
         self._model = self._config.extra.get("model", self._config.models[0]) if self._config.models else "default"
 
@@ -46,15 +44,11 @@ class DevinProvider(BaseProvider):
             if self._model and self._model != "default":
                 cmd.extend(["--model", self._model])
 
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=self._config.timeout_s, cwd=project_dir
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=self._config.timeout_s, cwd=project_dir)
             dur = (time.monotonic() - t0) * 1000
 
             if result.returncode == 0:
-                return ProviderResponse(
-                    content=result.stdout or "(no output)", provider="devin", model=self._model, duration_ms=dur
-                )
+                return ProviderResponse(content=result.stdout or "(no output)", provider="devin", model=self._model, duration_ms=dur)
             else:
                 return ProviderResponse(
                     content=result.stderr or result.stdout,

@@ -62,9 +62,7 @@ class IssueHuntExecutor(BaseExecutor):
                         data={"claim_id": data.get("claim_id"), "expires_at": data.get("expires_at")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "claim_issue", bounty_id, error=f"IssueHunt API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "claim_issue", bounty_id, error=f"IssueHunt API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "claim_issue", bounty_id, error=str(e))
 
@@ -94,9 +92,7 @@ class IssueHuntExecutor(BaseExecutor):
                         data={"submission_id": data.get("submission_id"), "status": data.get("status")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "submit_pr", bounty_id, error=f"IssueHunt API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "submit_pr", bounty_id, error=f"IssueHunt API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "submit_pr", bounty_id, error=str(e))
 

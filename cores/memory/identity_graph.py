@@ -64,9 +64,7 @@ class IdentityGraph:
         entry = self._tokens.get(token)
         return entry.original_value if entry else None
 
-    def propagate(
-        self, endpoint_a: str, endpoint_b: str, entity_type: str, evidence: list[str] | None = None
-    ) -> IdentityLink:
+    def propagate(self, endpoint_a: str, endpoint_b: str, entity_type: str, evidence: list[str] | None = None) -> IdentityLink:
         link = IdentityLink(
             source_endpoint=endpoint_a,
             target_endpoint=endpoint_b,
@@ -76,9 +74,7 @@ class IdentityGraph:
         )
         self._links.append(link)
 
-        shared_tokens = self._endpoint_identities.get(endpoint_a, set()) & self._endpoint_identities.get(
-            endpoint_b, set()
-        )
+        shared_tokens = self._endpoint_identities.get(endpoint_a, set()) & self._endpoint_identities.get(endpoint_b, set())
         if shared_tokens:
             link.confidence = min(0.95, link.confidence + 0.1 * len(shared_tokens))
 
@@ -112,9 +108,7 @@ class IdentityGraph:
         token_keys = self._endpoint_identities.get(endpoint_id, set())
         return [self._tokens[t] for t in token_keys if t in self._tokens]
 
-    def scan_for_identities(
-        self, path: str, params: dict[str, Any] | None = None, body: str | None = None
-    ) -> dict[str, str]:
+    def scan_for_identities(self, path: str, params: dict[str, Any] | None = None, body: str | None = None) -> dict[str, str]:
         found: dict[str, str] = {}
         text = f"{path} {str(params or {})} {body or ''}"
 
@@ -139,27 +133,19 @@ class IdentityGraph:
 
                 shared_entity = None
                 for entity_type in ("user", "account", "organization", "team"):
-                    if (
-                        entity_type in str(ep_a.get("path", "")).lower()
-                        and entity_type in str(ep_b.get("path", "")).lower()
-                    ):
+                    if entity_type in str(ep_a.get("path", "")).lower() and entity_type in str(ep_b.get("path", "")).lower():
                         shared_entity = entity_type
                         break
 
                 if shared_entity:
-                    link = self.propagate(
-                        eid_a, eid_b, shared_entity, evidence=[f"Both reference entity:{shared_entity}"]
-                    )
+                    link = self.propagate(eid_a, eid_b, shared_entity, evidence=[f"Both reference entity:{shared_entity}"])
                     links.append(link)
 
         return links
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "tokens": {
-                k: {"original": v.original_value, "entity_type": v.entity_type, "endpoints": v.endpoints_seen}
-                for k, v in self._tokens.items()
-            },
+            "tokens": {k: {"original": v.original_value, "entity_type": v.entity_type, "endpoints": v.endpoints_seen} for k, v in self._tokens.items()},
             "links": [
                 {
                     "source": link.source_endpoint,

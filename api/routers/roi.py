@@ -22,9 +22,7 @@ def _build_roi_detail(
     return {
         "endpoint_id": hypothesis.endpoint.get("id") if hypothesis.endpoint else None,
         "hypothesis_id": hypothesis.id,
-        "vulnerability_type": hypothesis.vulnerability_type.value
-        if hasattr(hypothesis.vulnerability_type, "value")
-        else str(hypothesis.vulnerability_type),
+        "vulnerability_type": hypothesis.vulnerability_type.value if hasattr(hypothesis.vulnerability_type, "value") else str(hypothesis.vulnerability_type),
         "path": endpoint_path or hypothesis.endpoint.get("path", ""),
         "method": endpoint_method or hypothesis.endpoint.get("method", "GET"),
         "roi_normalized": hypothesis.roi_score,

@@ -173,9 +173,7 @@ def parse_markdown(content: str, rel_path: str, base_name: str | None = None) ->
         else:
             links.append(target)
 
-    markdown_links = [
-        url for _, url in _MD_LINK_RE.findall(stripped) if not url.startswith("#") and not url.startswith("!")
-    ]
+    markdown_links = [url for _, url in _MD_LINK_RE.findall(stripped) if not url.startswith("#") and not url.startswith("!")]
 
     inline_tags = [t for _, t in _TAG_RE.findall(stripped)]
     tags = _extract_tags(frontmatter, inline_tags)

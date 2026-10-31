@@ -307,10 +307,7 @@ def main() -> None:
                 print(f"      Code: {f['code']}")
 
         print(f"\n{'=' * 60}")
-        print(
-            f"  SUMMARY: {len(blockers)} blockers, {len(highs)} high, "
-            f"{len(mediums)} medium, {len(warns)} warnings, {len(errors)} errors"
-        )
+        print(f"  SUMMARY: {len(blockers)} blockers, {len(highs)} high, {len(mediums)} medium, {len(warns)} warnings, {len(errors)} errors")
         print(f"{'=' * 60}\n")
 
     fail = len(blockers) > 0 or len(highs) > 0 or len(errors) > 0

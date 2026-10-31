@@ -93,8 +93,7 @@ class ParallelOptimizer(BaseOptimizer):
             logs.append(
                 OptimizationLog(
                     optimizer=self.name,
-                    description=f"Parallelized {len(branch_ids)} independent branches "
-                    f"after node '{node.label or node.id}'",
+                    description=f"Parallelized {len(branch_ids)} independent branches after node '{node.label or node.id}'",
                     node_ids_affected=[node.id] + branch_ids + [merge_id],
                     before=f"sequential chain of {len(branch_ids)} capability calls",
                     after=f"parallel execution of {len(branch_ids)} branches + merge",

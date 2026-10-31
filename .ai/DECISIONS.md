@@ -858,3 +858,18 @@
 - **Verificación**: ruff limpio; 22 passed offscreen; repro de cadena `WINDOW CREATED OK`; suite fast 100 passed / 1 skipped; `import api.main` OK. Commits: `e7d64dfd4` (sidecar), `71eb42320` (guía). CI rebuild run `32021761419` en curso.
 - **Impacto**: El bundle Windows queda autocontenido (motor + UI en un proceso) → el exe del escritorio muestra datos reales desde el primer día. Guía guiada `README-INSTALACION.md` (raíz repo, git) + copiada al Desktop de Windows como `GUIA-INSTALACION-OWNEX.md`; sección nueva en `ownexinstalador/docs/WINDOWS_INSTALL.md` (gitignored).
 - **Condiciones para reabrir**: Si el boot del backend in-process (35 s) se considera lento → pantalla de progreso en la UI; si el bundle crece demasiado → podar `collect_all` con `hiddenimports` específicos; si se quiere firma → certificado de code signing (elimina SmartScreen).
+## 2026-10-29 — Universal source discovery is metadata-only until verified and wired
+
+- Discovered protocol documents are untrusted. OWNEX may parse OpenAPI/skill.md/ai-catalog/A2A/llms.txt metadata, but must not execute declared MCP tools, generated code, POST operations, or source-provided claims.
+- A source is not a Work Bank provider merely because it exposes a protocol. Keep it outside the Work Bank until its task schema, reward semantics, funding, and eligibility have a verified mapping.
+- Candidate activation requires recorded human-reviewed evidence and a separate approval call. Discovery itself may add a candidate but cannot activate it.
+- GitHub topic search is the only enabled meta-discovery feed in the first slice. Other registries/feed/on-chain discovery remain disabled until their endpoints and safe contracts are verified.
+- Security boundary: HTTPS only, public DNS/IP validation, no redirects, no ambient proxy, bounded document size. DNS rebinding remains a known limitation, so source probing is not yet suitable as unattended production activity.
+
+## 2026-10-29 — Mission Control work monitor reuses Work Bank; Codex CLI is read-only OAR provider
+
+- Keep the Vue/Vite application and existing Work Bank as the source of task state. The panel links persisted items to an authenticated detail API and does not create a queue, source registry, payout ledger, or separate execution pipeline.
+- Open task details in a browser tab or a dedicated Tauri webview window. Grant only the Tauri permission to create a webview window; native multi-window behavior still needs runtime verification.
+- The current Work Bank has no verified task-progress events or source-to-WorkBank integration for meta-discovered candidates. The UI must state those gaps and must not manufacture claim, acceptance, agent, or payout state.
+- Confirming a submission records only `delivered`; acceptance and earnings learning require separate evidence. Local preparation remains non-submitting.
+- Add Codex CLI as an optional provider in the existing AI provider catalog and OAR registry, using ChatGPT CLI auth, a minimal environment, `--ephemeral` and a read-only sandbox. Do not use an OpenAI API key or allow the chat provider to modify the repository. Plan limits and per-call cost remain unknown; Windows/native runtime verification is pending.

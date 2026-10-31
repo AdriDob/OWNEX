@@ -231,13 +231,7 @@ class MemecoinScannerAdapter:
 
         return {
             "overall_risk": round(risk_score, 2),
-            "risk_level": "CRITICAL"
-            if risk_score > 0.7
-            else "HIGH"
-            if risk_score > 0.4
-            else "MEDIUM"
-            if risk_score > 0.2
-            else "LOW",
+            "risk_level": "CRITICAL" if risk_score > 0.7 else "HIGH" if risk_score > 0.4 else "MEDIUM" if risk_score > 0.2 else "LOW",
             "flags": flags,
             "recommendation": "AVOID" if risk_score > 0.6 else "CAUTION" if risk_score > 0.3 else "MONITOR",
         }
@@ -260,9 +254,7 @@ class MemecoinScannerAdapter:
                     all_opportunities.append(pair)
 
         # Sort by best risk/reward (high volume, low risk, good price action)
-        all_opportunities.sort(
-            key=lambda x: (x["volume_24h"] / max(x["liquidity_usd"], 1)) * (1 - x["risk_score"]), reverse=True
-        )
+        all_opportunities.sort(key=lambda x: (x["volume_24h"] / max(x["liquidity_usd"], 1)) * (1 - x["risk_score"]), reverse=True)
 
         return all_opportunities[:limit]
 

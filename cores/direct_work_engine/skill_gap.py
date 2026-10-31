@@ -48,9 +48,7 @@ class SkillAmplifier:
         overlap = len([t for t in required if t in user_set]) / len(required) if required else 1.0
 
         reach = _DIFFICULTY_REACH.get(opportunity.difficulty, 0.5)
-        readiness = max(
-            0.0, min(1.0, 0.5 * overlap + 0.3 * reach + 0.2 * (1.0 if not opportunity.interview_required else 0.0))
-        )
+        readiness = max(0.0, min(1.0, 0.5 * overlap + 0.3 * reach + 0.2 * (1.0 if not opportunity.interview_required else 0.0)))
 
         return SkillGapReport(
             opportunity_id=opportunity.id,

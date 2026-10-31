@@ -148,8 +148,7 @@ class FreshnessBatchProcessor:
             freshness = self.tracker.assess(dt)
             results.append(
                 {
-                    "opportunity_id": getattr(opp, "id", None)
-                    or (discovered if isinstance(discovered, dict) else None),
+                    "opportunity_id": getattr(opp, "id", None) or (discovered if isinstance(discovered, dict) else None),
                     "freshness_score": freshness.score,
                     "age_hours": freshness.age_hours,
                     "is_critical": freshness.is_critical,
@@ -167,9 +166,7 @@ class FreshnessBatchProcessor:
         fresh = []
         stale = []
         for opp in opportunities:
-            discovered = getattr(opp, "discovered_at", None) or (
-                opp.get("discovered_at") if isinstance(opp, dict) else None
-            )
+            discovered = getattr(opp, "discovered_at", None) or (opp.get("discovered_at") if isinstance(opp, dict) else None)
             if not discovered:
                 stale.append(opp)
                 continue

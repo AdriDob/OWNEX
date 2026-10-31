@@ -1,11 +1,34 @@
 # OWNEX Task Queue — Product Core
 
+## P0 — Cerrar flujo visible de fuentes a trabajo verificable
+
+- Estado: PARCIAL (2026-10-29). Mission Control muestra el Work Bank y detalle por tarea, pero los candidatos meta-discovered todavía no se conectan al Work Bank. La UI distingue evidencia declarada de verificación independiente, y autorización de metadatos de una fuente operativa. WorkBank ahora marca términos/perfil como pendientes y recompensa como reportada salvo prueba explícita; no afirma pago solo por existir un bounty.
+- Próximo corte: elegir una fuente con acceso de lectura verificable, mapear su task schema con evidencia, normalizar al contrato `Opportunity` y deduplicar antes de entrar al Work Bank. Mantener escrituras apagadas hasta aprobar policy y cubrir ejecución.
+- Codex CLI está instalado y autenticado en el WSL actual; proveedor OAR añadido con read-only ephemeral. Validar health/llamada desde proceso API y cuota bajo uso real limitado antes de confiarlo como proveedor unattended; no se registró coste por llamada.
+
+## P0 — Cerrar integración segura de Meta-Discovery
+
+- Estado: PARCIAL (2026-10-29). `/api/discovery/sources/*` persiste candidatos, perfila protocolos públicos, exige evidence + aprobación y scheduler consulta GitHub a diario.
+- Bloqueo: fuentes aprobadas todavía no llegan al Work Bank; `SourceProfile` no demuestra por sí mismo schema/reward/eligibility. No marcar ACTIVE como proveedor operativo hasta mapear y verificar lectura de tasks en el pipeline canónico.
+- Antes de habilitar polling unattended: cerrar DNS-rebinding mediante pinning de IP/egress policy; probar desde un entorno con acceso de red autorizado y registrar status/rate limits de GitHub.
+- Luego extender feeds uno por sprint solo con contratos/evidencia primaria (MCP registries, bounty feed, ARD/x402), sin habilitar ejecución de tools/código descubierto.
+- Fuentes prioridad 1 auditadas: Algora ya tiene adapter (probar contrato en entorno permitido antes de declararlo live); x402 Bounty Radar es pagado y su señal anti-scam es heurística, así que no activar llamadas de pago sin aprobación explícita; WarpSpeed OPEN no es apto para crawling/auto-submit según sus términos y las fechas de las tareas indexadas consultadas están vencidas.
+
 > **REGLAS:**
 > 1. No más infraestructura. Solo producto. Si no es visible en Mission Control, no existe.
 > 2. Cada sprint debe responder "¿qué oportunidad tengo hoy y cuál es la mejor acción?"
 > 3. Si ya hay capital técnico (Rastro), usarlo. No crear desde cero.
 > 4. Un Work Cycle funcionando > 5 a medias.
 > 5. Dashboard primero, automatización después.
+
+> **REGLAS DE FASE 1 - INTELIGENCIA DE FUENTES:**
+
+1. **Catálogo inicial**: 60 fuentes propuestas clasificadas por mecanismo de acceso (sin entrevista, sin experiencia profesional obligatoria, accesible desde Argentina). Detectar duplicados, plataformas discontinuadas, programas inactivos y fuentes mudadas.
+2. **Registry operativa**: Source Discovery Registry con 54 fuentes registradas, deduplicación SHA256 y clasificación por elegibilidad (A/B/C/EXPERIMENTAL/DISCONTINUED).
+3. **Contrato universal**: SourceAdapter Protocol con validate_config, authenticate, health_check, discover, fetch_details, normalize, sync, verify y get_capabilities. Drivers reutilizables: REST, GraphQL, RSS, Git, Webhooks, RPC, SDK, Dataset, Browser, Custom.
+4. **Evaluador de elegibilidad**: Clasificación por requisitos de entrevista, experiencia profesional, portfolio, Argentina elegibilidad y métodos de pago. `unknown` nunca equivale a `false`.
+5. **Prioridad P0**: Algora + Opire + GitHub (integración confirmada). P1: HackerOne + Bugcrowd. P2: IA técnica y benchmarks. P3: Expansión automática.
+6. **Tests**: 17 nuevos casos para protocolos, límites, normalización, persistencia, human gate, lifecycle, dedupe GitHub, API montada y scheduler; integración source+scheduler+mount: 71 passed; `make test-fast`: 100 passed / 1 skipped.
 
 > **⚠️ AUDITORÍA 2026-07-31 (LEER ANTES DE PROGRAMAR):** La auditoría real del código
 > (ver `.ai/CURRENT_STATE.md` → sección "AUDITORÍA 2026-07-31") muestra que muchas

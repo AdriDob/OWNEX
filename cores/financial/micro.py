@@ -568,8 +568,7 @@ def get_minimal_dashboard_state() -> dict[str, Any]:
         "system_health": health,
         "total_wallets": crypto_summary.get("total_wallets", 0),
         "total_platforms": len(state.by_platform),
-        "unconfirmed_withdrawals": withdrawal_summary.get("total_pending", 0)
-        + withdrawal_summary.get("total_initiated", 0),
+        "unconfirmed_withdrawals": withdrawal_summary.get("total_pending", 0) + withdrawal_summary.get("total_initiated", 0),
     }
 
 
@@ -602,10 +601,7 @@ def _get_entity_by_type(type_: str, id_: str) -> dict[str, Any]:
                 "id": id_,
                 "type": "wallet",
                 "total_usd": round(snap.total_usd, 2),
-                "balances": [
-                    {"symbol": b.symbol, "amount": b.amount, "usd_value": round(b.usd_value, 2)}
-                    for b in (snap.balances or [])
-                ],
+                "balances": [{"symbol": b.symbol, "amount": b.amount, "usd_value": round(b.usd_value, 2)} for b in (snap.balances or [])],
                 "connection": snap.connection.value,
                 "synced_at": snap.synced_at,
                 "error": snap.error,

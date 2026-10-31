@@ -116,9 +116,7 @@ class TestManualItems:
 
 
 class TestComplete:
-    def test_complete_when_all_manual_marked_and_detectors_true(
-        self, checklist: SetupChecklist, monkeypatch, all_detectors_false
-    ) -> None:
+    def test_complete_when_all_manual_marked_and_detectors_true(self, checklist: SetupChecklist, monkeypatch, all_detectors_false) -> None:
         for name in (
             "profile_kit",
             "payment_accounts",

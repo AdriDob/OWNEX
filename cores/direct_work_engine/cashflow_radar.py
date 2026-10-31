@@ -252,16 +252,13 @@ class RapidIncomeEngine:
     def _notes(mix: dict[str, float]) -> list[str]:
         if mix == MIX_LIQUIDITY_NEEDED:
             return [
-                "Sin base de ingreso estable detectada: priorizá liquidez rápida (TODAY) "
-                "para cubrir flujo, sin descuidar la siembra semanal (WEEK).",
-                "El mix es una recomendación de foco, no una promesa de pago. "
-                "Ninguna plataforma externa puede garantizar cobro.",
+                "Sin base de ingreso estable detectada: priorizá liquidez rápida (TODAY) para cubrir flujo, sin descuidar la siembra semanal (WEEK).",
+                "El mix es una recomendación de foco, no una promesa de pago. Ninguna plataforma externa puede garantizar cobro.",
             ]
         return [
             "Base de ingreso estable detectada: la mayoría del foco va a GROWTH "
             "(proyectos recurrentes y activos reutilizables) para aumentar ingresos futuros.",
-            "El mix es una recomendación de foco, no una promesa de pago. "
-            "Ninguna plataforma externa puede garantizar cobro.",
+            "El mix es una recomendación de foco, no una promesa de pago. Ninguna plataforma externa puede garantizar cobro.",
         ]
 
     # ── formatos del spec ────────────────────────────────────
@@ -286,9 +283,7 @@ class RapidIncomeEngine:
         week_items = radar["buckets"].get("week", [])
         growth_items = radar["buckets"].get("growth", [])
         all_items = week_items + growth_items
-        expected_earnings = radar["expected_income_usd"].get("week", 0.0) + radar["expected_income_usd"].get(
-            "growth", 0.0
-        )
+        expected_earnings = radar["expected_income_usd"].get("week", 0.0) + radar["expected_income_usd"].get("growth", 0.0)
         human_hours = round(sum(i["estimated_hours"] for i in all_items), 1)
         priority = [i["title"] for i in sorted(all_items, key=lambda i: i["expected_value"], reverse=True)]
         return {

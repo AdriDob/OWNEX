@@ -234,9 +234,7 @@ class IncomeTargetEngine:
             )
 
         # Calculate how many opportunities needed
-        total_ev = sum(
-            p.risk_adjusted_expected_value_per_user_hour * (p.human_minutes or 0) / 60 for p in feasible[:10]
-        )
+        total_ev = sum(p.risk_adjusted_expected_value_per_user_hour * (p.human_minutes or 0) / 60 for p in feasible[:10])
         if total_ev <= 0:
             return TargetPlan(
                 target=target,
@@ -330,9 +328,7 @@ class IncomeTargetEngine:
             next_month = now.replace(day=28) + timedelta(days=4)
             days_remaining = (next_month - timedelta(days=next_month.day)).day
 
-        on_track = (earned + pending) >= (
-            target.amount_usd * 0.8 * (1 - days_remaining / (7 if target.period == "weekly" else 30))
-        )
+        on_track = (earned + pending) >= (target.amount_usd * 0.8 * (1 - days_remaining / (7 if target.period == "weekly" else 30)))
 
         return TargetProgress(
             target=target,
@@ -350,9 +346,7 @@ class IncomeTargetEngine:
     # Internals
     # ──────────────────────────────────────────────────────────────────
 
-    def _rank_by_mode(
-        self, profiles: list[OpportunityEconomicProfile], mode: TargetMode
-    ) -> list[OpportunityEconomicProfile]:
+    def _rank_by_mode(self, profiles: list[OpportunityEconomicProfile], mode: TargetMode) -> list[OpportunityEconomicProfile]:
         if mode == TargetMode.FAST_CASH:
             return sorted(profiles, key=lambda p: p.cash_adjusted_value or 0, reverse=True)
         elif mode == TargetMode.MAX_EV:
@@ -380,9 +374,7 @@ class IncomeTargetEngine:
                     "day": day,
                     "action": profile.next_action or f"Work on {profile.platform}",
                     "platform": profile.platform,
-                    "expected_ev": round(
-                        profile.risk_adjusted_expected_value_per_user_hour * (profile.human_minutes or 0) / 60, 2
-                    ),
+                    "expected_ev": round(profile.risk_adjusted_expected_value_per_user_hour * (profile.human_minutes or 0) / 60, 2),
                     "hours": round(profile.human_minutes / 60, 1) if profile.human_minutes else 0,
                     "cash_speed_days": profile.payment_delay_days,
                     "acceptance_prob": profile.acceptance_probability,

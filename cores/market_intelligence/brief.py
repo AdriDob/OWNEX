@@ -68,10 +68,7 @@ def generate_brief(
     mem_stats = memory.stats()
     learned: list[str] = []
     if mem_stats["total_outcomes"] > 0:
-        learned.append(
-            f"Precisión histórica: {mem_stats['accuracy'] * 100:.0f}% "
-            f"({mem_stats['correct']}/{mem_stats['total_outcomes']})"
-        )
+        learned.append(f"Precisión histórica: {mem_stats['accuracy'] * 100:.0f}% ({mem_stats['correct']}/{mem_stats['total_outcomes']})")
     if mem_stats["pending_predictions"] > 0:
         learned.append(f"{mem_stats['pending_predictions']} predicciones pendientes de verificar")
 

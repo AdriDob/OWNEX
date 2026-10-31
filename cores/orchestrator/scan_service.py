@@ -74,11 +74,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
 
                 seen_in_memory = set()
 
-                existing = (
-                    session.query(models.Endpoint.method, models.Endpoint.path)
-                    .filter(models.Endpoint.target_id == db_target.id)
-                    .all()
-                )
+                existing = session.query(models.Endpoint.method, models.Endpoint.path).filter(models.Endpoint.target_id == db_target.id).all()
                 db_existing_set = {f"{m}:{p}" for m, p in existing}
 
                 new_endpoints_batch = []
@@ -196,11 +192,7 @@ def recover_stale_scans(max_age_hours: float = 6.0, session: Session | None = No
         session = SessionLocal()
     try:
         cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
-        stale = (
-            session.query(models.ScanRun)
-            .filter(models.ScanRun.status == "running", models.ScanRun.started_at < cutoff)
-            .all()
-        )
+        stale = session.query(models.ScanRun).filter(models.ScanRun.status == "running", models.ScanRun.started_at < cutoff).all()
         recovered: list[int] = []
         for scan in stale:
             scan.status = "failed"

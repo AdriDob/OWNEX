@@ -80,11 +80,7 @@ class ReportExecutor(BaseStageExecutor):
             # Generate a comprehensive summary report
             summary_report = self._generate_summary_report(reports, target)
 
-            summary = (
-                f"Generated {len(reports)} reports: "
-                f"{quality_passed} passed quality check, "
-                f"{quality_failed} has quality gaps"
-            )
+            summary = f"Generated {len(reports)} reports: {quality_passed} passed quality check, {quality_failed} has quality gaps"
 
             details: dict[str, Any] = {
                 "reports": reports,
@@ -323,11 +319,7 @@ class ReportExecutor(BaseStageExecutor):
         report_body: dict[str, Any],
     ) -> str:
         """Generate a plain-text one-liner summary for logging."""
-        return (
-            f"[{vuln_type.upper()}] {method} {endpoint} "
-            f"| CVSS: {scoring.get('cvss_score', '?')} "
-            f"| Impact: {report_body.get('business_impact', 'N/A')[:80]}"
-        )
+        return f"[{vuln_type.upper()}] {method} {endpoint} | CVSS: {scoring.get('cvss_score', '?')} | Impact: {report_body.get('business_impact', 'N/A')[:80]}"
 
     def _quality_check(self, md_report: str, json_report: dict[str, Any]) -> dict[str, Any]:
         """Run quality checks on the generated report."""

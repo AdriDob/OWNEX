@@ -40,12 +40,7 @@ class ReconExecutor(BaseStageExecutor):
             subdomains = self._discover_subdomains(target, depth)
             tech_stack = self._detect_tech_stack(target)
 
-            summary = (
-                f"Recon complete for {target}: "
-                f"{len(endpoints)} endpoints, "
-                f"{len(subdomains)} subdomains, "
-                f"{len(tech_stack)} technologies identified"
-            )
+            summary = f"Recon complete for {target}: {len(endpoints)} endpoints, {len(subdomains)} subdomains, {len(tech_stack)} technologies identified"
 
             details: dict[str, Any] = {
                 "target": target,
@@ -257,9 +252,7 @@ class ReconExecutor(BaseStageExecutor):
                 # Persist endpoints
                 from database.models import Endpoint as EndpointModel
 
-                existing_paths = {
-                    e.path for e in session.query(EndpointModel).filter(EndpointModel.target_id == db_target.id).all()
-                }
+                existing_paths = {e.path for e in session.query(EndpointModel).filter(EndpointModel.target_id == db_target.id).all()}
 
                 for ep in endpoints:
                     if ep.path not in existing_paths:

@@ -112,8 +112,7 @@ class OrionCLI:
             )
             if detail >= 2:
                 msg += "\n\n📋 Detalle:\n" + "\n".join(
-                    f"  • {t.get('domain', '?')}: {t.get('findings', 0)} findings ({t.get('elapsed_s', 0)}s)"
-                    for t in bounty.get("targets", [])
+                    f"  • {t.get('domain', '?')}: {t.get('findings', 0)} findings ({t.get('elapsed_s', 0)}s)" for t in bounty.get("targets", [])
                 )
 
             return CommandResult(
@@ -147,12 +146,7 @@ class OrionCLI:
             executed = crypto.get("trades_executed", 0)
             errors = crypto.get("errors", 0)
 
-            msg = (
-                f"📊 **Trading Pipeline**\n"
-                f"• {signals} señales encontradas\n"
-                f"• {executed} trades ejecutados\n"
-                f"• {errors} errores"
-            )
+            msg = f"📊 **Trading Pipeline**\n• {signals} señales encontradas\n• {executed} trades ejecutados\n• {errors} errores"
             return CommandResult(
                 command="trade",
                 summary=msg,
@@ -173,9 +167,7 @@ class OrionCLI:
             metrics = rm.metrics.to_dict()
             data = {
                 "total_revenue": sum(
-                    float(v)
-                    for v in metrics.get("revenue", {}).values()
-                    if isinstance(v, str) and v.replace(".", "").replace("-", "").isdigit()
+                    float(v) for v in metrics.get("revenue", {}).values() if isinstance(v, str) and v.replace(".", "").replace("-", "").isdigit()
                 ),
                 "monthly_revenue": float(metrics.get("revenue", {}).get("30d", "0")),
                 "estimated_annual": float(metrics.get("revenue", {}).get("estimated_annual", "0")),
@@ -222,9 +214,7 @@ class OrionCLI:
                     extra.append(f"  • {t.get('domain', '?')}: {t.get('findings', 0)} en {t.get('elapsed_s', 0)}s")
                 if extra:
                     msg += "\n\n📋 Targets:\n" + "\n".join(extra)
-                msg += (
-                    f"\n\n📊 Crypto: {crypto.get('signals', 0)} señales, {crypto.get('trades_executed', 0)} ejecutados"
-                )
+                msg += f"\n\n📊 Crypto: {crypto.get('signals', 0)} señales, {crypto.get('trades_executed', 0)} ejecutados"
 
             return CommandResult(
                 command="max",

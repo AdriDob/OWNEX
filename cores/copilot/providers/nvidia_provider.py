@@ -25,10 +25,7 @@ class NvidiaProvider(BaseProvider):
                 timeout_s=120,
             )
         )
-        self._base_url = (
-            self._config.extra.get("base_url", os.getenv("NVIDIA_BASE_URL", ""))
-            or "https://integrate.api.nvidia.com/v1"
-        )
+        self._base_url = self._config.extra.get("base_url", os.getenv("NVIDIA_BASE_URL", "")) or "https://integrate.api.nvidia.com/v1"
         self._api_key = self._config.extra.get("api_key", os.getenv("NVIDIA_API_KEY", ""))
         self._default_model = self._config.models[0]
         # Supported models list for routing
@@ -110,14 +107,10 @@ class NvidiaProvider(BaseProvider):
                 )
         except httpx.HTTPStatusError as e:
             logger.error(f"NVIDIA chat failed with HTTP error: {e.response.status_code} - {e.response.text}")
-            return ProviderResponse(
-                content="", provider="nvidia", model=model, error=str(e), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="nvidia", model=model, error=str(e), duration_ms=(time.monotonic() - t0) * 1000)
         except Exception as exc:
             logger.warning("NVIDIA chat failed: %s", exc)
-            return ProviderResponse(
-                content="", provider="nvidia", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="nvidia", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000)
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         model = kwargs.get("model", self._default_model)

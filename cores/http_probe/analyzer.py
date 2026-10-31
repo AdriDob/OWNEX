@@ -20,9 +20,7 @@ SQL_ERROR_RE = re.compile(
     re.IGNORECASE,
 )
 
-INTERNAL_HOST_RE = re.compile(
-    r"(localhost|127\.0\.0\.1|0\.0\.0\.0|169\.254\.169\.254|10\.\d+\.\d+|172\.16\.\d+|192\.168\.\d+)"
-)
+INTERNAL_HOST_RE = re.compile(r"(localhost|127\.0\.0\.1|0\.0\.0\.0|169\.254\.169\.254|10\.\d+\.\d+|172\.16\.\d+|192\.168\.\d+)")
 
 CLOUD_METADATA_RE = re.compile(r"(ami-id|instance-id|instance-type|local-ipv4|public-keys|iam-security-credentials)")
 
@@ -186,9 +184,7 @@ class Analyzer:
 
         return result
 
-    def extract_evidence_from_pair(
-        self, baseline: HttpResponse, probe: HttpResponse, payload: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    def extract_evidence_from_pair(self, baseline: HttpResponse, probe: HttpResponse, payload: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract evidence items from a baseline/probe response pair.
 
         Used by ProbeEngine for per-request analysis.

@@ -136,9 +136,7 @@ async def check_workflow_engine(quick: bool = False):
             platform=platform,
             technology_tags=[],
             url=f"https://{platform}.com/test",
-            original={"repository": "owner/repo", "issue_number": 1, "bounty_id": opp_id}
-            if platform == "algora"
-            else {},
+            original={"repository": "owner/repo", "issue_number": 1, "bounty_id": opp_id} if platform == "algora" else {},
         )
         plan = await wf._create_plan(scored)
         status = "pass" if plan is not None else "info" if platform == "opencollective" else "warn"
@@ -216,9 +214,7 @@ async def check_credentials():
     # ── Tier-based recommendation ──────────────────────────────────
     print()
     print(f"  {BOLD}Tier-based key setup (add in this order):{RESET}")
-    print(
-        f"  {DIM}┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────┐{RESET}"
-    )
+    print(f"  {DIM}┌──────────────────────┬──────────────────────────────────────────────────────────────────────────────┐{RESET}")
     for tier_name, tier_keys in [
         ("🟢 TIER 1  Model Router", ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OMNIROUTE_API_KEY"]),
         (
@@ -257,14 +253,8 @@ async def check_credentials():
         ),
         ("🟣 TIER 5  Atlas Cycle", ["CODE4RENA_API_KEY", "CANTINA_API_KEY", "SHERLOCK_API_KEY", "CODEHAWKS_API_KEY"]),
     ]:
-        tier_configured = sum(
-            1
-            for k in tier_keys
-            if k in [v for v in []] or os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else "")
-        )
-        tier_configured = sum(
-            1 for k in tier_keys if os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else "")
-        )
+        tier_configured = sum(1 for k in tier_keys if k in [v for v in []] or os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else ""))
+        tier_configured = sum(1 for k in tier_keys if os.environ.get(k) or (_from_env_file(vault_path, k) if vault_path else ""))
         status_icon = "✅" if tier_configured == len(tier_keys) else "🔶" if tier_configured > 0 else "⬜"
         print(f"  │ {status_icon} {tier_name:<30s} │ {tier_configured}/{len(tier_keys)} keys configured{' ' * 50}|")
     print(f"  {DIM}└──────────────────────────────────────────────────────────────────────────────────────┘{RESET}")

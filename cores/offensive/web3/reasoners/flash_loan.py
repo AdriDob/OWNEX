@@ -37,9 +37,7 @@ class FlashLoanAttackReasoner(BaseWeb3Reasoner):
         has_receive = contract.has_function("receive") or contract.has_function("fallback")
         has_oracle = contract.has_function_prefix("getPrice") or contract.has_function_prefix("getReserve")
         has_swap = contract.has_function_prefix("swap")
-        has_balance_compare = contract.has_function_prefix("_checkBalance") or contract.has_function_prefix(
-            "_verifyCollateral"
-        )
+        has_balance_compare = contract.has_function_prefix("_checkBalance") or contract.has_function_prefix("_verifyCollateral")
 
         signals: list[str] = []
         if callback_fns:

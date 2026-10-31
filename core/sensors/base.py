@@ -72,12 +72,8 @@ class Sensor(ABC):
         ).inc()
         SENSOR_FETCH_DURATION_SECONDS.labels(sensor_id=self.id, source_type=self.source_type).observe(duration)
         if success and obs_count > 0:
-            SENSOR_OBSERVATIONS_COLLECTED.labels(
-                sensor_id=self.id, source_type=self.source_type, source_name=self.source_name
-            ).inc(obs_count)
-        SENSOR_HEALTH_STATUS.labels(sensor_id=self.id, source_type=self.source_type, source_name=self.source_name).set(
-            1 if success else -1
-        )
+            SENSOR_OBSERVATIONS_COLLECTED.labels(sensor_id=self.id, source_type=self.source_type, source_name=self.source_name).inc(obs_count)
+        SENSOR_HEALTH_STATUS.labels(sensor_id=self.id, source_type=self.source_type, source_name=self.source_name).set(1 if success else -1)
 
     async def fetch_with_metrics(self) -> list[Observation]:
         """Fetch with metrics recording - wrapper for sensors to use."""

@@ -103,9 +103,7 @@ class EventStore:
             )
         return [self._row_to_dict(r) for r in rows]
 
-    def replay(
-        self, from_ts: float | None = None, to_ts: float | None = None, limit: int = 1000
-    ) -> list[dict[str, Any]]:
+    def replay(self, from_ts: float | None = None, to_ts: float | None = None, limit: int = 1000) -> list[dict[str, Any]]:
         """Replay events in a time window (chronological)."""
         query = "SELECT * FROM event_store WHERE 1=1"
         params: list[Any] = []
@@ -167,15 +165,9 @@ class EventStore:
         """Return aggregate statistics about the event store."""
         total = self.count()
         with self._lock:
-            by_type = self._fetchall(
-                "SELECT event_type, COUNT(*) as cnt FROM event_store GROUP BY event_type ORDER BY cnt DESC LIMIT 20"
-            )
-            by_source = self._fetchall(
-                "SELECT source, COUNT(*) as cnt FROM event_store GROUP BY source ORDER BY cnt DESC LIMIT 10"
-            )
-            recent = self._fetchall(
-                "SELECT event_type, correlation_id, timestamp FROM event_store ORDER BY timestamp DESC LIMIT 5"
-            )
+            by_type = self._fetchall("SELECT event_type, COUNT(*) as cnt FROM event_store GROUP BY event_type ORDER BY cnt DESC LIMIT 20")
+            by_source = self._fetchall("SELECT source, COUNT(*) as cnt FROM event_store GROUP BY source ORDER BY cnt DESC LIMIT 10")
+            recent = self._fetchall("SELECT event_type, correlation_id, timestamp FROM event_store ORDER BY timestamp DESC LIMIT 5")
         return {
             "total_events": total,
             "by_type": {row[0]: row[1] for row in by_type},

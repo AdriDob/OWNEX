@@ -193,9 +193,7 @@ class SelfEvolutionEngine:
             "validation_checklist": self._get_validation_checklist(),
         }
 
-        self.audit_trail.append(
-            {"action": "prepare_change", "details": preparation, "timestamp": "2026-07-30T12:39:00Z"}
-        )
+        self.audit_trail.append({"action": "prepare_change", "details": preparation, "timestamp": "2026-07-30T12:39:00Z"})
 
         print(f"✅ Change preparation complete - ID: {preparation['proposal_id']}")
 
@@ -236,9 +234,7 @@ class SelfEvolutionEngine:
             print(f"❌ Validation failed for {preparation_id}")
             print(f"Failed checks: {[r['check'] for r in validation_results if not r['passed']]}")
 
-        self.audit_trail.append(
-            {"action": "validate_change", "details": validation, "timestamp": "2026-07-30T12:39:00Z"}
-        )
+        self.audit_trail.append({"action": "validate_change", "details": validation, "timestamp": "2026-07-30T12:39:00Z"})
 
         return all_passed
 
@@ -298,11 +294,7 @@ class SelfEvolutionEngine:
 
         # Find the change
         change = next(
-            (
-                c
-                for c in self.authorized_changes
-                if c.get("proposal_id") == change_id or c.get("change_id") == change_id
-            ),
+            (c for c in self.authorized_changes if c.get("proposal_id") == change_id or c.get("change_id") == change_id),
             None,
         )
         if not change:
@@ -343,9 +335,7 @@ class SelfEvolutionEngine:
             "current_autonomy_level": self.current_level,
             "evolution_level_name": current_level_name,
             "changes_applied": len([c for c in self.authorized_changes if c["status"] == "applied"]),
-            "changes_validated": len(
-                [c for c in self.authorized_changes if c["status"] in ["validated", "applied", "rolled_back"]]
-            ),
+            "changes_validated": len([c for c in self.authorized_changes if c["status"] in ["validated", "applied", "rolled_back"]]),
             "changes_failed": len([c for c in self.authorized_changes if c["status"] == "validation_failed"]),
             "audit_trail_entries": len(self.audit_trail),
             "learning_records": len(self.learning_data),

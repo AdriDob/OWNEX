@@ -121,9 +121,7 @@ class ActionEngine:
             return [a for a in self._actions.values() if a.action_type == action_type]
         return list(self._actions.values())
 
-    def execute(
-        self, action_id: str, payload: dict[str, Any] | None = None, user_id: str | None = None
-    ) -> dict[str, Any]:
+    def execute(self, action_id: str, payload: dict[str, Any] | None = None, user_id: str | None = None) -> dict[str, Any]:
         import time
 
         start = time.time()

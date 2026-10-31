@@ -56,9 +56,7 @@ def apply_learning(profile: UserProfile, records: list[LearningRecord]) -> UserP
     profile.total_earnings = round(sum(r.amount for r in accepted), 2)
 
     profile.platform_success_rates = _rates(outcomes, lambda r: r.platform)
-    profile.category_success_rates = _rates(
-        [r for r in outcomes if r.category is not None], lambda r: r.category.value if r.category else ""
-    )
+    profile.category_success_rates = _rates([r for r in outcomes if r.category is not None], lambda r: r.category.value if r.category else "")
 
     payout_days = [r.time_to_payout_days for r in accepted if r.time_to_payout_days is not None]
     if payout_days:

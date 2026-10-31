@@ -139,11 +139,7 @@ def _gather_revenue_data() -> dict[str, Any]:
         rev = metrics.get("revenue", {})
         data.update(
             {
-                "total_revenue": sum(
-                    float(v)
-                    for v in rev.values()
-                    if isinstance(v, str) and v.replace(".", "").replace("-", "").isdigit()
-                ),
+                "total_revenue": sum(float(v) for v in rev.values() if isinstance(v, str) and v.replace(".", "").replace("-", "").isdigit()),
                 "monthly_revenue": float(rev.get("30d", "0")),
                 "estimated_annual": float(rev.get("estimated_annual", "0")),
                 "bounty_revenue": 0,

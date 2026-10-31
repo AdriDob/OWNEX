@@ -238,14 +238,8 @@ class DifferentialIntelligenceEngine:
         for entity, eps in by_entity.items():
             if len(eps) < 2:
                 continue
-            auth_endpoints = [
-                ep for ep in eps if any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
-            ]
-            no_auth_endpoints = [
-                ep
-                for ep in eps
-                if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
-            ]
+            auth_endpoints = [ep for ep in eps if any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))]
+            no_auth_endpoints = [ep for ep in eps if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))]
             if auth_endpoints and no_auth_endpoints and len(no_auth_endpoints) >= 2:
                 paths_no_auth = [f"{ep['method']} {ep['path']}" for ep in no_auth_endpoints[:3]]
                 key = f"auth_gap:{entity}"
@@ -284,8 +278,7 @@ class DifferentialIntelligenceEngine:
                             title=f"Large {entity} surface with no IDOR signal",
                             category="idor",
                             description=(
-                                f"{total} {entity} endpoints found but none flagged as potential IDOR. "
-                                f"This may indicate incomplete coverage or a blind spot."
+                                f"{total} {entity} endpoints found but none flagged as potential IDOR. This may indicate incomplete coverage or a blind spot."
                             ),
                             affected_objects=[f"{entity} ({total} endpoints)"],
                             confidence=0.3,
@@ -308,8 +301,7 @@ class DifferentialIntelligenceEngine:
                         title="Auth boundary detected",
                         category="auth",
                         description=(
-                            f"{len(surface_data['auth_boundaries'])} endpoints form an auth boundary. "
-                            f"Review for authentication enforcement consistency."
+                            f"{len(surface_data['auth_boundaries'])} endpoints form an auth boundary. Review for authentication enforcement consistency."
                         ),
                         affected_objects=paths,
                         confidence=0.5,
@@ -332,8 +324,7 @@ class DifferentialIntelligenceEngine:
                         title="Multi-tenant zone — cross-tenant boundary risk",
                         category="tenant",
                         description=(
-                            f"{len(surface_data['multi_tenant_zones'])} endpoints in multi-tenant zone. "
-                            f"Cross-tenant access control should be verified."
+                            f"{len(surface_data['multi_tenant_zones'])} endpoints in multi-tenant zone. Cross-tenant access control should be verified."
                         ),
                         affected_objects=paths,
                         confidence=0.5,
@@ -403,11 +394,7 @@ class DifferentialIntelligenceEngine:
 
             # Mixed auth patterns
             has_auth = any("auth" in str(s).lower() for ep in eps for s in ep.get("labels", []) + ep.get("signals", []))
-            no_auth = [
-                ep
-                for ep in eps
-                if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))
-            ]
+            no_auth = [ep for ep in eps if not any("auth" in str(s).lower() for s in ep.get("labels", []) + ep.get("signals", []))]
             if has_auth and no_auth:
                 key_n = f"auth_mix:{entity}"
                 if key_n not in seen:
@@ -441,8 +428,7 @@ class DifferentialIntelligenceEngine:
                             title=f"{keyword.title()} endpoints in {entity} surface",
                             category=cat,
                             description=(
-                                f"{len(matched)} {keyword} endpoint{'' if len(matched) == 1 else 's'} "
-                                f"found in {entity} context. Review access controls."
+                                f"{len(matched)} {keyword} endpoint{'' if len(matched) == 1 else 's'} found in {entity} context. Review access controls."
                             ),
                             affected_objects=[f"{ep['method']} {ep['path']}" for ep in matched[:3]],
                             confidence=0.5,
@@ -456,9 +442,7 @@ class DifferentialIntelligenceEngine:
                     )
 
         # GraphQL presence
-        graphql_eps = [
-            ep for ep in endpoints if "graphql" in ep.get("path", "").lower() or "graphql" in ep.get("labels", [])
-        ]
+        graphql_eps = [ep for ep in endpoints if "graphql" in ep.get("path", "").lower() or "graphql" in ep.get("labels", [])]
         if graphql_eps:
             paths = [f"{ep['method']} {ep['path']}" for ep in graphql_eps[:3]]
             key = "graphql_presence"
@@ -496,12 +480,7 @@ class DifferentialIntelligenceEngine:
         seen: set = set()
 
         current_eps = (
-            {
-                f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep
-                for ep in getattr(current_snapshot, "endpoints", [])
-            }
-            if current_snapshot
-            else {}
+            {f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep for ep in getattr(current_snapshot, "endpoints", [])} if current_snapshot else {}
         )
 
         if not current_eps or not historical_snapshots:
@@ -509,9 +488,7 @@ class DifferentialIntelligenceEngine:
 
         # Compare with most recent historical snapshot
         prev = historical_snapshots[-1]
-        prev_eps = {
-            f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep for ep in getattr(prev, "endpoints", [])
-        }
+        prev_eps = {f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}": ep for ep in getattr(prev, "endpoints", [])}
 
         # New endpoints
         new_keys = set(current_eps.keys()) - set(prev_eps.keys())
@@ -582,8 +559,7 @@ class DifferentialIntelligenceEngine:
                         title="Risk score changes detected",
                         category="historical",
                         description=(
-                            f"{len(risk_changes)} endpoint{'' if len(risk_changes) == 1 else 's'} "
-                            f"changed risk score by >=20 points since last snapshot."
+                            f"{len(risk_changes)} endpoint{'' if len(risk_changes) == 1 else 's'} changed risk score by >=20 points since last snapshot."
                         ),
                         affected_objects=risk_changes[:5],
                         confidence=0.6,
@@ -708,9 +684,7 @@ class DifferentialIntelligenceEngine:
         web3_endpoints = [
             ep
             for ep in endpoints
-            if "web3" in ep.get("signals", [])
-            or any("web3" in str(lab) for lab in ep.get("labels", []))
-            or "web3" in ep.get("path", "").lower()
+            if "web3" in ep.get("signals", []) or any("web3" in str(lab) for lab in ep.get("labels", [])) or "web3" in ep.get("path", "").lower()
         ]
 
         if not web3_endpoints:
@@ -768,11 +742,7 @@ class DifferentialIntelligenceEngine:
                 )
 
         # Check for bridge patterns
-        bridge_eps = [
-            ep
-            for ep in web3_endpoints
-            if "bridge" in ep.get("path", "").lower() or "swap" in ep.get("path", "").lower()
-        ]
+        bridge_eps = [ep for ep in web3_endpoints if "bridge" in ep.get("path", "").lower() or "swap" in ep.get("path", "").lower()]
         if bridge_eps:
             key = "web3_bridge"
             if key not in seen:
@@ -797,11 +767,7 @@ class DifferentialIntelligenceEngine:
                 )
 
         # Check for oracle patterns
-        oracle_eps = [
-            ep
-            for ep in web3_endpoints
-            if "oracle" in ep.get("path", "").lower() or "price" in ep.get("path", "").lower()
-        ]
+        oracle_eps = [ep for ep in web3_endpoints if "oracle" in ep.get("path", "").lower() or "price" in ep.get("path", "").lower()]
         if oracle_eps:
             key = "web3_oracle"
             if key not in seen:
@@ -879,8 +845,7 @@ class DifferentialIntelligenceEngine:
                             title=f"{total_hv} high-priority hypotheses pending validation",
                             category="general",
                             description=(
-                                f"{total_hv} hypotheses scored >=70 priority remain unvalidated "
-                                f"(avg ROI: {avg_roi:.1f}). Types: {', '.join(types[:5])}."
+                                f"{total_hv} hypotheses scored >=70 priority remain unvalidated (avg ROI: {avg_roi:.1f}). Types: {', '.join(types[:5])}."
                             ),
                             affected_objects=[h.get("id", "") for h in unvalidated[:5]],
                             confidence=0.7,
@@ -1006,8 +971,7 @@ class DifferentialIntelligenceEngine:
         }
         if hasattr(quick_wins, "top_quick_wins"):
             out["top_quick_wins"] = [
-                {"endpoint_path": getattr(w, "endpoint_path", ""), "roi_score": getattr(w, "roi_score", 0.0)}
-                for w in quick_wins.top_quick_wins
+                {"endpoint_path": getattr(w, "endpoint_path", ""), "roi_score": getattr(w, "roi_score", 0.0)} for w in quick_wins.top_quick_wins
             ]
         if hasattr(quick_wins, "total_estimated_value"):
             out["total_estimated_value"] = quick_wins.total_estimated_value

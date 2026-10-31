@@ -140,13 +140,7 @@ async def mobile_quick_wins():
 
     db = SessionLocal()
     try:
-        findings = (
-            db.query(Finding)
-            .filter(Finding.status.in_(["pending", "validating"]))
-            .order_by(Finding.severity.desc())
-            .limit(5)
-            .all()
-        )
+        findings = db.query(Finding).filter(Finding.status.in_(["pending", "validating"])).order_by(Finding.severity.desc()).limit(5).all()
         return {
             "quick_wins": [
                 {

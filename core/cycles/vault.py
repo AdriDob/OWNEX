@@ -12,7 +12,7 @@ from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from core.cycles.models import Cycle, CycleCategory, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.vault")
 
@@ -58,7 +58,7 @@ class VaultCycle:
                     "name": "Vault",
                     "slug": "vault",
                     "description": "Wealth management, capital allocation, revenue tracking",
-                    "category": "wealth",
+                    "category": CycleCategory.VAULT.value,
                     "enabled": True,
                     "priority": 7,
                     "status": "idle",
@@ -228,7 +228,7 @@ def register_vault_cycle(registry) -> None:
                 slug="vault",
                 name="Vault",
                 description="Wealth management, capital allocation, revenue tracking",
-                category="wealth",
+                category=CycleCategory.VAULT.value,
                 priority=7,
                 config={
                     "platforms": ["binance", "coinbase", "kraken", "firefly"],

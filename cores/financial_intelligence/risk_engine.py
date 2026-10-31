@@ -34,9 +34,7 @@ class RiskEngine:
 
         drawdown = self._compute_drawdown(current_portfolio_value)
         if drawdown > self.policy.drawdown_protection_pct:
-            violations.append(
-                f"Drawdown {drawdown:.1%} exceeds protection limit {self.policy.drawdown_protection_pct:.0%}"
-            )
+            violations.append(f"Drawdown {drawdown:.1%} exceeds protection limit {self.policy.drawdown_protection_pct:.0%}")
 
         if self._daily_loss() > self.policy.max_daily_loss_pct:
             violations.append(f"Daily loss exceeds maximum {self.policy.max_daily_loss_pct:.0%}")
@@ -50,9 +48,7 @@ class RiskEngine:
             violations.append(f"Total allocation would exceed {self.policy.max_allocation_pct:.0%} limit")
 
         if len(self._active_positions) < self.policy.min_diversification and len(self._active_positions) > 0:
-            violations.append(
-                f"Minimum diversification not met — need at least {self.policy.min_diversification} positions"
-            )
+            violations.append(f"Minimum diversification not met — need at least {self.policy.min_diversification} positions")
 
         correlation = opp.correlation
         if correlation > self.policy.correlation_limit:

@@ -144,13 +144,7 @@ class TargetLoginService:
         try:
             body = resp.json()
             if isinstance(body, dict):
-                token = (
-                    body.get("access_token")
-                    or body.get("token")
-                    or body.get("accessToken")
-                    or body.get("jwt")
-                    or body.get("id_token")
-                )
+                token = body.get("access_token") or body.get("token") or body.get("accessToken") or body.get("jwt") or body.get("id_token")
         except Exception:
             logger.warning("Failed to extract token from login response body", exc_info=True)
 

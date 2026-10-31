@@ -265,9 +265,7 @@ class IssueAnalyzer:
             # Confidence based on information completeness
             analysis.confidence = self._calculate_confidence(analysis)
 
-            return BrowserResult(
-                True, "analyze_issue", analysis.issue_id, "Issue analyzed successfully", data={"analysis": analysis}
-            )
+            return BrowserResult(True, "analyze_issue", analysis.issue_id, "Issue analyzed successfully", data={"analysis": analysis})
 
         except Exception as e:
             return BrowserResult(False, "analyze_issue", issue_data.get("id", "unknown"), error=f"Analysis failed: {e}")
@@ -289,11 +287,7 @@ class IssueAnalyzer:
         url = issue_data.get("url") or issue_data.get("html_url") or issue_data.get("issue_url") or ""
         platform = issue_data.get("platform") or issue_data.get("source") or "unknown"
 
-        labels = [
-            str(label.get("name") if isinstance(label, dict) else label)
-            for label in issue_data.get("labels", [])
-            if label
-        ]
+        labels = [str(label.get("name") if isinstance(label, dict) else label) for label in issue_data.get("labels", []) if label]
 
         return IssueAnalysis(
             issue_id=issue_id,

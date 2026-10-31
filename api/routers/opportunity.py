@@ -23,10 +23,7 @@ def get_top5():
     """Get top opportunities, diversified by domain."""
     try:
         results = get_engine().get_top5_by_domain(limit=100)
-        return {
-            row.domain: [{"id": e.opportunity_id, "title": e.title, "score": e.final_score} for e in row.entries]
-            for row in results
-        }
+        return {row.domain: [{"id": e.opportunity_id, "title": e.title, "score": e.final_score} for e in row.entries] for row in results}
     except Exception as e:
         logger.error("Failed to fetch opportunities top5: %s", e)
         raise HTTPException(status_code=500, detail="Internal server error") from e

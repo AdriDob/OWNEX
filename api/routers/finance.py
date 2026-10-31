@@ -304,9 +304,7 @@ async def record_work_income(record: WorkIncomeCreate) -> dict[str, Any]:
         time_invested_hours=record.time_invested_hours,
         reward=Decimal(record.reward),
         currency=record.currency,
-        profit_per_hour=float(Decimal(record.reward)) / record.time_invested_hours
-        if record.time_invested_hours > 0
-        else 0.0,
+        profit_per_hour=float(Decimal(record.reward)) / record.time_invested_hours if record.time_invested_hours > 0 else 0.0,
         skills_improved=record.skills_improved,
         reusable_assets_created=record.reusable_assets_created,
         notes=record.notes,

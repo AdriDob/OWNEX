@@ -100,9 +100,7 @@ def test_review_between_thresholds(mock_db, mock_scorer_cls, mock_classifier_cls
 @patch("core.auto_submit.pipeline.get_bus")
 @patch("core.auto_submit.pipeline.get_vault")
 @patch("core.auto_submit.pipeline.get_revenue_pipeline")
-def test_elite_auto_submits(
-    mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline
-):
+def test_elite_auto_submits(mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_db.SessionLocal.side_effect = None
     mock_session = MagicMock()
     mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)
@@ -173,9 +171,7 @@ def test_elite_auto_submits(
 @patch("core.auto_submit.pipeline.get_bus")
 @patch("core.auto_submit.pipeline.get_vault")
 @patch("core.auto_submit.pipeline.get_revenue_pipeline")
-def test_elite_no_api_key_falls_back_to_review(
-    mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline
-):
+def test_elite_no_api_key_falls_back_to_review(mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
     mock_session.query.return_value.filter.return_value.first.return_value = _make_finding(id_=1)

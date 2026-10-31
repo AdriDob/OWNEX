@@ -96,9 +96,7 @@ class RetryEngine:
                 ):
                     break
                 delay = self._calculate_delay(attempt, policy, base_delay_ms, max_delay_ms)
-                logger.info(
-                    "[Retry] %s attempt %d/%d failed, retrying in %dms", capability, attempt + 1, max_retries, delay
-                )
+                logger.info("[Retry] %s attempt %d/%d failed, retrying in %dms", capability, attempt + 1, max_retries, delay)
                 if self._on_retry:
                     self._on_retry(capability, attempt, max_retries)
                 self.clock.wait(delay)

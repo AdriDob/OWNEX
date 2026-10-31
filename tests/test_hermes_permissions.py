@@ -100,9 +100,7 @@ def test_action_permission_dataclass() -> None:
 def test_action_history_records_and_limits() -> None:
     hist = ActionHistory(max_size=5)
     for i in range(10):
-        hist.record(
-            ActionRecord(command="test", status="completed", risk="low", destructive=False, message=f"action {i}")
-        )
+        hist.record(ActionRecord(command="test", status="completed", risk="low", destructive=False, message=f"action {i}"))
     recent = hist.recent()
     assert len(recent) == 5
     assert recent[0].message == "action 9"

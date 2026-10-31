@@ -13,14 +13,12 @@ Key features:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("ownex.ai_integrations.codex_cli")
@@ -311,7 +309,7 @@ class CodexCLIIntegration:
         """
         workdir = repo_path or os.getcwd()
         result = self.execute_task(
-            f"Inspect this repository structure and provide: 1) overall project summary, 2) main directories, 3) key files, 4) technology stack detected, 5) current status of development",
+            "Inspect this repository structure and provide: 1) overall project summary, 2) main directories, 3) key files, 4) technology stack detected, 5) current status of development",
             workdir=workdir,
             timeout=120,
         )

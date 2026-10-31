@@ -131,9 +131,7 @@ def update_pipeline_config(request: PipelineConfigRequest) -> dict[str, Any]:
         pipeline.config.max_iterations = request.max_iterations
         pipeline.config.cleanup_repo = request.cleanup_repo
 
-        logger.info(
-            "Pipeline configuration updated: auto_claim=%s, auto_submit=%s", request.auto_claim, request.auto_submit
-        )
+        logger.info("Pipeline configuration updated: auto_claim=%s, auto_submit=%s", request.auto_claim, request.auto_submit)
 
         return {
             "status": "ok",

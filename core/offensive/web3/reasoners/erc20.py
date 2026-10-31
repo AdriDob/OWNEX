@@ -32,9 +32,7 @@ class ERC20Reasoner(BaseWeb3Reasoner):
         functions = {fn.split("(")[0] for fn in (contract.functions or [])}
 
         missing_standard = ERC20_STANDARD - functions
-        has_tax = (
-            contract.has_function_prefix("_tax") or contract.has_function("tax") or contract.has_function_prefix("fee")
-        )
+        has_tax = contract.has_function_prefix("_tax") or contract.has_function("tax") or contract.has_function_prefix("fee")
         has_blacklist = contract.has_function_prefix("blacklist") or contract.has_function("isBlacklisted")
         has_exclude = contract.has_function_prefix("exclude") or contract.has_function_prefix("include")
         has_pause = contract.has_function_prefix("pause")

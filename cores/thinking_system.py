@@ -275,9 +275,7 @@ class ThinkingSystem:
         # Get queued opportunities from discovery engine
         opportunities = []
         if self.discovery_engine:
-            opportunities = await self.discovery_engine.get_queued_opportunities(
-                limit=self.config.max_opportunities_per_day
-            )
+            opportunities = await self.discovery_engine.get_queued_opportunities(limit=self.config.max_opportunities_per_day)
 
         # Prioritize opportunities by goal alignment
         prioritized = self._prioritize_for_goals(opportunities, goals)
@@ -340,9 +338,7 @@ class ThinkingSystem:
 
         return plan
 
-    def _prioritize_for_goals(
-        self, opportunities: list[RankedOpportunity], goals: list[Goal]
-    ) -> list[RankedOpportunity]:
+    def _prioritize_for_goals(self, opportunities: list[RankedOpportunity], goals: list[Goal]) -> list[RankedOpportunity]:
         """Re-rank opportunities based on goal alignment."""
         if not goals:
             return opportunities
@@ -609,9 +605,7 @@ class ThinkingSystem:
         # For now, return empty - real implementation needs task history storage
         return learnings
 
-    def record_task_result(
-        self, task_id: str, task_type: str, platform: str, success: bool, details: dict[str, Any]
-    ) -> None:
+    def record_task_result(self, task_id: str, task_type: str, platform: str, success: bool, details: dict[str, Any]) -> None:
         """Record a task result for learning."""
         learning = LearningRecord(
             id=f"learning_{task_id}_{int(time.time())}",
@@ -638,9 +632,7 @@ class ThinkingSystem:
         """Get learnings applicable to a task type/platform."""
         applicable = []
         for learning in self._learning_records:
-            if (
-                learning.task_type == task_type or learning.platform == platform
-            ) and learning.confidence >= self.config.learning_confidence_threshold:
+            if (learning.task_type == task_type or learning.platform == platform) and learning.confidence >= self.config.learning_confidence_threshold:
                 applicable.append(learning)
 
         # Sort by confidence and recency
@@ -718,9 +710,7 @@ class ThinkingSystem:
                 "patterns_applied": self._metrics.patterns_applied,
                 "last_planning": self._metrics.last_planning.isoformat() if self._metrics.last_planning else None,
                 "last_research": self._metrics.last_research.isoformat() if self._metrics.last_research else None,
-                "last_improvement": self._metrics.last_improvement.isoformat()
-                if self._metrics.last_improvement
-                else None,
+                "last_improvement": self._metrics.last_improvement.isoformat() if self._metrics.last_improvement else None,
             },
             "state": {
                 "active_goals": len(self.get_active_goals()),

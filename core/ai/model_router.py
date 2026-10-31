@@ -299,10 +299,7 @@ class ModelRouter:
         estimated_input_tokens = context_size or 1000
         estimated_output_tokens = max(context_size // 2, 500) if context_size else 500
 
-        estimated_cost = (
-            profile.cost_per_1k_input * estimated_input_tokens / 1000
-            + profile.cost_per_1k_output * estimated_output_tokens / 1000
-        )
+        estimated_cost = profile.cost_per_1k_input * estimated_input_tokens / 1000 + profile.cost_per_1k_output * estimated_output_tokens / 1000
         estimated_time = profile.avg_speed_ms
 
         # Confidence based on tier and task match
@@ -344,9 +341,7 @@ class ModelRouter:
         """Report a successful call to update metrics."""
         for profile in self._profiles.values():
             if profile.name == model_name:
-                profile.avg_latency_ms = (
-                    (profile.avg_latency_ms * 0.9 + latency_ms * 0.1) if profile.avg_latency_ms else latency_ms
-                )
+                profile.avg_latency_ms = (profile.avg_latency_ms * 0.9 + latency_ms * 0.1) if profile.avg_latency_ms else latency_ms
                 break
 
     def get_available_models(self) -> list[str]:

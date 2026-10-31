@@ -65,9 +65,7 @@ class CoinGeckoAdapter(VaultBaseAdapter):
                     price_change_24h = coin.get("price_change_percentage_24h", 0)
                     price_change_7d = coin.get("price_change_percentage_7d", 0)
 
-                    is_opportunity = (
-                        price_change_24h > 5 and price_change_7d < 20 and coin.get("market_cap", 0) > 10_000_000
-                    )
+                    is_opportunity = price_change_24h > 5 and price_change_7d < 20 and coin.get("market_cap", 0) > 10_000_000
 
                     if is_opportunity:
                         raw_opps.append(

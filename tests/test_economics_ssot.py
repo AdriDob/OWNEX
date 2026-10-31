@@ -140,6 +140,4 @@ class TestEVScorerDelegation:
 
         score = EVScorer().score(self._sample_opp())
         joined = " ".join(score.reasoning).lower()
-        assert "cold-start" in joined or "prior" in joined, (
-            "invented rates must be surfaced as cold-start priors, not history"
-        )
+        assert "cold-start" in joined or "prior" in joined, "invented rates must be surfaced as cold-start priors, not history"

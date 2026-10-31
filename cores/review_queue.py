@@ -145,13 +145,7 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
             )
 
         # High-severity finding review items
-        findings = (
-            session.query(Finding)
-            .filter(Finding.severity.in_(["critical", "high"]))
-            .order_by(Finding.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+        findings = session.query(Finding).filter(Finding.severity.in_(["critical", "high"])).order_by(Finding.created_at.desc()).limit(limit).all()
         for f in findings:
             severity_bonus = {"critical": 0.8, "high": 0.6, "medium": 0.4, "low": 0.2}
             score = severity_bonus.get(f.severity, 0.3)
@@ -167,9 +161,7 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
                 related = session.query(VerdictModel).filter(VerdictModel.endpoint_id == f.endpoint_id).count()
                 if related > 0:
                     score = min(score + 0.15, 1.0)
-                    factors.append(
-                        {"name": "verified", "value": related, "description": f"{related} related verdict(s)"}
-                    )
+                    factors.append({"name": "verified", "value": related, "description": f"{related} related verdict(s)"})
 
             tier = _classify_tier(score)
             reason = _build_reason(tier, score, factors)
@@ -183,9 +175,7 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
                 ReviewItem(
                     item_id=f"finding_{f.id}",
                     item_type="finding",
-                    label=f.finding_title
-                    if hasattr(f, "finding_title") and f.finding_title
-                    else (f.title or "Untitled"),
+                    label=f.finding_title if hasattr(f, "finding_title") and f.finding_title else (f.title or "Untitled"),
                     tier=tier,
                     confidence_score=round(score, 4),
                     reason=reason,

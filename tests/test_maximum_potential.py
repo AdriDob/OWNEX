@@ -101,6 +101,7 @@ def test_automation_gains_with_bank(
             ready_to_deliver=True,
         )
     }
+    monkeypatch.setattr(wb_module, "get_workbank", lambda: bank)
     import cores.direct_work_engine.maximum_potential as mp_module
 
     monkeypatch.setattr(mp_module, "_safe", lambda fn, default=None: fn())
@@ -314,9 +315,14 @@ def test_get_evolution_report_includes_trend(tmp_path, monkeypatch) -> None:
     prev_path = tmp_path / "evolution_2026-08-03.json"
     prev_path.write_text(json.dumps({"automation_gains": {"prepared_jobs": 4}}))
     monkeypatch.setattr(mp, "_latest_report", lambda exclude_today=False: json.loads(prev_path.read_text()))
+    monkeypatch.setattr(
+        mp.MaxPotentialEngine,
+        "_automation_gains",
+        staticmethod(lambda: {"prepared_jobs": 5, "avg_automation_pct": 50}),
+    )
     report = mp.get_evolution_report()
     assert "trend" in report
-    assert report["trend"]["prepared_jobs"] > 0 or report["trend"].get("note")
+    assert report["trend"]["prepared_jobs"] == 1
     assert report["digest"]["text"].startswith("OWNEX EVOLUTION REPORT")
 
 

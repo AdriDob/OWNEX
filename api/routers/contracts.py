@@ -103,9 +103,7 @@ async def contracts_debug():
             }
         )
     except Exception as exc:
-        samples.append(
-            {"contract": "opportunity", "endpoint": "/api/opportunities", "error": str(exc), "status": "error"}
-        )
+        samples.append({"contract": "opportunity", "endpoint": "/api/opportunities", "error": str(exc), "status": "error"})
 
     # Endpoints
     try:

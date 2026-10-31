@@ -38,12 +38,7 @@ class AttackSurfaceExecutor(BaseStageExecutor):
             tech_stack = self._detect_technologies(target, endpoints)
             cdn_info = self._check_cdn(target)
 
-            summary = (
-                f"Attack surface mapped for {target}: "
-                f"{len(open_ports)} open ports, "
-                f"{len(services)} services, "
-                f"{len(tech_stack)} technologies"
-            )
+            summary = f"Attack surface mapped for {target}: {len(open_ports)} open ports, {len(services)} services, {len(tech_stack)} technologies"
 
             details: dict[str, Any] = {
                 "target": target,
@@ -158,10 +153,7 @@ class AttackSurfaceExecutor(BaseStageExecutor):
                             detected[tech] = {"name": tech, "confidence": "medium", "evidence": []}
                         detected[tech]["evidence"].append({"source": url, "signature": sig})
 
-        return [
-            {"name": tech, "confidence": info["confidence"], "evidence_count": len(info["evidence"])}
-            for tech, info in detected.items()
-        ]
+        return [{"name": tech, "confidence": info["confidence"], "evidence_count": len(info["evidence"])} for tech, info in detected.items()]
 
     def _check_cdn(self, target: str) -> dict[str, Any]:
         """Check if target is behind a CDN."""

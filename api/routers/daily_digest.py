@@ -106,13 +106,7 @@ async def daily_digest() -> dict[str, Any]:
 
         session = db.SessionLocal()
         try:
-            confirmed = (
-                session.query(models.Finding)
-                .filter(models.Finding.status == "confirmed")
-                .order_by(models.Finding.id.desc())
-                .limit(3)
-                .all()
-            )
+            confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").order_by(models.Finding.id.desc()).limit(3).all()
             for f in confirmed:
                 decisions.append(
                     {
@@ -150,11 +144,7 @@ async def daily_digest() -> dict[str, Any]:
         r = httpx.get("http://localhost:8000/api/system/health", timeout=2)
         if r.status_code == 200:
             data = r.json()
-            health_items = [
-                {"name": k, "status": v if isinstance(v, str) else str(v)}
-                for k, v in data.items()
-                if isinstance(v, (str, bool))
-            ]
+            health_items = [{"name": k, "status": v if isinstance(v, str) else str(v)} for k, v in data.items() if isinstance(v, (str, bool))]
     except Exception:
         pass
     digest["system_health"] = {"services": health_items[:6]}

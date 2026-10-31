@@ -30,10 +30,7 @@ async def fingerprint_target(data: dict[str, Any]):
             "domain": domain,
             "primary_tech": result.primary_tech,
             "tech_summary": result.tech_summary,
-            "technologies": [
-                {"name": t.name, "category": t.category, "confidence": round(t.confidence, 2)}
-                for t in result.technologies
-            ],
+            "technologies": [{"name": t.name, "category": t.category, "confidence": round(t.confidence, 2)} for t in result.technologies],
             "headers": dict(list(result.headers.items())[:20]),
             "cookies": dict(result.cookies),
         }

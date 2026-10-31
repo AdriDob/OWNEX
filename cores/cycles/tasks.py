@@ -40,12 +40,7 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
     db = mgr.get_session("cycles")
 
     try:
-        pending_tasks = (
-            db.query(Task)
-            .filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.PENDING.value)
-            .order_by(Task.order)
-            .all()
-        )
+        pending_tasks = db.query(Task).filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.PENDING.value).order_by(Task.order).all()
 
         if not pending_tasks:
             # All tasks complete or running — check if any running
@@ -53,9 +48,7 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
             if running:
                 return {"status": "in_progress", "current": running.name}
             # Cycle might be done
-            completed_count = (
-                db.query(Task).filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.COMPLETED.value).count()
-            )
+            completed_count = db.query(Task).filter(Task.cycle_id == cycle.id, Task.status == TaskStatus.COMPLETED.value).count()
             total_count = db.query(Task).filter(Task.cycle_id == cycle.id).count()
             if completed_count == total_count and total_count > 0:
                 service = security._cycle_service

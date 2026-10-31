@@ -241,12 +241,7 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
 
         session = db.SessionLocal()
         try:
-            confirmed = (
-                session.query(models.Finding)
-                .filter(models.Finding.status == "confirmed")
-                .order_by(models.Finding.id)
-                .all()
-            )
+            confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").order_by(models.Finding.id).all()
         finally:
             session.close()
 
@@ -258,12 +253,7 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
 
         session = db.SessionLocal()
         try:
-            {
-                row[0]
-                for row in session.query(_m.Report.finding_ids)
-                .filter(_m.Report.status.in_(["submitted", "pending"]))
-                .all()
-            }
+            {row[0] for row in session.query(_m.Report.finding_ids).filter(_m.Report.status.in_(["submitted", "pending"])).all()}
         finally:
             session.close()
 

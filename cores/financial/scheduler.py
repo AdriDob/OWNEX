@@ -45,8 +45,9 @@ class SyncReport:
 
 
 class FinancialSyncScheduler:
-    def __init__(self, interval_minutes: int = 30) -> None:
+    def __init__(self, interval_minutes: int = 30, github_token: str | None = None) -> None:
         self.interval_minutes = interval_minutes
+        self._github_token = github_token
         self._task: asyncio.Task | None = None
         self._running = False
         self._last_report: SyncReport | None = None
@@ -210,9 +211,7 @@ class FinancialSyncScheduler:
                 "error": snap.error,
             }
 
-        logger.info(
-            "[SCHEDULER] Crypto sync: %d/%d wallets OK", sum(1 for r in results.values() if r["success"]), len(results)
-        )
+        logger.info("[SCHEDULER] Crypto sync: %d/%d wallets OK", sum(1 for r in results.values() if r["success"]), len(results))
         return results
 
     def sync_all(self) -> SyncReport:
@@ -258,7 +257,92 @@ class FinancialSyncScheduler:
         if self._task:
             self._task.cancel()
             self._task = None
+        self._task = None
         logger.info("[SCHEDULER] Financial auto-sync stopped")
+
+    # ── Pay-on-Merge Helpers ──────────────────────────────────────────
+    def _get_pending_payouts(self) -> list[dict[str, Any]]:
+        """Obtener todos los deliverables pendientes de payout.
+
+        Filtra los PayoutRecord que tienen status 'pending' y
+        expected_amount > 0, ordenados por fecha de creación (antiguo primero).
+        """
+        from database.db import SessionLocal
+        from database.models_economic import PayoutRecord
+
+        db = SessionLocal()
+        try:
+            query = db.query(PayoutRecord).filter(
+                PayoutRecord.status == "pending",
+                PayoutRecord.expected_amount > 0,
+            )
+            # Ordenar por creado ascending (los más antiguos primero)
+            pending = query.order_by(PayoutRecord.created_at.asc()).all()
+            # Convertir a dicts simples para el procesamiento
+            result = []
+            for pr in pending:
+                result.append(
+                    {
+                        "id": pr.id,
+                        "expected_amount": float(pr.expected_amount or 0),
+                        "platform_id": pr.platform or "unknown",
+                        "user_id": pr.user_id or "unknown",
+                        "status": pr.status,
+                        "created_at": pr.created_at.isoformat() if pr.created_at else None,
+                        "delivery_confirmed_at": pr.delivery_confirmed_at.isoformat() if pr.delivery_confirmed_at else None,
+                        "user_confirmed_delivery": pr.user_confirmed_delivery or False,
+                        "status": pr.status,
+                    }
+                )
+            return result
+        except Exception as exc:
+            logger.error("[SCHEDULER] Error fetching pending payouts: %s", exc)
+            return []
+        finally:
+            db.close()
+
+    def _trigger_instant_payout(self, deliverable: dict[str, Any]) -> bool:
+        """Disparar payout instantáneo para un deliverable merged/accepted.
+
+        Looks up the PayoutRecord by deliverable id and updates its status
+        to 'processing' with an instant trigger note. In a full implementation,
+        this would call the payment gateway (USDC, crypto, etc.).
+
+        Returns True if the payout was triggered successfully, False otherwise.
+        """
+        from database.db import SessionLocal
+        from database.models_economic import PayoutRecord
+
+        db = SessionLocal()
+        try:
+            # Buscar el PayoutRecord por id (que es el mismo que deliverable["id"])
+            pr = db.query(PayoutRecord).filter(PayoutRecord.id == deliverable["id"]).first()
+            if pr is None:
+                logger.warning("[SCHEDULER] No PayoutRecord found for deliverable id: %s", deliverable["id"])
+                return False
+
+            # Actualizar status a 'processing' y agregar metadata de trigger
+            pr.status = "processing"
+            pr.notes = pr.notes + (pr.notes and "\n" or "") + f"[INSTANT] merged_deliverable triggered at {datetime.utcnow().isoformat()}"
+            db.add(pr)
+            db.commit()
+            db.refresh(pr)
+
+            logger.info(
+                "[SCHEDULER] Instant payout triggered for deliverable %s amount %.2f",
+                deliverable["id"],
+                deliverable["expected_amount"],
+            )
+            return True
+
+        except Exception as exc:
+            db.rollback()
+            logger.error("[SCHEDULER] Error triggering instant payout: %s", exc)
+            return False
+        finally:
+            db.close()
+
+    # ── End Pay-on-Merge Helpers ───────────────────────────────────────
 
     async def _loop(self) -> None:
         while self._running:
@@ -275,6 +359,103 @@ class FinancialSyncScheduler:
 
     def get_sync_history(self, limit: int = 10) -> list[SyncReport]:
         return self._history[-limit:]
+
+    # ── Pay-on-Merge Detection (Bountic-inspired) ──────────────────────
+    def _check_merged_deliverables(self) -> list[dict[str, Any]]:
+        """Detect deliverables that were merge/accepted and trigger instant payouts.
+
+        Inspired by Bountic's pay-on-merge workflow: instead of waiting the
+        regular 30min schedule, detect when a user confirms delivery and pay
+        immediately.
+
+        Returns list of paid deliverable dicts with:
+        - deliverable_id
+        - payout_amount
+        - trigger: "merged_deliverable"
+        - timestamp
+        """
+        paid: list[dict[str, Any]] = []
+
+        # Obtener todos los deliverables pendientes de pago
+        pending = self._get_pending_payouts()
+
+        for deliverable in pending:
+            # Verificar si fue aceptado/mergeado recientemente
+            recently_merged = self._check_merge_status(deliverable)
+
+            if recently_merged and not deliverable.get("payout_disputed"):
+                # Disparar payout inmediato
+                result = self._trigger_instant_payout(deliverable)
+                if result:
+                    paid.append(
+                        {
+                            "deliverable_id": deliverable["id"],
+                            "payout_amount": deliverable["expected_amount"],
+                            "trigger": "merged_deliverable",
+                            "timestamp": datetime.utcnow().isoformat(),
+                        }
+                    )
+
+        return paid
+
+    def _check_merge_status(self, deliverable: dict) -> bool:
+        """Chequear si un deliverable fue mergeado/aceptado recientemente.
+
+        Revisa múltiples señales:
+        1. User confirmó entrega en dashboard (delivery_confirmed_at dentro de 48h)
+        2. Webhook de PR mergeado (pending: revisar configuración)
+        3. Usuario dio /approval en el sistema
+        4. Status del deliverable cambió a 'delivered'/'accepted'
+        """
+        # Señal 1: El user marcó entrega como completada
+        if deliverable.get("user_confirmed_delivery"):
+            confirmed = deliverable.get("delivery_confirmed_at")
+            if confirmed:
+                from datetime import datetime, timezone, timedelta
+
+                dt = datetime.fromisoformat(confirmed)
+                now = datetime.now(timezone.utc)
+                return (now - dt).days < 2
+
+        # Señal 2: Status del deliverable es 'delivered' o 'accepted'
+        if deliverable.get("status") in {"delivered", "accepted"}:
+            return True
+
+        # Señal 3: approval_given flag
+        if deliverable.get("approval_given"):
+            return True
+
+        # Señal 4: pending - webhook de PR mergeado (implementación futura)
+        # pending: revisar webhooks configurados
+
+        # Señal 5: GitHub PR merge check via API
+        # Verifica si el PR fue mergeado recientemente consultando la API
+        if deliverable.get("github_pr_number") and deliverable.get("github_repo_owner") and deliverable.get("github_repo_name"):
+            import httpx
+            from datetime import datetime, timezone
+
+            try:
+                headers = {"Accept": "application/vnd.github+json"}
+                if self._github_token:
+                    headers["Authorization"] = f"token {self._github_token}"
+                url = (
+                    f"https://api.github.com/repos/{deliverable['github_repo_owner']}/{deliverable['github_repo_name']}/pulls/{deliverable['github_pr_number']}"
+                )
+                resp = httpx.get(url, headers=headers, timeout=10)
+                if resp.status_code == 200:
+                    pr_data = resp.json()
+                    # Si el PR está cerrado (merged) y fue recientemente mergeado
+                    if pr_data.get("merged_at"):
+                        merged_at = datetime.fromisoformat(pr_data["merged_at"])
+                        now = datetime.now(timezone.utc)
+                        # Considerado mergeado reciente si fue en las últimas 48h
+                        return (now - merged_at).days < 2
+            except Exception as exc:
+                logger.warning("[SCHEDULER] GitHub PR merge check failed: %s", exc)
+
+        return False
+
+    # ── End Pay-on-Merge Detection ─────────────────────────────────────
 
     @property
     def is_running(self) -> bool:

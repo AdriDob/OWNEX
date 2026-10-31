@@ -64,9 +64,7 @@ class ReconRouter:
             out_path.write_text(result.to_json())
             logger.info("[ROUTER] Results written to %s", out_path)
 
-        logger.info(
-            "[ROUTER] %s: %d probes, %d endpoints", domain, result.probes_attempted, len(result.endpoints_found)
-        )
+        logger.info("[ROUTER] %s: %d probes, %d endpoints", domain, result.probes_attempted, len(result.endpoints_found))
         return result
 
     def _run_strategy(self, domain: str, strategy: ReconStrategy, result: RoutedReconResult) -> None:

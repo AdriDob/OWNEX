@@ -65,9 +65,7 @@ class AuthHub:
 
         # Twilio / WhatsApp
         twilio_creds = vault.get_credentials("twilio")
-        if twilio_creds.get("account_sid", twilio_creds.get("token")) and twilio_creds.get(
-            "auth_token", twilio_creds.get("password")
-        ):
+        if twilio_creds.get("account_sid", twilio_creds.get("token")) and twilio_creds.get("auth_token", twilio_creds.get("password")):
             from cores.authhub.whatsapp import WhatsAppTwilio
 
             whatsapp = WhatsAppTwilio()

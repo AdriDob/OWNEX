@@ -74,9 +74,7 @@ class TestAlgoraExecutorClaim:
     def test_claim_success(self, executor):
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
-            mock_http.return_value.post.return_value = _mock_response(
-                200, {"claim_id": "c1", "expires_at": "2026-08-01"}
-            )
+            mock_http.return_value.post.return_value = _mock_response(200, {"claim_id": "c1", "expires_at": "2026-08-01"})
             result = asyncio.run(executor.claim_issue("b1", "owner/repo", 1))
             assert result.success is True
             assert result.data["claim_id"] == "c1"

@@ -1,0 +1,133 @@
+{
+  "assessment_date": "2026-10-31",
+  "methodology": "Blocker analysis against Argentina filtering criteria from integration bundle P3",
+  "criteria": [
+    "Argentina availability must be verified",
+    "Prefer no professional experience requirement",
+    "Prefer no interview",
+    "Prefer no portfolio or reputation requirement",
+    "Prefer no client acquisition",
+    "Prefer no long selection process",
+    "Prefer no test; allow at most one reasonable aptitude assessment",
+    "Identify KYC/ID requirements, wallet requirements, stake, paid onboarding, application, reputation, technical barriers"
+  ],
+  "assessments": {
+    "taskbounty": {
+      "availability": "conditional",
+      "kyc_id_required": false,
+      "wallet_required": false,
+      "experience_required": false,
+      "selection_process": false,
+      "application_required": false,
+      "fees_or_stake": false,
+      "blocker_details": {
+        "kyc_id": [],
+        "wallet": [],
+        "experience": [],
+        "selection": [],
+        "application": [],
+        "fees": []
+      },
+      "beginner_access_score": 0,
+      "argentina_feasibility": "medium - general barriers, Argentina route may work with intermediaries"
+    },
+    "github_bounties": {
+      "availability": "denied",
+      "kyc_id_required": true,
+      "wallet_required": false,
+      "experience_required": false,
+      "selection_process": false,
+      "application_required": false,
+      "fees_or_stake": false,
+      "blocker_details": {
+        "kyc_id": [
+          "no primary evidence"
+        ],
+        "wallet": [],
+        "experience": [],
+        "selection": [],
+        "application": [],
+        "fees": []
+      },
+      "beginner_access_score": 2,
+      "argentina_feasibility": "denied - explicit blocker"
+    },
+    "agenthansa": {
+      "availability": "denied",
+      "kyc_id_required": true,
+      "wallet_required": false,
+      "experience_required": false,
+      "selection_process": false,
+      "application_required": false,
+      "fees_or_stake": false,
+      "blocker_details": {
+        "kyc_id": [
+          "no primary evidence"
+        ],
+        "wallet": [],
+        "experience": [],
+        "selection": [],
+        "application": [],
+        "fees": []
+      },
+      "beginner_access_score": 2,
+      "argentina_feasibility": "denied - explicit blocker"
+    },
+    "opire": {
+      "availability": "conditional",
+      "kyc_id_required": true,
+      "wallet_required": false,
+      "experience_required": false,
+      "selection_process": false,
+      "application_required": false,
+      "fees_or_stake": false,
+      "blocker_details": {
+        "kyc_id": [
+          "no primary evidence"
+        ],
+        "wallet": [],
+        "experience": [],
+        "selection": [],
+        "application": [],
+        "fees": []
+      },
+      "beginner_access_score": 2,
+      "argentina_feasibility": "low - Argentina-specific barriers identified"
+    },
+    "bugbounty": {
+      "availability": "conditional",
+      "kyc_id_required": true,
+      "wallet_required": false,
+      "experience_required": false,
+      "selection_process": false,
+      "application_required": false,
+      "fees_or_stake": false,
+      "blocker_details": {
+        "kyc_id": [
+          "human verification gate"
+        ],
+        "wallet": [],
+        "experience": [],
+        "selection": [],
+        "application": [],
+        "fees": []
+      },
+      "beginner_access_score": 2,
+      "argentina_feasibility": "medium - general barriers, Argentina route may work with intermediaries"
+    }
+  },
+  "key_findings": [
+    "0/5 sources have Argentina confirmed",
+    "3/5 sources have Argentina conditional (routes need verification)",
+    "2/5 sources have Argentina denied (explicit blockers)",
+    "1 source (agenthansa) explicitly flagged as fake platform",
+    "No sources have fully verified Argentina payout paths ready for use"
+  ],
+  "recommendations": [
+    "All conditional Argentina routes require end-to-end verification before use",
+    "Denied sources should not be prioritized for Argentina-focused workflows",
+    "Beginner-friendly sources (low beginner access score) are: github_bounties, agenthansa",
+    "Sources needing Argentina route verification: taskbounty, opire, bugbounty",
+    "Consider marking sources with high beginner barriers as 'Argentina: pending verification'"
+  ]
+}

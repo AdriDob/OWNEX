@@ -126,9 +126,7 @@ class TestOpportunityPipeline:
                             if hasattr(health, "success")
                             else health,
                             "execution_time_ms": int((time.time() - self.start_time) * 1000),
-                            "error": None
-                            if success
-                            else (health.error if hasattr(health, "error") else "Health check failed"),
+                            "error": None if success else (health.error if hasattr(health, "error") else "Health check failed"),
                         }
                     else:
                         results[name] = {
@@ -205,11 +203,7 @@ class TestOpportunityPipeline:
             return {
                 "summary": {
                     "test_performed": "health_check",
-                    "result": "PASS"
-                    if results["status"] == "PASS"
-                    else "FAILED"
-                    if results["status"] == "FAIL"
-                    else "SKIPPED",
+                    "result": "PASS" if results["status"] == "PASS" else "FAILED" if results["status"] == "FAIL" else "SKIPPED",
                 },
                 "results": results,
                 "took_seconds": time.time() - self.start_time,

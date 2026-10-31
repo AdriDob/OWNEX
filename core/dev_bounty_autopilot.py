@@ -98,12 +98,7 @@ class DevBountyAutopilot:
         """Aptitud para arrancar: good-first-issue / bugs simples / bajo esfuerzo."""
         if not self._load().get("beginner_mode", True):
             return True
-        haystack = (
-            " ".join(
-                str(opp.get(k, ""))
-                for k in ("title", "description", "labels", "tags", "category", "complexity", "difficulty")
-            )
-        ).lower()
+        haystack = (" ".join(str(opp.get(k, "")) for k in ("title", "description", "labels", "tags", "category", "complexity", "difficulty"))).lower()
         beginner_hints = [
             "good first issue",
             "good-first-issue",
@@ -136,9 +131,7 @@ class DevBountyAutopilot:
             if not self._beginner_ready(opp):
                 continue
             try:
-                effort = float(
-                    opp.get("estimated_effort_hours", opp.get("complexity", opp.get("difficulty", 1)) or 1) or 1
-                )
+                effort = float(opp.get("estimated_effort_hours", opp.get("complexity", opp.get("difficulty", 1)) or 1) or 1)
             except (TypeError, ValueError):
                 effort = 1.0
             reward = float(opp.get("reward", 0) or 0)
@@ -222,11 +215,7 @@ class DevBountyAutopilot:
             engine = get_workflow_engine()
             if hasattr(engine, "scan_opportunities"):
                 scan = await engine.scan_opportunities(platforms=ENABLED_PLATFORMS, limit=15)
-                candidates = (
-                    scan
-                    if isinstance(scan, list)
-                    else (scan.get("opportunities", []) if isinstance(scan, dict) else [])
-                )
+                candidates = scan if isinstance(scan, list) else (scan.get("opportunities", []) if isinstance(scan, dict) else [])
         except Exception as e:
             logger.warning("[DEV_BOUNTY] discovery fallback: %s", e)
         return candidates or []

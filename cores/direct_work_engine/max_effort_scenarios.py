@@ -104,8 +104,7 @@ def summarize_for_command_center(scenarios: dict[str, EffortBand] | None = None)
     first = p50.monthly_curve[0]
     last = p50.monthly_curve[-1]
     return {
-        "philosophy": "Escenarios basados en rates curados reales — no promesas. "
-        "La calibración semanal ajusta estas bandas a TU realidad.",
+        "philosophy": "Escenarios basados en rates curados reales — no promesas. La calibración semanal ajusta estas bandas a TU realidad.",
         "year_1": {
             "expected": {"low": f"${p50.year_total_low:,}", "high": f"${p50.year_total_high:,}"},
             "top_decile": {"low": f"${p90.year_total_low:,}", "high": f"${p90.year_total_high:,}"},
@@ -114,6 +113,5 @@ def summarize_for_command_center(scenarios: dict[str, EffortBand] | None = None)
             "month_1": {"low": first[1], "high": first[2]},
             "month_12": {"low": last[1], "high": last[2]},
         },
-        "note_variable_band": "$1k–50k/mes variable coincide con esta trayectoria: "
-        "empieza en el piso y escala con reputación compuesta.",
+        "note_variable_band": "$1k–50k/mes variable coincide con esta trayectoria: empieza en el piso y escala con reputación compuesta.",
     }

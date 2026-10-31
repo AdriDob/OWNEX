@@ -88,6 +88,11 @@ function createWrapper() {
         ReportPipeline: { template: '<div class="mock-rp" />' },
         WorkCyclesGrid: { template: '<div class="mock-wcg" />' },
         KnowledgeFeed: { template: '<div class="mock-kf" />' },
+        // Estos paneles hacen fetch al montarse y no forman parte de esta prueba.
+        TaxAR: { template: '<div class="mock-tax-ar" />' },
+        InvoicerAR: { template: '<div class="mock-invoicer-ar" />' },
+        OfframpExecutor: { template: '<div class="mock-offramp" />' },
+        PlatformConnectors: { template: '<div class="mock-platform-connectors" />' },
       },
     },
   })

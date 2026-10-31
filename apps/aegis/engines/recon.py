@@ -55,9 +55,7 @@ class ReconEngine:
             try:
                 from cores.tools.httpx import HttpxTool
 
-                sub_rows = (
-                    db.query(ScanResult).filter(ScanResult.target_id == target_id, ScanResult.tool == "subfinder").all()
-                )
+                sub_rows = db.query(ScanResult).filter(ScanResult.target_id == target_id, ScanResult.tool == "subfinder").all()
                 probe_targets = [r.endpoint for r in sub_rows if r.endpoint] or [domain]
                 endpoints = HttpxTool().probe(probe_targets)
                 for r in endpoints:

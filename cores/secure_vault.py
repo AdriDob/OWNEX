@@ -522,11 +522,7 @@ class SecureVault:
             actor,
             True,
             {
-                "fields_updated": [
-                    k
-                    for k, v in locals().items()
-                    if v is not None and k not in ["self", "credential_id", "actor", "cred"]
-                ],
+                "fields_updated": [k for k, v in locals().items() if v is not None and k not in ["self", "credential_id", "actor", "cred"]],
             },
         )
 
@@ -694,9 +690,7 @@ class SecureVault:
                             tags=meta["tags"],
                             created_at=datetime.fromisoformat(meta["created_at"]),
                             updated_at=datetime.fromisoformat(meta["updated_at"]),
-                            last_accessed=datetime.fromisoformat(meta["last_accessed"])
-                            if meta.get("last_accessed")
-                            else None,
+                            last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
                             expires_at=exp,
                             rotation_interval_days=meta.get("rotation_interval_days"),
                             is_active=meta.get("is_active", True),
@@ -734,9 +728,7 @@ class SecureVault:
                             tags=meta["tags"],
                             created_at=datetime.fromisoformat(meta["created_at"]),
                             updated_at=datetime.fromisoformat(meta["updated_at"]),
-                            last_accessed=datetime.fromisoformat(meta["last_accessed"])
-                            if meta.get("last_accessed")
-                            else None,
+                            last_accessed=datetime.fromisoformat(meta["last_accessed"]) if meta.get("last_accessed") else None,
                             expires_at=datetime.fromisoformat(meta["expires_at"]) if meta.get("expires_at") else None,
                             rotation_interval_days=interval,
                             is_active=meta.get("is_active", True),

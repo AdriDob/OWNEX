@@ -48,10 +48,7 @@ class CriticResult:
             "max_score": self.max_score,
             "percentage": round(self.score / self.max_score * 100, 1) if self.max_score > 0 else 0.0,
             "verdict": self.verdict,
-            "checks": [
-                {"name": c.name, "description": c.description, "passed": c.passed, "notes": c.notes}
-                for c in self.checks
-            ],
+            "checks": [{"name": c.name, "description": c.description, "passed": c.passed, "notes": c.notes} for c in self.checks],
             "suggestions": self.suggestions,
         }
 

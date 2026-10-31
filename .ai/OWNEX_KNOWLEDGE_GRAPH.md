@@ -245,8 +245,7 @@ class KnowledgeGraph:
     def find_nodes(self, type: str, limit: int = 100) -> list[KnowledgeNode]:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.execute(
-            "SELECT id, type, name, properties, created_at, last_updated, confidence "
-            "FROM nodes WHERE type = ? ORDER BY last_updated DESC LIMIT ?",
+            "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE type = ? ORDER BY last_updated DESC LIMIT ?",
             (type, limit),
         )
         nodes = []
@@ -270,14 +269,12 @@ class KnowledgeGraph:
         conn = sqlite3.connect(self.db_path)
         if type:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes WHERE type = ? AND (name LIKE ? OR id LIKE ?) LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE type = ? AND (name LIKE ? OR id LIKE ?) LIMIT ?",
                 (type, f"%{query}%", f"%{query}%", limit),
             )
         else:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes WHERE name LIKE ? OR id LIKE ? LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE name LIKE ? OR id LIKE ? LIMIT ?",
                 (f"%{query}%", f"%{query}%", limit),
             )
         nodes = []
@@ -756,9 +753,7 @@ class GraphQueries:
             "sensors": [{"name": s.name, **s.properties} for s in sensors],
             "platforms": len(platforms),
             "active_opportunities": [
-                {"name": o.name, **o.properties}
-                for o in opportunities
-                if o.properties.get("current_state") not in ("paid", "rejected", "learned")
+                {"name": o.name, **o.properties} for o in opportunities if o.properties.get("current_state") not in ("paid", "rejected", "learned")
             ],
             "total_outcomes": len(outcomes),
             "total_patterns": len(patterns),
@@ -817,9 +812,7 @@ class KnowledgeGraphSource(ContextSource):
         if similar:
             text_lines = ["Similar past opportunities:"]
             for node, edge in similar[:5]:
-                text_lines.append(
-                    f"- {node.name} ({node.properties.get('cycle', '')}, EV: ${node.properties.get('reward', 0):.2f})"
-                )
+                text_lines.append(f"- {node.name} ({node.properties.get('cycle', '')}, EV: ${node.properties.get('reward', 0):.2f})")
             text = "\n".join(text_lines)
 
             return ContextFragment(

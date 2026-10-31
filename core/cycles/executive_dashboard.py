@@ -181,10 +181,7 @@ class ExecutiveDashboard:
                 .order_by("week")
                 .all()
             )
-            return [
-                {"week": r.week.isoformat() if r.week else "", "total": float(r.total), "count": r.count}
-                for r in results
-            ]
+            return [{"week": r.week.isoformat() if r.week else "", "total": float(r.total), "count": r.count} for r in results]
         finally:
             session.close()
 

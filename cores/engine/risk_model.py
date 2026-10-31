@@ -228,17 +228,13 @@ class NoiseReductionLayer:
         return NoiseReport(
             discarded=discarded,
             merged=[],
-            duplicates_removed=[
-                d for d in discarded if any(r.startswith("[duplicate]") for r in reasoning.get("duplicates", []))
-            ],
+            duplicates_removed=[d for d in discarded if any(r.startswith("[duplicate]") for r in reasoning.get("duplicates", []))],
             clean=working,
             noise_ratio=noise_ratio,
             reasoning=reasoning,
         )
 
-    def _filter_static_assets(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_static_assets(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -262,9 +258,7 @@ class NoiseReductionLayer:
 
         return clean, removed, reasons
 
-    def _filter_low_value(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_low_value(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -302,9 +296,7 @@ class NoiseReductionLayer:
                 normalized.append(segment)
         return "/" + "/".join(normalized) if normalized else "/"
 
-    def _filter_duplicates(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_duplicates(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         if len(endpoints) < 2:
             return endpoints, [], []
 
@@ -335,18 +327,11 @@ class NoiseReductionLayer:
             clean.append(kept)
             for ep in group_sorted[1:]:
                 removed.append(ep)
-                reasons.append(
-                    f"[duplicate] {ep.get('path')} "
-                    f"(score {ep.get('risk_score')}) "
-                    f"duplicate of {kept.get('path')} "
-                    f"(score {kept.get('risk_score')})"
-                )
+                reasons.append(f"[duplicate] {ep.get('path')} (score {ep.get('risk_score')}) duplicate of {kept.get('path')} (score {kept.get('risk_score')})")
 
         return clean, removed, reasons
 
-    def _filter_below_threshold(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_below_threshold(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         threshold = self.config.min_risk_score
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
@@ -362,9 +347,7 @@ class NoiseReductionLayer:
 
         return clean, removed, reasons
 
-    def _filter_no_signal(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_no_signal(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -375,9 +358,7 @@ class NoiseReductionLayer:
             risk_score = float(ep.get("risk_score", 0))
             has_idor = ep.get("potential_idor", False)
 
-            has_signal = (
-                any(ls in SIGNAL_LABELS for ls in labels) or any(s in SIGNAL_KEYWORDS for s in signals) or has_idor
-            )
+            has_signal = any(ls in SIGNAL_LABELS for ls in labels) or any(s in SIGNAL_KEYWORDS for s in signals) or has_idor
 
             if has_signal:
                 clean.append(ep)
@@ -460,9 +441,7 @@ class RiskClassifier:
         if risk_score <= 5.0:
             return True
 
-        has_signal = (
-            potential_idor or any(s in SIGNAL_KEYWORDS for s in signals) or any(ls in SIGNAL_LABELS for ls in labels)
-        )
+        has_signal = potential_idor or any(s in SIGNAL_KEYWORDS for s in signals) or any(ls in SIGNAL_LABELS for ls in labels)
         return not has_signal
 
     def _compute_idor_confidence(
@@ -715,18 +694,11 @@ def analyze(
                 }
                 for e in surface_map.idor_clusters
             ],
-            "auth_boundaries": [
-                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
-                for e in surface_map.auth_boundaries
-            ],
+            "auth_boundaries": [{"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")} for e in surface_map.auth_boundaries],
             "multi_tenant_zones": [
-                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
-                for e in surface_map.multi_tenant_zones
+                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")} for e in surface_map.multi_tenant_zones
             ],
-            "graphql_surfaces": [
-                {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
-                for e in surface_map.graphql_surfaces
-            ],
+            "graphql_surfaces": [{"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")} for e in surface_map.graphql_surfaces],
         },
         "high_value_endpoints": [e for e in classified if e.get("risk_verdict", {}).get("is_high_value")],
         "idor_candidates": [e for e in classified if e.get("risk_verdict", {}).get("is_idor")],

@@ -5,7 +5,7 @@ import os
 
 import httpx
 
-from core.interfaces.connector import ConnectorHealth, IConnector
+from cores.interfaces.connector import ConnectorHealth, IConnector
 
 logger = logging.getLogger("ownex.n8n.connector")
 

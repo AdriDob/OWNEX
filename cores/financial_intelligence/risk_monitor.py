@@ -208,9 +208,7 @@ class RiskMonitor:
             level = RiskLevel.SAFE
 
         # Update global risk level
-        self._current_level = max(
-            self._current_level, level, key=lambda x: ["safe", "caution", "warning", "danger", "critical"].index(x)
-        )
+        self._current_level = max(self._current_level, level, key=lambda x: ["safe", "caution", "warning", "danger", "critical"].index(x))
 
         # Create alert if not safe
         if level != RiskLevel.SAFE:

@@ -156,9 +156,7 @@ class TestInterpretation:
     def test_change_based_expectation_baseline_confirmation_same_supports(self) -> None:
         replayer = FakeReplayer(probe_status=200, probe_body="ok", baseline_body="ok")
         runner = ContradictionTestRunner(replayer=replayer)  # type: ignore[arg-type]
-        result = runner.run(
-            _test("baseline_confirmation", if_vuln="misma respuesta", if_not="diferente"), _spec(), _auth()
-        )
+        result = runner.run(_test("baseline_confirmation", if_vuln="misma respuesta", if_not="diferente"), _spec(), _auth())
         assert result.supports_vulnerability is True
 
     def test_to_dict_shape(self) -> None:

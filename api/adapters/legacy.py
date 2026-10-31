@@ -80,11 +80,7 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
         entry = _curated_entry_model(self.source.platform.value)
         assessment = bool(entry and entry["assessment"])
         technical_test = assessment
-        entry_mechanism = (
-            EntryMechanism.ASSESSMENT
-            if assessment
-            else (EntryMechanism.REGISTRATION if self._registration_required else EntryMechanism.DIRECT)
-        )
+        entry_mechanism = EntryMechanism.ASSESSMENT if assessment else (EntryMechanism.REGISTRATION if self._registration_required else EntryMechanism.DIRECT)
 
         return Opportunity(
             id=str(getattr(raw, "id", "")),
@@ -105,9 +101,7 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             interview_required=bool(self._curated_barriers[1]) if self._curated_barriers else False,
             technical_test_required=technical_test,
             registration_required=self._registration_required,
-            time_to_payout_days=(
-                float(entry["payout_cadence_days"]) if entry and entry["payout_cadence_days"] else None
-            ),
+            time_to_payout_days=(float(entry["payout_cadence_days"]) if entry and entry["payout_cadence_days"] else None),
             payment_proven=False,
             stability=0.5,
             accepts_beginner=True,
@@ -119,9 +113,7 @@ class LegacyOpportunityDweAdapter(BaseDiscoveryAdapter):
             employment_type=self._employment_type,
             entry_mechanism=entry_mechanism,
             hourly_rate_usd=(float(entry["hourly_rate_usd"]) if entry and entry["hourly_rate_usd"] else None),
-            time_to_first_work_hours=(
-                float(entry["time_to_first_work_hours"]) if entry and entry["time_to_first_work_hours"] else None
-            ),
+            time_to_first_work_hours=(float(entry["time_to_first_work_hours"]) if entry and entry["time_to_first_work_hours"] else None),
             rate_source="platform" if assessment and entry and entry["hourly_rate_usd"] else "unknown",
         )
 

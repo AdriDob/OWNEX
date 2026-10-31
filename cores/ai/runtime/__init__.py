@@ -213,9 +213,7 @@ class OAR:
 
         # Quota awareness (spec §11): excluir providers con cuota observada agotada
         if self._quota:
-            exhausted = [
-                pid for pid in routing_context.preferred_providers or [] if self._quota.quota_factor(pid) == 0.0
-            ]
+            exhausted = [pid for pid in routing_context.preferred_providers or [] if self._quota.quota_factor(pid) == 0.0]
             if exhausted:
                 routing_context.excluded_providers = list(set(routing_context.excluded_providers) | set(exhausted))
 
@@ -291,8 +289,7 @@ class OAR:
                 if self._quota:
                     self._quota.record_request(
                         provider_id,
-                        tokens=(response.metadata or {}).get("tokens_in", 0)
-                        + (response.metadata or {}).get("tokens_out", 0),
+                        tokens=(response.metadata or {}).get("tokens_in", 0) + (response.metadata or {}).get("tokens_out", 0),
                     )
                 if self._router:
                     self._router.record_outcome(
@@ -412,11 +409,7 @@ class OAR:
             resilience["recent_events"] = self._degraded.recent_events(5)
         if self._quota:
             providers = list(self._registry.list_providers()) if self._registry else []
-            resilience["quotas"] = {
-                p.get("id", "unknown"): self._quota.snapshot(p.get("id", "unknown"))
-                for p in providers
-                if isinstance(p, dict)
-            }
+            resilience["quotas"] = {p.get("id", "unknown"): self._quota.snapshot(p.get("id", "unknown")) for p in providers if isinstance(p, dict)}
         return {
             "initialized": self._initialized,
             "providers": self._registry.list_providers() if self._registry else [],
@@ -447,12 +440,8 @@ class OAR:
             "health_details": self._health.get_all_health() if self._health else {},
             "cost_budget": self._cost.get_budget_status() if self._cost else {},
             "cache_stats": self._cache.get_stats() if self._cache else {},
-            "top_recommendations": {tt.value: self._learning.get_recommendations(tt) for tt in TaskType}
-            if self._learning
-            else {},
-            "circuit_breakers": {pid: self._failover.is_circuit_open(pid) for pid in (healthy + degraded + unhealthy)}
-            if self._failover
-            else {},
+            "top_recommendations": {tt.value: self._learning.get_recommendations(tt) for tt in TaskType} if self._learning else {},
+            "circuit_breakers": {pid: self._failover.is_circuit_open(pid) for pid in (healthy + degraded + unhealthy)} if self._failover else {},
         }
 
 

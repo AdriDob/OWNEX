@@ -91,9 +91,7 @@ class TestLLMFixGeneration:
 
         import core.copilot.providers.router as router_mod
 
-        monkeypatch.setattr(
-            router_mod, "get_provider_router", lambda: type("R", (), {"route": staticmethod(dead_route)})()
-        )
+        monkeypatch.setattr(router_mod, "get_provider_router", lambda: type("R", (), {"route": staticmethod(dead_route)})())
         gen = CodeGenerator(config={"use_llm": True})
         result = _run(gen._llm_complete("sys", "user"))
         assert result is None

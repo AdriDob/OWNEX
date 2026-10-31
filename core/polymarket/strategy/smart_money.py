@@ -101,9 +101,7 @@ class SmartMoneyCopierV2:
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
-        self._config = SmartMoneyConfig(
-            **{k: v for k, v in (config or {}).items() if k in SmartMoneyConfig.__dataclass_fields__}
-        )
+        self._config = SmartMoneyConfig(**{k: v for k, v in (config or {}).items() if k in SmartMoneyConfig.__dataclass_fields__})
         self._client: PolymarketClient | None = None
         self._markets: dict[str, dict[str, Any]] = {}
         self._price_history: dict[str, list[tuple[float, float]]] = {}
@@ -427,9 +425,7 @@ class SmartMoneyCopierV2:
     def summary(self) -> dict[str, Any]:
         """Get strategy summary."""
         total_exposure = sum(p.size_usd for p in self._positions.values())
-        total_pnl = sum(
-            (p.current_price - p.entry_price) * (p.size_usd / p.entry_price) for p in self._positions.values()
-        )
+        total_pnl = sum((p.current_price - p.entry_price) * (p.size_usd / p.entry_price) for p in self._positions.values())
 
         return {
             "strategy": self.name,

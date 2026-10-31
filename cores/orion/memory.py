@@ -196,12 +196,8 @@ def connect(
     """
     from core.knowledge.models import KGEdge, KGNode
 
-    source = session.execute(
-        select(KGNode).where(KGNode.name == source_key, KGNode.id.like("orion:%"))
-    ).scalar_one_or_none()
-    target = session.execute(
-        select(KGNode).where(KGNode.name == target_key, KGNode.id.like("orion:%"))
-    ).scalar_one_or_none()
+    source = session.execute(select(KGNode).where(KGNode.name == source_key, KGNode.id.like("orion:%"))).scalar_one_or_none()
+    target = session.execute(select(KGNode).where(KGNode.name == target_key, KGNode.id.like("orion:%"))).scalar_one_or_none()
 
     if not source or not target:
         logger.warning("Cannot connect: source=%s target=%s (missing nodes)", source_key, target_key)

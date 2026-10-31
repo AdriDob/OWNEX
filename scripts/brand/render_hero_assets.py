@@ -138,9 +138,7 @@ def render_hero(w=2400, h=900):
     for i in range(80, 0, -1):
         a = i / 80
         rad = (w * 0.55) * (1 - a * 0.18)
-        vd.ellipse(
-            [w / 2 - rad, h / 2 - rad, w / 2 + rad, h / 2 + rad], fill=tuple(int(c * a * 0.22) for c in (0, 0, 0))
-        )
+        vd.ellipse([w / 2 - rad, h / 2 - rad, w / 2 + rad, h / 2 + rad], fill=tuple(int(c * a * 0.22) for c in (0, 0, 0)))
     img = Image.blend(img, v, 0.12)
     return img
 
@@ -151,9 +149,7 @@ def render_footer(w=2400, h=420):
     _tc(d, img, "OWNEX", h * 0.38 - 40, tf("SpaceGrotesk-700.ttf", 76), WHITE)
     _tc(d, img, "Personal Autonomous Work Operating System", h * 0.38 + 30, tf("Inter-400.ttf", 34), TEXT_DIM)
     d.line([(w * 0.2, h - 70), (w * 0.8, h - 70)], fill=MUTED, width=1)
-    d.text(
-        (w / 2, h - 30), "v7.0.0 · The Aperture Nexus", font=tf("Inter-400.ttf", 26), fill=(100, 104, 114), anchor="mm"
-    )
+    d.text((w / 2, h - 30), "v7.0.0 · The Aperture Nexus", font=tf("Inter-400.ttf", 26), fill=(100, 104, 114), anchor="mm")
     return img
 
 
@@ -174,9 +170,7 @@ def main():
     print("logo/ownex-mark-hero.png 1024x1024")
     mark_img.resize((512, 512), Image.Resampling.LANCZOS).save(OUT_L / "ownex-mark-badge.png", optimize=True)
     print("logo/ownex-mark-badge.png 512x512")
-    render_mark(size=512, color=SURF, node=BLUE, muted=(110, 113, 120), bg=(255, 255, 255, 255)).save(
-        OUT_L / "ownex-mark-light.png", optimize=True
-    )
+    render_mark(size=512, color=SURF, node=BLUE, muted=(110, 113, 120), bg=(255, 255, 255, 255)).save(OUT_L / "ownex-mark-light.png", optimize=True)
     print("logo/ownex-mark-light.png (on white)")
 
     render_hero().save(OUT_B / "ownex-hero-banner.png", optimize=True, quality=92)

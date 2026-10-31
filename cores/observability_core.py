@@ -228,9 +228,7 @@ class MetricsCollector:
     def gauge(self, name: str, value: float, labels: dict[str, str] | None = None):
         with self._lock:
             self._gauges[name] = value
-            point = MetricPoint(
-                name=name, value=value, metric_type=MetricType.GAUGE, timestamp=datetime.utcnow(), labels=labels or {}
-            )
+            point = MetricPoint(name=name, value=value, metric_type=MetricType.GAUGE, timestamp=datetime.utcnow(), labels=labels or {})
             self._metrics[name].append(point)
 
     def histogram(self, name: str, value: float, labels: dict[str, str] | None = None):
@@ -317,9 +315,7 @@ class MetricsCollector:
                     labels={"agent": execution.agent, "category": execution.error_category or "unknown"},
                 )
 
-    def create_alert(
-        self, severity: AlertSeverity, title: str, message: str, source: str, metadata: dict = None
-    ) -> Alert:
+    def create_alert(self, severity: AlertSeverity, title: str, message: str, source: str, metadata: dict = None) -> Alert:
         alert = Alert(
             alert_id=f"alert_{int(time.time() * 1000)}",
             severity=severity,
@@ -615,9 +611,7 @@ class ExecutionTracker:
                 self.collector.record_execution(execution)
                 self._active.pop(execution_id, None)
 
-    def start_execution(
-        self, agent: str, task_id: str, task_type: str, platform: str, metadata: dict = None
-    ) -> AgentExecution:
+    def start_execution(self, agent: str, task_id: str, task_type: str, platform: str, metadata: dict = None) -> AgentExecution:
         """Inicia tracking manual (para casos sin context manager)"""
         execution_id = f"{agent}_{task_id}_{int(time.time() * 1000)}"
         execution = AgentExecution(
@@ -635,9 +629,7 @@ class ExecutionTracker:
 
         return execution
 
-    def complete_execution(
-        self, execution: AgentExecution, outcome: str, reward: float = 0.0, error: str = None, category: str = None
-    ):
+    def complete_execution(self, execution: AgentExecution, outcome: str, reward: float = 0.0, error: str = None, category: str = None):
         """Completa tracking manual"""
         execution.complete(outcome, reward, error, category)
         self.collector.record_execution(execution)

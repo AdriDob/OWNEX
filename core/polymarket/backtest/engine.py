@@ -427,9 +427,6 @@ class BacktestEngine:
             print("\n--- TRADES (last 10) ---")
             for t in result.trades[-10:]:
                 emoji = "✅" if t.pnl > 0 else "❌"
-                print(
-                    f"  {emoji} {t.outcome} @ ${t.entry_price:.4f} → ${t.exit_price:.4f} "
-                    f"PnL: ${t.pnl:+.2f} ({t.reason})"
-                )
+                print(f"  {emoji} {t.outcome} @ ${t.entry_price:.4f} → ${t.exit_price:.4f} PnL: ${t.pnl:+.2f} ({t.reason})")
 
         print("\n" + "=" * 60)

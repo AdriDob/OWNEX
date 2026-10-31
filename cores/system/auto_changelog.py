@@ -110,9 +110,7 @@ def generate_changelog_entry(version: str, commits: list[dict[str, str]]) -> str
             if msg.lower().startswith(prefix):
                 msg = msg[len(prefix) :].strip()
                 break
-        if msg.lower().startswith(
-            ("feat(", "fix(", "docs(", "refactor(", "test(", "perf(", "security(", "chore(", "deps(")
-        ):
+        if msg.lower().startswith(("feat(", "fix(", "docs(", "refactor(", "test(", "perf(", "security(", "chore(", "deps(")):
             msg = msg.split(")", 1)[-1].strip()
             if msg.startswith(":"):
                 msg = msg[1:].strip()

@@ -109,9 +109,7 @@ class PolymarketFeed:
     def _trip_circuit_breaker(self) -> None:
         """Trip the circuit breaker."""
         self._circuit_breaker_count += 1
-        self._circuit_breaker_until = (
-            time.monotonic() + self._config.circuit_breaker_timeout * self._circuit_breaker_count
-        )
+        self._circuit_breaker_until = time.monotonic() + self._config.circuit_breaker_timeout * self._circuit_breaker_count
         self._stats.circuit_breaker_trips += 1
         logger.warning(
             "Circuit breaker tripped (count=%d, cooldown=%.0fs)",
@@ -332,7 +330,5 @@ class PolymarketFeed:
             "circuit_breaker_trips": self._stats.circuit_breaker_trips,
             "buffer_size": len(self._message_buffer),
             "subscribers": len(self._subscribers),
-            "last_message_age": (
-                time.monotonic() - self._stats.last_message_time if self._stats.last_message_time else None
-            ),
+            "last_message_age": (time.monotonic() - self._stats.last_message_time if self._stats.last_message_time else None),
         }

@@ -27,9 +27,7 @@ def test_tokens_danger_is_blue_not_red() -> None:
 
 
 def test_default_theme_agrees_with_tokens() -> None:
-    theme = json.loads(
-        (FRONTEND / "public" / "assets" / "branding" / "themes" / "tesla.json").read_text(encoding="utf-8")
-    )
+    theme = json.loads((FRONTEND / "public" / "assets" / "branding" / "themes" / "tesla.json").read_text(encoding="utf-8"))
     palette = theme.get("palette", {})
     assert palette.get("red", "").upper() == DANGER_BLUE
 

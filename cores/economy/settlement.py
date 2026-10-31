@@ -120,11 +120,7 @@ class SettlementEngine:
         return self._settlements.get(settlement_id)
 
     def get_provider_earnings(self, provider_id: str) -> float:
-        return sum(
-            s.net_amounts.get(provider_id, 0)
-            for s in self._settlements.values()
-            if s.status == SettlementStatus.COMPLETED
-        )
+        return sum(s.net_amounts.get(provider_id, 0) for s in self._settlements.values() if s.status == SettlementStatus.COMPLETED)
 
 
 settlement_engine = SettlementEngine()

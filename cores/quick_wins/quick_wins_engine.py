@@ -383,9 +383,7 @@ class QuickWinsEngine:
             evidence_steps = [f"{win.endpoint_method} {win.endpoint_path} — confirmed verdict"]
             for edge in evidence_edges[:3]:
                 if win.endpoint_path in edge.get("from", "") or win.endpoint_path in edge.get("to", ""):
-                    evidence_steps.append(
-                        f"evidence: {edge.get('from')} -> {edge.get('to')} ({edge.get('relationship')})"
-                    )
+                    evidence_steps.append(f"evidence: {edge.get('from')} -> {edge.get('to')} ({edge.get('relationship')})")
             paths.append(
                 FastExploitPath(
                     entry_endpoint=win.endpoint_path,

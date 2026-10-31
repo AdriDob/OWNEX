@@ -489,8 +489,7 @@ class OpportunityOrchestrator:
         # aprobación humana. El ciclo produce el RANKING; la ejecución fluye
         # por el Work Bank (prepare → human review).
         execution_disabled_reason = (
-            "autonomous execution disabled: platform credentials not configured "
-            "(see PLATFORM_ACCESS) and delivery requires human approval"
+            "autonomous execution disabled: platform credentials not configured (see PLATFORM_ACCESS) and delivery requires human approval"
         )
         results: list[dict[str, Any]] = []
         for rank, opp in enumerate(prioritized[:limit], start=1):

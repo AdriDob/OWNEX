@@ -142,12 +142,7 @@ def _get_confidence_score(finding_id: int) -> float:
         if not finding or not finding.endpoint_id:
             return 0.0
 
-        verdict = (
-            session.query(models.Verdict)
-            .filter(models.Verdict.endpoint_id == finding.endpoint_id)
-            .order_by(models.Verdict.id.desc())
-            .first()
-        )
+        verdict = session.query(models.Verdict).filter(models.Verdict.endpoint_id == finding.endpoint_id).order_by(models.Verdict.id.desc()).first()
         if not verdict or not verdict.confidence:
             return 0.0
 
@@ -270,13 +265,7 @@ def get_pending_submissions() -> dict[str, Any]:
         thresholds = _get_elite_thresholds()
 
         # Get confirmed findings not yet submitted
-        findings = (
-            session.query(models.Finding)
-            .filter(models.Finding.status == "confirmed")
-            .order_by(models.Finding.created_at.desc())
-            .limit(50)
-            .all()
-        )
+        findings = session.query(models.Finding).filter(models.Finding.status == "confirmed").order_by(models.Finding.created_at.desc()).limit(50).all()
 
         pending = []
         for f in findings:
@@ -442,13 +431,7 @@ def get_submission_history(limit: int = 50, offset: int = 0) -> dict[str, Any]:
     session = db.SessionLocal()
     try:
         # Get submission records
-        submissions = (
-            session.query(models.SubmissionRecord)
-            .order_by(models.SubmissionRecord.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-            .all()
-        )
+        submissions = session.query(models.SubmissionRecord).order_by(models.SubmissionRecord.created_at.desc()).limit(limit).offset(offset).all()
 
         history = []
         for sub in submissions:

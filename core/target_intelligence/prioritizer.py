@@ -102,9 +102,7 @@ def compute_tech_adjustment(tech_tags: str, adjustments: dict[str, float]) -> fl
 class AttackPlan:
     strategies: list[str] = field(default_factory=list)
     estimated_hours: float = 0.0
-    phases_to_run: list[str] = field(
-        default_factory=lambda: ["discover", "recon", "hypothesis", "promote", "validate", "report"]
-    )
+    phases_to_run: list[str] = field(default_factory=lambda: ["discover", "recon", "hypothesis", "promote", "validate", "report"])
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -227,9 +225,7 @@ class TargetPrioritizer:
         return base
 
     def _detect_platform(self, target: Any, intel: Any) -> str | None:
-        url = (
-            intel.program_url or getattr(target, "program_url", None) or getattr(target, "domain", None) or ""
-        ).lower()
+        url = (intel.program_url or getattr(target, "program_url", None) or getattr(target, "domain", None) or "").lower()
         for domain_key, platform_name in _PLATFORM_DOMAINS.items():
             if domain_key in url:
                 return platform_name

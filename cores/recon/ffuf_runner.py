@@ -110,9 +110,7 @@ class FfufRunner:
 
         wordlist_path = wordlist or self._resolve_wordlist(profile)
         if not wordlist_path:
-            raise FileNotFoundError(
-                f"No wordlist available for profile '{profile}'. Set SECLISTS_PATH or provide explicit wordlist."
-            )
+            raise FileNotFoundError(f"No wordlist available for profile '{profile}'. Set SECLISTS_PATH or provide explicit wordlist.")
 
         cmd = [
             self._binary,

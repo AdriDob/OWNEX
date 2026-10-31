@@ -56,9 +56,7 @@ def _normalize_bugcrowd(data: dict[str, Any]) -> dict[str, Any]:
     """Bugcrowd expects: very structured, step-by-step, technical focus."""
     d = dict(data)
     d.setdefault("tone", "technical")
-    d.setdefault(
-        "section_order", ["vulnerability_type", "description", "reproduction", "impact", "poc", "configuration"]
-    )
+    d.setdefault("section_order", ["vulnerability_type", "description", "reproduction", "impact", "poc", "configuration"])
     return d
 
 
@@ -66,9 +64,7 @@ def _normalize_intigriti(data: dict[str, Any]) -> dict[str, Any]:
     """Intigriti expects: detailed, evidence-heavy, remediation focus."""
     d = dict(data)
     d.setdefault("tone", "detailed")
-    d.setdefault(
-        "section_order", ["summary", "description", "technical_details", "reproduction", "poc", "impact", "remediation"]
-    )
+    d.setdefault("section_order", ["summary", "description", "technical_details", "reproduction", "poc", "impact", "remediation"])
     return d
 
 
@@ -76,9 +72,7 @@ def _normalize_immunefi(data: dict[str, Any]) -> dict[str, Any]:
     """Immunefi expects: concise, high-impact, direct, $100K+ bounty caliber."""
     d = dict(data)
     d.setdefault("tone", "direct")
-    d.setdefault(
-        "section_order", ["summary", "description", "technical_details", "reproduction", "poc", "impact", "mitigation"]
-    )
+    d.setdefault("section_order", ["summary", "description", "technical_details", "reproduction", "poc", "impact", "mitigation"])
     return d
 
 
@@ -295,9 +289,7 @@ def _section_mitigation(data: dict[str, Any]) -> str:
         "auth_bypass": "Ensure authorization checks are performed server-side for every protected endpoint. Do not rely on client-side role/privilege indicators.",
     }
 
-    mitigation = data.get(
-        "remediation", mitigations.get(vuln_type, "Apply security best practices for this vulnerability class.")
-    )
+    mitigation = data.get("remediation", mitigations.get(vuln_type, "Apply security best practices for this vulnerability class."))
     return f"## Remediation\n\n{mitigation}\n"
 
 
@@ -487,9 +479,7 @@ def platform_list() -> list[str]:
     return ["hackerone", "bugcrowd", "intigriti", "immunefi"]
 
 
-def render_report_from_finding(
-    finding: dict[str, Any], endpoint: dict[str, Any] | None = None, target: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def render_report_from_finding(finding: dict[str, Any], endpoint: dict[str, Any] | None = None, target: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build a rich report data dict from a finding dict and optional endpoint/target.
 
     Args:

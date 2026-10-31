@@ -28,9 +28,7 @@ class ExportFormats:
         self._jinja_env = None
         if Environment is not None:
             ensure_default_templates()
-            tmpl_dir = (
-                USER_TEMPLATES_DIR if USER_TEMPLATES_DIR.is_dir() else Path(__file__).resolve().parent / "templates"
-            )
+            tmpl_dir = USER_TEMPLATES_DIR if USER_TEMPLATES_DIR.is_dir() else Path(__file__).resolve().parent / "templates"
             if tmpl_dir.is_dir():
                 self._jinja_env = Environment(
                     loader=FileSystemLoader(str(tmpl_dir)),

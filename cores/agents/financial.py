@@ -86,9 +86,7 @@ class FinancialAgent(BaseAgent):
         self._data.setdefault("payouts", []).append(payout)
         self._recalculate_metrics()
         self._save()
-        logger.info(
-            "[FINANCE] Payout recorded: %.2f %s from %s", payout["amount"], payout["currency"], payout["program"]
-        )
+        logger.info("[FINANCE] Payout recorded: %.2f %s from %s", payout["amount"], payout["currency"], payout["program"])
 
     def _on_goal(self, event: AgentEvent) -> None:
         """Add or update a financial goal."""

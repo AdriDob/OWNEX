@@ -94,9 +94,7 @@ class DataAnnotationAdapter(OpportunityAdapter):
                 headers = {"Authorization": f"Bearer {token}"} if token else {}
 
                 # Get available projects
-                resp = await client.get(
-                    "https://api.dataannotation.tech/v1/projects/available", headers=headers, timeout=15
-                )
+                resp = await client.get("https://api.dataannotation.tech/v1/projects/available", headers=headers, timeout=15)
                 if resp.status_code != 200:
                     return []
 

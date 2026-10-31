@@ -81,9 +81,7 @@ class F1Assistant:
         return self._say("risk", title, f"{self._pick('risk_warning')}\n\n{details}", "⚠️")
 
     def celebrate_success(self, label: str, amount: float) -> F1Message:
-        return self._say(
-            "success", "Operación Exitosa", f"{self._pick('success')}\n\n**{label}**: +${amount:,.2f}", "🎉"
-        )
+        return self._say("success", "Operación Exitosa", f"{self._pick('success')}\n\n**{label}**: +${amount:,.2f}", "🎉")
 
     def request_confirmation(self, title: str, body: str, action_payload: dict[str, Any] | None = None) -> F1Message:
         return self._say(
@@ -96,9 +94,7 @@ class F1Assistant:
             action_payload=action_payload or {},
         )
 
-    def daily_briefing(
-        self, opportunities: list[Opportunity], portfolio_value: float, risk_status: dict[str, Any]
-    ) -> F1Message:
+    def daily_briefing(self, opportunities: list[Opportunity], portfolio_value: float, risk_status: dict[str, Any]) -> F1Message:
         lines = [self._pick("daily_briefing"), ""]
         lines.append(f"**Portfolio**: ${portfolio_value:,.2f}")
         lines.append(f"**Drawdown**: {risk_status.get('drawdown', 0):.1%}")

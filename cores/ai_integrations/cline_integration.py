@@ -17,10 +17,8 @@ import json
 import logging
 import os
 import subprocess
-import sys
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
-from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("ownex.ai_integrations.cline")
@@ -138,7 +136,7 @@ class ClineIntegration:
             matches = glob.glob(ext_package)
             if matches:
                 pkg_path = matches[0]
-                with open(pkg_path, "r") as f:
+                with open(pkg_path) as f:
                     pkg_info = json.load(f)
                 # Check if extension has API exposure
                 return pkg_info.get("publisher") == "cline" or "cline" in str(pkg_info).lower()
@@ -359,7 +357,7 @@ class ClineIntegration:
         """
         workdir = repo_path or os.getcwd()
         result = self.execute_task(
-            f"Inspect this repository structure and provide: 1) overall project summary, 2) main directories, 3) key files, 4) technology stack detected, 5) current status of development",
+            "Inspect this repository structure and provide: 1) overall project summary, 2) main directories, 3) key files, 4) technology stack detected, 5) current status of development",
             workdir=workdir,
             timeout=120,
             require_approval=False,

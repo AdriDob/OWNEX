@@ -51,9 +51,7 @@ def fresh_first_day(tmp_path):
 
 
 class TestFreshState:
-    def test_bootstrap_unlock_wins_when_no_stream_accepted(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_bootstrap_unlock_wins_when_no_stream_accepted(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         """Regla bootstrap (2026-08-25): sin streams aprobados, la primera
         plataforma de catálogo con tarifa documentada se desbloquea primero."""
         plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
@@ -77,16 +75,12 @@ class TestFreshState:
         assert plan["tracks"]["active"]["first_day_progress_pct"] == 0.0
         assert plan["tracks"]["passive"]["progress_pct"] == 0
 
-    def test_phase_now_contains_active_and_passive_heads(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_phase_now_contains_active_and_passive_heads(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         now = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()["phases"]["now"]
         sources = {item["source"] for item in now}
         assert sources >= {"applications", "first_day"}
 
-    def test_no_network_calls_needed(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide, monkeypatch
-    ) -> None:
+    def test_no_network_calls_needed(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide, monkeypatch) -> None:
         def _boom(*a: Any, **k: Any) -> None:
             raise AssertionError("el plan combinado no debe descubrir en red")
 
@@ -95,9 +89,7 @@ class TestFreshState:
 
 
 class TestDeliverPriority:
-    def test_ready_item_beats_bootstrap(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_ready_item_beats_bootstrap(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         """Plata sobre la mesa: la entrega lista gana incluso al bootstrap."""
         bank = _StubBank([_ready_item()])
         plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, bank).build()
@@ -105,17 +97,13 @@ class TestDeliverPriority:
         assert nxt["source"] == "workbank"
         assert nxt["payoff_range"]["low"] == 80.0
 
-    def test_today_reflects_bank_reward(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_today_reflects_bank_reward(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         bank = _StubBank([_ready_item(reward=120.0)])
         cc = UnifiedIncomePlan(fresh_assistant, fresh_first_day, bank).build()["income_command_center"]
         assert cc["ready_to_deliver_count"] == 1
         assert cc["today"]["low"] >= 120.0
 
-    def test_empty_bank_today_comes_from_documented_fd_payoff(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_empty_bank_today_comes_from_documented_fd_payoff(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         cc = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()["income_command_center"]
         assert cc["ready_to_deliver_count"] == 0
         assert "sin streams aprobados" in cc["basis"]["note"]
@@ -149,9 +137,7 @@ class TestPassiveTrack:
         # Con Outlier aceptado hay stream activo: deja de ser bootstrap.
         assert plan["tracks"]["passive"]["accepted_streams"] == ["outlier"]
 
-    def test_active_stack_documents_rates(
-        self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide
-    ) -> None:
+    def test_active_stack_documents_rates(self, fresh_assistant: ApplicationAssistant, fresh_first_day: FirstDayGuide) -> None:
         cc = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()["income_command_center"]
         outlier = next(s for s in cc["active_stack"] if s["key"] == "outlier")
         assert outlier["rate_documented"] == 13.0
@@ -159,9 +145,7 @@ class TestPassiveTrack:
 
 
 class TestActiveTrackProgression:
-    def test_all_first_day_done_next_is_applications_when_streams_pending(
-        self, tmp_path, fresh_assistant: ApplicationAssistant
-    ) -> None:
+    def test_all_first_day_done_next_is_applications_when_streams_pending(self, tmp_path, fresh_assistant: ApplicationAssistant) -> None:
         fd = FirstDayGuide(tmp_path / "first_day.json")
         for step in range(1, 6):
             fd.save_step_complete(step)
@@ -208,9 +192,7 @@ class TestRealWorkBankIntegration:
 
 
 class TestMultiStreamHourBudget:
-    def test_two_accepted_streams_do_not_double_count_hours(
-        self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch
-    ) -> None:
+    def test_two_accepted_streams_do_not_double_count_hours(self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch) -> None:
         """Con 2 streams aceptados el rango NO puede ser la suma de rate×horas.
 
         Las horas son una sola bolsa: el ingreso/hora está acotado entre el peor
@@ -222,9 +204,7 @@ class TestMultiStreamHourBudget:
         assistant.set_status("mercor", "accepted")  # $25/h
 
         availability = 40.0
-        monkeypatch.setattr(
-            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: availability
-        )
+        monkeypatch.setattr("cores.direct_work_engine.income_plan.get_available_hours", lambda _w: availability)
 
         plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
         cc = plan["income_command_center"]
@@ -239,16 +219,12 @@ class TestMultiStreamHourBudget:
         stream_week_low = cc["week"]["low"] - cc["today"]["low"]
         assert stream_week_low >= 13.0 * availability * 0.5 - 0.01
 
-    def test_single_stream_matches_documented_rate(
-        self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch
-    ) -> None:
+    def test_single_stream_matches_documented_rate(self, tmp_path, fresh_first_day: FirstDayGuide, monkeypatch) -> None:
         store = tmp_path / "applications.json"
         assistant = ApplicationAssistant(store_path=store)
         assistant.set_status("mercor", "accepted")
 
-        monkeypatch.setattr(
-            "cores.direct_work_engine.income_plan.get_available_hours", lambda _w: 40.0
-        )
+        monkeypatch.setattr("cores.direct_work_engine.income_plan.get_available_hours", lambda _w: 40.0)
 
         plan = UnifiedIncomePlan(assistant, fresh_first_day, _StubBank()).build()
         cc = plan["income_command_center"]

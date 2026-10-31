@@ -197,9 +197,7 @@ class Marketplace:
         job.escrow_id = escrow_id
         return True
 
-    def submit_delivery(
-        self, job_id: str, provider_id: str, content: dict[str, Any], evidence: dict[str, Any] | None = None
-    ) -> str | None:
+    def submit_delivery(self, job_id: str, provider_id: str, content: dict[str, Any], evidence: dict[str, Any] | None = None) -> str | None:
         job = self._jobs.get(job_id)
         if not job or job.status != JobStatus.ASSIGNED or job.assigned_provider != provider_id:
             return None

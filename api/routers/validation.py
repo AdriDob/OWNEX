@@ -163,12 +163,7 @@ def validate_and_report(request: ValidateHotPathRequest):
             comparison_summary=comparison_summary,
         )
 
-        db_verdict = (
-            session.query(models.Verdict)
-            .filter(models.Verdict.hot_path_id == verdict.hot_path_id)
-            .order_by(models.Verdict.id.desc())
-            .first()
-        )
+        db_verdict = session.query(models.Verdict).filter(models.Verdict.hot_path_id == verdict.hot_path_id).order_by(models.Verdict.id.desc()).first()
         verdict_id = db_verdict.id if db_verdict else None
 
         response = {
@@ -270,12 +265,7 @@ def batch_validate(request: BatchValidateRequest):
         )
 
         # Fetch candidate endpoints
-        endpoints = (
-            session_db.query(models.Endpoint)
-            .filter(models.Endpoint.target_id == request.target_id)
-            .limit(request.limit)
-            .all()
-        )
+        endpoints = session_db.query(models.Endpoint).filter(models.Endpoint.target_id == request.target_id).limit(request.limit).all()
 
         engine = ValidationLoopEngine()
         results = []
@@ -307,9 +297,7 @@ def batch_validate(request: BatchValidateRequest):
             )
 
             verdict_handler = VerdictHandler(session=session_db)
-            saved_verdict = verdict_handler.process_verdict(
-                verdict, endpoint_id=ep.id, target_id=0, evidence_records=[]
-            )
+            saved_verdict = verdict_handler.process_verdict(verdict, endpoint_id=ep.id, target_id=0, evidence_records=[])
 
             results.append(
                 {

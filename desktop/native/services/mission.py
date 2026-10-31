@@ -336,9 +336,7 @@ class MissionControlData:
             return {
                 "summary": data,
                 "targets": data.get("targets", []),
-                "ready_to_deliver": data.get("ready_to_deliver", [])
-                if isinstance(data.get("ready_to_deliver"), int)
-                else ready_items,
+                "ready_to_deliver": data.get("ready_to_deliver", []) if isinstance(data.get("ready_to_deliver"), int) else ready_items,
             }
 
         with service_call():

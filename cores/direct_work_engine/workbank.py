@@ -188,11 +188,7 @@ class WorkBank:
         if target is None:
             target = TARGETS["daily"]
 
-        excluded = (
-            {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories}
-            if profile is not None
-            else set()
-        )
+        excluded = {c.value if hasattr(c, "value") else str(c) for c in profile.excluded_categories} if profile is not None else set()
 
         eligible: list[tuple[Opportunity, float]] = []
         rejected: dict[str, list[str]] = {}
@@ -202,11 +198,7 @@ class WorkBank:
             success_filter = IntelligentRecommender(config=MAX_SUCCESS_RECOMMENDER_CONFIG)
             kept = success_filter.filter_by_success_floor(opportunities, profile)
             passed_ids = {o.id for o in kept}
-            floor_rejected = {
-                opp.id: [f"below_success_floor_{int(success_floor * 100)}%"]
-                for opp in opportunities
-                if opp.id not in passed_ids
-            }
+            floor_rejected = {opp.id: [f"below_success_floor_{int(success_floor * 100)}%"] for opp in opportunities if opp.id not in passed_ids}
             opportunities = kept
         for opp in opportunities:
             # El modelo tolera category como string (router serializa enums);
@@ -215,12 +207,7 @@ class WorkBank:
             if str(opp_category) in excluded:
                 rejected[opp.id] = ["excluded_category"]
                 continue
-            if (
-                profile is not None
-                and profile.min_payment > 0.0
-                and opp.payment < profile.min_payment
-                and opp.category != OpportunityCategory.BUG_BOUNTY
-            ):
+            if profile is not None and profile.min_payment > 0.0 and opp.payment < profile.min_payment and opp.category != OpportunityCategory.BUG_BOUNTY:
                 # Bug bounty programs with *unknown* payout (payment == 0) are still
                 # real, open, public programs. Keep them if the zero-barrier score is
                 # high enough — the payout is "to be determined" by the discovery,
@@ -268,9 +255,7 @@ class WorkBank:
                 category=opp.category.value if hasattr(opp.category, "value") else str(opp.category),
                 reward=opp.payment,
                 barrier_score=round(barrier, 1),
-                employment_type=opp.employment_type.value
-                if hasattr(opp.employment_type, "value")
-                else str(opp.employment_type),
+                employment_type=opp.employment_type.value if hasattr(opp.employment_type, "value") else str(opp.employment_type),
                 access_status=access_status,
                 access_requirement=requirement,
                 deliverables=self._prepare_deliverables(opp),
@@ -369,14 +354,15 @@ class WorkBank:
     # ── Internals ──
     @staticmethod
     def _prepare_deliverables(opp: Opportunity) -> list[str]:
-        """Build the prepared package for a zero-barrier task (honest artifacts)."""
+        """Describe the preparation state without asserting unverified facts."""
         deliverables = [
             f"submission_draft: {opp.title[:80]}",
-            "terms_check: cumple los términos públicos de la plataforma",
-            "profile_match: perfil compatible (sin entrevista ni portfolio obligatorio)",
+            "terms_check_pending: revisar términos actuales y elegibilidad antes de enviar",
+            "profile_match_pending: confirmar requisitos de cuenta, experiencia y portfolio",
         ]
         if opp.payment > 0:
-            deliverables.append(f"reward_verified: ${opp.payment:.2f}")
+            label = "reward_verified" if opp.payment_proven else "reward_reported"
+            deliverables.append(f"{label}: {opp.currency} {opp.payment:.2f}")
         return deliverables
 
     def _summary(
@@ -404,8 +390,7 @@ class WorkBank:
             "delivered": len(delivered),
             "rejected": rejected,
             "rejected_reasons": sorted(
-                {reason for reasons in rejected.values() for reason in reasons}
-                | {reason for reasons in success_floor_rejected.values() for reason in reasons}
+                {reason for reasons in rejected.values() for reason in reasons} | {reason for reasons in success_floor_rejected.values() for reason in reasons}
             ),
             "targets": self.progress(),
             "weekly_best": [i.to_dict() for i in self.best_weekly()],

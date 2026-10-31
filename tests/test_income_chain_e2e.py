@@ -147,9 +147,7 @@ class TestIncomeChainE2E:
 
         # ── 6. REVENUE LEDGER: EXPECTED ≠ PENDING ≠ PAID ──
         tracker = RevenueTracker()
-        tracker.add_payment_method(
-            PaymentMethod(platform=PaymentPlatform.PAYPAL, account_id="pm-paypal", name="PayPal", currency="USD")
-        )
+        tracker.add_payment_method(PaymentMethod(platform=PaymentPlatform.PAYPAL, account_id="pm-paypal", name="PayPal", currency="USD"))
         reward = Decimal("120.00")
         tracker.create_opportunity(
             RevenueOpportunity(

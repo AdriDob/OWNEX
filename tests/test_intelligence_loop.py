@@ -262,9 +262,7 @@ class TestFullLoop:
         explained_actions = {e["action"] for e in explanations}
 
         for aid in tracked_ids:
-            assert aid in explained_actions or any(aid in e["action"] for e in explanations), (
-                f"No orphan actions: {aid} must have explanation"
-            )
+            assert aid in explained_actions or any(aid in e["action"] for e in explanations), f"No orphan actions: {aid} must have explanation"
 
     def test_full_loop_integration(self):
         """Complete loop: signal → prioritize → explain → execute → track → store → learn."""

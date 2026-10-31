@@ -86,9 +86,7 @@ class Watchdog:
         self._running = False
         self._thread: threading.Thread | None = None
         self._lock = threading.Lock()
-        self._snapshot_history: list[
-            WatchdogSnapshot
-        ] = []  # Se mantiene solo si hay otras funcionalidades que lo necesiten
+        self._snapshot_history: list[WatchdogSnapshot] = []  # Se mantiene solo si hay otras funcionalidades que lo necesiten
 
         global _WATCHDOG_INSTANCE
         _WATCHDOG_INSTANCE = self

@@ -61,9 +61,7 @@ def get_endpoints(
     sort_order: str = Query("asc", pattern="^(asc|desc)$"),
     search: str = Query("", max_length=200),
 ):
-    items, total = list_endpoints(
-        target_id=target_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search
-    )
+    items, total = list_endpoints(target_id=target_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search)
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 

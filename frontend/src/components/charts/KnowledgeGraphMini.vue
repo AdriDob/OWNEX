@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import * as d3 from 'd3'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'

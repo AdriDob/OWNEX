@@ -64,9 +64,7 @@ class HypothesisEngine:
 
         technologies = (attack_surface_map or {}).get("technologies", []) if attack_surface_map else []
         discovered_paths = (attack_surface_map or {}).get("discovered_paths", []) if attack_surface_map else []
-        hypotheses = self._stage_1_generate(
-            target_id, target_name, endpoints, nuclei_findings, technologies, discovered_paths
-        )
+        hypotheses = self._stage_1_generate(target_id, target_name, endpoints, nuclei_findings, technologies, discovered_paths)
         LOG.info("Stage 1 (generate): %d hypotheses", len(hypotheses))
 
         zap_h = self._stage_zap(target_id, target_name, zap_alerts, endpoint_map)
@@ -277,12 +275,9 @@ class HypothesisEngine:
                         confidence=0.0,
                         priority_score=0.0,
                         evidence=evidence,
-                        reasoning=template
-                        or f"Investigation path connecting {len(nodes)} endpoints — test for chained vulnerability.",
+                        reasoning=template or f"Investigation path connecting {len(nodes)} endpoints — test for chained vulnerability.",
                         suggested_actions=[
-                            f"Follow investigation path: {template}"
-                            if template
-                            else f"Test {len(nodes)} connected endpoints in sequence",
+                            f"Follow investigation path: {template}" if template else f"Test {len(nodes)} connected endpoints in sequence",
                             "Verify each endpoint's auth independently",
                             "Try cross-endpoint state manipulation",
                         ],

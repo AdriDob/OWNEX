@@ -220,12 +220,7 @@ class SystemState:
         new_state = self._system_state
         if self._system_state == SYSTEM_STATE_BOOTING and all_healthy:
             new_state = SYSTEM_STATE_READY
-        elif (
-            self._system_state == SYSTEM_STATE_BOOTING
-            and any_unhealthy
-            or self._system_state == SYSTEM_STATE_READY
-            and any_unhealthy
-        ):
+        elif self._system_state == SYSTEM_STATE_BOOTING and any_unhealthy or self._system_state == SYSTEM_STATE_READY and any_unhealthy:
             new_state = SYSTEM_STATE_DEGRADED
         elif self._system_state == SYSTEM_STATE_DEGRADED and all_healthy:
             new_state = SYSTEM_STATE_READY

@@ -182,9 +182,7 @@ class TrustEngine:
                 if time_to_payment_days is not None:
                     # Update moving average
                     n = metrics.paid
-                    metrics.avg_time_to_payment_days = (
-                        metrics.avg_time_to_payment_days * (n - 1) + time_to_payment_days
-                    ) / n
+                    metrics.avg_time_to_payment_days = (metrics.avg_time_to_payment_days * (n - 1) + time_to_payment_days) / n
             else:
                 metrics.unpaid += 1
         else:

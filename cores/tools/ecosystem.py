@@ -120,9 +120,7 @@ class ToolEcosystem:
 
         entries: list[ToolInventoryEntry] = []
         for name, tool_cls in sorted(TOOL_REGISTRY.items()):
-            meta = _TOOL_META.get(
-                name, {"license": "unknown", "security_risk": "UNKNOWN", "maintenance_cost": "LOW", "keep": True}
-            )
+            meta = _TOOL_META.get(name, {"license": "unknown", "security_risk": "UNKNOWN", "maintenance_cost": "LOW", "keep": True})
             purpose = getattr(tool_cls, "install_hint", "") or getattr(tool_cls, "name", name)
             version = getattr(tool_cls, "min_version", "") or "-"
             usage_count = self._usage.frequency().get(name, 0)

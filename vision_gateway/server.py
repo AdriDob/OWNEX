@@ -198,9 +198,7 @@ def run_mcp_server() -> None:
             name = params.get("name", "")
             args = params.get("arguments", {})
             result = _handle_mcp_tool(name, args)
-            _mcp_respond(
-                {"id": req_id, "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}}
-            )
+            _mcp_respond({"id": req_id, "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}})
         elif method == "notifications/initialized":
             pass  # No response needed
         else:

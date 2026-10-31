@@ -28,9 +28,7 @@ class TestLogDecision:
         assert len(d_id) > len("test-app-")
 
     def test_log_with_confidence(self) -> None:
-        d_id = log_decision(
-            "atlas", "trader-1", "buy", "Buy signal detected", {"symbol": "BTC"}, confidence=0.85, risk_score=0.3
-        )
+        d_id = log_decision("atlas", "trader-1", "buy", "Buy signal detected", {"symbol": "BTC"}, confidence=0.85, risk_score=0.3)
         assert d_id.startswith("atlas-")
         decisions = get_decisions(app_id="atlas")
         assert len(decisions) >= 1

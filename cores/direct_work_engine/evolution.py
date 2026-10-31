@@ -241,12 +241,8 @@ class PerformanceAnalyzer:
             time_invested_hours=time_invested_hours,
             roi_usd_per_hour=round(revenue / time_invested_hours, 2) if time_invested_hours > 0 else 0.0,
             conversion_rate=round(len(accepted) / total, 3) if total else 0.0,
-            platform_conversion={
-                k: round(len([r for r in v if r.accepted]) / len(v), 3) for k, v in by_platform.items()
-            },
-            category_conversion={
-                k: round(len([r for r in v if r.accepted]) / len(v), 3) for k, v in by_category.items()
-            },
+            platform_conversion={k: round(len([r for r in v if r.accepted]) / len(v), 3) for k, v in by_platform.items()},
+            category_conversion={k: round(len([r for r in v if r.accepted]) / len(v), 3) for k, v in by_category.items()},
             top_platform_by_revenue=max(platform_revenue.items(), key=lambda kv: kv[1])[0] if platform_revenue else "",
             top_category_by_revenue=max(category_revenue.items(), key=lambda kv: kv[1])[0] if category_revenue else "",
         )

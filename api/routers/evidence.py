@@ -47,9 +47,7 @@ def get_evidence(
     sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     search: str = Query("", max_length=200),
 ):
-    items, total = list_evidence(
-        verdict_id=verdict_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search
-    )
+    items, total = list_evidence(verdict_id=verdict_id, skip=skip, limit=limit, sort_by=sort_by, sort_order=sort_order, search=search)
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 
@@ -91,9 +89,7 @@ def save_evidence_claim(
         "detail": detail,
         "extra": extra or {},
         "timestamp_utc": datetime.now(UTC).isoformat(),
-        "sha256": hashlib.sha256(json.dumps({"detail": detail, "extra": extra}, sort_keys=True).encode()).hexdigest()[
-            :16
-        ],
+        "sha256": hashlib.sha256(json.dumps({"detail": detail, "extra": extra}, sort_keys=True).encode()).hexdigest()[:16],
         "version": "1.0",
     }
     dest = _EVIDENCE_DIR / f"{finding_id}.claim.json"

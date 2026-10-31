@@ -12,7 +12,7 @@ from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from core.cycles.models import Cycle, CycleCategory, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.forge")
 
@@ -58,7 +58,7 @@ class ForgeCycle:
                     "name": "Forge",
                     "slug": "forge",
                     "description": "Dev bounties, OSS contributions, code review rewards",
-                    "category": "development",
+                    "category": CycleCategory.FORGE.value,
                     "enabled": True,
                     "priority": 8,
                     "status": "idle",
@@ -258,7 +258,7 @@ def register_forge_cycle(registry) -> None:
                 slug="forge",
                 name="Forge",
                 description="Dev bounties, OSS contributions, code review rewards",
-                category="development",
+                category=CycleCategory.FORGE.value,
                 priority=8,
                 config={
                     "platforms": ["superteam", "opire", "algora", "issuehunt"],

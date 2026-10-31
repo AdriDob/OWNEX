@@ -93,10 +93,7 @@ def generate_recommendations() -> list[dict[str, Any]]:
                         "top_idor": idor_eps[:3],
                         "top_actionable": actionable_eps[:3],
                         "reason": (
-                            f"ROI {roi.get('roi_score', 0):.0f} · "
-                            f"{len(critical_eps)} críticos · "
-                            f"{len(idor_eps)} IDOR potenciales · "
-                            f"{len(graphql_eps)} GraphQL"
+                            f"ROI {roi.get('roi_score', 0):.0f} · {len(critical_eps)} críticos · {len(idor_eps)} IDOR potenciales · {len(graphql_eps)} GraphQL"
                         ),
                     }
                 )

@@ -240,9 +240,7 @@ class IdentityEngine(Engine):
 
     def _create_entity(self, observation: Observation) -> Entity:
         """Create a new entity from an observation."""
-        entity_id = hashlib.sha256(
-            f"{observation.sensor_id}:{observation.external_id}:{observation.observed_at}".encode()
-        ).hexdigest()[:16]
+        entity_id = hashlib.sha256(f"{observation.sensor_id}:{observation.external_id}:{observation.observed_at}".encode()).hexdigest()[:16]
 
         fingerprint = self._compute_fingerprint(observation)
         now = datetime.now(UTC).isoformat()

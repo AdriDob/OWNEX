@@ -55,10 +55,7 @@ def generate_decisions(scores: dict[str, ROIScore]) -> list[OrionDecision]:
                     platform=roi.platform,
                     priority=level,
                     score=roi.score,
-                    reason=(
-                        f"{pid.upper()} score={roi.score} — top earner "
-                        f"(${roi.earnings_30d:.0f}/30d). Explore new targets."
-                    ),
+                    reason=(f"{pid.upper()} score={roi.score} — top earner (${roi.earnings_30d:.0f}/30d). Explore new targets."),
                     payload={
                         "platform": pid,
                         "max_decisions": 3,

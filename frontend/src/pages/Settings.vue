@@ -221,6 +221,7 @@ const FALLBACK_PROVIDERS: ProviderCatalogEntry[] = [
   { id: 'gemini', label: 'Google Gemini', desc: 'AI Studio' },
   { id: 'openrouter', label: 'OpenRouter', desc: 'Multi-modelo premium' },
   { id: 'devin', label: 'Devin AI Agent', desc: 'Agente free' },
+  { id: 'codex', label: 'OpenAI Codex CLI', desc: 'CLI local · sesión ChatGPT · solo lectura' },
   { id: 'freebuff', label: 'Freebuff', desc: 'Agente free' },
   { id: 'local', label: 'Local Rule-Based', desc: 'Sin LLM (fallback)' },
 ]
@@ -263,6 +264,7 @@ async function saveAI() {
         ai.provider === 'ollama' ? ai.ollamaHost
         : ai.provider === 'devin' ? ai.devinPath
         : ai.provider === 'freebuff' ? ai.freebuffConfigPath
+        : ai.provider === 'codex' ? 'codex'
         : '',
       model:
         ai.provider === 'ollama' ? ai.ollamaModel
@@ -270,6 +272,7 @@ async function saveAI() {
         : ai.provider === 'gemini' ? ai.geminiModel
         : ai.provider === 'openrouter' ? ai.openrouterModel
         : ai.provider === 'devin' ? ai.devinModel
+        : ai.provider === 'codex' ? 'codex-cli'
         : '',
       api_key:
         ai.provider === 'openai' ? ai.openaiKey
@@ -535,6 +538,12 @@ onMounted(async () => {
         </p>
 
         <Separator />
+
+        <div v-if="settings.data.ai.provider === 'codex'" class="rounded-lg border border-border/40 bg-surface/20 p-4">
+          <h4 class="font-mono text-[11px] font-semibold text-foreground">Codex CLI</h4>
+          <p class="mt-2 font-mono text-[10px] leading-5 text-muted-foreground">Usa la sesión local del CLI. OWNEX no guarda una API key. El proveedor se ejecuta en modo de solo lectura; la disponibilidad y los límites dependen de tu cuenta y sesión de Codex.</p>
+          <p class="mt-2 font-mono text-[10px] text-muted-foreground">Estado detectado: {{ providerCatalog.find((p) => p.id === 'codex')?.available ? 'CLI instalado y sesión disponible' : 'No disponible: instalá Codex CLI e iniciá sesión' }}</p>
+        </div>
 
         <!-- Ollama config -->
         <div v-if="settings.data.ai.provider === 'ollama'" class="space-y-4">

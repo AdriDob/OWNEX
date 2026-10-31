@@ -195,11 +195,7 @@ class CapabilityRegistry:
             entry.last_used_at = time.time()
             if duration_ms is not None:
                 prev = entry.avg_performance_ms
-                entry.avg_performance_ms = (
-                    (prev * (entry.usage_count - 1) + duration_ms) / entry.usage_count
-                    if entry.usage_count > 1
-                    else duration_ms
-                )
+                entry.avg_performance_ms = (prev * (entry.usage_count - 1) + duration_ms) / entry.usage_count if entry.usage_count > 1 else duration_ms
             self._dirty = True
         self._flush()
 

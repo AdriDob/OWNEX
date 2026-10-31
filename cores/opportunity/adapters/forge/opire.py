@@ -61,9 +61,7 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
                     {
                         "id": f"opire_{reward_id}",
                         "name": reward.get("title", "Opire Bounty"),
-                        "description": (
-                            f"Opire reward on {project.get('name', 'GitHub issue')}: {reward.get('title', '')}"
-                        ),
+                        "description": (f"Opire reward on {project.get('name', 'GitHub issue')}: {reward.get('title', '')}"),
                         "platform": "opire",
                         "url": reward.get("url", ""),
                         "reward": _reward_usd(reward),

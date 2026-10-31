@@ -308,15 +308,11 @@ class MarketEvolutionEngine:
                 "expected_reward": min(reward / 50.0, 1.0),
                 "success_probability": float(a.get("trust_score", 50.0)) / 100.0,
                 "completion_time": float(a.get("task_transparency", 0.5)),
-                "barrier_level": 1.0
-                if a.get("entry_barrier") == "LOW"
-                else (0.5 if a.get("entry_barrier") == "MEDIUM" else 0.0),
+                "barrier_level": 1.0 if a.get("entry_barrier") == "LOW" else (0.5 if a.get("entry_barrier") == "MEDIUM" else 0.0),
                 "market_stability": float(a.get("trust_score", 50.0)) / 100.0,
                 "competition": _competitive_discount(a.get("source_type", "platform")),
                 "skill_match": self._skill_match(tags=tags, category=a.get("category", "")),
-                "legal_accessibility": 1.0
-                if a.get("argentina_compatibility") == "YES"
-                else (0.5 if a.get("argentina_compatibility") == "UNKNOWN" else 0.0),
+                "legal_accessibility": 1.0 if a.get("argentina_compatibility") == "YES" else (0.5 if a.get("argentina_compatibility") == "UNKNOWN" else 0.0),
                 "historical_success": 0.5,
             }
             ovos = self._compute_ovos(components)
@@ -384,9 +380,7 @@ class MarketEvolutionEngine:
                 reason = "Bloqueada o burocrática (fricción REJECT)."
             elif row["trust_score"] < _RETIRE_TRUST_THRESHOLD:
                 reason = "Trust score bajo: plataforma no verificada o de baja calidad."
-            elif (
-                rec is not None and rec.historical_attempts >= _MIN_HISTORY_FOR_RETIRE and rec.historical_accepted == 0
-            ):
+            elif rec is not None and rec.historical_attempts >= _MIN_HISTORY_FOR_RETIRE and rec.historical_accepted == 0:
                 reason = f"Sin aceptaciones tras {rec.historical_attempts} intentos medidos."
             if reason:
                 row["retired"] = True

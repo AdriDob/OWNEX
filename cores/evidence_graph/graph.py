@@ -227,18 +227,12 @@ class EvidenceGraph:
         _ensure_db()
         db = get_db_manager().get_session(DB_ID)
         try:
-            node_ids = [
-                r[0] for r in db.query(EvidenceNode.id).filter(EvidenceNode.hypothesis_id == hypothesis_id).all()
-            ]
+            node_ids = [r[0] for r in db.query(EvidenceNode.id).filter(EvidenceNode.hypothesis_id == hypothesis_id).all()]
             if not node_ids:
                 return False
             db.query(EvidenceEdge).filter(EvidenceEdge.from_node_id.in_(node_ids)).delete(synchronize_session=False)
             db.query(EvidenceEdge).filter(EvidenceEdge.to_node_id.in_(node_ids)).delete(synchronize_session=False)
-            count = (
-                db.query(EvidenceNode)
-                .filter(EvidenceNode.hypothesis_id == hypothesis_id)
-                .delete(synchronize_session=False)
-            )
+            count = db.query(EvidenceNode).filter(EvidenceNode.hypothesis_id == hypothesis_id).delete(synchronize_session=False)
             db.commit()
             logger.info("Deleted %d evidence nodes (and edges) for %s", count, hypothesis_id)
             return True

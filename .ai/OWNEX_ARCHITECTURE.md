@@ -536,9 +536,7 @@ class StrategyEngine:
 
     def add_strategy(self, strategy: Strategy): ...
 
-    async def decide(
-        self, opportunities: list[ScoredOpportunity], context: WorkContext
-    ) -> list[PrioritizedOpportunity]:
+    async def decide(self, opportunities: list[ScoredOpportunity], context: WorkContext) -> list[PrioritizedOpportunity]:
         """Returns opportunities in execution order."""
         ...
 

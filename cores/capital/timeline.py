@@ -159,9 +159,7 @@ class CapitalTimeline:
 
             if isinstance(ledger_entry, LedgerEntryData):
                 entry_dict = {
-                    "event": ledger_entry.event.value
-                    if hasattr(ledger_entry.event, "value")
-                    else str(ledger_entry.event),
+                    "event": ledger_entry.event.value if hasattr(ledger_entry.event, "value") else str(ledger_entry.event),
                     "amount": ledger_entry.amount,
                     "currency": ledger_entry.currency,
                     "platform": ledger_entry.platform,
@@ -335,17 +333,11 @@ class CapitalTimeline:
             if filter.severity:
                 events = [e for e in events if e.severity in filter.severity]
             if filter.start_date:
-                events = [
-                    e for e in events if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) >= filter.start_date
-                ]
+                events = [e for e in events if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) >= filter.start_date]
             if filter.end_date:
-                events = [
-                    e for e in events if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) <= filter.end_date
-                ]
+                events = [e for e in events if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) <= filter.end_date]
             if filter.platforms:
-                events = [
-                    e for e in events if e.platform and e.platform.lower() in [p.lower() for p in filter.platforms]
-                ]
+                events = [e for e in events if e.platform and e.platform.lower() in [p.lower() for p in filter.platforms]]
             if filter.tags:
                 events = [e for e in events if any(t in e.tags for t in filter.tags)]
             if filter.min_amount is not None:
@@ -390,9 +382,7 @@ class CapitalTimeline:
     def get_summary(self, days: int = 30) -> dict[str, Any]:
         """Get timeline summary for last N days."""
         cutoff = datetime.now(UTC) - timedelta(days=days)
-        recent = [
-            e for e in self._events.values() if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) >= cutoff
-        ]
+        recent = [e for e in self._events.values() if datetime.fromisoformat(e.timestamp.replace("Z", "+00:00")) >= cutoff]
 
         by_type: dict[str, int] = {}
         by_severity: dict[str, int] = {}

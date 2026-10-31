@@ -192,11 +192,7 @@ def list_reports(
 
     if search:
         pattern = f"%{search}%"
-        query = query.filter(
-            models.Report.program.ilike(pattern)
-            | models.Report.target.ilike(pattern)
-            | models.Report.vulnerability.ilike(pattern)
-        )
+        query = query.filter(models.Report.program.ilike(pattern) | models.Report.target.ilike(pattern) | models.Report.vulnerability.ilike(pattern))
 
     if date_from:
         try:

@@ -189,9 +189,7 @@ class Watchdog:
             return
 
         component.recovery_attempts += 1
-        logger.info(
-            "Attempting recovery %d/%d for %s", component.recovery_attempts, component.max_recovery_attempts, name
-        )
+        logger.info("Attempting recovery %d/%d for %s", component.recovery_attempts, component.max_recovery_attempts, name)
 
         self.event_bus.publish(
             "operations:recovery_started",

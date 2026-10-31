@@ -75,11 +75,7 @@ def calculate_revenue_timeline(target_tier: str = "conservative") -> list[Monthl
             "building": 0.5,  # 50% during building (5/day) — increased from 30%
             "scaling": 0.8,  # 80% during scaling (8/day) — increased from 60%
             "maturing": 1.0,  # 100% at maturity (10/day)
-            "full_capacity_monthly": 10
-            * 30
-            * 500
-            * 0.95
-            * 1.0,  # Conservative tier: 10/day, $500, 95%, 1.0x = $285,000
+            "full_capacity_monthly": 10 * 30 * 500 * 0.95 * 1.0,  # Conservative tier: 10/day, $500, 95%, 1.0x = $285,000
         },
         "dev_bounty": {
             "onboarding": 0.1,  # Starts early with AI code generation (1/day)
@@ -314,9 +310,7 @@ def print_timeline_summary(timeline: list[MonthlyRevenue], target_tier: str = "c
 
         # Print key milestones
         if month_data.month in [1, 2, 3, 6, 9, 12, 18, 24]:
-            print(
-                f"  Month {month_data.month:2d}: ${month_data.total:,.2f} (cumulative: ${month_data.cumulative:,.2f})"
-            )
+            print(f"  Month {month_data.month:2d}: ${month_data.total:,.2f} (cumulative: ${month_data.cumulative:,.2f})")
 
     # Print final phase summary
     if current_phase is not None:

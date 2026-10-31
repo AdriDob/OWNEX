@@ -12,7 +12,7 @@ from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from core.cycles.models import Cycle, CycleCategory, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.atlas")
 
@@ -58,7 +58,7 @@ class AtlasCycle:
                     "name": "Atlas",
                     "slug": "atlas",
                     "description": "Intelligence, market analysis, predictive insights",
-                    "category": "intelligence",
+                    "category": CycleCategory.ATLAS.value,
                     "enabled": True,
                     "priority": 5,
                     "status": "idle",
@@ -228,7 +228,7 @@ def register_atlas_cycle(registry) -> None:
                 slug="atlas",
                 name="Atlas",
                 description="Intelligence, market analysis, predictive insights",
-                category="intelligence",
+                category=CycleCategory.ATLAS.value,
                 priority=5,
                 config={
                     "sources": ["coingecko", "polymarket", "news", "onchain"],

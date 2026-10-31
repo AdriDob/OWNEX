@@ -122,9 +122,7 @@ def introspect_integrations() -> list[IntegrationDoc]:
         summary = registry.summary()
         integrations: list[IntegrationDoc] = []
         for name, info in summary.get("integrations", {}).items():
-            integrations.append(
-                IntegrationDoc(name=name, category=info.get("category", ""), description=info.get("description", ""))
-            )
+            integrations.append(IntegrationDoc(name=name, category=info.get("category", ""), description=info.get("description", "")))
         return integrations
     except Exception as exc:
         logger.debug("Integration introspection failed: %s", exc)
@@ -230,16 +228,10 @@ def auto_register_core_modules() -> int:
                 CapabilityDoc(name="make_decision", description="Decision Engine: standardized decisions from events"),
             ],
             events_published=[
-                EventDoc(
-                    event_type="copilot:analysis:completed", direction="published", description="Finding analysis done"
-                ),
-                EventDoc(
-                    event_type="copilot:plan:created", direction="published", description="Investigation plan created"
-                ),
+                EventDoc(event_type="copilot:analysis:completed", direction="published", description="Finding analysis done"),
+                EventDoc(event_type="copilot:plan:created", direction="published", description="Investigation plan created"),
                 EventDoc(event_type="copilot:plan:executed", direction="published", description="Plan executed"),
-                EventDoc(
-                    event_type="copilot:review:completed", direction="published", description="Pre-report review done"
-                ),
+                EventDoc(event_type="copilot:review:completed", direction="published", description="Pre-report review done"),
                 EventDoc(event_type="copilot:audit:completed", direction="published", description="System audit done"),
                 EventDoc(event_type="copilot:decision", direction="published", description="Decision Engine output"),
             ],
@@ -273,9 +265,7 @@ def auto_register_core_modules() -> int:
                     path="get_or_create_correlation_id()",
                     description="Get or generate a correlation ID",
                 ),
-                ApiDoc(
-                    method="method", path="with_correlation_id()", description="Context manager to set correlation ID"
-                ),
+                ApiDoc(method="method", path="with_correlation_id()", description="Context manager to set correlation ID"),
                 ApiDoc(
                     method="method",
                     path="with_new_correlation_id()",
@@ -406,12 +396,8 @@ def auto_register_core_modules() -> int:
             apis=[
                 ApiDoc(method="method", path="get_evidence()", description="Get for/against evidence for a hypothesis"),
                 ApiDoc(method="method", path="get_balance()", description="Net evidence balance score"),
-                ApiDoc(
-                    method="method", path="record_from_verdict()", description="Record evidence from validation verdict"
-                ),
-                ApiDoc(
-                    method="method", path="record_from_copilot()", description="Record evidence from COPILOT analysis"
-                ),
+                ApiDoc(method="method", path="record_from_verdict()", description="Record evidence from validation verdict"),
+                ApiDoc(method="method", path="record_from_copilot()", description="Record evidence from COPILOT analysis"),
             ],
         )
     )
@@ -481,12 +467,8 @@ def auto_register_core_modules() -> int:
                 CapabilityDoc(name="execute_workflow", description="Execute a compiled workflow graph"),
                 CapabilityDoc(name="validate_workflow", description="Validate a workflow definition for correctness"),
                 CapabilityDoc(name="compile_workflow", description="Compile a workflow into an execution graph"),
-                CapabilityDoc(
-                    name="design_from_intent", description="Design a workflow from a natural language intent"
-                ),
-                CapabilityDoc(
-                    name="validate_graph", description="Structural graph validation (cycles, orphans, reachability)"
-                ),
+                CapabilityDoc(name="design_from_intent", description="Design a workflow from a natural language intent"),
+                CapabilityDoc(name="validate_graph", description="Structural graph validation (cycles, orphans, reachability)"),
                 CapabilityDoc(name="validate_capabilities", description="Capability registry and contract validation"),
                 CapabilityDoc(name="validate_permissions", description="Permission and credentials validation"),
                 CapabilityDoc(name="validate_timeouts", description="Timeout configuration validation"),
@@ -498,26 +480,20 @@ def auto_register_core_modules() -> int:
                 CapabilityDoc(name="build_plan", description="Build an ExecutionPlan from validated workflow"),
             ],
             events_published=[
-                EventDoc(
-                    event_type="execution:workflow:*", direction="published", description="Workflow lifecycle events"
-                ),
+                EventDoc(event_type="execution:workflow:*", direction="published", description="Workflow lifecycle events"),
                 EventDoc(event_type="execution:*", direction="published", description="Execution lifecycle events"),
                 EventDoc(event_type="execution:node:*", direction="published", description="Node execution events"),
                 EventDoc(event_type="execution:approval:*", direction="published", description="Human approval events"),
                 EventDoc(event_type="execution:checkpoint:*", direction="published", description="Checkpoint events"),
                 EventDoc(event_type="execution:rollback:*", direction="published", description="Rollback events"),
                 EventDoc(event_type="execution:intent:*", direction="published", description="Intent lifecycle events"),
-                EventDoc(
-                    event_type="execution:metrics:collected", direction="published", description="Execution metrics"
-                ),
+                EventDoc(event_type="execution:metrics:collected", direction="published", description="Execution metrics"),
                 EventDoc(
                     event_type="execution:validation:*",
                     direction="published",
                     description="Validation lifecycle events",
                 ),
-                EventDoc(
-                    event_type="execution:plan:created", direction="published", description="Execution plan created"
-                ),
+                EventDoc(event_type="execution:plan:created", direction="published", description="Execution plan created"),
             ],
             events_consumed=[
                 EventDoc(
@@ -525,9 +501,7 @@ def auto_register_core_modules() -> int:
                     direction="consumed",
                     description="Trigger workflow from COPILOT decision",
                 ),
-                EventDoc(
-                    event_type="copilot:plan:*", direction="consumed", description="Trigger workflow from COPILOT plan"
-                ),
+                EventDoc(event_type="copilot:plan:*", direction="consumed", description="Trigger workflow from COPILOT plan"),
             ],
             dependencies=[
                 "core.events.types",

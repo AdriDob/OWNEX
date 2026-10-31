@@ -59,12 +59,7 @@ class ValidationExecutor(BaseStageExecutor):
                 else:
                     inconclusive_count += 1
 
-            summary = (
-                f"Validated {len(validated)} hypotheses: "
-                f"{confirmed_count} confirmed, "
-                f"{rejected_count} rejected, "
-                f"{inconclusive_count} inconclusive"
-            )
+            summary = f"Validated {len(validated)} hypotheses: {confirmed_count} confirmed, {rejected_count} rejected, {inconclusive_count} inconclusive"
 
             details: dict[str, Any] = {
                 "validated": validated,
@@ -92,9 +87,7 @@ class ValidationExecutor(BaseStageExecutor):
 
         Returns a dict with status, evidence, and verdict details.
         """
-        vuln_type = hypothesis.get(
-            "vulnerability_type", hypothesis.get("tags", ["generic"])[0] if hypothesis.get("tags") else "generic"
-        )
+        vuln_type = hypothesis.get("vulnerability_type", hypothesis.get("tags", ["generic"])[0] if hypothesis.get("tags") else "generic")
         endpoint = hypothesis.get("endpoint", "/")
         method = hypothesis.get("method", "GET")
         params = hypothesis.get("parameters_of_interest", hypothesis.get("tags", []))
@@ -118,9 +111,7 @@ class ValidationExecutor(BaseStageExecutor):
             "steps_executed": len(step_results),
         }
 
-    def _mock_execute_steps(
-        self, vuln_type: str, endpoint: str, method: str, params: list[str], target: str
-    ) -> list[dict[str, Any]]:
+    def _mock_execute_steps(self, vuln_type: str, endpoint: str, method: str, params: list[str], target: str) -> list[dict[str, Any]]:
         """Generate representative step results based on vulnerability type."""
         import time as time_mod
 
@@ -177,9 +168,7 @@ class ValidationExecutor(BaseStageExecutor):
                 "method": method,
                 "status_code": test_status,
                 "response_size": 4096 if vuln_type in ["sqli", "injection"] else 1536,
-                "response_time_ms": round(500 + time_mod.time() % 100, 1)
-                if vuln_type in ["ssrf", "injection"]
-                else round(150 + time_mod.time() % 50, 1),
+                "response_time_ms": round(500 + time_mod.time() % 100, 1) if vuln_type in ["ssrf", "injection"] else round(150 + time_mod.time() % 50, 1),
                 "body_preview": self._mock_body(vuln_type),
                 "success": True,
             }
@@ -220,9 +209,7 @@ class ValidationExecutor(BaseStageExecutor):
         }
         confidence = confidence_map.get(vuln_type, 0.5)
         return {
-            "status": status_map.get(
-                vuln_type, "confirmed" if vuln_type in ["injection", "misconfiguration"] else "rejected"
-            ),
+            "status": status_map.get(vuln_type, "confirmed" if vuln_type in ["injection", "misconfiguration"] else "rejected"),
             "confidence": confidence,
             "evidence_count": 1 if vuln_type != "ssrf" else 0,
         }

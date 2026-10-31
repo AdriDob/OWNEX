@@ -73,18 +73,12 @@ class TestMountCompleteness:
     def test_route_floor(self) -> None:
         """El boot parcial silencioso dejaba ~11-163 rutas. El piso real es ~1280."""
         paths = _all_paths()
-        assert len(paths) >= MIN_ROUTE_FLOOR, (
-            f"Solo {len(paths)} rutas montadas (< {MIN_ROUTE_FLOOR}). "
-            "Un include falló en silencio o el boot está parcial."
-        )
+        assert len(paths) >= MIN_ROUTE_FLOOR, f"Solo {len(paths)} rutas montadas (< {MIN_ROUTE_FLOOR}). Un include falló en silencio o el boot está parcial."
 
     def test_canonical_paths_present(self) -> None:
         paths = _all_paths()
         missing = [p for p in CANONICAL_PATHS if p not in paths]
-        assert not missing, (
-            f"Rutas canónicas ausentes del app montado: {missing}. "
-            "Un router quedó sin montar (ver api/main.py includes)."
-        )
+        assert not missing, f"Rutas canónicas ausentes del app montado: {missing}. Un router quedó sin montar (ver api/main.py includes)."
 
     def test_copilot_never_orphaned_again(self) -> None:
         paths = _all_paths()

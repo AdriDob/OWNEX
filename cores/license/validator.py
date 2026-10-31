@@ -95,9 +95,7 @@ def _generate_key_data(hw_id: str, expiry_days: int = 365) -> tuple[str, bytes]:
 
     version = 1
     hw_prefix = hw_id[:7].upper()
-    data_str = (
-        f"{version:01d}{year:02d}{month:02d}{day:02d}{expiry_year:02d}{expiry_month:02d}{expiry_day:02d}{hw_prefix}"
-    )
+    data_str = f"{version:01d}{year:02d}{month:02d}{day:02d}{expiry_year:02d}{expiry_month:02d}{expiry_day:02d}{hw_prefix}"
     payload = data_str.encode("ascii")
     return data_str, payload
 

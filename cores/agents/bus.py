@@ -125,11 +125,7 @@ class LocalEventBus(IEventBus):
                     if loop and loop.is_running():
                         task = asyncio.ensure_future(result)
                         task.add_done_callback(
-                            lambda t: (
-                                logger.warning("[EVENTS] Handler error for %s: %s", event.event_type, t.exception())
-                                if t.exception()
-                                else None
-                            )
+                            lambda t: logger.warning("[EVENTS] Handler error for %s: %s", event.event_type, t.exception()) if t.exception() else None
                         )
                     else:
                         import threading

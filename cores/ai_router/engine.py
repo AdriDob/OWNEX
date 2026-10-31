@@ -284,9 +284,7 @@ class AIRouterEngine:
             elapsed = (time.monotonic() - start) * 1000
             if resp.status_code == 200:
                 data = resp.json()
-                model = (
-                    data.get("default_model", "claude-sonnet-4.5") if isinstance(data, dict) else "claude-sonnet-4.5"
-                )
+                model = data.get("default_model", "claude-sonnet-4.5") if isinstance(data, dict) else "claude-sonnet-4.5"
                 return True, model, elapsed
             return False, "", elapsed
         except Exception:
@@ -388,9 +386,7 @@ class AIRouterEngine:
 
         current = next((p for p in providers if p.available), None)
         if not current:
-            return FallbackRecommendation(
-                should_switch=False, reason="No providers available at all", estimated_task_complexity=task_complexity
-            )
+            return FallbackRecommendation(should_switch=False, reason="No providers available at all", estimated_task_complexity=task_complexity)
 
         near_limit = self._estimate_near_limit()
         return self._recommend_fallback(providers, current.name, task_type, near_limit, task_complexity)
@@ -450,9 +446,7 @@ class AIRouterEngine:
             best = fallback_candidates[0]
             return FallbackRecommendation(
                 should_switch=force_near_limit,
-                reason=f"Recommended fallback: {best.name}"
-                if not force_near_limit
-                else f"Nearing limit on {current_in_chain.name}, switch to {best.name}",
+                reason=f"Recommended fallback: {best.name}" if not force_near_limit else f"Nearing limit on {current_in_chain.name}, switch to {best.name}",
                 from_provider=current_in_chain.name,
                 from_model=current_in_chain.current_model,
                 to_provider=best.name,

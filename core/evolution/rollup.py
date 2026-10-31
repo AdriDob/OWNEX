@@ -37,12 +37,7 @@ class RollupEngine:
         """Compute rollups for a time window grouped by (module, event_type, status)."""
         session = db.SessionLocal()
         try:
-            rows = (
-                session.query(MetricEvent)
-                .filter(MetricEvent.timestamp >= period_start)
-                .filter(MetricEvent.timestamp < period_end)
-                .all()
-            )
+            rows = session.query(MetricEvent).filter(MetricEvent.timestamp >= period_start).filter(MetricEvent.timestamp < period_end).all()
         finally:
             session.close()
 

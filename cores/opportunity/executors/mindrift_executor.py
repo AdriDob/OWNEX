@@ -55,9 +55,7 @@ class MindriftExecutor(BaseExecutor):
                 if resp.status_code in (200, 201):
                     data = resp.json()
                     return ExecutionResult(True, "claim_task", task_id, data={"response": data})
-                return ExecutionResult(
-                    False, "claim_task", task_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "claim_task", task_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "claim_task", task_id, error=str(e))
 
@@ -78,9 +76,7 @@ class MindriftExecutor(BaseExecutor):
                 if resp.status_code in (200, 201):
                     data = resp.json()
                     return ExecutionResult(True, "submit_task", task_id, data={"response": data})
-                return ExecutionResult(
-                    False, "submit_task", task_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
+                return ExecutionResult(False, "submit_task", task_id, error=f"HTTP {resp.status_code}: {resp.text[:200]}")
             except Exception as e:
                 return ExecutionResult(False, "submit_task", task_id, error=str(e))
 

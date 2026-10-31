@@ -151,15 +151,7 @@ def score_opportunity(
     fit_norm = fit
     speed_norm = _sigmoid(1.0 / max(speed, 1), midpoint=0.1)
 
-    overall = (
-        0.30 * ev_norm
-        + 0.15 * prob_norm
-        + 0.10 * diff_norm
-        + 0.10 * comp_norm
-        + 0.10 * fit_norm
-        + 0.05 * speed_norm
-        + 0.20 * (ev_norm * prob_norm)
-    )
+    overall = 0.30 * ev_norm + 0.15 * prob_norm + 0.10 * diff_norm + 0.10 * comp_norm + 0.10 * fit_norm + 0.05 * speed_norm + 0.20 * (ev_norm * prob_norm)
     overall = max(0.0, min(1.0, overall))
 
     score = UnifiedScore(

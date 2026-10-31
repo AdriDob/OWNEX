@@ -48,9 +48,7 @@ class IncomeProjection:
             "capital_at_target_usd": round(self.capital_at_target_usd, 2),
             "crossing_months": self.crossing_months,
             "portfolio_monthly_income_usd": round(self.portfolio_monthly_income_usd, 2),
-            "crossing_after_work_income": bool(
-                self.crossing_months is not None and self.portfolio_monthly_income_usd >= self.savings_usd_per_month
-            ),
+            "crossing_after_work_income": bool(self.crossing_months is not None and self.portfolio_monthly_income_usd >= self.savings_usd_per_month),
             "monthly_curve": self.monthly_curve,
         }
 
@@ -78,11 +76,7 @@ class IncomeProjector:
         for month in range(1, MAX_HORIZON_MONTHS + 1):
             capital = capital * (1.0 + monthly_rate) + saved
             portfolio_income = capital * monthly_rate
-            if (
-                crossing_month is None
-                and work_income_usd_per_month > 0
-                and portfolio_income >= work_income_usd_per_month
-            ):
+            if crossing_month is None and work_income_usd_per_month > 0 and portfolio_income >= work_income_usd_per_month:
                 crossing_month = month
             if target_month is None and portfolio_income >= target_monthly_usd:
                 target_month = month

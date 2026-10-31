@@ -25,12 +25,7 @@ class TestIncomeTargetEngine:
 
     def test_create_target_custom(self):
         engine = IncomeTargetEngine()
-        target = engine.create_target(
-            TargetTier.CUSTOM,
-            TargetMode.BALANCED,
-            custom_amount=1234.0,
-            custom_period="monthly"
-        )
+        target = engine.create_target(TargetTier.CUSTOM, TargetMode.BALANCED, custom_amount=1234.0, custom_period="monthly")
         assert target.tier == TargetTier.CUSTOM
         assert target.amount_usd == 1234.0
         assert target.period == "monthly"
@@ -46,6 +41,7 @@ class TestIncomeTargetEngine:
         target = engine.create_target(TargetTier.WEEKLY_500, TargetMode.FAST_CASH)
 
         from cores.direct_work_engine.profile_kit import ProfileKitEngine
+
         kit = ProfileKitEngine()
         profile = kit.get() or kit.default_profile()
         profile_obj = ProfileKitEngine.profile_from_dict(profile)
@@ -63,6 +59,7 @@ class TestIncomeTargetEngine:
         target = engine.create_target(TargetTier.MONTHLY_10000, TargetMode.MAX_EV)
 
         from cores.direct_work_engine.profile_kit import ProfileKitEngine
+
         kit = ProfileKitEngine()
         profile = kit.get() or kit.default_profile()
         profile_obj = ProfileKitEngine.profile_from_dict(profile)

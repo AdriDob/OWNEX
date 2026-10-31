@@ -337,18 +337,12 @@ class VpnAssistant:
 
     @staticmethod
     def _win_app_running(exe_name: str) -> bool:
-        cnt = _win_powershell(
-            [f"if (Get-Process {exe_name} -ErrorAction SilentlyContinue) {{ 'UP' }} else {{ 'DOWN' }}"]
-        )
+        cnt = _win_powershell([f"if (Get-Process {exe_name} -ErrorAction SilentlyContinue) {{ 'UP' }} else {{ 'DOWN' }}"])
         return "UP" in cnt
 
     @staticmethod
     def _win_launch(exe_name: str) -> None:
-        _win_powershell(
-            [
-                f"Start-Process -FilePath (Get-Command {exe_name} -ErrorAction SilentlyContinue).Source -ErrorAction SilentlyContinue"
-            ]
-        )
+        _win_powershell([f"Start-Process -FilePath (Get-Command {exe_name} -ErrorAction SilentlyContinue).Source -ErrorAction SilentlyContinue"])
 
     # ── PHP de cuentas gratuitas conocidas ──
 

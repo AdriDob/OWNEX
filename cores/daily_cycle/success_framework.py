@@ -281,20 +281,14 @@ class SuccessFramework:
                 )
 
             critical_metrics = [m for m in targets.metrics if m.critical]
-            critical_avg = (
-                sum(m.achievement_pct for m in critical_metrics) / len(critical_metrics) if critical_metrics else 0
-            )
+            critical_avg = sum(m.achievement_pct for m in critical_metrics) / len(critical_metrics) if critical_metrics else 0
 
             dashboard["horizons"][h.value] = {
                 "metrics": metrics_data,
                 "focus_areas": targets.focus_areas,
                 "review_questions": targets.review_questions,
                 "critical_health": critical_avg,
-                "overall_status": "🟢 HEALTHY"
-                if critical_avg >= 80
-                else "🟡 ATTENTION"
-                if critical_avg >= 50
-                else "🔴 CRITICAL",
+                "overall_status": "🟢 HEALTHY" if critical_avg >= 80 else "🟡 ATTENTION" if critical_avg >= 50 else "🔴 CRITICAL",
             }
 
         # Overall health
@@ -330,15 +324,7 @@ class SuccessFramework:
         ]
 
         for m in targets.metrics:
-            status_emoji = (
-                "✅"
-                if m.achievement_pct >= 100
-                else "🟢"
-                if m.achievement_pct >= 80
-                else "🟡"
-                if m.achievement_pct >= 50
-                else "🔴"
-            )
+            status_emoji = "✅" if m.achievement_pct >= 100 else "🟢" if m.achievement_pct >= 80 else "🟡" if m.achievement_pct >= 50 else "🔴"
             lines.append(f"{status_emoji} **{m.name}**: {m.current:.1f}/{m.target} {m.unit} ({m.achievement_pct:.0f}%)")
 
         lines.extend(
@@ -368,18 +354,10 @@ class SuccessFramework:
         income_snapshot = self.income_dashboard.snapshot()
 
         # Update metrics with real data
-        self.update_current(
-            TimeHorizon.DAILY, "opportunities_analyzed", getattr(daily_briefing, "opportunities_analyzed", 0)
-        )
-        self.update_current(
-            TimeHorizon.DAILY, "opportunities_passed_filter", getattr(daily_briefing, "opportunities_passed_filter", 0)
-        )
-        self.update_current(
-            TimeHorizon.DAILY, "top_opportunities_selected", len(getattr(daily_briefing, "top_opportunities", []))
-        )
-        self.update_current(
-            TimeHorizon.DAILY, "income_generated_today", income_snapshot.get("income", {}).get("total_earned_usd", 0)
-        )
+        self.update_current(TimeHorizon.DAILY, "opportunities_analyzed", getattr(daily_briefing, "opportunities_analyzed", 0))
+        self.update_current(TimeHorizon.DAILY, "opportunities_passed_filter", getattr(daily_briefing, "opportunities_passed_filter", 0))
+        self.update_current(TimeHorizon.DAILY, "top_opportunities_selected", len(getattr(daily_briefing, "top_opportunities", [])))
+        self.update_current(TimeHorizon.DAILY, "income_generated_today", income_snapshot.get("income", {}).get("total_earned_usd", 0))
         self.update_current(TimeHorizon.DAILY, "health_score", getattr(daily_briefing, "system", {}).get("score", 0))
 
         return self.get_dashboard()

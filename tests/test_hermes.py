@@ -76,9 +76,7 @@ def test_safe_mode_allows_non_destructive_commands() -> None:
 def test_backup_attempts_execution(monkeypatch) -> None:
     import subprocess
 
-    monkeypatch.setattr(
-        subprocess, "run", lambda *a, **kw: type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
-    )
+    monkeypatch.setattr(subprocess, "run", lambda *a, **kw: type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})())
     engine = AutomationEngine(safe_mode=False)
     result = engine.execute("backup")
     assert result.status in ("ok", "error")

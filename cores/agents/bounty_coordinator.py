@@ -413,9 +413,7 @@ class BountyCoordinator:
                         "bounty_id": task.bounty_id,
                         "status": task.status,
                         "started_at": task.started_at.isoformat() if task.started_at else None,
-                        "elapsed_minutes": (
-                            (datetime.now(UTC) - task.started_at).total_seconds() / 60 if task.started_at else 0
-                        ),
+                        "elapsed_minutes": ((datetime.now(UTC) - task.started_at).total_seconds() / 60 if task.started_at else 0),
                     }
                     for task in self._active_tasks.values()
                 ],

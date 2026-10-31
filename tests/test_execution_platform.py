@@ -405,11 +405,7 @@ class TestSecurityValidator:
     def test_plaintext_secret(self) -> None:
         w = Workflow(name="test")
         w.nodes.append(Node(id="start", type=PrimitiveType.START.value))
-        w.nodes.append(
-            Node(
-                id="bad", type=PrimitiveType.CAPABILITY.value, config={"password": "supersecret", "capability": "test"}
-            )
-        )
+        w.nodes.append(Node(id="bad", type=PrimitiveType.CAPABILITY.value, config={"password": "supersecret", "capability": "test"}))
         w.nodes.append(Node(id="end", type=PrimitiveType.END.value))
         w.edges.append(Edge(id="e1", source_id="start", target_id="bad"))
         w.edges.append(Edge(id="e2", source_id="bad", target_id="end"))
@@ -433,9 +429,7 @@ class TestResourceValidator:
     def test_produces_estimate(self) -> None:
         w = Workflow(name="test")
         w.nodes.append(Node(id="start", type=PrimitiveType.START.value))
-        w.nodes.append(
-            Node(id="cap", type=PrimitiveType.CAPABILITY.value, config={"capability": "capability:llm_analyze"})
-        )
+        w.nodes.append(Node(id="cap", type=PrimitiveType.CAPABILITY.value, config={"capability": "capability:llm_analyze"}))
         w.nodes.append(Node(id="end", type=PrimitiveType.END.value))
         w.edges.append(Edge(id="e1", source_id="start", target_id="cap"))
         w.edges.append(Edge(id="e2", source_id="cap", target_id="end"))

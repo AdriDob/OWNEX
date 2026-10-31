@@ -144,14 +144,10 @@ class LiveTraderMonitor:
 
     RULES: dict[str, Callable[[TraderMetrics], str | None]] = {}
 
-    def check(
-        self, metrics: TraderMetrics, current_dd_pct: float | None = None, rolling_win_rate: float | None = None
-    ) -> list[str]:
+    def check(self, metrics: TraderMetrics, current_dd_pct: float | None = None, rolling_win_rate: float | None = None) -> list[str]:
         alerts: list[str] = []
         if current_dd_pct is not None and current_dd_pct > max(metrics.max_dd_pct, 10.0):
-            alerts.append(
-                f"drawdown en vivo {current_dd_pct:.1f}% supera el máximo histórico ({metrics.max_dd_pct:.1f}%)"
-            )
+            alerts.append(f"drawdown en vivo {current_dd_pct:.1f}% supera el máximo histórico ({metrics.max_dd_pct:.1f}%)")
         if rolling_win_rate is not None and metrics.win_rate > 0 and rolling_win_rate < metrics.win_rate * 0.7:
             alerts.append(f"win rate reciente {rolling_win_rate:.0f}% cayó >30% vs histórico ({metrics.win_rate:.0f}%)")
         if metrics.win_rate > 95 and metrics.total_trades >= 50:

@@ -28,6 +28,12 @@ export function canAccessRoute(to: Pick<RouteLocationNormalized, 'name' | 'meta'
 // ─────────────────────────────────────────────────────────────────
 
 export const routes: RouteRecordRaw[] = [
+  {
+    path: '/work/:id',
+    name: 'work-detail',
+    component: () => import(/* webpackChunkName: "work-detail" */ '@/pages/WorkDetail.vue'),
+    meta: { title: 'Detalle del trabajo' },
+  },
   // ── PERSONALIZATION WIZARD (público, para primer uso) ──
   {
     path: '/setup/personalization',
@@ -52,8 +58,8 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/chat',
     name: 'ownex-chat',
-    component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/ownex-chat/OwnexChat.vue'),
-    meta: { title: 'MERLIN Chat' },
+    component: () => import(/* webpackChunkName: "ownex-chat" */ '@/components/guided-mode/GuidedDashboard.vue'),
+    meta: { title: 'Guided Mode' },
   },
 
   // ── AUTH ──
@@ -281,7 +287,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'work-room/:id',
         name: 'work-room',
-        component: () => import(/* webpackChunkName: "work-room" */ '@/components/work/WorkRoom.vue'),
+        component: () => import(/* webpackChunkName: "work-room" */ '@/components/guided-mode/GuidedDashboard.vue'),
         meta: { title: 'Work Room' },
       },
       {
@@ -353,7 +359,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'self-healer',
         name: 'operations-self-healer',
-        component: () => import(/* webpackChunkName: "self-healer" */ '@/pages/SelfHealer.vue'),
+        component: () => import(/* webpackChunkName: "self-healer" */ '@/pages/ExtraWork.vue'),
         meta: { title: 'Self-Healer' },
       },
       { path: 'logs', redirect: '/operations/health' },
@@ -640,13 +646,14 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/knowledge/graph',
     name: 'knowledge-graph',
-    component: () => import(/* webpackChunkName: "knowledge-graph" */ '@/components/knowledge-graph/KnowledgeGraphExplorer.vue'),
+    component: () => import(/* webpackChunkName: "knowledge-graph" */ '@/components/charts/KnowledgeGraphMini.vue'),
     meta: { title: 'Knowledge Graph Explorer' },
   },
   {
     path: '/quick-capture',
     name: 'quick-capture',
-    component: () => import(/* webpackChunkName: "quick-capture" */ '@/pages/QuickCapture.vue'),
+    // QuickCapture: removed — component no longer exists.
+  //   component: () => import('@/pages/QuickCapture.vue'),
     meta: { title: 'Quick Capture' },
   },
 

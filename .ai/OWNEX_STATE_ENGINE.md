@@ -359,13 +359,11 @@ class StateEngine:
         """Write transition to DB."""
         conn = sqlite3.connect(self.db_path)
         conn.execute(
-            "INSERT OR REPLACE INTO state_machines (opportunity_id, current_state, in_state_since, transitions_count) "
-            "VALUES (?, ?, ?, ?)",
+            "INSERT OR REPLACE INTO state_machines (opportunity_id, current_state, in_state_since, transitions_count) VALUES (?, ?, ?, ?)",
             (machine.opportunity_id, record.to_state.value, record.timestamp.isoformat(), machine.transitions_count),
         )
         conn.execute(
-            "INSERT INTO state_transitions (opportunity_id, from_state, to_state, timestamp, reason, actor, metadata) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO state_transitions (opportunity_id, from_state, to_state, timestamp, reason, actor, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 machine.opportunity_id,
                 record.from_state.value if record.from_state else None,
@@ -383,8 +381,7 @@ class StateEngine:
         """Get full transition history."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.execute(
-            "SELECT from_state, to_state, timestamp, reason, actor, metadata "
-            "FROM state_transitions WHERE opportunity_id = ? ORDER BY id",
+            "SELECT from_state, to_state, timestamp, reason, actor, metadata FROM state_transitions WHERE opportunity_id = ? ORDER BY id",
             (opportunity_id,),
         )
         records = []

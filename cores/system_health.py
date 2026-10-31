@@ -117,9 +117,7 @@ def collect_health() -> SystemHealthSummary:
         # Pipeline timing from observability
         obs_metrics = get_metrics()
         for metric_name, stats in obs_metrics.items():
-            if ("pipeline" in metric_name or "score" in metric_name) and stats[
-                "count"
-            ] > summary.pipeline_latency_count:
+            if ("pipeline" in metric_name or "score" in metric_name) and stats["count"] > summary.pipeline_latency_count:
                 summary.pipeline_latency_count = stats["count"]
                 summary.pipeline_latency_avg_ms = stats["avg_ms"]
                 summary.pipeline_latency_max_ms = stats["max_ms"]

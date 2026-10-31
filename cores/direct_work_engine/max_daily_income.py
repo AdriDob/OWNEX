@@ -179,9 +179,7 @@ class MaxDailyIncomeEngine:
     - optimistic: realista + desbloquear los trabajos bloqueados por acceso.
     """
 
-    def plan(
-        self, opportunities: list[dict[str, Any]] | None = None, daily_target_usd: float | None = None
-    ) -> dict[str, Any]:
+    def plan(self, opportunities: list[dict[str, Any]] | None = None, daily_target_usd: float | None = None) -> dict[str, Any]:
         from cores.direct_work_engine.cashflow_radar import _estimate_hours, _to_float
         from cores.direct_work_engine.execution_planner import plan_execution
         from cores.direct_work_engine.success_engine import plan_opportunity_success
@@ -277,26 +275,16 @@ class MaxDailyIncomeEngine:
             categories: dict[str, list[MaxDailyItem]] = {}
             for item in today_unblocked:
                 categories.setdefault(item.category, []).append(item)
-            for category, group in sorted(categories.items(), key=lambda kv: -sum(i.expected_value_usd for i in kv[1]))[
-                :3
-            ]:
+            for category, group in sorted(categories.items(), key=lambda kv: -sum(i.expected_value_usd for i in kv[1]))[:3]:
                 avg_prob = round(sum(i.probability_full for i in group) / len(group) * 100)
                 total_ev = round(sum(i.expected_value_usd for i in group), 2)
-                arguments.append(
-                    f"{len(group)} trabajos de {category} cobrables hoy: {avg_prob}% de aceptación post-plan "
-                    f"→ techo de ${total_ev}"
-                )
+                arguments.append(f"{len(group)} trabajos de {category} cobrables hoy: {avg_prob}% de aceptación post-plan → techo de ${total_ev}")
             boosted = [i for i in today_unblocked if i.probability_full > i.probability_base + 0.01]
             if boosted:
                 max_gain = max(i.probability_full - i.probability_base for i in boosted)
-                arguments.append(
-                    f"ejecutar el plan completo eleva la aceptación hasta +{max_gain * 100:.0f} puntos "
-                    f"(boost verificado del Success Rate Engine)"
-                )
+                arguments.append(f"ejecutar el plan completo eleva la aceptación hasta +{max_gain * 100:.0f} puntos (boost verificado del Success Rate Engine)")
         if plan.unlock_potential_usd > 0:
-            arguments.append(
-                f"desbloquear {plan.needs_access_count} accesos suma ${plan.unlock_potential_usd} al techo diario"
-            )
+            arguments.append(f"desbloquear {plan.needs_access_count} accesos suma ${plan.unlock_potential_usd} al techo diario")
         if plan.daily_target_usd > 0 and plan.optimistic_max_usd >= plan.daily_target_usd:
             arguments.append(f"la meta de ${plan.daily_target_usd}/día es alcanzable con el techo optimista")
         return arguments[:MAX_ITEMS]
@@ -307,14 +295,9 @@ class MaxDailyIncomeEngine:
         if today_items:
             actions.append(f"entregar hoy: {today_items[0].platform} — {today_items[0].title[:50]}")
         if plan.unlock_potential_usd > 0:
-            actions.append(
-                f"configurar accesos de {plan.needs_access_count} trabajos bloqueados "
-                f"(suma ${plan.unlock_potential_usd} al techo diario)"
-            )
+            actions.append(f"configurar accesos de {plan.needs_access_count} trabajos bloqueados (suma ${plan.unlock_potential_usd} al techo diario)")
         if plan.gap_usd > 0:
-            actions.append(
-                "la meta supera el techo optimista: correr work_bank_daily_cycle para más trabajo de ciclo corto"
-            )
+            actions.append("la meta supera el techo optimista: correr work_bank_daily_cycle para más trabajo de ciclo corto")
         return actions[:MAX_ACTIONS]
 
     def _notes(self, plan: MaxDailyIncomePlan) -> list[str]:

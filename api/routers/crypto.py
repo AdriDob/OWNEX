@@ -237,9 +237,7 @@ def record_crypto_event(req: RecordCryptoEvent) -> dict[str, Any]:
         metadata={"tx_hash": req.tx_hash},
     )
     publish_financial_event(
-        f"financial:crypto_{req.event_type}_detected"
-        if req.event_type in ("deposit", "withdrawal")
-        else "financial:sync_completed",
+        f"financial:crypto_{req.event_type}_detected" if req.event_type in ("deposit", "withdrawal") else "financial:sync_completed",
         amount=req.amount,
         currency=req.asset,
         platform=req.platform,

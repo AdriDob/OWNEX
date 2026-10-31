@@ -325,9 +325,7 @@ class TestExperienceStore:
                 difficulty=0.3,
                 metadata={},
             )
-            scaffold = Scaffold(
-                task_id=f"exp-{i}", steps=[ScaffoldStep(index=0, instruction="step1", verification="check")]
-            )
+            scaffold = Scaffold(task_id=f"exp-{i}", steps=[ScaffoldStep(index=0, instruction="step1", verification="check")])
             rollout = Rollout(task_id=f"exp-{i}", attempt=0, solution="def call(): return 1")
             valid = i < 2  # 2 valid, 1 invalid
             evaluation = Evaluation(

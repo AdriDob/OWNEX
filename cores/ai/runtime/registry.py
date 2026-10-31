@@ -7,6 +7,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .adapters import (
+    CodexCLIAdapter,
     OllamaAdapter,
     create_cerebras_adapter,
     create_deepinfra_adapter,
@@ -43,6 +44,7 @@ class ProviderRegistry:
 
         # Register built-in provider factories
         self._provider_factories = {
+            "codex": lambda: CodexCLIAdapter(),
             "ollama": lambda: OllamaAdapter(),
             "openrouter": lambda: create_openrouter_adapter(),
             "groq": lambda: create_groq_adapter(),

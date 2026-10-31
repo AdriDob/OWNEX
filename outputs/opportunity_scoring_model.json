@@ -1,0 +1,142 @@
+{
+  "taskbounty": {
+    "dimensions": {
+      "argentina_eligibility": 1,
+      "beginner_accessibility": 1,
+      "demand_volume": 1,
+      "observed_median_payout": 2,
+      "reward_ceiling": null,
+      "recurrence": 1,
+      "competition": 3,
+      "skill_fit": 0,
+      "automation_feasibility": 0,
+      "fees_stake_costs": 0,
+      "counterparty_custody_risks": 0,
+      "confidence_evidence_age": 1
+    },
+    "scoring_metadata": {
+      "evidence_grade": "B",
+      "typical_reward": "variable",
+      "max_advertised": "TBD",
+      "recurrence": "intermittent",
+      "competition_level": "AI agents competitive marketplace",
+      "automation_feasibility": "medium (no human in loop for crypto payouts)",
+      "fees_stake": "none",
+      "counterparty_custody": "user wallet",
+      "confidence_level": "medium",
+      "source_id": "taskbounty"
+    }
+  },
+  "github_bounties": {
+    "dimensions": {
+      "argentina_eligibility": 3,
+      "beginner_accessibility": 1,
+      "demand_volume": 2,
+      "observed_median_payout": 3,
+      "reward_ceiling": null,
+      "recurrence": 3,
+      "competition": 3,
+      "skill_fit": 0,
+      "automation_feasibility": 1,
+      "fees_stake_costs": 2,
+      "counterparty_custody_risks": 1,
+      "confidence_evidence_age": 3
+    },
+    "scoring_metadata": {
+      "evidence_grade": "C",
+      "typical_reward": "N/A",
+      "max_advertised": "N/A",
+      "recurrence": "unknown",
+      "competition_level": "unknown",
+      "automation_feasibility": "low",
+      "fees_stake": "N/A",
+      "counterparty_custody": "N/A",
+      "confidence_level": "low",
+      "source_id": "github_bounties"
+    }
+  },
+  "agenthansa": {
+    "dimensions": {
+      "argentina_eligibility": 3,
+      "beginner_accessibility": 1,
+      "demand_volume": 2,
+      "observed_median_payout": 3,
+      "reward_ceiling": null,
+      "recurrence": 3,
+      "competition": 3,
+      "skill_fit": 0,
+      "automation_feasibility": 1,
+      "fees_stake_costs": 2,
+      "counterparty_custody_risks": 1,
+      "confidence_evidence_age": 3
+    },
+    "scoring_metadata": {
+      "evidence_grade": "C",
+      "typical_reward": "N/A",
+      "max_advertised": "N/A",
+      "recurrence": "unknown",
+      "competition_level": "unknown",
+      "automation_feasibility": "low",
+      "fees_stake": "N/A",
+      "counterparty_custody": "N/A",
+      "confidence_level": "low",
+      "source_id": "agenthansa"
+    }
+  },
+  "opire": {
+    "dimensions": {
+      "argentina_eligibility": 1,
+      "beginner_accessibility": 1,
+      "demand_volume": 2,
+      "observed_median_payout": 0,
+      "reward_ceiling": "$13K (Godot), $345 (Zed), $200 (Keycloak)",
+      "recurrence": 1,
+      "competition": 1,
+      "skill_fit": 0,
+      "automation_feasibility": 1,
+      "fees_stake_costs": 2,
+      "counterparty_custody_risks": 0,
+      "confidence_evidence_age": 3
+    },
+    "scoring_metadata": {
+      "evidence_grade": "C",
+      "typical_reward": "$200-$13K",
+      "max_advertised": "$13K (Godot), $345 (Zed), $200 (Keycloak)",
+      "recurrence": "variable",
+      "competition_level": "medium (12K repos)",
+      "automation_feasibility": "low (API sin auth)",
+      "fees_stake": "Stripe Connect",
+      "counterparty_custody": "user wallet",
+      "confidence_level": "low",
+      "source_id": "opire"
+    }
+  },
+  "bugbounty": {
+    "dimensions": {
+      "argentina_eligibility": 1,
+      "beginner_accessibility": 1,
+      "demand_volume": 1,
+      "observed_median_payout": 0,
+      "reward_ceiling": "$1M+/contest",
+      "recurrence": 1,
+      "competition": 1,
+      "skill_fit": 2,
+      "automation_feasibility": 2,
+      "fees_stake_costs": 0,
+      "counterparty_custody_risks": 1,
+      "confidence_evidence_age": 1
+    },
+    "scoring_metadata": {
+      "evidence_grade": "B",
+      "typical_reward": "variable $1K-$10K",
+      "max_advertised": "$1M+/contest",
+      "recurrence": "intermittent",
+      "competition_level": "medium (85K researchers, 192 active programs)",
+      "automation_feasibility": "low (human gate required)",
+      "fees_stake": "none for entry, revenue-share on payout",
+      "counterparty_custody": "Immunefi/ Bugcrowd hold funds",
+      "confidence_level": "medium",
+      "source_id": "bugbounty"
+    }
+  }
+}

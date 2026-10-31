@@ -18,6 +18,7 @@ from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
     accounts_hub,
     activity,
+    agenda,
     agent_coordinator,
     agents_router,
     ai_security,
@@ -48,7 +49,6 @@ from api.routers import (
     cycles,
     daily,
     daily_digest,
-    agenda,
     daily_mode,
     decision,
     device,
@@ -209,17 +209,21 @@ _ARGS, _UNKNOWN_ARGS = parse_args()
 if _ARGS.data_dir:
     data_dir = Path(_ARGS.data_dir)
 else:
-    # Platform-specific default
-    if sys.platform == "win32":
-        data_dir = Path(os.path.expandvars(r"%LOCALAPPDATA%\OWNEX"))
+    configured_data_dir = os.environ.get("OWNEX_DATA_DIR") or os.environ.get("CATEYE_DATA_DIR")
+    if configured_data_dir:
+        data_dir = Path(configured_data_dir)
+    elif sys.platform == "win32":
+        data_dir = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "OWNEX"
     else:
         data_dir = Path.home() / ".ownex"
 
 # Set environment variables for downstream code
+os.environ["OWNEX_DATA_DIR"] = str(data_dir)
 os.environ["CATEYE_DATA_DIR"] = str(data_dir)
 _DB_PATH = data_dir / "database" / "cateye.db"
 _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
+if _ARGS.data_dir or not os.environ.get("DATABASE_URL"):
+    os.environ["DATABASE_URL"] = f"sqlite:///{_DB_PATH}"
 
 # Configure logging
 logging.basicConfig(

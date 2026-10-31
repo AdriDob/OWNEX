@@ -93,12 +93,8 @@ class TradeHistory:
         winning = sum(1 for t in exits if t.get("trade", {}).get("pnl_usd", 0) > 0)
         losing = sum(1 for t in exits if t.get("trade", {}).get("pnl_usd", 0) < 0)
 
-        gross_profit = sum(
-            t.get("trade", {}).get("pnl_usd", 0) for t in exits if t.get("trade", {}).get("pnl_usd", 0) > 0
-        )
-        gross_loss = abs(
-            sum(t.get("trade", {}).get("pnl_usd", 0) for t in exits if t.get("trade", {}).get("pnl_usd", 0) < 0)
-        )
+        gross_profit = sum(t.get("trade", {}).get("pnl_usd", 0) for t in exits if t.get("trade", {}).get("pnl_usd", 0) > 0)
+        gross_loss = abs(sum(t.get("trade", {}).get("pnl_usd", 0) for t in exits if t.get("trade", {}).get("pnl_usd", 0) < 0))
 
         profit_factor = gross_profit / gross_loss if gross_loss > 0 else float("inf")
         win_rate = winning / len(exits) if exits else 0

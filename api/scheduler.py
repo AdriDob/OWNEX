@@ -83,9 +83,7 @@ def _path_based_hypothesis(endpoint: Any, target: Any) -> str | None:
 
     numeric_segment = re.search(r"/(\d+)(/|$)", path)
     uuid_pattern = re.search(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", path)
-    has_id_param = re.search(
-        r"(user|account|order|id|profile|file|team|project|customer|subscription|device)_?id", path, re.I
-    )
+    has_id_param = re.search(r"(user|account|order|id|profile|file|team|project|customer|subscription|device)_?id", path, re.I)
     is_admin = "admin" in path
     is_api = path.startswith("/api/") or "/api/" in path
     is_graphql = "graphql" in path
@@ -283,9 +281,7 @@ class ScanScheduler:
         # Purge stale cooldown entries (entries older than 2x TARGET_COOLDOWN)
         stale_cooldown_threshold = now - TARGET_COOLDOWN * 2
         old_count = len(self._target_cooldowns)
-        self._target_cooldowns = {
-            tid: ts for tid, ts in self._target_cooldowns.items() if ts >= stale_cooldown_threshold
-        }
+        self._target_cooldowns = {tid: ts for tid, ts in self._target_cooldowns.items() if ts >= stale_cooldown_threshold}
         purged = old_count - len(self._target_cooldowns)
         if purged:
             logger.info("[SCHEDULER] Purged %d stale cooldown entries", purged)
@@ -311,8 +307,7 @@ class ScanScheduler:
                     )
                 if medium_plus == 0 and recent > 0:
                     logger.warning(
-                        "[TIME_WASTER] %.0fmin sin findings medium+ (solo %d low/info). "
-                        "Consider cambiar de target o revisar el scope activo.",
+                        "[TIME_WASTER] %.0fmin sin findings medium+ (solo %d low/info). Consider cambiar de target o revisar el scope activo.",
                         elapsed / 60,
                         recent - medium_plus,
                     )
@@ -358,9 +353,7 @@ class ScanScheduler:
                 try:
                     stale = session.query(models.Finding).filter(models.Finding.status == "confirmed").limit(20).all()
                     for f in stale:
-                        existing = (
-                            session.query(models.Report).filter(models.Report.finding_ids.like(f"%{f.id}%")).first()
-                        )
+                        existing = session.query(models.Report).filter(models.Report.finding_ids.like(f"%{f.id}%")).first()
                         if existing:
                             continue
                         create_report_from_findings(
@@ -383,9 +376,7 @@ class ScanScheduler:
         except Exception as exc:
             logger.warning("[RECOVERY] Parallel recovery error: %s", exc)
 
-    def _copilot_hook(
-        self, stage: str, stage_result: str = "completed", pipeline_id: str | None = None, error_message: str = ""
-    ) -> None:
+    def _copilot_hook(self, stage: str, stage_result: str = "completed", pipeline_id: str | None = None, error_message: str = "") -> None:
         """Emit pipeline stage event to EventBus + COPILOT hook.
 
         Best-effort: nunca propaga excepciones al pipeline (P0-1 audit 2026-08-25:
@@ -581,8 +572,7 @@ class ScanScheduler:
                     pr = next((r for r in results if r.target_id == target.id), None)
                     if pr:
                         logger.info(
-                            "[ORION] Auto-prioritized %s (EV=$%.2f, priority=%.2f, "
-                            "reward=$%.0f×%.0f%%×%.1fx, $%.2f/h, tech=%s, plan=%s, phases=%d)",
+                            "[ORION] Auto-prioritized %s (EV=$%.2f, priority=%.2f, reward=$%.0f×%.0f%%×%.1fx, $%.2f/h, tech=%s, plan=%s, phases=%d)",
                             target.name,
                             pr.expected_value,
                             priority_score,
@@ -785,16 +775,12 @@ class ScanScheduler:
                             session.commit()
                             self._copilot_hook("hypothesis", "completed", pipeline_id=pipeline_id)  # Emitir evento
                         else:
-                            self._copilot_hook(
-                                "hypothesis", "failed", pipeline_id=pipeline_id, error_message="No hypothesis generated"
-                            )  # Emitir evento
+                            self._copilot_hook("hypothesis", "failed", pipeline_id=pipeline_id, error_message="No hypothesis generated")  # Emitir evento
                 except Exception as e:
                     logger.debug("Hypothesis gen failed for endpoint %d: %s", ep.id, e)
                     pipeline_id = self._target_pipelines.get(target.id)
                     if pipeline_id:
-                        self._copilot_hook(
-                            "hypothesis", "failed", pipeline_id=pipeline_id, error_message=str(e)
-                        )  # Emitir evento
+                        self._copilot_hook("hypothesis", "failed", pipeline_id=pipeline_id, error_message=str(e))  # Emitir evento
             self._last_run["hypothesis"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
@@ -873,11 +859,7 @@ class ScanScheduler:
             from cores.validation.verdict_handler import VerdictHandler
 
             findings = (
-                session.query(models.Finding)
-                .filter(models.Finding.status == "open")
-                .filter(models.Finding.severity.in_(["high", "critical"]))
-                .limit(20)
-                .all()
+                session.query(models.Finding).filter(models.Finding.status == "open").filter(models.Finding.severity.in_(["high", "critical"])).limit(20).all()
             )
             engine = ValidationLoopEngine()
             handler = VerdictHandler(session)
@@ -895,11 +877,7 @@ class ScanScheduler:
                     continue
 
                 try:
-                    ep = (
-                        session.query(models.Endpoint).filter(models.Endpoint.id == f.endpoint_id).first()
-                        if f.endpoint_id
-                        else None
-                    )
+                    ep = session.query(models.Endpoint).filter(models.Endpoint.id == f.endpoint_id).first() if f.endpoint_id else None
                     if not ep:
                         self._copilot_hook(
                             "validate",
@@ -958,9 +936,7 @@ class ScanScheduler:
         try:
             from cores.pipeline.report_service import create_report_from_findings
 
-            confirmed_findings = (
-                session.query(models.Finding).filter(models.Finding.status == "confirmed").limit(50).all()
-            )
+            confirmed_findings = session.query(models.Finding).filter(models.Finding.status == "confirmed").limit(50).all()
             for f in confirmed_findings:
                 pipeline_id = None  # Inicializar pipeline_id
                 if f.target_id:
@@ -1040,9 +1016,7 @@ class ScanScheduler:
                         )  # Emitir evento
                 except Exception as e:
                     logger.debug("Report generation failed for finding %d: %s", f.id, e)
-                    self._copilot_hook(
-                        "report", "failed", pipeline_id=pipeline_id, error_message=str(e)
-                    )  # Emitir evento
+                    self._copilot_hook("report", "failed", pipeline_id=pipeline_id, error_message=str(e))  # Emitir evento
             self._last_run["report"] = datetime.now(UTC).timestamp()
         finally:
             session.close()
@@ -1235,11 +1209,7 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
 
             # Load Program orion_score
             if domain:
-                prog = (
-                    session.query(_db.models_economic.Program)
-                    .filter(_db.models_economic.Program.domain == domain)
-                    .first()
-                )
+                prog = session.query(_db.models_economic.Program).filter(_db.models_economic.Program.domain == domain).first()
                 if prog is not None and getattr(prog, "orion_score", 0):
                     program_scores[t.id] = prog.orion_score
 

@@ -135,9 +135,7 @@ class SurfaceView(BaseView):
             QMessageBox.warning(self, "Add Target", "Could not add target:\n" + str(exc))
             return
         if result.get("duplicate"):
-            QMessageBox.information(
-                self, "Add Target", f"Target '{result.get('name')}' already exists (id={result.get('id')})."
-            )
+            QMessageBox.information(self, "Add Target", f"Target '{result.get('name')}' already exists (id={result.get('id')}).")
         self.refresh()
 
     # -- Helpers de estilo --
@@ -147,6 +145,4 @@ class SurfaceView(BaseView):
         ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
-        self.setStyleSheet(
-            "QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}"
-        )
+        self.setStyleSheet("QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}")

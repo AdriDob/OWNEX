@@ -40,3 +40,36 @@ def test_fallback_provider_ids_match_backend_catalog() -> None:
         f"Frontend-only: {sorted(frontend - backend)}. "
         "Update Settings.vue FALLBACK_PROVIDERS to mirror the backend catalog."
     )
+
+
+def test_codex_provider_is_read_only_and_reports_unavailable_without_cli(monkeypatch) -> None:
+    from cores.ai.provider import CodexCLIProvider
+
+    monkeypatch.setattr("cores.ai.provider.shutil.which", lambda _: None)
+    provider = CodexCLIProvider()
+    assert not provider.is_available()
+
+
+def test_codex_provider_extracts_final_message(monkeypatch) -> None:
+    import json
+    from types import SimpleNamespace
+
+    from cores.ai.provider import CodexCLIProvider
+
+    monkeypatch.setattr("cores.ai.provider.shutil.which", lambda _: "/usr/bin/codex")
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append((command, kwargs))
+        if command[1:3] == ["login", "status"]:
+            return SimpleNamespace(returncode=0, stdout="Logged in using ChatGPT", stderr="")
+        event = {"type": "item.completed", "item": {"type": "agent_message", "text": "Respuesta"}}
+        return SimpleNamespace(returncode=0, stdout=json.dumps(event) + "\n", stderr="")
+
+    monkeypatch.setattr("cores.ai.provider.subprocess.run", fake_run)
+    provider = CodexCLIProvider()
+    assert provider.chat([{"role": "user", "content": "Hola"}]) == "Respuesta"
+    exec_call = calls[-1]
+    assert "--sandbox" in exec_call[0]
+    assert exec_call[0][exec_call[0].index("--sandbox") + 1] == "read-only"
+    assert exec_call[1]["input"].endswith("USER: Hola")

@@ -192,10 +192,7 @@ def test_strategy_monthly_progression():
     s = CompoundStrategy(initial_capital=1000, protocols=["a"], apy_per_protocol=[12], reinvest_rate=1.0)
     proj = s.project(months=12)
     # Balance should increase each month (compounding)
-    assert all(
-        proj.projections[i]["total_balance"] >= proj.projections[i - 1]["total_balance"]
-        for i in range(1, len(proj.projections))
-    )
+    assert all(proj.projections[i]["total_balance"] >= proj.projections[i - 1]["total_balance"] for i in range(1, len(proj.projections)))
 
 
 def test_strategy_with_contributions():

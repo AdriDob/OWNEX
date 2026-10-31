@@ -36,9 +36,7 @@ class EvidenceExecutor(BaseStageExecutor):
 
         # Also check for hypotheses + validated combo
         if not confirmed:
-            confirmed = context.get("confirmed_hypotheses", []) or context.get("details", {}).get(
-                "confirmed_hypotheses", []
-            )
+            confirmed = context.get("confirmed_hypotheses", []) or context.get("details", {}).get("confirmed_hypotheses", [])
 
         if not confirmed:
             return self._wrap_result(
@@ -60,9 +58,7 @@ class EvidenceExecutor(BaseStageExecutor):
                 else:
                     gap_count += 1
 
-            summary = (
-                f"Collected evidence for {len(bundles)} findings: {ready_count} ready for report, {gap_count} with gaps"
-            )
+            summary = f"Collected evidence for {len(bundles)} findings: {ready_count} ready for report, {gap_count} with gaps"
 
             details: dict[str, Any] = {
                 "bundles": bundles,
@@ -104,8 +100,7 @@ class EvidenceExecutor(BaseStageExecutor):
                 vulnerability_type=vuln_type,
                 endpoint=endpoint,
                 method=method,
-                parameters_of_interest=finding.get("parameters_of_interest", [])
-                or finding.get("executed_steps", [{}])[0].get("params", {}).keys()
+                parameters_of_interest=finding.get("parameters_of_interest", []) or finding.get("executed_steps", [{}])[0].get("params", {}).keys()
                 if finding.get("executed_steps")
                 else [],
                 summary=finding.get("summary", f"{vuln_type} on {method} {endpoint}"),

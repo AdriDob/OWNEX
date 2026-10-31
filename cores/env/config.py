@@ -143,9 +143,7 @@ class OWNEXConfig:
     smtp_user: str = field(default_factory=lambda: _env("OWNEX_SMTP_USER", "", "CATEYE_SMTP_USER"))
     smtp_password: str = field(default_factory=lambda: _env("OWNEX_SMTP_PASSWORD", "", "CATEYE_SMTP_PASSWORD"))
     smtp_from: str = field(default_factory=lambda: _env("OWNEX_SMTP_FROM", "", "CATEYE_SMTP_FROM"))
-    notification_email: str = field(
-        default_factory=lambda: _env("OWNEX_NOTIFICATION_EMAIL", "", "CATEYE_NOTIFICATION_EMAIL")
-    )
+    notification_email: str = field(default_factory=lambda: _env("OWNEX_NOTIFICATION_EMAIL", "", "CATEYE_NOTIFICATION_EMAIL"))
     twilio_account_sid: str = field(default_factory=lambda: _env("OWNEX_TWILIO_ACCOUNT_SID", ""))
     twilio_auth_token: str = field(default_factory=lambda: _env("OWNEX_TWILIO_AUTH_TOKEN", ""))
     twilio_whatsapp_from: str = field(default_factory=lambda: _env("OWNEX_TWILIO_WHATSAPP_FROM", "14155238886"))

@@ -64,8 +64,7 @@ class DeviceIdentityService:
             "push_token": registration.push_token,
             "capabilities": registration.capabilities or [],
             "metadata": registration.metadata or {},
-            "registered_at": registration.metadata.get("registered_at")
-            or __import__("datetime").datetime.now().isoformat(),
+            "registered_at": registration.metadata.get("registered_at") or __import__("datetime").datetime.now().isoformat(),
             "last_seen": __import__("datetime").datetime.now().isoformat(),
         }
 

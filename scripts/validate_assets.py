@@ -96,11 +96,7 @@ def check_orion_bundle(orion_dir: Path) -> None:
     internal = orion_dir / "_internal"
 
     # Frontend assets (try _internal/ first, then bundle root)
-    frontend = (
-        (internal / "frontend_dist")
-        if internal.is_dir() and (internal / "frontend_dist").is_dir()
-        else orion_dir / "frontend_dist"
-    )
+    frontend = (internal / "frontend_dist") if internal.is_dir() and (internal / "frontend_dist").is_dir() else orion_dir / "frontend_dist"
     check("frontend_dist/ exists", frontend.is_dir())
     if frontend.is_dir():
         check("frontend_dist/index.html exists", (frontend / "index.html").is_file())
@@ -137,9 +133,7 @@ def check_orion_bundle(orion_dir: Path) -> None:
         check("Python bytecode archive exists (PYZ)", pyz_found)
 
     # VERSION file (try _internal/ first, then bundle root)
-    version_file = (
-        (internal / "VERSION") if internal.is_dir() and (internal / "VERSION").is_file() else orion_dir / "VERSION"
-    )
+    version_file = (internal / "VERSION") if internal.is_dir() and (internal / "VERSION").is_file() else orion_dir / "VERSION"
     check("VERSION file exists", version_file.is_file())
     if version_file.is_file():
         version = version_file.read_text().strip()

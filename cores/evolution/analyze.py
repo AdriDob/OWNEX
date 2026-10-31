@@ -175,9 +175,7 @@ class AnalyzeEngine:
 
         for b in bottlenecks:
             if b.get("ms_per_finding", 0) and b["ms_per_finding"] > _BOTTLENECK_THRESHOLD_MS_PER_FINDING:
-                opp_cost_hours = (
-                    b["ms_per_finding"] * b.get("runs", 1) - _BOTTLENECK_THRESHOLD_MS_PER_FINDING * b.get("runs", 1)
-                ) / 3_600_000
+                opp_cost_hours = (b["ms_per_finding"] * b.get("runs", 1) - _BOTTLENECK_THRESHOLD_MS_PER_FINDING * b.get("runs", 1)) / 3_600_000
                 b["opportunity_cost_hours"] = round(opp_cost_hours, 2)
 
         return {

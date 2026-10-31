@@ -205,9 +205,7 @@ class DevBountyPipeline:
             result.phases["tests"] = asyncio.get_event_loop().time() - phase_start
 
             if not test_results.overall_success:
-                result.error = (
-                    f"Tests failed: {test_results.best_result.stderr if test_results.best_result else 'Unknown error'}"
-                )
+                result.error = f"Tests failed: {test_results.best_result.stderr if test_results.best_result else 'Unknown error'}"
                 result.verdict = "failed"
                 return result
 
@@ -312,9 +310,7 @@ class DevBountyPipeline:
         """Submit deliverable via Freelancer executor."""
         # For freelancer, we need project_id and deliverable files
         # This requires the project_id from the bounty data
-        return ExecutionResult(
-            False, "submit", "", error="Freelancer submission requires project_id and files from bounty data"
-        )
+        return ExecutionResult(False, "submit", "", error="Freelancer submission requires project_id and files from bounty data")
 
     async def _submit_oss(
         self,
@@ -328,9 +324,7 @@ class DevBountyPipeline:
             return ExecutionResult(False, "submit", bounty_id, error="No PR URL available")
 
         if platform == "opire":
-            return await executor.submit_work(
-                bounty_id, pr_result.pr_url, "Automated submission via OWNEX Dev Bounty Pipeline"
-            )
+            return await executor.submit_work(bounty_id, pr_result.pr_url, "Automated submission via OWNEX Dev Bounty Pipeline")
         elif platform == "issuehunt":
             return await executor.submit_pr(bounty_id, pr_result.pr_url)
         return ExecutionResult(False, "submit", bounty_id, error=f"Unsupported OSS platform: {platform}")

@@ -41,11 +41,7 @@ def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
         first_target = targets[0] if targets else None
         target_eps = [ep for ep in endpoints if ep.target_id == first_target.id] if first_target else []
         target_findings = [f for f in findings if f.target_id == first_target.id] if first_target else []
-        target_verdicts = (
-            [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in target_eps}]
-            if first_target
-            else []
-        )
+        target_verdicts = [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in target_eps}] if first_target else []
 
         ep_snapshots = []
         for ep in target_eps:

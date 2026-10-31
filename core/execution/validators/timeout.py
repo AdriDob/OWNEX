@@ -63,8 +63,7 @@ class TimeoutValidator(BaseValidator):
                     result.errors.append(
                         self._error(
                             "TIMEOUT_LESS_THAN_RETRY_TOTAL",
-                            f"Node timeout {node_timeout}ms is less than enclosing retry's "
-                            f"total possible time {total_retry_ms}ms (retries × delay)",
+                            f"Node timeout {node_timeout}ms is less than enclosing retry's total possible time {total_retry_ms}ms (retries × delay)",
                             node_id=node.id,
                             node_timeout=node_timeout,
                             retry_total_ms=total_retry_ms,
@@ -79,8 +78,7 @@ class TimeoutValidator(BaseValidator):
                     result.warnings.append(
                         self._warning(
                             "TIMEOUT_TRIGGER_EXCESSIVE",
-                            f"Trigger node timeout {trigger_timeout}ms exceeds recommended max "
-                            f"{self.MAX_TRIGGER_TIMEOUT_MS}ms",
+                            f"Trigger node timeout {trigger_timeout}ms exceeds recommended max {self.MAX_TRIGGER_TIMEOUT_MS}ms",
                             node_id=node.id,
                             trigger_timeout=trigger_timeout,
                             recommended_max=self.MAX_TRIGGER_TIMEOUT_MS,
@@ -94,8 +92,7 @@ class TimeoutValidator(BaseValidator):
                     result.warnings.append(
                         self._warning(
                             "TIMEOUT_WAIT_EXCESSIVE",
-                            f"Wait node '{node.label or node.id}' duration {wait_ms}ms "
-                            f"exceeds workflow timeout limit {self.MAX_WORKFLOW_TIMEOUT_MS}ms",
+                            f"Wait node '{node.label or node.id}' duration {wait_ms}ms exceeds workflow timeout limit {self.MAX_WORKFLOW_TIMEOUT_MS}ms",
                             node_id=node.id,
                             duration_ms=wait_ms,
                             max_timeout=self.MAX_WORKFLOW_TIMEOUT_MS,
@@ -124,8 +121,7 @@ class TimeoutValidator(BaseValidator):
                             result.suggestions.append(
                                 self._suggestion(
                                     "TIMEOUT_PARALLEL_AGGREGATE",
-                                    f"Parallel branch aggregate timeout may exceed practical limits "
-                                    f"(max branch: {max_branch}ms × {branch_count} branches)",
+                                    f"Parallel branch aggregate timeout may exceed practical limits (max branch: {max_branch}ms × {branch_count} branches)",
                                     node_id=node.id,
                                     max_branch_timeout=max_branch,
                                     branch_count=branch_count,

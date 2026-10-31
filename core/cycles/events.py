@@ -63,9 +63,7 @@ def publish_cycle_activated(cycle_id: int, slug: str, name: str, old_status: str
 
 
 def publish_cycle_paused(cycle_id: int, slug: str, name: str, old_status: str) -> None:
-    get_core_event_bus().publish(
-        "cycle.paused", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, old_status=old_status, new_status="paused"
-    )
+    get_core_event_bus().publish("cycle.paused", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, old_status=old_status, new_status="paused")
 
 
 def publish_cycle_status_changed(cycle_id: int, slug: str, name: str, old_status: str, new_status: str) -> None:
@@ -80,12 +78,8 @@ def publish_cycle_status_changed(cycle_id: int, slug: str, name: str, old_status
 
 
 def publish_cycle_metrics_updated(cycle_id: int, slug: str, name: str, metrics: dict) -> None:
-    get_core_event_bus().publish(
-        "cycle.metrics_updated", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, data=metrics
-    )
+    get_core_event_bus().publish("cycle.metrics_updated", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, data=metrics)
 
 
 def publish_cycle_error(cycle_id: int, slug: str, name: str, error: str) -> None:
-    get_core_event_bus().publish(
-        "cycle.error", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, data={"error": error}
-    )
+    get_core_event_bus().publish("cycle.error", cycle_id=cycle_id, cycle_slug=slug, cycle_name=name, data={"error": error})

@@ -113,9 +113,7 @@ async def evaluate_progression() -> dict[str, Any]:
                 "max_drawdown_pct": decision.metrics.max_drawdown_pct,
                 "current_drawdown_pct": decision.metrics.current_drawdown_pct,
                 "acceptance_rate": (
-                    decision.metrics.accepted_submissions / decision.metrics.total_submissions
-                    if decision.metrics.total_submissions > 0
-                    else 0.0
+                    decision.metrics.accepted_submissions / decision.metrics.total_submissions if decision.metrics.total_submissions > 0 else 0.0
                 ),
             },
         }

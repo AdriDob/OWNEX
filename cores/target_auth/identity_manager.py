@@ -138,9 +138,7 @@ class TargetIdentityManager:
             # Soft delete
             identity.is_active = False
             # Also invalidate any active session
-            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update(
-                {"is_valid": False}
-            )
+            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update({"is_valid": False})
             session.commit()
             return True
         finally:
@@ -171,9 +169,7 @@ class TargetIdentityManager:
         session_valid = False
         session_expires_at = None
         if db_session:
-            sess = (
-                db_session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity.id).first()
-            )
+            sess = db_session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity.id).first()
             if sess:
                 session_valid = sess.is_valid
                 session_expires_at = sess.expires_at.isoformat() if sess.expires_at else None

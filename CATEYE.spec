@@ -19,6 +19,7 @@ FRONTEND_DIST = str(PROJECT_ROOT / "frontend" / "dist")
 IS_WINDOWS = sys.platform.startswith("win")
 ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "cateye.ico")
 UPX_AVAILABLE = os.getenv("UPX_PATH") is not None or bool(shutil.which("upx"))
+ONEFILE = os.getenv("OWNEX_ONEFILE") == "1"
 
 # ── Collect all router modules (automatically discovered) ──────────────
 ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
@@ -91,31 +92,52 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
-exe = EXE(
-    pyz,
-    a.scripts,
-    [],
-    exclude_binaries=True,
-    name='CATEYE',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=ICON_PATH if IS_WINDOWS else None,
-)
+if ONEFILE:
+    exe = EXE(
+        pyz,
+        a.scripts,
+        a.binaries,
+        a.datas,
+        exclude_binaries=False,
+        name='CATEYE',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=UPX_AVAILABLE,
+        console=False,
+        disable_windowed_traceback=False,
+        argv_emulation=False,
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+        icon=ICON_PATH if IS_WINDOWS else None,
+    )
+else:
+    exe = EXE(
+        pyz,
+        a.scripts,
+        [],
+        exclude_binaries=True,
+        name='CATEYE',
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=True,
+        console=False,
+        disable_windowed_traceback=False,
+        argv_emulation=False,
+        target_arch=None,
+        codesign_identity=None,
+        entitlements_file=None,
+        icon=ICON_PATH if IS_WINDOWS else None,
+    )
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.datas,
-    strip=False,
-    upx=UPX_AVAILABLE,
-    upx_exclude=[],
-    name='CATEYE',
-)
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.datas,
+        strip=False,
+        upx=UPX_AVAILABLE,
+        upx_exclude=[],
+        name='CATEYE',
+    )

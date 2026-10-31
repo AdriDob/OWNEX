@@ -14,9 +14,7 @@ class OllamaProvider(BaseProvider):
     """Local Ollama provider — qwen3-coder, hermes-orion, etc."""
 
     def __init__(self, config: ProviderConfig | None = None) -> None:
-        super().__init__(
-            config or ProviderConfig(name="ollama", priority=30, models=["qwen3-coder:8b", "hermes-orion"])
-        )
+        super().__init__(config or ProviderConfig(name="ollama", priority=30, models=["qwen3-coder:8b", "hermes-orion"]))
         self._base_url = self._config.extra.get("base_url", "http://localhost:11434")
         self._default_model = self._config.models[0] if self._config.models else "qwen3-coder:8b"
 
@@ -50,14 +48,10 @@ class OllamaProvider(BaseProvider):
                 )
                 data = r.json()
                 dur = (time.monotonic() - t0) * 1000
-                return ProviderResponse(
-                    content=data.get("message", {}).get("content", ""), provider="ollama", model=model, duration_ms=dur
-                )
+                return ProviderResponse(content=data.get("message", {}).get("content", ""), provider="ollama", model=model, duration_ms=dur)
         except Exception as exc:
             logger.warning("Ollama chat failed: %s", exc)
-            return ProviderResponse(
-                content="", provider="ollama", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="ollama", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000)
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         import httpx
@@ -66,9 +60,7 @@ class OllamaProvider(BaseProvider):
         try:
             async with (
                 httpx.AsyncClient(timeout=self._config.timeout_s) as client,
-                client.stream(
-                    "POST", f"{self._base_url}/api/chat", json={"model": model, "messages": messages, "stream": True}
-                ) as r,
+                client.stream("POST", f"{self._base_url}/api/chat", json={"model": model, "messages": messages, "stream": True}) as r,
             ):
                 async for line in r.aiter_lines():
                     if not line.strip():

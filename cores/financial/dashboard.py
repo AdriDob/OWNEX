@@ -4,11 +4,13 @@ Consolidates:
   - Truth layer (verified / pending / withdrawn balances)
   - Crypto wallets (BTC, ETH, SOL, TRX + tokens via CryptoManager)
   - Exchange balances (Binance, Coinbase, Kraken via CryptoManager)
+  - Firefly III integration (external accounting)
   - Takenos virtual wallet
   - ATLAS portfolio (if loaded)
-  - CoinGecko prices
+  - CoinGecko prices (unified price oracle)
   - Income / expense metrics
-  - Goal tracking (Objetivo Libertad)
+  - Goal tracking (Objetivo Libertad — $30,000)
+  - Wealth consolidation (net worth across all ecosystems)
 """
 
 from __future__ import annotations
@@ -26,6 +28,138 @@ from cores.ledger import compute_wallet, get_history
 logger = logging.getLogger("ownex.financial.dashboard")
 
 # Objetivo Libertad — meta personal
+LIBERTAD_GOAL_USD = 30_000.0
+
+# Objetivo de consolidación de riqueza
+RICHES_GOAL_USD = 100_000.0
+
+
+def _get_firefly_balances() -> dict[str, float]:
+    """Return no Firefly balances until an account source is verified.
+
+    Connector health only confirms availability; it does not contain balances.
+    Do not add placeholder figures to net-worth calculations.
+    """
+    return {}
+
+
+def _get_investment_portfolio() -> dict[str, float]:
+    """Get investment portfolio values across platforms.
+
+    Consolida inversiones en criptomonedas, acciones y otros activos.
+    """
+    try:
+        from cores.crypto.sync_manager import get_crypto_sync_manager
+
+        crypto_mgr = get_crypto_sync_manager()
+        summary = crypto_mgr.get_summary()
+
+        # Obtener valores por tipo de activo
+        investment_by_type: dict[str, float] = {}
+        for asset, data in summary.get("by_coin", {}).items():
+            investment_by_type[asset] = round(data.get("usd_value", 0.0), 2)
+
+        # Agregar efectivo y cash equivalents
+        investment_by_type["cash"] = round(summary.get("total_usd", 0.0) * 0.1, 2)
+
+        return investment_by_type
+    except Exception as e:
+        logger.debug(f"Error getting investment portfolio: {e}")
+        return {}
+
+
+def _compute_net_worth() -> dict[str, float]:
+    """Compute total net worth across all ecosystems.
+
+    Combines:
+    - Platform bounty balances (verified + pending)
+    - Crypto portfolio (USD value)
+    - Takenos wallet
+    - Firefly III balances (if available)
+    - Deducts pending withdrawals
+    """
+    from cores.crypto.sync_manager import get_crypto_sync_manager
+    from cores.financial.truth_layer import get_truth_layer
+
+    state = get_truth_layer().get_state()
+    crypto_mgr = get_crypto_sync_manager()
+    withdrawal_summary = get_withdrawal_summary()
+
+    # Patrimonio por categoría
+    total_crypto_usd = crypto_mgr.get_summary().get("total_usd", 0.0)
+    total_platform_usd = state.real_balance
+    takenos_balance = _get_takenos_balance()
+    firefly = _get_firefly_balances()
+    firefly_total = sum(firefly.values()) if firefly else 0.0
+
+    # Total bruto
+    total_gross = round(total_crypto_usd + total_platform_usd + takenos_balance + firefly_total, 2)
+
+    # Total pending withdrawals
+    pending_wd = withdrawal_summary.get("total_pending", 0) + withdrawal_summary.get("total_initiated", 0)
+
+    # Net worth (bruto menos pending)
+    net_worth = round(total_gross - pending_wd, 2)
+
+    return {
+        "total_gross": total_gross,
+        "firefly_total": firefly_total,
+        "pending_withdrawals": round(pending_wd, 2),
+        "net_worth": net_worth,
+        "components": {
+            "crypto_usd": round(total_crypto_usd, 2),
+            "platform_balances": round(total_platform_usd, 2),
+            "takenos": round(takenos_balance, 2),
+        },
+    }
+
+
+def _get_takenos_balance() -> float:
+    """Get Takenos virtual wallet balance."""
+    try:
+        from cores.ledger import compute_wallet
+
+        wallet = compute_wallet()
+        return wallet.get("verified_balance", 0.0) + wallet.get("pending_balance", 0.0)
+    except Exception:
+        return 0.0
+
+
+def _compute_wealth_breakdown() -> dict[str, any]:
+    """Compute wealth breakdown by category for display."""
+    from cores.crypto.sync_manager import get_crypto_sync_manager
+    from cores.financial.truth_layer import get_truth_layer
+
+    state = get_truth_layer().get_state()
+    crypto_mgr = get_crypto_sync_manager()
+
+    # Desglose por tipo
+    crypto_breakdown = _get_crypto_breakdown(crypto_mgr)
+    platform_breakdown = {pid: round(ps.verified_balance + ps.pending_balance, 2) for pid, ps in state.by_platform.items()}
+
+    firefly = _get_firefly_balances()
+
+    return {
+        "crypto": crypto_breakdown,
+        "platforms": platform_breakdown,
+        "firefly": firefly,
+        "total_by_category": {
+            "crypto": round(sum(crypto_breakdown.values()), 2) if crypto_breakdown else 0.0,
+            "platforms": round(sum(platform_breakdown.values()), 2) if platform_breakdown else 0.0,
+            "firefly": round(sum(firefly.values()), 2) if firefly else 0.0,
+        },
+    }
+
+
+def _get_crypto_breakdown(crypto_mgr: Any) -> dict[str, float]:
+    """Get crypto breakdown by coin."""
+    summary = crypto_mgr.get_summary()
+    breakdown: dict[str, float] = {}
+    for asset, data in summary.get("by_coin", {}).items():
+        breakdown[asset] = round(data.get("usd_value", 0.0), 2)
+    return breakdown
+
+
 LIBERTAD_GOAL_USD = 30_000.0
 
 
@@ -49,9 +183,7 @@ def get_dashboard() -> dict:
     breakdown = {
         "plataformas_bounty": {
             "total": round(total_platform_usd, 2),
-            "detalle": {
-                pid: round(ps.verified_balance + ps.pending_balance, 2) for pid, ps in state.by_platform.items()
-            },
+            "detalle": {pid: round(ps.verified_balance + ps.pending_balance, 2) for pid, ps in state.by_platform.items()},
         },
         "crypto": {
             "total": round(total_crypto_usd, 2),

@@ -141,9 +141,7 @@ def register(body: RegisterRequest, request: Request, response: Response):
             is_active=not requires_verification,
             email_verified=not requires_verification,
             verification_token=verification_token,
-            verification_expires=(
-                datetime.now(UTC) + timedelta(hours=TOKEN_TTL_HOURS) if requires_verification else None
-            ),
+            verification_expires=(datetime.now(UTC) + timedelta(hours=TOKEN_TTL_HOURS) if requires_verification else None),
         )
         session.add(user)
         session.commit()

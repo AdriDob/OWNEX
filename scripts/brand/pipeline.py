@@ -168,9 +168,7 @@ def mark_group(variant: str = "alpha", mono: str | None = None, bold: bool = Fal
   </g>"""
 
 
-def mark_svg(
-    variant: str = "alpha", mono: str | bool = False, size: int = SIZE, bg: str | None = None, bold: bool = False
-) -> str:
+def mark_svg(variant: str = "alpha", mono: str | bool = False, size: int = SIZE, bg: str | None = None, bold: bool = False) -> str:
     mono_out: str | None = "white" if mono is True else (mono or None)
     bg_rect = f'<rect width="{size}" height="{size}" fill="{bg}"/>' if bg else ""
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" width="{size}" height="{size}">

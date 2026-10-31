@@ -38,10 +38,7 @@ from cores.scope_reader import read_program_scope
 logger = logging.getLogger("ownex.bounty_scraper")
 
 REQUEST_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-    ),
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"),
     "Accept": "application/json, text/html, */*",
     "Accept-Language": "en-US,en;q=0.9",
 }
@@ -158,11 +155,7 @@ class BountyScraper:
         results: list[ScrapedProgram] = []
         for page in range(max_pages):
             try:
-                url = (
-                    "https://hackerone.com/programs/search?"
-                    f"query=sort%3Apublished_at&page%5Bnumber%5D={page + 1}"
-                    "&page%5Bsize%5D=50"
-                )
+                url = f"https://hackerone.com/programs/search?query=sort%3Apublished_at&page%5Bnumber%5D={page + 1}&page%5Bsize%5D=50"
                 req = urllib.request.Request(url, headers=REQUEST_HEADERS)
                 with urllib.request.urlopen(req, timeout=15) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
@@ -462,11 +455,7 @@ class BountyScraper:
                 if isinstance(techs, str):
                     techs = [t.strip() for t in techs.split(",") if t.strip()]
                 scopes_raw = item.get("targets", item.get("scopes", item.get("domains", [])))
-                scopes = (
-                    [s.get("asset_identifier", s) if isinstance(s, dict) else str(s) for s in scopes_raw]
-                    if isinstance(scopes_raw, list)
-                    else []
-                )
+                scopes = [s.get("asset_identifier", s) if isinstance(s, dict) else str(s) for s in scopes_raw] if isinstance(scopes_raw, list) else []
 
                 results.append(
                     ScrapedProgram(
@@ -486,9 +475,7 @@ class BountyScraper:
 
             _rate_limit(0.5, 1.0)
 
-        logger.info(
-            "BountyTargetsData: %d programs across %d platforms", len(results), len(self._BOUNTY_TARGETS_DATA_URLS)
-        )
+        logger.info("BountyTargetsData: %d programs across %d platforms", len(results), len(self._BOUNTY_TARGETS_DATA_URLS))
         return results
 
     # ── Web Scanner: security.txt, robots.txt, disclosure paths ────────
@@ -802,9 +789,7 @@ class BountyScraper:
 
     # ── All platforms ──────────────────────────────────────────────────
 
-    def scrape_all(
-        self, max_pages: int = 2, domains: list[str] | None = None, web_search: bool = True, github_search: bool = True
-    ) -> list[ScrapedProgram]:
+    def scrape_all(self, max_pages: int = 2, domains: list[str] | None = None, web_search: bool = True, github_search: bool = True) -> list[ScrapedProgram]:
         """Scrape all supported platforms + optional web scans."""
         all_programs: list[ScrapedProgram] = []
         seen_names: set[str] = set()

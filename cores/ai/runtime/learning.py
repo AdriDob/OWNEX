@@ -19,9 +19,7 @@ class LearningEngine(LearningEngineProtocol):
         self._config = config or get_config()
         self._outcomes: list[tuple[RoutingDecision, bool, float, float]] = []  # (decision, success, quality, cost)
         self._preferences: dict[TaskType, dict[str, float]] = defaultdict(lambda: defaultdict(float))
-        self._provider_stats: dict[str, dict[str, Any]] = defaultdict(
-            lambda: {"total": 0, "success": 0, "quality_sum": 0.0, "cost_sum": 0.0}
-        )
+        self._provider_stats: dict[str, dict[str, Any]] = defaultdict(lambda: {"total": 0, "success": 0, "quality_sum": 0.0, "cost_sum": 0.0})
 
     def record_routing(self, decision: RoutingDecision, success: bool, quality: float) -> None:
         """Record a routing decision outcome."""

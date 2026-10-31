@@ -195,13 +195,7 @@ class EventBus:
                         kwargs = {"event_type": event_type, **payload}
                         kwargs.setdefault("priority", priority)
                         fut = asyncio.run_coroutine_threadsafe(handler(**kwargs), loop)
-                        fut.add_done_callback(
-                            lambda f: (
-                                logger.warning("Async handler error on %s: %s", event_type, f.exception())
-                                if f.exception()
-                                else None
-                            )
-                        )
+                        fut.add_done_callback(lambda f: logger.warning("Async handler error on %s: %s", event_type, f.exception()) if f.exception() else None)
                     except Exception as exc:
                         logger.warning("Async event handler error on %s: %s", event_type, exc)
 
@@ -285,9 +279,7 @@ class EventBus:
             return sum(len(v) for v in self._handlers.values()) + sum(len(v) for v in self._async_handlers.values())
 
 
-def _record_event(
-    history: list[dict[str, Any]], max_history: int, event_type: str, priority: str, payload: dict[str, Any]
-) -> None:
+def _record_event(history: list[dict[str, Any]], max_history: int, event_type: str, priority: str, payload: dict[str, Any]) -> None:
     history.append(
         {
             "type": event_type,

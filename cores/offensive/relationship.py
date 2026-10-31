@@ -101,9 +101,7 @@ class EndpointRelationshipEngine:
 
         for ep in endpoints:
             parts = [p for p in ep.path.split("/") if p]
-            param_positions = [
-                (i, parts[i]) for i in range(len(parts)) if parts[i].startswith("{") or parts[i].startswith(":")
-            ]
+            param_positions = [(i, parts[i]) for i in range(len(parts)) if parts[i].startswith("{") or parts[i].startswith(":")]
 
             for pi, param in param_positions:
                 if pi + 1 >= len(parts):
@@ -137,9 +135,7 @@ class EndpointRelationshipEngine:
 
         return edges
 
-    def build_transitive_ownership_graph(
-        self, direct_edges: list[OwnershipEdge], confidence_decay: float = 0.65
-    ) -> list[OwnershipEdge]:
+    def build_transitive_ownership_graph(self, direct_edges: list[OwnershipEdge], confidence_decay: float = 0.65) -> list[OwnershipEdge]:
         """Extend ownership edges with transitive relationships.
 
         If user→organization and organization→project, infers user→project
@@ -189,9 +185,7 @@ class EndpointRelationshipEngine:
     def _path_template(path: str) -> str:
         return PATH_PARAM_PATTERN.sub("{param}", path)
 
-    def _infer_relationship(
-        self, endpoint: EndpointInfo, template: str, other: EndpointInfo
-    ) -> EndpointRelationship | None:
+    def _infer_relationship(self, endpoint: EndpointInfo, template: str, other: EndpointInfo) -> EndpointRelationship | None:
         other_template = self._path_template(other.path)
 
         # Parent/child: endpoint is parent of other (other starts with endpoint/)
@@ -225,9 +219,7 @@ class EndpointRelationshipEngine:
             )
 
         # Nested resource: different templates but one is nested under the other
-        if template != other_template and (
-            self._is_parent(endpoint.path, other.path) or self._is_parent(other.path, endpoint.path)
-        ):
+        if template != other_template and (self._is_parent(endpoint.path, other.path) or self._is_parent(other.path, endpoint.path)):
             return EndpointRelationship(
                 source_path=endpoint.path,
                 target_path=other.path,

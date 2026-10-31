@@ -213,9 +213,7 @@ def _record_from_dict(data: dict[str, Any]) -> LearningRecord:
         accepted=bool(data.get("accepted", False)),
         amount=float(data.get("amount", 0.0)),
         category=_resolve(category, OpportunityCategory) if category else None,
-        time_to_payout_days=(
-            float(data["time_to_payout_days"]) if data.get("time_to_payout_days") is not None else None
-        ),
+        time_to_payout_days=(float(data["time_to_payout_days"]) if data.get("time_to_payout_days") is not None else None),
     )
 
 
@@ -423,9 +421,7 @@ def _fallback_payload(ranked: list) -> dict:
 
         ranked_list = [_ranked_to_dict(r) for r in ranked]
         chain = build_fallback_chain(ranked_list)
-        entries = [
-            {"rank": f.rank, "platform": f.platform, "title": f.title, "trigger": f.trigger} for f in chain.as_list()
-        ]
+        entries = [{"rank": f.rank, "platform": f.platform, "title": f.title, "trigger": f.trigger} for f in chain.as_list()]
         return {"primary": entries[0] if entries else None, "fallbacks": entries[1:], "warnings": list(chain.warnings)}
     except Exception:
         return {"primary": None, "fallbacks": [], "warnings": []}
@@ -533,6 +529,15 @@ async def direct_work_workbank() -> dict[str, Any]:
     return get_workbank().to_dict()
 
 
+@router.get("/workbank/{item_id}")
+async def direct_work_workbank_item(item_id: str) -> dict[str, Any]:
+    """Return the persisted task record for the monitor/detail view."""
+    item = get_workbank().get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    return item.to_dict()
+
+
 @router.post("/workbank/{item_id}/deliver/prepare")
 async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
     """Prepare a delivery package for a work-bank item (files ready to submit on disk).
@@ -584,8 +589,8 @@ async def direct_work_deliver_prepare(item_id: str) -> dict[str, Any]:
 async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     """Mark a work-bank item as delivered (user confirmed the submission landed).
 
-    Closes the loop: the item moves to ``delivered`` and the outcome is folded
-    into the user profile so future recommendations learn from it.
+    Records the user's confirmation that submission happened. Acceptance and
+    payment are separate outcomes and must be recorded from their own evidence.
     """
     bank = get_workbank()
     item = bank.get_item(item_id)
@@ -601,38 +606,17 @@ async def direct_work_deliver_approve(item_id: str) -> dict[str, Any]:
     except Exception:  # jamás rompe el flujo de entrega
         pass
 
-    profile = UserProfile(
-        name="Adriel",
-        country="Argentina",
-        languages={"es", "en"},
-        skills={"python", "go", "unity", "typescript"},
-        remote_only=True,
-    )
-    category = getattr(item, "category", None)
-    record = LearningRecord(
-        platform=str(item.platform),
-        accepted=True,
-        amount=float(item.reward or 0.0),
-        category=_resolve(category, OpportunityCategory) if category else None,
-        time_to_payout_days=None,
-    )
-    apply_learning(profile, [record])
-
     return {
         "item_id": item.id,
         "status": "delivered",
         "reward": item.reward,
-        "message": "Entregado. El resultado se plegó al perfil para mejores recomendaciones.",
+        "message": "Entrega registrada por confirmación del usuario. Aceptación y pago siguen sin confirmar.",
     }
 
 
 @router.post("/workbank/{item_id}/auto-submit")
 async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
-    """Auto-submit a work-bank item if trust engine approves.
-
-    Checks trust engine criteria before auto-submitting. If approved, marks as
-    auto-submitted and prepares delivery package.
-    """
+    """Report whether autonomous submission is available for this work item."""
     from core.opportunity.executors.assisted_mode import AssistedExecutor
     from core.trust_engine import get_trust_engine
 
@@ -666,14 +650,7 @@ async def direct_work_auto_submit(item_id: str) -> dict[str, Any]:
     prepared = await executor.prepare_work(opportunity)
     result = await executor.auto_submit(prepared)
 
-    return {
-        "success": True,
-        "item_id": item.id,
-        "status": "auto_submitted",
-        "trust_reason": reason,
-        "next_step": result.get("next_step"),
-        "requires_manual_action": result.get("requires_manual_action", False),
-    }
+    return {**result, "item_id": item.id, "trust_reason": reason}
 
 
 @router.get("/deliver/pending")
@@ -723,9 +700,7 @@ async def direct_work_analysis_card(request: AnalysisCardRequest) -> dict[str, A
     gap = SkillAmplifier().analyze(opportunity, profile)
 
     platform_key = opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform)
-    access_status, requirement = PLATFORM_ACCESS.get(
-        platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma.")
-    )
+    access_status, requirement = PLATFORM_ACCESS.get(platform_key, ("needs_manual_setup", "Configurar el acceso a la plataforma."))
 
     source = engine.discovery.adapters.get(opportunity.platform)
     tier = source.source.tier if source else platform_tier(access_status)
@@ -1030,9 +1005,7 @@ async def direct_work_daily_brief(request: DailyBriefRequest) -> dict[str, Any]:
             break
 
     summary = f"Scanned {len(opportunities)} opportunities. " + (
-        f"Top pick: {top.opportunity.title} (score {top.overall_recommendation_score:.0f}/100)."
-        if top
-        else "No zero-barrier opportunities found today."
+        f"Top pick: {top.opportunity.title} (score {top.overall_recommendation_score:.0f}/100)." if top else "No zero-barrier opportunities found today."
     )
 
     return {

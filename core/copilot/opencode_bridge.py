@@ -41,9 +41,7 @@ class OpenCodeBridge:
                 "task": task[:200],
                 "success": result.returncode == 0,
                 "output": result.stdout[-3000:] if len(result.stdout) > 3000 else result.stdout,
-                "error": result.stderr[-1000:]
-                if result.stderr and len(result.stderr) > 1000
-                else (result.stderr or ""),
+                "error": result.stderr[-1000:] if result.stderr and len(result.stderr) > 1000 else (result.stderr or ""),
                 "duration_ms": round(dur, 1),
                 "returncode": result.returncode,
             }

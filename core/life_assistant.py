@@ -381,10 +381,7 @@ class LifeAssistant:
             "habits": {
                 "total": len(habits_today),
                 "completed": len([h for h in habits_today if h["completed_today"]]),
-                "habits": [
-                    {"id": h["habit"].id, "title": h["habit"].title, "completed": h["completed_today"]}
-                    for h in habits_today
-                ],
+                "habits": [{"id": h["habit"].id, "title": h["habit"].title, "completed": h["completed_today"]} for h in habits_today],
             },
             "health": health_today.__dict__ if health_today else {},
             "goals": {

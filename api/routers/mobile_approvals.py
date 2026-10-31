@@ -96,10 +96,7 @@ async def get_pending_approvals():
     db = SessionLocal()
     try:
         approvals = (
-            db.query(MobileApproval)
-            .filter(MobileApproval.status == "pending")
-            .order_by(MobileApproval.priority.desc(), MobileApproval.created_at.asc())
-            .all()
+            db.query(MobileApproval).filter(MobileApproval.status == "pending").order_by(MobileApproval.priority.desc(), MobileApproval.created_at.asc()).all()
         )
 
         return [
@@ -402,11 +399,7 @@ async def get_approvals_count():
     db = SessionLocal()
     try:
         pending = db.query(MobileApproval).filter(MobileApproval.status == "pending").count()
-        high_priority = (
-            db.query(MobileApproval)
-            .filter(MobileApproval.status == "pending", MobileApproval.priority.in_(["high", "critical"]))
-            .count()
-        )
+        high_priority = db.query(MobileApproval).filter(MobileApproval.status == "pending", MobileApproval.priority.in_(["high", "critical"])).count()
 
         return {"pending": pending, "high_priority": high_priority}
     finally:

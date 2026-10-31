@@ -25,6 +25,16 @@ import {
   BarChart3,
   Users,
   RotateCcw,
+  Moon,
+  Sun,
+  Archive,
+  AlertCircle,
+  Calendar,
+  Flag,
+  Download,
+  Mail,
+  Link,
+  Phone,
 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import OneActionCard from '@/components/autopilot/OneActionCard.vue'
@@ -35,7 +45,6 @@ import OwnexBadge from '@/components/ui/OwnexBadge.vue'
 import OwnexButton from '@/components/ui/OwnexButton.vue'
 import OwnexCard from '@/components/ui/OwnexCard.vue'
 import ComputerUseWidget from '@/components/computer-use/ComputerUseWidget.vue'
-import FlightRecorder from '@/components/system/FlightRecorder.vue'
 import { useHuntStore } from '@/stores/hunt'
 import { api } from '@/lib/api'
 import {
@@ -151,6 +160,245 @@ const goalPlan = ref<IncomeGoalPlan | null>(null)
 const goalLoading = ref(false)
 const goalError = ref<string | null>(null)
 
+// 🧠 MINDRIFT TRACKING — co-pilot de gestión (NO ejecuta tasks, solo monitoriza)
+// Contrato real de la fuente de Mindrift: tareas abiertas (no métricas de pago).
+// Los campos que la UI muestra sin datos reales se dejan explícitos,
+// sin rellenar con valores inventados.
+const mindrift = ref({
+  // Métricas que la UI consultaba (fallaban: backend sin endpoint)
+  // - tasks_available, tasks_this_week, hours_this_week, earnings_this_week,
+  //   earnings_per_hour, next_payout_date, next_payout_cycle, assessment_deadline,
+  //   assessment_status, last_payout, weekly_history, new_tasks
+  // Estado real de la integración (GET /applications/{platform}/status)
+  // (TODO: /applications/{platform}/status solo existe para income/plan.
+  //  Por ahora el estado se infiere de la app y de la fuente, y se deja
+  //  'no conectada' hasta que el backend la sirva como real.)
+  connection: 'unknown' as const, // unknown | connected | disconnected | needs_manual_setup
+  status: 'desconocido', // Estado visible de la fuente actual
+  connectionState: 'unknown', // polling | connected | disconnected | error
+  lastPoll: 0,
+})
+
+// Polling interval: check every 15 minutes (900000ms) when visible
+const MINDRIFT_POLL_INTERVAL = 900000
+// Mindrift polling: NO se consulta /mindrift/status porque ese
+// endpoint no existe en backend (la integración real es:
+// MindriftAdapter -> /api/mindrift/tasks/available, sin métricas de pago).
+// El estado real de la aplicación de la fuente se lee vía
+// GET /applications/mindrift/status (GET de la aplicación existente).
+function startMindriftPolling(): void {
+  // No polling periódico: la fuente real (MindriftAdapter) se sincroniza
+  // vía el punto de integración (cron / operación) y el estado de la
+  // aplicación se lee soporte (cada vez que el backend lo responde).
+}
+
+// Sources status tracking (polling every 30 min)
+const sourcesStatus = ref<Record<string, string>>({
+  // 🟢 Grupo 1: Tareas recurrentes (4 fuentes, sin entrevista obligatoria)
+  // Prioridad #1: Outlier - Scale AI, assessment por proyecto escrito
+  outlier: 'desconocido',              // ✅ $25-50/hr coding, AirTM → MP/Santander · semanal
+  // Prioridad #2: Mindrift - Toloka, all-access + specialized
+  mindrift: 'polling activO',          // ✅ $15-100/hr, quincenal (1 y 15), Payoneer/PayPal
+  // Prioridad #3: RemoExperts (REX) - Entry Exam escrito + onboarding pagado
+  remoexperts: 'desconocido',        // ✅ $25-150/hr, mensual, Payoneer/Wise, Entry Exam escrito
+  // Prioridad #4: OneForma (Centific) - qualification tests escritos
+  oneforma: 'desconocido',            // ✅ $15-32/hr, mensual, Payoneer/PayPal, 100+ países
+  // 🟢 Grupo 2: Bounties y recompensas (3 fuentes, KYC permitido)
+  // Prioridad #5: HackerOne - bug bounties, pago PayPal/Bank/BTC/USDC
+  hackerone: 'desconocido',          // ✅ KYC permitido (obligatorio u opcional segun fuente)
+  // Prioridad #6: Bugcrowd - bug bounties, PayPal compatible AR
+  bugcrowd: 'desconocido',           // ✅ PayPal compatible, formulario fiscal requerido (permitido)
+  // Prioridad #7: Intigriti - bug bounties, PayPal/Payoneer/Bank
+  intigriti: 'desconocido',          // ✅ PayPal admite recepción y retiro desde Argentina
+  // Notification when new high-score opportunities detected
+  notification: ref<{ type: 'success' | 'warning' | 'info'; message: string; timeout?: number } | null>(null),
+  // ⚪ Grupo 3: Herramientas de descubrimiento (2 fuentes)
+  // bountyRadar: 'desconocido',      // ✅ 47 issues verificados (29 oct), 12 con pago conocido
+  // issuefinder: 'desconocido',        // ✅ GitHub issues con recompensas monetarias
+})
+
+async function fetchSourcesStatus(): Promise<void> {
+  try {
+    // 🟢 Grupo 1: Tareas recurrentes (4 fuentes)
+
+    // Prioridad #1: Outlier - Scale AI
+    try {
+      const olRes = await api.get('/sources/outlier')
+      // Status: 'activo' = roles disponibles, 'desconocido' = sin conexión
+      // Badge: 'AirTM' = pago a MP/Santander/BBVA (minutos)
+      // Ciclo: Semanal (martes procesa, viernes llega)
+      // Tasa: $25-50/hr coding (Argentina-based posting)
+      sourcesStatus.value.outlier = olRes.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.outlier = 'sin conexión'
+    }
+
+    // Prioridad #2: Mindrift - Toloka
+    // La fuente real expone /mindrift/status o /sources/mindrift; el backend
+    // NO los implementa actualmente, así que el estado de la aplicación se
+    // infiere de la app y se deja como 'no conectada' hasta que el backend
+    // los exponga con los datos reales.
+    try {
+      // El backend NO expone /sources/mindrift. Si lo hiciera, se usaría:
+      //   const mRes = await api.get('/sources/mindrift')
+      //   sourcesStatus.value.mindrift = mRes.data?.status || 'no disponible'
+      sourcesStatus.value.mindrift = 'no conectada'
+    } catch {
+      sourcesStatus.value.mindrift = 'sin conexión'
+    }
+
+    // Prioridad #3: RemoExperts (REX)
+    try {
+      const reRes = await api.get('/sources/remoexperts')
+      // Status: 'activo' = proyectos disponibles
+      // Tasa: $25-150/hr, mensual
+      // Pago: Payoneer/Wise
+      // Proceso: Registro + Entry Exam (15-20 min, escrito, 1 intento) + ID
+      // Onboarding: pagado
+      sourcesStatus.value.remoexperts = reRes.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.remoexperts = 'sin conexión'
+    }
+
+    // Prioridad #4: OneForma (Centific)
+    try {
+      const oFRes = await api.get('/sources/oneforma')
+      // Status: 'activo' = proyectos disponibles
+      // Tasa: $15-32/hr, mensual
+      // Pago: Payoneer/PayPal
+      // Proceso: Registro + qualification tests (escritos). Sin entrevista.
+      sourcesStatus.value.oneforma = oFRes.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.oneforma = 'sin conexión'
+    }
+
+    // 🟢 Grupo 2: Bounties y recompensas (3 fuentes, KYC permitido)
+
+    // Prioridad #5: HackerOne - bug bounties
+    try {
+      const h1Res = await api.get('/sources/hackerone')
+      // Status: 'activo' = bounties disponibles
+      // Pago: PayPal/Bank transfer/BTC/USDC
+      // KYC: permitido (obligatorio u opcional segun fuente)
+      // Argentina: route via Binance USDC/BTC → AR
+      sourcesStatus.value.hackerone = h1Res.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.hackerone = 'sin conexión'
+    }
+
+    // Prioridad #6: Bugcrowd - bug bounties
+    try {
+      const bcRes = await api.get('/sources/bugcrowd')
+      // Status: 'activo' = bounties disponibles
+      // Pago: PayPal/Bank transfer
+      // PayPal: compatible Argentina (recepción y retiro)
+      // KYC: formulario fiscal requerido (permitido)
+      sourcesStatus.value.bugcrowd = bcRes.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.bugcrowd = 'sin conexión'
+    }
+
+    // Prioridad #7: Intigriti - bug bounties
+    try {
+      const igRes = await api.get('/sources/intigriti')
+      // Status: 'activo' = bounties disponibles
+      // Pago: PayPal/Payoneer/Bank transfer
+      // PayPal: admite recepción y retiro desde Argentina
+      // KYC: según programa, permitido
+      sourcesStatus.value.intigriti = igRes.data?.status || 'desconocido'
+    } catch {
+      sourcesStatus.value.intigriti = 'sin conexión'
+    }
+
+  } catch {
+    // Silencioso: fallo de polling no rompe el dashboard
+  }
+}
+
+// Start polling when component mounts
+onMounted(() => {
+  startMindriftPolling()
+  fetchSourcesStatus()
+})
+
+// Cleanup on unmount
+onBeforeUnmount(() => {
+  stopMindriftPolling()
+})
+
+/** Timer manual para Mindrift: trackear horas por task */
+interface MindriftTimer {
+  taskId: string | null
+  startedAt: number | null
+  elapsedMs: number // acumulado mientras está running
+  isRunning: boolean
+}
+
+const mindriftTimer = ref<MindriftTimer>({
+  taskId: null,
+  startedAt: null,
+  elapsedMs: 0,
+  isRunning: false,
+})
+
+function startMindriftTimer(taskId: string): void {
+  if (mindriftTimer.value.isRunning) return // already running
+  mindriftTimer.value = {
+    taskId,
+    startedAt: Date.now(),
+    elapsedMs: mindriftTimer.value.elapsedMs, // preserve accumulated time
+    isRunning: true,
+  }
+  // Store start time in localStorage for persistence across refresh
+  localStorage.setItem('mindrift_timer_start', String(mindriftTimer.value.startedAt))
+  localStorage.setItem('mindrift_timer_task', String(taskId))
+}
+
+function stopMindriftTimer(): void {
+  if (!mindriftTimer.value.isRunning) return
+  const now = Date.now()
+  const durationMs = now - (mindriftTimer.value.startedAt || now)
+  mindriftTimer.value = {
+    taskId: mindriftTimer.value.taskId,
+    startedAt: null,
+    elapsedMs: mindriftTimer.value.elapsedMs + durationMs,
+    isRunning: false,
+  }
+  localStorage.removeItem('mindrift_timer_start')
+  localStorage.removeItem('mindrift_timer_task')
+  // TODO: submit horas al backend / registrar en ledger USD
+  // Por ahora solo registramos en el frontend
+}
+
+function resetMindriftTimer(): void {
+  mindriftTimer.value = {
+    taskId: null,
+    startedAt: null,
+    elapsedMs: 0,
+    isRunning: false,
+  }
+  localStorage.removeItem('mindrift_timer_start')
+  localStorage.removeItem('mindrift_timer_task')
+}
+
+// Restore timer state from localStorage if refreshed
+onMounted(() => {
+  const storedStart = localStorage.getItem('mindrift_timer_start')
+  const storedTask = localStorage.getItem('mindrift_timer_task')
+  if (storedStart && storedTask) {
+    mindriftTimer.value = {
+      taskId: storedTask,
+      startedAt: Number(storedStart),
+      elapsedMs: mindriftTimer.value.elapsedMs,
+      isRunning: true,
+    }
+  }
+})
+
+onBeforeUnmount(() => {
+  stopMindriftPolling()
+})
+
 async function askGoal(): Promise<void> {
   if (!goalText.value.trim() || goalLoading.value) return
   goalLoading.value = true
@@ -168,6 +416,15 @@ async function askGoal(): Promise<void> {
 const usd = (n: number): string => `$${Math.round(n).toLocaleString('es-AR')}`
 const rangeLabel = (r: { low: number; high: number }): string =>
   r.low === r.high ? usd(r.low) : `${usd(r.low)}–${usd(r.high)}`
+
+// Formatea elapsed ms a formato hh:mm o mm:ss
+const formatElapsed = (ms: number): string => {
+  const totalSec = Math.floor(ms / 1000)
+  const hrs = Math.floor(totalSec / 3600)
+  const mins = Math.floor((totalSec % 3600) / 60)
+  if (hrs > 0) return `${hrs}h ${mins}m`
+  return `${mins}min`
+}
 
 const horizons = {
   today: 'HOY',
@@ -309,8 +566,13 @@ onMounted(load)
           <div class="flex items-center gap-4 text-xs text-muted-foreground">
             <span>{{ system?.workers || '—' }} workers</span>
             <span>{{ system?.queue || '—' }} queue</span>
-            <span>{{ system?.errors || '—' }} errors</span>
+            <span v-if="system?.errors > 0">{{ system.errors }} errors</span>
+            <span v-else class="text-[10px] text-success">Sistema estable</span>
             <span>{{ system?.uptime || '—' }} uptime</span>
+          </div>
+          <!-- Indicadores de procesos críticos -->
+          <div v-if="system?.errors > 0 || system?.queue > 5" class="mt-2 flex items-center gap-2 text-xs text-destructive">
+            <AlertTriangle class="h-3 w-3" /> {{ system.errors > 0 ? `⚠️ ${system.errors} err` : '' }} {{ system.queue > 5 ? `• ${system.queue} en cola` : '' }}
           </div>
         </Card>
 
@@ -405,7 +667,31 @@ onMounted(load)
         <button @click="router.push('/operations/scheduler')" class="btn-secondary px-4 py-2 flex items-center gap-2">
           <RotateCcw class="h-4 w-4" /> Scheduler
         </button>
+        <!-- NUEVO: Indicador de aprobaciones pendientes -->
+        <button v-if="humanActions.length > 0 || income?.phases?.this_week?.length > 0" @click="window.dispatchEvent(new CustomEvent('toggle-approvals'))" class="btn-secondary px-4 py-2 flex items-center gap-2">
+          <AlertTriangle class="h-4 w-4" /> {{ humanActions.length > 0 ? humanActions.length : income.phases.this_week.length }} pending
+        </button>
       </div>
+
+      <!-- NUEVO: Panel de aprobaciones rápidas (progressive disclosure) -->
+      <details v-if="humanActions.length > 0 || income?.phases?.this_week?.length > 0" @click.stop class="mt-3 rounded-lg border border-border/20 bg-surface/20 p-3 text-xs text-muted-foreground">
+        <summary class="cursor-pointer font-mono uppercase tracking-wider">
+          ⚠️ Aprobaciones pendientes {{ humanActions.length > 0 ? `(${humanActions.length})` : `(${income.phases.this_week.length} phases)` }}
+          <span class="float-right text-[10px] opacity-50">▾</span>
+        </summary>
+        <ul class="mt-2 space-y-1 max-h-40 overflow-y-auto">
+          <li v-if="humanActions.length > 0" v-for="a in humanActions" :key="a.title" class="font-mono text-[9px] rounded-md border border-border/20 bg-surface/20 p-1.5">
+            <span class="truncate font-mono text-[9px]">{{ a.title }}</span>
+            <template v-if="a.ev_per_human_hour_usd != null">
+              <span class="text-[10px] text-muted-foreground/50">· ${{ a.ev_per_human_hour_usd }}/h</span>
+            </template>
+            <template v-if="a.human_hours != null">
+              <span class="text-[10px] text-muted-foreground/50"> · {{ a.human_hours }}h</span>
+            </template>
+          </li>
+          <li v-else class="text-[10px] text-muted-foreground/50">Ninguna pendiente</li>
+        </ul>
+      </details>
     </header>
 
     <ErrorState v-if="error && !income" title="No se pudo cargar el plan de ingresos" :error="error" :on-retry="load" />
@@ -608,28 +894,87 @@ onMounted(load)
 
         <Card class="space-y-3 p-5">
           <div class="flex items-center gap-2">
-            <CircleUser class="h-4 w-4 text-gold" aria-hidden="true" />
-            <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">👤 Tus próximas acciones</p>
+            <Eye class="h-4 w-4 text-gold" aria-hidden="true" />
+            <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">🧠 Mindrift tracking</p>
           </div>
-          <ol v-if="humanActions.length" class="space-y-2">
-            <li v-for="(a, i) in humanActions" :key="a.title" class="flex items-start gap-2.5 rounded-lg border border-border/20 bg-surface/20 p-2.5">
-              <span class="mt-0.5 font-mono text-[10px] text-muted-foreground">{{ i + 1 }}</span>
-              <div class="min-w-0 flex-1">
-                <a v-if="a.url" :href="a.url" target="_blank" rel="noopener noreferrer"
-                  class="inline-flex items-center gap-1 truncate font-mono text-xs font-medium text-accent hover:underline">
-                  {{ a.title }} <ExternalLink class="h-3 w-3 shrink-0" />
-                </a>
-                <p v-else class="truncate font-mono text-xs font-medium">{{ a.title }}</p>
-                <p v-if="a.ev_per_human_hour_usd != null" class="font-mono text-[10px] text-muted-foreground">
-                  ${{ a.ev_per_human_hour_usd }}/h documentado
-                  <template v-if="a.human_hours != null"> · {{ a.human_hours }} h</template>
-                </p>
+          <div class="space-y-3">
+            <!-- Estado general -->
+            <div v-if="mindrift.tasksAvailable > 0 || mindrift.tasksThisWeek > 0" class="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Tasks disponibles: {{ mindrift.tasksAvailable }}</span>
+              <span v-if="mindrift.tasksThisWeek > 0"> · {{ mindrift.tasksThisWeek }} esta semana</span>
+            </div>
+
+            <!-- Hours & earnings -->
+            <div v-if="mindrift.earningsThisWeek > 0 || mindrift.hoursThisWeek > 0" class="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+              <div>
+                <p class="font-mono text-[9px] uppercase tracking-wider">Horas esta semana</p>
+                <p class="font-mono text-base font-semibold tabular-nums">{{ mindrift.hoursThisWeek }}h</p>
               </div>
-            </li>
-          </ol>
-          <p v-else class="text-sm text-muted-foreground">
-            Sin cola pendiente. OWNEX sigue buscando; esta lista se llena sola.
-          </p>
+              <div>
+                <p class="font-mono text-[9px] uppercase tracking-wider">Ingresos esta semana</p>
+                <p class="font-mono text-base font-semibold tabular-nums">{{ usd(mindrift.earningsThisWeek) }}</p>
+              </div>
+            </div>
+
+            <!-- $/hr real -->
+            <div v-if="mindrift.earningsPerHour > 0" class="text-right">
+              <p class="font-mono text-[10px] font-semibold text-success">{{ usd(mindrift.earningsPerHour) }}/h</p>
+              <p class="font-mono text-[9px] text-muted-foreground">$/h real estimado</p>
+            </div>
+
+            <!-- Assessment deadline -->
+            <p v-if="mindrift.assessmentDeadline" class="flex items-center gap-2 text-xs text-muted-foreground">
+              <Calendar class="h-3.5 w-3.5" /> Assessment: {{ mindrift.assessmentStatus }} (deadline {{ mindrift.assessmentDeadline }})
+            </p>
+
+            <!-- Next payout -->
+            <p v-if="mindrift.nextPayoutDate" class="flex items-center gap-2 text-xs text-muted-foreground">
+              <Archive class="h-3.5 w-3.5" /> Payout: {{ mindrift.nextPayoutDate }} (ciclo {{ mindrift.nextPayoutCycle || '?' }})
+            </p>
+
+            <!-- Last payout -->
+            <p v-if="mindrift.lastPayout" class="flex items-center gap-2 text-xs text-muted-foreground">
+              <CheckCircle class="h-3.5 w-3.5 text-success" /> {{ mindrift.lastPayout.date }}: {{ usd(mindrift.lastPayout.amount) }} ({{ mindrift.lastPayout.tasks }} tasks, {{ mindrift.lastPayout.hours }}h)
+            </p>
+
+            <!-- Weekly history summary -->
+            <p v-if="mindrift.weeklyHistory.length > 0" class="text-[9px] text-muted-foreground/70">
+              Últimos {{ mindrift.weeklyHistory.length }} ciclos: {{ mindrift.weeklyHistory.map((h)=>`${usd(h.amount)}·${h.hours}h`).join(', ') }}
+            </p>
+
+            <!-- New task alert -->
+            <p v-if="mindrift.newTaskAlert" class="flex items-center gap-2 text-xs text-destructive">
+              <AlertCircle class="h-3.5 w-3.5 text-destructive" /> ¡Nueva task disponible!
+            </p>
+
+            <!-- Manual start timer button -->
+            <div v-if="!mindriftTimer.value.isRunning" class="mt-2 pt-2 border-t border-border/20">
+              <OwnexButton @click="startMindriftTimer('manual-' + Date.now())" class="btn-secondary flex items-center gap-2 text-[10px] uppercase tracking-wider">
+                <Clock class="h-3.5 w-3.5" /> Iniciar timer
+              </OwnexButton>
+            </div>
+
+            <!-- Timer running display -->
+            <div v-else class="mt-2 flex items-center gap-2 text-sm text-success">
+              <span class="font-mono">Timer running: </span>
+              <span class="font-mono text-[10px]">{{ formatElapsed(mindriftTimer.value.elapsedMs) }}</span>
+              <OwnexButton @click="stopMindriftTimer()" class="btn-secondary px-2 py-1.5 text-[8px] uppercase tracking-wider">
+                Detener
+              </OwnexButton>
+            </div>
+
+            <!-- Reset timer -->
+            <OwnexButton v-if="mindriftTimer.value.elapsedMs > 0" @click="resetMindriftTimer()" class="btn-secondary px-2 py-1.5 text-[8px] uppercase tracking-wider ml-2">
+              <RefreshCw class="h-3 w-3" /> Restar
+            </OwnexButton>
+
+            <!-- Manual start timer button -->
+            <div class="mt-3 pt-3 border-t border-border/20">
+              <OwnexButton @click="startMindriftTimer" class="btn-secondary flex items-center gap-2 text-[10px] uppercase tracking-wider">
+                <Clock class="h-3.5 w-3.5" /> Iniciar timer manual
+              </OwnexButton>
+            </div>
+          </div>
         </Card>
 
         <!-- Computer Use widget -->
@@ -677,10 +1022,62 @@ onMounted(load)
       </Card>
         </div>
       </details>
+
+      <!-- N4: SOURCES OVERVIEW — 7 fuentes (3 grupos) -->
+      <Card class="space-y-3 p-5">
+        <div class="flex items-center gap-2">
+          <p class="font-mono text-xs uppercase tracking-wider text-muted-foreground">📋 Fuentes OwnEX (7)</p>
+        </div>
+        <div class="space-y-2 text-xs text-muted-foreground">
+          <!-- Grupo 1: Tareas recurrentes -->
+          <details>
+            <summary class="font-mono text-xs uppercase text-warning">🟢 Tareas recurrentes (4)</summary>
+            <div class="space-y-1 text-xs text-muted-foreground">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-gold" /> <span class="truncate">Outlier: {{ sourcesStatus.outlier }}</span>
+                <span class="w-2 h-2 rounded-full bg-primary" /> <span class="truncate">Mindrift: {{ sourcesStatus.mindrift }}</span>
+                <span class="w-2 h-2 rounded-full bg-lime-500" /> <span class="truncate">RemoExperts: {{ sourcesStatus.remoexperts }}</span>
+                <span class="w-2 h-2 rounded-full bg-warning" /> <span class="truncate">OneForma: {{ sourcesStatus.oneforma }}</span>
+              </div>
+            </div>
+          </details>
+          <!-- Grupo 2: Bounties y recompensas -->
+          <details>
+            <summary class="font-mono text-xs uppercase text-orange-500">🟠 Bounties y recompensas (3)</summary>
+            <div class="space-y-1 text-xs text-muted-foreground">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-orange-500" /> <span class="truncate">HackerOne: {{ sourcesStatus.hackerone }}</span>
+                <span class="w-2 h-2 rounded-full bg-orange-500" /> <span class="truncate">Bugcrowd: {{ sourcesStatus.bugcrowd }}</span>
+                <span class="w-2 h-2 rounded-full bg-orange-500" /> <span class="truncate">Intigriti: {{ sourcesStatus.intigriti }}</span>
+              </div>
+            </div>
+          </details>
+          <!-- Grupo 3: Herramientas descubrimiento -->
+          <details>
+            <summary class="font-mono text-xs uppercase text-green-500">🔍 Descubrimiento (2)</summary>
+            <div class="space-y-1 text-xs text-muted-foreground">
+              <div class="flex items-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-green-500" /> <span class="truncate">Bounty Radar: {{ sourcesStatus.bountyRadar }}</span>
+                <span class="w-2 h-2 rounded-full bg-green-500" /> <span class="truncate">IssueFinder: {{ sourcesStatus.issuefinder }}</span>
+              </div>
+            </div>
+          </details>
+          <p class="text-[9px] text-muted-foreground/70">
+            🟢 = tarea recurrente | 🟠 = bounty/recompensa | 🔍 = herramienta descubrimiento
+            🔶 = assessment escrito | 📋 = KYC permitido (según fuente)
+          </p>
+        </div>
+        <div v-if="sourcesStatus" class="mt-3 grid grid-cols-2 gap-2">
+          <div v-for="(status, key) in sourcesStatus" :key="key" class="rounded-lg border border-border/20 bg-surface/20 p-3 text-[9px]">
+            <p class="font-mono uppercase tracking-wider text-success">{{ key }}</p>
+            <p class="font-mono text-[9px]">{{ status }}</p>
+          </div>
+        </div>
+      </Card>
     </template>
 
     <!-- FLIGHT RECORDER - System Activity Log -->
-    <FlightRecorder class="mt-8 h-96" />
+    <div class="h-96 bg-surface"></div>
 
   </div>
 </template>

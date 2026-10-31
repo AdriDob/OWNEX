@@ -78,11 +78,7 @@ class DefiYieldTracker:
                 chain = position.chain.lower()
 
                 matching = [
-                    p
-                    for p in pools
-                    if slug in p.get("project", "").lower()
-                    and chain in p.get("chain", "").lower()
-                    and "usd" in p.get("symbol", "").lower()
+                    p for p in pools if slug in p.get("project", "").lower() and chain in p.get("chain", "").lower() and "usd" in p.get("symbol", "").lower()
                 ]
 
                 if matching:

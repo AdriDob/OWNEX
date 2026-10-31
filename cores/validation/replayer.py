@@ -274,10 +274,7 @@ class RequestReplayer:
             # Check consistency with previous attempt
             if attempt > 1:
                 prev = results[-1]
-                result.consistent = (
-                    result.status_match == prev.status_match
-                    and abs(result.body_diff_ratio - prev.body_diff_ratio) < 0.05
-                )
+                result.consistent = result.status_match == prev.status_match and abs(result.body_diff_ratio - prev.body_diff_ratio) < 0.05
             else:
                 result.consistent = True
 
@@ -293,9 +290,7 @@ class RequestReplayer:
                     backoff_delay = self._retry_strategy.calculate_backoff(attempt)
                     time.sleep(backoff_delay)
                     # Mutate headers for next attempt
-                    request_spec.headers.update(
-                        self._retry_strategy.get_request_mutation(attempt, request_spec.headers)
-                    )
+                    request_spec.headers.update(self._retry_strategy.get_request_mutation(attempt, request_spec.headers))
                     attempt += 1
                     continue
                 else:

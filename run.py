@@ -36,17 +36,22 @@ if hasattr(sys.stdout, "reconfigure"):
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
-# Portable mode: use data/ next to binary if CATEYE_DATA_DIR not set
-if getattr(sys, "frozen", False) and not os.environ.get("CATEYE_DATA_DIR"):
+# Resolve one data directory before importing anything that opens the database.
+# Keep the legacy CATEYE variable as an alias while OWNEX becomes canonical.
+_configured_data_dir = os.environ.get("OWNEX_DATA_DIR") or os.environ.get("CATEYE_DATA_DIR")
+if getattr(sys, "frozen", False) and not _configured_data_dir:
     _exe_dir = Path(sys.executable).resolve().parent
     _portable_data = _exe_dir / "data"
     if _portable_data.is_dir():
-        os.environ["CATEYE_DATA_DIR"] = str(_portable_data)
+        _configured_data_dir = str(_portable_data)
+
+_data_dir = Path(_configured_data_dir) if _configured_data_dir else Path.home() / ".orion"
+os.environ["OWNEX_DATA_DIR"] = str(_data_dir)
+os.environ["CATEYE_DATA_DIR"] = str(_data_dir)
 
 # Set DATABASE_URL before any import that touches database/db.py
 # (core_engines.intelligence imports it at module level)
 if not os.environ.get("DATABASE_URL"):
-    _data_dir = Path(os.environ.get("CATEYE_DATA_DIR", Path.home() / ".orion"))
     _db_path = _data_dir / "database" / "cateye.db"
     _db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
@@ -898,9 +903,7 @@ def _handle_validate(args: list[str]) -> None:
 
         for target in targets:
             _log("VALIDATE", "Target: %s (id=%d)", target.name, target.id)
-            endpoints = (
-                session.query(db.models.Endpoint).filter(db.models.Endpoint.target_id == target.id).limit(50).all()
-            )
+            endpoints = session.query(db.models.Endpoint).filter(db.models.Endpoint.target_id == target.id).limit(50).all()
             if not endpoints:
                 _log("VALIDATE", "  Sin endpoints → skip")
                 continue

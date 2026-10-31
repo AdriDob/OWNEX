@@ -318,9 +318,7 @@ class Top5Engine:
         # Build summary
         if selected:
             best = selected[0]
-            summary = (
-                f"Top 1: {best.name} (${best.score.expected_value:.0f} EV)" if best.score else f"Top 1: {best.name}"
-            )
+            summary = f"Top 1: {best.name} (${best.score.expected_value:.0f} EV)" if best.score else f"Top 1: {best.name}"
         else:
             summary = "No opportunities."
 

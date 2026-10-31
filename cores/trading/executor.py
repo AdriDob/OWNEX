@@ -152,21 +152,15 @@ class RealExecutor(ExecutionEngine):
         )
         if not self._wallet.is_loaded:
             logger.error(mode_style(LogStyle.REAL, "No wallet configured — trades will fail"))
-        logger.warning(
-            mode_style(LogStyle.REAL, f"REAL mode ACTIVE — wallet: {self._wallet.address or 'NOT CONFIGURED'}")
-        )
+        logger.warning(mode_style(LogStyle.REAL, f"REAL mode ACTIVE — wallet: {self._wallet.address or 'NOT CONFIGURED'}"))
 
     def _log_guard(self, config: TradingConfig) -> None:
         if config.is_simulation:
-            raise SecurityViolationError(
-                "RealExecutor instantiated in simulation mode. This would broadcast real transactions."
-            )
+            raise SecurityViolationError("RealExecutor instantiated in simulation mode. This would broadcast real transactions.")
 
     def execute_order(self, order: Order) -> ExecutionResult:
         order.id = self._generate_order_id()
-        logger.warning(
-            mode_style(LogStyle.REAL, f"EXECUTING ORDER {order.id}: {order.side.name} {order.quantity} {order.pair}")
-        )
+        logger.warning(mode_style(LogStyle.REAL, f"EXECUTING ORDER {order.id}: {order.side.name} {order.quantity} {order.pair}"))
 
         if not self._wallet.is_loaded:
             return ExecutionResult(success=False, error="Wallet not configured")
@@ -212,11 +206,7 @@ class RealExecutor(ExecutionEngine):
 
             order.status = OrderStatus.FILLED
             order.filled_quantity = out_amount_dec if order.side == OrderSide.BUY else in_amount_dec
-            fill_price = (
-                Decimal(str(quote_result.out_amount)) / Decimal(str(quote_result.in_amount))
-                if quote_result.in_amount
-                else Decimal()
-            )
+            fill_price = Decimal(str(quote_result.out_amount)) / Decimal(str(quote_result.in_amount)) if quote_result.in_amount else Decimal()
             order.avg_fill_price = fill_price
 
             trade = Trade(
@@ -410,11 +400,7 @@ class PaperTradingExecutor(ExecutionEngine):
             persist_path=config.paper_wallet_path,
         )
         self._price_feed = price_feed
-        logger.warning(
-            mode_style(
-                LogStyle.PAPER, f"Paper Trading mode ACTIVE — virtual balance: ${config.paper_initial_balance_usdc}"
-            )
-        )
+        logger.warning(mode_style(LogStyle.PAPER, f"Paper Trading mode ACTIVE — virtual balance: ${config.paper_initial_balance_usdc}"))
 
     @property
     def wallet(self) -> VirtualWallet:

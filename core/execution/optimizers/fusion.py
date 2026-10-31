@@ -107,8 +107,7 @@ class FusionOptimizer(BaseOptimizer):
                 logs.append(
                     OptimizationLog(
                         optimizer=self.name,
-                        description=f"Fused duplicate capability '{cap_name}' call: "
-                        f"'{dupe.label or dupe.id}' → reuse '{leader.label or leader.id}'",
+                        description=f"Fused duplicate capability '{cap_name}' call: '{dupe.label or dupe.id}' → reuse '{leader.label or leader.id}'",
                         node_ids_affected=[leader.id, dupe.id],
                         before=f"separate '{dupe.label or dupe.id}'",
                         after=f"reuse '{leader.label or leader.id}'",

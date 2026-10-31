@@ -84,14 +84,8 @@ class SmartAllocator:
         for sid, sa in self._allocation._strategies.items():
             current_deployed[sid] = sa.deployed_usd
 
-        high_risk_deployed = sum(
-            current_deployed.get(s.id, 0.0)
-            for s in active_strategies
-            if s.risk_level.value in ("aggressive", "speculative")
-        )
-        speculative_deployed = sum(
-            current_deployed.get(s.id, 0.0) for s in active_strategies if s.risk_level.value == "speculative"
-        )
+        high_risk_deployed = sum(current_deployed.get(s.id, 0.0) for s in active_strategies if s.risk_level.value in ("aggressive", "speculative"))
+        speculative_deployed = sum(current_deployed.get(s.id, 0.0) for s in active_strategies if s.risk_level.value == "speculative")
 
         # Allocate to each strategy
         breakdown: list[dict[str, Any]] = []
@@ -187,18 +181,13 @@ class SmartAllocator:
         try:
             from cores.notifications.hub import get_hub
 
-            breakdown_str = "\n".join(
-                f"• {b['strategy_name']}: ${b['amount']:.2f} ({b['pct_of_payout']}%)" for b in result["breakdown"]
-            )
+            breakdown_str = "\n".join(f"• {b['strategy_name']}: ${b['amount']:.2f} ({b['pct_of_payout']}%)" for b in result["breakdown"])
 
             get_hub().notify(
                 type_="assistant_recommendation",
                 title=f"Smart Allocation: ${result['allocated']:.2f} deployed",
                 message=(
-                    "Payout allocated automatically:\n"
-                    f"{breakdown_str}\n"
-                    f"\nReserve: ${result['reserve']:.2f}\n"
-                    f"Total capital: ${result['total_capital']:.2f}"
+                    f"Payout allocated automatically:\n{breakdown_str}\n\nReserve: ${result['reserve']:.2f}\nTotal capital: ${result['total_capital']:.2f}"
                 ),
                 severity="info",
                 priority="low",

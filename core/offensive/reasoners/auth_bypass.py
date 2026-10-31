@@ -205,10 +205,7 @@ class AuthBypassReasoner(BaseReasoner):
         ]
 
     def _build_alternatives(self) -> list[dict[str, Any]]:
-        return [
-            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
-            for alt in AUTH_BYPASS_ALTERNATIVES
-        ]
+        return [{"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]} for alt in AUTH_BYPASS_ALTERNATIVES]
 
     def _scope_check(self, endpoint: EndpointInfo) -> str:
         return (

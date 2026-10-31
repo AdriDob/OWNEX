@@ -32,11 +32,7 @@ class EvidenceEngine:
         try:
             from apps.aegis.models import ScanResult
 
-            db.execute(
-                ScanResult.__table__.update()
-                .where(ScanResult.id == finding_id)
-                .values(evidence=f"stored:{path.name}:{sha256}")
-            )
+            db.execute(ScanResult.__table__.update().where(ScanResult.id == finding_id).values(evidence=f"stored:{path.name}:{sha256}"))
             db.commit()
         finally:
             db.close()

@@ -374,9 +374,7 @@ Prueba los comandos básicos:
 
     def complete_lesson(self, lesson_id: str, notes: str = "") -> bool:
         """Completar lección."""
-        lesson = next(
-            (existing_lesson for existing_lesson in self.lessons if existing_lesson.lesson_id == lesson_id), None
-        )
+        lesson = next((existing_lesson for existing_lesson in self.lessons if existing_lesson.lesson_id == lesson_id), None)
 
         if not lesson:
             return False
@@ -425,10 +423,7 @@ Prueba los comandos básicos:
         if not self.progress:
             return False
 
-        return (
-            self.progress.current_day == OnboardingDay.DAY_7
-            and self.progress.lessons_completed == self.progress.lessons_total
-        )
+        return self.progress.current_day == OnboardingDay.DAY_7 and self.progress.lessons_completed == self.progress.lessons_total
 
 
 # Singleton instance

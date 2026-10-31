@@ -172,15 +172,11 @@ class AutomationEngine:
 
         # 2. Permission evaluation
         perm = evaluate_action(command, self.safe_mode, force=force)
-        self._publisher.action_requested(
-            command, risk=perm.risk, destructive=perm.destructive, reason=perm.reason or "user requested"
-        )
+        self._publisher.action_requested(command, risk=perm.risk, destructive=perm.destructive, reason=perm.reason or "user requested")
 
         if not perm.allowed:
             self._publisher.permission_required(command, risk=perm.risk, impact=perm.impact)
-            self._publisher.action_failed(
-                command, error=perm.reason or "Permission denied", details={"blocked_by": perm.blocked_by}
-            )
+            self._publisher.action_failed(command, error=perm.reason or "Permission denied", details={"blocked_by": perm.blocked_by})
             self._record_history(
                 command,
                 "denied",
@@ -216,9 +212,7 @@ class AutomationEngine:
         except Exception as exc:
             logger.exception("Hermes command '%s' failed", command)
             self._publisher.action_failed(command, error=str(exc), details={"kwargs": kwargs})
-            self._record_history(
-                command, "failed", risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=str(exc)
-            )
+            self._record_history(command, "failed", risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=str(exc))
             return ActionResult(
                 command=command,
                 status="error",
@@ -227,18 +221,14 @@ class AutomationEngine:
 
         # 5. Record completion
         self._publisher.action_completed(command, status=result.status, message=result.message, details=result.details)
-        self._record_history(
-            command, result.status, risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=result.message
-        )
+        self._record_history(command, result.status, risk=cmd_def["risk"], destructive=cmd_def["destructive"], message=result.message)
         self._history.append(result)
         if HERMES_LOG_ACTIONS:
             self._log_action(result)
 
         return result
 
-    def _record_history(
-        self, command: str, status: str, risk: str = "none", destructive: bool = False, message: str = ""
-    ) -> None:
+    def _record_history(self, command: str, status: str, risk: str = "none", destructive: bool = False, message: str = "") -> None:
         self._action_history.record(
             ActionRecord(
                 command=command,

@@ -393,9 +393,7 @@ class KnowledgeGraph:
             agent.successful_tasks += 1
         agent.total_reward += outcome.reward_usd
         agent.total_cost += outcome.cost_usd
-        agent.avg_duration = (
-            agent.avg_duration * (agent.total_tasks - 1) + outcome.duration_seconds
-        ) / agent.total_tasks
+        agent.avg_duration = (agent.avg_duration * (agent.total_tasks - 1) + outcome.duration_seconds) / agent.total_tasks
 
         # Platform affinity
         plat_eff = outcome.efficiency
@@ -520,11 +518,7 @@ class KnowledgeGraph:
         return base_rate * agent_mult * type_mult * plat_mult
 
     def get_recent_failures(self, platform: str = None, limit: int = 20) -> list[TaskOutcome]:
-        failures = [
-            o
-            for o in self._recent_outcomes
-            if o.outcome in (OutcomeType.FAILURE, OutcomeType.ERROR, OutcomeType.TIMEOUT)
-        ]
+        failures = [o for o in self._recent_outcomes if o.outcome in (OutcomeType.FAILURE, OutcomeType.ERROR, OutcomeType.TIMEOUT)]
         if platform:
             failures = [f for f in failures if f.platform == platform]
         return failures[:limit]

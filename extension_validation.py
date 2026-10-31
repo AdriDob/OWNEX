@@ -141,18 +141,10 @@ class ExtensionValidationSystem:
         if issues_found:
             self.validation_results["invalid_extensions"] += 1
             self.validation_results["manifest_issues"].extend(
-                [
-                    {"extension": ext_name, "issue": issue}
-                    for issue in issues_found
-                    if "manifest" in issue["type"].lower()
-                ]
+                [{"extension": ext_name, "issue": issue} for issue in issues_found if "manifest" in issue["type"].lower()]
             )
             self.validation_results["capability_issues"].extend(
-                [
-                    {"extension": ext_name, "issue": issue}
-                    for issue in issues_found
-                    if "capability" in issue["type"].lower()
-                ]
+                [{"extension": ext_name, "issue": issue} for issue in issues_found if "capability" in issue["type"].lower()]
             )
             self.validation_results["structural_issues"].extend(
                 [
@@ -382,17 +374,11 @@ class ExtensionValidationSystem:
 
         # Calculate success rate
         if self.validation_results["total_extensions"] > 0:
-            success_rate = (
-                self.validation_results["valid_extensions"] / self.validation_results["total_extensions"]
-            ) * 100
+            success_rate = (self.validation_results["valid_extensions"] / self.validation_results["total_extensions"]) * 100
             print(f"   📊 Success Rate: {success_rate:.1f}%")
 
         # Print detailed issues if any
-        if (
-            self.validation_results["manifest_issues"]
-            or self.validation_results["capability_issues"]
-            or self.validation_results["structural_issues"]
-        ):
+        if self.validation_results["manifest_issues"] or self.validation_results["capability_issues"] or self.validation_results["structural_issues"]:
             print("\n⚠️  ISSUES FOUND:")
 
             if self.validation_results["manifest_issues"]:
@@ -459,9 +445,7 @@ class ExtensionValidationSystem:
 
         # General recommendations
         if self.validation_results["invalid_extensions"] > 0:
-            recommendations.append(
-                f"📋 PRIORITY FIX: Fix {self.validation_results['invalid_extensions']} invalid extensions first"
-            )
+            recommendations.append(f"📋 PRIORITY FIX: Fix {self.validation_results['invalid_extensions']} invalid extensions first")
 
         if self.validation_results["total_extensions"] > self.validation_results["valid_extensions"]:
             recommendations.append("📊 MONITORING: Implement continuous extension validation in CI/CD pipeline")

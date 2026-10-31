@@ -179,20 +179,10 @@ def calculate_revenue_potential(tier: RevenueTier, include_market_modules: bool 
         * multiplier
     )
 
-    dev_bounty_monthly = (
-        platforms["dev_bounty"].daily_capacity
-        * 30
-        * platforms["dev_bounty"].avg_reward
-        * platforms["dev_bounty"].success_rate
-        * multiplier
-    )
+    dev_bounty_monthly = platforms["dev_bounty"].daily_capacity * 30 * platforms["dev_bounty"].avg_reward * platforms["dev_bounty"].success_rate * multiplier
 
     data_annotation_monthly = (
-        platforms["data_annotation"].daily_capacity
-        * 30
-        * platforms["data_annotation"].avg_reward
-        * platforms["data_annotation"].success_rate
-        * multiplier
+        platforms["data_annotation"].daily_capacity * 30 * platforms["data_annotation"].avg_reward * platforms["data_annotation"].success_rate * multiplier
     )
 
     # Calculate market modules potential (if enabled)

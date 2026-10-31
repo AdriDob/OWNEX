@@ -338,9 +338,7 @@ def _parse_due_date(value: str | None) -> datetime | None:
 
 
 @router.get("/tasks")
-def list_tasks(
-    status: str | None = Query(None), priority: str | None = Query(None), limit: int = Query(50, ge=1, le=200)
-):
+def list_tasks(status: str | None = Query(None), priority: str | None = Query(None), limit: int = Query(50, ge=1, le=200)):
     session = db.SessionLocal()
     try:
         q = session.query(models.Task)
@@ -635,9 +633,7 @@ def system_self_test():
         from cores.timeline import build_timeline
 
         tl = build_timeline(limit=1)
-        results.append(
-            {"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"}
-        )
+        results.append({"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"})
     except Exception as e:
         all_ok = False
         results.append({"component": "timeline", "status": "error", "detail": str(e)})

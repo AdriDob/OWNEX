@@ -36,10 +36,10 @@ build-android-clean: ## Clean and rebuild Android debug APK
 	$(PY) scripts/build_android.py --clean
 
 build-desktop: ## Build desktop bundle via PyInstaller (current OS)
-	$(PY) desktop/build/build_desktop.py --onedir
+	$(PY) -m PyInstaller CATEYE.spec -y
 
 build-desktop-onefile: ## Build desktop single-file binary
-	$(PY) desktop/build/build_desktop.py --onefile
+	OWNEX_ONEFILE=1 $(PY) -m PyInstaller CATEYE.spec -y
 
 clean: ## Remove build artifacts
 	rm -rf dist/

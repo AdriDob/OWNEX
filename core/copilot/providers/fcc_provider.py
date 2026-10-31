@@ -32,16 +32,12 @@ class FCCProvider(BaseProvider):
                 timeout_s=60,
             )
         )
-        self._base_url = (
-            self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
-        )
+        self._base_url = self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
         self._api_key = self._config.extra.get(
             "api_key",
             os.getenv(
                 "ANTHROPIC_API_KEY",
-                os.getenv(
-                    "OPENROUTER_API_KEY", "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"
-                ),
+                os.getenv("OPENROUTER_API_KEY", "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"),
             ),
         )
         self._default_model = self._config.models[0]
@@ -125,9 +121,7 @@ class FCCProvider(BaseProvider):
                 )
         except Exception as exc:
             logger.warning("FCC chat failed: %s", exc)
-            return ProviderResponse(
-                content="", provider="fcc", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="fcc", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000)
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         import httpx

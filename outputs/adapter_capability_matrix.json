@@ -1,0 +1,137 @@
+{
+  "created": "2026-10-31",
+  "methodology": "Per integration bundle section 8: adapter boundaries around stable protocols, thin provider-specific implementations",
+  "capability_states": {
+    "MANUAL_ONLY": "Display official link and instructions, no automation",
+    "DISCOVERY_READ_ONLY": "Obtain public listings or permitted data",
+    "PREPARE_ASSISTED": "Prepare drafts, code workspaces, checklists, evidence without submission",
+    "EXECUTE_HUMAN_APPROVAL": "Human approves claim, bid, PR, report, application, upload, or transaction",
+    "AUTO_REVERSIBLE": "Low-risk reversible actions explicitly permitted by provider and OWNEX policy"
+  },
+  "shared_connector_families": [
+    "Official REST/HTTP API connector",
+    "GraphQL connector",
+    "MCP client connector",
+    "CLI/process adapter",
+    "GitHub issues/PR/releases adapter",
+    "Webhook/event adapter",
+    "In-app browser adapter for permitted web workflows",
+    "On-chain read/indexer adapter",
+    "Wallet signing interface (external key custody; never store seed phrases/private keys in OWNEX)",
+    "Payout-status/import adapter"
+  ],
+  "source_adapters": {
+    "taskbounty": {
+      "source_id": "taskbounty",
+      "display_name": "TaskBounty (task-bounty.ai)",
+      "category": "dev_bounties",
+      "evidence_grade": "B",
+      "capability_state": "MANUAL_ONLY",
+      "permitted_capabilities": [
+        "task list polling",
+        "evidence drafting",
+        "human approval for submission"
+      ],
+      "adapter_type": "manual display",
+      "connector_family": "MCP client connector / REST API",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "payout_currency": "USDC/ETH",
+      "blockers": [
+        "AI policy: no auto-submit"
+      ],
+      "first_seen": "2026-10-31",
+      "last_verified": "2026-10-31"
+    },
+    "github_bounties": {
+      "source_id": "github_bounties",
+      "display_name": "GitHub bounties",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "capability_state": "MANUAL_ONLY",
+      "permitted_capabilities": [
+        "issue listing",
+        "PR monitoring"
+      ],
+      "adapter_type": "read-only display",
+      "connector_family": "GitHub issues/PR/releases adapter",
+      "argentina_availability": "denied",
+      "beginner_access": "low",
+      "payout_currency": "unknown",
+      "blockers": [
+        "no primary evidence",
+        "not recommended for OWNEX"
+      ],
+      "first_seen": "2026-10-31",
+      "last_verified": "2026-10-31"
+    },
+    "agenthansa": {
+      "source_id": "agenthansa",
+      "display_name": "AgentHansa",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "capability_state": "MANUAL_ONLY",
+      "permitted_capabilities": [
+        "documentation reference only"
+      ],
+      "adapter_type": "manual display - platform flagged",
+      "connector_family": "MANUAL_ONLY (platform flagged as fake)",
+      "argentina_availability": "denied",
+      "beginner_access": "low",
+      "payout_currency": "unknown",
+      "blockers": [
+        "no primary evidence",
+        "fake (SPA shell)"
+      ],
+      "first_seen": "2026-10-31",
+      "last_verified": "2026-10-31"
+    },
+    "opire": {
+      "source_id": "opire",
+      "display_name": "Opire",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "capability_state": "MANUAL_ONLY",
+      "permitted_capabilities": [
+        "bounty listing retrieval",
+        "evidence collection",
+        "work preparation"
+      ],
+      "adapter_type": "read-only display",
+      "connector_family": "REST API connector (no auth)",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "payout_currency": "USDC/SOL",
+      "blockers": [
+        "no primary evidence",
+        "research mixed on receipts"
+      ],
+      "first_seen": "2026-10-31",
+      "last_verified": "2026-10-31"
+    },
+    "bugbounty": {
+      "source_id": "bugbounty",
+      "display_name": "Bug Bounties (security)",
+      "category": "security_bounty",
+      "evidence_grade": "B",
+      "capability_state": "MANUAL_ONLY",
+      "permitted_capabilities": [
+        "bounty status checking",
+        "draft report preparation",
+        "human verification gate"
+      ],
+      "adapter_type": "manual display",
+      "connector_family": "Official REST/HTTP API adapter",
+      "argentina_availability": "conditional",
+      "beginner_access": "medium",
+      "payout_currency": "USD/USDC-ETH",
+      "blockers": [
+        "requires security skill",
+        "human verification gate",
+        "intermittent work"
+      ],
+      "first_seen": "2026-10-31",
+      "last_verified": "2026-10-31"
+    }
+  }
+}

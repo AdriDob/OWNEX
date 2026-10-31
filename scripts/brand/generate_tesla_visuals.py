@@ -110,9 +110,7 @@ def social_preview():
     g.append("</g>")
     # wordmark debajo del lockup
     g.append(txt(lockup_x, lockup_y + lockup_height + 24, "OWNEX", 48, C["fg"], 700, ls="-0.02em"))
-    g.append(
-        txt(lockup_x, lockup_y + lockup_height + 84, "The personalized autonomous operating system", 20, C["muted_fg"])
-    )
+    g.append(txt(lockup_x, lockup_y + lockup_height + 84, "The personalized autonomous operating system", 20, C["muted_fg"]))
     # bottom subtle line
     g.append(rect(lockup_x, lockup_y + lockup_height + 120, lockup_width, 2, C["accent"], rx=1))
     g.append("</svg>")

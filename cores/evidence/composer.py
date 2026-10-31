@@ -228,9 +228,7 @@ def generate_python(
     return "\n".join(lines)
 
 
-def generate_js_fetch(
-    method: str, endpoint: str, params: dict[str, str] | None, headers: dict[str, str] | None, body: Any
-) -> str:
+def generate_js_fetch(method: str, endpoint: str, params: dict[str, str] | None, headers: dict[str, str] | None, body: Any) -> str:
     url = endpoint
     if params:
         qs = "&".join(f"{k}={v}" for k, v in params.items() if not k.startswith("{"))
@@ -265,9 +263,7 @@ def _format_js_opts(opts: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def generate_httpie(
-    method: str, endpoint: str, params: dict[str, str] | None, headers: dict[str, str] | None, body: Any
-) -> str:
+def generate_httpie(method: str, endpoint: str, params: dict[str, str] | None, headers: dict[str, str] | None, body: Any) -> str:
     parts = [f"http {method} '{endpoint}'"]
     if params:
         for k, v in params.items():
@@ -393,9 +389,7 @@ def check_report_readiness(bundle: EvidenceBundle) -> tuple[bool, list[str]]:
         "Business impact assessment": bool(bundle.business_impact),
         "CVSS score": bundle.cvss_score > 0,
         "CWE identifier": bool(bundle.cwe_id),
-        "PoC in at least one format (curl/Python/JS)": bool(
-            bundle.curl_command or bundle.python_script or bundle.js_fetch_code
-        ),
+        "PoC in at least one format (curl/Python/JS)": bool(bundle.curl_command or bundle.python_script or bundle.js_fetch_code),
         "Scope verification": len(bundle.preconditions) >= 1,
     }
     for item, passed in checks.items():
@@ -473,9 +467,7 @@ class EvidenceComposer:
             best_probe = poc_data.get("best_probe", {})
             if best_probe:
                 test_value = (
-                    str(best_probe.get("payload", {}).get(hypothesis.parameters_of_interest[0], test_value))
-                    if best_probe.get("payload")
-                    else test_value
+                    str(best_probe.get("payload", {}).get(hypothesis.parameters_of_interest[0], test_value)) if best_probe.get("payload") else test_value
                 )
 
             # Build real reproduction steps from evidence items
@@ -498,9 +490,7 @@ class EvidenceComposer:
                 last_pair = rr_pairs[-1]
                 probe_resp = last_pair.get("probe", {})
                 if probe_resp.get("body_snippet"):
-                    actual_result_text = (
-                        f"Response ({probe_resp.get('status', '?')}): {probe_resp['body_snippet'][:300]}"
-                    )
+                    actual_result_text = f"Response ({probe_resp.get('status', '?')}): {probe_resp['body_snippet'][:300]}"
 
         else:
             repro_steps = self._build_repro_steps(hypothesis, method, poc_host, test_value)
@@ -538,16 +528,11 @@ class EvidenceComposer:
         business_impact = self._assess_business_impact(vuln_type, hypothesis.severity)
 
         # Risk factors
-        risk_factors = (
-            list(hypothesis.acceptance_prediction.risk_factors) if hypothesis.acceptance_prediction.risk_factors else []
-        )
+        risk_factors = list(hypothesis.acceptance_prediction.risk_factors) if hypothesis.acceptance_prediction.risk_factors else []
 
         # System reasoning transparency
         contradictions_list = (
-            [
-                {"label": c.label, "description": c.description, "how_to_rule_out": c.how_to_rule_out}
-                for c in hypothesis.contradictions
-            ]
+            [{"label": c.label, "description": c.description, "how_to_rule_out": c.how_to_rule_out} for c in hypothesis.contradictions]
             if hypothesis.contradictions
             else []
         )
@@ -580,17 +565,11 @@ class EvidenceComposer:
             actual_result=actual_result_text,
             business_impact=business_impact,
             risk_factors=risk_factors,
-            what_was_tested=hypothesis.signals
-            if hypothesis.signals
-            else [f"{method} {hypothesis.endpoint} analyzed for {vuln_type}"],
+            what_was_tested=hypothesis.signals if hypothesis.signals else [f"{method} {hypothesis.endpoint} analyzed for {vuln_type}"],
             what_was_ruled_out=[{"explanation": alt.get("description", "")} for alt in alternatives_list[:2]],
             contradictions_considered=contradictions_list,
             alternative_explanations=alternatives_list,
-            confidence_level="high"
-            if hypothesis.confidence >= 0.7
-            else "medium"
-            if hypothesis.confidence >= 0.4
-            else "low",
+            confidence_level="high" if hypothesis.confidence >= 0.7 else "medium" if hypothesis.confidence >= 0.4 else "low",
             evidence_score=evidence_score,
             acceptance_probability=acceptance_prob,
             nuclei_template=ntemplate,

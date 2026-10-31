@@ -285,9 +285,7 @@ class TestFromEndpoint:
         assert len(candidates) == 1
         assert candidates[0].vulnerability_type == VulnType.IDOR
         assert candidates[0].target_id == 1
-        mock_engine.analyze_endpoint.assert_called_once_with(
-            {"path": "/api/users/123", "method": "GET", "host": "api.target.com"}
-        )
+        mock_engine.analyze_endpoint.assert_called_once_with({"path": "/api/users/123", "method": "GET", "host": "api.target.com"})
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -383,9 +381,7 @@ class TestValidateEndpoint:
         mock_validator = MagicMock()
         mock_val_cls.return_value = mock_validator
         mock_vresult = MagicMock()
-        mock_vresult.candidate = AttackCandidate(
-            vulnerability_type=VulnType.IDOR, method="GET", endpoint_path="/api/users/123"
-        )
+        mock_vresult.candidate = AttackCandidate(vulnerability_type=VulnType.IDOR, method="GET", endpoint_path="/api/users/123")
         mock_vresult.promoted = False
         mock_vresult.confidence = MagicMock()
         mock_vresult.confidence.score = 0.5

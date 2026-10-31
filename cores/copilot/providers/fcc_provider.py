@@ -94,20 +94,14 @@ class FCCProvider(BaseProvider):
 
         # Check for NVIDIA API keys first (highest priority for FCC)
         if os.getenv("NVIDIA_API_KEY") or os.getenv("NIM_API_KEY") or self._config.extra.get("use_nvidia"):
-            self._base_url = self._config.extra.get(
-                "base_url", os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-            )
+            self._base_url = self._config.extra.get("base_url", os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"))
             self._provider_type = "nvidia"
         elif os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY") or os.getenv("ANTHROPIC_API_KEY"):
-            self._base_url = self._config.extra.get(
-                "base_url", os.getenv("ANTHROPIC_BASE_URL", "https://openrouter.ai/api/v1")
-            )
+            self._base_url = self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "https://openrouter.ai/api/v1"))
             self._provider_type = "openrouter"
         else:
             # Default to NVIDIA NIM (free tier available)
-            self._base_url = self._config.extra.get(
-                "base_url", os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-            )
+            self._base_url = self._config.extra.get("base_url", os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"))
             self._provider_type = "nvidia"
 
         self._api_key = self._config.extra.get(
@@ -133,9 +127,7 @@ class FCCProvider(BaseProvider):
         try:
             # Try to fetch from the actual API
             async with httpx.AsyncClient(timeout=10) as client:
-                r = await client.get(
-                    f"{self._base_url}/models", headers={"Authorization": f"Bearer {self._api_key}"}, timeout=10
-                )
+                r = await client.get(f"{self._base_url}/models", headers={"Authorization": f"Bearer {self._api_key}"}, timeout=10)
                 if r.status_code == 200:
                     data = r.json()
                     models = []
@@ -177,9 +169,7 @@ class FCCProvider(BaseProvider):
 
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                r = await client.get(
-                    f"{self._base_url}/models", headers={"Authorization": f"Bearer {self._api_key}"}, timeout=10
-                )
+                r = await client.get(f"{self._base_url}/models", headers={"Authorization": f"Bearer {self._api_key}"}, timeout=10)
                 if r.status_code == 200:
                     logger.debug("FCC: Health check passed (%s)", self._provider_type)
                     return True
@@ -249,9 +239,7 @@ class FCCProvider(BaseProvider):
                 )
         except Exception as exc:
             logger.warning("FCC chat failed: %s", exc)
-            return ProviderResponse(
-                content="", provider="fcc", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="fcc", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000)
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         import httpx

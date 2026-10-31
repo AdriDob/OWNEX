@@ -187,9 +187,7 @@ class UltraFastIncomeEngine:
         # Score and rank items
         scored_items = []
         for opp in ultra_fast_items:
-            score = self._score_ultra_fast_item(
-                opp, plan_opportunity_success, plan_execution, _estimate_hours, _to_float
-            )
+            score = self._score_ultra_fast_item(opp, plan_opportunity_success, plan_execution, _estimate_hours, _to_float)
             if score and score["acceptance_probability"] >= self.config.min_acceptance_probability:
                 scored_items.append(score)
 

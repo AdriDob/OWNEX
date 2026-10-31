@@ -181,9 +181,7 @@ class GoalEvaluator:
             verdict = "Meta agresiva: requiere un golpe de suerte/multiplicador (bug grande, jackpot, producto)."
             status = "ambitious"
         else:
-            verdict = (
-                "Meta fuera de rango real este mes con los datos actuales. Ruta: multiplicar capital y skill primero."
-            )
+            verdict = "Meta fuera de rango real este mes con los datos actuales. Ruta: multiplicar capital y skill primero."
             status = "unrealistic"
 
         gaps = self._gap_actions(target, realistic_projection, data, pipe, read)

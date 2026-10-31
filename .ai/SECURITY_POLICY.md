@@ -249,9 +249,7 @@ async def login(user_id: int, password: str):
             logger.info(f"login successful user_id={user_id} session={session.id} ip={get_client_ip()}")
             return {"status": "authenticated", "session_id": session.id}
         else:
-            logger.warning(
-                f"login failed user_id={user_id} attempt={auth_result.attempts} last_attempt_time={auth_result.last_attempt}"
-            )
+            logger.warning(f"login failed user_id={user_id} attempt={auth_result.attempts} last_attempt_time={auth_result.last_attempt}")
             return {"status": "denied", "reason": "invalid credentials"}
     except Exception as exc:
         # Nunca exponer al cliente
@@ -363,9 +361,7 @@ from prometheus_client import Counter, Histogram
 
 SECURITY_EVENTS_TOTAL = Counter("security_events_total", "Total security events by type", ["event_type", "status"])
 
-SECURITY_RESPONSE_TIME = Histogram(
-    "security_request_duration_seconds", "Tiempo de respuesta HTTP para requests seguras"
-)
+SECURITY_RESPONSE_TIME = Histogram("security_request_duration_seconds", "Tiempo de respuesta HTTP para requests seguras")
 
 
 # Middleware de seguridad para métricas

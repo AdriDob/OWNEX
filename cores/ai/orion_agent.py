@@ -83,8 +83,7 @@ class OrionAgent:
             return {"response": result, "engine": "local"}
 
         return {
-            "response": "No pude conectar con ningún motor de IA. "
-            "Verificá que Ollama esté corriendo o configurá OPENROUTER_API_KEY.",
+            "response": "No pude conectar con ningún motor de IA. Verificá que Ollama esté corriendo o configurá OPENROUTER_API_KEY.",
             "engine": "none",
         }
 

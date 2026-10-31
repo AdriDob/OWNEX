@@ -85,9 +85,7 @@ Reglas:
 
 def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
     # ROI question
-    if any(
-        w in query for w in ["roi", "mejor target", "mejor oportunidad", "qué target", "best target", "what to attack"]
-    ):
+    if any(w in query for w in ["roi", "mejor target", "mejor oportunidad", "qué target", "best target", "what to attack"]):
         opps = ctx.get("opportunities", {}).get("top", [])
         if opps:
             best = opps[0]
@@ -124,10 +122,7 @@ def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
         top = qw.get("top_opportunities", [])
         cats = qw.get("categories", {})
         if top:
-            lines = [
-                f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · ${o['payout']:,.0f} en {o['effort']}min"
-                for o in top
-            ]
+            lines = [f"{o['endpoint']} — score {o['score']:.2f} ({o['category']}) · ${o['payout']:,.0f} en {o['effort']}min" for o in top]
             header = f"Quick Wins ({qw.get('total_opportunities', 0)} oportunidades, valor total ${qw.get('total_estimated_value', 0):,.0f}):"
             cat_line = " · ".join(f"{k}: {v}" for k, v in sorted(cats.items())) if cats else ""
             return header + "\n" + ("\n".join(lines)) + ("\n" + cat_line if cat_line else "")
@@ -139,12 +134,8 @@ def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
         if scans:
             lines = []
             for s in scans[:5]:
-                status_icon = {"completed": "✅", "running": "🔄", "pending": "⏳", "failed": "❌", "timeout": "⚠️"}.get(
-                    s.get("status", ""), "❓"
-                )
-                lines.append(
-                    f"{status_icon} Scan #{s['id']} modo {s.get('mode', '?')}: {s.get('status', '?')} ({s.get('endpoint_count', 0)} endpoints)"
-                )
+                status_icon = {"completed": "✅", "running": "🔄", "pending": "⏳", "failed": "❌", "timeout": "⚠️"}.get(s.get("status", ""), "❓")
+                lines.append(f"{status_icon} Scan #{s['id']} modo {s.get('mode', '?')}: {s.get('status', '?')} ({s.get('endpoint_count', 0)} endpoints)")
             return "Últimos escaneos:\n" + "\n".join(lines)
         return "No hay escaneos registrados aún."
 

@@ -139,9 +139,7 @@ class SourceManager:
             "by_domain": domains,
             "total_signals_tracked": sum(s.signals_total for s in self._sources.values()),
             "total_correct": sum(s.signals_correct for s in self._sources.values()),
-            "avg_reliability": round(
-                sum(s.reliability for s in self._sources.values()) / max(len(self._sources), 1), 3
-            ),
+            "avg_reliability": round(sum(s.reliability for s in self._sources.values()) / max(len(self._sources), 1), 3),
         }
 
     # ── Persistence placeholders ──

@@ -112,9 +112,7 @@ class ProfileService:
     def update_field(self, user_id: str, field: str, value: Any) -> bool:
         session = SessionLocal()
         try:
-            rows = (
-                session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).update({field: value})
-            )
+            rows = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).update({field: value})
             session.commit()
             return rows > 0
         finally:
@@ -123,12 +121,7 @@ class ProfileService:
     def increment(self, user_id: str, field: str, amount: int = 1) -> bool:
         session = SessionLocal()
         try:
-            profile = (
-                session.query(InvestigatorProfile)
-                .filter(InvestigatorProfile.user_id == user_id)
-                .with_for_update()
-                .first()
-            )
+            profile = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).with_for_update().first()
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -144,12 +137,7 @@ class ProfileService:
         """Append to a JSON list field (e.g. industries, technologies)."""
         session = SessionLocal()
         try:
-            profile = (
-                session.query(InvestigatorProfile)
-                .filter(InvestigatorProfile.user_id == user_id)
-                .with_for_update()
-                .first()
-            )
+            profile = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).with_for_update().first()
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -167,12 +155,7 @@ class ProfileService:
         """Increment a counter in a [{key, count}, ...] list field."""
         session = SessionLocal()
         try:
-            profile = (
-                session.query(InvestigatorProfile)
-                .filter(InvestigatorProfile.user_id == user_id)
-                .with_for_update()
-                .first()
-            )
+            profile = session.query(InvestigatorProfile).filter(InvestigatorProfile.user_id == user_id).with_for_update().first()
             if not profile:
                 profile = InvestigatorProfile(user_id=user_id)
                 session.add(profile)
@@ -226,11 +209,7 @@ class ProfileService:
     def get_events(self, user_id: str, event_type: str | None = None, limit: int = 100) -> list[LearningEvent]:
         session = SessionLocal()
         try:
-            query = (
-                session.query(LearningEvent)
-                .filter(LearningEvent.user_id == user_id)
-                .order_by(LearningEvent.created_at.desc())
-            )
+            query = session.query(LearningEvent).filter(LearningEvent.user_id == user_id).order_by(LearningEvent.created_at.desc())
             if event_type:
                 query = query.filter(LearningEvent.event_type == event_type)
             return query.limit(limit).all()

@@ -89,13 +89,9 @@ class CloudBackupScheduler:
                 "cloud_provider": None,
             }
 
-    def schedule_weekly_backup(
-        self, day_of_week: int = 0, hour: int = 2, minute: int = 0
-    ) -> dict[str, str | bool | int]:
+    def schedule_weekly_backup(self, day_of_week: int = 0, hour: int = 2, minute: int = 0) -> dict[str, str | bool | int]:
         """Schedule a weekly backup on specified day (0 = Monday)."""
-        logger.info(
-            f"[CLOUD BACKUP SCHEDULER] Scheduling weekly backup on day {day_of_week} at {hour:02d}:{minute:02d}"
-        )
+        logger.info(f"[CLOUD BACKUP SCHEDULER] Scheduling weekly backup on day {day_of_week} at {hour:02d}:{minute:02d}")
 
         if not (importlib.util.find_spec("schedule") and importlib.util.find_spec("croniter")):
             logger.error("[CLOUD BACKUP SCHEDULER] croniter or schedule not installed")

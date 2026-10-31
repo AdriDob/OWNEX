@@ -97,9 +97,7 @@ def state_from_observation(obs: Observation, now: float) -> tuple[AvailabilitySt
         # Reloj futuro: tratar como fresco (observación válida).
         age = 0.0
     if age > _FRESHNESS_SECONDS:
-        return AvailabilityState.STALE, (
-            f"observación de {obs.source} tiene {age / 86400:.1f} días (> {FRESHNESS_DAYS})"
-        )
+        return AvailabilityState.STALE, (f"observación de {obs.source} tiene {age / 86400:.1f} días (> {FRESHNESS_DAYS})")
     if obs.items_seen <= 0:
         return AvailabilityState.UNAVAILABLE, (f"{obs.source} devolvió 0 items hace {int(age / 3600)}h")
     if obs.items_seen < 3:
@@ -134,9 +132,7 @@ class AvailabilityMonitor:
         key = platform.strip().lower()
         if not key:
             return
-        self._observations[key] = Observation(
-            items_seen=max(0, int(items_seen)), observed_at=time.time(), source=source
-        ).to_dict()
+        self._observations[key] = Observation(items_seen=max(0, int(items_seen)), observed_at=time.time(), source=source).to_dict()
         self._save()
 
     def assess(self, platform: str, *, now: float | None = None) -> PlatformAvailability:

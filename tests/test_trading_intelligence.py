@@ -32,9 +32,7 @@ def store(tmp_path) -> TradingStore:
 
 @pytest.fixture()
 def engine(store: TradingStore) -> CopyTradingEngine:
-    return CopyTradingEngine(
-        store=store, config=TradingConfig(), executor=DryRunExecutor(TradingConfig()), log_decisions=False
-    )
+    return CopyTradingEngine(store=store, config=TradingConfig(), executor=DryRunExecutor(TradingConfig()), log_decisions=False)
 
 
 def _good_trader() -> TraderMetrics:
@@ -92,18 +90,14 @@ class TestCopyTradingEngine:
         assert engine.set_master_enabled("ghost", False) is False
 
     def test_replicate_unknown_master_rejected(self, engine: CopyTradingEngine) -> None:
-        trade = MasterTrade(
-            master_id="ghost", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="ghost", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         result = engine.replicate("ghost", trade)
         assert result.success is False
         assert result.reason == "master not followed"
 
     def test_replicate_executes_in_dry_run(self, engine: CopyTradingEngine) -> None:
         engine.add_master(FollowedTrader(master_id="m1", name="M1", copy_ratio=0.1, max_position_pct=100.0))
-        trade = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         result = engine.replicate("m1", trade)
         assert result.success is True
         assert result.simulated is True
@@ -120,18 +114,14 @@ class TestCopyTradingEngine:
     def test_replicate_respects_position_cap(self, engine: CopyTradingEngine) -> None:
         trader = FollowedTrader(master_id="m1", name="M1", copy_ratio=1.0, max_position_pct=1.0)
         engine.add_master(trader)
-        trade = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         result = engine.replicate("m1", trade)
         assert result.success is True
         assert result.size_usd <= Decimal("10")  # 1% of $1000 dry-run equity
 
     def test_replicate_blocks_symbol_not_allowed(self, engine: CopyTradingEngine) -> None:
         engine.add_master(FollowedTrader(master_id="m1", name="M1", allowed_symbols=["ETH-USD"]))
-        trade = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         result = engine.replicate("m1", trade)
         assert result.success is False
         assert "not allowed" in result.reason
@@ -153,25 +143,19 @@ class TestCopyTradingEngine:
     def test_daily_dd_blocks_replication(self, engine: CopyTradingEngine) -> None:
         engine.add_master(FollowedTrader(master_id="m1", name="M1", risk=RiskControls(max_daily_dd_pct=3.0)))
         engine.record_daily_pnl("m1", -80.0)  # 8% dd on $1000 equity
-        trade = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         result = engine.replicate("m1", trade)
         assert result.success is False
         assert "risk" in result.reason
 
     def test_emergency_stop_blocks_and_cancels(self, engine: CopyTradingEngine) -> None:
         engine.add_master(FollowedTrader(master_id="m1", name="M1"))
-        trade = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         engine.replicate("m1", trade)
         stop = engine.emergency_stop("test")
         assert stop["reason"] == "test"
         assert engine.status()["emergency_stop"] is True
-        trade2 = MasterTrade(
-            master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000")
-        )
+        trade2 = MasterTrade(master_id="m1", pair="BTC-USD", side=OrderSide.BUY, quantity=Decimal("1"), price=Decimal("60000"))
         assert engine.replicate("m1", trade2).success is False
 
     def test_release_emergency_stop(self, engine: CopyTradingEngine) -> None:
@@ -480,9 +464,7 @@ def test_dashboard_summary_route(tmp_path, monkeypatch) -> None:
     from api.routers import trading as trading_router
 
     store = TradingStore(data_dir=tmp_path / "trading")
-    engine = CopyTradingEngine(
-        store=store, config=TradingConfig(), executor=DryRunExecutor(TradingConfig()), log_decisions=False
-    )
+    engine = CopyTradingEngine(store=store, config=TradingConfig(), executor=DryRunExecutor(TradingConfig()), log_decisions=False)
     trading_router._engine = engine  # noqa: SLF001
 
     app = fastapi.FastAPI()
@@ -495,9 +477,7 @@ def test_dashboard_summary_route(tmp_path, monkeypatch) -> None:
     assert "copy" in body and "reasoning" in body
     assert body["copy"]["mode"] == "DRY_RUN"
 
-    response = client.post(
-        "/api/trading/copy/masters", json={"master_id": "api-m1", "name": "API Master", "copy_ratio": 0.05}
-    )
+    response = client.post("/api/trading/copy/masters", json={"master_id": "api-m1", "name": "API Master", "copy_ratio": 0.05})
     assert response.status_code == 200
     assert response.json()["success"] is True
 

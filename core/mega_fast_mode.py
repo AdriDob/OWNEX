@@ -213,11 +213,7 @@ class MegaFastMode:
 
         # Progreso semanal
         week_start = datetime.now(UTC) - timedelta(days=datetime.now(UTC).weekday())
-        week_revenue = sum(
-            d.get("total_revenue", 0)
-            for date_str, d in self._progress.items()
-            if datetime.fromisoformat(date_str) >= week_start
-        )
+        week_revenue = sum(d.get("total_revenue", 0) for date_str, d in self._progress.items() if datetime.fromisoformat(date_str) >= week_start)
 
         week_goal = self.get_current_goal()
         days_elapsed = datetime.now(UTC).weekday() + 1

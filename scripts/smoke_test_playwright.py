@@ -244,9 +244,7 @@ def main() -> None:
             ]
 
             # HTTP 401/403 are expected during boot (auth checks, no token yet)
-            expected_boot_errors = [
-                msg for msg in console_errors if msg.startswith("[error]") and ("401" in msg or "403" in msg)
-            ]
+            expected_boot_errors = [msg for msg in console_errors if msg.startswith("[error]") and ("401" in msg or "403" in msg)]
             # Real JS errors — everything except expected HTTP 401/403
             js_errors = [msg for msg in console_errors if msg.startswith("[error]") or msg.startswith("[assert]")]
             real_js_errors = [msg for msg in js_errors if msg not in expected_boot_errors]

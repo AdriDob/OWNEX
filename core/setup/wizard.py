@@ -111,9 +111,7 @@ def run_step(step_id: str | None = None, step_data: dict[str, Any] | None = None
         state.started_at = time.time()
 
     if not step_id:
-        step_id = (
-            steps[state.current_step_index].step_id if state.current_step_index < len(steps) else steps[-1].step_id
-        )
+        step_id = steps[state.current_step_index].step_id if state.current_step_index < len(steps) else steps[-1].step_id
 
     if step_id == "finish":
         return _complete_wizard(state, steps)

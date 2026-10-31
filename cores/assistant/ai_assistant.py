@@ -71,11 +71,7 @@ class InvestigationNarrator:
 
             endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()
             findings = session.query(models.Finding).filter(models.Finding.target_id == target_id).all()
-            verdicts = (
-                session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all()
-                if endpoints
-                else []
-            )
+            verdicts = session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all() if endpoints else []
 
             scored_endpoints = []
             for ep in endpoints:
@@ -120,11 +116,7 @@ class InvestigationNarrator:
                     "confirmed": len(confirmed_verdicts),
                     "rejected": len(rejected_verdicts),
                     "inconclusive": len(inconclusive_verdicts),
-                    "confidence_avg": (
-                        sum(self._parse_conf(v.confidence) for v in confirmed_verdicts) / len(confirmed_verdicts)
-                        if confirmed_verdicts
-                        else 0
-                    ),
+                    "confidence_avg": (sum(self._parse_conf(v.confidence) for v in confirmed_verdicts) / len(confirmed_verdicts) if confirmed_verdicts else 0),
                 },
                 "findings_by_severity": findings_by_severity,
                 "interpretation": self._interpret_state(
@@ -150,11 +142,7 @@ class InvestigationNarrator:
                 return {"error": "Target not found", "target_id": target_id}
 
             endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()
-            verdicts = (
-                session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all()
-                if endpoints
-                else []
-            )
+            verdicts = session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all() if endpoints else []
 
             confirmed_verdicts = [v for v in verdicts if v.status == "confirmed"]
             if not confirmed_verdicts:
@@ -179,9 +167,7 @@ class InvestigationNarrator:
                 ep_data = {
                     "path": ep.path if ep else "/unknown",
                     "method": ep.method if ep else "GET",
-                    "risk_score": unified_score(ep.path, ep.method or "GET", ep.parsed_params).get("risk_score", 50)
-                    if ep
-                    else 50,
+                    "risk_score": unified_score(ep.path, ep.method or "GET", ep.parsed_params).get("risk_score", 50) if ep else 50,
                 }
                 evidence_list = evidence_store.get_evidence_for_verdict(verdict.id)
 
@@ -257,11 +243,7 @@ class InvestigationNarrator:
             path_type = parts[0]
             path_value = ":".join(parts[1:])
 
-            verdicts = (
-                session.query(models.Verdict).filter(models.Verdict.hot_path_id.like(f"%{path_value}%")).all()
-                if path_value
-                else []
-            )
+            verdicts = session.query(models.Verdict).filter(models.Verdict.hot_path_id.like(f"%{path_value}%")).all() if path_value else []
             endpoints = session.query(models.Endpoint).all()
             session.query(models.Finding).all()
 
@@ -288,9 +270,7 @@ class InvestigationNarrator:
             target_ids = set()
             for e in scored_endpoints:
                 target_ids.add(e.get("target_id") or 0)
-            targets = (
-                session.query(models.Target).filter(models.Target.id.in_(list(target_ids))).all() if target_ids else []
-            )
+            targets = session.query(models.Target).filter(models.Target.id.in_(list(target_ids))).all() if target_ids else []
             target_map = {t.id: t.name for t in targets}
 
             confirmed_verdicts = [v for v in verdicts if v.status == "confirmed"]
@@ -310,12 +290,8 @@ class InvestigationNarrator:
                     "total_relevant_endpoints": len(scored_endpoints),
                     "confirmed_verdicts_on_path": len(confirmed_verdicts),
                 },
-                "involved_targets": [
-                    {"id": tid, "name": target_map.get(tid, f"target_{tid}")} for tid in sorted(target_ids) if tid > 0
-                ],
-                "attack_surfaces": [
-                    {"surface": k, "count": v} for k, v in sorted(surfaces.items(), key=lambda x: -x[1])
-                ],
+                "involved_targets": [{"id": tid, "name": target_map.get(tid, f"target_{tid}")} for tid in sorted(target_ids) if tid > 0],
+                "attack_surfaces": [{"surface": k, "count": v} for k, v in sorted(surfaces.items(), key=lambda x: -x[1])],
                 "explanation": self._generate_path_explanation(
                     path_type=path_type,
                     path_value=path_value,
@@ -346,11 +322,7 @@ class InvestigationNarrator:
 
             endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()
             findings = session.query(models.Finding).filter(models.Finding.target_id == target_id).all()
-            verdicts = (
-                session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all()
-                if endpoints
-                else []
-            )
+            verdicts = session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all() if endpoints else []
 
             web2_endpoints = []
             web3_endpoints = []
@@ -400,12 +372,8 @@ class InvestigationNarrator:
                 else:
                     web2_endpoints.append(ep_data)
 
-            web3_findings = [
-                f for f in findings if f.endpoint_id and any(we["id"] == f.endpoint_id for we in web3_endpoints)
-            ]
-            web3_verdicts = [
-                v for v in verdicts if v.endpoint_id and any(we["id"] == v.endpoint_id for we in web3_endpoints)
-            ]
+            web3_findings = [f for f in findings if f.endpoint_id and any(we["id"] == f.endpoint_id for we in web3_endpoints)]
+            web3_verdicts = [v for v in verdicts if v.endpoint_id and any(we["id"] == v.endpoint_id for we in web3_endpoints)]
 
             return {
                 "target": {"id": target.id, "name": target.name, "domain": target.domain},
@@ -453,11 +421,7 @@ class InvestigationNarrator:
 
             endpoints = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()
             findings = session.query(models.Finding).filter(models.Finding.target_id == target_id).all()
-            verdicts = (
-                session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all()
-                if endpoints
-                else []
-            )
+            verdicts = session.query(models.Verdict).filter(models.Verdict.endpoint_id.in_([ep.id for ep in endpoints])).all() if endpoints else []
 
             scored_endpoints = []
             for ep in endpoints:
@@ -496,9 +460,7 @@ class InvestigationNarrator:
             payout_high = len(confirmed) * 10000 + len(critical_eps) * 5000 + len(idor_candidates) * 3000
             payout_best = len(confirmed) * 25000 + len(critical_eps) * 15000 + len(idor_candidates) * 8000
 
-            signal_quality = (
-                "high" if roi.get("quality", 0) >= 60 else ("medium" if roi.get("quality", 0) >= 30 else "low")
-            )
+            signal_quality = "high" if roi.get("quality", 0) >= 60 else ("medium" if roi.get("quality", 0) >= 30 else "low")
             findings_by_severity: dict[str, int] = {}
             for f in findings:
                 sev = f.severity or "info"
@@ -625,9 +587,7 @@ class InvestigationNarrator:
                     "new_findings_24h": len(recent_findings),
                     "new_verdicts_24h": len(recent_verdicts),
                 },
-                "top_surfaces": [
-                    {"surface": k, "count": v} for k, v in sorted(surfaces.items(), key=lambda x: -x[1])[:5]
-                ],
+                "top_surfaces": [{"surface": k, "count": v} for k, v in sorted(surfaces.items(), key=lambda x: -x[1])[:5]],
                 "priority_targets": target_briefings[:5],
                 "summary": self._generate_briefing_summary(
                     total_targets=len(targets),
@@ -740,9 +700,7 @@ class InvestigationNarrator:
 
             top_targets.sort(key=lambda x: (x["priority_score"], x["confirmed_verdicts"]), reverse=True)
             total_payout_low = sum(t["confirmed_verdicts"] * 500 + t["high_risk_endpoints"] * 1000 for t in top_targets)
-            total_payout_high = sum(
-                t["confirmed_verdicts"] * 10000 + t["high_risk_endpoints"] * 5000 for t in top_targets
-            )
+            total_payout_high = sum(t["confirmed_verdicts"] * 10000 + t["high_risk_endpoints"] * 5000 for t in top_targets)
 
             return {
                 "generated_at": datetime.now(UTC).isoformat(),
@@ -804,9 +762,7 @@ class InvestigationNarrator:
             "narrative": narrative,
             "focus": focus,
             "phase": "discovery" if not scored_endpoints else ("exploitation" if confirmed else "validation"),
-            "risk_level": risk_to_severity(
-                sum(e["risk_score"] for e in scored_endpoints) / len(scored_endpoints) if scored_endpoints else 0
-            ),
+            "risk_level": risk_to_severity(sum(e["risk_score"] for e in scored_endpoints) / len(scored_endpoints) if scored_endpoints else 0),
         }
 
     def _format_narrative_output(self, report: FinalReport, target_name: str) -> dict[str, Any]:
@@ -856,10 +812,7 @@ class InvestigationNarrator:
         confirmed_count: int,
         surfaces: dict[str, int],
     ) -> str:
-        parts = [
-            f"Attack path '{path_value}' (type: {path_type}) includes {high_risk_count} high-risk "
-            f"endpoints and {confirmed_count} confirmed findings."
-        ]
+        parts = [f"Attack path '{path_value}' (type: {path_type}) includes {high_risk_count} high-risk endpoints and {confirmed_count} confirmed findings."]
         if surfaces:
             top = max(surfaces, key=lambda k: surfaces.get(k, 0))
             parts.append(f"Dominant attack surface: {top} ({surfaces[top]} endpoints).")
@@ -930,15 +883,9 @@ class InvestigationNarrator:
                 "combined with API-level vulnerabilities."
             )
             if web3_verdicts > 0:
-                parts.append(
-                    f"Web3 validation has produced {web3_verdicts} verdicts — "
-                    f"smart contract or RPC-level issues are confirmed."
-                )
+                parts.append(f"Web3 validation has produced {web3_verdicts} verdicts — smart contract or RPC-level issues are confirmed.")
         elif web3_count > 0:
-            parts.append(
-                "Focus on Web3-specific attack vectors: signature validation, "
-                "RPC endpoint hardening, and smart contract interaction patterns."
-            )
+            parts.append("Focus on Web3-specific attack vectors: signature validation, RPC endpoint hardening, and smart contract interaction patterns.")
         else:
             parts.append("No Web3 surface detected. All endpoints are traditional Web2 API surfaces.")
 
@@ -977,15 +924,9 @@ class InvestigationNarrator:
         )
         parts.append(f"Signal quality: {signal_quality} (score: {quality_score:.0f}/100).")
         if confirmed_count > 0:
-            parts.append(
-                f"With {confirmed_count} confirmed findings, you already have "
-                f"evidence that can be converted into paid reports."
-            )
+            parts.append(f"With {confirmed_count} confirmed findings, you already have evidence that can be converted into paid reports.")
         if critical_count > 0:
-            parts.append(
-                f"The {critical_count} critical-risk endpoints represent "
-                f"high-value targets for Critical/High severity submissions."
-            )
+            parts.append(f"The {critical_count} critical-risk endpoints represent high-value targets for Critical/High severity submissions.")
         return " ".join(parts)
 
     def _bounty_focus_recommendation(
@@ -1031,10 +972,7 @@ class InvestigationNarrator:
         recent_findings: int,
         recent_verdicts: int,
     ) -> str:
-        parts = [
-            f"System spans {total_targets} targets with {total_eps} endpoints "
-            f"({high_signal} high signal, {actionable} actionable)."
-        ]
+        parts = [f"System spans {total_targets} targets with {total_eps} endpoints ({high_signal} high signal, {actionable} actionable)."]
         activity_parts = []
         if recent_eps > 0:
             activity_parts.append(f"{recent_eps} new endpoints")
@@ -1049,10 +987,7 @@ class InvestigationNarrator:
             parts.append("No activity in the last 24 hours.")
 
         if actionable > 0:
-            parts.append(
-                f"Recommended: investigate {actionable} actionable endpoints "
-                f"and generate reports for confirmed findings."
-            )
+            parts.append(f"Recommended: investigate {actionable} actionable endpoints and generate reports for confirmed findings.")
         else:
             parts.append("Recommended: run scans to increase coverage and identify actionable surfaces.")
 

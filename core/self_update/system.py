@@ -29,22 +29,16 @@ class GitUpdater:
         """Check current git status and available updates."""
         try:
             # Check if we're in a git repo
-            result = subprocess.run(
-                ["git", "rev-parse", "--git-dir"], cwd=self.project_root, capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=self.project_root, capture_output=True, text=True, timeout=10)
             if result.returncode != 0:
                 return {"status": "not_git_repo", "error": "Not a git repository"}
 
             # Get current branch
-            result = subprocess.run(
-                ["git", "branch", "--show-current"], cwd=self.project_root, capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["git", "branch", "--show-current"], cwd=self.project_root, capture_output=True, text=True, timeout=10)
             current_branch = result.stdout.strip() if result.returncode == 0 else "unknown"
 
             # Check for uncommitted changes
-            result = subprocess.run(
-                ["git", "status", "--porcelain"], cwd=self.project_root, capture_output=True, text=True, timeout=10
-            )
+            result = subprocess.run(["git", "status", "--porcelain"], cwd=self.project_root, capture_output=True, text=True, timeout=10)
             has_changes = bool(result.stdout.strip()) if result.returncode == 0 else False
 
             # Fetch latest from remote
@@ -64,9 +58,7 @@ class GitUpdater:
                 text=True,
                 timeout=10,
             )
-            commits_behind = (
-                int(result.stdout.strip()) if result.returncode == 0 and result.stdout.strip().isdigit() else 0
-            )
+            commits_behind = int(result.stdout.strip()) if result.returncode == 0 and result.stdout.strip().isdigit() else 0
 
             return {
                 "status": "ok",

@@ -360,9 +360,7 @@ class DecisionEngine:
 
         return agents
 
-    def _score_by_policy(
-        self, ev: float, conf: float, details: dict, candidate: TaskCandidate, agent: str, context: DecisionContext
-    ) -> float:
+    def _score_by_policy(self, ev: float, conf: float, details: dict, candidate: TaskCandidate, agent: str, context: DecisionContext) -> float:
         """Calcula score según política de decisión"""
         policy = context.policy
         risk = context.risk_profile
@@ -402,9 +400,7 @@ class DecisionEngine:
 
         return ev
 
-    def _build_rationale(
-        self, candidate: TaskCandidate, agent: str, ev: float, conf: float, details: dict, policy: DecisionPolicy
-    ) -> str:
+    def _build_rationale(self, candidate: TaskCandidate, agent: str, ev: float, conf: float, details: dict, policy: DecisionPolicy) -> str:
         parts = [
             f"Policy: {policy.value}",
             f"EV: ${ev:.2f}/hr (base: ${details['base_ev']:.2f})",
@@ -500,10 +496,7 @@ class BayesianBandit:
         self._total_pulls += 1
 
     def get_arm_stats(self) -> dict[str, dict]:
-        return {
-            k: {"mean": v.mean, "std": v.std, "count": v.count, "ucb": v.ucb_value(self._total_pulls)}
-            for k, v in self._arms.items()
-        }
+        return {k: {"mean": v.mean, "std": v.std, "count": v.count, "ucb": v.ucb_value(self._total_pulls)} for k, v in self._arms.items()}
 
 
 # Factory functions
@@ -522,6 +515,4 @@ def default_decision_context(
     policy: DecisionPolicy = DecisionPolicy.MAX_EXPECTED_UTILITY,
     risk: RiskProfile = RiskProfile.BALANCED,
 ) -> DecisionContext:
-    return DecisionContext(
-        available_tasks=tasks, budget_usd=budget, time_horizon_hours=hours, policy=policy, risk_profile=risk
-    )
+    return DecisionContext(available_tasks=tasks, budget_usd=budget, time_horizon_hours=hours, policy=policy, risk_profile=risk)

@@ -64,9 +64,7 @@ class TestQaCycleApi:
         response = _client().post("/api/cycles/qa/cases", json={"target_ids": [1]})
         assert response.status_code == 200
         assert response.json()["name"] == "QA Auto-Suite"
-        self.fake.generate_test_cases.assert_called_once_with(
-            target_ids=[1], endpoint_ids=None, finding_ids=None, include_regression=True
-        )
+        self.fake.generate_test_cases.assert_called_once_with(target_ids=[1], endpoint_ids=None, finding_ids=None, include_regression=True)
 
     def test_run_full_cycle(self) -> None:
         response = _client().post("/api/cycles/qa/run")

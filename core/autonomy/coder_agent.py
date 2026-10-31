@@ -256,9 +256,7 @@ class CoderAgent:
                 # Add test failure info to issue analysis for next iteration
                 failure_info = self._extract_test_failures(test_summary)
                 if failure_info:
-                    result.issue_analysis.body += (
-                        f"\n\n--- Test Failures (iteration {iteration + 1}) ---\n{failure_info}"
-                    )
+                    result.issue_analysis.body += f"\n\n--- Test Failures (iteration {iteration + 1}) ---\n{failure_info}"
                     # Regenerate
                     gen_result = await self.code_generator.generate_fix(
                         result.issue_analysis,

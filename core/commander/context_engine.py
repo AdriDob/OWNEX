@@ -340,9 +340,7 @@ class ContextEngine:
     def get_prompt_for_task(self, task_description: str, task_type: str = "chat") -> str:
         """Build a prompt-ready context string for a given task (sync wrapper)."""
         try:
-            return asyncio.get_event_loop().run_until_complete(
-                self.get_prompt_for_task_async(task_description, task_type)
-            )
+            return asyncio.get_event_loop().run_until_complete(self.get_prompt_for_task_async(task_description, task_type))
         except RuntimeError:
             return asyncio.run(self.get_prompt_for_task_async(task_description, task_type))
 

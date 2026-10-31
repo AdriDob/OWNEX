@@ -55,12 +55,7 @@ def oportunidad_alta(op: dict[str, Any]) -> str:
     score = op.get("score", 0)
     reward = op.get("estimated_reward", 0)
     domain = op.get("domain", "")
-    return (
-        f"🎯 **Oportunidad de alto valor detectada**\n"
-        f"• {name} ({domain})\n"
-        f"• Score: {score:.1f}/10\n"
-        f"• Recompensa estimada: ${reward:.2f}"
-    )
+    return f"🎯 **Oportunidad de alto valor detectada**\n• {name} ({domain})\n• Score: {score:.1f}/10\n• Recompensa estimada: ${reward:.2f}"
 
 
 def alerta_critica(titulo: str, detalle: str) -> str:

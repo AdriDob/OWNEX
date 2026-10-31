@@ -259,9 +259,7 @@ Write a cover letter."""
         experience: str = "",
     ) -> list[dict[str, str]]:
         """Answer job screening questions."""
-        system = (
-            """Answer job screening questions professionally and concisely. Highlight relevant skills and experience."""
-        )
+        system = """Answer job screening questions professionally and concisely. Highlight relevant skills and experience."""
 
         q_text = "\n".join([f"Q: {q}" for q in questions])
         user = f"""Questions:

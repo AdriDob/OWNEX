@@ -168,12 +168,7 @@ def _get_report_versions(report_id: int) -> list[dict[str, Any]]:
 
     session = _get_session()
     try:
-        versions = (
-            session.query(ReportVersion)
-            .filter(ReportVersion.report_id == report_id)
-            .order_by(ReportVersion.version.desc())
-            .all()
-        )
+        versions = session.query(ReportVersion).filter(ReportVersion.report_id == report_id).order_by(ReportVersion.version.desc()).all()
         return [
             {
                 "id": v.id,
@@ -201,12 +196,7 @@ def save_report_version(report_id: int, summary: str = "") -> dict[str, Any]:
         if not report:
             raise ValueError(f"Report {report_id} not found")
 
-        existing = (
-            session.query(ReportVersion)
-            .filter(ReportVersion.report_id == report_id)
-            .order_by(ReportVersion.version.desc())
-            .first()
-        )
+        existing = session.query(ReportVersion).filter(ReportVersion.report_id == report_id).order_by(ReportVersion.version.desc()).first()
         next_version = (existing.version + 1) if existing else 1
 
         version = ReportVersion(

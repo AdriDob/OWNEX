@@ -115,8 +115,7 @@ class Code4renaAdapter(OpportunityAdapter):
                 RawOpportunity(
                     id=f"code4rena_{contest['contest_id']}",
                     name=contest["title"],
-                    description=f"Code4rena audit contest: {contest['title']}"
-                    + (f" ({contest['league']})" if contest["league"] else ""),
+                    description=f"Code4rena audit contest: {contest['title']}" + (f" ({contest['league']})" if contest["league"] else ""),
                     platform="code4rena",
                     url=f"https://code4rena.com/contests/{slug}",
                     reward=_parse_amount(contest["amount_label"]),

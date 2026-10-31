@@ -122,9 +122,7 @@ class Hunter:
                 source = p.get("source") or "imported"
 
                 # Idempotent deduplication check
-                exists = (
-                    session.query(TargetIntel).filter(TargetIntel.name == name, TargetIntel.source == source).first()
-                )
+                exists = session.query(TargetIntel).filter(TargetIntel.name == name, TargetIntel.source == source).first()
                 if exists:
                     continue
 
@@ -323,9 +321,7 @@ class Hunter:
                         "technology_tags": (r.technology_tags or "").split(",") if r.technology_tags else [],
                         "cms_detected": r.cms_detected,
                         "framework_detected": r.framework_detected,
-                        "wordpress_plugins_detected": (r.wordpress_plugins_detected or "").split(",")
-                        if r.wordpress_plugins_detected
-                        else [],
+                        "wordpress_plugins_detected": (r.wordpress_plugins_detected or "").split(",") if r.wordpress_plugins_detected else [],
                         "saas_probability": r.saas_probability,
                         "api_density": r.api_density,
                         "graphql_detected": r.graphql_detected,

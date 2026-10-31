@@ -151,9 +151,7 @@ class PayoutAdvisor:
             ]
 
         if total_fees > amount_usd * 0.1:
-            sim.recommendations.append(
-                "Consider holding USD instead of converting to ARS if you don't need pesos immediately"
-            )
+            sim.recommendations.append("Consider holding USD instead of converting to ARS if you don't need pesos immediately")
 
         return sim
 

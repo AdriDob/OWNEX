@@ -619,16 +619,12 @@ async def config_progress() -> dict[str, Any]:
         # 1. GitHub Token
         creds = get_credentials()
         has_github = bool(creds.github_token)
-        checks.append(
-            {"id": "github_token", "name": "GITHUB_TOKEN (scope repo)", "done": has_github, "cat": "api_keys"}
-        )
+        checks.append({"id": "github_token", "name": "GITHUB_TOKEN (scope repo)", "done": has_github, "cat": "api_keys"})
 
         # 2. GitHub vinculado
         pb = get_profile_builder()
         github_linked = pb.get_status().get("linked", False)
-        checks.append(
-            {"id": "github_linked", "name": "GitHub profile vinculado", "done": github_linked, "cat": "profile"}
-        )
+        checks.append({"id": "github_linked", "name": "GitHub profile vinculado", "done": github_linked, "cat": "profile"})
 
         # 3. API Keys Bug Bounty (6)
         bb_keys = [
@@ -641,9 +637,7 @@ async def config_progress() -> dict[str, Any]:
         ]
         creds = get_credentials()
         bb_done = sum(1 for k in bb_keys if getattr(creds, k, None))
-        checks.append(
-            {"id": "bb_api_keys", "name": "API Keys Bug Bounty (6)", "done": bb_done, "total": 6, "cat": "api_keys"}
-        )
+        checks.append({"id": "bb_api_keys", "name": "API Keys Bug Bounty (6)", "done": bb_done, "total": 6, "cat": "api_keys"})
 
         # 4. API Keys Dev/Platforms (7)
         dev_keys = [
@@ -675,9 +669,7 @@ async def config_progress() -> dict[str, Any]:
             "opyre_api_key",
         ]
         ai_done = sum(1 for k in ai_keys if getattr(creds, k, None))
-        checks.append(
-            {"id": "ai_api_keys", "name": "API Keys AI/Data (5)", "done": ai_done, "total": 5, "cat": "api_keys"}
-        )
+        checks.append({"id": "ai_api_keys", "name": "API Keys AI/Data (5)", "done": ai_done, "total": 5, "cat": "api_keys"})
 
         # 6. VPN
         vpn = get_vpn_assistant()
@@ -700,17 +692,13 @@ async def config_progress() -> dict[str, Any]:
 
         # 10. Repo portfolio
         has_portfolio = bool(pb_status.get("portfolio_repo"))
-        checks.append(
-            {"id": "portfolio_repo", "name": "Repo portfolio (usuario/repo)", "done": has_portfolio, "cat": "profile"}
-        )
+        checks.append({"id": "portfolio_repo", "name": "Repo portfolio (usuario/repo)", "done": has_portfolio, "cat": "profile"})
 
         # 11. VPN ready (duplicate check)
         # 11. PayoutNet methods
         pn = get_payout_net()
         pn_created = pn.get_status().get("created", 0)
-        checks.append(
-            {"id": "payout_method", "name": "PayoutNet: al menos 1 método", "done": pn_created > 0, "cat": "payout"}
-        )
+        checks.append({"id": "payout_method", "name": "PayoutNet: al menos 1 método", "done": pn_created > 0, "cat": "payout"})
 
         # 12. Payout per platform
         pn_methods = pn.get_status().get("methods", [])
@@ -744,9 +732,7 @@ async def config_progress() -> dict[str, Any]:
         from core.dev_bounty_autopilot import get_dev_bounty_autopilot
 
         autopilot_active = get_dev_bounty_autopilot().is_active()
-        checks.append(
-            {"id": "autopilot", "name": "Dev Bounty Autopilot activo", "done": autopilot_active, "cat": "sync"}
-        )
+        checks.append({"id": "autopilot", "name": "Dev Bounty Autopilot activo", "done": autopilot_active, "cat": "sync"})
 
         # 15. Money Plan target
         mp = get_money_plan().get()
@@ -761,9 +747,7 @@ async def config_progress() -> dict[str, Any]:
 
         # 17. GitHub profile: repo count > 0
         repo_count = audit.get("repo_count", 0)
-        checks.append(
-            {"id": "repo_count", "name": "Al menos 1 repo en GitHub", "done": repo_count > 0, "cat": "profile"}
-        )
+        checks.append({"id": "repo_count", "name": "Al menos 1 repo en GitHub", "done": repo_count > 0, "cat": "profile"})
 
         # 18. First repo pushed
         checks.append({"id": "first_repo", "name": "Primer repo subido", "done": repo_count > 0, "cat": "profile"})
@@ -789,9 +773,7 @@ async def config_progress() -> dict[str, Any]:
         )
 
         # 20. Dev Bounty Autopilot
-        checks.append(
-            {"id": "dev_bounty_active", "name": "Dev Bounty Autopilot running", "done": autopilot_active, "cat": "sync"}
-        )
+        checks.append({"id": "dev_bounty_active", "name": "Dev Bounty Autopilot running", "done": autopilot_active, "cat": "sync"})
 
         # Calculate progress
         total = sum(c.get("total", 1) for c in checks)
@@ -1385,9 +1367,7 @@ async def tax_ar_add_factura(payload: dict[str, Any] = None) -> dict[str, Any]:
     try:
         from core.tax_ar import get_tax_ar
 
-        return get_tax_ar().registrar_factura_e(
-            payload.get("cliente", ""), payload.get("usd", 0), payload.get("fecha", ""), payload.get("cae", "")
-        )
+        return get_tax_ar().registrar_factura_e(payload.get("cliente", ""), payload.get("usd", 0), payload.get("fecha", ""), payload.get("cae", ""))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 
@@ -1508,9 +1488,7 @@ async def offramp_execute(payload: dict[str, Any] = None) -> dict[str, Any]:
     try:
         from core.offramp_executor import get_offramp_executor
 
-        return get_offramp_executor().build_url(
-            payload.get("provider", ""), payload.get("amount_usd", 0), payload.get("extra")
-        )
+        return get_offramp_executor().build_url(payload.get("provider", ""), payload.get("amount_usd", 0), payload.get("extra"))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from None
 

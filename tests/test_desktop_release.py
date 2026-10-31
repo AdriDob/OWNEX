@@ -121,8 +121,7 @@ class TestServeFrontend:
 # hasta que se decida su retiro o restauración (backlog post-release).
 
 _LEGACY_PACKAGING_SKIP = _pytest.mark.skip(
-    reason="Packaging legacy archivado por convergencia 2026-08-24; "
-    "canónico = Tauri (guards en test_tauri_packaging.py)"
+    reason="Packaging legacy archivado por convergencia 2026-08-24; canónico = Tauri (guards en test_tauri_packaging.py)"
 )
 
 
@@ -433,9 +432,7 @@ class TestPortConsistency:
         """Desktop settings default port matches env config."""
         from desktop.settings import DEFAULT_SETTINGS
 
-        assert DEFAULT_SETTINGS["backend_port"] == 8000, (
-            f"Settings backend_port should be 8000, got {DEFAULT_SETTINGS['backend_port']}"
-        )
+        assert DEFAULT_SETTINGS["backend_port"] == 8000, f"Settings backend_port should be 8000, got {DEFAULT_SETTINGS['backend_port']}"
 
     def test_build_dashboard_url_default_port(self):
         """build_dashboard_url default port matches canonical port."""
@@ -537,9 +534,7 @@ class TestPortConsistency:
 
         b_sig = inspect.signature(build_dashboard_url)
         o_sig = inspect.signature(open_dashboard)
-        assert b_sig.parameters["port"].default == o_sig.parameters["port"].default, (
-            "build_dashboard_url and open_dashboard default ports differ"
-        )
+        assert b_sig.parameters["port"].default == o_sig.parameters["port"].default, "build_dashboard_url and open_dashboard default ports differ"
 
 
 # ── Silent run — file logging ─────────────────────────────────────
@@ -1018,10 +1013,7 @@ class TestReactHooksOrder:
         stdout = result.stdout or ""
         # Filter out warnings and unrelated errors — only fail on rules-of-hooks
         rules_violations = [line for line in stdout.split("\n") if "rules-of-hooks" in line]
-        assert not rules_violations, (
-            f"eslint found {len(rules_violations)} react-hooks/rules-of-hooks violations:\n"
-            + "\n".join(rules_violations)
-        )
+        assert not rules_violations, f"eslint found {len(rules_violations)} react-hooks/rules-of-hooks violations:\n" + "\n".join(rules_violations)
 
 
 # ── Service Worker Cache Tests ──────────────────────────────────────
@@ -1041,9 +1033,7 @@ class TestServiceWorker:
         """Built service-worker.js must be identical to source."""
         src = self.SW_PATH.read_bytes()
         built = self.SW_BUILD_PATH.read_bytes()
-        assert src == built, (
-            "dist/service-worker.js differs from public/service-worker.js! Rebuild with 'npm run build'."
-        )
+        assert src == built, "dist/service-worker.js differs from public/service-worker.js! Rebuild with 'npm run build'."
 
     def test_sw_rejects_non_get_requests(self):
         """fetch handler must return early with fetch(request) for non-GET methods."""
@@ -1336,9 +1326,7 @@ class TestHardwareIDStability:
         _orig = hw_mod._get_raw_machine_ids
         try:
             hw_mod._get_raw_machine_ids = lambda: [machine_id]
-            result_hwid = hashlib.sha256(
-                "|".join([hostname, mac, hw_mod._get_machine_id()]).encode("utf-8")
-            ).hexdigest()[:32]
+            result_hwid = hashlib.sha256("|".join([hostname, mac, hw_mod._get_machine_id()]).encode("utf-8")).hexdigest()[:32]
             assert result_hwid == hwid_old, f"Non-duplicate HWID changed: old={hwid_old}, new={result_hwid}"
         finally:
             hw_mod._get_raw_machine_ids = _orig
@@ -1392,9 +1380,7 @@ class TestHardwareIDStability:
                 expected_raw = "|".join([socket.gethostname(), hw_mod._get_mac(), mid])
                 expected_hwid = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()[:32]
 
-                assert hwid == expected_hwid, (
-                    f"HWID differs with real duplicate scenario: got={hwid}, expected={expected_hwid}"
-                )
+                assert hwid == expected_hwid, f"HWID differs with real duplicate scenario: got={hwid}, expected={expected_hwid}"
             finally:
                 os.path.exists = _orig_exists
                 _builtins.open = _orig_open

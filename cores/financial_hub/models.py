@@ -16,9 +16,7 @@ class KYCRecord(Base):
     id = Column(Integer, primary_key=True, index=True)
     platform = Column(String, nullable=False, unique=True, index=True)
     platform_name = Column(String, nullable=False)
-    status = Column(
-        String, nullable=False, default="not_started"
-    )  # not_started, in_progress, completed, expired, failed
+    status = Column(String, nullable=False, default="not_started")  # not_started, in_progress, completed, expired, failed
     kyc_level = Column(String, nullable=False, default="")  # email, dni, passport, etc.
     documents_required = Column(Text, nullable=False, default="[]")  # JSON list
     documents_submitted = Column(Text, nullable=False, default="[]")

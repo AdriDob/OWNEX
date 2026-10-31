@@ -159,11 +159,7 @@ def investigation_dashboard(investigation_id: int):
 
         verdicts = (
             session.query(models.Verdict)
-            .filter(
-                models.Verdict.endpoint_id.in_(
-                    session.query(models.Endpoint.id).filter(models.Endpoint.target_id == inv.target_id)
-                )
-            )
+            .filter(models.Verdict.endpoint_id.in_(session.query(models.Endpoint.id).filter(models.Endpoint.target_id == inv.target_id)))
             .all()
             if endpoint_count > 0
             else []
@@ -201,9 +197,7 @@ def investigation_dashboard(investigation_id: int):
                 }
             )
         else:
-            timeline.append(
-                {"stage": "hypotheses", "status": "pending", "label": "Awaiting hypotheses", "timestamp": None}
-            )
+            timeline.append({"stage": "hypotheses", "status": "pending", "label": "Awaiting hypotheses", "timestamp": None})
         if validated_count > 0:
             stages_passed += 1
             timeline.append(

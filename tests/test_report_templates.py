@@ -134,9 +134,7 @@ def test_render_report_from_finding_with_notes():
             "description": "Reflected XSS",
             "vulnerability_type": "xss",
             "severity": "high",
-            "notes": json.dumps(
-                {"reproduction_steps": ["Go to /search", "Inject <script>"], "business_impact": "Account takeover"}
-            ),
+            "notes": json.dumps({"reproduction_steps": ["Go to /search", "Inject <script>"], "business_impact": "Account takeover"}),
         }
     )
     assert "Go to /search" in str(data.get("reproduction_steps", []))

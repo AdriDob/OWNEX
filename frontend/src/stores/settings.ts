@@ -60,7 +60,7 @@ export interface GeneralSettings {
   animations: boolean
 }
 
-export type AIProviderId = 'ollama' | 'openai' | 'gemini' | 'openrouter' | 'devin' | 'freebuff' | 'local'
+export type AIProviderId = 'ollama' | 'openai' | 'gemini' | 'openrouter' | 'devin' | 'codex' | 'freebuff' | 'local'
 
 export interface AISettings {
   provider: AIProviderId

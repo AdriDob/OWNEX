@@ -142,9 +142,7 @@ class RouteOptimizer:
     def calculate_optimal(self, amount_usd: float, source_platform: str) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
-            routes = (
-                session.query(WithdrawalRoute).filter_by(is_active=True).order_by(WithdrawalRoute.priority.desc()).all()
-            )
+            routes = session.query(WithdrawalRoute).filter_by(is_active=True).order_by(WithdrawalRoute.priority.desc()).all()
             results: list[dict[str, Any]] = []
 
             for route in routes:

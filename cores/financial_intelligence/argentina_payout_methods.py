@@ -247,7 +247,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         name="Payoneer",
         type=PayoutMethodType.FINTECH,
         kyc_level=KYCLevel.STANDARD,
-        platforms=["HackerOne", "Intigriti", "Immunefi", "Upwork", "Freelancer"],
+        platforms=["HackerOne", "Intigriti", "Immunefi", "Upwork", "Freelancer", "RemoExperts", "OneForma"],
         fees={"fixed": 0.0, "percentage": 0.0, "withdrawal": 15.0},
         timing={"setup": 3, "transfer": 3, "arrival": 7},
         routes=["Plataforma → Payoneer → Banco AR / USDT"],
@@ -255,7 +255,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         cons=["Comisiones retiro altas", "Lento", "Tipo de cambio regular"],
         minimum_withdrawal=20.0,
         maximum_withdrawal=50000.0,
-        notes="Método clásico para bug bounty, muy confiable.",
+        notes="Método clásico para bug bounty y AI training, muy confiable.",
         reliability_score=90,
     ),
     PayoutMethod(
@@ -263,7 +263,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         name="AirTM",
         type=PayoutMethodType.FINTECH,
         kyc_level=KYCLevel.STANDARD,
-        platforms=["Outlier", "DataAnnotation", "Mindrift", "Remotasks"],
+        platforms=["Outlier", "Mindrift", "RemoExperts", "OneForma", "DataAnnotation", "Remotasks"],
         fees={"fixed": 0.0, "percentage": 1.0, "withdrawal": 2.0},
         timing={"setup": 2, "transfer": 1, "arrival": 3},
         routes=["Plataforma → AirTM → USDT/ARS"],
@@ -271,7 +271,7 @@ ARGENTINA_PAYOUT_METHODS: list[PayoutMethod] = [
         cons=["Comisiones medias", "Menos liquidez"],
         minimum_withdrawal=5.0,
         maximum_withdrawal=10000.0,
-        notes="Ideal para data annotation platforms.",
+        notes="Ideal para data annotation y AI training platforms.",
         reliability_score=85,
     ),
     PayoutMethod(
@@ -1138,11 +1138,7 @@ class ArgentinaPayoutMethods:
             compatible = [m for m in compatible if m.type == preferred_type]
 
         # Filter by amount limits
-        compatible = [
-            m
-            for m in compatible
-            if m.minimum_withdrawal <= amount and (m.maximum_withdrawal is None or m.maximum_withdrawal >= amount)
-        ]
+        compatible = [m for m in compatible if m.minimum_withdrawal <= amount and (m.maximum_withdrawal is None or m.maximum_withdrawal >= amount)]
 
         # Score each method
         scored = []
@@ -1167,9 +1163,7 @@ class ArgentinaPayoutMethods:
         score += method.reliability_score * 0.4
 
         # Fees (25% weight) - lower is better
-        total_fee_pct = method.fees.get("percentage", 0) + (
-            method.fees.get("fixed", 0) / amount * 100 if amount > 0 else 0
-        )
+        total_fee_pct = method.fees.get("percentage", 0) + (method.fees.get("fixed", 0) / amount * 100 if amount > 0 else 0)
         fee_score = max(0, 100 - total_fee_pct * 10)  # Penalize high fees
         score += fee_score * 0.25
 

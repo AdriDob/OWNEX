@@ -171,9 +171,7 @@ class DataAnnotationWorker(BaseExecutor):
                 # Check for CAPTCHA or 2FA
                 page_content = await agent._page.content() if agent._page else ""
                 if "captcha" in page_content.lower() or "2fa" in page_content.lower():
-                    return ExecutionResult(
-                        False, "login", current_url, error="CAPTCHA or 2FA detected - manual intervention required"
-                    )
+                    return ExecutionResult(False, "login", current_url, error="CAPTCHA or 2FA detected - manual intervention required")
 
                 return ExecutionResult(True, "login", current_url, message="Successfully logged in to DataAnnotation")
 
@@ -282,9 +280,7 @@ class DataAnnotationWorker(BaseExecutor):
             except TimeoutError:
                 return ExecutionResult(False, "fetch_projects", self.PROJECTS_URL, error="Fetch projects timeout")
             except Exception as e:
-                return ExecutionResult(
-                    False, "fetch_projects", self.PROJECTS_URL, error=f"Fetch projects error: {str(e)}"
-                )
+                return ExecutionResult(False, "fetch_projects", self.PROJECTS_URL, error=f"Fetch projects error: {str(e)}")
 
     async def submit_response(self, project_id: str, response: dict[str, Any]) -> ExecutionResult:
         """Submit a response to a DataAnnotation project."""
@@ -393,24 +389,18 @@ class DataAnnotationWorker(BaseExecutor):
             try:
                 result = await agent.goto(self.base_url, wait_until="domcontentloaded")
                 if not result.success:
-                    return ExecutionResult(
-                        False, "health_check", self.base_url, error=f"Navigation failed: {result.error}"
-                    )
+                    return ExecutionResult(False, "health_check", self.base_url, error=f"Navigation failed: {result.error}")
 
                 # Check if page loaded successfully
                 page_content = await agent._page.content() if agent._page else ""
                 if not page_content or len(page_content) < 100:
-                    return ExecutionResult(
-                        False, "health_check", self.base_url, error="Page content is empty or too short"
-                    )
+                    return ExecutionResult(False, "health_check", self.base_url, error="Page content is empty or too short")
 
                 # Check for common error indicators
                 if "error" in page_content.lower() or "503" in page_content or "502" in page_content:
                     return ExecutionResult(False, "health_check", self.base_url, error="Platform returned error page")
 
-                return ExecutionResult(
-                    True, "health_check", self.base_url, message="DataAnnotation platform is accessible"
-                )
+                return ExecutionResult(True, "health_check", self.base_url, message="DataAnnotation platform is accessible")
 
             except Exception as e:
                 return ExecutionResult(False, "health_check", self.base_url, error=f"Health check error: {str(e)}")
@@ -575,14 +565,8 @@ class OutlierWorker(BaseExecutor):
 
                 # Check for CAPTCHA or 2FA
                 page_content = await agent._page.content() if agent._page else ""
-                if (
-                    "captcha" in page_content.lower()
-                    or "2fa" in page_content.lower()
-                    or "two-factor" in page_content.lower()
-                ):
-                    return ExecutionResult(
-                        False, "login", current_url, error="CAPTCHA or 2FA detected - manual intervention required"
-                    )
+                if "captcha" in page_content.lower() or "2fa" in page_content.lower() or "two-factor" in page_content.lower():
+                    return ExecutionResult(False, "login", current_url, error="CAPTCHA or 2FA detected - manual intervention required")
 
                 return ExecutionResult(True, "login", current_url, message="Successfully logged in to Outlier")
 
@@ -648,9 +632,7 @@ class OutlierWorker(BaseExecutor):
 
                                 # Extract pay rate if available
                                 pay_rate = ""
-                                pay_elem = await card.query_selector(
-                                    '[class*="pay"], [class*="rate"], [class*="hourly"]'
-                                )
+                                pay_elem = await card.query_selector('[class*="pay"], [class*="rate"], [class*="hourly"]')
                                 if pay_elem:
                                     pay_rate = await pay_elem.text_content()
 
@@ -705,9 +687,7 @@ class OutlierWorker(BaseExecutor):
             except TimeoutError:
                 return ExecutionResult(False, "fetch_projects", self.DASHBOARD_URL, error="Fetch projects timeout")
             except Exception as e:
-                return ExecutionResult(
-                    False, "fetch_projects", self.DASHBOARD_URL, error=f"Fetch projects error: {str(e)}"
-                )
+                return ExecutionResult(False, "fetch_projects", self.DASHBOARD_URL, error=f"Fetch projects error: {str(e)}")
 
     async def submit_work(self, project_id: str, work: dict[str, Any]) -> ExecutionResult:
         """Submit work to an Outlier project."""
@@ -819,16 +799,12 @@ class OutlierWorker(BaseExecutor):
             try:
                 result = await agent.goto(self.base_url, wait_until="domcontentloaded")
                 if not result.success:
-                    return ExecutionResult(
-                        False, "health_check", self.base_url, error=f"Navigation failed: {result.error}"
-                    )
+                    return ExecutionResult(False, "health_check", self.base_url, error=f"Navigation failed: {result.error}")
 
                 # Check if page loaded successfully
                 page_content = await agent._page.content() if agent._page else ""
                 if not page_content or len(page_content) < 100:
-                    return ExecutionResult(
-                        False, "health_check", self.base_url, error="Page content is empty or too short"
-                    )
+                    return ExecutionResult(False, "health_check", self.base_url, error="Page content is empty or too short")
 
                 # Check for common error indicators
                 if "error" in page_content.lower() or "503" in page_content or "502" in page_content:
@@ -890,9 +866,7 @@ class MindriftBrowserWorker(BaseExecutor):
             projects = await agent._page.query_selector_all(".project-card")
             project_data = [{"id": i, "title": await project.text_content()} for i, project in enumerate(projects)]
 
-            return ExecutionResult(
-                True, "fetch_projects", "", data={"projects": project_data, "count": len(project_data)}
-            )
+            return ExecutionResult(True, "fetch_projects", "", data={"projects": project_data, "count": len(project_data)})
 
     async def submit_response(self, project_id: str, response: dict[str, Any]) -> ExecutionResult:
         async with BrowserAgent(self.config) as agent:

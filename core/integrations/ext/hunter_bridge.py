@@ -192,11 +192,7 @@ def run_hunter_scan(domain: str, vuln_classes: list[str] | None = None) -> dict[
         }
 
     try:
-        cmd = (
-            [bughunter, "bughunter", domain]
-            if "bughunter" in str(bughunter)
-            else ["python3", str(HUNTER_REPO_DIR / "engine.py"), domain]
-        )
+        cmd = [bughunter, "bughunter", domain] if "bughunter" in str(bughunter) else ["python3", str(HUNTER_REPO_DIR / "engine.py"), domain]
         if vuln_classes:
             cmd.extend(["--vuln-types", ",".join(vuln_classes)])
 

@@ -47,9 +47,7 @@ class FreelancerAdapter(OpportunityAdapter):
                 "budget_max": "5000",
                 "limit": 50,
                 "compact": "true",
-                "query": "entry level OR junior OR no experience OR "
-                "no portfolio OR microtask OR small task OR "
-                "quick fix OR bug fix OR simple OR beginner",
+                "query": "entry level OR junior OR no experience OR no portfolio OR microtask OR small task OR quick fix OR bug fix OR simple OR beginner",
             }
 
             if personal:

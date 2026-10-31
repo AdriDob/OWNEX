@@ -70,6 +70,8 @@ def update_config(body: AIConfigUpdate):
             updates["devin_path"] = body.host
         if body.model:
             updates["devin_model"] = body.model
+    elif body.provider_type == "codex" and body.host:
+        updates["codex_path"] = body.host
     elif body.provider_type == "freebuff":
         # Agente free: ruta al config yaml.
         if body.host:

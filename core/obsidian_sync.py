@@ -125,9 +125,7 @@ def _record_sync(meta: dict[str, Any]) -> None:
     _save_state({"last_sync": datetime.now(UTC).isoformat(), "files": files, "last_error": None})
 
 
-def sync_markdown_to_json(
-    path: str, content: str, title: str = "File", tags: list[str] | None = None
-) -> dict[str, Any]:
+def sync_markdown_to_json(path: str, content: str, title: str = "File", tags: list[str] | None = None) -> dict[str, Any]:
     """Sincroniza markdown → JSON.
 
     Guarda el contenido como .md en la carpeta sync y crea
@@ -186,7 +184,4 @@ def sync_full() -> dict[str, Any]:
 def get_changes() -> list[dict[str, Any]]:
     """Retornar los cambios últimos (archivos modificados)."""
     files = _get_files()
-    return [
-        {"id": f["id"], "title": f.get("title", ""), "synced_at": f.get("synced_at"), "sha256": f.get("sha256")}
-        for f in files
-    ]
+    return [{"id": f["id"], "title": f.get("title", ""), "synced_at": f.get("synced_at"), "sha256": f.get("sha256")} for f in files]

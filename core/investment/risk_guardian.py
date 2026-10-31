@@ -60,11 +60,7 @@ class RiskGuardian:
                 self._resume_strategy(sid, metrics, results)
 
             # Check warning threshold (80% of max drawdown)
-            elif (
-                metrics.max_drawdown_pct > 0
-                and metrics.current_drawdown_pct >= metrics.max_drawdown_pct * 0.8
-                and not self._manager.is_strategy_paused(sid)
-            ):
+            elif metrics.max_drawdown_pct > 0 and metrics.current_drawdown_pct >= metrics.max_drawdown_pct * 0.8 and not self._manager.is_strategy_paused(sid):
                 results["warnings"].append(
                     {
                         "strategy_id": sid,

@@ -85,9 +85,7 @@ class InfrastructureAuditor:
                 )
         return findings
 
-    def _finding(
-        self, title: str, description: str, risk: float = 3.0, evidence: str = "", impact: list[str] | None = None
-    ) -> dict[str, Any]:
+    def _finding(self, title: str, description: str, risk: float = 3.0, evidence: str = "", impact: list[str] | None = None) -> dict[str, Any]:
         return {
             "title": title,
             "description": description,

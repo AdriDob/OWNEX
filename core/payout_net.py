@@ -290,9 +290,7 @@ class PayoutNet:
         fallbacks = [self._ml(f) for f in m[7]]
         state = self._load()
         inc = state.setdefault("incidents", {})
-        inc.setdefault(method_id, []).append(
-            {"problem": problem, "fix": fix, "created_at": datetime.now(UTC).isoformat()}
-        )
+        inc.setdefault(method_id, []).append({"problem": problem, "fix": fix, "created_at": datetime.now(UTC).isoformat()})
         self._save(state)
         return {
             "success": True,

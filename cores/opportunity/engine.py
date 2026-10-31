@@ -338,9 +338,7 @@ class OpportunityRanker:
 
         return min(score, 100.0)
 
-    def calculate_match_score(
-        self, opp: Opportunity, user_skills: list[str], user_preferences: dict[str, Any]
-    ) -> float:
+    def calculate_match_score(self, opp: Opportunity, user_skills: list[str], user_preferences: dict[str, Any]) -> float:
         score = 0.0
 
         # Skill match (40%)
@@ -403,9 +401,7 @@ class OpportunityRanker:
         ranked.sort(key=lambda x: x.score, reverse=True)
         return ranked
 
-    async def _generate_reasoning(
-        self, opp: Opportunity, rph: float, match: float, own_ex_score: float, user_skills: list[str]
-    ) -> str:
+    async def _generate_reasoning(self, opp: Opportunity, rph: float, match: float, own_ex_score: float, user_skills: list[str]) -> str:
         prompt = f"""
 Explain in 2 sentences why this opportunity is a good match for OWNEX:
 Title: {opp.title}
@@ -626,8 +622,7 @@ class OpportunityEngine:
             opp = ro.opportunity
             lines.append(f"{i}. **{opp.title}** ({opp.category.value})")
             lines.append(
-                f"   💰 ${opp.reward_min}-${opp.reward_max} | ⏱️ {opp.estimated_hours}h | "
-                f"💵 ${ro.reward_per_hour:.0f}/hr | 🎯 OWNEX: {opp.own_ex_score:.0f}/100"
+                f"   💰 ${opp.reward_min}-${opp.reward_max} | ⏱️ {opp.estimated_hours}h | 💵 ${ro.reward_per_hour:.0f}/hr | 🎯 OWNEX: {opp.own_ex_score:.0f}/100"
             )
             lines.append(f"   🤖 Automatizable: {opp.automatable_pct * 100:.0f}% | 📊 Dificultad: {opp.difficulty}")
             if ro.reasoning:
@@ -687,8 +682,7 @@ class OpportunityEngine:
         all_opps = self.get_all()
         return {
             "total": len(all_opps),
-            "avg_reward": sum((o.get("reward_min", 0) + o.get("reward_max", 0)) / 2 for o in all_opps)
-            / max(len(all_opps), 1),
+            "avg_reward": sum((o.get("reward_min", 0) + o.get("reward_max", 0)) / 2 for o in all_opps) / max(len(all_opps), 1),
             "categories": len(set(o.get("category", "") for o in all_opps)),
             "last_refresh": datetime.now(UTC).isoformat(),
         }

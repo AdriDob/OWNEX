@@ -19,9 +19,7 @@ from cores.engine.hypothesis.models import (
 
 UUID_PATTERN = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 NUMERIC_SEGMENT = re.compile(r"/(?:[0-9]+)(?:/|$)")
-ID_PARAM = re.compile(
-    r"(?:user|account|order|invoice|file|team|org|project|resource|customer|subscription|device)_?id", re.I
-)
+ID_PARAM = re.compile(r"(?:user|account|order|invoice|file|team|org|project|resource|customer|subscription|device)_?id", re.I)
 UUID_PARAM = re.compile(r"(?:uuid|token|session|key|guid|ref)_?", re.I)
 
 
@@ -286,9 +284,7 @@ def generate_privilege_escalation(
     is_admin = "admin_surface" in surface or "admin" in labels
     is_internal = "internal_surface" in surface or "internal" in labels
     has_admin_signal = is_admin or is_internal or any(s in signals for s in {"admin", "internal"})
-    has_role_signal = any(
-        kw in lower for kw in {"role", "permission", "admin", "sudo", "superuser", "privilege", "staff", "dashboard"}
-    )
+    has_role_signal = any(kw in lower for kw in {"role", "permission", "admin", "sudo", "superuser", "privilege", "staff", "dashboard"})
 
     if not (has_admin_signal or has_role_signal):
         return None
@@ -608,18 +604,12 @@ def generate_web3(
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
-    is_web3 = (
-        "web3" in labels
-        or "web3" in signals
-        or any(s in surface for s in {"rpc_surface", "wallet_surface", "signature_surface"})
-    )
+    is_web3 = "web3" in labels or "web3" in signals or any(s in surface for s in {"rpc_surface", "wallet_surface", "signature_surface"})
     if not is_web3:
         return None
 
     is_rpc = "rpc_surface" in surface or any(kw in lower for kw in {"rpc", "jsonrpc", "eth_", "call", "send"})
-    is_wallet = "wallet_surface" in surface or any(
-        kw in lower for kw in {"wallet", "balance", "transfer", "signature", "nonce"}
-    )
+    is_wallet = "wallet_surface" in surface or any(kw in lower for kw in {"wallet", "balance", "transfer", "signature", "nonce"})
     is_signature = "signature_surface" in surface or any(kw in lower for kw in {"signature", "sign", "message", "eip"})
 
     evidence = []

@@ -179,9 +179,7 @@ class NoiseReductionEngine:
 
     # ── Filter: static assets (extensions) ──────────────────────────────
 
-    def _filter_static_assets(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_static_assets(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -207,9 +205,7 @@ class NoiseReductionEngine:
 
     # ── Filter: low-value paths (health, status, etc.) ──────────────────
 
-    def _filter_low_value(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_low_value(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -255,9 +251,7 @@ class NoiseReductionEngine:
                 normalized.append(segment)
         return "/" + "/".join(normalized) if normalized else "/"
 
-    def _filter_duplicates(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_duplicates(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         if len(endpoints) < 2:
             return endpoints, [], []
 
@@ -286,20 +280,13 @@ class NoiseReductionEngine:
             clean.append(kept)
             for ep in group_sorted[1:]:
                 removed.append(ep)
-                reasons.append(
-                    f"[duplicate] {ep.get('path')} "
-                    f"(score {ep.get('risk_score')}) "
-                    f"duplicate of {kept.get('path')} "
-                    f"(score {kept.get('risk_score')})"
-                )
+                reasons.append(f"[duplicate] {ep.get('path')} (score {ep.get('risk_score')}) duplicate of {kept.get('path')} (score {kept.get('risk_score')})")
 
         return clean, removed, reasons
 
     # ── Filter: below risk score threshold ──────────────────────────────
 
-    def _filter_below_threshold(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_below_threshold(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         threshold = self.config.min_risk_score
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
@@ -317,9 +304,7 @@ class NoiseReductionEngine:
 
     # ── Filter: no security-relevant signals ────────────────────────────
 
-    def _filter_no_signal(
-        self, endpoints: list[dict[str, Any]]
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    def _filter_no_signal(self, endpoints: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         clean: list[dict[str, Any]] = []
         removed: list[dict[str, Any]] = []
         reasons: list[str] = []
@@ -343,9 +328,7 @@ class NoiseReductionEngine:
 
     # ── Utility: run a single filter (for composability) ────────────────
 
-    def filter_only(
-        self, scored_endpoints: list[dict[str, Any]], filter_name: str
-    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    def filter_only(self, scored_endpoints: list[dict[str, Any]], filter_name: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         registry = {
             "static_assets": self._filter_static_assets,
             "low_value": self._filter_low_value,

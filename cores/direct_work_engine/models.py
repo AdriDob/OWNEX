@@ -186,9 +186,7 @@ class EntryMechanism(StrEnum):
 
 
 # Mechanisms that prove capability once (amortized over a work stream).
-CAPABILITY_MECHANISMS: frozenset[EntryMechanism] = frozenset(
-    {EntryMechanism.ASSESSMENT, EntryMechanism.TRAINING, EntryMechanism.TEST}
-)
+CAPABILITY_MECHANISMS: frozenset[EntryMechanism] = frozenset({EntryMechanism.ASSESSMENT, EntryMechanism.TRAINING, EntryMechanism.TEST})
 
 # Mechanisms that gate on identity/history (hiring funnel).
 FUNNEL_MECHANISMS: frozenset[EntryMechanism] = frozenset(
@@ -211,9 +209,7 @@ class ExperienceRequirement(StrEnum):
 
 
 # Requirement levels compatible with working without prior experience.
-ZERO_EXPERIENCE_REQUIREMENTS: frozenset[ExperienceRequirement] = frozenset(
-    {ExperienceRequirement.NONE, ExperienceRequirement.OPTIONAL}
-)
+ZERO_EXPERIENCE_REQUIREMENTS: frozenset[ExperienceRequirement] = frozenset({ExperienceRequirement.NONE, ExperienceRequirement.OPTIONAL})
 
 
 # Payment methods that can receive money internationally from any country.
@@ -331,10 +327,7 @@ class Opportunity:
             if self.specialization is None:
                 raise ValueError("Game Development requires a programming specialization")
             if self.specialization not in GAME_DEVELOPMENT_SPECIALIZATIONS:
-                raise ValueError(
-                    f"{getattr(self.specialization, 'value', self.specialization)} is not a programming-only "
-                    "Game Development specialization"
-                )
+                raise ValueError(f"{getattr(self.specialization, 'value', self.specialization)} is not a programming-only Game Development specialization")
         if self.international_payment is None:
             self.international_payment = self.payment_method in INTERNATIONAL_PAYMENT_METHODS
 

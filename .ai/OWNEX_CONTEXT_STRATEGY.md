@@ -676,8 +676,7 @@ class StrategyEngine:
         if best_alt.priority > current_score.priority * 1.5:
             return (
                 False,
-                f"Better opportunity: {best_alt.opportunity.name} "
-                f"(priority {best_alt.priority:.2f} vs {current_score.priority:.2f})",
+                f"Better opportunity: {best_alt.opportunity.name} (priority {best_alt.priority:.2f} vs {current_score.priority:.2f})",
             )
 
         return (True, "Current priority within acceptable range")

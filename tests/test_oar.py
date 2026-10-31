@@ -52,6 +52,16 @@ class TestOARConfig:
 
 class TestProviderRegistry:
     @pytest.mark.asyncio
+    async def test_codex_cli_is_registered_as_runtime_provider(self):
+        config = OARConfig(enabled_providers=["codex"])
+        registry = ProviderRegistry(config)
+        await registry.initialize()
+        provider = registry.get_provider("codex")
+        assert provider is not None
+        assert provider.supported_models == ["codex-cli"]
+        assert Capability.CHAT in provider.get_model_capabilities("codex-cli").supports
+
+    @pytest.mark.asyncio
     async def test_registry_initialization(self):
         config = OARConfig(enabled_providers=["ollama"])
         registry = ProviderRegistry(config)

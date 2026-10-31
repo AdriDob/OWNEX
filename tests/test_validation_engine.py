@@ -168,10 +168,7 @@ class TestEconomicScorer:
         assert high_score.priority >= low_score.priority
 
     def test_filter_candidates_returns_top_n(self):
-        candidates = [
-            AttackCandidate(vulnerability_type=VulnType.IDOR, method="GET", endpoint_path=f"/api/{i}")
-            for i in range(10)
-        ]
+        candidates = [AttackCandidate(vulnerability_type=VulnType.IDOR, method="GET", endpoint_path=f"/api/{i}") for i in range(10)]
         scorer = EconomicScorer()
         filtered = scorer.filter_candidates(candidates, min_priority=1, max_candidates=5)
         assert len(filtered) <= 5

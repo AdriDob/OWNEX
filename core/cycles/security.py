@@ -12,7 +12,7 @@ from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from core.cycles.models import Cycle, CycleCategory, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.security")
 
@@ -60,7 +60,7 @@ class SecurityCycle:
                     "name": "Security",
                     "slug": "security",
                     "description": "Bug bounty, Rastro, vulnerability research",
-                    "category": "offensive",
+                    "category": CycleCategory.SECURITY.value,
                     "enabled": True,
                     "priority": 100,
                     "status": "idle",
@@ -292,9 +292,7 @@ class SecurityCycle:
             elif stage == "hypothesis":
                 ctx["hypotheses"] = details.get("hypotheses", ctx.get("hypotheses", []))
             elif stage == "validation":
-                ctx["confirmed_findings"] = details.get(
-                    "confirmed_hypotheses", details.get("confirmed", ctx.get("confirmed_findings", []))
-                )
+                ctx["confirmed_findings"] = details.get("confirmed_hypotheses", details.get("confirmed", ctx.get("confirmed_findings", [])))
                 ctx["validated"] = details.get("validated", ctx.get("validated", []))
             elif stage == "evidence":
                 ctx["evidence_packages"] = details.get("evidence_packages", [])
@@ -350,7 +348,7 @@ def register_security_cycle(registry) -> None:
                 slug="security",
                 name="Security",
                 description="Bug bounty, vulnerability research, Rastro pipeline",
-                category="offensive",
+                category=CycleCategory.SECURITY.value,
                 priority=10,
                 config={
                     "source_apps": ["rastro", "aegis"],

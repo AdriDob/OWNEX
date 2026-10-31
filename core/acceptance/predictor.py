@@ -40,9 +40,7 @@ class AcceptancePredictor:
         Returns:
             PredictionResult with probability, confidence, top factors, suggestions.
         """
-        platform_lower = (
-            platform.lower().replace("h1", "hackerone").replace("bc", "bugcrowd").replace("inti", "intigriti")
-        )
+        platform_lower = platform.lower().replace("h1", "hackerone").replace("bc", "bugcrowd").replace("inti", "intigriti")
 
         profile = self._analyzer.get_profile(platform_lower)
         factors: list[dict[str, Any]] = []

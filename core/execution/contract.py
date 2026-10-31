@@ -92,12 +92,8 @@ class CapabilityContract:
             "config_schema": self.config_schema,
             "config_example": self.config_example,
             "permissions": [{"resource": p.resource, "action": p.action} for p in self.permissions],
-            "events_published": [
-                {"event_type": e.event_type, "description": e.description} for e in self.events_published
-            ],
-            "events_consumed": [
-                {"event_type": e.event_type, "description": e.description} for e in self.events_consumed
-            ],
+            "events_published": [{"event_type": e.event_type, "description": e.description} for e in self.events_published],
+            "events_consumed": [{"event_type": e.event_type, "description": e.description} for e in self.events_consumed],
             "dependencies": self.dependencies,
             "timeout_ms": self.timeout_ms,
             "retry_count": self.retry_count,

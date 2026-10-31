@@ -537,9 +537,7 @@ def bayesian_posterior_summary():
         bl = BayesianLearner()
         for obs in learner.get_observations():
             if isinstance(obs, dict):
-                bl.observe(
-                    str(obs.get("platform", "?")), str(obs.get("outcome", "")) == "accepted", obs.get("dimensions")
-                )
+                bl.observe(str(obs.get("platform", "?")), str(obs.get("outcome", "")) == "accepted", obs.get("dimensions"))
             else:
                 bl.observe(str(obs.platform), str(obs.outcome) == "accepted", obs.dimensions)  # type: ignore[union-attr]
         return {"status": "ok", "posteriors": bl.get_posterior_summary()}

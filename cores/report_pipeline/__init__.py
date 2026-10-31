@@ -87,9 +87,7 @@ class ReportPipeline:
         session = db.SessionLocal()
         try:
             # Get findings with confirmed verdicts that have evidence
-            findings = (
-                session.query(Finding).filter(Finding.status == "confirmed").order_by(Finding.created_at.desc()).all()
-            )
+            findings = session.query(Finding).filter(Finding.status == "confirmed").order_by(Finding.created_at.desc()).all()
 
             candidates = []
             for f in findings:
@@ -99,12 +97,7 @@ class ReportPipeline:
                     continue
 
                 # Get evidence via verdicts
-                verdicts = (
-                    session.query(Verdict)
-                    .filter(Verdict.hot_path_id == f.id)
-                    .filter(Verdict.status == "confirmed")
-                    .all()
-                )
+                verdicts = session.query(Verdict).filter(Verdict.hot_path_id == f.id).filter(Verdict.status == "confirmed").all()
 
                 if not verdicts:
                     continue
@@ -114,9 +107,7 @@ class ReportPipeline:
                 for v in verdicts:
                     if v.evidence_links:
                         try:
-                            ev_ids = (
-                                json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links
-                            )
+                            ev_ids = json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links
                             for ev_id in ev_ids:
                                 ev = session.query(Evidence).filter(Evidence.id == ev_id).first()
                                 if ev:
@@ -360,9 +351,7 @@ class ReportPipeline:
         if c.endpoints:
             lines.extend(["### Affected Endpoints", ""])
             for ep in c.endpoints:
-                lines.append(
-                    f"- **{ep.get('method', 'GET')}** `{ep.get('url', '')}` — Params: {ep.get('params', '{}')}"
-                )
+                lines.append(f"- **{ep.get('method', 'GET')}** `{ep.get('url', '')}` — Params: {ep.get('params', '{}')}")
 
         if c.screenshots:
             lines.extend(["", "### Screenshots", ""])

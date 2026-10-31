@@ -186,9 +186,7 @@ class CareerEngine:
     def __init__(self):
         self.logger = logging.getLogger("ownex.career_engine")
 
-    def detect_skill_gaps(
-        self, profile: UserProfile, categories: list[OpportunityCategory] | None = None
-    ) -> list[SkillGap]:
+    def detect_skill_gaps(self, profile: UserProfile, categories: list[OpportunityCategory] | None = None) -> list[SkillGap]:
         """Compare user skills against required skills per category."""
         categories = categories or list(CATEGORY_REQUIRED_SKILLS.keys())
         user_skills = {s.lower() for s in profile.skills}
@@ -221,9 +219,7 @@ class CareerEngine:
         """Return curated interview questions for a category."""
         return INTERVIEW_QUESTIONS.get(category, [])
 
-    def build_daily_training(
-        self, profile: UserProfile, categories: list[OpportunityCategory] | None = None
-    ) -> DailyTrainingPlan:
+    def build_daily_training(self, profile: UserProfile, categories: list[OpportunityCategory] | None = None) -> DailyTrainingPlan:
         """Build today's training plan from the top skill gaps."""
         roadmap = self.build_roadmap(profile, categories)
         top_gaps = roadmap.items[:3]

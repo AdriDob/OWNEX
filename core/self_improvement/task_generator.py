@@ -126,8 +126,7 @@ class TaskGenerator:
         preferred = [
             c
             for c in categories
-            if any(s in capabilities for s in _CATEGORY_EXAMPLE_SKILLS.get(c, []))
-            or any(s in skill_gaps for s in _CATEGORY_EXAMPLE_SKILLS.get(c, []))
+            if any(s in capabilities for s in _CATEGORY_EXAMPLE_SKILLS.get(c, [])) or any(s in skill_gaps for s in _CATEGORY_EXAMPLE_SKILLS.get(c, []))
         ]
         ordered = preferred + [c for c in categories if c not in preferred]
 

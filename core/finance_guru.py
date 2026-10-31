@@ -294,8 +294,7 @@ class FinanceGuru:
             return {"success": False, "message": "Cuenta no encontrada."}
         key = self._problem_key(problem)
         fix = acc.get("problemas", {}).get(key) or (
-            "Reintentá con documentación clara. Si persiste, usá un fallback: "
-            + ", ".join(self._resolve_name(f) for f in acc.get("fallbacks", []))
+            "Reintentá con documentación clara. Si persiste, usá un fallback: " + ", ".join(self._resolve_name(f) for f in acc.get("fallbacks", []))
         )
         state = self._load()
         state["qa"].append(
@@ -326,9 +325,7 @@ class FinanceGuru:
         p = problem.lower()
         if "kyc" in p or "docu" in p or "selfie" in p or "verific" in p:
             return "verificacion" if "verific" in p else "kyc_rechazado"
-        if any(
-            k in p for k in ["reten", "retuv", "retuvo", "hold", "congel", "suspend", "cerrada", "demora", "espera"]
-        ):
+        if any(k in p for k in ["reten", "retuv", "retuvo", "hold", "congel", "suspend", "cerrada", "demora", "espera"]):
             if any(k in p for k in ["cerrada", "suspend"]):
                 return "cuenta_cerrada"
             return "retencion"

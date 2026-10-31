@@ -46,9 +46,7 @@ class OmniRouteProvider(BaseProvider):
                 timeout_s=60,
             )
         )
-        self._base_url = self._config.extra.get(
-            "base_url", os.getenv("OMNIROUTE_BASE_URL", "http://localhost:20128/v1")
-        )
+        self._base_url = self._config.extra.get("base_url", os.getenv("OMNIROUTE_BASE_URL", "http://localhost:20128/v1"))
         self._api_key = self._config.extra.get("api_key", os.getenv("OMNIROUTE_API_KEY", "omniroute"))
         self._default_model = self._config.models[0]
 

@@ -18,9 +18,7 @@ from core.revenue.pipeline import (
 # ── Helpers ─────────────────────────────────────────────────────
 
 
-def _make_mock_platform(
-    success: bool = True, external_id: str = "H1-123", url: str = "https://hackerone.com/reports/123"
-):
+def _make_mock_platform(success: bool = True, external_id: str = "H1-123", url: str = "https://hackerone.com/reports/123"):
     """Create a mock platform that returns controlled results."""
     platform = type("MockPlatform", (), {})()
     platform.platform_id = "hackerone"

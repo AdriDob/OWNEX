@@ -29,9 +29,7 @@ class TestNodeToBytecode:
         assert bc[0].opcode == Opcode.HALT
 
     def test_capability(self) -> None:
-        n = Node(
-            id="c1", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:cap", "params": {"url": "x"}}
-        )
+        n = Node(id="c1", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:cap", "params": {"url": "x"}})
         bc = _node_to_bytecode(n, "c1")
         assert len(bc) == 1
         assert bc[0].opcode == Opcode.CALL_CAPABILITY
@@ -307,12 +305,8 @@ class TestParallelOptimizer:
     def test_detects_independent_branches(self) -> None:
         w = Workflow(name="parallel-test")
         w.nodes.append(Node(id="start", type=PrimitiveType.START.value))
-        w.nodes.append(
-            Node(id="a", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:a"}, output_mapping={})
-        )
-        w.nodes.append(
-            Node(id="b", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:b"}, output_mapping={})
-        )
+        w.nodes.append(Node(id="a", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:a"}, output_mapping={}))
+        w.nodes.append(Node(id="b", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:b"}, output_mapping={}))
         w.nodes.append(Node(id="end", type=PrimitiveType.END.value))
         w.edges.append(Edge(id="e1", source_id="start", target_id="a"))
         w.edges.append(Edge(id="e2", source_id="a", target_id="b"))
@@ -426,9 +420,7 @@ class TestPipeline:
                 config={"capability": "test:scan", "params": {"target": "example.com"}},
             )
         )
-        w.nodes.append(
-            Node(id="cap2", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:analyze", "params": {}})
-        )
+        w.nodes.append(Node(id="cap2", type=PrimitiveType.CAPABILITY.value, config={"capability": "test:analyze", "params": {}}))
         w.nodes.append(Node(id="end", type=PrimitiveType.END.value))
         w.edges.append(Edge(id="e1", source_id="start", target_id="scan"))
         w.edges.append(Edge(id="e2", source_id="start", target_id="cap2"))

@@ -141,10 +141,7 @@ def ask(prompt: str, task: str, provider: str | None, model: str | None, stream:
             response = await oar.chat(prompt, TaskType(task), provider=provider, model=model)
             click.echo(response.content)
             click.echo()
-            click.echo(
-                f"[Provider: {response.provider_id}/{response.model_id}, "
-                f"Latency: {response.latency_ms:.0f}ms, Cost: ${response.cost_usd:.6f}]"
-            )
+            click.echo(f"[Provider: {response.provider_id}/{response.model_id}, Latency: {response.latency_ms:.0f}ms, Cost: ${response.cost_usd:.6f}]")
 
     asyncio.run(run_ask())
 
@@ -174,9 +171,7 @@ def benchmark(task: str):
                 avg_latency = sum(r.latency_ms for r in res_list) / len(res_list)
                 avg_quality = sum(r.quality_score for r in res_list) / len(res_list)
                 success_rate = sum(1 for r in res_list if r.success) / len(res_list)
-                click.echo(
-                    f"  {key}: success={success_rate:.0%}, latency={avg_latency:.0f}ms, quality={avg_quality:.2f}"
-                )
+                click.echo(f"  {key}: success={success_rate:.0%}, latency={avg_latency:.0f}ms, quality={avg_quality:.2f}")
 
         rankings = engine.get_rankings(TaskType(task))
         click.echo("\nTop Rankings:")

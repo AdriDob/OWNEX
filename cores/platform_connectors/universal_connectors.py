@@ -144,9 +144,7 @@ class UniversalPlatformConnector:
 
             # Update Prometheus
             OPPORTUNITY_PROVIDERS_ACTIVE.labels(category=self.config.category.value).inc()
-            OPPORTUNITY_PROVIDER_HEALTH.labels(
-                provider=self.config.platform_id, category=self.config.category.value
-            ).set(1)
+            OPPORTUNITY_PROVIDER_HEALTH.labels(provider=self.config.platform_id, category=self.config.category.value).set(1)
 
             self.metrics.status = PlatformStatus.ACTIVE
             logger.info("Initialized platform connector: %s (%s)", self.config.name, self.config.platform_id)
@@ -156,9 +154,7 @@ class UniversalPlatformConnector:
             logger.exception("Failed to initialize platform connector %s", self.config.platform_id)
             self.metrics.status = PlatformStatus.ERROR
             self.metrics.last_error = str(e)
-            OPPORTUNITY_PROVIDER_HEALTH.labels(
-                provider=self.config.platform_id, category=self.config.category.value
-            ).set(-1)
+            OPPORTUNITY_PROVIDER_HEALTH.labels(provider=self.config.platform_id, category=self.config.category.value).set(-1)
             return False
 
     async def start_monitoring(self) -> None:

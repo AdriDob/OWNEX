@@ -107,11 +107,7 @@ class PolymarketCLOBAdapter:
                     prices[cid] = {
                         "bid": book["bids"][0]["price"],
                         "ask": book["asks"][0]["price"] if book["asks"] else None,
-                        "mid": (
-                            book["bids"][0]["price"]
-                            + (book["asks"][0]["price"] if book["asks"] else book["bids"][0]["price"])
-                        )
-                        / 2,
+                        "mid": (book["bids"][0]["price"] + (book["asks"][0]["price"] if book["asks"] else book["bids"][0]["price"])) / 2,
                     }
             return {"prices": prices}
         except Exception as e:

@@ -353,10 +353,7 @@ class NodeExtractor:
                     seen_signals.add(surface_key)
 
         # Enrich entity/signal metadata
-        risk_by_endpoint = {
-            f"endpoint:{e.get('method', 'GET')}:{e.get('path', '/')}": float(e.get("risk_score", 0))
-            for e in scored_endpoints
-        }
+        risk_by_endpoint = {f"endpoint:{e.get('method', 'GET')}:{e.get('path', '/')}": float(e.get("risk_score", 0)) for e in scored_endpoints}
 
         for node in nodes:
             if node["type"] == "entity":
@@ -369,11 +366,7 @@ class NodeExtractor:
 
             if node["type"] == "signal":
                 signal_key = node["node_id"].replace("signal:", "")
-                matching_eps = [
-                    e
-                    for e in scored_endpoints
-                    if signal_key in e.get("labels", []) or signal_key in e.get("attack_surface", [])
-                ]
+                matching_eps = [e for e in scored_endpoints if signal_key in e.get("labels", []) or signal_key in e.get("attack_surface", [])]
                 scores = [float(e.get("risk_score", 0)) for e in matching_eps]
                 node["metadata"]["endpoints_count"] = len(matching_eps)
                 node["metadata"]["avg_risk_score"] = round(sum(scores) / len(scores), 1) if scores else 0.0
@@ -449,9 +442,7 @@ class RelationshipDetector:
             for surface in ep.get("attack_surface", []):
                 surface_key = surface.replace("_surface", "").replace("_", " ")
                 sid = f"signal:{surface_key}"
-                if sid in signal_nodes and not any(
-                    e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal" for e in edges
-                ):
+                if sid in signal_nodes and not any(e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal" for e in edges):
                     edges.append(
                         {
                             "from": eid,
@@ -590,9 +581,7 @@ class ClusterEngine:
                         if any(f"/{p}" in lower_path for p in patterns):
                             matched_reasons.append(f"entity:{entity}")
                     if matched_reasons:
-                        reasons.append(
-                            f"{ep.get('method', 'GET')} {ep.get('path', '/')} ({', '.join(matched_reasons)})"
-                        )
+                        reasons.append(f"{ep.get('method', 'GET')} {ep.get('path', '/')} ({', '.join(matched_reasons)})")
 
             # Confidence: ratio of endpoints with direct matches vs. entity-only
             direct_matches = 0

@@ -46,9 +46,7 @@ class HTTPClient:
     Falls back to urllib if httpx is unavailable.
     """
 
-    def __init__(
-        self, timeout: float = 10.0, follow_redirects: bool = False, auth_config: AuthConfig | None = None
-    ) -> None:
+    def __init__(self, timeout: float = 10.0, follow_redirects: bool = False, auth_config: AuthConfig | None = None) -> None:
         self._timeout = timeout
         self._follow_redirects = follow_redirects
         self._auth_config = auth_config
@@ -316,9 +314,7 @@ class ProbeEngine:
 
             for req in probe_requests:
                 probe_resp = self._send(req)
-                status, conf, evidence, indicators = probe.analyze_responses(
-                    baseline, [probe_resp], req.get("payload", {})
-                )
+                status, conf, evidence, indicators = probe.analyze_responses(baseline, [probe_resp], req.get("payload", {}))
                 pr = ProbeResult(
                     hypothesis_id=hypothesis_id,
                     vulnerability_type=vulnerability_type,

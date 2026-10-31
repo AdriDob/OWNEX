@@ -115,10 +115,7 @@ class FindingAnalyzer:
         if alternatives:
             top_alt = max(alternatives, key=lambda a: a.get("weight", 0))
             if top_alt.get("weight", 0) > 0.6:
-                inconsistencies.append(
-                    f"Explicación alternativa fuerte: {top_alt.get('description', 'unknown')} "
-                    f"(peso: {top_alt.get('weight', 0):.2f})"
-                )
+                inconsistencies.append(f"Explicación alternativa fuerte: {top_alt.get('description', 'unknown')} (peso: {top_alt.get('weight', 0):.2f})")
 
         # Determine overall status
         if not inconsistencies and confidence >= 0.70:

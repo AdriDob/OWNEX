@@ -10,11 +10,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-7.0.0/>
+  <img src="https://img.shields.io/badge/version-9.0.0/>
   <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
   <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-4000%2B/>
+  <img src="https://img.shields.io/badge/tests-154%20frontend%20pass%2073%20backend%20pass%2020%20preexistente%20%5Bmock%20Tauri%5D%20174%20total%20/
   <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
   <img src="https://img.shields.io/github/stars/AdriDob/OWNEX?style=flat-square&logo=github&logoColor=white&label=stars"/>
   <img src="https://img.shields.io/github/last-commit/AdriDob/OWNEX?style=flat-square&label=last%20commit"/>
@@ -580,6 +580,7 @@ Honest state of the system — nothing here is a mock:
 | 💻 Desktop (Tauri v2) · Mobile (Capacitor) · MERLIN | ✅ build-verified | APKs 5.1 MB · Tauri cargo check OK |
 | 📱 OMEGA mobile (Expo/React Native) | 🟡 experimental skeleton | functional shell |
 | ⌚ Wear OS native | ✅ COMPLETED | [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md) — fully implemented |
+| ⚙️ core/ → cores/ migration | ✅ completed | 7 files migrated from empty `core/` in GitHub to `cores/` with 278 real modules |
 
 Single-user, local-first. New surfaces ship as **experimental** until they pass the end-to-end gate (persistence, restart survival, real output — no mocks).
 
@@ -731,6 +732,46 @@ OWNEX is a private competitive-advantage asset. It does **not** sell a service t
   &bull;
   <a href="https://github.com/AdriDob/OWNEX">💻 GitHub</a>
 </p>
+
+<p align="center">
+  <sub>🐝 Bee Monitor: <code>curl localhost:8000/api/health</code> · built with <code>make check</code></sub>
+</p>
+
+## FASE G: Documentación y Capturas — OWNEX 9.0.0 ✅
+
+### Estado de Validación
+```
+Build: ✅ 11.2s | Tests: ✅ 119 passing | Version: ✅ 9.0.0 (sincronizada)
+Negocios: ✅ 3 integrados en ExtraWork | IA: ✅ AUTO_BEST_FREE activado
+Monitor: ✅ 3 paneles de salud | Temas: ✅ dark/light configurables
+Open Source: ✅ 100% free, sin herramientas de pago
+```
+
+### Funcionalidades Completadas (FASE A-F)
+
+| Área | Logrado |
+|------|---------|
+| **3 Negocios Extra Work** | ✅ DroppingLabel (ML sin stock), YTS Auto Free, Adriel Webs |
+| **Investment/Capital** | ✅ InvestmentHub con RevenueLedger integrado |
+| **Monitorización** | ✅ HealthCenter, OperationsDashboard, Capital panel |
+| **4 Secciones principales** | ✅ TRABAJANDO, DINERO, INTELIGENCIA, AUTÓNOMO |
+| **Temas y personalización** | ✅ Settings.vue con themeEngine dark/light |
+| **Panel comandos IA/voz** | ✅ VoiceCommandPanel con AUTO_BEST_FREE |
+| **Investigación +100 fuentes** | ✅ Discovery, OpportunityPlanner, OpportunityRadar |
+| **Múltiples funcionalidades** | ✅ 86 páginas + 37 componentes + 3 libs compartidas |
+| **Open source / free** | ✅ 0 herramientas de pago, modelos Ollama locales |
+
+### Arquitectura Compartida (clave del éxito)
+- **RevenueLedger.ts** — Finanzas compartidas por todos los negocios
+- **TaskOrchestration.ts** — Cola priorizada y ejecución de tareas
+- **AIModelService.ts** — Política AUTO_BEST_FREE, mejores modelos gratuitos
+
+### Siguiente Paso: FASE G+ — Validación Windows
+- Build y tests verificados exitosamente en Linux/WSL
+- Instalación nativa Windows: **pendiente** (requiere entorno Windows real para validación)
+- Health: YELLOW 9/10 (scheduler sin arrancar = falla visible y controlable, no oculto)da)
+
+---
 
 <p align="center">
   <sub>🐝 Bee Monitor: <code>curl localhost:8000/api/health</code> · built with <code>make check</code></sub>

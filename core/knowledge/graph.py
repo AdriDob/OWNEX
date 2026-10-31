@@ -449,18 +449,10 @@ class KnowledgeGraph:
             from sqlalchemy import func
 
             type_counts = (
-                session.query(KGNode.node_type, func.count(KGNode.id))
-                .group_by(KGNode.node_type)
-                .order_by(func.count(KGNode.id).desc())
-                .limit(20)
-                .all()
+                session.query(KGNode.node_type, func.count(KGNode.id)).group_by(KGNode.node_type).order_by(func.count(KGNode.id).desc()).limit(20).all()
             )
             edge_type_counts = (
-                session.query(KGEdge.edge_type, func.count(KGEdge.id))
-                .group_by(KGEdge.edge_type)
-                .order_by(func.count(KGEdge.id).desc())
-                .limit(10)
-                .all()
+                session.query(KGEdge.edge_type, func.count(KGEdge.id)).group_by(KGEdge.edge_type).order_by(func.count(KGEdge.id).desc()).limit(10).all()
             )
             return {
                 "total_nodes": total_nodes,

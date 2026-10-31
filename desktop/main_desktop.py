@@ -362,9 +362,7 @@ def _open_desktop_window(host: str, port: int) -> bool:
         if elapsed < 2.0 and not user_closed.is_set():
             _lifecycle(
                 _BROWSER,
-                "Desktop window unavailable — "
-                "webview returned in %.2fs without user action "
-                "(likely WebView2 runtime missing)",
+                "Desktop window unavailable — webview returned in %.2fs without user action (likely WebView2 runtime missing)",
                 elapsed,
             )
             return False
@@ -475,9 +473,7 @@ def main() -> None:
 
     _setup_logging(dev)
     _lifecycle(_BOOT, "CATEYE Desktop — PID: %d", os.getpid())
-    _lifecycle(
-        _BOOT, "Frozen: %s, Python: %s, OS: %s", getattr(sys, "frozen", False), sys.version.split()[0], sys.platform
-    )
+    _lifecycle(_BOOT, "Frozen: %s, Python: %s, OS: %s", getattr(sys, "frozen", False), sys.version.split()[0], sys.platform)
 
     # ── Set env before imports that read them ────────────────────────
     if getattr(sys, "frozen", False):
@@ -521,9 +517,7 @@ def main() -> None:
     if check_and_rollback_if_needed():
         _lifecycle(_BOOT, "Rolled back to previous version after failed update")
     # Will be cleared after a successful boot
-    threading.Thread(
-        target=lambda: (time.sleep(15), mark_update_success() if callable(mark_update_success) else None), daemon=True
-    ).start()
+    threading.Thread(target=lambda: (time.sleep(15), mark_update_success() if callable(mark_update_success) else None), daemon=True).start()
 
     # Mount frontend static assets on the same app
     _mount_frontend(api_app)
@@ -543,15 +537,9 @@ def main() -> None:
     _lifecycle(_API, "Server listening on %s:%d", host, port)
 
     if not _wait_for_health(host, port):
-        lifecycle_path = (
-            _lifecycle_logger.handlers[0].baseFilename
-            if _lifecycle_logger and _lifecycle_logger.handlers
-            else "logs/lifecycle.log"
-        )
+        lifecycle_path = _lifecycle_logger.handlers[0].baseFilename if _lifecycle_logger and _lifecycle_logger.handlers else "logs/lifecycle.log"
         _lifecycle(_HEALTHY, "Health check timed out — revisar lifecycle.log")
-        _show_error(
-            "CATEYE - Error de inicio", f"El servidor backend no responde.\nRevisa los detalles en:\n{lifecycle_path}"
-        )
+        _show_error("CATEYE - Error de inicio", f"El servidor backend no responde.\nRevisa los detalles en:\n{lifecycle_path}")
         sys.exit(1)
     _lifecycle(_HEALTHY, "Backend healthy on port %d", port)
 

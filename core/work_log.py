@@ -49,9 +49,7 @@ class WorkLog:
         with open(self.state_path, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
 
-    def register_session(
-        self, hours: float, foco: str = "bounty", detail: str = "", momentum: int = 5
-    ) -> dict[str, Any]:
+    def register_session(self, hours: float, foco: str = "bounty", detail: str = "", momentum: int = 5) -> dict[str, Any]:
         hours = float(hours)
         if hours <= 0 or hours > 24:
             return {"success": False, "message": "Horas inválidas (0-24)."}

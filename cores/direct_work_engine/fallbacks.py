@@ -88,9 +88,7 @@ def build_fallback_chain(
                 title=probe.title,
                 expected_cash_date=probe.expected_cash_date,
                 confidence_band=probe.confidence_band,
-                trigger=(
-                    f"fallback #{fallback_no}: si {primary.platform} no tiene tareas disponibles o falla la postulación"
-                ),
+                trigger=(f"fallback #{fallback_no}: si {primary.platform} no tiene tareas disponibles o falla la postulación"),
             )
         )
         seen_platforms.add(probe.platform)

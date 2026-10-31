@@ -216,10 +216,7 @@ class PolicyEngine:
         return blocked
 
     def get_policies(self) -> list[dict]:
-        return [
-            {"name": p.name, "description": p.description, "min_level": p.level.value if p.level else None}
-            for p in self._policies.values()
-        ]
+        return [{"name": p.name, "description": p.description, "min_level": p.level.value if p.level else None} for p in self._policies.values()]
 
     def clear(self) -> None:
         self._policies.clear()

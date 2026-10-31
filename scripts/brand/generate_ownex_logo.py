@@ -64,10 +64,7 @@ def mark_svg(color: str, node: str = DEEP_BLUE, ring: str | None = None, size: i
         f'stroke="{lo}" stroke-width="3" stroke-linecap="round"/>'
         for i in range(8)
     )
-    ticks = "".join(
-        f'<circle cx="{vtx(r * 1.17, i)[0]:.1f}" cy="{vtx(r * 1.17, i)[1]:.1f}" r="4" fill="{hi}" opacity="0.85"/>'
-        for i in range(8)
-    )
+    ticks = "".join(f'<circle cx="{vtx(r * 1.17, i)[0]:.1f}" cy="{vtx(r * 1.17, i)[1]:.1f}" r="4" fill="{hi}" opacity="0.85"/>' for i in range(8))
     # Main octagonal ring — 8 gradient segments with a gap at the top-right
     gap_deg = 34.0
     gap_start = 45.0 - gap_deg / 2
@@ -81,8 +78,7 @@ def mark_svg(color: str, node: str = DEEP_BLUE, ring: str | None = None, size: i
         x0, y0 = vtx(r, i)
         x1p, y1p = vtx(r, i + 1)
         segments.append(
-            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" '
-            f'stroke="url(#ringGrad)" stroke-width="{stroke}" stroke-linecap="round"/>'
+            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" stroke="url(#ringGrad)" stroke-width="{stroke}" stroke-linecap="round"/>'
         )
     # X rays (gradient bars)
     ray_len = r * 0.8
@@ -103,10 +99,7 @@ def mark_svg(color: str, node: str = DEEP_BLUE, ring: str | None = None, size: i
     ny = cy - r * 1.06 * math.sin(node_ang)
     node_halo = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 1.35:.1f}" fill="url(#nodeHalo)" opacity="0.9"/>'
     node_circle = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.62:.1f}" fill="url(#nodeGrad)"/>'
-    glint = (
-        f'<circle cx="{nx - stroke * 0.18:.1f}" cy="{ny - stroke * 0.18:.1f}" '
-        f'r="{stroke * 0.2:.1f}" fill="{node_hi}" opacity="0.9"/>'
-    )
+    glint = f'<circle cx="{nx - stroke * 0.18:.1f}" cy="{ny - stroke * 0.18:.1f}" r="{stroke * 0.2:.1f}" fill="{node_hi}" opacity="0.9"/>'
     svg = f"""<svg width="{size}" height="{size}" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
 <defs>
   <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
@@ -188,22 +181,14 @@ def favicon_svg(color: str = WHITE, node: str = DEEP_BLUE) -> str:
         y0 = cy + 22 * math.sin(math.radians(a0))
         x1 = cx + 22 * math.cos(math.radians(a1))
         y1 = cy + 22 * math.sin(math.radians(a1))
-        parts.append(
-            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="url(#favRing)" stroke-width="{stroke}" stroke-linecap="round"/>'
-        )
+        parts.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="url(#favRing)" stroke-width="{stroke}" stroke-linecap="round"/>')
     # X
-    parts.append(
-        f'<rect x="{cx - stroke / 2}" y="{cy - 15.5}" width="{stroke}" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(45 {cx} {cy})"/>'
-    )
-    parts.append(
-        f'<rect x="{cx - stroke / 2}" y="{cy - 15.5}" width="{stroke}" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(-45 {cx} {cy})"/>'
-    )
+    parts.append(f'<rect x="{cx - stroke / 2}" y="{cy - 15.5}" width="{stroke}" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(45 {cx} {cy})"/>')
+    parts.append(f'<rect x="{cx - stroke / 2}" y="{cy - 15.5}" width="{stroke}" height="31" rx="2.5" fill="url(#favRay)" transform="rotate(-45 {cx} {cy})"/>')
     # Node
     parts.append(f'<circle cx="{cx + 23.5}" cy="{cy - 23.5}" r="4.6" fill="url(#favNode)"/>')
     parts.append(f'<circle cx="{cx + 23.5}" cy="{cy - 23.5}" r="7.5" fill="url(#favNodeHalo)"/>')
-    parts.append(
-        f'<rect x="{cx - 3.4}" y="{cy - 3.4}" width="6.8" height="6.8" fill="url(#favCore)" transform="rotate(45 {cx} {cy})"/>'
-    )
+    parts.append(f'<rect x="{cx - 3.4}" y="{cy - 3.4}" width="6.8" height="6.8" fill="url(#favCore)" transform="rotate(45 {cx} {cy})"/>')
     return f"""<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
 <defs>
   <linearGradient id="favRing" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">

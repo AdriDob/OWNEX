@@ -109,11 +109,7 @@ def get_findings_stats():
         severity_counts = {}
         for row in session.query(models.Finding.severity, db.func.count()).group_by(models.Finding.severity).all():
             severity_counts[row[0] or "unknown"] = row[1]
-        new_24h = (
-            session.query(models.Finding)
-            .filter(models.Finding.created_at >= db.func.now() - db.text("INTERVAL '24 hours'"))
-            .count()
-        )
+        new_24h = session.query(models.Finding).filter(models.Finding.created_at >= db.func.now() - db.text("INTERVAL '24 hours'")).count()
         return {
             "total": total,
             "by_severity": severity_counts,
@@ -246,11 +242,7 @@ def get_finding_evidence(finding_id: int):
         f = session.query(models.Finding).filter(models.Finding.id == finding_id).first()
         if not f:
             raise HTTPException(status_code=404, detail="Finding not found")
-        evidence = (
-            session.query(models.Evidence).filter(models.Evidence.finding_id == finding_id).all()
-            if hasattr(models.Evidence, "finding_id")
-            else []
-        )
+        evidence = session.query(models.Evidence).filter(models.Evidence.finding_id == finding_id).all() if hasattr(models.Evidence, "finding_id") else []
         return {
             "items": [
                 {

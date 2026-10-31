@@ -218,8 +218,7 @@ def generate_from_zap_alerts(
                 vector=canonical_key,
                 attack_surface_labels=["passive_recon", canonical_key],
                 what_is_this=didactic["what_is_this"],
-                why_suspected=f"ZAP analizó pasivamente el tráfico HTTP y detectó: {alert_name}"
-                + (f" en {url}" if url else ""),
+                why_suspected=f"ZAP analizó pasivamente el tráfico HTTP y detectó: {alert_name}" + (f" en {url}" if url else ""),
                 real_world_impact=didactic["real_world_impact"],
                 how_to_verify=tuple(how_to_verify),
                 estimated_difficulty=didactic["difficulty"],

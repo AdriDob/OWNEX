@@ -135,9 +135,7 @@ class AutoSubmitEngine:
         data_base = Path(os.environ.get("OWNEX_DATA_DIR", Path.home() / "ownex"))
         self.dlq_path = Path(dlq_path).expanduser() if dlq_path else data_base / "submissions" / "dlq"
         self.dlq_path.mkdir(parents=True, exist_ok=True)
-        self._queue_path: Path = (
-            Path(queue_path).expanduser() if queue_path else data_base / "submissions" / "submission_queue.json"
-        )
+        self._queue_path: Path = Path(queue_path).expanduser() if queue_path else data_base / "submissions" / "submission_queue.json"
 
         # Platform instances (lazy-loaded with credentials)
         self._platforms: dict[str, Any] = {}
@@ -212,9 +210,7 @@ class AutoSubmitEngine:
             return None
         return None
 
-    async def submit_workbank_item(
-        self, item_id: str, platform: str, opportunity: dict[str, Any], force: bool = False
-    ) -> SubmissionRecord:
+    async def submit_workbank_item(self, item_id: str, platform: str, opportunity: dict[str, Any], force: bool = False) -> SubmissionRecord:
         """Submit a WorkBank item to its platform via API.
 
         Args:
@@ -387,9 +383,7 @@ class AutoSubmitEngine:
         except ImportError:
             return False
 
-    async def _submit_via_computer_use(
-        self, platform: str, prepared: PreparedWork, record: SubmissionRecord
-    ) -> dict[str, Any]:
+    async def _submit_via_computer_use(self, platform: str, prepared: PreparedWork, record: SubmissionRecord) -> dict[str, Any]:
         """Submit via Computer Use (desktop form filling) as fallback."""
         try:
             from cores.computer_use.submission_executor import get_computer_use_executor
@@ -434,9 +428,7 @@ class AutoSubmitEngine:
         """Get submission by ID."""
         return self._submissions.get(submission_id)
 
-    def list_submissions(
-        self, status: SubmissionStatus | None = None, platform: str | None = None
-    ) -> list[SubmissionRecord]:
+    def list_submissions(self, status: SubmissionStatus | None = None, platform: str | None = None) -> list[SubmissionRecord]:
         """List submissions with optional filters."""
         results = list(self._submissions.values())
         if status:
@@ -508,9 +500,7 @@ def get_auto_submit_engine() -> AutoSubmitEngine:
 
 
 # API entry point
-async def auto_submit_workbank_item(
-    item_id: str, platform: str, opportunity: dict[str, Any], force: bool = False
-) -> dict[str, Any]:
+async def auto_submit_workbank_item(item_id: str, platform: str, opportunity: dict[str, Any], force: bool = False) -> dict[str, Any]:
     """Public API: submit a WorkBank item to its platform."""
     engine = get_auto_submit_engine()
     record = await engine.submit_workbank_item(item_id, platform, opportunity, force)

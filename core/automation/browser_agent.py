@@ -189,9 +189,7 @@ class BrowserAgent:
             return result
 
         # Click Easy Apply button
-        result = await self.click(
-            'button:has-text("Easy Apply"), button:has-text("Aplicar fácilmente")', wait_for_navigation=True
-        )
+        result = await self.click('button:has-text("Easy Apply"), button:has-text("Aplicar fácilmente")', wait_for_navigation=True)
         if not result.success:
             return BrowserResult(False, "easy_apply", job_url, error="Easy Apply button not found")
 

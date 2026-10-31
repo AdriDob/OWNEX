@@ -187,11 +187,7 @@ class AttackSurfaceGraph:
         result = []
         for target_id in self._adjacency.get(node_id, set()):
             for edge in self._edges.values():
-                if (
-                    edge.source == node_id
-                    and edge.target == target_id
-                    and (edge_type is None or edge.type == edge_type)
-                ):
+                if edge.source == node_id and edge.target == target_id and (edge_type is None or edge.type == edge_type):
                     result.append((target_id, edge))
         return result
 
@@ -199,11 +195,7 @@ class AttackSurfaceGraph:
         result = []
         for source_id in self._reverse_adjacency.get(node_id, set()):
             for edge in self._edges.values():
-                if (
-                    edge.source == source_id
-                    and edge.target == node_id
-                    and (edge_type is None or edge.type == edge_type)
-                ):
+                if edge.source == source_id and edge.target == node_id and (edge_type is None or edge.type == edge_type):
                     result.append((source_id, edge))
         return result
 
@@ -278,11 +270,7 @@ class AttackSurfaceGraph:
         for target_id, edge in self.get_neighbors(current):
             if target_id in visited:
                 continue
-            paths.extend(
-                self._dfs_paths(
-                    target_id, visited, nodes, edges + [edge.id], depth + 1, max_depth, target_types, min_risk
-                )
-            )
+            paths.extend(self._dfs_paths(target_id, visited, nodes, edges + [edge.id], depth + 1, max_depth, target_types, min_risk))
 
         visited.remove(current)
         nodes.pop()

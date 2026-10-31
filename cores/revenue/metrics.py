@@ -33,11 +33,7 @@ class RevenueMetrics:
         session = SessionLocal()
         try:
             cutoff = datetime.now(UTC) - timedelta(days=months * 30)
-            payouts = (
-                session.query(PayoutRecord)
-                .filter(PayoutRecord.paid_at >= cutoff, PayoutRecord.status == "confirmed")
-                .all()
-            )
+            payouts = session.query(PayoutRecord).filter(PayoutRecord.paid_at >= cutoff, PayoutRecord.status == "confirmed").all()
 
             by_month: dict[str, dict[str, Any]] = {}
             for p in payouts:
@@ -127,9 +123,7 @@ class RevenueMetrics:
         session = SessionLocal()
         try:
             submissions = session.query(SubmissionRecord).all()
-            by_platform: dict[str, dict[str, int]] = defaultdict(
-                lambda: {"total": 0, "accepted": 0, "rejected": 0, "pending": 0}
-            )
+            by_platform: dict[str, dict[str, int]] = defaultdict(lambda: {"total": 0, "accepted": 0, "rejected": 0, "pending": 0})
             for s in submissions:
                 by_platform[s.platform]["total"] += 1
                 if s.status in ("accepted", "won"):
@@ -185,12 +179,7 @@ class RevenueMetrics:
             )
 
             for p in payouts:
-                if (
-                    p.paid_at
-                    and hasattr(p, "submission_record")
-                    and p.submission_record
-                    and p.submission_record.submitted_at
-                ):
+                if p.paid_at and hasattr(p, "submission_record") and p.submission_record and p.submission_record.submitted_at:
                     delta = (p.paid_at - p.submission_record.submitted_at).total_seconds() / 86400
                     payout_times.append(delta)
 

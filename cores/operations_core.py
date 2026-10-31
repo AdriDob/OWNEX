@@ -171,9 +171,7 @@ class OperationsResearchEngine:
             feasible.append(c)
         return feasible
 
-    def _score_candidates(
-        self, candidates: list[TaskCandidate], budget: ResourceBudget
-    ) -> list[tuple[float, TaskCandidate]]:
+    def _score_candidates(self, candidates: list[TaskCandidate], budget: ResourceBudget) -> list[tuple[float, TaskCandidate]]:
         """Score compuesto: rate * confidence * priority * urgency * agent_fit"""
         scored = []
         now = datetime.utcnow()
@@ -210,9 +208,7 @@ class OperationsResearchEngine:
         scored.sort(key=lambda x: x[0], reverse=True)
         return scored
 
-    def _schedule_greedy(
-        self, scored: list[tuple[float, TaskCandidate]], budget: ResourceBudget
-    ) -> list[ScheduledTask]:
+    def _schedule_greedy(self, scored: list[tuple[float, TaskCandidate]], budget: ResourceBudget) -> list[ScheduledTask]:
         """Asignación greedy con simulación de paralelismo"""
         schedule = []
         used_cost = 0.0
@@ -269,9 +265,7 @@ class OperationsResearchEngine:
 
         return schedule
 
-    def _select_best_agent(
-        self, candidate: TaskCandidate, available: list[str], timelines: dict[str, datetime]
-    ) -> str | None:
+    def _select_best_agent(self, candidate: TaskCandidate, available: list[str], timelines: dict[str, datetime]) -> str | None:
         """Selecciona el mejor agente para la tarea"""
         best_agent = self.kg.get_best_agent_for(candidate.platform, candidate.task_type)
 
@@ -291,9 +285,7 @@ class OperationsResearchEngine:
 
         return best
 
-    def _calculate_start_time(
-        self, candidate: TaskCandidate, agent: str, timelines: dict[str, datetime], budget: ResourceBudget
-    ) -> datetime:
+    def _calculate_start_time(self, candidate: TaskCandidate, agent: str, timelines: dict[str, datetime], budget: ResourceBudget) -> datetime:
         """Calcula hora de inicio respetando dependencias y disponibilidad"""
         earliest = max(timelines[agent], budget.time_window_start or datetime.utcnow())
 
@@ -445,9 +437,7 @@ class ContinuousPlanner:
 
 
 # Funciones de conveniencia
-def create_default_budget(
-    max_hours: float = 8.0, max_cost: float = 50.0, max_parallel: int = 3, agents: list[str] = None
-) -> ResourceBudget:
+def create_default_budget(max_hours: float = 8.0, max_cost: float = 50.0, max_parallel: int = 3, agents: list[str] = None) -> ResourceBudget:
     return ResourceBudget(
         max_compute_hours=max_hours,
         max_cost_usd=max_cost,

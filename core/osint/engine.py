@@ -47,10 +47,7 @@ class OSINTEngine:
             if resp.status_code == 200:
                 data = resp.json()
                 if isinstance(data, list):
-                    return [
-                        {"id": r.get("id"), "name_value": r.get("name_value", ""), "not_after": r.get("not_after", "")}
-                        for r in data[:100]
-                    ]
+                    return [{"id": r.get("id"), "name_value": r.get("name_value", ""), "not_after": r.get("not_after", "")} for r in data[:100]]
             return []
         except Exception as exc:
             logger.warning("crtsh_search(%s) failed: %s", domain, exc)
@@ -107,11 +104,7 @@ class OSINTEngine:
         try:
             resp = self._http.get(f"{HACKERTARGET}/reverseiplookup/", params={"q": ip})
             if resp.status_code == 200:
-                domains = [
-                    line.strip()
-                    for line in resp.text.strip().split("\n")
-                    if line.strip() and "error" not in line.lower()
-                ]
+                domains = [line.strip() for line in resp.text.strip().split("\n") if line.strip() and "error" not in line.lower()]
                 return {"ip": ip, "domains": domains[:50], "count": len(domains)}
             return {"ip": ip, "error": resp.text[:200]}
         except Exception as exc:

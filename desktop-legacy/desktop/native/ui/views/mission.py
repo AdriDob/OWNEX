@@ -247,27 +247,8 @@ class MissionControlView(BaseView):
             "QWidget {" + ws + "}"
             "QFrame {" + sf + "border-radius: 6px;" + st + "}"
             "QTableWidget {" + sf + "border-radius: 6px;" + st + "gridline-color: " + theme.stroke + ";}"
-            "QHeaderView::section {"
-            + "background-color: "
-            + theme.surface_alt
-            + ";"
-            + "color: "
-            + theme.text
-            + ";"
-            + "border: none;"
-            + "padding: 4px;"
-            + "}"
-            "QPushButton {"
-            + sf
-            + "color: "
-            + theme.text
-            + ";"
-            + "border: 1px solid "
-            + theme.stroke
-            + ";"
-            + "border-radius: 6px;"
-            + "padding: 6px 12px;"
-            + "}"
+            "QHeaderView::section {" + "background-color: " + theme.surface_alt + ";" + "color: " + theme.text + ";" + "border: none;" + "padding: 4px;" + "}"
+            "QPushButton {" + sf + "color: " + theme.text + ";" + "border: 1px solid " + theme.stroke + ";" + "border-radius: 6px;" + "padding: 6px 12px;" + "}"
             "QPushButton:hover {" + "background-color: " + theme.surface_alt + ";" + "}"
             "QLabel {" + fc + "}"
         )

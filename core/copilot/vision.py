@@ -201,9 +201,7 @@ def save_clipboard_image(output_path: str | Path = "/tmp/pasted_image.png") -> P
     if shutil.which("xclip"):
         try:
             with open(path, "wb") as f:
-                subprocess.run(
-                    ["xclip", "-selection", "clipboard", "-t", "image/png", "-o"], stdout=f, check=True, timeout=5
-                )
+                subprocess.run(["xclip", "-selection", "clipboard", "-t", "image/png", "-o"], stdout=f, check=True, timeout=5)
             if path.exists() and path.stat().st_size > 0:
                 return path
         except Exception:
@@ -352,9 +350,7 @@ def describe_for_prompt(image_path: str | Path) -> str:
 
     colors = analysis.get("color_stats")
     if colors and "error" not in colors:
-        lines.append(
-            f"Brightness: {colors.get('mean_brightness', '?')}/255 ({'dark' if colors.get('is_dark') else 'normal'})"
-        )
+        lines.append(f"Brightness: {colors.get('mean_brightness', '?')}/255 ({'dark' if colors.get('is_dark') else 'normal'})")
         lines.append(f"Saturation: {colors.get('mean_saturation', '?')}/255")
         lines.append(f"Contrast: {'high' if colors.get('is_high_contrast') else 'normal'}")
 

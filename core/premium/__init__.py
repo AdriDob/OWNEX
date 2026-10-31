@@ -1,9 +1,9 @@
 """Premium module — feature gates for OWNEX open-core."""
 
 from core.premium.gates import (
-    requires_tier,
     get_tier,
     is_premium,
+    requires_tier,
     tier_status,
 )
 

@@ -58,9 +58,7 @@ class PlaywrightProvider:
                 self._playwright = async_playwright()
                 self._playwright_instance = self._playwright.__aenter__()
                 self._browser = await self._playwright_instance
-                self._context = await self._browser.new_context(
-                    user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
-                )
+                self._context = await self._browser.new_context(user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
                 self._page = await self._context.new_page()
                 logger.info("[PLAYWRIGHT_PROVIDER] Navegador inicializado")
             except Exception as exc:
@@ -105,9 +103,7 @@ class PlaywrightProvider:
 
         try:
             logger.debug("[PLAYWRIGHT_PROVIDER] Analizando %s", url)
-            await self._page.goto(
-                url, wait_until="networkidle" if wait_for_network else "domcontentloaded", timeout=30000
-            )
+            await self._page.goto(url, wait_until="networkidle" if wait_for_network else "domcontentloaded", timeout=30000)
 
             # Esperar renderizado inicial
             await self._page.wait_for_timeout(1000)
@@ -148,9 +144,7 @@ class PlaywrightProvider:
             page_text = await self._page.evaluate("() => document.body.innerText.toLowerCase()")
             security_patterns = []
             if "sql" in page_text and "injection" in page_text:
-                security_patterns.append(
-                    {"type": "sql_injection", "severity": "high", "details": "Posible mención de SQLi"}
-                )
+                security_patterns.append({"type": "sql_injection", "severity": "high", "details": "Posible mención de SQLi"})
             if "xss" in page_text:
                 security_patterns.append({"type": "xss", "severity": "medium", "details": "Posible mención de XSS"})
             if "csrf" in page_text:
@@ -159,14 +153,8 @@ class PlaywrightProvider:
                 security_patterns.append({"type": "auth", "severity": "low", "details": "Mención de autenticación"})
 
             # Temas emergentes: título + meta + títulos de sección
-            headings = await self._page.evaluate(
-                "() => Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.innerText.trim())"
-            )
-            trending = [
-                h
-                for h in headings
-                if len(h) > 10 and any(kw in h.lower() for kw in ["ai", "ml", "chat", "gpt", "llm", "emerging"])
-            ]
+            headings = await self._page.evaluate("() => Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.innerText.trim())")
+            trending = [h for h in headings if len(h) > 10 and any(kw in h.lower() for kw in ["ai", "ml", "chat", "gpt", "llm", "emerging"])]
 
             result = {
                 "url": url,

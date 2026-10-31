@@ -151,9 +151,7 @@ def equalizer(draw: ImageDraw.ImageDraw, cx, cy, n=6, color=WHITE, w=10, gap=12,
     x0 = cx - total // 2
     for i in range(n):
         h = random.randint(maxh // 4, maxh)
-        draw.rounded_rectangle(
-            (x0 + i * (w + gap), cy - h // 2, x0 + i * (w + gap) + w, cy + h // 2), radius=4, fill=color
-        )
+        draw.rounded_rectangle((x0 + i * (w + gap), cy - h // 2, x0 + i * (w + gap) + w, cy + h // 2), radius=4, fill=color)
 
 
 # ---------------------------------------------------------- premium fx ---
@@ -357,9 +355,7 @@ def premium_chip(d: ImageDraw.ImageDraw, x, y, label, color, fs=13):
     text(d, (x + 12, y + (fs + 14) // 2), label, f, fill=color, anchor="lm")
 
 
-def render_lockup_premium(
-    w: int, h: int, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUTED
-) -> Image.Image:
+def render_lockup_premium(w: int, h: int, color=CYAN, bg: str | None = BG, text_color=TEXT, sub_color=MUTED) -> Image.Image:
     """Premium lockup: mark + wordmark + tagline with refined metrics."""
     img = Image.new("RGBA", (w, h), bg or (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -392,9 +388,7 @@ def render_mark_card(size: int, color: str, node: str, label: str, accent: str) 
     f_lbl = font(11, 500)
     d.text((size // 2, size - pad - 24), label, font=f_lbl, fill=MUTED, anchor="mm")
     accent_bar_h = 3
-    d.rounded_rectangle(
-        (pad + 20, size - pad - 8, size - pad - 20, size - pad - 8 + accent_bar_h), radius=1, fill=accent
-    )
+    d.rounded_rectangle((pad + 20, size - pad - 8, size - pad - 20, size - pad - 8 + accent_bar_h), radius=1, fill=accent)
     return img
 
 
@@ -1195,10 +1189,7 @@ def render_architecture(name: str) -> Image.Image:
     w, h = 1600, 900
     img = Image.new("RGB", (w, h), BG)
     d = ImageDraw.Draw(img)
-    arrow = lambda x0, y0, x1, y1: (
-        d.line((x0, y0, x1, y1), fill=MUTED, width=3)
-        or d.polygon(((x1, y1), (x1 - 14, y1 - 8), (x1 - 14, y1 + 8)), fill=MUTED)
-    )
+    arrow = lambda x0, y0, x1, y1: d.line((x0, y0, x1, y1), fill=MUTED, width=3) or d.polygon(((x1, y1), (x1 - 14, y1 - 8), (x1 - 14, y1 + 8)), fill=MUTED)
 
     def col_title(x: float, y: int, t: str, col: str, dot_r: int = 7) -> None:
         status_dot(d, x + 14, y + 13, col, r=dot_r)
@@ -1443,9 +1434,7 @@ ASSETS = {
         "lockup-horizontal.png": lambda: lockup(2048, 512),
         "lockup-horizontal-light.png": lambda: lockup(2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"),
         "lockup-premium-dark.png": lambda: render_lockup_premium(2048, 512),
-        "lockup-premium-light.png": lambda: render_lockup_premium(
-            2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"
-        ),
+        "lockup-premium-light.png": lambda: render_lockup_premium(2048, 512, bg=None, text_color="#0D0F14", sub_color="#4B5563"),
         "mark-aperture-alpha.png": lambda: mark_img(1024, CYAN, BLUE, bg=None),
         "mark-aperture-omega.png": lambda: mark_img(1024, EMERALD, CYAN, bg=None),
         "mark-mono-white.png": lambda: mark_img(1024, WHITE, WHITE, bg=None),
@@ -1455,9 +1444,7 @@ ASSETS = {
         "mark-card-alpha.png": lambda: render_mark_card(200, CYAN, BLUE, "ALPHA", CYAN),
         "mark-card-omega.png": lambda: render_mark_card(200, EMERALD, CYAN, "OMEGA", EMERALD),
         "mark-card-mono.png": lambda: render_mark_card(200, WHITE, WHITE, "MONO", MUTED),
-        "lockup-card.png": lambda: render_lockup_premium(
-            1200, 160, color=CYAN, bg=SURFACE, text_color=TEXT, sub_color=MUTED
-        ),
+        "lockup-card.png": lambda: render_lockup_premium(1200, 160, color=CYAN, bg=SURFACE, text_color=TEXT, sub_color=MUTED),
         "deliverables-grid.png": lambda: render_deliverables_grid(),
     },
     "footer": {
@@ -1498,10 +1485,7 @@ def mark_svg(color: str, node: str = BLUE, size: int = 512) -> str:
         f'stroke="{lo}" stroke-width="3" stroke-linecap="round"/>'
         for i in range(8)
     )
-    ticks = "".join(
-        f'<circle cx="{vtx(r * 1.17, i)[0]:.1f}" cy="{vtx(r * 1.17, i)[1]:.1f}" r="4" fill="{hi}" opacity="0.85"/>'
-        for i in range(8)
-    )
+    ticks = "".join(f'<circle cx="{vtx(r * 1.17, i)[0]:.1f}" cy="{vtx(r * 1.17, i)[1]:.1f}" r="4" fill="{hi}" opacity="0.85"/>' for i in range(8))
     gap_deg = 34.0
     gap_start = 45.0 - gap_deg / 2
     segments = []
@@ -1514,8 +1498,7 @@ def mark_svg(color: str, node: str = BLUE, size: int = 512) -> str:
         x0, y0 = vtx(r, i)
         x1p, y1p = vtx(r, i + 1)
         segments.append(
-            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" '
-            f'stroke="url(#markRingGrad)" stroke-width="{stroke}" stroke-linecap="round"/>'
+            f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1p:.1f}" y2="{y1p:.1f}" stroke="url(#markRingGrad)" stroke-width="{stroke}" stroke-linecap="round"/>'
         )
     ray_len = r * 0.8
     x1 = f'<rect x="{cx - stroke / 2}" y="{cy - ray_len}" width="{stroke}" height="{ray_len * 2}" rx="{stroke / 2}" fill="url(#markRayGrad)" transform="rotate(45 {cx} {cy})"/>'
@@ -1532,8 +1515,7 @@ def mark_svg(color: str, node: str = BLUE, size: int = 512) -> str:
     node_halo = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 1.35:.1f}" fill="url(#markNodeHalo)" opacity="0.9"/>'
     node_circle = f'<circle cx="{nx:.1f}" cy="{ny:.1f}" r="{stroke * 0.62:.1f}" fill="url(#markNodeGrad)"/>'
     glint = (
-        f'<circle cx="{nx - stroke * 0.18:.1f}" cy="{ny - stroke * 0.18:.1f}" '
-        f'r="{stroke * 0.2:.1f}" fill="{_mix_hex(node, "#FFFFFF", 0.6)}" opacity="0.9"/>'
+        f'<circle cx="{nx - stroke * 0.18:.1f}" cy="{ny - stroke * 0.18:.1f}" r="{stroke * 0.2:.1f}" fill="{_mix_hex(node, "#FFFFFF", 0.6)}" opacity="0.9"/>'
     )
     return f"""<svg width="{size}" height="{size}" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
 <defs>

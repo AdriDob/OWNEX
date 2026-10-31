@@ -318,9 +318,7 @@ class HandoffManager:
         """Get pending handoffs for an agent."""
         return [h for h in self._handoffs.values() if h.target_agent == agent_id and h.status == HandoffStatus.ACCEPTED]
 
-    def _find_condition(
-        self, condition_type: str, source_agent: str, target_agent: str | None = None
-    ) -> HandoffCondition | None:
+    def _find_condition(self, condition_type: str, source_agent: str, target_agent: str | None = None) -> HandoffCondition | None:
         """Find a matching condition."""
         for condition in self._conditions:
             if (

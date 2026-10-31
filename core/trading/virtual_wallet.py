@@ -177,14 +177,9 @@ class VirtualWallet:
         try:
             self._persist_path.parent.mkdir(parents=True, exist_ok=True)
             data: dict[str, Any] = {
-                "balances": {
-                    asset: {"free": str(b.free), "locked": str(b.locked)} for asset, b in self._balances.items()
-                },
+                "balances": {asset: {"free": str(b.free), "locked": str(b.locked)} for asset, b in self._balances.items()},
                 "performance": asdict(self._performance),
-                "ledger": [
-                    {k: str(v) if isinstance(v, (Decimal, datetime)) else v for k, v in asdict(e).items()}
-                    for e in self._ledger[-1000:]
-                ],
+                "ledger": [{k: str(v) if isinstance(v, (Decimal, datetime)) else v for k, v in asdict(e).items()} for e in self._ledger[-1000:]],
                 "updated_at": datetime.utcnow().isoformat(),
             }
             self._persist_path.write_text(json.dumps(data, indent=2, cls=DecimalEncoder))

@@ -218,9 +218,7 @@ class KnowledgeSearcher:
                 continue
             if path_filter and path_filter.lower() not in note["path"].lower():
                 continue
-            if date_filter and not (
-                (note["created"] or "").startswith(date_filter) or (note["modified"] or "").startswith(date_filter)
-            ):
+            if date_filter and not ((note["created"] or "").startswith(date_filter) or (note["modified"] or "").startswith(date_filter)):
                 continue
 
             score = 0.0

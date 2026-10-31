@@ -59,9 +59,7 @@ def test_radar_recommended_mix_liquidity_when_no_stable_base() -> None:
 
 
 def test_radar_recommended_mix_growth_when_stable_base() -> None:
-    radar = RapidIncomeEngine().radar(
-        [_opp(id="a", estimated_hours=2), _opp(id="b", estimated_hours=2, recurring=True)]
-    )
+    radar = RapidIncomeEngine().radar([_opp(id="a", estimated_hours=2), _opp(id="b", estimated_hours=2, recurring=True)])
     assert radar["recommended_mix"] == MIX_INCOME_STABLE
 
 

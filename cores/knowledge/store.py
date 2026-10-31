@@ -120,9 +120,7 @@ class SqlAlchemyKnowledgeStore(KnowledgeStore):
         return relation_id
 
     def find_artifacts(self, fingerprint: str) -> list[dict[str, Any]]:
-        rows = (
-            self.session.query(KnowledgeArtifactModel).filter(KnowledgeArtifactModel.fingerprint == fingerprint).all()
-        )
+        rows = self.session.query(KnowledgeArtifactModel).filter(KnowledgeArtifactModel.fingerprint == fingerprint).all()
         results = []
         for row in rows:
             results.append(

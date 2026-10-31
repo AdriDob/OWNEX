@@ -34,7 +34,7 @@ def test_bounds_nunca_ciego() -> None:
 def test_unknown_o_sin_horas_no_suma_senal() -> None:
     before = compute_dynamic_weights([])
     ev = [
-        {"category": "bug_bounty", "accepted": True},          # sin hours/ev
+        {"category": "bug_bounty", "accepted": True},  # sin hours/ev
         {"category": "dev_bounty", "accepted": False, "hours": 5, "ev_usd": 100},
     ]
     assert compute_dynamic_weights(ev) == before

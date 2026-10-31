@@ -87,9 +87,7 @@ def test_operations_core(kg):
 
     # Crear candidatos
     candidates = [
-        create_candidate(
-            "scan_001", TaskType.SCAN, "hackerone", "Scan new program", 30, 2.0, 500, 0.8, TaskPriority.HIGH
-        ),
+        create_candidate("scan_001", TaskType.SCAN, "hackerone", "Scan new program", 30, 2.0, 500, 0.8, TaskPriority.HIGH),
         create_candidate(
             "exploit_001",
             TaskType.EXPLOIT,
@@ -101,9 +99,7 @@ def test_operations_core(kg):
             0.6,
             TaskPriority.CRITICAL,
         ),
-        create_candidate(
-            "recon_001", TaskType.RECON, "bugcrowd", "Recon new target", 20, 1.0, 100, 0.7, TaskPriority.MEDIUM
-        ),
+        create_candidate("recon_001", TaskType.RECON, "bugcrowd", "Recon new target", 20, 1.0, 100, 0.7, TaskPriority.MEDIUM),
         create_candidate("report_001", TaskType.REPORT, "hackerone", "Write report", 45, 0.5, 0, 0.9, TaskPriority.LOW),
     ]
 
@@ -112,9 +108,7 @@ def test_operations_core(kg):
 
     print(f"Scheduled {len(schedule)} tasks:")
     for s in schedule:
-        print(
-            f"  {s.candidate.task_id} -> {s.assigned_agent} @ {s.start_time.strftime('%H:%M')}-{s.end_time.strftime('%H:%M')} (EV: ${s.expected_value:.2f})"
-        )
+        print(f"  {s.candidate.task_id} -> {s.assigned_agent} @ {s.start_time.strftime('%H:%M')}-{s.end_time.strftime('%H:%M')} (EV: ${s.expected_value:.2f})")
 
     # Simular ejecución
     outcomes = engine.execute_plan(schedule)
@@ -133,9 +127,7 @@ def test_decision_core(kg):
 
     candidates = [
         create_candidate("task_a", TaskType.SCAN, "hackerone", "High value scan", 30, 2.0, 500, 0.8, TaskPriority.HIGH),
-        create_candidate(
-            "task_b", TaskType.EXPLOIT, "hackerone", "Critical exploit", 60, 10.0, 5000, 0.4, TaskPriority.CRITICAL
-        ),
+        create_candidate("task_b", TaskType.EXPLOIT, "hackerone", "Critical exploit", 60, 10.0, 5000, 0.4, TaskPriority.CRITICAL),
         create_candidate("task_c", TaskType.RECON, "bugcrowd", "Routine recon", 20, 1.0, 50, 0.9, TaskPriority.LOW),
     ]
 
@@ -252,9 +244,7 @@ def test_integrated_flow():
         # Decision engine elige
         context = default_decision_context(candidates, budget=20, hours=2)
         decision = decision_engine.decide(context)
-        print(
-            f"Decision: {decision.selected_task.task_id} with {decision.selected_agent} (EV: ${decision.expected_value:.2f})"
-        )
+        print(f"Decision: {decision.selected_task.task_id} with {decision.selected_agent} (EV: ${decision.expected_value:.2f})")
 
         # Operations planifica (solo la elegida + otras factibles)
         budget = create_default_budget(max_hours=2, max_cost=20, max_parallel=2)

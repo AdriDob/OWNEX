@@ -38,9 +38,7 @@ class ContextManager:
         # Keep summary if exists
         summary_msg = []
         if session_id in self._summaries:
-            summary_msg = [
-                {"role": "system", "content": f"Previous conversation summary: {self._summaries[session_id]}"}
-            ]
+            summary_msg = [{"role": "system", "content": f"Previous conversation summary: {self._summaries[session_id]}"}]
 
         # Calculate remaining budget for recent messages
         reserved = sum(len(m.get("content", "")) for m in system_msgs + summary_msg) // 4

@@ -340,9 +340,7 @@ class BTCArbRunner:
         self._market_data.vwap = compute_session_vwap(candles)
         self._market_data.vwap_series = compute_vwap_series(candles)
         self._market_data.vwap_slope = compute_vwap_slope(self._market_data.vwap_series, 5)
-        self._market_data.vwap_distance = compute_vwap_distance(
-            self._market_data.binance_price or closes[-1], self._market_data.vwap or 0
-        )
+        self._market_data.vwap_distance = compute_vwap_distance(self._market_data.binance_price or closes[-1], self._market_data.vwap or 0)
         self._market_data.vwap_cross_count = count_vwap_crosses(closes, self._market_data.vwap_series, 20)
 
         # RSI

@@ -41,8 +41,7 @@ class DedupOptimizer(BaseOptimizer):
                 logs.append(
                     OptimizationLog(
                         optimizer=self.name,
-                        description=f"Removed duplicate CAPABILITY '{n.label or nid}' "
-                        f"(identical to another node with same config)",
+                        description=f"Removed duplicate CAPABILITY '{n.label or nid}' (identical to another node with same config)",
                         node_ids_affected=[nid],
                         before=f"duplicate {n.label or nid}",
                         after="removed",

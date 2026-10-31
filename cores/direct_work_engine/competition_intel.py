@@ -102,9 +102,7 @@ def _reward_competition_multiplier(reward: float) -> float:
 class CompetitionIntelEngine:
     """Engine for assessing competition on opportunities."""
 
-    def assess(
-        self, opportunity: Opportunity, platform_facts: dict | None = None, user_profile: UserProfile | None = None
-    ) -> CompetitionAssessment:
+    def assess(self, opportunity: Opportunity, platform_facts: dict | None = None, user_profile: UserProfile | None = None) -> CompetitionAssessment:
         """Assess competition for a single opportunity."""
         signals = []
         platform = opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform)
@@ -260,9 +258,7 @@ class CompetitionIntelEngine:
             recommendation=rec,
         )
 
-    def assess_batch(
-        self, opportunities: list, platform_facts: dict | None = None, user_profile: UserProfile | None = None
-    ) -> list[CompetitionAssessment]:
+    def assess_batch(self, opportunities: list, platform_facts: dict | None = None, user_profile: UserProfile | None = None) -> list[CompetitionAssessment]:
         """Assess multiple opportunities."""
         return [self.assess(opp, platform_facts, None) for opp in opportunities]
 
@@ -281,8 +277,6 @@ def get_competition_engine() -> CompetitionIntelEngine:
     return _competition_engine
 
 
-def assess_competition(
-    opportunity: Opportunity, platform_facts: dict | None = None, user_profile: UserProfile | None = None
-) -> CompetitionAssessment:
+def assess_competition(opportunity: Opportunity, platform_facts: dict | None = None, user_profile: UserProfile | None = None) -> CompetitionAssessment:
     """Convenience function for single opportunity."""
     return get_competition_engine().assess(opportunity, platform_facts, user_profile)

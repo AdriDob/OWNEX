@@ -48,9 +48,7 @@ class TestScopeDecision:
         assert WILDCARD_SCOPE.is_endpoint_in_scope("https://sub.example.com") == ScopeDecision.OUT_OF_SCOPE
 
     def test_out_of_scope_excluded_path(self) -> None:
-        assert (
-            WILDCARD_SCOPE.is_endpoint_in_scope("https://app.example.com/internal/admin") == ScopeDecision.OUT_OF_SCOPE
-        )
+        assert WILDCARD_SCOPE.is_endpoint_in_scope("https://app.example.com/internal/admin") == ScopeDecision.OUT_OF_SCOPE
 
     def test_unknown_domain(self) -> None:
         assert WILDCARD_SCOPE.is_endpoint_in_scope("https://otherdomain.com") == ScopeDecision.UNKNOWN

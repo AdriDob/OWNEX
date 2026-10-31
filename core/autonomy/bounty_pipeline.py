@@ -96,9 +96,7 @@ class BountyPipeline:
         self.code_generator = CodeGenerator()
         self.test_runner = TestRunner()
         self.pr_builder = PRBuilder()
-        self.algora_executor = AlgoraExecutor(
-            config={"token": self.config.algora_token, "github_token": self.config.github_token}
-        )
+        self.algora_executor = AlgoraExecutor(config={"token": self.config.algora_token, "github_token": self.config.github_token})
         self.feedback_loop = get_feedback_loop()
 
     async def execute_bounty(
@@ -291,9 +289,7 @@ class BountyPipeline:
                             )
                             db.add(approval)
                             db.commit()
-                            logger.info(
-                                "[BountyPipeline] Created mobile approval %s for bounty %s", approval.id, bounty_id
-                            )
+                            logger.info("[BountyPipeline] Created mobile approval %s for bounty %s", approval.id, bounty_id)
                             result.phases["approval_request"] = asyncio.get_event_loop().time() - phase_start
                         else:
                             logger.info("[BountyPipeline] Approval already exists for bounty %s", bounty_id)

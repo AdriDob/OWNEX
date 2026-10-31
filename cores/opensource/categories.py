@@ -186,9 +186,7 @@ class OpenSourceCategoryManager:
 
             # Platform matching (30% weight)
             if platforms:
-                platform_matches = sum(
-                    1 for platform in platforms if platform.lower() in [p.lower() for p in info["platforms"]]
-                )
+                platform_matches = sum(1 for platform in platforms if platform.lower() in [p.lower() for p in info["platforms"]])
                 platform_score = (platform_matches / len(info["platforms"])) * 0.3
                 score += platform_score
             else:

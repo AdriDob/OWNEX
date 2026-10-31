@@ -97,18 +97,14 @@ class TestThreatIntelFeedCache:
         cache_file = tmp_path / "kev_cache.json"
         cache_file.write_text(json.dumps({"vulnerabilities": [], "_fetched_at": "2020-01-01T00:00:00+00:00"}))
         feed = ThreatIntelFeed(cache_dir=str(tmp_path))
-        with patch(
-            "cores.engine.hypothesis.threat_intel.urllib.request.urlopen", side_effect=urllib.error.URLError("offline")
-        ):
+        with patch("cores.engine.hypothesis.threat_intel.urllib.request.urlopen", side_effect=urllib.error.URLError("offline")):
             entries = feed.load()
         assert entries == []
 
     def test_returns_empty_when_no_cache_and_no_network(self, tmp_path, monkeypatch) -> None:
         monkeypatch.setattr("cores.engine.hypothesis.threat_intel._CACHE_DIR", str(tmp_path))
         feed = ThreatIntelFeed(cache_dir=str(tmp_path))
-        with patch(
-            "cores.engine.hypothesis.threat_intel.urllib.request.urlopen", side_effect=urllib.error.URLError("offline")
-        ):
+        with patch("cores.engine.hypothesis.threat_intel.urllib.request.urlopen", side_effect=urllib.error.URLError("offline")):
             assert feed.load() == []
 
 

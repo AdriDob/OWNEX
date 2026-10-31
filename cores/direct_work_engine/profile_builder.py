@@ -73,14 +73,10 @@ class IntelligentProfileBuilder:
         )
 
         # LinkedIn headline: concise factual positioning
-        assets.linkedin_headline = (
-            f"{top_skills} | Remote | {profile.country}" if profile.skills else f"Remote | {profile.country}"
-        )
+        assets.linkedin_headline = f"{top_skills} | Remote | {profile.country}" if profile.skills else f"Remote | {profile.country}"
 
         # Portfolio sections: one per real project, never invented
-        assets.portfolio_sections = [
-            {"title": p, "status": "completed", "source": "user_projects"} for p in profile.projects
-        ]
+        assets.portfolio_sections = [{"title": p, "status": "completed", "source": "user_projects"} for p in profile.projects]
 
         # CV sections: structured from facts
         assets.cv_sections = [

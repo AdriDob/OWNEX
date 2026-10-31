@@ -26,9 +26,7 @@ class WingetTool(BaseTool):
 
     def list_installed(self) -> ToolResult:
         try:
-            r = subprocess.run(
-                ["winget", "list", "--accept-source-agreements"], capture_output=True, text=True, timeout=30
-            )
+            r = subprocess.run(["winget", "list", "--accept-source-agreements"], capture_output=True, text=True, timeout=30)
             if r.returncode == 0:
                 lines = [line for line in r.stdout.split("\n") if line.strip()]
                 return ToolResult(True, f"{len(lines)} packages", {"packages": lines[:100]})
@@ -38,9 +36,7 @@ class WingetTool(BaseTool):
 
     def search(self, query: str) -> ToolResult:
         try:
-            r = subprocess.run(
-                ["winget", "search", query, "--accept-source-agreements"], capture_output=True, text=True, timeout=30
-            )
+            r = subprocess.run(["winget", "search", query, "--accept-source-agreements"], capture_output=True, text=True, timeout=30)
             if r.returncode == 0:
                 lines = [line for line in r.stdout.split("\n") if line.strip()]
                 return ToolResult(True, f"Found {len(lines)} results", {"results": lines[:50]})

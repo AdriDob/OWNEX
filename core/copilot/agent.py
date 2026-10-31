@@ -286,8 +286,7 @@ class CopilotAgent:
 
             acc_item = ReviewItem(
                 "acceptance_probability",
-                f"Probabilidad de aceptación en {platform}: {prediction.probability}% "
-                f"(confianza: {prediction.confidence})",
+                f"Probabilidad de aceptación en {platform}: {prediction.probability}% (confianza: {prediction.confidence})",
             )
             if prediction.confidence in ("low", "medium") or prediction.probability >= 60:
                 acc_item.pass_(f"Aceptación estimada: {prediction.probability}% ({prediction.confidence} confianza)")
@@ -379,9 +378,7 @@ class CopilotAgent:
 
     # ── Unified Memory ────────────────────────────────────────
 
-    def remember(
-        self, namespace: str, key: str, content: str, tags: list[str] | None = None, priority: float = 0.0
-    ) -> int:
+    def remember(self, namespace: str, key: str, content: str, tags: list[str] | None = None, priority: float = 0.0) -> int:
         """Store an analysis result in Unified Memory."""
         return self._memory.store(
             namespace=namespace,
@@ -734,9 +731,7 @@ class CopilotAgent:
             {"tools": ["http", "scan", "analyze", "memory"]},
             description="Execute investigation plan steps",
         )
-        reg.register(
-            "pre_report_review", "copilot", {"checklist_items": 9}, description="Run pre-report quality checklist"
-        )
+        reg.register("pre_report_review", "copilot", {"checklist_items": 9}, description="Run pre-report quality checklist")
         reg.register(
             "audit_system",
             "copilot",
@@ -749,9 +744,7 @@ class CopilotAgent:
             {"scope": "finding_level"},
             description="Get next-step recommendations per finding",
         )
-        reg.register(
-            "recommend_for_system", "copilot", {"scope": "system_level"}, description="Get system-wide top actions"
-        )
+        reg.register("recommend_for_system", "copilot", {"scope": "system_level"}, description="Get system-wide top actions")
         reg.register(
             "make_decision",
             "copilot",

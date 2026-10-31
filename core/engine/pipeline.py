@@ -113,9 +113,7 @@ BUG_BOUNTY_PLAN = [
         capability="llm_reasoning",
         estimated_minutes=30,
     ),
-    PlanStep(
-        "submit", "Submission", "Submit finding to platform", order=5, capability="api_interaction", estimated_minutes=5
-    ),
+    PlanStep("submit", "Submission", "Submit finding to platform", order=5, capability="api_interaction", estimated_minutes=5),
 ]
 
 DEV_BOUNTY_PLAN = [
@@ -143,9 +141,7 @@ DEV_BOUNTY_PLAN = [
         capability="code_execution",
         estimated_minutes=120,
     ),
-    PlanStep(
-        "test", "Testing", "Run tests, verify solution", order=4, capability="code_execution", estimated_minutes=15
-    ),
+    PlanStep("test", "Testing", "Run tests, verify solution", order=4, capability="code_execution", estimated_minutes=15),
     PlanStep(
         "submit",
         "Submit PR",
@@ -185,9 +181,7 @@ AI_WORK_PLAN = [
 ]
 
 GENERIC_PLAN = [
-    PlanStep(
-        "assess", "Assessment", "Assess the opportunity", order=1, capability="llm_reasoning", estimated_minutes=15
-    ),
+    PlanStep("assess", "Assessment", "Assess the opportunity", order=1, capability="llm_reasoning", estimated_minutes=15),
     PlanStep("execute", "Execution", "Execute the work", order=2, capability="code_execution", estimated_minutes=60),
     PlanStep("submit", "Submission", "Submit results", order=3, capability="api_interaction", estimated_minutes=5),
 ]
@@ -376,9 +370,7 @@ class ExecutionPipeline(Engine):
                 if result.get("success"):
                     return True, result
                 # Log failure but retry
-                logger.warning(
-                    "Step %s failed (attempt %d/%d): %s", step.name, attempt, max_attempts, result.get("error")
-                )
+                logger.warning("Step %s failed (attempt %d/%d): %s", step.name, attempt, max_attempts, result.get("error"))
             except Exception as e:
                 logger.warning("Step %s raised exception (attempt %d/%d): %s", step.name, attempt, max_attempts, e)
                 if attempt >= max_attempts:

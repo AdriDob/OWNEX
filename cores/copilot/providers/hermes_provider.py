@@ -87,16 +87,12 @@ class HermesProvider(BaseProvider):
             return ProviderResponse(content="", provider="hermes", model=model, error=error_detail, duration_ms=dur)
         except subprocess.TimeoutExpired:
             logger.warning("Hermes chat timed out")
-            return ProviderResponse(
-                content="", provider="hermes", model=model, error="timeout", duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="hermes", model=model, error="timeout", duration_ms=(time.monotonic() - t0) * 1000)
         except FileNotFoundError:
             return ProviderResponse(content="", provider="hermes", model=model, error="hermes binary not found")
         except Exception as exc:
             logger.warning("Hermes chat failed: %s", exc)
-            return ProviderResponse(
-                content="", provider="hermes", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000
-            )
+            return ProviderResponse(content="", provider="hermes", model=model, error=str(exc), duration_ms=(time.monotonic() - t0) * 1000)
 
     async def chat_stream(self, messages: list[dict[str, str]], **kwargs: Any) -> AsyncIterator[str]:
         model = kwargs.get("model", self._default_model)

@@ -59,9 +59,7 @@ class ReportEngine:
         if evidence_list is not None:
             evidence = evidence_list
         else:
-            evidence = self._evidence_store.get_evidence_for_verdict(
-                int(verdict.hot_path_id.split(":")[-1]) if ":" in verdict.hot_path_id else 0
-            )
+            evidence = self._evidence_store.get_evidence_for_verdict(int(verdict.hot_path_id.split(":")[-1]) if ":" in verdict.hot_path_id else 0)
 
         severity = risk_to_severity(ep.get("risk_score", 65))
         cvss = cvss_vector(ep.get("risk_score", 65))
@@ -138,16 +136,12 @@ class ReportEngine:
         if evidence:
             for idx, ev in enumerate(evidence[:3]):
                 status = ev.get("response_status", "?")
-                steps.append(
-                    f"{3 + idx}. Send probe request (attempt {ev.get('attempt', idx + 1)}) — response status: {status}."
-                )
+                steps.append(f"{3 + idx}. Send probe request (attempt {ev.get('attempt', idx + 1)}) — response status: {status}.")
             next_idx = 3 + len(evidence[:3])
         else:
             next_idx = 3
         steps.append(f"{next_idx}. Compare baseline vs probe responses.")
-        steps.append(
-            f"{next_idx + 1}. Repeat steps 2-4 at least {verdict.retry_count} times to confirm reproducibility."
-        )
+        steps.append(f"{next_idx + 1}. Repeat steps 2-4 at least {verdict.retry_count} times to confirm reproducibility.")
         steps.append(f"{next_idx + 2}. If responses differ consistently, the finding is confirmed.")
         return steps
 

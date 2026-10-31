@@ -89,8 +89,7 @@ def download_url(url: str, timeout: int = 15) -> tuple[bytes | None, str | None]
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 "Accept": "text/html,application/xhtml+xml,application/pdf,*/*",
             },
         )
@@ -147,12 +146,8 @@ def extract_assets(text: str) -> dict[str, list[str]]:
     assets["wildcards"] = sorted(set(wildcards))
 
     # Regular domains
-    domains = re.findall(
-        r"(?:^|\s)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)", text
-    )
-    assets["domains"] = sorted(
-        set(d.lower() for d in domains if not d.startswith("*") and d.count(".") >= 1 and not d.startswith("$"))
-    )
+    domains = re.findall(r"(?:^|\s)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)", text)
+    assets["domains"] = sorted(set(d.lower() for d in domains if not d.startswith("*") and d.count(".") >= 1 and not d.startswith("$")))
 
     # Full URLs
     urls = re.findall(r"https?://[^\s<>\"')\]]+", text)
@@ -286,9 +281,7 @@ Resumen conciso:"""
     return "(AI summary unavailable — scope indexed)"
 
 
-def read_program_scope(
-    url: str, program_name: str, previous_hash: str | None = None, previous_text: str | None = None
-) -> dict[str, Any]:
+def read_program_scope(url: str, program_name: str, previous_hash: str | None = None, previous_text: str | None = None) -> dict[str, Any]:
     """Full scope reading pipeline for a single program URL.
 
     Returns a dict with: raw_text, summary, hash, assets_extracted, changes, content_type.

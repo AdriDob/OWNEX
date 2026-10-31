@@ -64,9 +64,7 @@ def _unfinished_work() -> dict[str, Any]:
         progress = bank.progress() if hasattr(bank, "progress") else {}
         return {
             "ready_to_deliver": [{"title": i.title, "platform": i.platform, "reward": i.reward} for i in ready],
-            "needs_access": [
-                {"title": i.title, "platform": i.platform, "requirement": i.requirement} for i in needs_access[:5]
-            ],
+            "needs_access": [{"title": i.title, "platform": i.platform, "requirement": i.requirement} for i in needs_access[:5]],
             "targets": progress,
         }
     except Exception as exc:  # noqa: BLE001
@@ -173,9 +171,7 @@ def good_morning() -> dict[str, Any]:
     important_tasks = work["ready_to_deliver"] + work["needs_access"]
     summary_lines = [
         f"System: {'Ready' if system_status == 'ok' else system_status.upper()} (score {system_score}/100).",
-        f"Memory: {memory['entries']} entries across {memory['namespace_count']} namespaces."
-        if memory["healthy"]
-        else "Memory: check failed.",
+        f"Memory: {memory['entries']} entries across {memory['namespace_count']} namespaces." if memory["healthy"] else "Memory: check failed.",
         f"Opportunities: {opps['scanned_sources']} sources scanned, {len(opps['best_sources'])} DISCOVER for today.",
         f"Unfinished work: {len(work['ready_to_deliver'])} ready to deliver, {len(work['needs_access'])} need access.",
         f"Improvements suggested: {len(improvements)}.",
@@ -183,9 +179,7 @@ def good_morning() -> dict[str, Any]:
     ]
     next_task = setup.get("next_task")
     if next_task:
-        summary_lines.append(
-            f"Setup {setup['complete_pct']}% — today's config task: {next_task['title']} ({next_task['est_minutes']} min)."
-        )
+        summary_lines.append(f"Setup {setup['complete_pct']}% — today's config task: {next_task['title']} ({next_task['est_minutes']} min).")
 
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),

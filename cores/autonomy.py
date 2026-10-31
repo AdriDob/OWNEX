@@ -419,10 +419,7 @@ class AutonomyManager:
                 policy=policy,
             )
 
-        if (
-            context.estimated_duration_minutes > policy.max_action_duration_minutes
-            and policy.max_action_duration_minutes > 0
-        ):
+        if context.estimated_duration_minutes > policy.max_action_duration_minutes and policy.max_action_duration_minutes > 0:
             return AutonomyDecision(
                 allowed=False,
                 level=self.current_level,

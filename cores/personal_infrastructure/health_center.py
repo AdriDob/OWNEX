@@ -131,9 +131,7 @@ class IntegrationHealthCenter:
                 return "Sincronizar manualmente"
         return "Revisar configuración"
 
-    def update_integration_health(
-        self, integration_id: str, health: IntegrationHealth, last_sync: datetime | None = None
-    ) -> bool:
+    def update_integration_health(self, integration_id: str, health: IntegrationHealth, last_sync: datetime | None = None) -> bool:
         """Actualizar estado de salud de una integración."""
         if integration_id not in self.manager.integrations:
             return False

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from cores.revenue.converter import calculate_fee, net_after_fee, usd_to_ars
-from cores.revenue.models import Payment, RevenueRecord, RevenueStats
-from cores.revenue.tracker import PaymentTracker
+from datetime import UTC, datetime
 
-from cores.revenue.revenue_engine import RevenueEngine
+from core.revenue.converter import calculate_fee, net_after_fee, usd_to_ars
+from core.revenue.engine import RevenueEngine
+from core.revenue.models import Payment, RevenueRecord, RevenueStats
+from core.revenue.tracker import PaymentTracker
 
 
 def test_usd_to_ars():
@@ -26,7 +27,7 @@ def test_tracker_add_and_stats():
     tracker = PaymentTracker()
     record = RevenueRecord(
         id="rec_1",
-        date="2026-07-29",
+        date=datetime.now(UTC).date().isoformat(),
         source_type="bug_bounty",
         platform="hackerone",
         opportunity="Test vuln",
@@ -41,7 +42,7 @@ def test_tracker_mark_paid():
     tracker = PaymentTracker()
     record = RevenueRecord(
         id="rec_2",
-        date="2026-07-29",
+        date=datetime.now(UTC).date().isoformat(),
         source_type="dev_bounty",
         platform="github",
         opportunity="Fix bug",

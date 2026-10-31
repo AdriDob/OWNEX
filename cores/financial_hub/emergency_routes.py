@@ -14,12 +14,7 @@ class EmergencyRoutes:
     def list_all(self) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
-            routes = (
-                session.query(WithdrawalRoute)
-                .filter_by(is_emergency=True)
-                .order_by(WithdrawalRoute.priority.desc())
-                .all()
-            )
+            routes = session.query(WithdrawalRoute).filter_by(is_emergency=True).order_by(WithdrawalRoute.priority.desc()).all()
             return [self._route_to_dict(r) for r in routes]
         finally:
             session.close()
@@ -27,12 +22,7 @@ class EmergencyRoutes:
     def get_primary_fallback(self) -> dict[str, Any] | None:
         session = SessionLocal()
         try:
-            route = (
-                session.query(WithdrawalRoute)
-                .filter_by(is_emergency=True, is_active=True)
-                .order_by(WithdrawalRoute.priority.desc())
-                .first()
-            )
+            route = session.query(WithdrawalRoute).filter_by(is_emergency=True, is_active=True).order_by(WithdrawalRoute.priority.desc()).first()
             if route is None:
                 return None
             return self._route_to_dict(route)

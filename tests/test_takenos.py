@@ -63,10 +63,7 @@ class TestTakenosConnector:
 
     def test_import_csv_recomputes_balance(self):
         conn = TakenosConnector()
-        csv_content = (
-            "date,description,amount,currency,type,status,reference\n"
-            "2026-01-01,Deposit,1000.00,USD,deposit,completed,REF001\n"
-        )
+        csv_content = "date,description,amount,currency,type,status,reference\n2026-01-01,Deposit,1000.00,USD,deposit,completed,REF001\n"
         conn.import_csv(csv_content)
         summary = conn.get_summary()
         assert summary["balance_usd"] == 1000.0

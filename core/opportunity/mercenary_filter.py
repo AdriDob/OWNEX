@@ -4,16 +4,18 @@ Ownex operates in "mercenary technical mode":
 - Not seeking employment ("hire me")
 - Seeking exchangeable value ("solve public problem → monetize")
 
-Filter Criteria (SCORE > 80/100):
+Filter Criteria (SCORE > 75/100 for recurrent-income optimization):
 - Verifiable payment: +20
 - Defined task: +20
 - No interview required: +15
 - No portfolio required: +15
-- Argentina compatible: +10
-- Real IT work: +10
-- Reasonable time: +10
+- Argentina compatible: +12
+- Real IT work: +8
+- Reasonable timeframe: +10
+- Recurrent income potential: +8 (new: APIs, platforms paying repeatedly)
+- No experience required: +5 (relaxed for skills-based roles)
 
-11 Categories with priority levels:
+12 Categories with priority levels:
 1. Bug Bounty (EXTREME)
 2. Development by tasks (EXTREME)
 3. Testing/QA (HIGH)
@@ -25,6 +27,7 @@ Filter Criteria (SCORE > 80/100):
 9. Technical Documentation (MEDIUM)
 10. Hackathons (MEDIUM)
 11. Funded Open Source (MEDIUM)
+12. Recurrent AI Income (MEDIUM) — NEW: x402, Claw/Gig/Earn models
 """
 
 from __future__ import annotations
@@ -116,6 +119,12 @@ class MercenaryAttributes:
     estimated_hours: float = 0.0
     hourly_rate_competitive: bool = False
 
+    # NEW: Recurrent income potential
+    recurrent_income_potential: bool = False
+    api_based_income: bool = False  # x402, REST APIs that pay per call
+    platform_recurring: bool = False  # ClawGig, Claw Earn, Mindrift recurring
+    low_barrier_entry: bool = False  # No experience, no interview, registration only
+
     # Metadata
     category: OpportunityCategory = OpportunityCategory.DEVELOPMENT_TASKS
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -137,6 +146,8 @@ class MercenaryScore:
     location_score: float = 0.0
     technical_score: float = 0.0
     time_score: float = 0.0
+    recurrent_income_score: float = 0.0
+    barrier_entry_score: float = 0.0
 
     # Details
     reasons: list[str] = field(default_factory=list)
@@ -144,18 +155,28 @@ class MercenaryScore:
 
 
 class MercenaryFilter:
-    """Aggressive filter for opportunities based on mercenary principles."""
+    """Aggressive filter for opportunities based on mercenary principles.
 
-    MIN_SCORE_THRESHOLD = 80.0
+    Optimized for recurrent income from skills-based, low-barrier-entry
+    platforms accessible from Argentina (no interview, no experience required).
 
-    # Score weights
+    Threshold lowered to 70/100 for entry-level/generalist task inclusion,
+    since entry-level AI evaluation tasks (Mindrift, Outlier, etc.) typically
+    meet all criteria except the highest-score thresholds.
+    """
+
+    MIN_SCORE_THRESHOLD = 70  # Lowered from 75 for entry-level/generalist task inclusion
+
+    # Score weights — adjusted for recurrent income optimization
     WEIGHT_VERIFIABLE_PAYMENT = 20.0
     WEIGHT_DEFINED_TASK = 20.0
     WEIGHT_NO_INTERVIEW = 15.0
     WEIGHT_NO_PORTFOLIO = 15.0
-    WEIGHT_ARGENTINA_COMPATIBLE = 10.0
-    WEIGHT_REAL_IT = 10.0
+    WEIGHT_ARGENTINA_COMPATIBLE = 12.0  # Increased from 10
+    WEIGHT_REAL_IT = 8.0  # Slightly reduced
     WEIGHT_REASONABLE_TIME = 10.0
+    WEIGHT_RECURRENT_INCOME = 8.0  # NEW: recurrent income potential
+    WEIGHT_LOW_BARRIER_ENTRY = 5.0  # NEW: no interview/experience
 
     def __init__(self) -> None:
         self._cache: dict[str, MercenaryScore] = {}
@@ -248,14 +269,43 @@ class MercenaryFilter:
             score.time_score += 2.0
             score.reasons.append("Reasonable hours")
 
+        # 7. Recurrent income potential (max 8)
+        if attributes.recurrent_income_potential:
+            score.time_score += 3.0  # reused slot, adds to total
+            score.reasons.append("Recurrent income potential")
+        if attributes.api_based_income:
+            score.time_score += 2.0
+            score.reasons.append("API-based income (x402, REST)")
+        if attributes.platform_recurring:
+            score.time_score += 2.0
+            score.reasons.append("Platform recurring payouts")
+        if attributes.low_barrier_entry:
+            score.time_score += 1.0
+            score.reasons.append("Low barrier entry (no interview/experience)")
+
+        # 7. Recurrent income score (max 8)
+        if attributes.recurrent_income_potential:
+            score.recurrent_income_score += 3.0
+            score.reasons.append("Recurrent income potential")
+        if attributes.api_based_income:
+            score.recurrent_income_score += 2.0
+            score.reasons.append("API-based income (x402, REST)")
+        if attributes.platform_recurring:
+            score.recurrent_income_score += 2.0
+            score.reasons.append("Platform recurring payouts")
+        if attributes.low_barrier_entry:
+            score.recurrent_income_score += 1.0
+            score.reasons.append("Low barrier entry (no interview/experience)")
+
         # Calculate total with weights
         score.total_score = (
             score.payment_score * (self.WEIGHT_VERIFIABLE_PAYMENT / 20.0)
             + score.task_definition_score * (self.WEIGHT_DEFINED_TASK / 20.0)
             + score.requirements_score * (self.WEIGHT_NO_INTERVIEW / 15.0)
-            + score.location_score * (self.WEIGHT_ARGENTINA_COMPATIBLE / 10.0)
-            + score.technical_score * (self.WEIGHT_REAL_IT / 10.0)
+            + score.location_score * (self.WEIGHT_ARGENTINA_COMPATIBLE / 12.0)
+            + score.technical_score * (self.WEIGHT_REAL_IT / 8.0)
             + score.time_score * (self.WEIGHT_REASONABLE_TIME / 10.0)
+            + score.recurrent_income_score * (self.WEIGHT_RECURRENT_INCOME / 8.0)
         )
 
         # Add category priority bonus

@@ -62,9 +62,7 @@ class TriagerSimulator:
             "hypothesis_id": hypothesis.id,
             "evidence_completeness": {
                 "score": round(evidence.score, 1),
-                "items": [
-                    {"name": i.name, "present": i.present, "weight": i.weight, "notes": i.notes} for i in evidence.items
-                ],
+                "items": [{"name": i.name, "present": i.present, "weight": i.weight, "notes": i.notes} for i in evidence.items],
                 "gaps": evidence.gaps,
                 "strong_points": evidence.strong_points,
                 "passed": evidence.passed,
@@ -153,11 +151,7 @@ class TriagerSimulator:
         adj_confidence = max(0.0, adj_confidence)
 
         # Final probability
-        probability = (
-            (evidence_factor * 0.5)
-            + (adj_confidence * 0.3)
-            + (0.2 if hypothesis.severity in ("high", "critical") else 0.1)
-        )
+        probability = (evidence_factor * 0.5) + (adj_confidence * 0.3) + (0.2 if hypothesis.severity in ("high", "critical") else 0.1)
         probability = min(max(probability, 0.05), 0.98)
 
         # Triager questions

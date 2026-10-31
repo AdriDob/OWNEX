@@ -155,9 +155,7 @@ class LoopEngine:
 
         # Update state
         elapsed = (time.monotonic() - start) * 1000
-        result.success = (
-            len(errors) == 0 if self.pattern.week_one_mode.value == "L1" else len(errors) < len(self.pattern.phases)
-        )
+        result.success = len(errors) == 0 if self.pattern.week_one_mode.value == "L1" else len(errors) < len(self.pattern.phases)
         result.duration_ms = elapsed
         result.errors = errors
         result.state = self._state

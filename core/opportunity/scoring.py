@@ -28,9 +28,7 @@ class UnifiedScore:
     final_score: float = 0.0
 
     def __post_init__(self) -> None:
-        self.final_score = (
-            self.reward * self.acceptance_prob * (1.0 - self.difficulty) * self.diversity_bonus * self.personal_factor
-        )
+        self.final_score = self.reward * self.acceptance_prob * (1.0 - self.difficulty) * self.diversity_bonus * self.personal_factor
 
 
 @dataclass
@@ -248,9 +246,7 @@ class OpportunityEngineLegacy:
             try:
                 finding = session.query(Finding).filter(Finding.id == finding_id).first()
                 if finding:
-                    self.tracker.on_accept(
-                        finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3
-                    )
+                    self.tracker.on_accept(finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3)
             finally:
                 session.close()
         elif outcome == "reject":
@@ -258,9 +254,7 @@ class OpportunityEngineLegacy:
             try:
                 finding = session.query(Finding).filter(Finding.id == finding_id).first()
                 if finding:
-                    self.tracker.on_reject(
-                        finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3
-                    )
+                    self.tracker.on_reject(finding_id, self._estimate_reward(finding, session=session), finding.difficulty or 0.3)
             finally:
                 session.close()
         else:

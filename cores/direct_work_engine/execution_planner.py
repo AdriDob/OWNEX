@@ -458,9 +458,7 @@ def plan_execution(
     p_success = (
         success_probability
         if success_probability is not None
-        else _success_probability(
-            reward, has_hard_reqs=portfolio_required, has_experience_reqs=bool(portfolio_required)
-        )
+        else _success_probability(reward, has_hard_reqs=portfolio_required, has_experience_reqs=bool(portfolio_required))
     )
 
     # Human work is only the irreducible personal decisions/actions.
@@ -505,10 +503,6 @@ def plan_execution(
         remaining_human_hours=remaining_h,
         expected_value_per_hour=ev,
         roadmap=_roadmap(title, url, needs_account, needs_review, needs_submission),
-        next_button="Entrar al plan de entrega del Work Bank"
-        if platform and (reward > 0)
-        else "Ver documentos y reglas",
-        elgibility_note=(
-            "Requiere crear cuenta y portfolio" if (needs_account or portfolio_required) else "Sin barreras de acceso"
-        ),
+        next_button="Entrar al plan de entrega del Work Bank" if platform and (reward > 0) else "Ver documentos y reglas",
+        elgibility_note=("Requiere crear cuenta y portfolio" if (needs_account or portfolio_required) else "Sin barreras de acceso"),
     )

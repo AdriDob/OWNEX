@@ -200,9 +200,7 @@ class VersionBackupSystem:
                     shutil.copytree(
                         source,
                         dest,
-                        ignore=shutil.ignore_patterns(
-                            "__pycache__", "*.pyc", ".git", "node_modules", ".venv", "dist", "build"
-                        ),
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".git", "node_modules", ".venv", "dist", "build"),
                     )
                     # Calculate size
                     for item in source.rglob("*"):

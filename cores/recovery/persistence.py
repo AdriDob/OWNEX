@@ -250,13 +250,9 @@ class RecoveryStore:
         with self._lock, sqlite3.connect(self._db_path) as conn:
             conn.row_factory = sqlite3.Row
             if version:
-                row = conn.execute(
-                    "SELECT * FROM version_backups WHERE version = ? ORDER BY created_at DESC LIMIT 1", (version,)
-                ).fetchone()
+                row = conn.execute("SELECT * FROM version_backups WHERE version = ? ORDER BY created_at DESC LIMIT 1", (version,)).fetchone()
             elif git_commit:
-                row = conn.execute(
-                    "SELECT * FROM version_backups WHERE git_commit = ? ORDER BY created_at DESC LIMIT 1", (git_commit,)
-                ).fetchone()
+                row = conn.execute("SELECT * FROM version_backups WHERE git_commit = ? ORDER BY created_at DESC LIMIT 1", (git_commit,)).fetchone()
             else:
                 return None
 
@@ -296,9 +292,7 @@ class RecoveryStore:
 
             # Delete oldest backups beyond max_count
             to_delete = total_count - max_count
-            conn.execute(
-                f"DELETE FROM version_backups WHERE id IN (SELECT id FROM version_backups ORDER BY created_at ASC LIMIT {to_delete})"
-            )
+            conn.execute(f"DELETE FROM version_backups WHERE id IN (SELECT id FROM version_backups ORDER BY created_at ASC LIMIT {to_delete})")
             conn.commit()
             logger.info(f"[RECOVERY STORE] Cleaned up {to_delete} old version backups")
             return to_delete

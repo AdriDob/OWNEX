@@ -81,11 +81,7 @@ class Workflow:
             if task.status != TaskStatus.PENDING:
                 continue
             # Check if all dependencies are completed
-            deps_met = all(
-                self.get_task(dep_id).status == TaskStatus.COMPLETED
-                for dep_id in task.dependencies
-                if self.get_task(dep_id) is not None
-            )
+            deps_met = all(self.get_task(dep_id).status == TaskStatus.COMPLETED for dep_id in task.dependencies if self.get_task(dep_id) is not None)
             if deps_met:
                 ready.append(task)
         return ready

@@ -95,8 +95,7 @@ class ApprovalOptimizer(BaseOptimizer):
             logs.append(
                 OptimizationLog(
                     optimizer=self.name,
-                    description=f"Found {len(rollback_nodes)} rollback nodes — "
-                    f"consider consolidating into a single rollback with checkpoint restore",
+                    description=f"Found {len(rollback_nodes)} rollback nodes — consider consolidating into a single rollback with checkpoint restore",
                     node_ids_affected=[n.id for n in rollback_nodes],
                     before=f"{len(rollback_nodes)} separate rollbacks",
                     after="potential single rollback",

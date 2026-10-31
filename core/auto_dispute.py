@@ -114,9 +114,7 @@ class DisputeClient:
             return {"success": False, "error": str(e), "platform": "gitcoin"}
 
     # ── Generic local record ──
-    def save_local_dispute(
-        self, platform: str, finding_id: str, reason: str, evidence: dict[str, Any], remote_result: dict[str, Any]
-    ) -> dict[str, Any]:
+    def save_local_dispute(self, platform: str, finding_id: str, reason: str, evidence: dict[str, Any], remote_result: dict[str, Any]) -> dict[str, Any]:
         """Guardar disputa local con hash inmutable."""
         dispute_id = f"dsp_{uuid.uuid4().hex[:12]}"
         payload = {

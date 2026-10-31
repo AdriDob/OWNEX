@@ -233,9 +233,7 @@ class WearOSIntegration:
         """Limpiar notificaciones antiguas."""
         cutoff = datetime.now().timestamp() - (days * 86400)
         original_count = len(self.notifications)
-        self.notifications = [
-            n for n in self.notifications if datetime.fromisoformat(n.created_at).timestamp() > cutoff
-        ]
+        self.notifications = [n for n in self.notifications if datetime.fromisoformat(n.created_at).timestamp() > cutoff]
         self._save_state()
         return original_count - len(self.notifications)
 

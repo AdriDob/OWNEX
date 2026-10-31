@@ -261,9 +261,7 @@ class CoordinatorAgent(BaseAgent):
         # Find the completed state
         current_state = PipelineState.PENDING
         with contextlib.suppress(ValueError):
-            current_state = (
-                PipelineState(completed_stage) if completed_stage else PipelineState(info.get("state", "pending"))
-            )
+            current_state = PipelineState(completed_stage) if completed_stage else PipelineState(info.get("state", "pending"))
 
         # Record transition in history
         transition = build_transition(
@@ -617,9 +615,7 @@ class CoordinatorAgent(BaseAgent):
                     ),
                 )
             else:
-                logger.warning(
-                    "[COORD] Submission failed for pipeline %s: %s", pipeline_id[:8], result.get("error", "unknown")
-                )
+                logger.warning("[COORD] Submission failed for pipeline %s: %s", pipeline_id[:8], result.get("error", "unknown"))
                 self.emit(
                     EventType.PIPELINE_FAILED,
                     payload={"stage": PipelineState.SUBMITTED.value, "error": result.get("error", "submission_failed")},

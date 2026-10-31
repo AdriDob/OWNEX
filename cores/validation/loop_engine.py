@@ -151,11 +151,7 @@ class ValidationLoopEngine:
             )
         else:
             status = "rejected"
-            reason = (
-                f"Rejected: confidence={confidence.score:.2f}, "
-                f"reproducibility={reproducibility_score:.2f}, "
-                f"rules passed={validation_report.passed_rules}"
-            )
+            reason = f"Rejected: confidence={confidence.score:.2f}, reproducibility={reproducibility_score:.2f}, rules passed={validation_report.passed_rules}"
 
         evidence_links = [f"attempt_{r.attempt}" for r in comparison_results if r.consistent]
 
@@ -169,12 +165,9 @@ class ValidationLoopEngine:
             )
             if any(r["executed"] and r["supports_vulnerability"] is False for r in contradiction_results):
                 status = "inconclusive"
-                refuted = next(
-                    r for r in contradiction_results if r["executed"] and r["supports_vulnerability"] is False
-                )
+                refuted = next(r for r in contradiction_results if r["executed"] and r["supports_vulnerability"] is False)
                 reason = (
-                    f"Refuted by contradiction test '{refuted['test_type']}': {refuted['reasoning']}; "
-                    f"confidence={confidence.score:.2f} below 0.6 threshold"
+                    f"Refuted by contradiction test '{refuted['test_type']}': {refuted['reasoning']}; confidence={confidence.score:.2f} below 0.6 threshold"
                 )
 
         return Verdict(

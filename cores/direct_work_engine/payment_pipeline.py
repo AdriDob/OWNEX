@@ -323,9 +323,7 @@ class PaymentPipelineStore:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps({k: v.to_dict() for k, v in self._items.items()}, indent=2))
 
-    def add(
-        self, item_id: str, source: str, payload: dict | None = None, initial_state: str = "DISCOVERED"
-    ) -> PipelineItem:
+    def add(self, item_id: str, source: str, payload: dict | None = None, initial_state: str = "DISCOVERED") -> PipelineItem:
         datetime.now(UTC).isoformat()
         item = PipelineItem(
             item_id=item_id,

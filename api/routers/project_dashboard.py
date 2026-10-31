@@ -222,30 +222,12 @@ def get_architecture_tree() -> dict[str, Any]:
             [
                 d.name
                 for d in PROJECT_ROOT.iterdir()
-                if d.is_dir()
-                and not d.name.startswith(".")
-                and d.name not in ("__pycache__", "node_modules", ".venv", "dist", ".git")
+                if d.is_dir() and not d.name.startswith(".") and d.name not in ("__pycache__", "node_modules", ".venv", "dist", ".git")
             ]
         ),
-        "routers": sorted(
-            [
-                f.stem
-                for f in (PROJECT_ROOT / "api" / "routers").iterdir()
-                if f.suffix == ".py" and not f.name.startswith("_")
-            ]
-        ),
-        "cores_modules": sorted(
-            [
-                d.name
-                for d in (PROJECT_ROOT / "cores").iterdir()
-                if d.is_dir() and not d.name.startswith("_") and d.name != "__pycache__"
-            ]
-        ),
+        "routers": sorted([f.stem for f in (PROJECT_ROOT / "api" / "routers").iterdir() if f.suffix == ".py" and not f.name.startswith("_")]),
+        "cores_modules": sorted([d.name for d in (PROJECT_ROOT / "cores").iterdir() if d.is_dir() and not d.name.startswith("_") and d.name != "__pycache__"]),
         "frontend_pages": sorted(
-            [
-                f.stem
-                for f in (PROJECT_ROOT / "frontend" / "src" / "pages").iterdir()
-                if f.suffix in (".vue", ".ts") and not f.name.startswith("_")
-            ]
+            [f.stem for f in (PROJECT_ROOT / "frontend" / "src" / "pages").iterdir() if f.suffix in (".vue", ".ts") and not f.name.startswith("_")]
         ),
     }

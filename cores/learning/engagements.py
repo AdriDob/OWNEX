@@ -21,9 +21,7 @@ def record_engagement_outcome(
     metadata: dict[str, Any] | None = None,
 ) -> str:
     """Record an engagement outcome for an agent."""
-    engagement_id = hashlib.sha1(
-        f"{agent_id}:{time.time()}:{json.dumps(engagement_data, sort_keys=True, default=str)}".encode()
-    ).hexdigest()[:12]
+    engagement_id = hashlib.sha1(f"{agent_id}:{time.time()}:{json.dumps(engagement_data, sort_keys=True, default=str)}".encode()).hexdigest()[:12]
     record = {
         "id": f"eng_{engagement_id}",
         "agent_id": agent_id,

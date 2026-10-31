@@ -71,9 +71,7 @@ class TargetSessionManager:
     def invalidate_session(self, identity_id: int) -> None:
         session = db.SessionLocal()
         try:
-            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update(
-                {"is_valid": False}
-            )
+            session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).update({"is_valid": False})
             session.commit()
         finally:
             session.close()
@@ -166,9 +164,7 @@ class TargetSessionManager:
     ) -> None:
         session = db.SessionLocal()
         try:
-            existing = (
-                session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
-            )
+            existing = session.query(models.TargetSession).filter(models.TargetSession.identity_id == identity_id).first()
 
             token_encrypted = self._vault.encrypt(token) if token else ""
             cookies_encrypted = self._vault.encrypt_json(cookies) if cookies else ""

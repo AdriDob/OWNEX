@@ -197,9 +197,7 @@ class UnifiedIncomePlan:
         for head in actions_sorted_by_catalog(self._platform_heads(passive_head, apps_plan)):
             facts = find_curated_entry_model(head["platform_key"])
             rate = float(facts["hourly_rate_usd"]) if facts and facts.get("hourly_rate_usd") else None
-            tt_first_work = (
-                float(facts["time_to_first_work_hours"]) if facts and facts.get("time_to_first_work_hours") else None
-            )
+            tt_first_work = float(facts["time_to_first_work_hours"]) if facts and facts.get("time_to_first_work_hours") else None
             cash_days = int(facts["payout_cadence_days"]) if facts and facts.get("payout_cadence_days") else None
             unlocks = head["platform_key"] not in accepted_keys
             minutes = head.pop("est_minutes", None)
@@ -214,9 +212,7 @@ class UnifiedIncomePlan:
                 "zero_experience": True,
                 "assessment_required": bool(facts and facts.get("assessment")) and _is_entry_step(head),
                 "access_probability": "desconocida",
-                "unlocks_stream": (
-                    {"hourly_rate_usd": rate, "cash_speed_days": cash_days} if unlocks and rate else None
-                ),
+                "unlocks_stream": ({"hourly_rate_usd": rate, "cash_speed_days": cash_days} if unlocks and rate else None),
             }
             actions.append(action)
             if bootstrap is None and bootstrap_key is not None and head["platform_key"] == bootstrap_key:
@@ -241,9 +237,7 @@ class UnifiedIncomePlan:
                     "payoff": platform.get("pay_range", ""),
                     "platform_key": platform["key"],
                     "is_head_of_overview": (
-                        passive_head is not None
-                        and platform["key"] == passive_head.get("platform")
-                        and pending[0]["title"] == passive_head.get("step")
+                        passive_head is not None and platform["key"] == passive_head.get("platform") and pending[0]["title"] == passive_head.get("step")
                     ),
                 }
             )
@@ -304,11 +298,7 @@ class UnifiedIncomePlan:
         return picked[:limit]
 
     def _waiting_platforms(self, apps_plan: dict[str, Any]) -> list[dict[str, Any]]:
-        return [
-            {"key": p["key"], "name": p["name"], "status": p["status"]}
-            for p in apps_plan["platforms"]
-            if p["status"] in {"applied", "in_review"}
-        ]
+        return [{"key": p["key"], "name": p["name"], "status": p["status"]} for p in apps_plan["platforms"] if p["status"] in {"applied", "in_review"}]
 
     # ── Income Command Center (spec §13, §18) ──
 

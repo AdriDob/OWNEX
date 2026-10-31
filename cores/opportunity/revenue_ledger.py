@@ -12,6 +12,7 @@ evidence quality, acceptance probability, or system learning.
 from __future__ import annotations
 
 from core.execution_queue.models import ExecState, ExecutionQueueStore
+from cores.availability import compute_availability_score, evaluate_availability, is_available
 
 # ── Revenue States (extended from ExecState) ────────────────────────────────
 
@@ -139,7 +140,7 @@ class RevenueLedger:
             return {"total": 0, "by_state": {}}
 
         by_state: dict[str, int] = {}
-        for item_id, revenue_state in self._revenue_states.items():
+        for _, revenue_state in self._revenue_states.items():
             by_state[revenue_state] = by_state.get(revenue_state, 0) + 1
 
         return {

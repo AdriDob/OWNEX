@@ -50,8 +50,7 @@ class RetryValidator(BaseValidator):
                 result.errors.append(
                     self._error(
                         "RETRY_EXCESSIVE_RETRIES",
-                        f"Retry node '{node.label or node.id}' has max_retries={max_retries}, "
-                        f"exceeds allowed maximum {self.MAX_RETRIES_ALLOWED}",
+                        f"Retry node '{node.label or node.id}' has max_retries={max_retries}, exceeds allowed maximum {self.MAX_RETRIES_ALLOWED}",
                         node_id=node.id,
                         max_retries=max_retries,
                         max_allowed=self.MAX_RETRIES_ALLOWED,
@@ -110,8 +109,7 @@ class RetryValidator(BaseValidator):
                 result.warnings.append(
                     self._warning(
                         "RETRY_WORST_CASE_HIGH",
-                        f"Retry worst-case time is {worst_case_ms}ms ({worst_case_ms // 1000}s) "
-                        f"— consider reducing retries or delay",
+                        f"Retry worst-case time is {worst_case_ms}ms ({worst_case_ms // 1000}s) — consider reducing retries or delay",
                         node_id=node.id,
                         worst_case_ms=worst_case_ms,
                     )

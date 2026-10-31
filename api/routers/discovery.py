@@ -29,6 +29,91 @@ class ScanDomainsRequest(BaseModel):
     domains: list[str] = []
 
 
+class SourceVerificationRequest(BaseModel):
+    honeypot_pass: str
+    funding_verified: str
+    eligibility_verified: str
+
+
+class SourceActivationRequest(BaseModel):
+    approval_note: str
+
+
+def _source_registry():
+    from core.opportunity.source_discovery import SourceDiscoveryRegistry
+
+    return SourceDiscoveryRegistry()
+
+
+@router.get("/sources/candidates")
+def list_source_candidates(limit: int = Query(100, ge=1, le=500)):
+    """List persistent meta-discovery candidates and their lifecycle."""
+    registry = _source_registry()
+    candidates = registry.list(limit=limit)
+    return {
+        "candidates": [item.to_dict() for item in candidates],
+        "total": len(candidates),
+        "enabled_feeds": ["github_topic_search"],
+        "unsupported_feeds": ["mcp_registries", "agent_bounty_feed", "ard_registries", "x402_facilitators"],
+    }
+
+
+@router.post("/sources/discover")
+def discover_source_candidates():
+    """Run a bounded GitHub repository search; candidates remain inactive."""
+    from core.opportunity.source_discovery import discover_github_repositories
+
+    return discover_github_repositories(registry=_source_registry())
+
+
+@router.post("/sources/{source_id}/probe")
+def probe_source_candidate(source_id: str):
+    """Fetch public protocol metadata only; declared operations are never invoked."""
+    from core.opportunity.source_discovery import UniversalSourceAdapter
+
+    registry = _source_registry()
+    candidate = registry.get(source_id)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="Source candidate not found")
+    try:
+        profile = UniversalSourceAdapter().probe(candidate.source_url)
+        updated = registry.set_profile(source_id, profile)
+    except (ValueError, OSError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "candidate": updated.to_dict(),
+        "adapter_descriptor": UniversalSourceAdapter().generate_adapter(profile) if profile.adapter_type != "unknown" else None,
+    }
+
+
+@router.post("/sources/{source_id}/verify")
+def verify_source_candidate(source_id: str, body: SourceVerificationRequest):
+    """Record explicit human-reviewed evidence for safety, funding, and eligibility."""
+    try:
+        item = _source_registry().mark_verified(source_id, body.model_dump())
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"candidate": item.to_dict(), "activation_requires_human": True}
+
+
+@router.post("/sources/{source_id}/activate")
+def activate_source_candidate(source_id: str, body: SourceActivationRequest):
+    """Require a separate authenticated approval step before source activation."""
+    try:
+        item = _source_registry().activate(source_id, approval_note=body.approval_note)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {
+        "candidate": item.to_dict(),
+        "workbank_connected": False,
+        "activation_note": "Metadata is approved. Task retrieval and Work Bank wiring remain blocked until a read-only task schema is mapped and verified.",
+    }
+
+
 @router.get("/programs")
 def list_programs(
     platform: str | None = Query(None),
@@ -102,9 +187,7 @@ async def run_discovery(body: ScanDomainsRequest | None = None):
         "removed_programs": len(diff.removed_programs),
         "updated_programs": len(diff.updated_programs),
         "changes": {
-            "new": [
-                {"name": p.name, "platform": p.platform, "payout": p.estimated_payout} for p in diff.new_programs[:20]
-            ],
+            "new": [{"name": p.name, "platform": p.platform, "payout": p.estimated_payout} for p in diff.new_programs[:20]],
             "updated": diff.updated_programs[:20],
         },
     }

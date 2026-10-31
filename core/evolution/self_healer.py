@@ -29,9 +29,7 @@ class SelfHealer:
         if cpu > 90:
             issues.append(self._make_issue("CPU alto", f"CPU al {cpu}%", risk=6.0, evidence=f"cpu={cpu}%"))
         if mem.percent > 85:
-            issues.append(
-                self._make_issue("Memoria alta", f"RAM al {mem.percent}%", risk=5.0, evidence=f"mem={mem.percent}%")
-            )
+            issues.append(self._make_issue("Memoria alta", f"RAM al {mem.percent}%", risk=5.0, evidence=f"mem={mem.percent}%"))
         return issues
 
     def _check_providers(self) -> list[dict[str, Any]]:

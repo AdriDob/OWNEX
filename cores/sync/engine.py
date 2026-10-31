@@ -151,11 +151,7 @@ class SyncEngine:
 
             ds = DesktopSettings()
             raw = ds._data if hasattr(ds, "_data") else {}
-            return {
-                k: v
-                for k, v in raw.items()
-                if any(k.startswith(p) for p in ["general", "ai_", "appearance", "accessibility"])
-            }
+            return {k: v for k, v in raw.items() if any(k.startswith(p) for p in ["general", "ai_", "appearance", "accessibility"])}
         except Exception:
             return None
 
@@ -274,13 +270,7 @@ class SyncEngine:
         logger.info("Sync merged (remote_ts=%s, local_ts=%s)", remote_ts, local_ts)
 
     def _save_cache(self, data: Any) -> None:
-        raw = (
-            data
-            if isinstance(data, bytes)
-            else json.dumps(data, default=str).encode()
-            if isinstance(data, dict)
-            else data
-        )
+        raw = data if isinstance(data, bytes) else json.dumps(data, default=str).encode() if isinstance(data, dict) else data
         SYNC_CACHE.parent.mkdir(parents=True, exist_ok=True)
         if isinstance(raw, bytes):
             SYNC_CACHE.write_bytes(raw)

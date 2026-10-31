@@ -98,15 +98,11 @@ class ZeroBarrierEngine:
             from cores.payment_compat.engine import PaymentRequirement
 
             PaymentRequirement(
-                method=opportunity.payment_method.value
-                if hasattr(opportunity.payment_method, "value")
-                else str(opportunity.payment_method),
+                method=opportunity.payment_method.value if hasattr(opportunity.payment_method, "value") else str(opportunity.payment_method),
                 currency=opportunity.currency,
                 region="AR",
                 amount=opportunity.payment,
-                platform=opportunity.platform.value
-                if hasattr(opportunity.platform, "value")
-                else str(opportunity.platform),
+                platform=opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform),
             )
             # Would need to evaluate - for now use a simple check
             payment_ok = True  # placeholder

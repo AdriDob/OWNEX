@@ -78,9 +78,7 @@ class GapAnalyzer:
             reinjection_plan=reinjection,
         )
 
-    def _generate_missing_hot_paths(
-        self, uncovered: list[str], endpoints: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _generate_missing_hot_paths(self, uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -113,9 +111,7 @@ class GapAnalyzer:
                 under_tested.append(entity)
         return under_tested
 
-    def _detect_blind_spots(
-        self, uncovered: list[str], endpoints: list[dict[str, Any]], auth_contexts: list[str]
-    ) -> list[dict[str, str]]:
+    def _detect_blind_spots(self, uncovered: list[str], endpoints: list[dict[str, Any]], auth_contexts: list[str]) -> list[dict[str, str]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -135,9 +131,7 @@ class GapAnalyzer:
             )
         return spots
 
-    def _build_reinjection_plan(
-        self, missing: list[dict[str, Any]], uncovered: list[str], endpoints: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _build_reinjection_plan(self, missing: list[dict[str, Any]], uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [
             {
                 "node_id": m["node_id"],

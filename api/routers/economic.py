@@ -177,12 +177,7 @@ def create_tier(program_id: int, body: BountyTierCreate, db: Session = Depends(g
 
 @router.get("/programs/{program_id}/scopes", response_model=list[ScopeDocumentOut])
 def list_scopes(program_id: int, db: Session = Depends(get_db)):
-    docs = (
-        db.query(ScopeDocument)
-        .filter(ScopeDocument.program_id == program_id)
-        .order_by(desc(ScopeDocument.fetched_at))
-        .all()
-    )
+    docs = db.query(ScopeDocument).filter(ScopeDocument.program_id == program_id).order_by(desc(ScopeDocument.fetched_at)).all()
     return [_scope_to_out(d) for d in docs]
 
 
@@ -314,9 +309,7 @@ def read_program_scope(program_id: int, db: Session = Depends(get_db)):
     # Also update assets from extracted results
     try:
         assets_data = (
-            json.loads(result.get("assets_extracted", "[]"))
-            if isinstance(result.get("assets_extracted"), str)
-            else result.get("assets_extracted", {})
+            json.loads(result.get("assets_extracted", "[]")) if isinstance(result.get("assets_extracted"), str) else result.get("assets_extracted", {})
         )
         if isinstance(assets_data, dict):
             # Update technologies
@@ -1030,14 +1023,7 @@ def _compute_orion_score(p: Program, tiers: list[BountyTier]) -> float:
         except (json.JSONDecodeError, TypeError):
             pass
 
-    score = (
-        reward_score * 0.30
-        + hist_score * 0.20
-        + comp_score * 0.15
-        + time_score * 0.15
-        + exp_score * 0.10
-        + tech_score * 0.10
-    )
+    score = reward_score * 0.30 + hist_score * 0.20 + comp_score * 0.15 + time_score * 0.15 + exp_score * 0.10 + tech_score * 0.10
 
     return max(0.0, min(1.0, score))
 
@@ -1111,11 +1097,7 @@ def _period_earnings(reports, days: int) -> float:
 
 def _build_analysis_prompt(p: Program, tiers: list[BountyTier]) -> str:
     """Build AI analysis prompt for a program."""
-    tier_info = (
-        "\n".join(f"  - {t.tier_name}: ${t.min_reward} – ${t.max_reward or 'N/A'} ({t.currency})" for t in tiers)
-        if tiers
-        else "  (no tier data)"
-    )
+    tier_info = "\n".join(f"  - {t.tier_name}: ${t.min_reward} – ${t.max_reward or 'N/A'} ({t.currency})" for t in tiers) if tiers else "  (no tier data)"
 
     tech_info = ""
     if p.technologies:

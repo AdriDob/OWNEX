@@ -121,10 +121,7 @@ def validate_contract(
 
 def _check_type(field: str, data: dict, expected_type, issues: list[str]) -> None:
     if field in data and data[field] is not None and not isinstance(data[field], expected_type):
-        issues.append(
-            f"Type mismatch for '{field}': expected {expected_type.__name__}, "
-            f"got {type(data[field]).__name__} ({data[field]!r})"
-        )
+        issues.append(f"Type mismatch for '{field}': expected {expected_type.__name__}, got {type(data[field]).__name__} ({data[field]!r})")
 
 
 def assert_contract_compliance(

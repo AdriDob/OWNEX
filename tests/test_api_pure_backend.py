@@ -33,9 +33,7 @@ def test_app_has_no_html_serving_routes() -> None:
     client = TestClient(api_main.app)
     res = client.get("/")
     assert res.status_code == 200
-    assert "text/html" not in res.headers.get("content-type", ""), (
-        "GET / must never return the SPA — port is API-only (owner directive)"
-    )
+    assert "text/html" not in res.headers.get("content-type", ""), "GET / must never return the SPA — port is API-only (owner directive)"
     body = res.json()
     assert body.get("service") == "OWNEX API"
     assert "not-served-here" in body.get("ui", "")
@@ -46,9 +44,7 @@ def test_recommend_exposes_expected_cash() -> None:
     from pathlib import Path
 
     src = (Path(__file__).resolve().parent.parent / "api" / "routers" / "direct_work.py").read_text(encoding="utf-8")
-    assert '"expected_cash": expected_cash' in src, (
-        "expected_cash debe incluirse en el dict de salida de _ranked_to_dict"
-    )
+    assert '"expected_cash": expected_cash' in src, "expected_cash debe incluirse en el dict de salida de _ranked_to_dict"
     # y el bloque de cálculo existe antes
     calc = src.find("expected_cash_date(rail)")
     use = src.find('"expected_cash": expected_cash')

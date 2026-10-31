@@ -106,9 +106,7 @@ async def save_memory(request: MemoryRequest):
         from cores.merlin.memory import get_merlin_memory
 
         memory = get_merlin_memory()
-        await memory.save_conversation(
-            question=request.question, response=request.response, timestamp=request.timestamp
-        )
+        await memory.save_conversation(question=request.question, response=request.response, timestamp=request.timestamp)
 
         return {"success": True, "message": "Memory saved successfully"}
 

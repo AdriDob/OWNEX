@@ -179,8 +179,8 @@ def _replace(obj, **changes):
     d = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
     d.update(changes)
     # Create new namedtuple type
-    T = type(type(obj))
-    return T(**d)
+    record_type = type(type(obj))
+    return record_type(**d)
 
 
 # ── Statistical Analysis ───────────────────────────────────────────────────
@@ -195,7 +195,7 @@ def _compute_pearson_r(x: list[float], y: list[float]) -> float:
     mean_x = sum(x) / n
     mean_y = sum(y) / n
 
-    numerator = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
+    numerator = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y, strict=True))
     denominator = (sum((xi - mean_x) ** 2 for xi in x) * sum((yi - mean_y) ** 2 for yi in y)) ** 0.5
 
     if denominator == 0:
@@ -319,5 +319,4 @@ __all__ = [
     "EXPERIMENT_TYPE_KEEP",
     "EXPERIMENT_TYPE_DROP",
     "EXPERIMENT_TYPE_SCALE",
-    "minimum_detectable_effect",
 ]

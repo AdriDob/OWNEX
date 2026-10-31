@@ -282,18 +282,15 @@ $$$
         }
 
     async def auto_submit(self, prepared: PreparedWork) -> dict[str, Any]:
-        """Auto-submit work (when trust engine approves)."""
-        logger.info(f"[ASSISTED] Auto-submitting for {prepared.platform} - {prepared.title}")
-
-        # Check if platform supports auto-submission
-        # For now, mark as auto-submitted but manual action still needed
-        # TODO: Integrate with platform APIs for real auto-submission
+        """Fail closed until a real, authorized platform submitter is connected."""
+        logger.info("[ASSISTED] Submission unavailable for %s - %s", prepared.platform, prepared.title)
         return {
-            "success": True,
-            "status": "auto_submitted",
-            "message": "Work auto-approved by trust engine",
-            "next_step": "Follow the guide in the saved directory",
+            "success": False,
+            "status": "manual_submission_required",
+            "message": "No platform submission executor is connected. Nothing was submitted.",
+            "next_step": "Review the package and submit it manually through the platform.",
             "requires_manual_action": True,
+            "submitted": False,
         }
 
     def get_pending_work(self) -> list[PreparedWork]:

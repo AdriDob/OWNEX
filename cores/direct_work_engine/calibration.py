@@ -119,11 +119,7 @@ class CalibrationEngine:
         until MIN_SAMPLES resolved outcomes exist for the platform.
         """
         resolved = self.resolved_for_platform(platform)
-        ratios = [
-            r.actual_hourly / r.predicted_hourly
-            for r in resolved
-            if r.predicted_hourly > 0 and r.actual_hourly is not None
-        ]
+        ratios = [r.actual_hourly / r.predicted_hourly for r in resolved if r.predicted_hourly > 0 and r.actual_hourly is not None]
         if len(ratios) < MIN_SAMPLES:
             return 1.0, "insufficient_data"
         factor = statistics.median(ratios)

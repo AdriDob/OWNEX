@@ -97,21 +97,13 @@ def _qss(theme) -> str:
     # Widget background
     parts.append("QWidget {background-color: " + theme.background + ";}")
     # Frame/surface
-    parts.append(
-        "QFrame {background-color: " + theme.surface + "; border-radius: 6px; border: 1px solid " + theme.stroke + ";}"
-    )
+    parts.append("QFrame {background-color: " + theme.surface + "; border-radius: 6px; border: 1px solid " + theme.stroke + ";}")
     # Label text
     parts.append("QLabel {color: " + theme.text + ";}")
     # Pushbutton
     parts.append(
         "QPushButton {"
-        "background-color: "
-        + theme.surface
-        + "; color: "
-        + theme.text
-        + "; border: 1px solid "
-        + theme.stroke
-        + "; border-radius: 6px; padding: 6px 12px;}"
+        "background-color: " + theme.surface + "; color: " + theme.text + "; border: 1px solid " + theme.stroke + "; border-radius: 6px; padding: 6px 12px;}"
     )
     parts.append("QPushButton:hover {background-color: " + theme.surface_alt + ";}")
     # Combo box
@@ -149,11 +141,7 @@ def native_qss() -> str:
     surface_alt_color = theme.surface_alt
     return (
         "QWidget { background-color: " + bg_color + "; }"
-        "QFrame { background-color: "
-        + surface_color
-        + "; border-radius: 6px; border: 1px solid "
-        + stroke_color
-        + "; }"
+        "QFrame { background-color: " + surface_color + "; border-radius: 6px; border: 1px solid " + stroke_color + "; }"
         "QTableWidget { background-color: "
         + surface_color
         + "; border-radius: 6px; border: 1px solid "
@@ -161,11 +149,7 @@ def native_qss() -> str:
         + "; gridline-color: "
         + stroke_color
         + "; }"
-        "QHeaderView::section { background-color: "
-        + surface_alt_color
-        + "; color: "
-        + text_color
-        + "; border: none; padding: 4px; }"
+        "QHeaderView::section { background-color: " + surface_alt_color + "; color: " + text_color + "; border: none; padding: 4px; }"
         "QPushButton { background-color: "
         + surface_color
         + "; color: "
@@ -253,9 +237,7 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self._theme_combo)
 
         self._app_name = QLabel("OWNEX Desktop")
-        self._app_name.setStyleSheet(
-            "color: #00D5FF; font-family: 'Space Grotesk'; font-size: 12pt; font-weight: Bold;"
-        )
+        self._app_name.setStyleSheet("color: #00D5FF; font-family: 'Space Grotesk'; font-size: 12pt; font-weight: Bold;")
         top_layout.addWidget(self._app_name)
         top_layout.addStretch()
 
@@ -301,9 +283,7 @@ class MainWindow(QMainWindow):
         # Cuando la ventana se minimiza, va al tray en lugar de barra
         # Nota: Este feature está deshabilitado en tests, requiere event loop real
         # Doble clic en el tray restaura la ventana
-        self._tray_icon.activated.connect(
-            lambda reason: self.show() if reason == QSystemTrayIcon.ActivationReason.DoubleClick else None
-        )
+        self._tray_icon.activated.connect(lambda reason: self.show() if reason == QSystemTrayIcon.ActivationReason.DoubleClick else None)
 
         # Connect close event: minimize to tray instead of quit
         self._original_close = self.closeEvent

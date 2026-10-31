@@ -190,9 +190,7 @@ class DailyTaskBoard:
                     {
                         "id": f"d{day}-profile",
                         "day": day,
-                        "title": "Subir el score del perfil de GitHub (actual: {score})".format(
-                            score=status.get("score", 0)
-                        ),
+                        "title": "Subir el score del perfil de GitHub (actual: {score})".format(score=status.get("score", 0)),
                         "detail": "Generá y subí el README, ajustá la bio, fijá pinned repos.",
                         "cat": status.get("linked") and "media" or "alta",
                         "status": "pending",
@@ -239,9 +237,7 @@ class DailyTaskBoard:
             from core.profile_builder import get_profile_builder
 
             for r in get_profile_builder().recommendations():
-                recs.append(
-                    {"action": r.get("action", ""), "why": r.get("why", ""), "priority": r.get("priority", "media")}
-                )
+                recs.append({"action": r.get("action", ""), "why": r.get("why", ""), "priority": r.get("priority", "media")})
         except Exception:
             pass
         try:
@@ -306,9 +302,7 @@ class DailyTaskBoard:
 
             pm = get_platform_manager()
             status = pm.get_status()
-            not_connected = [
-                p for p, v in status.get("platforms", {}).items() if v.get("enabled") and not v.get("has_creds")
-            ]
+            not_connected = [p for p, v in status.get("platforms", {}).items() if v.get("enabled") and not v.get("has_creds")]
             if not_connected:
                 top = not_connected[:3]
                 recs.append(

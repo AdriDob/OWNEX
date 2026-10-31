@@ -28,9 +28,7 @@ class OutlierExecutor(BaseExecutor):
             # Use browser agent to claim and solve the task
             claim_result = await self.browser_agent.claim_outlier_task(task_id)
             if not claim_result.get("success"):
-                return ExecutionResult(
-                    False, "claim_and_solve_task", task_id, error=claim_result.get("error", "Failed to claim task")
-                )
+                return ExecutionResult(False, "claim_and_solve_task", task_id, error=claim_result.get("error", "Failed to claim task"))
 
             # After claiming, we need to solve the task (Outlier tasks are typically language/analytical tasks)
             # For now, we'll simulate task solving - in practice this would involve the task content
@@ -60,9 +58,7 @@ class OutlierExecutor(BaseExecutor):
             # Use browser agent to submit the answer
             submit_result = await self.browser_agent.submit_outlier_answer(task_id, answer, confidence)
             if not submit_result.get("success"):
-                return ExecutionResult(
-                    False, "submit_answer", task_id, error=submit_result.get("error", "Failed to submit answer")
-                )
+                return ExecutionResult(False, "submit_answer", task_id, error=submit_result.get("error", "Failed to submit answer"))
 
             return ExecutionResult(
                 True,

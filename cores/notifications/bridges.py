@@ -262,9 +262,7 @@ def register_telegram_channel() -> None:
             from cores.notifications.db_bridge import record_delivery
 
             ok = result.get("ok", False)
-            record_delivery(
-                db_id, "telegram", "sent" if ok else "failed", None if ok else str(result.get("error", "unknown"))
-            )
+            record_delivery(db_id, "telegram", "sent" if ok else "failed", None if ok else str(result.get("error", "unknown")))
 
     hub = get_hub()
     hub.subscribe("telegram", _telegram_handler)
@@ -310,9 +308,7 @@ def register_mobile_channel() -> None:
             try:
                 from sqlalchemy import text
 
-                rows = session.execute(
-                    text("SELECT token FROM devices WHERE platform = 'webpush' AND is_active = 'true'")
-                ).fetchall()
+                rows = session.execute(text("SELECT token FROM devices WHERE platform = 'webpush' AND is_active = 'true'")).fetchall()
             finally:
                 session.close()
         except Exception as exc:

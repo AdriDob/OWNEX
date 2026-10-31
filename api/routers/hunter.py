@@ -24,11 +24,7 @@ def hunter_summary():
         confirmed = session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
 
         month_ago = datetime.utcnow() - timedelta(days=30)
-        monthly_reports = (
-            session.query(models.Report).filter(models.Report.created_at >= month_ago).count()
-            if hasattr(models, "Report")
-            else 0
-        )
+        monthly_reports = session.query(models.Report).filter(models.Report.created_at >= month_ago).count() if hasattr(models, "Report") else 0
 
         learner = RewardLearner()
         reward_report = learner.analyze()

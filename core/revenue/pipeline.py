@@ -99,9 +99,7 @@ class RevenuePipeline:
             if not finding:
                 return PipelineResult(success=False, error=f"Finding {finding_id} not found")
 
-            vuln_type = (
-                evidence.get("vulnerability_type", "") if evidence else (finding.vulnerability_type or "generic")
-            )
+            vuln_type = evidence.get("vulnerability_type", "") if evidence else (finding.vulnerability_type or "generic")
             summary = evidence.get("summary", "") if evidence else (finding.description or "")[:200]
             cvss = evidence.get("cvss_score", 0.0) if evidence else 0.0
             target_name = evidence.get("target", "") if evidence else ""
@@ -204,9 +202,7 @@ class RevenuePipeline:
         """Check external status of a submission on its platform."""
         db = SessionLocal()
         try:
-            submission: SubmissionRecord | None = (
-                db.query(SubmissionRecord).filter(SubmissionRecord.id == submission_id).first()
-            )
+            submission: SubmissionRecord | None = db.query(SubmissionRecord).filter(SubmissionRecord.id == submission_id).first()
             if not submission:
                 return PipelineResult(success=False, error=f"Submission {submission_id} not found")
             if not submission.external_id:
@@ -386,22 +382,13 @@ class RevenuePipeline:
         db = SessionLocal()
         try:
             total_earned = db.query(PayoutRecord).filter(PayoutRecord.status == "confirmed").count()
-            total_amount = (
-                db.query(PayoutRecord)
-                .filter(PayoutRecord.status == "confirmed")
-                .with_entities(PayoutRecord.amount)
-                .all()
-            )
+            total_amount = db.query(PayoutRecord).filter(PayoutRecord.status == "confirmed").with_entities(PayoutRecord.amount).all()
             total_sum = sum(r.amount for r in total_amount) if total_amount else 0.0
 
             by_platform: dict[str, Any] = {}
             platforms = db.query(PayoutRecord.platform).filter(PayoutRecord.status == "confirmed").distinct().all()
             for (pid,) in platforms:
-                platform_payouts = (
-                    db.query(PayoutRecord)
-                    .filter(PayoutRecord.platform == pid, PayoutRecord.status == "confirmed")
-                    .all()
-                )
+                platform_payouts = db.query(PayoutRecord).filter(PayoutRecord.platform == pid, PayoutRecord.status == "confirmed").all()
                 by_platform[pid] = {
                     "count": len(platform_payouts),
                     "total": sum(p.amount for p in platform_payouts),
@@ -409,16 +396,10 @@ class RevenuePipeline:
                 }
 
             pending_payouts = db.query(PayoutRecord).filter(PayoutRecord.status == "pending").count()
-            pending_amount = (
-                db.query(PayoutRecord).filter(PayoutRecord.status == "pending").with_entities(PayoutRecord.amount).all()
-            )
+            pending_amount = db.query(PayoutRecord).filter(PayoutRecord.status == "pending").with_entities(PayoutRecord.amount).all()
             pending_sum = sum(r.amount for r in pending_amount) if pending_amount else 0.0
 
-            active_submissions = (
-                db.query(SubmissionRecord)
-                .filter(SubmissionRecord.status.in_(["submitted", "under_review", "triaged"]))
-                .count()
-            )
+            active_submissions = db.query(SubmissionRecord).filter(SubmissionRecord.status.in_(["submitted", "under_review", "triaged"])).count()
 
             return {
                 "total_payouts": total_earned,

@@ -194,12 +194,8 @@ class EVScorer:
 
     def score(self, opportunity: Opportunity) -> EVScore:
         """Calculate Expected Value score for an opportunity."""
-        category_key = (
-            opportunity.category.value if hasattr(opportunity.category, "value") else str(opportunity.category)
-        )
-        platform_key = (
-            opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform)
-        )
+        category_key = opportunity.category.value if hasattr(opportunity.category, "value") else str(opportunity.category)
+        platform_key = opportunity.platform.value if hasattr(opportunity.platform, "value") else str(opportunity.platform)
 
         # Base success probability from category
         base_success = self.BASE_SUCCESS_RATES.get(category_key, 0.30)
@@ -271,10 +267,7 @@ class EVScorer:
         is_zero_barrier = self._is_zero_barrier(opportunity)
 
         reasoning = self._generate_reasoning(opportunity, success_prob, ev_per_hour, is_zero_barrier)
-        reasoning.append(
-            "Cold-start prior: success probability derives from curated category "
-            "estimates (BASE_SUCCESS_RATES), not measured acceptance history."
-        )
+        reasoning.append("Cold-start prior: success probability derives from curated category estimates (BASE_SUCCESS_RATES), not measured acceptance history.")
 
         return EVScore(
             opportunity_id=opportunity.id,
@@ -304,9 +297,7 @@ class EVScorer:
             and opportunity.accepts_beginner
         )
 
-    def _generate_reasoning(
-        self, opp: Opportunity, success_prob: float, ev_per_hour: float, zero_barrier: bool
-    ) -> list[str]:
+    def _generate_reasoning(self, opp: Opportunity, success_prob: float, ev_per_hour: float, zero_barrier: bool) -> list[str]:
         reasons = []
         if zero_barrier:
             reasons.append("✅ Zero-barrier: no interview, no portfolio, no experience required")
@@ -708,9 +699,7 @@ class WebResearcher:
                     platform_info = await self._analyze_platform(result["url"])
                     if platform_info and platform_info["url"] not in self.discovered_platforms:
                         self.discovered_platforms.add(platform_info["url"])
-                        platform_info["ev_score"] = self._calculate_platform_ev(
-                            platform_info["domain"], platform_info["zero_barrier_signals"]
-                        )
+                        platform_info["ev_score"] = self._calculate_platform_ev(platform_info["domain"], platform_info["zero_barrier_signals"])
                         new_platforms.append(platform_info)
             except Exception as e:
                 logger.warning(f"Search failed for '{query}': {e}")
@@ -963,9 +952,7 @@ class DynamicPlatformAdapter(BaseDiscoveryAdapter):
     domain: str = ""
     zero_barrier_signals: int = 0
 
-    def __init__(
-        self, source: DiscoverySource, platform_url: str = "", domain: str = "", zero_barrier_signals: int = 0
-    ) -> None:
+    def __init__(self, source: DiscoverySource, platform_url: str = "", domain: str = "", zero_barrier_signals: int = 0) -> None:
         super().__init__(source)
         self.platform_url = platform_url
         self.domain = domain
@@ -998,9 +985,7 @@ class DynamicPlatformAdapter(BaseDiscoveryAdapter):
                             self._create_opportunity(
                                 external_id=full_url[:64],
                                 title=link.get_text().strip()[:120],
-                                category=self.source.categories[0]
-                                if self.source.categories
-                                else OpportunityCategory.BUG_BOUNTY,
+                                category=self.source.categories[0] if self.source.categories else OpportunityCategory.BUG_BOUNTY,
                                 url=full_url,
                                 payment=0.0,
                                 payment_method=PaymentMethod.OTHER,
@@ -1130,9 +1115,7 @@ class AutonomousDiscoveryEngine:
         """Periodic deep web research for new platforms."""
         while self._running:
             try:
-                if datetime.now(UTC) - self.last_deep_research > timedelta(
-                    hours=self.config.deep_research_interval_hours
-                ):
+                if datetime.now(UTC) - self.last_deep_research > timedelta(hours=self.config.deep_research_interval_hours):
                     await self._deep_web_research()
                     self.last_deep_research = datetime.now(UTC)
                 await asyncio.sleep(3600)  # Check hourly
@@ -1388,17 +1371,9 @@ class AutonomousDiscoveryEngine:
             if state_file.exists():
                 state = json.loads(state_file.read_text())
                 self.cycle_count = state.get("cycle_count", 0)
-                self.last_fetch = (
-                    datetime.fromisoformat(state["last_fetch"]) if state.get("last_fetch") else datetime.now(UTC)
-                )
-                self.last_research = (
-                    datetime.fromisoformat(state["last_research"]) if state.get("last_research") else datetime.now(UTC)
-                )
-                self.last_deep_research = (
-                    datetime.fromisoformat(state["last_deep_research"])
-                    if state.get("last_deep_research")
-                    else datetime.now(UTC)
-                )
+                self.last_fetch = datetime.fromisoformat(state["last_fetch"]) if state.get("last_fetch") else datetime.now(UTC)
+                self.last_research = datetime.fromisoformat(state["last_research"]) if state.get("last_research") else datetime.now(UTC)
+                self.last_deep_research = datetime.fromisoformat(state["last_deep_research"]) if state.get("last_deep_research") else datetime.now(UTC)
                 self.platform_stats = state.get("platform_stats", {})
                 self.discovered_platforms = state.get("discovered_platforms", {})
                 logger.info(f"📂 Loaded state: {len(self.discovered_platforms)} platforms, cycle {self.cycle_count}")

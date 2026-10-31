@@ -172,9 +172,7 @@ def _check_payment() -> dict[str, Any]:
 
         vault = get_credential_vault()
         cfg = getattr(vault, "config", None) or {}
-        out["payment"] = bool(
-            getattr(vault, "payout_method_raw", None) or cfg.get("preferred_payout") or cfg.get("wallet")
-        )
+        out["payment"] = bool(getattr(vault, "payout_method_raw", None) or cfg.get("preferred_payout") or cfg.get("wallet"))
     except Exception:
         pass
     try:

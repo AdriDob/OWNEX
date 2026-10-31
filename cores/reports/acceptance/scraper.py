@@ -90,9 +90,7 @@ def _parse_disclosed_report(report_id: int, html: str) -> dict[str, Any] | None:
             props = payload.get("props", {}).get("pageProps", {})
             report = props.get("report") or props.get("initialReport") or {}
             if report:
-                data["vulnerability_type"] = report.get("vulnerability_information", {}).get(
-                    "vulnerability_type", "unknown"
-                )
+                data["vulnerability_type"] = report.get("vulnerability_information", {}).get("vulnerability_type", "unknown")
                 data["severity"] = SEVERITY_MAP.get((report.get("severity") or "").lower(), "medium")
                 data["bounty_amount"] = report.get("bounty_amount")
                 data["currency"] = report.get("currency", "USD")
@@ -143,12 +141,7 @@ def scrape_hacktivity_pages(
 
         for page in range(1, max_pages + 1):
             try:
-                url = (
-                    f"{HACKERONE_HACKTIVITY}"
-                    f"?sort_field=latest_disclosable_activity_at"
-                    f"&query=disclosed%3Atrue"
-                    f"&page={page}"
-                )
+                url = f"{HACKERONE_HACKTIVITY}?sort_field=latest_disclosable_activity_at&query=disclosed%3Atrue&page={page}"
                 resp = client.get(url, headers={"User-Agent": "Mozilla/5.0"})
                 resp.raise_for_status()
             except Exception as exc:
@@ -254,9 +247,7 @@ def hacktivity_to_observations(
             "evidence": 1.0 if record.get("has_evidence") else 0.3,
             "reproducibility": 0.8,
             "clarity": 0.6,
-            "impact_severity": {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.3}.get(
-                record.get("severity", "medium"), 0.5
-            ),
+            "impact_severity": {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.3}.get(record.get("severity", "medium"), 0.5),
             "completeness": 0.7 if record.get("has_poc") else 0.4,
             "confidence": 0.9 if has_bounty else 0.5,
         }

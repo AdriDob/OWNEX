@@ -128,9 +128,7 @@ class VersionEngine:
     def read_raw(self) -> str:
         """Read VERSION.txt and return the raw string (stripped)."""
         if not self._version_file.exists():
-            raise VersionError(
-                f"VERSION.txt not found at {self._version_file}. Create it with the current version (e.g. '4.6.0')."
-            )
+            raise VersionError(f"VERSION.txt not found at {self._version_file}. Create it with the current version (e.g. '4.6.0').")
         return self._version_file.read_text(encoding="utf-8").strip()
 
     def write_raw(self, raw: str) -> None:
@@ -327,11 +325,7 @@ class VersionEngine:
             # Insert new header at the top (after the first line if it's a title)
             if content.startswith("# "):
                 first_newline = content.index("\n")
-                content = (
-                    content[: first_newline + 1]
-                    + f"\n{header}\n\n- {message} — {author}\n\n"
-                    + content[first_newline + 1 :]
-                )
+                content = content[: first_newline + 1] + f"\n{header}\n\n- {message} — {author}\n\n" + content[first_newline + 1 :]
             else:
                 content = f"{header}\n\n- {message} — {author}\n\n{content}"
 

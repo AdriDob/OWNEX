@@ -156,9 +156,7 @@ class AcceptanceLearner:
             finding_ids = []
             if report.finding_ids:
                 try:
-                    finding_ids = (
-                        json.loads(report.finding_ids) if isinstance(report.finding_ids, str) else report.finding_ids
-                    )
+                    finding_ids = json.loads(report.finding_ids) if isinstance(report.finding_ids, str) else report.finding_ids
                 except (json.JSONDecodeError, TypeError):
                     finding_ids = []
 
@@ -235,9 +233,7 @@ class AcceptanceLearner:
         self._save_state()
         return obs
 
-    def predict(
-        self, platform: str, score: float, dimensions: dict[str, float], evidence_count: int
-    ) -> AcceptancePrediction:
+    def predict(self, platform: str, score: float, dimensions: dict[str, float], evidence_count: int) -> AcceptancePrediction:
         profile = self._profiles.get(platform)
 
         if not profile or profile.total_observations < 3:
@@ -264,22 +260,16 @@ class AcceptanceLearner:
                     }
                 )
                 if gap > 15:
-                    recommendations.append(
-                        f"Mejorar '{dim}': promedio aceptados {accepted_avg * 100:.0f}%, "
-                        f"actual {current * 100:.0f}% (brecha {gap:.0f}%)"
-                    )
+                    recommendations.append(f"Mejorar '{dim}': promedio aceptados {accepted_avg * 100:.0f}%, actual {current * 100:.0f}% (brecha {gap:.0f}%)")
 
         if evidence_count < profile.min_evidence_accepted and profile.min_evidence_accepted > 0:
-            recommendations.append(
-                f"Agregar evidencia: mínimo {profile.min_evidence_accepted} piezas (actual: {evidence_count})"
-            )
+            recommendations.append(f"Agregar evidencia: mínimo {profile.min_evidence_accepted} piezas (actual: {evidence_count})")
 
         weak_dims.sort(key=lambda x: x["gap"], reverse=True)
 
         if score < profile.min_score_accepted:
             recommendations.append(
-                f"Score actual ({score:.1f}) está por debajo del mínimo aceptado "
-                f"({profile.min_score_accepted:.1f}). Revisar dimensiones débiles."
+                f"Score actual ({score:.1f}) está por debajo del mínimo aceptado ({profile.min_score_accepted:.1f}). Revisar dimensiones débiles."
             )
 
         positive_factors = max(1, profile.accepted_count)
@@ -290,9 +280,7 @@ class AcceptanceLearner:
             if score >= profile.avg_score_accepted:
                 base_prob = 0.85
             elif score >= profile.min_score_accepted:
-                ratio = (score - profile.min_score_accepted) / (
-                    profile.avg_score_accepted - profile.min_score_accepted + 0.01
-                )
+                ratio = (score - profile.min_score_accepted) / (profile.avg_score_accepted - profile.min_score_accepted + 0.01)
                 base_prob = 0.50 + ratio * 0.35
             else:
                 base_prob = max(0.10, score / (profile.avg_score_accepted + 0.01) * 0.40)
@@ -324,9 +312,7 @@ class AcceptanceLearner:
             avg_evidence_accepted=int(profile.min_evidence_accepted),
         )
 
-    def _default_prediction(
-        self, platform: str, score: float, dimensions: dict[str, float], evidence_count: int
-    ) -> AcceptancePrediction:
+    def _default_prediction(self, platform: str, score: float, dimensions: dict[str, float], evidence_count: int) -> AcceptancePrediction:
         return AcceptancePrediction(
             probability=50.0,
             platform=platform,
@@ -392,10 +378,7 @@ class AcceptanceLearner:
             "adapted_weights": self._adapted_weights,
             "profiles": profiles_data,
             "default_weights": _DEFAULT_WEIGHTS,
-            "weight_deltas": {
-                dim: round(self._adapted_weights.get(dim, 0) - _DEFAULT_WEIGHTS.get(dim, 0), 1)
-                for dim in _DIMENSION_NAMES
-            },
+            "weight_deltas": {dim: round(self._adapted_weights.get(dim, 0) - _DEFAULT_WEIGHTS.get(dim, 0), 1) for dim in _DIMENSION_NAMES},
         }
 
     # ── Internal ────────────────────────────────────────────────
@@ -438,9 +421,7 @@ class AcceptanceLearner:
                     "rejected_min": round(min(rej_values), 4) if rej_values else 0.0,
                     "rejected_max": round(max(rej_values), 4) if rej_values else 0.0,
                     "delta": round(
-                        (sum(acc_values) / len(acc_values) - sum(rej_values) / len(rej_values))
-                        if acc_values and rej_values
-                        else 0.0,
+                        (sum(acc_values) / len(acc_values) - sum(rej_values) / len(rej_values)) if acc_values and rej_values else 0.0,
                         4,
                     ),
                 }

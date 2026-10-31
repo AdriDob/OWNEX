@@ -429,11 +429,7 @@ class DailyPlanningSystem:
             plan.total_completed_minutes += 10  # Add 10 minutes for starting
 
         # Recalcular progreso
-        plan.progress_percentage = (
-            (plan.total_completed_minutes / plan.total_estimated_minutes) * 100
-            if plan.total_estimated_minutes > 0
-            else 0
-        )
+        plan.progress_percentage = (plan.total_completed_minutes / plan.total_estimated_minutes) * 100 if plan.total_estimated_minutes > 0 else 0
 
         self._save_plan(plan)
         return True
@@ -511,9 +507,7 @@ class DailyPlanningSystem:
 """
 
         for task in plan.tasks:
-            status_emoji = (
-                "✅" if task.status == TaskStatus.COMPLETED else "⏳" if task.status == TaskStatus.IN_PROGRESS else "⬜"
-            )
+            status_emoji = "✅" if task.status == TaskStatus.COMPLETED else "⏳" if task.status == TaskStatus.IN_PROGRESS else "⬜"
             content += f"- {status_emoji} **{task.title}** ({task.category.value})\n"
             if task.notes:
                 content += f"  - {task.notes}\n"

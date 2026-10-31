@@ -84,9 +84,7 @@ class AegisAdapter(SecurityBaseAdapter):
 
             session = mgr.get_session("aegis")
             try:
-                findings = session.execute(
-                    "SELECT * FROM aegis_vuln_findings WHERE status = 'open' LIMIT 50"
-                ).fetchall()
+                findings = session.execute("SELECT * FROM aegis_vuln_findings WHERE status = 'open' LIMIT 50").fetchall()
 
                 raw_opps: list[RawOpportunity] = []
                 for row in findings:
@@ -104,9 +102,7 @@ class AegisAdapter(SecurityBaseAdapter):
                             source_type="finding",
                             source_name="aegis",
                             metadata={"original": dict(row._mapping)},
-                            created_at=row.created_at.isoformat()
-                            if hasattr(row, "created_at") and row.created_at
-                            else None,
+                            created_at=row.created_at.isoformat() if hasattr(row, "created_at") and row.created_at else None,
                         )
                     )
 

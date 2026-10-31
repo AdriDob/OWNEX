@@ -353,9 +353,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="CATEYE installer — one-command setup")
     parser.add_argument("--dev", action="store_true", help="Dev mode (skip PyInstaller, use python run.py)")
     parser.add_argument("--portable", action="store_true", help="Portable ZIP only (no output dir assembly)")
-    parser.add_argument(
-        "--output", type=Path, default=None, help="Output directory (default: CATEYE_OUTPUT_DIR or platform default)"
-    )
+    parser.add_argument("--output", type=Path, default=None, help="Output directory (default: CATEYE_OUTPUT_DIR or platform default)")
     parser.add_argument("--no-frontend", action="store_true", help="Skip frontend build")
     parser.add_argument("--version", default=None, help="Version override")
     args = parser.parse_args()

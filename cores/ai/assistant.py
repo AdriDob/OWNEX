@@ -52,10 +52,7 @@ class ScanAssistant:
         lines.append(f"## Scan Summary: {scan_id}")
         lines.append("")
         lines.append(f"**Endpoints analyzed:** {endpoint_count}")
-        lines.append(
-            f"**Verdicts:** {len(verdicts)} total "
-            f"({len(confirmed)} confirmed, {len(inconclusive)} inconclusive, {len(rejected)} rejected)"
-        )
+        lines.append(f"**Verdicts:** {len(verdicts)} total ({len(confirmed)} confirmed, {len(inconclusive)} inconclusive, {len(rejected)} rejected)")
         lines.append(f"**Reports generated:** {len(reports)}")
         lines.append("")
 
@@ -118,11 +115,7 @@ class ScanAssistant:
             if related:
                 lines.append(f"### Evidence ({len(related)} comparisons)")
                 for comp in related[:5]:
-                    lines.append(
-                        f"- Attempt {comp.get('attempt')}: "
-                        f"status_match={comp.get('status_match')}, "
-                        f"body_diff={comp.get('body_diff_ratio', 0):.2%}"
-                    )
+                    lines.append(f"- Attempt {comp.get('attempt')}: status_match={comp.get('status_match')}, body_diff={comp.get('body_diff_ratio', 0):.2%}")
                 lines.append("")
                 consistent = sum(1 for c in related if c.get("consistent"))
                 lines.append(f"**Consistency:** {consistent}/{len(related)} attempts reliable")
@@ -170,9 +163,7 @@ class ScanAssistant:
         scored.sort(key=lambda x: x["priority_score"], reverse=True)
         return scored[:top_n]
 
-    def risk_narrative(
-        self, target_name: str, endpoints: list[dict[str, Any]], verdicts: list[dict[str, Any]] | None = None
-    ) -> str:
+    def risk_narrative(self, target_name: str, endpoints: list[dict[str, Any]], verdicts: list[dict[str, Any]] | None = None) -> str:
         verdicts = verdicts or []
 
         total = len(endpoints)
@@ -219,10 +210,7 @@ class ScanAssistant:
                 "findings should be prioritized for manual verification and responsible disclosure."
             )
         elif severity == "medium":
-            lines.append(
-                "Moderate risk posture. Review high-risk endpoints and validate "
-                "findings before proceeding to manual exploitation."
-            )
+            lines.append("Moderate risk posture. Review high-risk endpoints and validate findings before proceeding to manual exploitation.")
         else:
             lines.append("Low risk posture. Continue monitoring for changes in attack surface.")
 
@@ -310,9 +298,7 @@ class ScanAssistant:
                 objects = getattr(item, "affected_objects", [])
                 objs_str = ", ".join(objects[:3]) if objects else ""
                 requires = getattr(item, "requires_validation", True)
-                lines.append(
-                    f"- **{title}** (risk: {risk}, confidence: {conf:.0%})" + (f" — {objs_str}" if objs_str else "")
-                )
+                lines.append(f"- **{title}** (risk: {risk}, confidence: {conf:.0%})" + (f" — {objs_str}" if objs_str else ""))
                 if desc:
                     lines.append(f"  {desc[:200]}")
                 if requires:
@@ -328,8 +314,7 @@ class ScanAssistant:
 
         lines.append("")
         lines.append(
-            "*These are observations derived from existing pipeline data. "
-            "They do not constitute vulnerability findings and require human validation.*"
+            "*These are observations derived from existing pipeline data. They do not constitute vulnerability findings and require human validation.*"
         )
 
         return "\n".join(lines)
@@ -343,17 +328,12 @@ class ScanAssistant:
                 "modifying an object reference parameter."
             ),
             "auth_bypass": (
-                "Probe request without authentication returns the same response as "
-                "the authenticated baseline. The endpoint does not enforce authentication."
+                "Probe request without authentication returns the same response as the authenticated baseline. The endpoint does not enforce authentication."
             ),
             "sensitive_data_exposure": (
-                "Response contains PII, financial data, or credentials (email, SSN, "
-                "credit card, JWT). Sensitive fields are exposed to the client."
+                "Response contains PII, financial data, or credentials (email, SSN, credit card, JWT). Sensitive fields are exposed to the client."
             ),
-            "cross_session_mismatch": (
-                "Response body differs significantly between sessions. Possible data "
-                "leak or session confusion vulnerability."
-            ),
+            "cross_session_mismatch": ("Response body differs significantly between sessions. Possible data leak or session confusion vulnerability."),
         }
         return explanations.get(rule, "Validation rule triggered. Review the evidence for details.")
 

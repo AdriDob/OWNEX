@@ -139,9 +139,7 @@ class TestResultBasedModel:
         c = _app()
         body = c.post(
             "/result-based/classify",
-            json={
-                "opportunity": {"employment_type": "full_time", "interview_required": True, "portfolio_required": True}
-            },
+            json={"opportunity": {"employment_type": "full_time", "interview_required": True, "portfolio_required": True}},
         ).json()
         assert body["level"] == "C"
 

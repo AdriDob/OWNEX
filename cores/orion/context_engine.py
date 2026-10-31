@@ -123,9 +123,7 @@ def _build_summary(
         reward = next_action.get("estimated_reward", "Unknown")
         effort = next_action.get("effort", "medium")
         parts.append(
-            f"You have {opp_count} opportunities ready. "
-            f"Your top recommended action is to '{title}' — "
-            f"estimated effort: {effort}, potential reward: {reward}."
+            f"You have {opp_count} opportunities ready. Your top recommended action is to '{title}' — estimated effort: {effort}, potential reward: {reward}."
         )
     else:
         parts.append(f"You have {opp_count} opportunities ready to review.")

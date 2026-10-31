@@ -64,9 +64,7 @@ class FreelancerExecutor(BaseExecutor):
     ) -> ExecutionResult:
         """Place a bid on a project."""
         if not self.api_token:
-            return ExecutionResult(
-                False, "bid_on_project", str(project_id), error="FREELANCER_API_TOKEN not configured"
-            )
+            return ExecutionResult(False, "bid_on_project", str(project_id), error="FREELANCER_API_TOKEN not configured")
 
         project_id_str = str(project_id)
         payload = {
@@ -97,9 +95,7 @@ class FreelancerExecutor(BaseExecutor):
                         data={"bid_id": data.get("bid_id"), "status": data.get("status")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "bid_on_project", project_id_str, error=f"API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "bid_on_project", project_id_str, error=f"API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "bid_on_project", project_id_str, error=str(e))
 
@@ -111,9 +107,7 @@ class FreelancerExecutor(BaseExecutor):
     ) -> ExecutionResult:
         """Submit deliverable files for a project."""
         if not self.api_token:
-            return ExecutionResult(
-                False, "submit_deliverable", str(project_id), error="FREELANCER_API_TOKEN not configured"
-            )
+            return ExecutionResult(False, "submit_deliverable", str(project_id), error="FREELANCER_API_TOKEN not configured")
 
         project_id_str = str(project_id)
         payload = {"project_id": project_id_str, "message": message, "files": files or []}
@@ -137,9 +131,7 @@ class FreelancerExecutor(BaseExecutor):
                         data={"deliverable_id": data.get("deliverable_id")},
                     )
                 else:
-                    return ExecutionResult(
-                        False, "submit_deliverable", project_id_str, error=f"API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "submit_deliverable", project_id_str, error=f"API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "submit_deliverable", project_id_str, error=str(e))
 
@@ -150,9 +142,7 @@ class FreelancerExecutor(BaseExecutor):
     ) -> ExecutionResult:
         """Request release of a milestone payment."""
         if not self.api_token:
-            return ExecutionResult(
-                False, "request_milestone_release", str(project_id), error="FREELANCER_API_TOKEN not configured"
-            )
+            return ExecutionResult(False, "request_milestone_release", str(project_id), error="FREELANCER_API_TOKEN not configured")
 
         project_id_str = str(project_id)
         milestone_id_str = str(milestone_id)
@@ -176,9 +166,7 @@ class FreelancerExecutor(BaseExecutor):
                         data=data,
                     )
                 else:
-                    return ExecutionResult(
-                        False, "request_milestone_release", project_id_str, error=f"API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "request_milestone_release", project_id_str, error=f"API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "request_milestone_release", project_id_str, error=str(e))
 
@@ -200,9 +188,7 @@ class FreelancerExecutor(BaseExecutor):
                 if resp.status_code == 200:
                     return ExecutionResult(True, "get_project", project_id_str, "Project fetched", data=resp.json())
                 else:
-                    return ExecutionResult(
-                        False, "get_project", project_id_str, error=f"API {resp.status_code}: {resp.text}"
-                    )
+                    return ExecutionResult(False, "get_project", project_id_str, error=f"API {resp.status_code}: {resp.text}")
         except Exception as e:
             return ExecutionResult(False, "get_project", project_id_str, error=str(e))
 

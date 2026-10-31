@@ -22,13 +22,7 @@ DEFAULT_KEEP = 10
 
 def _default_exclude(name: str) -> bool:
     """Exclude temp files, caches, and node_modules from backup."""
-    return (
-        name.startswith("__pycache__")
-        or name == "node_modules"
-        or name.endswith(".pyc")
-        or name == "backups"
-        or name.startswith(".")
-    )
+    return name.startswith("__pycache__") or name == "node_modules" or name.endswith(".pyc") or name == "backups" or name.startswith(".")
 
 
 def _checksum(file_path: Path) -> str:

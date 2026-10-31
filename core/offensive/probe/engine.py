@@ -438,9 +438,7 @@ def _detect_idor(
 
     # Both return 200 with similar body size = likely IDOR
     if baseline_ok and test_ok and size_diff_ratio < 0.5 and baseline_size > 10 and test_size > 10:
-        details.append(
-            f"Both requests returned 200 with similar body sizes (baseline={baseline_size}, test={test_size})"
-        )
+        details.append(f"Both requests returned 200 with similar body sizes (baseline={baseline_size}, test={test_size})")
         alt.append("Both resources exist and are publicly accessible")
         alt.append("The parameter might not control access")
         return {
@@ -454,10 +452,7 @@ def _detect_idor(
 
     # Baseline 403/401, test 200 = clear IDOR
     if baseline.status_code in (401, 403) and test.status_code in (200, 201):
-        details.append(
-            f"Baseline returned {baseline.status_code} (expected), "
-            f"test returned {test.status_code} with different resource"
-        )
+        details.append(f"Baseline returned {baseline.status_code} (expected), test returned {test.status_code} with different resource")
         alt.append("The baseline value might be invalid/expired, not protected")
         return {
             "confirmed": True,
@@ -494,10 +489,7 @@ def _detect_ssrf(
     details: list[str] = []
 
     if test.elapsed_ms > baseline.elapsed_ms * 1.5 and test.elapsed_ms > 5000:
-        details.append(
-            f"Test request took {test.elapsed_ms:.0f}ms vs baseline {baseline.elapsed_ms:.0f}ms "
-            f"— possible SSRF timeout to internal host"
-        )
+        details.append(f"Test request took {test.elapsed_ms:.0f}ms vs baseline {baseline.elapsed_ms:.0f}ms — possible SSRF timeout to internal host")
         return {
             "confirmed": True,
             "confidence": 0.75,
@@ -547,9 +539,7 @@ def _detect_xss(
             "method": "reflection",
             "details": f"Test value '{test_value[:30]}' reflected in response body",
             "false_positive_risk": "low" if test_value in test.body else "medium",
-            "alternative_explanations": ["The value might be reflected in an error message, not executed"]
-            if test_value in test.body
-            else [],
+            "alternative_explanations": ["The value might be reflected in an error message, not executed"] if test_value in test.body else [],
         }
 
     return {

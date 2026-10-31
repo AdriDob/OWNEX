@@ -148,9 +148,7 @@ class TestPreflightBypassesAuth:
 
     def test_sidecar_launcher_forces_desktop_flag(self) -> None:
         """start_backend.py must set OWNEX_DESKTOP so the restrictive branch engages."""
-        entry = (
-            __import__("pathlib").Path(__file__).resolve().parent.parent / "src-tauri" / "binaries" / "start_backend.py"
-        )
+        entry = __import__("pathlib").Path(__file__).resolve().parent.parent / "src-tauri" / "binaries" / "start_backend.py"
         source = entry.read_text(encoding="utf-8")
         assert 'os.environ["OWNEX_DESKTOP"]' in source, (
             "sidecar launcher must force OWNEX_DESKTOP so packaged CORS branch (Tauri origins + credentials) is active"

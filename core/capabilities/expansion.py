@@ -350,9 +350,7 @@ class CapabilityExpansionEngine:
         by_layer: dict[str, list[dict[str, Any]]] = {}
         for gap in gaps:
             by_layer.setdefault(gap["layer"], []).append(gap)
-        return [
-            {"layer": layer, "count": len(items), "capabilities": items} for layer, items in sorted(by_layer.items())
-        ]
+        return [{"layer": layer, "count": len(items), "capabilities": items} for layer, items in sorted(by_layer.items())]
 
     # ── 2. Evaluate alternatives ─────────────────────────────────
 
@@ -370,11 +368,7 @@ class CapabilityExpansionEngine:
                 # partial dict: fill defaults for missing required fields
                 defaults: dict[str, Any] = cast(
                     "dict[str, Any]",
-                    {
-                        field_.name: field_.default
-                        for field_ in CapabilityCandidate.__dataclass_fields__.values()
-                        if field_.default is not None
-                    },
+                    {field_.name: field_.default for field_ in CapabilityCandidate.__dataclass_fields__.values() if field_.default is not None},
                 )
                 defaults.update(cast("dict[str, Any]", candidate))
                 candidate = CapabilityCandidate(**defaults)

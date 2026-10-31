@@ -128,9 +128,7 @@ class MerlinSystem:
             raise ValueError(f"Invalid session ID: {session_id}")
         session = self.active_sessions[session_id]
         # Process query using Windows Office style knowledge processing
-        processed = await self.knowledge_processor.process_windows_office_query(
-            query, context, session.knowledge_domains
-        )
+        processed = await self.knowledge_processor.process_windows_office_query(query, context, session.knowledge_domains)
         # Update session interaction history
         interaction = {
             "timestamp": datetime.now(UTC),

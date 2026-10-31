@@ -101,11 +101,7 @@ class ProgramScopePolicy:
                 (rule.asset_type in (AssetType.DOMAIN, AssetType.SUBDOMAIN) and self._matches(rule, host))
                 or (rule.asset_type == AssetType.WILDCARD and self._matches_wildcard(rule, host))
                 or (rule.asset_type == AssetType.API_ENDPOINT and self._matches_endpoint(rule, url))
-                or (
-                    rule.asset_type in (AssetType.IP, AssetType.CIDR)
-                    and self._is_ip(host)
-                    and self._matches(rule, host)
-                )
+                or (rule.asset_type in (AssetType.IP, AssetType.CIDR) and self._is_ip(host) and self._matches(rule, host))
             )
             if matched:
                 return ScopeDecision.OUT_OF_SCOPE
@@ -118,11 +114,7 @@ class ProgramScopePolicy:
                 (rule.asset_type in (AssetType.DOMAIN, AssetType.SUBDOMAIN) and self._matches(rule, host))
                 or (rule.asset_type == AssetType.WILDCARD and self._matches_wildcard(rule, host))
                 or (rule.asset_type == AssetType.API_ENDPOINT and self._matches_endpoint(rule, url))
-                or (
-                    rule.asset_type in (AssetType.IP, AssetType.CIDR)
-                    and self._is_ip(host)
-                    and self._matches(rule, host)
-                )
+                or (rule.asset_type in (AssetType.IP, AssetType.CIDR) and self._is_ip(host) and self._matches(rule, host))
             )
             if matched:
                 return ScopeDecision.IN_SCOPE
@@ -211,9 +203,7 @@ class ScopeEnforcer:
         """Fuerza la verificación de asset: lanza excepción si está out-of-scope."""
         decision = self.check_asset(program_id, asset_type, value)
         if decision == ScopeDecision.OUT_OF_SCOPE:
-            raise ScopeViolationError(
-                f"Asset {value} ({asset_type.value}) está OUT OF SCOPE para programa {program_id}"
-            )
+            raise ScopeViolationError(f"Asset {value} ({asset_type.value}) está OUT OF SCOPE para programa {program_id}")
 
     def _emit_event(self, program_id: str, target: str, decision: ScopeDecision, check_type: str) -> None:
         self._event_bus.publish(

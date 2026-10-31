@@ -1,0 +1,1625 @@
+{
+  "candidates": [
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:09.757072+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "b5d67d420401a4bb4fb51726",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Algora",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Developer bounty platform with funded issues"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://algora.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://algora.io",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Developer bounty platform with funded issues; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:10.003127+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "79cc047a0c64b3e40f7f1933",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Gitpay",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Financiadas y PRs en repositorios"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://gitpay.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://gitpay.io",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Financiadas y PRs en repositorios; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:10.135476+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "118737eed4a3225ca0463022",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "IssueHunt",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Recompensas por issues en GitHub"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://issuehunt.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://issuehunt.io",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Recompensas por issues en GitHub; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:13.259100+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "b7ffd0d7004ff7a5fcfb1906",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "BountyHub",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Recompensas en repositorios"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://bountyhub.dev"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://bountyhub.dev",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Recompensas en repositorios; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:13.334431+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "0bc3059d8ee3de77dae4a432",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "GitHub Issues",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Issues y tareas de repositorios"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://github.com/issues"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://github.com/issues",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Issues y tareas de repositorios; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:13.416919+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "db0f08bf017e873d36491351",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "GitLab Issues",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Issues y contribuciones"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://gitlab.com/issues"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://gitlab.com/issues",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Issues y contribuciones; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:14.667395+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "4fb464b4a455d09a9601dee2",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "BEPRO Network",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Tareas y recompensas Web3"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://bepro.network"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://bepro.network",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Tareas y recompensas Web3; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:14.948804+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "f388d73723ad69046f6f4882",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Pond",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bounties y programas para startups"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://pond.org"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://pond.org",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Bounties y programas para startups; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:15.803138+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "47f7b36637b1190b839697a8",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Gitcoin",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Grants y oportunidades open source"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://gitcoin.co"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://gitcoin.co",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Grants y oportunidades open source; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:15.897120+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "2e2c70a764c274991c05e5c1",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Open Collective",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Proyectos financiados y contribuciones"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://opencollective.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://opencollective.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Proyectos financiados y contribuciones; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:15.981543+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "731c7f45507301dcf5334e87",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "HackerOne",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty y VDP; programas publicos disponibles"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://hackerone.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://hackerone.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Bug bounty y VDP; programas publicos disponibles; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:16.072587+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "0f00dd016934a37924464bb5",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Bugcrowd",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Programas publicos; declara que cualquiera puede registrarse"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://bugcrowd.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://bugcrowd.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Programas publicos; declara que cualquiera puede registrarse; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:16.213175+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "67b409bd7b59864ce028a122",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Intigriti",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://intigriti.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://intigriti.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Bug bounty; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:16.718907+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "fc2271268d65c7952c803719",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "YesWeHack",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty y VDP"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://yeswehack.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://yeswehack.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Bug bounty y VDP; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.031412+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "02c5b23812eae84b371f168e",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "HackenProof",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty Web3 y seguridad"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://hackenproof.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://hackenproof.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Bug bounty Web3 y seguridad; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.157053+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "3c1ab8fdc277ba49c34b2a1d",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Immunefi",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty blockchain; prioridad maxima"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://immunefi.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://immunefi.com",
+      "verification_evidence": [
+        "classification:A",
+        "note:CLASS:A; Bug bounty blockchain; prioridad maxima; prioritize adapter integration"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.237627+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "78f9403b21f3e26d9fd7fd4d",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Open Bug Bounty",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Desclasificacion de vulnerabilidades"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://openbugbounty.org"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://openbugbounty.org",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Desclasificacion de vulnerabilidades; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.434388+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "d16c8c79a8a09b76133fdc70",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "BugBase",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Bug bounty"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://bugbase.co"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://bugbase.co",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Bug bounty; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.577928+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "97175d59b03b05146d3955c7",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Patchstack",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Seguridad WordPress"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://patchstack.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://patchstack.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Seguridad WordPress; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:17.707954+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "f32533a27725bf7a703f5b75",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Wordfence",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Seguridad WordPress"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://wordfence.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://wordfence.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Seguridad WordPress; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:18.954861+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "92f1b4edf2de5061936f3e94",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "SafeHats",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Seguridad y recompensas"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://safehats.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://safehats.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Seguridad y recompensas; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.047707+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "2c26890a6b02cc4641b1611e",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Cantina",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Auditorias competitivas; verificar concursos abiertos"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://cantina.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://cantina.io",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Auditorias competitivas; verificar concursos abiertos; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.399543+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "36478f011398755406d35bbf",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Sherlock",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Auditorias competitivas; comprobar estado operativo actual"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://sherlock.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://sherlock.com",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Auditorias competitivas; comprobar estado operativo actual; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.484745+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "5819aa6c314e37c64b2b917a",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "CodeHawks",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Auditorias de smart contracts"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://codehawks.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://codehawks.com",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Auditorias de smart contracts; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.629056+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "799d3626b6616d205b467d42",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Hats Finance",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Auditorias y recompensas"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://hats.finance"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://hats.finance",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Auditorias y recompensas; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.787870+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "7c2721a4bd3506c654b191bc",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Secure3",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Auditorias Web3"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://secure3.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://secure3.io",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Auditorias Web3; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:20.918993+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "e1b6515d02de6c3bc4d99ef3",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Cyfrin",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Seguridad de smart contracts"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://cyfrin.dev"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://cyfrin.dev",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Seguridad de smart contracts; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:21.002823+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "22a8cee90a3db676b7f54e11",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Spearbit",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Seguridad y auditorias"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://spearbit.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://spearbit.com",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Seguridad y auditorias; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:22.142964+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "f1ca77dbb8798788f4c5f229",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Code4rena",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "No priorizar sin verificacion fresca"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://code4rena.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://code4rena.com",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; No priorizar sin verificacion fresca; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:22.240201+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "3f13959d9dc1d70485c95067",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "CodeHawks community programs",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Retos y competencias; verificar apertura"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://codehawks.com/community"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://codehawks.com/community",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Retos y competencias; verificar apertura; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:22.335443+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "83c7c5adedfbededfa00accc",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "OpenTrain AI",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Tareas ingenieria software y evaluacion codigo; entry level Argentina"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://opentrain.ai"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://opentrain.ai",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Tareas ingenieria software y evaluacion codigo; entry level Argentina; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:22.437816+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "03a89053f2f115c3c0b82840",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Hugging Face",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Modelos, datasets y proyectos"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://huggingface.co"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://huggingface.co",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Modelos, datasets y proyectos; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:23.667329+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "4cc66531379762d7d1be303e",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Papers with Code",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Retos y benchmarks de codigo"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://paperswithcode.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://paperswithcode.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Retos y benchmarks de codigo; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:23.999160+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "8d6ed7615fce6493eb36e9fd",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Terminal-Bench",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Evaluacion de agentes en terminal"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://terminal-bench.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://terminal-bench.com",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Evaluacion de agentes en terminal; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:24.229837+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "3280778fec46c0dfc227c123",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Aider Polyglot",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Benchmarks de programacion"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://aider.promptengineering.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://aider.promptengineering.io",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Benchmarks de programacion; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:24.413741+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "797b85d2ac9fc8e00e189205",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "EleutherAI",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Investigaciones y proyectos open source"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://eleuther.ai"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://eleuther.ai",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Investigaciones y proyectos open source; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:24.824478+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "d2bf115ba24f988612d70d73",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "OpenML",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Experimentos y proyectos de ML"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://openml.org"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://openml.org",
+      "verification_evidence": [
+        "classification:B",
+        "note:CLASS:B; Experimentos y proyectos de ML; verify protocol + eligibility"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:24.901622+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "1727cc913132a098e715918a",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Replicate",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Ecosistema de modelos y proyectos"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://replicate.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://replicate.com",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Ecosistema de modelos y proyectos; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:25.010348+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "496968991b81fbddc1fb858d",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "GitHub Models",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Ecosistema IA y desarrollo"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://github.com/features/models"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://github.com/features/models",
+      "verification_evidence": [
+        "classification:C",
+        "note:CLASS:C; Ecosistema IA y desarrollo; exclude from priority integration until verified"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:25.093742+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "aa33443c1c77155b43761883",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "NVD",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Vulnerabilidades CVE; fuente de inteligencia"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://nvd.nist.gov"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://nvd.nist.gov",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Vulnerabilidades CVE; fuente de inteligencia"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:25.261219+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "a2c313d12636057642f4f210",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "CVE.org",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Identificadores de vulnerabilidades"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://cve.org"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://cve.org",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Identificadores de vulnerabilidades"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:25.375523+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "aad690b7add6e01e461d6eba",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "CISA KEV",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Vulnerabilidades explotadas"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://www.cisa.gov/known-exploited-vulnerabilities"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://www.cisa.gov/known-exploited-vulnerabilities",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Vulnerabilidades explotadas"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:26.522319+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "6f6aaacd35bff76dfa00dcb9",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "FIRST EPSS",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Probabilidad de explotacion"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://first.org/epss"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://first.org/epss",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Probabilidad de explotacion"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:26.624016+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "c49aeed9d3aae15294cf09d1",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "OSV.dev",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Vulnerabilidades de dependencias"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://osv.dev"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://osv.dev",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Vulnerabilidades de dependencias"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:26.707495+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "d4db7b259e50accfd3def920",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "GitHub Advisory Database",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Avisos de seguridad"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://github.com/advisories"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://github.com/advisories",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Avisos de seguridad"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:26.953278+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "902b64df12d7da4589c36e40",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "MITRE ATT&CK",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Tecnicas y tactics de adversario"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://attack.mitre.org"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://attack.mitre.org",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Tecnicas y tactics de adversario"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:27.065279+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "106408ce08110a8e03aaae7c",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "VirusTotal",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Inteligencia de amenazas"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://www.virustotal.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://www.virustotal.com",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Inteligencia de amenazas"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:28.180045+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "0d0d6b53ea30c9c6795f440d",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "AbuseIPDB",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Reputacion de IP"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://abuseipdb.com"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://abuseipdb.com",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Reputacion de IP"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:31.295843+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "3ad0e836967a2d5bbfbd14d8",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "URLScan.io",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Analisis de URLs"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://urlscan.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://urlscan.io",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Analisis de URLs"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:31.379253+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "3aa22172dfdde8b33abeb175",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Shodan",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Superficie de exposicion"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://www.shodan.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://www.shodan.io",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Superficie de exposicion"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:31.462506+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "69185bf976f7e8fb185491a4",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Censys",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Infrastructure expuesta"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://censys.io"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://censys.io",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Infrastructure expuesta"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:38.698925+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "a3e05f08ef2dbe9e94ba8aab",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "ThreatFox",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Indicadores de compromiso"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://threatfox.abuse.ch"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://threatfox.abuse.ch",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Indicadores de compromiso"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:39.745100+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "dc3b2296f693c7b99fd5b151",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Hugging Face Datasets",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Datos de IA"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://huggingface.co/datasets"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://huggingface.co/datasets",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Datos de IA"
+      ]
+    },
+    {
+      "activated_at": null,
+      "discovered_at": "2026-10-31T21:44:40.169153+00:00",
+      "discovered_by": "catalog_load_script",
+      "id": "61ed5abb5badc86fe242b484",
+      "last_error": null,
+      "last_payout_at": null,
+      "lifecycle": "DISCOVERED",
+      "name": "Kaggle Datasets",
+      "profile": {
+        "auth_methods": [],
+        "capabilities": [
+          "Datos y proyectos de datos"
+        ],
+        "endpoints": [],
+        "evidence": [
+          {
+            "result": "catalog_loaded",
+            "type": "initial",
+            "url": "https://www.kaggle.com/datasets"
+          }
+        ],
+        "reward_reported": null
+      },
+      "source_url": "https://www.kaggle.com/datasets",
+      "verification_evidence": [
+        "classification:I",
+        "note:CLASS:I (intelligence/data); NOT a paid work source; Datos y proyectos de datos"
+      ]
+    }
+  ],
+  "schema_version": 1
+}

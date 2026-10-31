@@ -97,12 +97,8 @@ class TestExpectedHumanValue:
 
     def test_payout_delay_lowers_cash_speed(self) -> None:
         """Spec item 7: payout lento reduce cash-speed."""
-        fast = compute_expected_human_value(
-            payment=80.0, human_hours=1.0, acceptance_probability=1.0, time_to_first_payment_days=7.0
-        )
-        slow = compute_expected_human_value(
-            payment=80.0, human_hours=1.0, acceptance_probability=1.0, time_to_first_payment_days=45.0
-        )
+        fast = compute_expected_human_value(payment=80.0, human_hours=1.0, acceptance_probability=1.0, time_to_first_payment_days=7.0)
+        slow = compute_expected_human_value(payment=80.0, human_hours=1.0, acceptance_probability=1.0, time_to_first_payment_days=45.0)
         assert fast.cash_speed_days == 7.0
         assert slow.cash_speed_days == 45.0
 

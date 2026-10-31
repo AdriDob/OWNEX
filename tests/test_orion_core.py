@@ -37,17 +37,13 @@ class TestNormalizedTypes:
         assert p.value == 55000
 
     def test_normalized_portfolio(self):
-        pos = NormalizedPosition(
-            symbol="ETH", asset_type="crypto", quantity=10, avg_price=2000, current_price=2500, value=25000
-        )
+        pos = NormalizedPosition(symbol="ETH", asset_type="crypto", quantity=10, avg_price=2000, current_price=2500, value=25000)
         port = NormalizedPortfolio(total_value=25000, positions=[pos], cash=5000, provider="test")
         assert port.total_value == 25000
         assert port.cash == 5000
 
     def test_normalized_price(self):
-        p = NormalizedPrice(
-            symbol="AAPL", price=150.0, currency="USD", change_24h=2.5, volume_24h=1000000, source="yahoo"
-        )
+        p = NormalizedPrice(symbol="AAPL", price=150.0, currency="USD", change_24h=2.5, volume_24h=1000000, source="yahoo")
         assert p.price == 150.0
 
     def test_normalized_transaction(self):

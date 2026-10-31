@@ -100,10 +100,7 @@ class CommandDefinition:
                 "tokens": self.cost.tokens,
                 "money": self.cost.money,
             },
-            "params": [
-                {"name": p.name, "type": p.type, "required": p.required, "description": p.description}
-                for p in self.params
-            ],
+            "params": [{"name": p.name, "type": p.type, "required": p.required, "description": p.description} for p in self.params],
             "flags": self.flags,
             "events_published": self.events_published,
             "capabilities_used": self.capabilities_used,

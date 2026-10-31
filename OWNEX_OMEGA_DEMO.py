@@ -164,9 +164,7 @@ def demonstrate_self_evolution():
     print("\n✅ SELF-EVOLUTION SYSTEM SUCCESSFULLY DEMONSTRATED")
     print(f"   • Constitution established: {len(CONSTITUTIONAL_VIOLATIONS)} core principles")
     print(f"   • Evolution capabilities: {len(evolution_actions)} actions proposed")
-    print(
-        f"   • Constitutional compliance: {compliance_report['compliance_status']} ({compliance_report['compliance_percentage']:.2f}%)"
-    )
+    print(f"   • Constitutional compliance: {compliance_report['compliance_status']} ({compliance_report['compliance_percentage']:.2f}%)")
     print(f"   • Autonomy advancement: {'Ready' if can_advance_autonomy else 'Waiting'}")
     print(f"   • System readiness: {evolution_system._calculate_system_readiness_score():.2f}/10")
 

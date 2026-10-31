@@ -208,14 +208,10 @@ class StrategicMemory:
             return self._store.query(namespace="strategic", tags=["pattern", pattern_type], search=query, limit=limit)
         return []
 
-    def boost_confidence(
-        self, base_confidence: float, endpoint_path: str, entity_type: str | None, vuln_type: str, severity: str
-    ) -> dict:
+    def boost_confidence(self, base_confidence: float, endpoint_path: str, entity_type: str | None, vuln_type: str, severity: str) -> dict:
         """Boost confidence using pattern library."""
         if self._pattern_library and hasattr(self._pattern_library, "boost_endpoint_score"):
-            return self._pattern_library.boost_endpoint_score(
-                base_confidence, endpoint_path, entity_type, vuln_type, severity
-            )
+            return self._pattern_library.boost_endpoint_score(base_confidence, endpoint_path, entity_type, vuln_type, severity)
         return {"confidence": base_confidence, "reasoning": []}
 
     def estimate_payout(self, finding_type: str, severity: str, entity_type: str | None) -> float:

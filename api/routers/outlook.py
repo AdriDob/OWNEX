@@ -92,13 +92,7 @@ async def outlook_tasks(limit: int = 100):
     try:
         session = db.SessionLocal()
         try:
-            tasks = (
-                session.query(models.Task)
-                .filter(models.Task.due_date.isnot(None))
-                .order_by(models.Task.due_date.asc())
-                .limit(limit)
-                .all()
-            )
+            tasks = session.query(models.Task).filter(models.Task.due_date.isnot(None)).order_by(models.Task.due_date.asc()).limit(limit).all()
             return ok(
                 {
                     "tasks": [

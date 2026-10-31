@@ -166,6 +166,4 @@ class FindingsView(BaseView):
         ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
-        self.setStyleSheet(
-            "QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}"
-        )
+        self.setStyleSheet("QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}")

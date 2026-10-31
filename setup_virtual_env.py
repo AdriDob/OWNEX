@@ -26,18 +26,14 @@ def check_python_version():
     version_tuple = (current_version.major, current_version.minor, current_version.micro)
 
     print(f"💻 Current Python version: {current_version.major}.{current_version.minor}.{current_version.micro}")
-    print(
-        f"🎯 Required Python version: {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]}"
-    )
+    print(f"🎯 Required Python version: {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]}")
 
     if version_tuple >= REQUIRED_PYTHON_VERSION:
         print("✅ Python version requirement satisfied!")
         return True
     else:
         print("❌ Python version does not meet requirements!")
-        print(
-            f"   Please upgrade to Python {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]} or higher"
-        )
+        print(f"   Please upgrade to Python {REQUIRED_PYTHON_VERSION[0]}.{REQUIRED_PYTHON_VERSION[1]}.{REQUIRED_PYTHON_VERSION[2]} or higher")
         return False
 
 
@@ -62,10 +58,7 @@ def create_virtual_environment() -> dict[str, Any]:
             print(f"✅ Successfully created virtual environment at: {VENV_PATH}")
 
             # Get Python executable path
-            if platform.system() == "Windows":
-                python_executable = VENV_PATH / "Scripts" / "python.exe"
-            else:
-                python_executable = VENV_PATH / "bin" / "python"
+            python_executable = VENV_PATH / "Scripts" / "python.exe" if platform.system() == "Windows" else VENV_PATH / "bin" / "python"
 
             # Get Python version in new environment
             version_result = subprocess.run([str(python_executable), "--version"], capture_output=True, text=True)
@@ -116,13 +109,9 @@ def install_essential_packages() -> dict[str, Any]:
 
     print("📦 Installing development packages...")
 
-    try:
-        # Get pip executable
-        if platform.system() == "Windows":
-            pip_executable = VENV_PATH / "Scripts" / "pip.exe"
-        else:
-            pip_executable = VENV_PATH / "bin" / "pip"
+    pip_executable = VENV_PATH / "Scripts" / "pip.exe" if platform.system() == "Windows" else VENV_PATH / "bin" / "pip"
 
+    try:
         for package in essential_packages:
             print(f"📥 Installing: {package}")
 
@@ -152,9 +141,7 @@ def verify_virtual_environment() -> bool:
         return False
 
     # Check Python executable in virtual environment
-    python_executable = (
-        VENV_PATH / "bin" / "python" if platform.system() != "Windows" else VENV_PATH / "Scripts" / "python.exe"
-    )
+    python_executable = VENV_PATH / "bin" / "python" if platform.system() != "Windows" else VENV_PATH / "Scripts" / "python.exe"
 
     if not python_executable.exists():
         print("❌ Python executable not found in virtual environment!")

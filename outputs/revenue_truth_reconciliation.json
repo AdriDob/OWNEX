@@ -1,0 +1,102 @@
+{
+  "reconciliation_date": "2026-10-31",
+  "methodology": "Per integration bundle section 7: strict separation of advertised vs observed vs received",
+  "revenue_dimensions": {
+    "advertised_maximum_reward": {},
+    "typical_or_observed_reward": {},
+    "estimated_opportunity_value": {},
+    "work_submitted_pr_opened": {},
+    "work_accepted_merged": {},
+    "award_approved": {},
+    "payment_pending": {},
+    "payment_received_verified": {},
+    "funds_available_wallet_account": {},
+    "funds_withdrawn_converted_ars": {},
+    "fees_gas_taxes_refunds_losses": {}
+  },
+  "source_revenue_records": {
+    "taskbounty": {
+      "source_id": "taskbounty",
+      "category": "dev_bounties",
+      "evidence_grade": "B",
+      "advertised_maximum_reward": null,
+      "typical_or_observed_reward": "variable",
+      "work_submitted_pr_opened": "PRs opened per platform",
+      "work_accepted_merged": "depends on PR merge rate",
+      "award_approved": "potentially approved with evidence",
+      "payment_pending": "pending payout verification",
+      "payment_received_verified": "theoretically possible with evidence",
+      "funds_available_wallet_account": "pending payout route verification",
+      "funds_withdrawn_converted_ars": "USD route: PayPal/Wise pending verification",
+      "fees_gas_taxes_refunds_losses": "per platform terms"
+    },
+    "github_bounties": {
+      "source_id": "github_bounties",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "advertised_maximum_reward": null,
+      "typical_or_observed_reward": null,
+      "work_submitted_pr_opened": "PRs opened per platform",
+      "work_accepted_merged": "depends on PR merge rate",
+      "award_approved": "insufficient evidence",
+      "payment_pending": "pending payout verification",
+      "payment_received_verified": "no observed receipts",
+      "funds_available_wallet_account": "pending payout route verification",
+      "funds_withdrawn_converted_ars": "Argentina payout route not verified (see eligibility report)",
+      "fees_gas_taxes_refunds_losses": "per platform terms"
+    },
+    "agenthansa": {
+      "source_id": "agenthansa",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "advertised_maximum_reward": null,
+      "typical_or_observed_reward": null,
+      "work_submitted_pr_opened": "PRs opened per platform",
+      "work_accepted_merged": "depends on PR merge rate",
+      "award_approved": "insufficient evidence",
+      "payment_pending": "pending payout verification",
+      "payment_received_verified": "no observed receipts",
+      "funds_available_wallet_account": "pending payout route verification",
+      "funds_withdrawn_converted_ars": "Argentina payout route not verified (see eligibility report)",
+      "fees_gas_taxes_refunds_losses": "per platform terms"
+    },
+    "opire": {
+      "source_id": "opire",
+      "category": "dev_bounties",
+      "evidence_grade": "C",
+      "advertised_maximum_reward": "$13K (Godot), $345 (Zed), $200 (Keycloak)",
+      "typical_or_observed_reward": "$200-$13K",
+      "work_submitted_pr_opened": "PRs opened per platform",
+      "work_accepted_merged": "depends on PR merge rate",
+      "award_approved": "insufficient evidence",
+      "payment_pending": "pending payout verification",
+      "payment_received_verified": "uncorroborated",
+      "funds_available_wallet_account": "pending payout route verification",
+      "funds_withdrawn_converted_ars": "USD route: PayPal/Wise pending verification",
+      "fees_gas_taxes_refunds_losses": "per platform terms"
+    },
+    "bugbounty": {
+      "source_id": "bugbounty",
+      "category": "security_bounty",
+      "evidence_grade": "B",
+      "advertised_maximum_reward": "$1M+/contest",
+      "typical_or_observed_reward": "variable $1K-$10K",
+      "work_submitted_pr_opened": "pending valid findings",
+      "work_accepted_merged": "depends on valid vulnerability findings",
+      "award_approved": "potentially approved with evidence",
+      "payment_pending": "pending payout verification",
+      "payment_received_verified": "theoretically possible with evidence",
+      "funds_available_wallet_account": "pending payout route verification",
+      "funds_withdrawn_converted_ars": "USD route: PayPal/Wise pending verification",
+      "fees_gas_taxes_refunds_losses": "per platform terms"
+    }
+  },
+  "key_principles": [
+    "Only confirmed receipts with supporting evidence may increase verified received income or real capital",
+    "A bounty listing, API call forecast, grant application, accepted task, wallet balance estimate, or pending payout must not be recorded as collected income",
+    "Attach provenance and timestamps to RevenueEvents",
+    "Avoid double-counting the same payment across opportunity, wallet, payout provider, and off-ramp",
+    "Keep reward ceilings separate from expected value (never sum best-case maximums across platforms)",
+    "Do not call revenue 'passive' without customer, demand, uptime, costs, support, and observed sales evidence"
+  ]
+}

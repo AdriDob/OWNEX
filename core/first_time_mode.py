@@ -160,9 +160,7 @@ class FirstTimeMode:
 
         self._daily_progress[today][category] += count
         if amount > 0:
-            self._daily_progress[today][f"{category}_revenue"] = (
-                self._daily_progress[today].get(f"{category}_revenue", 0) + amount
-            )
+            self._daily_progress[today][f"{category}_revenue"] = self._daily_progress[today].get(f"{category}_revenue", 0) + amount
             self._daily_progress[today]["total_revenue"] += amount
 
         # Save to file

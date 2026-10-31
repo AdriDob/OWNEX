@@ -125,9 +125,7 @@ class MessageBus:
         except TimeoutError:
             return None
 
-    def send_direct(
-        self, sender: str, recipient: str, msg_type: MessageType, payload: dict[str, Any], **kwargs
-    ) -> bool:
+    def send_direct(self, sender: str, recipient: str, msg_type: MessageType, payload: dict[str, Any], **kwargs) -> bool:
         msg = AgentMessage(
             id=f"msg_{uuid.uuid4().hex[:12]}",
             type=msg_type,
@@ -149,9 +147,7 @@ class MessageBus:
         )
         return self.publish(msg)
 
-    def request_response(
-        self, sender: str, recipient: str, msg_type: MessageType, payload: dict[str, Any], timeout: float = 30.0
-    ) -> Any | None:
+    def request_response(self, sender: str, recipient: str, msg_type: MessageType, payload: dict[str, Any], timeout: float = 30.0) -> Any | None:
         correlation_id = uuid.uuid4().hex
         future = asyncio.Future()
 
@@ -164,9 +160,7 @@ class MessageBus:
 
         return future
 
-    def get_history(
-        self, agent_id: str | None = None, msg_type: MessageType | None = None, limit: int = 100
-    ) -> list[AgentMessage]:
+    def get_history(self, agent_id: str | None = None, msg_type: MessageType | None = None, limit: int = 100) -> list[AgentMessage]:
         with self._lock:
             msgs = self._message_history
             if agent_id:

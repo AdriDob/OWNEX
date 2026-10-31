@@ -26,14 +26,25 @@ class AvailabilityStatus:
 class AvailabilityEngine:
     """Engine that computes availability scores for opportunity execution."""
 
-    def __init__(self, min_score: float = 0.0, max_score: float = 1.0, healthy_threshold: float = 0.8, degraded_threshold: float = 0.5):
+    def __init__(
+        self,
+        min_score: float = 0.0,
+        max_score: float = 1.0,
+        healthy_threshold: float = 0.8,
+        degraded_threshold: float = 0.5,
+    ):
         self.min_score = min_score
         self.max_score = max_score
         self.healthy_threshold = healthy_threshold
         self.degraded_threshold = degraded_threshold
 
     def compute_score(
-        self, agent_status: str = "unknown", system_load: float = 0.5, resource_availability: float = 1.0, concurrent_executions: int = 0, **kwargs: Any
+        self,
+        agent_status: str = "unknown",
+        system_load: float = 0.5,
+        resource_availability: float = 1.0,
+        concurrent_executions: int = 0,
+        **kwargs: Any,
     ) -> float:
         """Compute availability score in [0, 1] range.
 
@@ -84,7 +95,12 @@ class AvailabilityEngine:
             return AvailabilityStatus.OFFLINE
 
     def evaluate(
-        self, agent_status: str = "unknown", system_load: float = 0.5, resource_availability: float = 1.0, concurrent_executions: int = 0, **kwargs: Any
+        self,
+        agent_status: str = "unknown",
+        system_load: float = 0.5,
+        resource_availability: float = 1.0,
+        concurrent_executions: int = 0,
+        **kwargs: Any,
     ) -> dict[str, Any]:
         """Full evaluation returning score and status."""
         score = self.compute_score(

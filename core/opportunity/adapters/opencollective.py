@@ -113,10 +113,7 @@ class OpenCollectiveAdapter(OpportunityAdapter):
                                         RawOpportunity(
                                             id=f"oc_{collective['slug']}_{tier['id']}",
                                             name=f"Contribute to {collective['name']}: {tier['name']}",
-                                            description=(
-                                                f"{collective.get('description', '')[:200]} "
-                                                f"Tier: {tier.get('description', '')[:100]}"
-                                            ),
+                                            description=(f"{collective.get('description', '')[:200]} Tier: {tier.get('description', '')[:100]}"),
                                             platform="opencollective",
                                             url=f"https://opencollective.com/{collective['slug']}/contribute/{tier['id']}",
                                             reward=reward_usd,
@@ -232,10 +229,7 @@ class OpenCollectiveProjectsAdapter(OpportunityAdapter):
                                     RawOpportunity(
                                         id=f"oc_proj_{collective['slug']}_{tier['id']}",
                                         name=f"Open Source: {collective['name']} - {tier['name']}",
-                                        description=(
-                                            f"{collective.get('description', '')[:300]} "
-                                            f"Tier: {tier.get('description', '')[:150]}"
-                                        ),
+                                        description=(f"{collective.get('description', '')[:300]} Tier: {tier.get('description', '')[:150]}"),
                                         platform="opencollective",
                                         url=f"https://opencollective.com/{collective['slug']}",
                                         reward=reward_usd,

@@ -104,9 +104,7 @@ async def evaluate(req: EvaluateRequest) -> dict[str, Any]:
         "verdict": "GO" if worth_it else "SKIP",
         "expected_value_usd": round(ev, 2),
         "expected_roi": round(ev / t.estimated_cost_usd, 2) if t.estimated_cost_usd > 0 else 0.0,
-        "expected_rate_usd_per_hour": round(
-            ev / t.estimated_duration_hours if t.estimated_duration_hours > 0 else 0.0, 2
-        ),
+        "expected_rate_usd_per_hour": round(ev / t.estimated_duration_hours if t.estimated_duration_hours > 0 else 0.0, 2),
         "confidence": round(conf, 3),
         "rationale": details if isinstance(details, dict) else {"engine": str(details)[:200]},
     }

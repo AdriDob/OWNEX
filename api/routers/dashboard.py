@@ -117,9 +117,7 @@ async def check_provider_health(provider_id: str, provider: any) -> HealthStatus
             last_check=datetime.utcnow().isoformat() + "Z",
         )
     except Exception as e:
-        return HealthStatus(
-            provider=provider_id, status="down", error=str(e), last_check=datetime.utcnow().isoformat() + "Z"
-        )
+        return HealthStatus(provider=provider_id, status="down", error=str(e), last_check=datetime.utcnow().isoformat() + "Z")
 
 
 @router.get("/status", response_model=DashboardStatus)
@@ -229,15 +227,11 @@ async def websocket_logs(websocket: WebSocket):
 async def push_logs():
     """Background task to tail logs and push to WebSocket clients."""
     # Tail docker logs for omniroute and fcc
-    proc = await asyncio.create_subprocess_exec(
-        "docker", "logs", "-f", "omniroute", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
-    )
+    proc = await asyncio.create_subprocess_exec("docker", "logs", "-f", "omniroute", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
     async for line in proc.stdout:
         await log_manager.broadcast(line.decode().strip())
 
-    proc2 = await asyncio.create_subprocess_exec(
-        "journalctl", "-f", "-u", "fcc-proxy", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
-    )
+    proc2 = await asyncio.create_subprocess_exec("journalctl", "-f", "-u", "fcc-proxy", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
     async for line in proc2.stdout:
         await log_manager.broadcast(f"[FCC] {line.decode().strip()}")
 

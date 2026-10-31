@@ -51,9 +51,7 @@ def test_bug_bounty_not_ranked_as_today() -> None:
     by_title = {i["title"]: i for i in plan["items"]}
     assert by_title["bounty"]["cash_window"] == "colas"
     assert by_title["bounty"]["cash_speed"] == 0.25
-    assert by_title["bounty"]["expected_value_usd"] == pytest.approx(
-        by_title["bounty"]["reward"] * by_title["bounty"]["probability_full"] * 0.25
-    )
+    assert by_title["bounty"]["expected_value_usd"] == pytest.approx(by_title["bounty"]["reward"] * by_title["bounty"]["probability_full"] * 0.25)
     assert by_title["bounty"]["expected_value_usd"] < by_title["bounty"]["reward"]
     assert by_title["bounty"]["probability_full"] <= 0.45
     assert plan["realistic_max_usd"] == pytest.approx(by_title["microtask"]["expected_value_usd"])

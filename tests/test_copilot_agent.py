@@ -325,9 +325,7 @@ class TestFindingAnalyzer:
         assert result.needs_human is True
         assert any("Sin evidencia" in r for r in result.inconsistencies)
 
-    def test_analyze_with_evidence(
-        self, sample_finding: dict[str, Any], sample_verdict: dict[str, Any], sample_evidence: list[dict[str, Any]]
-    ) -> None:
+    def test_analyze_with_evidence(self, sample_finding: dict[str, Any], sample_verdict: dict[str, Any], sample_evidence: list[dict[str, Any]]) -> None:
         analyzer = FindingAnalyzer()
         ctx = CopilotContext(app_id="cateye", authority_level=AuthorityLevel.SENIOR_HUNTER)
         ctx.set_finding(sample_finding)

@@ -120,9 +120,7 @@ def test_knowledge_base_persists() -> None:
 def test_knowledge_base_merges_history_on_upsert() -> None:
     path = Path("/tmp/opencode/kb_merge.json")
     kb = MarketKnowledgeBase(path)
-    kb.upsert(
-        EcosystemRecord(name="M", category="x", first_seen="2026-01-01", historical_attempts=3, historical_earned=10.0)
-    )
+    kb.upsert(EcosystemRecord(name="M", category="x", first_seen="2026-01-01", historical_attempts=3, historical_earned=10.0))
     kb.upsert(EcosystemRecord(name="M", category="x", ovos=70.0))
     rec = kb.get("M")
     assert rec is not None

@@ -107,9 +107,7 @@ class ReportsView(BaseView):
             reports = []
         self._table.setRowCount(max(1, len(reports)))
         if not reports:
-            item = QTableWidgetItem(
-                "No reports yet — generate one from a confirmed finding (backend service required)."
-            )
+            item = QTableWidgetItem("No reports yet — generate one from a confirmed finding (backend service required).")
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             self._table.setItem(0, 0, item)
             return
@@ -147,9 +145,7 @@ class ReportsView(BaseView):
             return
         content = report.get("content") or ""
         self._preview_text.setPlainText(
-            f"#{report.get('id')} {report.get('title', '')}\n"
-            f"Platform: {report.get('platform', '')}  Status: {report.get('status', '')}\n\n"
-            f"{content}"
+            f"#{report.get('id')} {report.get('title', '')}\nPlatform: {report.get('platform', '')}  Status: {report.get('status', '')}\n\n{content}"
         )
 
     def _on_generate(self) -> None:
@@ -196,6 +192,4 @@ class ReportsView(BaseView):
         ws = "background-color: " + theme.background + ";"
         sf = "background-color: " + theme.surface + ";"
         st = "border: 1px solid " + theme.stroke + ";"
-        self.setStyleSheet(
-            "QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}"
-        )
+        self.setStyleSheet("QWidget {" + ws + "}QFrame {" + sf + "border-radius: 6px;" + st + "}QLabel {" + theme.text + ";}")

@@ -153,14 +153,7 @@ class SupabaseSyncManager:
             return []
 
         try:
-            response = (
-                client.table("daily_moods")
-                .select("*")
-                .eq("user_id", user_id)
-                .order("date", desc=True)
-                .limit(limit)
-                .execute()
-            )
+            response = client.table("daily_moods").select("*").eq("user_id", user_id).order("date", desc=True).limit(limit).execute()
 
             return response.data
         except Exception as e:

@@ -96,10 +96,7 @@ class DiagnosticAnalyzer:
                 patterns.append(
                     FailurePattern(
                         pattern_id=f"pat_{hash(key) % 100000:05d}",
-                        description=(
-                            f"Repeated failure in {component}: "
-                            f"{frequency} occurrences in last {len(self._error_history)} events"
-                        ),
+                        description=(f"Repeated failure in {component}: {frequency} occurrences in last {len(self._error_history)} events"),
                         frequency=frequency,
                         affected_components=[component],
                         typical_error=error,

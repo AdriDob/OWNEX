@@ -209,9 +209,7 @@ class EconomicScorer:
 
         return max(1, min(10, score))
 
-    def filter_candidates(
-        self, candidates: list[AttackCandidate], min_priority: int = 3, max_candidates: int = 10
-    ) -> list[AttackCandidate]:
+    def filter_candidates(self, candidates: list[AttackCandidate], min_priority: int = 3, max_candidates: int = 10) -> list[AttackCandidate]:
         """Filtra y ordena candidates por prioridad económica."""
         for c in candidates:
             c.economic_score = self.score(c)

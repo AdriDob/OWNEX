@@ -78,10 +78,7 @@ class RevenueAllocationController:
             )
 
             speculative_current = sum(
-                sa.deployed_usd
-                for sa in self._strategies.values()
-                for s in strategies
-                if sa.strategy_id == s.id and s.risk_level.value == "speculative"
+                sa.deployed_usd for sa in self._strategies.values() for s in strategies if sa.strategy_id == s.id and s.risk_level.value == "speculative"
             )
 
             allocation: dict[str, float] = {}
@@ -208,9 +205,7 @@ class RevenueAllocationController:
     def get_high_risk_exposure(self) -> dict[str, Any]:
         total = self._config.total_capital_usd
         high_risk = sum(
-            sa.deployed_usd
-            for sid, sa in self._strategies.items()
-            if (s := get_strategy(sid)) and s.risk_level.value in ("aggressive", "speculative")
+            sa.deployed_usd for sid, sa in self._strategies.items() if (s := get_strategy(sid)) and s.risk_level.value in ("aggressive", "speculative")
         )
         return {
             "total_capital": total,

@@ -1,0 +1,124 @@
+{
+  "mapping_date": "2026-10-31",
+  "core_loop": "OWNEX canonical loop: DISCOVER \u2192 EVALUATE \u2192 PREPARE \u2192 EXECUTE \u2192 VERIFY \u2192 EARN \u2192 LEARN",
+  "pulse_forge_revenue_vault": {
+    "pulse": {
+      "full_name": "PULSE - Source Health & Feed Ingestion",
+      "core_loop_phase": "DISCOVER",
+      "description": "Source health, feed ingestion, deduplication, freshness, opportunity discovery",
+      "integration_bundle_ref": "\u00a79: Pulse \u2192 DISCOVER: source health, feed ingestion, deduplication, freshness, opportunity discovery",
+      "ownex_implementation": [
+        "Daily Brief generation with all 5 source categories",
+        "Source status monitoring via /api/agent-bounties/sources endpoint",
+        "Feed ingestion from registered sources (Pulse cycle every 30 min proposal)",
+        "Deduplication of identical opportunities across sources",
+        "Freshness tracking: last_checked, last_verified timestamps",
+        "Opportunity discovery: present users with newly available sources",
+        "Pulse polling policy: configurable per source, 30-min cycle proposed (not universal default)",
+        "Prefer webhooks or official feeds when available; otherwise per-source intervals",
+        "Backoff, caching, rate limits, jitter, budgets, stale-data detection",
+        "User-configurable pause controls"
+      ],
+      "source_health": {
+        "taskbounty": "ACTIVE - registered, verified, priority 2",
+        "github_bounties": "INACTIVE - low evidence, denied Argentina",
+        "agenthansa": "PAUSED - flagged as fake platform (Oct 2026 research)",
+        "opire": "ACTIVE - registered, conditional Argentina, mixed receipts",
+        "bugbounty": "ACTIVE - verified, priority 3, 21/21 tests passing"
+      }
+    },
+    "forge": {
+      "full_name": "FORGE - Evaluate / Prepare / Execute",
+      "core_loop_phase": "EVALUATE / PREPARE / EXECUTE",
+      "description": "Scoring, eligibility, work preparation, sandboxing, human gates, execution tracking",
+      "integration_bundle_ref": "\u00a79: Forge \u2192 EVALUATE / PREPARE / EXECUTE: scoring, eligibility, work preparation, sandboxing, human gates, execution tracking",
+      "ownex_implementation": [
+        "Opportunity scoring model across 12 dimensions (not summed, displayed separately)",
+        "Argentina eligibility filtering per user preferences",
+        "Beginner accessibility assessment (0-5 score)",
+        "Work preparation: draft PRs, evidence collection, checklists",
+        "Human approval gates for external submissions (EXECUTE_HUMAN_APPROVAL capability state)",
+        "Sandboxed workspaces for task preparation",
+        "Execution tracking: submissions, merge/acceptance, awards",
+        "Per-source performance record based on user's verified activity",
+        "Adapters map provider contracts into canonical source/opportunity contracts",
+        "No 85 bespoke engines - each source chooses ONE capability state",
+        "MANUAL_ONLY: display official link, no automation",
+        "PREPARE_ASSISTED: drafts, code workspaces, checklists without submission",
+        "EXECUTE_HUMAN_APPROVAL: human approves claim, bid, PR, report, transaction",
+        "AUTO_REVERSIBLE: low-risk reversible actions only"
+      ],
+      "source_scoring": {
+        "taskbounty": "12-dim score: argentina=1, beginner=1, demand=1, payout=2, recurrence=1, competition=3, skill=0, auto=0, fees=0, custody=0, confidence=1",
+        "github_bounties": "12-dim score: argentina=3, beginner=2, demand=2, payout=3, recurrence=3, competition=3, skill=0, auto=1, fees=2, custody=1, confidence=3",
+        "agenthansa": "12-dim score: argentina=3, beginner=2, demand=2, payout=3, recurrence=3, competition=3, skill=0, auto=1, fees=2, custody=1, confidence=3 (FLAGGED: fake platform)",
+        "opire": "12-dim score: argentina=1, beginner=1, demand=2, payout=0, recurrence=1, competition=1, skill=0, auto=1, fees=2, custody=0, confidence=3",
+        "bugbounty": "12-dim score: argentina=1, beginner=1, demand=1, payout=0, recurrence=1, competition=1, skill=2, auto=2, fees=0, custody=1, confidence=1"
+      }
+    },
+    "revenue": {
+      "full_name": "REVENUE - Verify / Earn / Learn",
+      "core_loop_phase": "VERIFY / EARN / LEARN",
+      "description": "Award and payment reconciliation, actual receipts, fees, profitability, source-performance feedback",
+      "integration_bundle_ref": "\u00a79: Revenue \u2192 VERIFY / EARN / LEARN: award and payment reconciliation, actual receipts, fees, profitability, source-performance feedback",
+      "ownex_implementation": [
+        "Revenue truth and reconciliation with strict separation of advertised vs observed vs received",
+        "Advertised maximum reward kept separate from typical observed reward",
+        "Estimated opportunity value never summed with best-case maximums across platforms",
+        "Only confirmed receipts with supporting evidence increase verified received income",
+        "A bounty listing, API call forecast, grant application, accepted task, wallet balance estimate, or pending payout must NOT be recorded as collected income",
+        "RevenueEvents with provenance and timestamps, avoiding double-counting across opportunity/wallet/payout-provider/off-ramp",
+        "Fee, gas, taxes, refunds, and losses tracked separately",
+        "Per-source performance record based on user's own verified activity (not aggregated totals)",
+        "Show separate: available reward pools vs user's earned vs pending vs received vs withdrawn",
+        "Daily Brief includes: findings (total/confirmed/pending), reports this month, targets active",
+        "Revenue Rule compliance: no feature enters roadmap without increasing detection, evidence quality, acceptance probability, or system learning"
+      ],
+      "revenue_dimensions": {
+        "advertised_maximum_reward": "Shown separately, never treated as expected income",
+        "typical_or_observed_reward": "Actual observed payouts with evidence grade",
+        "estimated_opportunity_value": "Separate dimension, not summed across platforms",
+        "work_submitted_pr_opened": "Track submissions per source",
+        "work_accepted_merged": "Track acceptances/merges per source",
+        "award_approved": "Only with sufficient evidence grade (A or B)",
+        "payment_pending": "Track pending payments separately",
+        "payment_received_verified": "Only with confirmed receipts + evidence",
+        "funds_available_wallet_account": "Pending payout route verification",
+        "funds_withdrawn_converted_ars": "Argentina conversion tracked separately",
+        "fees_gas_taxes_refunds_losses": "Track per platform terms"
+      },
+      "source_revenue": {
+        "taskbounty": "Theoretically possible with evidence; USD route to ARS pending verification",
+        "github_bounties": "No observed receipts; Argentina payout route not verified",
+        "agenthansa": "No observed receipts; Argentina payout route not verified (also fake platform)",
+        "opire": "Uncorroborated; USD route to ARS pending verification (mixed receipts evidence)",
+        "bugbounty": "Theoretically possible with evidence; USD route to ARS pending verification"
+      }
+    },
+    "vault": {
+      "full_name": "VAULT - Security/Infrastructure Capability",
+      "core_loop_phase": "infrastructure capability (not a loop phase)",
+      "description": "Wallet references, balances, supported networks, signing requests, payout-route metadata, user-approved financial actions. Not autonomous treasury or custodian.",
+      "integration_bundle_ref": "\u00a79: Vault \u2192 security/infrastructure capability for wallet references, balances, supported networks, signing requests, payout-route metadata, and user-approved financial actions. It is not an autonomous treasury or custodian.",
+      "ownex_implementation": [
+        "Wallet references by network: Base (USDC), Solana (USDC/SOL), XDC, Optimism (OP)",
+        "Balance tracking per wallet/network (informational only, not custodial)",
+        "Supported networks per source (documented, not recommended/endorsed)",
+        "Signing requests: user-explicit approval required, never auto-sign",
+        "Payout-route metadata: documented routes with verification status",
+        "User-approved financial actions: each transfer/swap/bridge requires explicit human approval",
+        "NOT an autonomous treasury or custodian - OWNEX never holds user funds",
+        "Never store seed phrases or private keys in application configuration, logs, source code, database backups, or GitHub",
+        "Chain ID, token contract, destination, amount, fees, and simulation/quote evidence required before approval",
+        "User-controlled wallets preferred; external key custody only, never stored in OWNEX"
+      ],
+      "wallet_references": {
+        "taskbounty": "USDC/ETH (user wallet, no OWNEX custody)",
+        "github_bounties": "unknown (no activity)",
+        "agenthansa": "N/A - flagged as fake platform",
+        "opire": "USDC/SOL (user wallet, no OWNEX custody)",
+        "bugbounty": "USD/USDC-ETH (user wallet, no OWNEX custody)"
+      }
+    }
+  }
+}

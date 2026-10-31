@@ -107,13 +107,7 @@ def build_timeline(
 
         # Add endpoint discovery events
         for t in targets:
-            eps = (
-                session.query(Endpoint)
-                .filter(Endpoint.target_id == t.id)
-                .order_by(Endpoint.discovered_at.desc())
-                .limit(50)
-                .all()
-            )
+            eps = session.query(Endpoint).filter(Endpoint.target_id == t.id).order_by(Endpoint.discovered_at.desc()).limit(50).all()
             for ep in eps:
                 timeline.add(
                     TimelineEvent(
@@ -181,22 +175,12 @@ def build_timeline(
                     description=f"Scan {scan.status}: {scan.mode} mode ({scan.endpoint_count} endpoints)",
                     target_id=scan.target_id,
                     target_name=t.name if t else None,
-                    duration_ms=(
-                        (scan.finished_at - scan.started_at).total_seconds() * 1000
-                        if scan.finished_at and scan.started_at
-                        else None
-                    ),
+                    duration_ms=((scan.finished_at - scan.started_at).total_seconds() * 1000 if scan.finished_at and scan.started_at else None),
                 )
             )
 
         # Add memory/learning events
-        mem_records = (
-            session.query(MemoryRecord)
-            .filter(MemoryRecord.category == "learning_snapshot")
-            .order_by(MemoryRecord.created_at.desc())
-            .limit(10)
-            .all()
-        )
+        mem_records = session.query(MemoryRecord).filter(MemoryRecord.category == "learning_snapshot").order_by(MemoryRecord.created_at.desc()).limit(10).all()
         for mr in mem_records:
             timeline.add(
                 TimelineEvent(

@@ -272,11 +272,7 @@ def test_optimizer_weak_language():
         "cwe_id": "CWE-79",
     }
     suggestions = opt.optimize(report, platform="hackerone")
-    weak_suggestions = [
-        s
-        for s in suggestions
-        if "weak" in s.reason.lower() or "speculative" in s.suggestion.lower() or "confident" in s.suggestion.lower()
-    ]
+    weak_suggestions = [s for s in suggestions if "weak" in s.reason.lower() or "speculative" in s.suggestion.lower() or "confident" in s.suggestion.lower()]
     assert len(weak_suggestions) > 0
 
 
@@ -338,9 +334,7 @@ def test_platform_profile_to_dict():
 
 
 def test_optimizer_suggestion_defaults():
-    s = OptimizerSuggestion(
-        field="test", current="bad", suggestion="good", reason="reason", impact="high", expected_boost=0.1
-    )
+    s = OptimizerSuggestion(field="test", current="bad", suggestion="good", reason="reason", impact="high", expected_boost=0.1)
     assert s.field == "test"
     assert s.impact == "high"
     assert s.expected_boost == 0.1

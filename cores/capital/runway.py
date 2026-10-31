@@ -84,13 +84,9 @@ class RunwayEngine:
 
         # Projection for different scenarios
         projection = {
-            "conservative": self._project_scenario(
-                available_cash, invested_capital, net_monthly * 0.5, annual_return_rate
-            ),
+            "conservative": self._project_scenario(available_cash, invested_capital, net_monthly * 0.5, annual_return_rate),
             "base": self._project_scenario(available_cash, invested_capital, net_monthly, annual_return_rate),
-            "optimistic": self._project_scenario(
-                available_cash, invested_capital, net_monthly * 1.5, annual_return_rate
-            ),
+            "optimistic": self._project_scenario(available_cash, invested_capital, net_monthly * 1.5, annual_return_rate),
         }
 
         snapshot = RunwaySnapshot(
@@ -204,9 +200,7 @@ class RunwayEngine:
         months = float("inf") if net_monthly >= 0 else total / abs(net_monthly)
         return {
             "months": round(months, 1) if months != float("inf") else float("inf"),
-            "amount": round(available_cash + invested_capital + net_monthly * months, 2)
-            if months != float("inf")
-            else float("inf"),
+            "amount": round(available_cash + invested_capital + net_monthly * months, 2) if months != float("inf") else float("inf"),
         }
 
 

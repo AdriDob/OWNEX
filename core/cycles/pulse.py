@@ -12,7 +12,7 @@ from typing import Any
 
 from core.cycles.executive_dashboard import ExecutiveDashboard
 from core.cycles.knowledge_capture import KnowledgeCapture, LearningType
-from core.cycles.models import Cycle, Task, TaskStatus
+from core.cycles.models import Cycle, CycleCategory, Task, TaskStatus
 
 logger = logging.getLogger("ownex.cycles.pulse")
 
@@ -58,7 +58,7 @@ class PulseCycle:
                     "name": "Pulse",
                     "slug": "pulse",
                     "description": "AI training, data annotation, microtask platforms",
-                    "category": "ai_work",
+                    "category": CycleCategory.PULSE.value,
                     "enabled": True,
                     "priority": 6,
                     "status": "idle",
@@ -227,7 +227,7 @@ def register_pulse_cycle(registry) -> None:
                 slug="pulse",
                 name="Pulse",
                 description="AI training, data annotation, microtask platforms",
-                category="ai_work",
+                category=CycleCategory.PULSE.value,
                 priority=6,
                 config={
                     "platforms": ["outlier", "dataannotation", "mindrift", "remotasks"],

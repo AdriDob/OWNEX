@@ -38,9 +38,7 @@ def is_outlook_configured() -> bool:
         from cores.integrations.outlook.connector import get_outlook_connector
 
         connector = get_outlook_connector()
-        return bool(
-            connector._client_id or connector._client_secret or connector._tenant_id or _vault_has_outlook_credentials()
-        )
+        return bool(connector._client_id or connector._client_secret or connector._tenant_id or _vault_has_outlook_credentials())
     except Exception:
         return False
 

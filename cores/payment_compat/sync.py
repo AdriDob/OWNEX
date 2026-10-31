@@ -257,9 +257,7 @@ class BankSyncer(AccountSyncer):
         if config.csv_path:
             return await self._sync_via_csv(account, config)
 
-        return SyncResult(
-            account_id=account.id, success=False, error="No sync method configured (no API credentials or CSV path)"
-        )
+        return SyncResult(account_id=account.id, success=False, error="No sync method configured (no API credentials or CSV path)")
 
     async def _sync_via_api(self, account: OwnAccount, config: AccountSyncConfig) -> SyncResult:
         # Placeholder for bank API integrations

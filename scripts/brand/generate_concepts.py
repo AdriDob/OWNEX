@@ -65,9 +65,7 @@ def product_overview() -> None:
     cards = []
     links = []
     for _title, _sub, x, y, accent in nodes:
-        links.append(
-            f'<line x1="{cxs}" y1="{cys}" x2="{x}" y2="{y}" stroke="#16213A" stroke-width="2" stroke-dasharray="10 8"/>'
-        )
+        links.append(f'<line x1="{cxs}" y1="{cys}" x2="{x}" y2="{y}" stroke="#16213A" stroke-width="2" stroke-dasharray="10 8"/>')
         cards.append(card_svg(x - 150, y - 78, 300, 156))
         cards.append(f'<circle cx="{x - 116}" cy="{y - 42}" r="5" fill="{accent}"/>')
     cards.append(card_svg(cxs - 260, cys - 260, 520, 520, glow=True))
@@ -128,9 +126,7 @@ def mission_control() -> None:
 """
     texts = header_texts("MISSION CONTROL", "02", "DASHBOARD")
     for i, n in enumerate(nav):
-        texts.append(
-            (78, 214 + i * 92, n, "jbm", 500 if i == 0 else 400, 18, "#F6F8FB" if i == 0 else "#8A94A6", 3, "left")
-        )
+        texts.append((78, 214 + i * 92, n, "jbm", 500 if i == 0 else 400, 18, "#F6F8FB" if i == 0 else "#8A94A6", 3, "left"))
     kpis = [
         ("HEALTH", "98", "+2"),
         ("ACTIVE AGENTS", "12", "+3"),
@@ -209,12 +205,8 @@ def architecture() -> None:
         svg_parts.append(card_svg(lx, y, lw, lh))
         svg_parts.append(f'<rect x="{lx}" y="{y}" width="10" height="{lh}" rx="5" fill="{accent}"/>')
         if i < len(layers) - 1:
-            svg_parts.append(
-                f'<line x1="{W / 2}" y1="{y + lh}" x2="{W / 2}" y2="{y + lh + 62}" stroke="#2A3650" stroke-width="2"/>'
-            )
-            svg_parts.append(
-                f'<polygon points="{W / 2 - 9},{y + lh + 50} {W / 2 + 9},{y + lh + 50} {W / 2},{y + lh + 62}" fill="#2A3650"/>'
-            )
+            svg_parts.append(f'<line x1="{W / 2}" y1="{y + lh}" x2="{W / 2}" y2="{y + lh + 62}" stroke="#2A3650" stroke-width="2"/>')
+            svg_parts.append(f'<polygon points="{W / 2 - 9},{y + lh + 50} {W / 2 + 9},{y + lh + 50} {W / 2},{y + lh + 62}" fill="#2A3650"/>')
     body = f"""
   {header_svg("ARCHITECTURE", "03", "SYSTEM FLOW")}
   {"".join(svg_parts)}

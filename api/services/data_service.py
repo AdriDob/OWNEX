@@ -51,9 +51,7 @@ def _apply_search(q, model_cls, search: str, fields: list[str]) -> Any:
     return q
 
 
-def list_targets(
-    skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = ""
-) -> tuple[list[dict[str, Any]], int]:
+def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         query = session.query(models.Target)
@@ -360,18 +358,12 @@ def list_evidence(
         session.close()
 
 
-def list_opportunities(
-    skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = ""
-) -> tuple[list[dict[str, Any]], int]:
+def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         targets = session.query(models.Target).all()
         if search:
-            targets = [
-                t
-                for t in targets
-                if search.lower() in (t.name or "").lower() or search.lower() in (t.domain or "").lower()
-            ]
+            targets = [t for t in targets if search.lower() in (t.name or "").lower() or search.lower() in (t.domain or "").lower()]
         if not targets:
             return [], 0
 
@@ -648,9 +640,7 @@ def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
         session.close()
 
 
-def create_endpoint(
-    target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def create_endpoint(target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -675,9 +665,7 @@ def create_endpoint(
         session.close()
 
 
-def create_finding(
-    target_id: int, title: str, severity: str = "medium", description: str | None = None, endpoint_id: int | None = None
-) -> dict[str, Any]:
+def create_finding(target_id: int, title: str, severity: str = "medium", description: str | None = None, endpoint_id: int | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -805,9 +793,7 @@ def get_digest() -> dict[str, Any]:
 # ── Verdicts ───────────────────────────────────────
 
 
-def list_verdicts(
-    status: str | None = None, confidence_min: float = 0.0, target_id: int | None = None, limit: int = 100
-) -> list[dict[str, Any]]:
+def list_verdicts(status: str | None = None, confidence_min: float = 0.0, target_id: int | None = None, limit: int = 100) -> list[dict[str, Any]]:
     session = _get_session()
     try:
         from sqlalchemy import Float, cast
@@ -818,11 +804,7 @@ def list_verdicts(
         if confidence_min > 0:
             q = q.filter(cast(models.Verdict.confidence, Float) >= confidence_min)
         if target_id:
-            q = q.filter(
-                models.Verdict.endpoint_id.in_(
-                    session.query(models.Endpoint.id).filter(models.Endpoint.target_id == target_id)
-                )
-            )
+            q = q.filter(models.Verdict.endpoint_id.in_(session.query(models.Endpoint.id).filter(models.Endpoint.target_id == target_id)))
         verdicts = q.order_by(models.Verdict.created_at.desc()).limit(limit).all()
         return [
             {
@@ -886,12 +868,7 @@ def get_verdict(verdict_id: int) -> dict[str, Any] | None:
 def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
     session = _get_session()
     try:
-        evidence_records = (
-            session.query(models.Evidence)
-            .filter(models.Evidence.verdict_id == verdict_id)
-            .order_by(models.Evidence.id)
-            .all()
-        )
+        evidence_records = session.query(models.Evidence).filter(models.Evidence.verdict_id == verdict_id).order_by(models.Evidence.id).all()
         attempts = []
         for ev in evidence_records:
             attempts.append(
@@ -912,8 +889,7 @@ def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
             "summary": {
                 "total_attempts": len(evidence_records),
                 "consistent_count": sum(1 for ev in evidence_records if ev.consistent == "true"),
-                "consistency_ratio": sum(1 for ev in evidence_records if ev.consistent == "true")
-                / max(len(evidence_records), 1),
+                "consistency_ratio": sum(1 for ev in evidence_records if ev.consistent == "true") / max(len(evidence_records), 1),
             },
             "reproduction_steps": [
                 "1. Obtain authentication tokens for two different users",

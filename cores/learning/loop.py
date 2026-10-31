@@ -302,15 +302,9 @@ class LearningLoop:
                     "cycle_id": c.cycle_id,
                     "timestamp": c.timestamp.isoformat(),
                     "duration_seconds": c.duration_seconds,
-                    "contrastive": c.contrastive_training.get("status")
-                    if isinstance(c.contrastive_training, dict)
-                    else str(c.contrastive_training),
-                    "evolution": c.prompt_evolution.get("status")
-                    if isinstance(c.prompt_evolution, dict)
-                    else str(c.prompt_evolution),
-                    "distillation": c.distillation.get("status")
-                    if isinstance(c.distillation, dict)
-                    else str(c.distillation),
+                    "contrastive": c.contrastive_training.get("status") if isinstance(c.contrastive_training, dict) else str(c.contrastive_training),
+                    "evolution": c.prompt_evolution.get("status") if isinstance(c.prompt_evolution, dict) else str(c.prompt_evolution),
+                    "distillation": c.distillation.get("status") if isinstance(c.distillation, dict) else str(c.distillation),
                 }
                 for c in history
             ]

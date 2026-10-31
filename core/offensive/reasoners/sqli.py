@@ -134,9 +134,7 @@ class SQLiReasoner(BaseReasoner):
             severity=severity,
             summary=self._build_summary(endpoint, params_of_interest),
             description=self._build_description(endpoint, params_of_interest, method),
-            why_human_would_investigate=self._build_triager_justification(
-                endpoint, params_of_interest, method, signals
-            ),
+            why_human_would_investigate=self._build_triager_justification(endpoint, params_of_interest, method, signals),
             parameters_of_interest=params_of_interest,
             signals=signals,
             test_instructions=self._build_test_instructions(endpoint, params_of_interest, method),
@@ -168,9 +166,7 @@ class SQLiReasoner(BaseReasoner):
             f"and in some cases remote code execution."
         )
 
-    def _build_triager_justification(
-        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
-    ) -> str:
+    def _build_triager_justification(self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]) -> str:
         return (
             f"A human triager would investigate this because: "
             f"{endpoint.method} {endpoint.path} uses parameters ({params[0] if params else 'unknown'}) "
@@ -197,10 +193,7 @@ class SQLiReasoner(BaseReasoner):
         return instructions
 
     def _build_alternatives(self) -> list[dict[str, Any]]:
-        return [
-            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
-            for alt in SQLI_ALTERNATIVES
-        ]
+        return [{"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]} for alt in SQLI_ALTERNATIVES]
 
     def _scope_check(self, endpoint: EndpointInfo) -> str:
         return (
@@ -220,9 +213,7 @@ class SQLiReasoner(BaseReasoner):
             f"Provide exact payload and response for reproduction."
         )
 
-    def _build_triager_rejection(
-        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
-    ) -> str:
+    def _build_triager_rejection(self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]) -> str:
         rejections = []
         if not endpoint.headers:
             rejections.append("No authentication or authorization headers present")
@@ -234,9 +225,7 @@ class SQLiReasoner(BaseReasoner):
             rejections.append("Basic SQLi blocked by simple input validation")
         return ". ".join(rejections)
 
-    def _build_triager_justification(
-        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
-    ) -> str:
+    def _build_triager_justification(self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]) -> str:
         return (
             f"A human triager would investigate this because: "
             f"{endpoint.method} {endpoint.path} uses parameters ({params[0] if params else 'unknown'}) "

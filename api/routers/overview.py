@@ -79,11 +79,7 @@ def get_overview():
 
         # Severity counts — SQL GROUP BY
         severity_counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-        for row in (
-            session.query(models.Finding.severity, sa_func.count(models.Finding.id))
-            .group_by(models.Finding.severity)
-            .all()
-        ):
+        for row in session.query(models.Finding.severity, sa_func.count(models.Finding.id)).group_by(models.Finding.severity).all():
             sev = (row[0] or "info").lower()
             severity_counts[sev] = row[1]
 
@@ -125,9 +121,7 @@ def get_overview():
         top_targets = []
         for t in targets:
             ep_count = session.query(models.Endpoint).filter(models.Endpoint.target_id == t.id).count()
-            ep_paths = [
-                row[0] for row in session.query(models.Endpoint.path).filter(models.Endpoint.target_id == t.id).all()
-            ]
+            ep_paths = [row[0] for row in session.query(models.Endpoint.path).filter(models.Endpoint.target_id == t.id).all()]
             roi = unified_score_target(
                 {
                     "api_count": ep_count,
@@ -218,9 +212,7 @@ def get_system_health():
             },
             "last_activity": {
                 "last_scan": last_scan.started_at.isoformat() if last_scan and last_scan.started_at else None,
-                "last_finding": last_finding.created_at.isoformat()
-                if last_finding and last_finding.created_at
-                else None,
+                "last_finding": last_finding.created_at.isoformat() if last_finding and last_finding.created_at else None,
             },
             "human_time": get_hhd_summary(),
         }

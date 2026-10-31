@@ -228,13 +228,7 @@ For path traversal use ../ sequences. For IDOR try adjacent IDs.
 Only suggest mutations that make sense for this endpoint type."""
 
         param_summary = json.dumps(params, indent=2) if params else "none"
-        user = (
-            f"URL: {method} {url}\n"
-            f"Params: {param_summary}\n"
-            f"Body: {(body or 'none')[:500]}\n"
-            f"Headers: {json.dumps(dict(headers))[:300]}\n"
-            f"Auth: {auth_label}"
-        )
+        user = f"URL: {method} {url}\nParams: {param_summary}\nBody: {(body or 'none')[:500]}\nHeaders: {json.dumps(dict(headers))[:300]}\nAuth: {auth_label}"
 
         result = self._json_from_llm(system, user)
         if result:

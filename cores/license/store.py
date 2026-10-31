@@ -43,9 +43,7 @@ class LicenseStore:
             )
             stored_hw = data.get("hardware_id", "")
             logger.info("[HW] LicenseStore.load: stored_hardware_id = %s", stored_hw)
-            logger.info(
-                "[HW] LicenseStore.load: stored_hardware_id[:7] = %s", stored_hw[:7] if stored_hw else "(empty)"
-            )
+            logger.info("[HW] LicenseStore.load: stored_hardware_id[:7] = %s", stored_hw[:7] if stored_hw else "(empty)")
             return data
         except (json.JSONDecodeError, OSError) as exc:
             logger.warning("[HW] LicenseStore.load: FAILED: %s", exc)

@@ -112,10 +112,7 @@ class SystemHealthEngine:
             r = httpx.get(agents_health_url, timeout=5.0)
             if r.status_code == 200:
                 data = r.json()
-                all_healthy = all(
-                    agent.get("status") == "running"
-                    for agent in (data if isinstance(data, list) else data.get("agents", data.get("data", [])))
-                )
+                all_healthy = all(agent.get("status") == "running" for agent in (data if isinstance(data, list) else data.get("agents", data.get("data", []))))
                 metrics["agents_status"] = "ok" if all_healthy else "failed"
             else:
                 metrics["agents_status"] = "failed"
@@ -186,9 +183,7 @@ class SystemHealthEngine:
 
             bus = get_agent_bus()
             agent_history = bus.get_history(limit=30)
-            metrics["pipeline_retries"] = sum(
-                1 for e in agent_history if hasattr(e, "event_type") and "failed" in str(e.event_type)
-            )
+            metrics["pipeline_retries"] = sum(1 for e in agent_history if hasattr(e, "event_type") and "failed" in str(e.event_type))
         except Exception as exc:
             logger.debug("Failed to collect agent bus metrics: %s", exc)
 
@@ -201,12 +196,8 @@ class SystemHealthEngine:
             honey = {}
             try:
                 honey["findings_total"] = session.query(models.Finding).count()
-                honey["findings_confirmed"] = (
-                    session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
-                )
-                honey["findings_pending"] = (
-                    session.query(models.Finding).filter(models.Finding.status == "open").count()
-                )
+                honey["findings_confirmed"] = session.query(models.Finding).filter(models.Finding.status == "confirmed").count()
+                honey["findings_pending"] = session.query(models.Finding).filter(models.Finding.status == "open").count()
                 honey["reports_total"] = session.query(models.Report).count() if hasattr(models, "Report") else 0
                 honey["targets_active"] = session.query(models.Target).count()
                 honey["verdicts_total"] = session.query(models.Verdict).count()

@@ -157,11 +157,7 @@ class HealthMonitor(HealthMonitorProtocol):
 
     def get_healthy_providers(self) -> list[str]:
         """Get list of healthy provider IDs."""
-        return [
-            pid
-            for pid, health in self._health.items()
-            if health.status in (HealthStatus.HEALTHY, HealthStatus.DEGRADED)
-        ]
+        return [pid for pid, health in self._health.items() if health.status in (HealthStatus.HEALTHY, HealthStatus.DEGRADED)]
 
     def get_degraded_providers(self) -> list[str]:
         """Get list of degraded provider IDs."""
@@ -169,11 +165,7 @@ class HealthMonitor(HealthMonitorProtocol):
 
     def get_unhealthy_providers(self) -> list[str]:
         """Get list of unhealthy provider IDs."""
-        return [
-            pid
-            for pid, health in self._health.items()
-            if health.status in (HealthStatus.UNHEALTHY, HealthStatus.QUOTA_EXCEEDED, HealthStatus.AUTH_FAILED)
-        ]
+        return [pid for pid, health in self._health.items() if health.status in (HealthStatus.UNHEALTHY, HealthStatus.QUOTA_EXCEEDED, HealthStatus.AUTH_FAILED)]
 
 
 # Global health monitor instance

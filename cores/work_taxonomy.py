@@ -108,9 +108,7 @@ OPEN_SOURCE_TO_CANONICAL: dict[OpenSourceCategory, OpportunityCategory] = {
 
 
 def to_canonical(
-    category: (
-        EngineOpportunityCategory | GlobalSourceCategory | MercenaryCategory | OpenSourceCategory | OpportunityCategory
-    ),
+    category: (EngineOpportunityCategory | GlobalSourceCategory | MercenaryCategory | OpenSourceCategory | OpportunityCategory),
 ) -> OpportunityCategory:
     """Convert any engine-layer category to its canonical equivalent."""
     if isinstance(category, OpportunityCategory):

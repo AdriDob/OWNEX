@@ -62,9 +62,7 @@ COPILOT Router (cores/copilot/providers/router.py)
 **Code Issues:**
 ```python
 # Line 33-37: Only reads ANTHROPIC_API_KEY / OPENROUTER_API_KEY
-self._base_url = (
-    self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
-)
+self._base_url = self._config.extra.get("base_url", os.getenv("ANTHROPIC_BASE_URL", "")) or "https://openrouter.ai/api/v1"
 self._api_key = self._config.extra.get("api_key", os.getenv("ANTHROPIC_API_KEY", os.getenv("OPENROUTER_API_KEY", "")))
 ```
 

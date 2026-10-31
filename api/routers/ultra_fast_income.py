@@ -50,9 +50,7 @@ async def set_income_mode(request: SetModeRequest) -> dict[str, Any]:
         try:
             mode = IncomeMode(request.mode)
         except ValueError:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid mode: {request.mode}. Must be one of: ultra_fast, balanced, scaling"
-            ) from None
+            raise HTTPException(status_code=400, detail=f"Invalid mode: {request.mode}. Must be one of: ultra_fast, balanced, scaling") from None
 
         engine.set_mode(mode)
         return {

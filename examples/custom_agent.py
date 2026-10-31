@@ -189,9 +189,7 @@ async def main():
 
     # Emit task created events
     for task in tasks:
-        await event_bus.emit(
-            Event("task.created", {"name": task.name, "params": task.params, "priority": task.priority})
-        )
+        await event_bus.emit(Event("task.created", {"name": task.name, "params": task.params, "priority": task.priority}))
 
     # Wait for processing
     await asyncio.sleep(0.5)

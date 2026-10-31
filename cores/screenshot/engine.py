@@ -649,9 +649,7 @@ class ScreenshotEngine:
             seen_categories.add("IDOR")
 
         # Cross-tenant exposure
-        if (
-            "multi_tenant" in labels or "cross_tenant" in attack_surface
-        ) and "cross_tenant_exposure" not in seen_categories:
+        if ("multi_tenant" in labels or "cross_tenant" in attack_surface) and "cross_tenant_exposure" not in seen_categories:
             annotations.append(
                 AnnotationItem(
                     category="cross_tenant_exposure",
@@ -673,9 +671,7 @@ class ScreenshotEngine:
             seen_categories.add("auth_bypass")
 
         # Sensitive fields
-        if (
-            "sensitive" in labels or "data_exfiltration" in attack_surface
-        ) and "sensitive_fields" not in seen_categories:
+        if ("sensitive" in labels or "data_exfiltration" in attack_surface) and "sensitive_fields" not in seen_categories:
             annotations.append(
                 AnnotationItem(
                     category="sensitive_fields",
@@ -716,9 +712,7 @@ class ScreenshotEngine:
                     )
                 )
                 seen_categories.add("contract_privilege_boundaries")
-            if (
-                "rpc" in str(signals).lower() or "oracle" in str(signals).lower()
-            ) and "oracle_dependencies" not in seen_categories:
+            if ("rpc" in str(signals).lower() or "oracle" in str(signals).lower()) and "oracle_dependencies" not in seen_categories:
                 annotations.append(
                     AnnotationItem(
                         category="oracle_dependencies",
@@ -727,9 +721,7 @@ class ScreenshotEngine:
                     )
                 )
                 seen_categories.add("oracle_dependencies")
-            if (
-                "bridge" in str(signals).lower() or "swap" in str(signals).lower()
-            ) and "bridge_interactions" not in seen_categories:
+            if ("bridge" in str(signals).lower() or "swap" in str(signals).lower()) and "bridge_interactions" not in seen_categories:
                 annotations.append(
                     AnnotationItem(
                         category="bridge_interactions",
@@ -914,10 +906,7 @@ class ScreenshotEngine:
             score = qw.get("roi_score", 0.0)
             payout = qw.get("estimated_payout", 0.0)
             if score > 0:
-                highlights.append(
-                    f"ROI {score:.1f} — {qw.get('endpoint_method', '')} {path}"
-                    + (f" (~${payout:.0f})" if payout else "")
-                )
+                highlights.append(f"ROI {score:.1f} — {qw.get('endpoint_method', '')} {path}" + (f" (~${payout:.0f})" if payout else ""))
 
         for qw in quick_wins.get("low_effort_high_roi", [])[:3]:
             path = qw.get("endpoint_path", "")

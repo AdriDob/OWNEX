@@ -360,9 +360,7 @@ class LifeManagementSystem:
     def get_tasks_by_date(self, date: datetime) -> list[Task]:
         """Obtener tareas para una fecha específica."""
         date_str = date.strftime("%Y-%m-%d")
-        return [
-            task for task in self.tasks.values() if task.due_date and task.due_date.strftime("%Y-%m-%d") == date_str
-        ]
+        return [task for task in self.tasks.values() if task.due_date and task.due_date.strftime("%Y-%m-%d") == date_str]
 
     def get_tasks_by_priority(self, priority: TaskPriority) -> list[Task]:
         """Obtener tareas por prioridad."""
@@ -424,11 +422,7 @@ class LifeManagementSystem:
 
     def get_active_goals(self) -> list[Goal]:
         """Obtener metas activas."""
-        return [
-            goal
-            for goal in self.goals.values()
-            if goal.status in [GoalStatus.NOT_STARTED, GoalStatus.IN_PROGRESS, GoalStatus.ON_TRACK]
-        ]
+        return [goal for goal in self.goals.values() if goal.status in [GoalStatus.NOT_STARTED, GoalStatus.IN_PROGRESS, GoalStatus.ON_TRACK]]
 
     def get_goals_by_category(self, category: GoalCategory) -> list[Goal]:
         """Obtener metas por categoría."""
@@ -660,9 +654,7 @@ class LifeManagementSystem:
         """Obtener estadísticas de uso de PC para un día."""
         date_str = date.strftime("%Y-%m-%d")
 
-        sessions = [
-            session for session in self.pc_usage.values() if session.start_time.strftime("%Y-%m-%d") == date_str
-        ]
+        sessions = [session for session in self.pc_usage.values() if session.start_time.strftime("%Y-%m-%d") == date_str]
 
         total_minutes = sum(session.duration_minutes for session in sessions)
         productive_minutes = sum(session.duration_minutes for session in sessions if session.category == "work")
@@ -671,9 +663,7 @@ class LifeManagementSystem:
             "total_minutes": total_minutes,
             "productive_minutes": productive_minutes,
             "entertainment_minutes": total_minutes - productive_minutes,
-            "average_productivity": sum(session.productivity_score for session in sessions) / len(sessions)
-            if sessions
-            else 0,
+            "average_productivity": sum(session.productivity_score for session in sessions) / len(sessions) if sessions else 0,
             "sessions_count": len(sessions),
         }
 
@@ -722,9 +712,7 @@ class LifeManagementSystem:
 _life_management_system: LifeManagementSystem | None = None
 
 
-def get_life_management_system(
-    user_id: str = "default", storage_path: str = "~/.config/ownex/life_management"
-) -> LifeManagementSystem:
+def get_life_management_system(user_id: str = "default", storage_path: str = "~/.config/ownex/life_management") -> LifeManagementSystem:
     """Obtener instancia singleton del sistema de gestión de vida."""
     global _life_management_system
 

@@ -90,13 +90,8 @@ def get_screenshots(target_id: int | None = None):
                     "vulnerability_type": s.vulnerability_type,
                     "severity": s.severity,
                     "roi_score": s.roi_score,
-                    "visual_blocks": [
-                        {"type": b.type, "content": b.content, "highlight_level": b.highlight_level}
-                        for b in s.visual_blocks
-                    ],
-                    "annotations": [
-                        {"category": a.category, "detail": a.detail, "severity": a.severity} for a in s.annotations
-                    ],
+                    "visual_blocks": [{"type": b.type, "content": b.content, "highlight_level": b.highlight_level} for b in s.visual_blocks],
+                    "annotations": [{"category": a.category, "detail": a.detail, "severity": a.severity} for a in s.annotations],
                     "before_state": s.before_state,
                     "after_state": s.after_state,
                     "attack_path_summary": s.attack_path_summary,

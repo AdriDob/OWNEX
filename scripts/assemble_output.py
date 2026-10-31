@@ -199,11 +199,7 @@ def _write_build_info(output_dir: Path, version: str, has_bundle: bool) -> None:
             rel = str(f.relative_to(output_dir))
             info["files"][rel] = {
                 "size_bytes": f.stat().st_size,
-                "size_human": (
-                    f"{f.stat().st_size / 1024:.1f} KB"
-                    if f.stat().st_size < 1024 * 1024
-                    else f"{f.stat().st_size / 1024 / 1024:.1f} MB"
-                ),
+                "size_human": (f"{f.stat().st_size / 1024:.1f} KB" if f.stat().st_size < 1024 * 1024 else f"{f.stat().st_size / 1024 / 1024:.1f} MB"),
             }
     build_info = output_dir / "build_info.json"
     build_info.write_text(json.dumps(info, indent=2))

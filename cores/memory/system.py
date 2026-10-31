@@ -152,9 +152,7 @@ class UnifiedMemoryStore:
             from sqlalchemy import MetaData, Table
 
             metadata = MetaData()
-            memory_table = Table(
-                "memory_records", metadata, autoload_with=create_engine("sqlite:///./database/catseye.db")
-            )
+            memory_table = Table("memory_records", metadata, autoload_with=create_engine("sqlite:///./database/catseye.db"))
             records = session.query(memory_table).all()
             loaded = 0
             skipped = 0
@@ -461,9 +459,7 @@ class LearningEngine:
         value = self.memory.get(MemoryNamespace.PREFERENCES, category, {})
         return value if isinstance(value, dict) else {}
 
-    def record_tool_usage(
-        self, tool_name: str, success: bool, duration_ms: float, context: dict[str, Any] | None = None
-    ) -> None:
+    def record_tool_usage(self, tool_name: str, success: bool, duration_ms: float, context: dict[str, Any] | None = None) -> None:
         key = f"tool_{tool_name}"
         stats = self.memory.get(MemoryNamespace.TOOL_USAGE, key, {})
         if not isinstance(stats, dict):
@@ -548,9 +544,7 @@ class LearningEngine:
                     "total": stats["total"],
                     "success_rate": stats["successful"] / stats["total"],
                     "avg_duration_ms": stats["avg_duration_ms"],
-                    "preferred_tools": sorted(
-                        stats.get("tools_frequency", {}).items(), key=lambda x: x[1], reverse=True
-                    )[:3],
+                    "preferred_tools": sorted(stats.get("tools_frequency", {}).items(), key=lambda x: x[1], reverse=True)[:3],
                 }
         patterns["task_patterns"] = task_stats
 
@@ -592,9 +586,7 @@ def learn_tool_usage(tool: str, success: bool, duration_ms: float, context: dict
     get_learning_engine().record_tool_usage(tool, success, duration_ms, context)
 
 
-def learn_task_outcome(
-    task_type: str, success: bool, duration_ms: float, tools_used: list[str], learnings: list[str] | None = None
-) -> None:
+def learn_task_outcome(task_type: str, success: bool, duration_ms: float, tools_used: list[str], learnings: list[str] | None = None) -> None:
     get_learning_engine().record_task_outcome(task_type, success, duration_ms, tools_used, learnings)
 
 

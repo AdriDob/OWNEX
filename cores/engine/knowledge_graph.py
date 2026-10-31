@@ -202,14 +202,12 @@ class KnowledgeGraph(Engine):
         conn = _connect(self.db_path)
         if type:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes WHERE type = ? ORDER BY last_updated DESC LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE type = ? ORDER BY last_updated DESC LIMIT ?",
                 (type, limit),
             )
         else:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes ORDER BY last_updated DESC LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes ORDER BY last_updated DESC LIMIT ?",
                 (limit,),
             )
         nodes = [self._row_to_node(row) for row in cursor]
@@ -226,14 +224,12 @@ class KnowledgeGraph(Engine):
         like = f"%{query}%"
         if type:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes WHERE type = ? AND (name LIKE ? OR id LIKE ?) LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE type = ? AND (name LIKE ? OR id LIKE ?) LIMIT ?",
                 (type, like, like, limit),
             )
         else:
             cursor = conn.execute(
-                "SELECT id, type, name, properties, created_at, last_updated, confidence "
-                "FROM nodes WHERE name LIKE ? OR id LIKE ? LIMIT ?",
+                "SELECT id, type, name, properties, created_at, last_updated, confidence FROM nodes WHERE name LIKE ? OR id LIKE ? LIMIT ?",
                 (like, like, limit),
             )
         nodes = [self._row_to_node(row) for row in cursor]

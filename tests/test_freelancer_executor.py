@@ -106,9 +106,7 @@ class TestFreelancerExecutorDeliverable:
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.post.return_value = _mock_response(201, {"deliverable_id": "d1"})
-            result = asyncio.run(
-                executor.submit_deliverable(42, files=[{"name": "fix.py", "url": "http://..."}], message="done")
-            )
+            result = asyncio.run(executor.submit_deliverable(42, files=[{"name": "fix.py", "url": "http://..."}], message="done"))
             assert result.success is True
             assert result.data["deliverable_id"] == "d1"
 
@@ -160,7 +158,5 @@ class TestFreelancerExecutorDispatch:
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.post.return_value = _mock_response(201, {"bid_id": "b1"})
-            result = asyncio.run(
-                executor.execute("bid_on_project", project_id=1, bid_amount=100, period=7, description="desc")
-            )
+            result = asyncio.run(executor.execute("bid_on_project", project_id=1, bid_amount=100, period=7, description="desc"))
             assert result.success is True

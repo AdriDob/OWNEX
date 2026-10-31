@@ -111,9 +111,7 @@ class TestScanSchedulerUnit:
 
         targets = [FakeTarget(1, "test", "example.com")]
         with patch("api.scheduler.RewardLearner") as mock_learner:
-            mock_learner.return_value.analyze.return_value = type(
-                "Report", (), {"vuln_type_adjustments": {"idor": 1.5}}
-            )()
+            mock_learner.return_value.analyze.return_value = type("Report", (), {"vuln_type_adjustments": {"idor": 1.5}})()
             priorities = _compute_target_priorities(targets)
         assert isinstance(priorities, dict)
         assert 0.1 <= priorities[1] <= 10.0

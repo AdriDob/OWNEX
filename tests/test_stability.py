@@ -77,12 +77,8 @@ def _dummy_rollback():
 
 
 def make_client(monkeypatch) -> TestClient:
-    monkeypatch.setattr(
-        stability, "get_health_center", lambda *a: type("H", (), {"unified_summary": lambda s: _dummy_health()})()
-    )
-    monkeypatch.setattr(
-        stability, "get_capability_registry", lambda *a: type("R", (), {"stats": lambda s: _dummy_tools()})()
-    )
+    monkeypatch.setattr(stability, "get_health_center", lambda *a: type("H", (), {"unified_summary": lambda s: _dummy_health()})())
+    monkeypatch.setattr(stability, "get_capability_registry", lambda *a: type("R", (), {"stats": lambda s: _dummy_tools()})())
     monkeypatch.setattr(stability, "backup_status", _dummy_backup)
     monkeypatch.setattr(stability, "UpdateManager", lambda *a: type("U", (), {"status": lambda s: _dummy_updates()})())
     monkeypatch.setattr(stability, "_rollback_status", _dummy_rollback)
@@ -126,9 +122,7 @@ def test_stability_status_handles_failed_checks(monkeypatch) -> None:
         "get_health_center",
         lambda *a: type("H", (), {"unified_summary": lambda s: _health_with_failure()})(),
     )
-    monkeypatch.setattr(
-        stability, "get_capability_registry", lambda *a: type("R", (), {"stats": lambda s: _dummy_tools()})()
-    )
+    monkeypatch.setattr(stability, "get_capability_registry", lambda *a: type("R", (), {"stats": lambda s: _dummy_tools()})())
     monkeypatch.setattr(stability, "backup_status", _dummy_backup)
     monkeypatch.setattr(stability, "UpdateManager", lambda *a: type("U", (), {"status": lambda s: _dummy_updates()})())
     monkeypatch.setattr(stability, "_rollback_status", _dummy_rollback)

@@ -28,9 +28,7 @@ class MerlinSystem:
 
     def __init__(self, config: MerlinConfig | None = None):
         self.config = config or MerlinConfig()
-        self.personality = MerlinPersonality(
-            style=RetroStyle.MODERN_RETRO if self.config.theme.value == "modern_retro" else RetroStyle.OFFICE_97
-        )
+        self.personality = MerlinPersonality(style=RetroStyle.MODERN_RETRO if self.config.theme.value == "modern_retro" else RetroStyle.OFFICE_97)
         self.memory = get_merlin_memory()
         self._ai_provider = get_unified_provider()
         self._is_processing = False
@@ -57,15 +55,11 @@ class MerlinSystem:
             response = await self._generate_response(message, intent)
 
             # Format response according to settings
-            formatted_response = self.personality.format_response(
-                response, detail_level=detail_level, response_tone=response_tone
-            )
+            formatted_response = self.personality.format_response(response, detail_level=detail_level, response_tone=response_tone)
 
             # Save to memory if learning is enabled
             if enable_learning:
-                await self.memory.save_conversation(
-                    question=message, response=formatted_response, timestamp=datetime.now(), tags=[intent]
-                )
+                await self.memory.save_conversation(question=message, response=formatted_response, timestamp=datetime.now(), tags=[intent])
 
             # Analytics if enabled
             if enable_analytics:
@@ -302,9 +296,7 @@ Por favor, sé más específico sobre lo que necesitas y MERLIN proporcionará a
     async def _track_analytics(self, message: str, intent: str, response: str) -> None:
         """Track analytics for the conversation."""
         # This is a placeholder - implement actual analytics tracking
-        logger.info(
-            f"Analytics tracked: intent={intent}, message_length={len(message)}, response_length={len(response)}"
-        )
+        logger.info(f"Analytics tracked: intent={intent}, message_length={len(message)}, response_length={len(response)}")
 
     async def get_capabilities(self) -> dict[str, Any]:
         """Get MERLIN's capabilities."""

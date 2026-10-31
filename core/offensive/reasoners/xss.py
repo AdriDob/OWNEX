@@ -155,9 +155,7 @@ class XSSReasoner(BaseReasoner):
             severity=severity,
             summary=summary,
             description=self._build_description(endpoint, params_of_interest, method),
-            why_human_would_investigate=self._build_triager_justification(
-                endpoint, params_of_interest, method, signals
-            ),
+            why_human_would_investigate=self._build_triager_justification(endpoint, params_of_interest, method, signals),
             why_triager_might_reject=self._build_triager_rejection(endpoint, params_of_interest, method, signals),
             parameters_of_interest=params_of_interest,
             signals=signals,
@@ -186,9 +184,7 @@ class XSSReasoner(BaseReasoner):
             f"or account takeover."
         )
 
-    def _build_triager_justification(
-        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
-    ) -> str:
+    def _build_triager_justification(self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]) -> str:
         return (
             f"A human triager would investigate this because: "
             f"{endpoint.method} {endpoint.path} reflects or stores user input ({params[0] if params else 'unknown'}). "
@@ -196,9 +192,7 @@ class XSSReasoner(BaseReasoner):
             f"A simple test with a script payload would confirm or rule out XSS."
         )
 
-    def _build_triager_rejection(
-        self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]
-    ) -> str:
+    def _build_triager_rejection(self, endpoint: EndpointInfo, params: list[str], method: str, signals: list[str]) -> str:
         rejections = []
         if not endpoint.headers:
             rejections.append("No authentication or authorization headers present")
@@ -227,10 +221,7 @@ class XSSReasoner(BaseReasoner):
         )
 
     def _build_alternatives(self) -> list[dict[str, Any]]:
-        return [
-            {"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]}
-            for alt in XSS_ALTERNATIVES
-        ]
+        return [{"label": alt["label"], "description": alt["description"], "how_to_rule_out": alt["how_to_rule_out"]} for alt in XSS_ALTERNATIVES]
 
     def _build_test_instructions(self, endpoint: EndpointInfo, params: list[str], method: str) -> list[str]:
         instructions = []
@@ -243,8 +234,5 @@ class XSSReasoner(BaseReasoner):
                     f'Try setting {param} to "><script>alert(1)</script><" for HTML attribute context.',
                 ]
             )
-        instructions.append(
-            "If basic XSS is blocked, check: encoding bypass, polyglot payloads, "
-            "DOM-based XSS via URL fragment, and stored XSS via POST."
-        )
+        instructions.append("If basic XSS is blocked, check: encoding bypass, polyglot payloads, DOM-based XSS via URL fragment, and stored XSS via POST.")
         return instructions

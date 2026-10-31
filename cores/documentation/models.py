@@ -115,12 +115,8 @@ class ModuleDoc:
             "version": self.version,
             "description": self.description,
             "capabilities": [{"name": c.name, "description": c.description} for c in self.capabilities],
-            "events_published": [
-                {"event_type": e.event_type, "description": e.description} for e in self.events_published
-            ],
-            "events_consumed": [
-                {"event_type": e.event_type, "description": e.description} for e in self.events_consumed
-            ],
+            "events_published": [{"event_type": e.event_type, "description": e.description} for e in self.events_published],
+            "events_consumed": [{"event_type": e.event_type, "description": e.description} for e in self.events_consumed],
             "config_options": [{"key": c.key, "type": c.type, "default": c.default} for c in self.config_options],
             "apis": [{"method": a.method, "path": a.path, "description": a.description} for a in self.apis],
             "integrations": [{"name": i.name, "category": i.category} for i in self.integrations],

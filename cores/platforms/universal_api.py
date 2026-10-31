@@ -234,9 +234,7 @@ class AiGuidanceGenerator:
             },
         }
 
-    async def analyze_conversation(
-        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
-    ) -> dict[str, Any]:
+    async def analyze_conversation(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> dict[str, Any]:
         """
         Analyze conversation to determine what's needed and suggest next steps.
 
@@ -284,15 +282,9 @@ class AiGuidanceGenerator:
 
         return analysis
 
-    def _build_conversation_analysis_prompt(
-        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
-    ) -> str:
+    def _build_conversation_analysis_prompt(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> str:
         """Build a comprehensive prompt for conversation analysis"""
-        latest_message = (
-            conversation.messages[-1]
-            if conversation.messages
-            else {"content": "", "timestamp": conversation.created_at}
-        )
+        latest_message = conversation.messages[-1] if conversation.messages else {"content": "", "timestamp": conversation.created_at}
         latest_ts = float(latest_message.get("timestamp", conversation.created_at))  # type: ignore[arg-type]
 
         prompt = f"""
@@ -408,9 +400,7 @@ class AiGuidanceGenerator:
 
         return analysis
 
-    async def generate_evidence(
-        self, report_id: str, evidence_request: EvidenceType, event_context: dict[str, Any]
-    ) -> EvidenceItem | None:
+    async def generate_evidence(self, report_id: str, evidence_request: EvidenceType, event_context: dict[str, Any]) -> EvidenceItem | None:
         """
         Generate specific evidence for a request.
 
@@ -464,9 +454,7 @@ class AiGuidanceGenerator:
             self.logger.error(f"Error generating evidence: {e}")
             return None
 
-    def _basic_conversation_analysis(
-        self, conversation: EventConversation | None, event: MissionEvent | None, hunter_profile: dict
-    ) -> dict[str, Any]:
+    def _basic_conversation_analysis(self, conversation: EventConversation | None, event: MissionEvent | None, hunter_profile: dict) -> dict[str, Any]:
         """Basic analysis without AI when needed"""
         analysis: dict[str, Any] = {
             "needed_evidence": [],
@@ -646,9 +634,7 @@ class AiGuidanceGenerator:
         if "ai" in response_data.get("sender", ""):
             conversation.unread_count += 1
 
-    async def generate_ai_guidance_response(
-        self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict
-    ) -> dict[str, Any]:
+    async def generate_ai_guidance_response(self, conversation: EventConversation, event: MissionEvent, hunter_profile: dict) -> dict[str, Any]:
         """
         Generate AI response for a conversation based on analysis.
 
@@ -684,16 +670,12 @@ class AiGuidanceGenerator:
                 "content": "Lo siento, tuve un problema al analizar tu solicitud. Por favor, intenta nuevamente o contacta soporte si el problema persiste.",
             }
 
-    def _format_guidance_response(
-        self, analysis: dict[str, Any], conversation: EventConversation, event: MissionEvent
-    ) -> str:
+    def _format_guidance_response(self, analysis: dict[str, Any], conversation: EventConversation, event: MissionEvent) -> str:
         """Format AI response in human-readable format"""
         guidance_parts = []
 
         if analysis.get("completeness_score", 0.0) < 50:
-            guidance_parts.append(
-                "📊 **Análisis de Completitud**: Tu solicitud necesita más evidencia para estar completamente documentada."
-            )
+            guidance_parts.append("📊 **Análisis de Completitud**: Tu solicitud necesita más evidencia para estar completamente documentada.")
 
         if analysis.get("risk_level") == "critical":
             guidance_parts.append(
@@ -1029,9 +1011,7 @@ class MissionInbox:
         except Exception as e:
             self.logger.error(f"Error sending notification through Mission Inbox: {e}")
 
-    async def handle_platform_response(
-        self, event_type: str, conversation_id: str, response_data: dict[str, Any]
-    ) -> None:
+    async def handle_platform_response(self, event_type: str, conversation_id: str, response_data: dict[str, Any]) -> None:
         """
         Handle platform response and update Mission Inbox accordingly.
 
@@ -1084,16 +1064,12 @@ class MissionInbox:
             conversation.evidence_ids.append(evidence_id)
 
             # Emit event for UI updates
-            self.event_bus.publish(
-                "evidence:generated", evidence=evidence, conversation_id=conversation.id, event_id=event.id
-            )
+            self.event_bus.publish("evidence:generated", evidence=evidence, conversation_id=conversation.id, event_id=event.id)
 
         except Exception as e:
             self.logger.error(f"Error generating rejection evidence: {e}")
 
-    async def _process_evidence_requests(
-        self, event: MissionEvent, conversation: EventConversation, response_data: dict[str, Any]
-    ) -> None:
+    async def _process_evidence_requests(self, event: MissionEvent, conversation: EventConversation, response_data: dict[str, Any]) -> None:
         """Process evidence requests from platform responses"""
         try:
             # Extract evidence request types from the response
@@ -1118,9 +1094,7 @@ class MissionInbox:
                     conversation.evidence_ids.append(evidence.id)
 
                     # Add AI guidance response to conversation
-                    ai_response = await self.ai_guidance.generate_ai_guidance_response(
-                        conversation, event, {"role": "researcher", "experience": "10+ years"}
-                    )
+                    ai_response = await self.ai_guidance.generate_ai_guidance_response(conversation, event, {"role": "researcher", "experience": "10+ years"})
 
                     self.ai_guidance.add_conversation_response(conversation, ai_response)
 
@@ -1206,9 +1180,7 @@ class MissionInbox:
 
             if conversation and event:
                 # Generate AI guidance for the conversation
-                ai_response = await self.ai_guidance.generate_ai_guidance_response(
-                    conversation, event, {"role": "researcher", "experience": "10+ years"}
-                )
+                ai_response = await self.ai_guidance.generate_ai_guidance_response(conversation, event, {"role": "researcher", "experience": "10+ years"})
 
                 # Add to conversation
                 self.ai_guidance.add_conversation_response(conversation, ai_response)
@@ -1333,9 +1305,7 @@ class MissionInbox:
             return {"error": "Event not found for conversation"}
 
         # Generate AI guidance
-        return await self.ai_guidance.generate_ai_guidance_response(
-            conversation, event, {"role": "researcher", "experience": "10+ years"}
-        )
+        return await self.ai_guidance.generate_ai_guidance_response(conversation, event, {"role": "researcher", "experience": "10+ years"})
 
     async def take_manual_action(self, report_id: str, action: dict[str, Any]) -> bool:
         """
@@ -1399,9 +1369,7 @@ class MissionInbox:
             response_data = {"sender": sender, "content": message, "timestamp": time.time(), "type": "text"}
             self.ai_guidance.add_conversation_response(conversation, response_data)
 
-    async def get_timeline(
-        self, scope: TimelineScope = TimelineScope.THIS_WEEK, filters: dict[str, Any] | None = None
-    ) -> list[dict[str, Any]]:
+    async def get_timeline(self, scope: TimelineScope = TimelineScope.THIS_WEEK, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """
         Get the mission timeline with the specified scope and filters.
 
@@ -1498,11 +1466,7 @@ class MissionInbox:
         event_time = datetime.fromtimestamp(timestamp)
         now = datetime.now()
         yesterday = now - timedelta(days=1)
-        return (
-            event_time.date() == yesterday.date()
-            and event_time.hour == yesterday.hour
-            and event_time.minute == yesterday.minute
-        )
+        return event_time.date() == yesterday.date() and event_time.hour == yesterday.hour and event_time.minute == yesterday.minute
 
     def _is_this_week(self, timestamp: float) -> bool:
         """Check if a timestamp is from this week"""
@@ -1808,11 +1772,7 @@ class MissionInbox:
             event.metadata["tags"].append(tag)
 
         # Tag associated conversation
-        if (
-            event.conversation_id
-            and event.conversation_id in self.conversations
-            and tag not in self.conversations[event.conversation_id].tags
-        ):
+        if event.conversation_id and event.conversation_id in self.conversations and tag not in self.conversations[event.conversation_id].tags:
             self.conversations[event.conversation_id].tags.append(tag)
 
         return True
@@ -1832,11 +1792,7 @@ class MissionInbox:
             event.metadata["tags"].remove(tag)
 
         # Remove tag from associated conversation
-        if (
-            event.conversation_id
-            and event.conversation_id in self.conversations
-            and tag in self.conversations[event.conversation_id].tags
-        ):
+        if event.conversation_id and event.conversation_id in self.conversations and tag in self.conversations[event.conversation_id].tags:
             self.conversations[event.conversation_id].tags.remove(tag)
 
         return True
@@ -2108,9 +2064,7 @@ class MissionInbox:
             True if successful, False otherwise
         """
         if conversation_id in self.conversations:
-            self.conversations[conversation_id].unread_count = max(
-                0, self.conversations[conversation_id].unread_count - 1
-            )
+            self.conversations[conversation_id].unread_count = max(0, self.conversations[conversation_id].unread_count - 1)
             return True
         return False
 
@@ -2561,9 +2515,7 @@ class MissionInbox:
 
         return ai_guidance
 
-    async def start_evidence_generation(
-        self, report_id: str, evidence_type: EvidenceType, human_approval_needed: bool = True
-    ) -> dict[str, Any]:
+    async def start_evidence_generation(self, report_id: str, evidence_type: EvidenceType, human_approval_needed: bool = True) -> dict[str, Any]:
         """
         Start evidence generation for a specific report.
 
@@ -2614,9 +2566,7 @@ class MissionInbox:
 
         return {"error": "Failed to start evidence generation"}
 
-    async def complete_evidence_generation(
-        self, evidence_id: str, human_approval: str, quality_score: float | None = None
-    ) -> bool:
+    async def complete_evidence_generation(self, evidence_id: str, human_approval: str, quality_score: float | None = None) -> bool:
         """
         Complete evidence generation with human approval.
 
@@ -2728,9 +2678,7 @@ class MissionInbox:
             }
 
         # Add top events (highest priority)
-        sorted_events = sorted(
-            timeline, key=lambda e: ["critical", "high", "medium", "low"].index(e["priority"]), reverse=True
-        )
+        sorted_events = sorted(timeline, key=lambda e: ["critical", "high", "medium", "low"].index(e["priority"]), reverse=True)
         digest["top_events"] = [
             {
                 "id": event["id"],
@@ -2756,8 +2704,7 @@ class MissionInbox:
                     [
                         re
                         for re in recent
-                        if datetime.fromtimestamp(re["timestamp"]).date().isoformat()
-                        == datetime.fromtimestamp(e["timestamp"]).date().isoformat()
+                        if datetime.fromtimestamp(re["timestamp"]).date().isoformat() == datetime.fromtimestamp(e["timestamp"]).date().isoformat()
                     ]
                 ),
             }
@@ -2864,9 +2811,7 @@ class MissionInbox:
         else:
             return f"Unsupported format: {format}"
 
-    async def bulk_action_on_events(
-        self, event_ids: list[str], action: str, parameters: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    async def bulk_action_on_events(self, event_ids: list[str], action: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Take bulk actions on multiple events.
 
@@ -2911,9 +2856,7 @@ class MissionInbox:
 
         return results
 
-    async def bulk_action_on_conversations(
-        self, conversation_ids: list[str], action: str, parameters: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    async def bulk_action_on_conversations(self, conversation_ids: list[str], action: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Take bulk actions on multiple conversations.
 
@@ -2955,9 +2898,7 @@ class MissionInbox:
                     results["failure_count"] += 1
 
             except Exception as e:
-                results["results"].append(
-                    {"conversation_id": conv_id, "action": action, "success": False, "error": str(e)}
-                )
+                results["results"].append({"conversation_id": conv_id, "action": action, "success": False, "error": str(e)})
                 results["failure_count"] += 1
 
         return results

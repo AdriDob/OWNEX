@@ -469,9 +469,7 @@ class SelfHealingSystem:
         # Validate file integrity
         file_integrity_results = self.file_integrity_checker.validate_file_structure()
         validation_results["file_integrity"] = {
-            "status": "healthy"
-            if all(not dir_info["issues"] for dir_info in file_integrity_results.values())
-            else "issues_found",
+            "status": "healthy" if all(not dir_info["issues"] for dir_info in file_integrity_results.values()) else "issues_found",
             "directories": file_integrity_results,
         }
         validation_results["repairs_attempted"] += self.file_integrity_checker.auto_fix_issues(file_integrity_results)

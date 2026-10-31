@@ -32,9 +32,7 @@ CONSTITUTIONAL_VIOLATIONS = {
     "maintain_backward_compatibility": {
         "description": "New changes MUST preserve ALL existing functionality. Never break existing working systems, integrations, or user data."
     },
-    "performance_integrity_enforced": {
-        "description": "Performance metrics cannot degrade. Every change must show performance improvement OR be rejected."
-    },
+    "performance_integrity_enforced": {"description": "Performance metrics cannot degrade. Every change must show performance improvement OR be rejected."},
     "compliance_legal_priority": {
         "description": "Every change must pass all compliance requirements including legal, regulatory, security, privacy, and ethical standards. Compliance non-negotiable."
     },

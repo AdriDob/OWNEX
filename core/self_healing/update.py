@@ -38,9 +38,7 @@ class SelfUpdateSystem:
         """Check if updates are available."""
         try:
             # Fetch latest changes
-            result = subprocess.run(
-                ["git", "fetch", "origin"], cwd=self.project_root, capture_output=True, text=True, timeout=30
-            )
+            result = subprocess.run(["git", "fetch", "origin"], cwd=self.project_root, capture_output=True, text=True, timeout=30)
             if result.returncode != 0:
                 return False, f"Git fetch failed: {result.stderr}"
 
@@ -267,9 +265,7 @@ class SelfUpdateSystem:
         # Emit event
         try:
             bus = get_event_bus()
-            bus.publish(
-                "system:update", {"status": "completed" if success else "failed", "message": message, "logs": logs}
-            )
+            bus.publish("system:update", {"status": "completed" if success else "failed", "message": message, "logs": logs})
         except Exception as e:
             logger.warning("Failed to emit update event: %s", e)
 

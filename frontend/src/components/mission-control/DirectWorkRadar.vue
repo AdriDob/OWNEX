@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { isTauri } from '@tauri-apps/api/core'
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import {
   approveDelivery,
   fetchDeliveryQueue,
+  fetchDiscoveredSources,
+  discoverSourceCandidates,
   fetchDirectWorkDailyBrief,
   fetchDirectWorkRecommendations,
   fetchDirectWorkWorkBank,
   fetchSourceIntel,
   prepareDelivery,
+  probeSourceCandidate,
   runDirectWorkCycle,
   type DailyBrief,
   type DeliverableItem,
@@ -15,19 +21,28 @@ import {
   type DirectWorkRanked,
   type SourceIntelResponse,
   type WorkBankState,
+  type DiscoveredSourceCandidate,
 } from '@/services/ownexData'
 
+const router = useRouter()
 const bank = ref<WorkBankState | null>(null)
+const sourceCandidates = ref<DiscoveredSourceCandidate[]>([])
+const sourceCandidateTotal = ref(0)
+const sourceFeedsUnsupported = ref<string[]>([])
 const brief = ref<DailyBrief | null>(null)
 const ranked = ref<DirectWorkRanked[]>([])
 const radar = ref<SourceIntelResponse | null>(null)
 const deliveryQueue = ref<DeliverableItem[]>([])
 const loading = ref(true)
 const running = ref(false)
+const discoveringSources = ref(false)
 const error = ref('')
 const preparing = ref('')
 const prepared = ref<Record<string, DeliveryPackage>>({})
 const approvedIds = ref<Set<string>>(new Set())
+const taskQuery = ref('')
+const taskSource = ref('')
+const taskStatus = ref('')
 
 async function loadAll() {
   loading.value = true
@@ -64,6 +79,7 @@ async function handlePrepare(itemId: string) {
 }
 
 async function handleApprove(itemId: string) {
+  if (!window.confirm('¿Confirmás que ya enviaste este trabajo en la plataforma? OWNEX solo registrará el estado; no lo enviará ni confirmará aceptación o pago.')) return
   try {
     await approveDelivery(itemId)
     approvedIds.value = new Set([...approvedIds.value, itemId])
@@ -97,8 +113,106 @@ function targetsProgress(targets: WorkBankState['targets']) {
 }
 
 const briefTop = computed(() => brief.value?.top_opportunity ?? null)
+const taskSources = computed(() => [...new Set((bank.value?.items ?? []).map((item) => item.platform))].sort())
+const filteredWorkItems = computed(() => (bank.value?.items ?? []).filter((item) => {
+  const query = taskQuery.value.trim().toLowerCase()
+  return (!query || `${item.title} ${item.description ?? ''} ${item.category}`.toLowerCase().includes(query))
+    && (!taskSource.value || item.platform === taskSource.value)
+    && (!taskStatus.value || item.status === taskStatus.value)
+}))
 
-onMounted(loadAll)
+async function openTask(itemId: string) {
+  const target = { name: 'work-detail', params: { id: itemId } }
+  const url = router.resolve(target).href
+  if (!isTauri()) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  const label = `work-${itemId.replace(/[^A-Za-z0-9_-]/g, '-').slice(0, 48)}`
+  try {
+    const existing = await WebviewWindow.getByLabel(label)
+    if (existing) {
+      await existing.setFocus()
+      return
+    }
+    const detailWindow = new WebviewWindow(label, {
+      url,
+      title: 'OWNEX · Detalle del trabajo',
+      width: 1100,
+      height: 800,
+      minWidth: 720,
+      minHeight: 600,
+    })
+    void detailWindow.once('tauri://error', () => { void router.push(target) })
+  } catch {
+    await router.push(target)
+  }
+}
+
+function isSafeExternalUrl(raw: string): boolean {
+  try {
+    return ['https:', 'http:'].includes(new URL(raw).protocol)
+  } catch {
+    return false
+  }
+}
+
+function sourceLifecycleLabel(lifecycle: string): string {
+  const labels: Record<string, string> = {
+    DISCOVERED: 'DESCUBIERTA',
+    PROBED: 'SONDEADA',
+    VERIFIED: 'EVIDENCIA DECLARADA · REVISIÓN PENDIENTE',
+    ACTIVE: 'AUTORIZADA · SOLO METADATOS',
+    DECAY: 'EN DECAIMIENTO',
+    DEACTIVATED: 'DESACTIVADA',
+  }
+  return labels[lifecycle] ?? lifecycle
+}
+
+async function refreshSources() {
+  try {
+    const sources = await fetchDiscoveredSources()
+    sourceCandidates.value = sources.candidates
+    sourceCandidateTotal.value = sources.total
+    sourceFeedsUnsupported.value = sources.unsupported_feeds
+  } catch {
+    // Keep the last known state visible; work data and source discovery degrade independently.
+  }
+}
+
+async function discoverSourcesNow() {
+  discoveringSources.value = true
+  error.value = ''
+  try {
+    await discoverSourceCandidates()
+    await refreshSources()
+  } catch {
+    error.value = 'No se pudo consultar el discovery de fuentes.'
+  } finally {
+    discoveringSources.value = false
+  }
+}
+
+async function probeSource(sourceId: string) {
+  try {
+    const candidate = await probeSourceCandidate(sourceId)
+    sourceCandidates.value = sourceCandidates.value.map((item) => item.id === sourceId ? candidate : item)
+  } catch {
+    error.value = `No se pudo sondear la fuente ${sourceId}.`
+  }
+}
+
+let refreshTimer: ReturnType<typeof setInterval> | undefined
+onMounted(async () => {
+  await loadAll()
+  await refreshSources()
+  refreshTimer = setInterval(() => {
+    void loadAll()
+    void refreshSources()
+  }, 30_000)
+})
+onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
 </script>
 
 <template>
@@ -139,7 +253,8 @@ onMounted(loadAll)
             <li v-for="s in brief.best_sources" :key="s.name" class="dw-item">
               <span class="dw-rank">★</span>
               <div class="dw-main">
-                <a :href="s.url" target="_blank" class="dw-title dw-link">{{ s.name }}</a>
+                <a v-if="isSafeExternalUrl(s.url)" :href="s.url" target="_blank" rel="noopener noreferrer" class="dw-title dw-link">{{ s.name }}</a>
+                <span v-else class="dw-title">{{ s.name }}</span>
                 <span class="dw-sub">{{ s.category }}</span>
               </div>
               <div class="dw-meta">
@@ -163,7 +278,8 @@ onMounted(loadAll)
           <li v-for="s in radar.sources.slice(0, 5)" :key="s.name" class="dw-item">
             <span class="dw-rank">{{ s.recommendation === 'DISCOVER' ? '★' : '·' }}</span>
             <div class="dw-main">
-              <a :href="s.url" target="_blank" class="dw-title dw-link">{{ s.name }}</a>
+              <a v-if="isSafeExternalUrl(s.url)" :href="s.url" target="_blank" rel="noopener noreferrer" class="dw-title dw-link">{{ s.name }}</a>
+              <span v-else class="dw-title">{{ s.name }}</span>
               <span class="dw-sub">
                 {{ s.category }} · {{ s.entry_barrier }} barrera · {{ s.payment_method }}
               </span>
@@ -187,13 +303,59 @@ onMounted(loadAll)
         </div>
       </div>
 
+      <section v-if="bank?.items.length" class="dw-deliver">
+        <span class="dw-deliver-label">Todos los trabajos · {{ bank.items.length }} registrados</span>
+        <div class="flex flex-wrap gap-2">
+          <input v-model="taskQuery" aria-label="Buscar trabajos" placeholder="Buscar título o descripción" class="rounded border border-border bg-background px-2 py-1 text-xs" />
+          <select v-model="taskSource" aria-label="Filtrar por fuente" class="rounded border border-border bg-background px-2 py-1 text-xs"><option value="">Todas las fuentes</option><option v-for="source in taskSources" :key="source" :value="source">{{ source }}</option></select>
+          <select v-model="taskStatus" aria-label="Filtrar por estado" class="rounded border border-border bg-background px-2 py-1 text-xs"><option value="">Todos los estados</option><option v-for="status in [...new Set(bank.items.map((entry) => entry.status))]" :key="status" :value="status">{{ status }}</option></select>
+        </div>
+        <p v-if="!filteredWorkItems.length" class="dw-sub">No hay trabajos que coincidan con estos filtros.</p>
+        <article v-for="item in filteredWorkItems" :key="item.id" class="dw-deliver-item">
+          <div class="dw-deliver-main">
+            <span class="dw-title">{{ item.title }}</span>
+            <span class="dw-sub">{{ item.platform }} · {{ item.category }} · {{ item.reward ? `${item.reward} anunciados (moneda no registrada)` : 'recompensa desconocida' }}</span>
+            <span class="dw-sub">{{ item.status }} · acceso: {{ item.access_status }}<template v-if="item.access_requirement"> · {{ item.access_requirement }}</template></span>
+          </div>
+          <button class="dw-btn" @click="openTask(item.id)">Abrir detalle ↗</button>
+        </article>
+      </section>
+
+      <section class="dw-radar-block">
+        <div class="dw-radar-head">
+        <span class="dw-deliver-label">Fuentes descubiertas · {{ sourceCandidateTotal }}</span>
+          <div class="dw-actions"><span class="dw-sub">La aprobación habilita solo metadatos; no prueba pagos ni conecta tareas.</span><button class="dw-btn" :disabled="discoveringSources" @click="discoverSourcesNow">{{ discoveringSources ? 'Buscando…' : 'Buscar fuentes' }}</button></div>
+        </div>
+        <p v-if="sourceFeedsUnsupported.length" class="dw-sub">Feeds no conectados: {{ sourceFeedsUnsupported.join(', ') }}</p>
+        <ul v-if="sourceCandidates.length" class="dw-list">
+          <li v-for="source in sourceCandidates.slice(0, 10)" :key="source.id" class="dw-item">
+            <div class="dw-main">
+              <a v-if="isSafeExternalUrl(source.source_url)" :href="source.source_url" target="_blank" rel="noopener noreferrer" class="dw-title dw-link">{{ source.name }}</a>
+              <span v-else class="dw-title">{{ source.name }}</span>
+              <span class="dw-sub">{{ source.id }} · {{ source.profile?.adapter_type || 'protocolo sin detectar' }}</span>
+              <span class="dw-sub">Descubierta: {{ source.discovered_at }} · Sondeo: {{ source.profile?.probed_at || 'sin sondear' }}</span>
+              <span v-if="source.last_error" class="dw-sub">Último error: {{ source.last_error }}</span>
+              <details v-if="source.profile || source.verification_evidence?.length" class="dw-sub">
+                <summary>Ver protocolo y evidencia</summary>
+                <span v-if="source.profile?.capabilities?.length">Capacidades declaradas: {{ source.profile.capabilities.join(', ') }}</span>
+                <span v-for="evidence in source.profile?.evidence || []" :key="`${evidence.kind}-${evidence.url}`" class="block">{{ evidence.kind || 'Evidencia' }}: {{ evidence.url }}</span>
+              <span v-for="evidence in source.verification_evidence" :key="evidence" class="block">Referencia declarada para revisión: {{ evidence }}</span>
+              </details>
+              <button v-if="!source.profile" class="dw-btn mt-2" @click="probeSource(source.id)">Sondear metadatos</button>
+            </div>
+            <div class="dw-meta"><span class="dw-sub">{{ sourceLifecycleLabel(source.lifecycle) }}</span></div>
+          </li>
+        </ul>
+        <p v-else class="dw-sub">No hay fuentes candidatas registradas. Estado: vacío o consulta no disponible.</p>
+      </section>
+
       <!-- Delivery queue -->
       <div v-if="deliveryQueue.length" class="dw-deliver">
         <span class="dw-deliver-label">Listos para entregar</span>
         <div v-for="d in deliveryQueue" :key="d.id" class="dw-deliver-item">
           <div class="dw-deliver-main">
             <span class="dw-title">{{ d.title }}</span>
-            <span class="dw-sub">{{ d.platform }} · ${{ Math.round(d.reward) }}</span>
+            <span class="dw-sub">{{ d.platform }} · {{ d.reward ? `${d.reward} anunciados (moneda no registrada)` : 'recompensa desconocida' }}</span>
             <span v-if="d.payout_method" class="dw-payout">{{ d.payout_method }}</span>
           </div>
           <div class="dw-deliver-actions">
@@ -209,7 +371,7 @@ onMounted(loadAll)
               class="dw-btn dw-btn-success"
               @click="handleApprove(d.id)"
             >
-              Entregado
+              Ya lo envié
             </button>
             <span v-else class="dw-sub dw-ok">✓ Entregado</span>
           </div>
@@ -255,6 +417,7 @@ onMounted(loadAll)
   flex-direction: column;
   gap: 0.75rem;
 }
+
 .dw-header {
   display: flex;
   align-items: center;

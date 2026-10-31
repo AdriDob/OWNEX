@@ -80,9 +80,7 @@ class ConfidenceEngine:
         for probe in result.probes:
             if probe.timing_anomaly_ms > 2000:
                 signals_found += 1
-                reasoning.append(
-                    f"Timing anomaly: {probe.timing_anomaly_ms:.0f}ms vs baseline (sugiere SQLi time-based)"
-                )
+                reasoning.append(f"Timing anomaly: {probe.timing_anomaly_ms:.0f}ms vs baseline (sugiere SQLi time-based)")
                 break
 
         # ── Payload reflection ─────────────────────────────────────
@@ -99,10 +97,7 @@ class ConfidenceEngine:
 
         # ── Response size changes ──────────────────────────────────
         size_changes = sum(
-            1
-            for p in result.probes
-            if p.response_size > 0
-            and abs(p.response_size - baseline.response_size) > max(baseline.response_size * 0.3, 100)
+            1 for p in result.probes if p.response_size > 0 and abs(p.response_size - baseline.response_size) > max(baseline.response_size * 0.3, 100)
         )
         if size_changes > 0:
             signals_found += 1

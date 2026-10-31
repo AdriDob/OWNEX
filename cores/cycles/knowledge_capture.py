@@ -59,12 +59,7 @@ class KnowledgeCapture:
         """Extract learning from a confirmed finding with verdicts."""
         session = db.SessionLocal()
         try:
-            verdicts = (
-                session.query(Verdict)
-                .filter(Verdict.hot_path_id == finding.id)
-                .filter(Verdict.status == "confirmed")
-                .all()
-            )
+            verdicts = session.query(Verdict).filter(Verdict.hot_path_id == finding.id).filter(Verdict.status == "confirmed").all()
 
             if not verdicts:
                 return None
@@ -127,11 +122,7 @@ class KnowledgeCapture:
             if not payout.submission_record_id:
                 return None
 
-            submission = (
-                session.query(db.models.SubmissionRecord)
-                .filter(db.models.SubmissionRecord.id == payout.submission_record_id)
-                .first()
-            )
+            submission = session.query(db.models.SubmissionRecord).filter(db.models.SubmissionRecord.id == payout.submission_record_id).first()
             if not submission or not submission.report_id:
                 return None
 
@@ -219,9 +210,7 @@ class KnowledgeCapture:
             quality = 0.5
             if v.evidence_links:
                 try:
-                    ev_count = len(
-                        json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links
-                    )
+                    ev_count = len(json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links)
                     quality += min(0.3, ev_count * 0.1)
                 except Exception:
                     pass

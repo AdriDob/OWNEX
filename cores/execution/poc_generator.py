@@ -33,9 +33,7 @@ class PoCGenerator:
         scenarios: list[TestScenario] = []
         for hp in hot_paths:
             hp_id = hp.get("id") or hp.get("hot_path_id") or str(id(hp))
-            template_name = (
-                hp.get("template", {}).get("name", "unknown") if isinstance(hp.get("template"), dict) else "unknown"
-            )
+            template_name = hp.get("template", {}).get("name", "unknown") if isinstance(hp.get("template"), dict) else "unknown"
             for node_id in hp.get("nodes", []):
                 details = endpoint_details_map.get(node_id, {})
                 signals = endpoint_signals_map.get(node_id, {})

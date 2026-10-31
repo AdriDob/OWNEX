@@ -124,12 +124,7 @@ class EvidenceStore:
     def get_verdicts_by_status(self, status: str) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
-            rows = (
-                session.query(models.Verdict)
-                .filter(models.Verdict.status == status)
-                .order_by(models.Verdict.created_at.desc())
-                .all()
-            )
+            rows = session.query(models.Verdict).filter(models.Verdict.status == status).order_by(models.Verdict.created_at.desc()).all()
             return [
                 {
                     "id": v.id,

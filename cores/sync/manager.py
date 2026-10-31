@@ -133,10 +133,7 @@ class SyncManager:
         self._save()
 
     def get_devices(self) -> list[dict[str, Any]]:
-        return [
-            {"device_id": did, "last_sync": d.get("last_sync", 0), "info": d.get("info", {})}
-            for did, d in self._devices.items()
-        ]
+        return [{"device_id": did, "last_sync": d.get("last_sync", 0), "info": d.get("info", {})} for did, d in self._devices.items()]
 
     def _build_global_state(self, device_id: str) -> dict[str, Any]:
         """Build the response with global state + device-specific state."""

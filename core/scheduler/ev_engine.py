@@ -174,9 +174,7 @@ class EVCalculator:
             rationale=rationale,
         )
 
-    def _make_recommendation(
-        self, ev_per_hour: float, opportunity_cost: float, confidence: float, inp: EVInput
-    ) -> tuple[str, str]:
+    def _make_recommendation(self, ev_per_hour: float, opportunity_cost: float, confidence: float, inp: EVInput) -> tuple[str, str]:
         """Determina la recomendación basada en EV y confianza."""
 
         ratio = ev_per_hour / max(opportunity_cost, 0.01) if opportunity_cost > 0 else float("inf")
@@ -185,14 +183,10 @@ class EVCalculator:
             return "drop", f"EV negativo ({ev_per_hour:.2f}/h). No vale la pena."
 
         if ratio >= self.THRESHOLDS["do_now"] and confidence >= 0.7:
-            return "do_now", (
-                f"EV alto ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Ejecutar ya."
-            )
+            return "do_now", (f"EV alto ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Ejecutar ya.")
 
         if ratio >= self.THRESHOLDS["schedule"] and confidence >= 0.5:
-            return "schedule", (
-                f"EV positivo ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Agendar."
-            )
+            return "schedule", (f"EV positivo ({ev_per_hour:.2f}/h, {ratio:.1f}x alternativa) con confianza {confidence:.0%}. Agendar.")
 
         if ratio >= self.THRESHOLDS["delegate"] and confidence >= 0.3:
             return "delegate", (f"EV bajo ({ev_per_hour:.2f}/h) pero positivo. Considerar delegar o automatizar.")

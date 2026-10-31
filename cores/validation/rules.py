@@ -158,9 +158,7 @@ class ValidationRuleSet:
 
     def rule_privilege_boundary_break(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         all_status_match = all(r.status_match for r in results)
         max_diff = max(r.body_diff_ratio for r in results)
         all_have_sensitive = all(len(r.sensitive_fields_detected) > 0 for r in results)
@@ -192,9 +190,7 @@ class ValidationRuleSet:
 
     def rule_auth_bypass(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         all_probe_ok = all(r.probe.status_code == 200 for r in results)
         all_baseline_ok = all(r.baseline.status_code == 200 for r in results)
         max_diff = max(r.body_diff_ratio for r in results)
@@ -227,9 +223,7 @@ class ValidationRuleSet:
 
     def rule_sensitive_data_exposure(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         for result in results:
             critical = [f for f in result.sensitive_fields_detected if f in CRITICAL_SENSITIVE_FIELDS]
             non_critical = [f for f in result.sensitive_fields_detected if f in NON_CRITICAL_SENSITIVE_FIELDS]
@@ -250,9 +244,7 @@ class ValidationRuleSet:
 
     def rule_cross_session_mismatch(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         all_status_match = all(r.status_match for r in results)
         all_consistent = all(r.consistent for r in results)
         min_diff = min(r.body_diff_ratio for r in results)
@@ -286,17 +278,13 @@ class ValidationRuleSet:
 
     def rule_timing_based_injection(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         delays: list[int] = []
         for r in results:
             if r.baseline.elapsed_ms > 0:
                 delays.append(r.probe.elapsed_ms - r.baseline.elapsed_ms)
         if not delays:
-            return RuleResult(
-                passed=False, reason="No timing data available.", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="No timing data available.", evidence=[], confidence_contribution=0.0)
         consistent_delays = [d for d in delays if d > TIMING_ANOMALY_THRESHOLD_MS]
         if len(consistent_delays) >= 2:
             avg_delay = sum(consistent_delays) / len(consistent_delays)
@@ -315,9 +303,7 @@ class ValidationRuleSet:
 
     def rule_content_type_aware_diff(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         for r in results:
             body = r.probe.body.strip()
             if not body:
@@ -373,15 +359,11 @@ class ValidationRuleSet:
                         evidence=[f"oob_url={m}" for m in matches[:3]],
                         confidence_contribution=0.30,
                     )
-        return RuleResult(
-            passed=False, reason="No OOB interaction markers detected", evidence=[], confidence_contribution=0.0
-        )
+        return RuleResult(passed=False, reason="No OOB interaction markers detected", evidence=[], confidence_contribution=0.0)
 
     def rule_multi_step_chain(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
-            return RuleResult(
-                passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0
-            )
+            return RuleResult(passed=False, reason="Insufficient attempts (< 3).", evidence=[], confidence_contribution=0.0)
         chain_signals = []
         for r in results:
             body_lower = r.probe.body.lower()

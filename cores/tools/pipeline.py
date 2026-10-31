@@ -107,9 +107,7 @@ class CorrelationEngine:
 
             # Determine result type
             types = set(r.result_type for r in target_results)
-            result_type = (
-                "vulnerability" if "vulnerability" in types else ("endpoint" if "endpoint" in types else "subdomain")
-            )
+            result_type = "vulnerability" if "vulnerability" in types else ("endpoint" if "endpoint" in types else "subdomain")
 
             # Build evidence chain
             evidence_chain = {
@@ -293,9 +291,7 @@ class UnifiedScanner:
         if self._mutation and self._deep_scan:
             logger.info("Phase 7: Mutation — generating mutation variants")
             try:
-                candidate_urls = [
-                    r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target
-                ]
+                candidate_urls = [r.target for r in live_endpoints + linkfinder_results + ffuf_results if "?" in r.target]
                 mutation_plan = self._mutation.plan(url=candidate_urls[0] if candidate_urls else domain)
                 mutation_metadata = self._mutation.enrich_evidence(mutation_plan)
                 all_results.append(
@@ -327,12 +323,8 @@ class UnifiedScanner:
             limit = 100 if self._deep_scan else 20
             xss_candidates = xss_candidates[:limit]
             if xss_candidates:
-                logger.info(
-                    "Phase 8: Dalfox — deep scanning %d URL candidates (deep=%s)", len(xss_candidates), self._deep_scan
-                )
-                dalfox_results = self._dalfox.scan_urls(
-                    xss_candidates, deep=self._deep_scan, mutation_plan=mutation_plan
-                )
+                logger.info("Phase 8: Dalfox — deep scanning %d URL candidates (deep=%s)", len(xss_candidates), self._deep_scan)
+                dalfox_results = self._dalfox.scan_urls(xss_candidates, deep=self._deep_scan, mutation_plan=mutation_plan)
                 all_results.extend(dalfox_results)
                 logger.info("  Dalfox returned %d findings", len(dalfox_results))
             else:
@@ -468,9 +460,7 @@ class UnifiedScanner:
             except Exception as exc:
                 logger.warning("  Browser Use skipped: %s", exc)
         else:
-            logger.info(
-                "  Browser Use skipped (deep=%s, available=%s)", self._deep_scan, self._browser_use.is_available()
-            )
+            logger.info("  Browser Use skipped (deep=%s, available=%s)", self._deep_scan, self._browser_use.is_available())
 
         # Phase 15: Garak — LLM security testing (deep mode only, if LLM endpoint is present)
         garak_results = []

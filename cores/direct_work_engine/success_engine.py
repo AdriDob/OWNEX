@@ -329,9 +329,7 @@ class SuccessRateEngine:
         prediction = self._predict_acceptance(opportunity, category)
         approaches = self._multi_pass_engineering(opportunity, category, prediction.probability)
         best = max(approaches, key=lambda a: (a.acceptance_boost, -a.effort_hours))
-        prediction.probability_after_full_plan = self._after_full_plan(
-            category, prediction.probability, best.acceptance_boost
-        )
+        prediction.probability_after_full_plan = self._after_full_plan(category, prediction.probability, best.acceptance_boost)
         review = self._internal_review(opportunity, prediction.probability)
         quality = self._quality_checklist(prediction.probability, review)
         verification = self._verification_steps(opportunity)
@@ -382,11 +380,7 @@ class SuccessRateEngine:
         if opp.get("deadline"):
             intel.edge_cases_identified.append("deadline present — reserve review time before it")
         if opp.get("hidden_requirements"):
-            intel.hidden_requirements = (
-                list(opp["hidden_requirements"])
-                if isinstance(opp["hidden_requirements"], list)
-                else [str(opp["hidden_requirements"])]
-            )
+            intel.hidden_requirements = list(opp["hidden_requirements"]) if isinstance(opp["hidden_requirements"], list) else [str(opp["hidden_requirements"])]
 
         if not intel.evaluation_criteria:
             intel.evaluation_criteria.append("read the platform's scoring system / evaluation criteria page")
@@ -426,15 +420,11 @@ class SuccessRateEngine:
             factors.append({"name": "previous_similar_work", "value": round(float(history), 3)})
 
         prob = max(0.02, min(0.97, prob))
-        confidence = (
-            "high" if 8 <= competition <= 20 and completeness > 0.6 else "medium" if completeness > 0.3 else "low"
-        )
+        confidence = "high" if 8 <= competition <= 20 and completeness > 0.6 else "medium" if completeness > 0.3 else "low"
 
         improvements: list[str] = []
         if prob < 0.4:
-            improvements.append(
-                "Improve approach BEFORE implementation: raise completeness, add evidence plan, reduce scope risk"
-            )
+            improvements.append("Improve approach BEFORE implementation: raise completeness, add evidence plan, reduce scope risk")
             verdict = "improve_first"
         elif prob < 0.6:
             improvements.append("Solid approach, but strengthen the weakest factor (see factors) before starting")

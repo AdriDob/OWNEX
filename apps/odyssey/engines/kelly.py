@@ -30,9 +30,7 @@ class KellyEngine:
         self._provider = KellyProvider()
         self.default_fraction = default_fraction
 
-    async def recommend(
-        self, odds: float, win_prob: float, bankroll: float, fraction: float | None = None
-    ) -> KellyRecommendation:
+    async def recommend(self, odds: float, win_prob: float, bankroll: float, fraction: float | None = None) -> KellyRecommendation:
         result = self._provider.calculate(odds, win_prob, bankroll, fraction or self.default_fraction)
 
         ev = result["ev"]
@@ -62,9 +60,7 @@ class KellyEngine:
             risk_label=risk,
         )
 
-    async def monte_carlo_bankroll(
-        self, bankroll: float, edge: float, odds: float, fraction: float, num_bets: int = 1000, simulations: int = 1000
-    ) -> dict:
+    async def monte_carlo_bankroll(self, bankroll: float, edge: float, odds: float, fraction: float, num_bets: int = 1000, simulations: int = 1000) -> dict:
         """Simulate bankroll growth over N bets."""
         win_prob = edge * odds  # approximate
         stake_pct = fraction * ((edge * (odds - 1) - (1 - win_prob)) / (odds - 1))

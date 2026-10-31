@@ -95,9 +95,7 @@ def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> dic
     }
 
 
-def _call_ollama(
-    prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b"
-) -> str | None:
+def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b") -> str | None:
     """Migrated to OAR — gains fallback chain, circuit breaker, quota tracking.
 
     Falls back to direct Ollama call if OAR is not initialized.
@@ -117,9 +115,7 @@ def _call_ollama(
     return _direct_ollama_call(prompt, host=host, model=model)
 
 
-def _direct_ollama_call(
-    prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b"
-) -> str | None:
+def _direct_ollama_call(prompt: str, host: str = "http://localhost:11434", model: str = "freehuntx/qwen3-coder:8b") -> str | None:
     """Original direct Ollama call — fallback when OAR unavailable."""
     import urllib.error
     import urllib.request

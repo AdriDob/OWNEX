@@ -146,9 +146,7 @@ class PromptEvolutionEngine:
                 "generation": self._generation,
                 "best_fitness": best.fitness,
                 "avg_fitness": sum(g.fitness for g in self._population) / len(self._population),
-                "best_prompt": best.prompt_template[:200] + "..."
-                if len(best.prompt_template) > 200
-                else best.prompt_template,
+                "best_prompt": best.prompt_template[:200] + "..." if len(best.prompt_template) > 200 else best.prompt_template,
             }
 
     def _tournament_select(self, k: int = 3) -> PromptGenome:

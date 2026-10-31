@@ -252,13 +252,13 @@ async def get_zero_barrier_platforms() -> dict[str, Any]:
             "connectors": ["gitcoin", "github"],
         },
         "data_annotation": {
-            "name": "Data Annotation",
-            "platforms": ["Labelbox", "Scale AI", "Amazon Mechanical Turk", "Figure Eight"],
-            "description": "Annotate data for AI training and get paid",
-            "avg_reward": 10.0,
-            "success_rate": 0.85,
-            "skills": ["data labeling", "annotation", "attention to detail"],
-            "connectors": ["mechanical_turk"],
+            "name": "Data Annotation & AI Training",
+            "platforms": ["Labelbox", "Scale AI", "Amazon Mechanical Turk", "Figure Eight", "Outlier", "Mindrift", "RemoExperts", "OneForma"],
+            "description": "Annotate data / AI training tasks and get paid",
+            "avg_reward": 15.0,
+            "success_rate": 0.75,
+            "skills": ["data labeling", "annotation", "attention to detail", "code assessment", "project execution"],
+            "connectors": ["mechanical_turk", "outlier", "mindrift", "remoexperts", "oneforma"],
         },
     }
 

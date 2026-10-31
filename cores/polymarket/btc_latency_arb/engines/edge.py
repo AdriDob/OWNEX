@@ -29,9 +29,7 @@ class Decision:
     reason: str | None = None
 
 
-def compute_edge(
-    model_up: float | None, model_down: float | None, market_yes: float | None, market_no: float | None
-) -> EdgeResult:
+def compute_edge(model_up: float | None, model_down: float | None, market_yes: float | None, market_no: float | None) -> EdgeResult:
     """Compute edge = model_prob - market_implied_prob."""
     if market_yes is None or market_no is None:
         return EdgeResult(

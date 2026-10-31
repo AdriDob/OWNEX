@@ -106,9 +106,7 @@ class AccountHealth:
             days = (now - last_dt).days
             score = a.get("health_score", 100)
             if score < 50:
-                alerts.append(
-                    {"platform": a["platform"], "level": "riesgo alto", "why": f"Health {score}% — pausar y revisar."}
-                )
+                alerts.append({"platform": a["platform"], "level": "riesgo alto", "why": f"Health {score}% — pausar y revisar."})
             elif score < 80:
                 alerts.append(
                     {

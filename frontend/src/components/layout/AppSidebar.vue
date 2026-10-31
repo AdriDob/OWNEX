@@ -42,11 +42,10 @@ import { useRoute, useRouter } from 'vue-router'
 import type { BankAccount, PlatformStatus } from '@/lib/api'
 import { api } from '@/lib/api'
 import { useHuntStore } from '@/stores/hunt'
-import { usePrimaryMode } from '@/composables/usePrimaryMode'
-import PrimaryModeSelector from '@/components/PrimaryModeSelector.vue'
+import { useGuidedMode } from '@/composables/useGuidedMode'
 
 const hunt = useHuntStore()
-const { currentMode, isSectionVisible } = usePrimaryMode()
+const { currentMode, isSectionVisible, setMode } = useGuidedMode()
 const emit = defineEmits<{
   toggleCopilot: []
 }>()
@@ -299,10 +298,18 @@ function formatCompact(n: number) {
       </div>
     </Transition>
 
-    <!-- Primary Mode Selector -->
+    <!-- Mode selector -->
     <Transition name="fade">
       <div v-if="!collapsed" class="border-b border-border/30 px-3 py-2.5">
-        <PrimaryModeSelector />
+        <label class="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            :checked="currentMode === 'autonomous'"
+            @change="setMode(currentMode.value === 'autonomous' ? 'guided' : 'autonomous')"
+            class="rounded border-border bg-background px-2 py-0.5"
+          />
+          <span class="text-muted-foreground">{{ currentMode === 'autonomous' ? 'Autónomo' : 'Guiado' }}</span>
+        </label>
       </div>
     </Transition>
 

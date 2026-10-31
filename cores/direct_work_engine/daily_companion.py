@@ -55,9 +55,7 @@ def daily_companion(
     setup = _safe(_setup_progress, {"complete_pct": 0, "complete": False, "next_task": None})
     briefing = _daily_briefing(system, personal, market, focus)
     projection = _safe(
-        lambda: _projection(
-            work_income_usd_per_month, savings_usd_per_month, start_capital_usd, annual_return_rate, target_monthly_usd
-        ),
+        lambda: _projection(work_income_usd_per_month, savings_usd_per_month, start_capital_usd, annual_return_rate, target_monthly_usd),
         {"crossing_months": None, "months_to_target": None, "note": "Configurá ingreso/ahorro para ver tiempos."},
     )
 

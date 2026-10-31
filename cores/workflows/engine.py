@@ -62,10 +62,7 @@ class WorkflowEngine:
                 data = yaml.safe_load(f)
             if not data:
                 return None
-            steps = [
-                WorkflowStep(id=s["id"], type=StepType(s["type"]), params=s.get("params", {}))
-                for s in (data.get("steps") or [])
-            ]
+            steps = [WorkflowStep(id=s["id"], type=StepType(s["type"]), params=s.get("params", {})) for s in (data.get("steps") or [])]
             return WorkflowTemplate(
                 name=data.get("name", file),
                 description=data.get("description", ""),

@@ -76,9 +76,7 @@ class OrionContext:
 
             session = self._db()
             targets = session.query(Target).filter(Target.status.in_(["active", "scanning"])).limit(10).all()
-            result = [
-                {"id": t.id, "name": t.name, "domain": getattr(t, "domain", ""), "status": t.status} for t in targets
-            ]
+            result = [{"id": t.id, "name": t.name, "domain": getattr(t, "domain", ""), "status": t.status} for t in targets]
             session.close()
             return result
         except Exception as exc:
@@ -108,10 +106,7 @@ class OrionContext:
 
             store = get_memory_store()
             entries = store.query(namespace="global", limit=5)
-            return [
-                {"key": e.get("key", ""), "content": e.get("content", "")[:200], "priority": e.get("priority", 0)}
-                for e in entries
-            ]
+            return [{"key": e.get("key", ""), "content": e.get("content", "")[:200], "priority": e.get("priority", 0)} for e in entries]
         except Exception as exc:
             logger.debug("Memory unavailable: %s", exc)
             return []
@@ -155,8 +150,7 @@ class OrionContext:
         f = ctx.get("findings", {})
         if f:
             lines.append(
-                f"Findings detail: {f.get('total', 0)} total, {f.get('confirmed', 0)} confirmed, "
-                f"{f.get('pending', 0)} pending, {f.get('rejected', 0)} rejected"
+                f"Findings detail: {f.get('total', 0)} total, {f.get('confirmed', 0)} confirmed, {f.get('pending', 0)} pending, {f.get('rejected', 0)} rejected"
             )
             lines.append("")
 

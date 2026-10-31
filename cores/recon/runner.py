@@ -325,9 +325,7 @@ class ReconRunner:
 
         if endpoint_entries and mode.upper() in {"DEEP", "API"}:
             targets_file = self.recon_dir / "nuclei_targets.txt"
-            urls = [
-                f"{ep.get('url', ep.get('path', ''))}" for ep in endpoint_entries if ep.get("url") or ep.get("path")
-            ]
+            urls = [f"{ep.get('url', ep.get('path', ''))}" for ep in endpoint_entries if ep.get("url") or ep.get("path")]
             if urls:
                 targets_file.write_text("\n".join(urls))
                 nuclei_path = await self._safe_run_tool(

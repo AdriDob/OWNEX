@@ -191,9 +191,7 @@ class WealthAssistant:
         except Exception as exc:
             logger.error("Error saving wealth data: %s", exc)
 
-    def add_income(
-        self, source: IncomeSource, amount: Decimal, currency: str, platform: str, description: str, account_id: str
-    ) -> IncomeEntry:
+    def add_income(self, source: IncomeSource, amount: Decimal, currency: str, platform: str, description: str, account_id: str) -> IncomeEntry:
         """Agregar ingreso."""
         entry_id = f"income_{datetime.now().timestamp()}"
 
@@ -213,9 +211,7 @@ class WealthAssistant:
         self._generate_recommendations()
         return entry
 
-    def add_expense(
-        self, category: ExpenseCategory, amount: Decimal, currency: str, description: str, is_deductible: bool = False
-    ) -> ExpenseEntry:
+    def add_expense(self, category: ExpenseCategory, amount: Decimal, currency: str, description: str, is_deductible: bool = False) -> ExpenseEntry:
         """Agregar gasto."""
         entry_id = f"expense_{datetime.now().timestamp()}"
 
@@ -234,9 +230,7 @@ class WealthAssistant:
         self._generate_recommendations()
         return entry
 
-    def create_goal(
-        self, title: str, target_amount: Decimal, currency: str, deadline: datetime, category: str
-    ) -> FinancialGoal:
+    def create_goal(self, title: str, target_amount: Decimal, currency: str, deadline: datetime, category: str) -> FinancialGoal:
         """Crear meta financiera."""
         goal_id = f"goal_{datetime.now().timestamp()}"
 
@@ -270,14 +264,10 @@ class WealthAssistant:
     def get_monthly_summary(self, year: int, month: int) -> dict[str, Any]:
         """Obtener resumen mensual."""
         # Filtrar ingresos del mes
-        month_income = [
-            entry for entry in self.income.values() if entry.date.year == year and entry.date.month == month
-        ]
+        month_income = [entry for entry in self.income.values() if entry.date.year == year and entry.date.month == month]
 
         # Filtrar gastos del mes
-        month_expenses = [
-            entry for entry in self.expenses.values() if entry.date.year == year and entry.date.month == month
-        ]
+        month_expenses = [entry for entry in self.expenses.values() if entry.date.year == year and entry.date.month == month]
 
         total_income = sum(entry.amount for entry in month_income)
         total_expenses = sum(entry.amount for entry in month_expenses)
@@ -393,28 +383,16 @@ class WealthAssistant:
     def get_financial_health(self) -> dict[str, Any]:
         """Obtener salud financiera general."""
         current_date = datetime.now()
-        current_month_income = [
-            entry
-            for entry in self.income.values()
-            if entry.date.month == current_date.month and entry.date.year == current_date.year
-        ]
+        current_month_income = [entry for entry in self.income.values() if entry.date.month == current_date.month and entry.date.year == current_date.year]
 
-        current_month_expenses = [
-            entry
-            for entry in self.expenses.values()
-            if entry.date.month == current_date.month and entry.date.year == current_date.year
-        ]
+        current_month_expenses = [entry for entry in self.expenses.values() if entry.date.month == current_date.month and entry.date.year == current_date.year]
 
         monthly_income = sum(entry.amount for entry in current_month_income)
         monthly_expenses = sum(entry.amount for entry in current_month_expenses)
         savings_rate = (monthly_income - monthly_expenses) / monthly_income if monthly_income > 0 else Decimal("0")
 
         # Metas próximas a vencer
-        upcoming_goals = [
-            goal
-            for goal in self.goals.values()
-            if goal.deadline > current_date and goal.deadline < current_date + timedelta(days=30)
-        ]
+        upcoming_goals = [goal for goal in self.goals.values() if goal.deadline > current_date and goal.deadline < current_date + timedelta(days=30)]
 
         return {
             "monthly_income": float(monthly_income),

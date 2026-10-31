@@ -123,9 +123,7 @@ class SelfImprovementEngine:
             "skills": task.skills,
         }
 
-    def run_batch(
-        self, count: int = 3, *, skill_gaps: list[str] | None = None, reflections: list[dict[str, Any]] | None = None
-    ) -> list[dict[str, Any]]:
+    def run_batch(self, count: int = 3, *, skill_gaps: list[str] | None = None, reflections: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
         """Generate `count` tasks once, then run a full loop iteration per task."""
         history = self.experiences.all()
         tasks = self.generator.generate_batch(

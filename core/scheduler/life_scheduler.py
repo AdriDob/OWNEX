@@ -248,12 +248,7 @@ class LifeScheduler:
             snapshot = self._health_center.run_all()
             if snapshot.status == "red":
                 essential_prefixes = ("health_", "maint_")
-                return any(
-                    job_type.value.startswith(prefix)
-                    for job_type, job_def in self._jobs.items()
-                    if job_def.enabled
-                    for prefix in essential_prefixes
-                )
+                return any(job_type.value.startswith(prefix) for job_type, job_def in self._jobs.items() if job_def.enabled for prefix in essential_prefixes)
         except Exception as e:
             logger.warning("[LifeScheduler] Health check failed, allowing all jobs: %s", e)
         return True
@@ -391,9 +386,7 @@ class LifeScheduler:
                     "interval": jd.interval_seconds,
                     "priority": jd.priority,
                     "last_run_ago": now - self._last_run.get(jt, 0) if jt in self._last_run else None,
-                    "next_run_in": max(0, jd.interval_seconds - (now - self._last_run.get(jt, 0)))
-                    if jt in self._last_run
-                    else 0,
+                    "next_run_in": max(0, jd.interval_seconds - (now - self._last_run.get(jt, 0))) if jt in self._last_run else 0,
                     "stats": self._job_stats.get(jt, {}),
                     "tags": jd.tags,
                     "depends_on": [d.value for d in jd.depends_on],

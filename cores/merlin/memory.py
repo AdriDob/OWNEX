@@ -104,9 +104,7 @@ class MerlinMemory:
         except Exception as e:
             logger.error(f"Failed to save memories: {e}")
 
-    async def save_conversation(
-        self, question: str, response: str, timestamp: datetime, tags: list[str] | None = None
-    ) -> str:
+    async def save_conversation(self, question: str, response: str, timestamp: datetime, tags: list[str] | None = None) -> str:
         """Save a conversation to memory."""
         entry_id = f"conv_{timestamp.timestamp()}"
 
@@ -213,11 +211,7 @@ class MerlinMemory:
         results = []
 
         for entry in self._memories.values():
-            if (
-                query_lower in entry.title.lower()
-                or query_lower in entry.content.lower()
-                or any(query_lower in tag.lower() for tag in entry.tags)
-            ):
+            if query_lower in entry.title.lower() or query_lower in entry.content.lower() or any(query_lower in tag.lower() for tag in entry.tags):
                 results.append(entry)
 
         # Sort by access count and timestamp
@@ -228,11 +222,7 @@ class MerlinMemory:
     async def cleanup_old_memories(self, retention_days: int = 90) -> int:
         """Clean up old memories beyond retention period."""
         cutoff_date = datetime.now() - timedelta(days=retention_days)
-        to_remove = [
-            entry_id
-            for entry_id, entry in self._memories.items()
-            if entry.timestamp < cutoff_date and entry.type != MemoryType.PATTERN
-        ]
+        to_remove = [entry_id for entry_id, entry in self._memories.items() if entry.timestamp < cutoff_date and entry.type != MemoryType.PATTERN]
 
         for entry_id in to_remove:
             del self._memories[entry_id]
@@ -251,9 +241,7 @@ class MerlinMemory:
         """Get memories by type."""
         return [m for m in self._memories.values() if m.type == memory_type]
 
-    async def update_memory(
-        self, entry_id: str, title: str | None = None, content: str | None = None, tags: list[str] | None = None
-    ) -> bool:
+    async def update_memory(self, entry_id: str, title: str | None = None, content: str | None = None, tags: list[str] | None = None) -> bool:
         """Update a memory entry."""
         entry = self._memories.get(entry_id)
         if not entry:

@@ -344,9 +344,7 @@ class AdvancedVoiceCommands:
         from cores.obsidian.integration import get_obsidian_integration
 
         obsidian = get_obsidian_integration()
-        content = (
-            text.replace("nota en obsidian", "").replace("guardar en obsidian", "").replace("obsidian", "").strip()
-        )
+        content = text.replace("nota en obsidian", "").replace("guardar en obsidian", "").replace("obsidian", "").strip()
 
         obsidian.create_merlin_note(
             title="Voice Note",

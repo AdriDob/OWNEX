@@ -112,7 +112,6 @@ def _compute_volatility_adjusted_score(
     if len(returns_series) < 2:
         return base_score
 
-    mean_return = statistics.mean(returns_series)
     stdev = statistics.stdev(returns_series) if len(returns_series) > 1 else 0
 
     # Annualize (assuming monthly returns)
@@ -193,14 +192,13 @@ def MonteCarloProjection(
     Returns percentile-based projections for portfolio value.
     """
 
-    n_assets = len(current_portfolio)
     assets = list(current_portfolio.keys())
 
     # Initialize simulation results
     final_values: list[float] = []
 
     # Convert to monthly returns and volatilities
-    monthly_returns = {a: expected_gets.get(a, 0.0) / 12 for a in assets}
+    monthly_returns = {a: expected_returns.get(a, 0.0) / 12 for a in assets}
     monthly_vols = {a: volatilities.get(a, 0.0) / (12**0.5) for a in assets}
 
     for _ in range(simulations):
@@ -283,8 +281,6 @@ class AdvancedWealthMaximizer:
         if firefly_balances:
             portfolio["firefly"] = sum(firefly_balances.values())
         portfolio["takenos"] = takenos_balance
-        portfolio_total = sum(portfolio.values())
-
         # Advanced adjustments per category
         advanced_results: dict[str, dict[str, Any]] = {}
 
@@ -301,8 +297,12 @@ class AdvancedWealthMaximizer:
         remaining_score = 0.0
         for platform, balance in platform_balances.items():
             base_score = base_results["platform_bounty"]["allocations"][platform]["score"]
-            corr_adjusted = _compute_correlation_adjusted_score(platform, base_score, portfolio, self.correlation_matrix)
-            vol_adjusted = _compute_volatility_adjusted_score(platform, corr_adjusted, historical_returns=[], risk_tolerance=risk_tolerance)
+            corr_adjusted = _compute_correlation_adjusted_score(
+                platform, base_score, portfolio, self.correlation_matrix
+            )
+            vol_adjusted = _compute_volatility_adjusted_score(
+                platform, corr_adjusted, historical_returns=[], risk_tolerance=risk_tolerance
+            )
 
             # Determine action
             if balance > 5000 and vol_adjusted > 0.6:
@@ -321,7 +321,9 @@ class AdvancedWealthMaximizer:
                 "suggested_allocation_pct": round(
                     max(
                         0.05,
-                        vol_adjusted / sum(p["volatility_adjusted_score"] for p in platform_adjusted["allocations"].values()) * 100,
+                        vol_adjusted
+                        / sum(p["volatility_adjusted_score"] for p in platform_adjusted["allocations"].values())
+                        * 100,
                     )
                     if platform_adjusted["allocations"]
                     else 0,
@@ -385,7 +387,9 @@ class AdvancedWealthMaximizer:
                     "suggested_allocation_pct": round(
                         max(
                             0.05,
-                            vol_adjusted / sum(c["volatility_adjusted_score"] for c in crypto_adjusted["allocations"].values()) * 100,
+                            vol_adjusted
+                            / sum(c["volatility_adjusted_score"] for c in crypto_adjusted["allocations"].values())
+                            * 100,
                         )
                         if crypto_adjusted["allocations"]
                         else 0,

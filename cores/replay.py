@@ -84,9 +84,7 @@ def build_replay(target_id: int) -> Replay:
         )
 
         # Endpoints
-        endpoints = (
-            session.query(Endpoint).filter(Endpoint.target_id == target_id).order_by(Endpoint.discovered_at).all()
-        )
+        endpoints = session.query(Endpoint).filter(Endpoint.target_id == target_id).order_by(Endpoint.discovered_at).all()
         for ep in endpoints:
             ep_dict = {
                 "id": ep.id,
@@ -135,11 +133,7 @@ def build_replay(target_id: int) -> Replay:
         verdicts = (
             (
                 session.query(Verdict)
-                .filter(
-                    Verdict.endpoint_id.in_(
-                        session.query(Endpoint.id).filter(Endpoint.target_id == target_id).subquery()
-                    )
-                )
+                .filter(Verdict.endpoint_id.in_(session.query(Endpoint.id).filter(Endpoint.target_id == target_id).subquery()))
                 .order_by(Verdict.created_at)
                 .all()
             )

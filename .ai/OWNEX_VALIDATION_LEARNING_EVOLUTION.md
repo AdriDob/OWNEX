@@ -376,11 +376,7 @@ class LearningEngine:
         for step in result.completed_steps:
             if step.status == "completed" and step.result:
                 # Time-based patterns
-                actual_time = (
-                    (step.completed_at - step.started_at).total_seconds() / 60
-                    if step.completed_at and step.started_at
-                    else 0
-                )
+                actual_time = (step.completed_at - step.started_at).total_seconds() / 60 if step.completed_at and step.started_at else 0
                 if actual_time > 0 and step.estimated_minutes > 0:
                     ratio = actual_time / step.estimated_minutes
                     if ratio < 0.5:
@@ -449,9 +445,7 @@ class LearningEngine:
         pattern_id = f"acceptance:{record.source_type}:{record.platform}"
         pattern = LearnedPattern(
             id=pattern_id,
-            pattern=f"Acceptance rate for {record.platform} ({record.source_type}): {success}/{total} = {success / total:.0%}"
-            if total > 0
-            else "No data yet",
+            pattern=f"Acceptance rate for {record.platform} ({record.source_type}): {success}/{total} = {success / total:.0%}" if total > 0 else "No data yet",
             confidence=min(0.3 + total * 0.05, 0.95),
             source_type=record.source_type,
             cycle=record.cycle,
@@ -512,9 +506,7 @@ class LearningEngine:
             "outcomes": outcomes,
             "by_source_type": by_type,
             "patterns_count": len(self._patterns),
-            "total_earned": sum(
-                self._get_record_reward(opp_id) for opp_id, outcome in outcomes.items() if outcome == "paid"
-            ),
+            "total_earned": sum(self._get_record_reward(opp_id) for opp_id, outcome in outcomes.items() if outcome == "paid"),
         }
 ```
 

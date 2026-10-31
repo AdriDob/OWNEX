@@ -30,9 +30,7 @@ async def run_discovery(max_platforms: int = 50, show_details: bool = False, out
         await engine._research_new_platforms()
 
         # Get top platforms by EV
-        platforms = sorted(engine.discovered_platforms.values(), key=lambda p: p.get("ev_score", 0), reverse=True)[
-            :max_platforms
-        ]
+        platforms = sorted(engine.discovered_platforms.values(), key=lambda p: p.get("ev_score", 0), reverse=True)[:max_platforms]
 
         if output_json:
             print(json.dumps(platforms, indent=2, ensure_ascii=False))
@@ -41,9 +39,7 @@ async def run_discovery(max_platforms: int = 50, show_details: bool = False, out
             for i, p in enumerate(platforms, 1):
                 print(f"{i:3d}. {p.get('title', 'N/A')[:60]}")
                 print(f"      Domain: {p.get('domain', 'N/A')} | EV: ${p.get('ev_score', 0):.2f}/hr")
-                print(
-                    f"      Zero-barrier signals: {p.get('zero_barrier_signals', 0)} | Source: {p.get('source', 'web')}"
-                )
+                print(f"      Zero-barrier signals: {p.get('zero_barrier_signals', 0)} | Source: {p.get('source', 'web')}")
                 print(f"      URL: {p.get('url', 'N/A')}")
                 if show_details:
                     print(f"      Positive: {p.get('positive_signals', 0)} | Negative: {p.get('negative_signals', 0)}")

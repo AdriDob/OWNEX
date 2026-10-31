@@ -60,9 +60,7 @@ class SyncConfig:
 
     @classmethod
     def conservative(cls) -> SyncConfig:
-        return cls(
-            mode=SyncMode.INCREMENTAL, cache_ttl=600, max_retries=5, initial_backoff=30, rate_limit_per_minute=10
-        )
+        return cls(mode=SyncMode.INCREMENTAL, cache_ttl=600, max_retries=5, initial_backoff=30, rate_limit_per_minute=10)
 
 
 @dataclass

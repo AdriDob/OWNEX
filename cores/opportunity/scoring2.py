@@ -101,9 +101,7 @@ def compute_layered_score(
     reasoning.append(f"Execution: {execution_score:.1f}/100 — {execution_exp}")
 
     # ── 5. Intelligence Score (0-100) ──────────────────────────────
-    intelligence_score, intelligence_exp = _compute_intelligence_score(
-        opp, pattern_score, historical_score, memory_score
-    )
+    intelligence_score, intelligence_exp = _compute_intelligence_score(opp, pattern_score, historical_score, memory_score)
     reasoning.append(f"Intelligence: {intelligence_score:.1f}/100 — {intelligence_exp}")
 
     # ── 6. Strategic Score (0-100) ─────────────────────────────────
@@ -354,9 +352,7 @@ def _compute_intelligence_score(
 ) -> tuple[float, str]:
     """Intelligence Score: pattern registry, historical analyzer, trend detector, adaptive memory."""
     base = 40.0
-    intelligence = (
-        base + (pattern_score * 100.0 * 0.25) + (historical_score * 100.0 * 0.25) + (memory_score * 100.0 * 0.25)
-    )
+    intelligence = base + (pattern_score * 100.0 * 0.25) + (historical_score * 100.0 * 0.25) + (memory_score * 100.0 * 0.25)
 
     # Category intelligence boost
     known_categories = {"web3": 5.0, "platform": 3.0, "api_ecosystem": 8.0}

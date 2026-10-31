@@ -295,9 +295,7 @@ class RevenueTracker:
             },
         )
 
-    def update_opportunity_status(
-        self, opportunity_id: str, new_status: PaymentStatus, transaction_data: dict[str, Any] = None
-    ):
+    def update_opportunity_status(self, opportunity_id: str, new_status: PaymentStatus, transaction_data: dict[str, Any] = None):
         """Update status of a revenue opportunity"""
         if opportunity_id not in self.opportunities:
             logger.error(f"Opportunity {opportunity_id} not found")
@@ -396,9 +394,7 @@ class RevenueTracker:
 
         return transaction
 
-    def _validate_payment(
-        self, opportunity: RevenueOpportunity, platform: PaymentPlatform, method_id: str, amount: Decimal, currency: str
-    ):
+    def _validate_payment(self, opportunity: RevenueOpportunity, platform: PaymentPlatform, method_id: str, amount: Decimal, currency: str):
         """Validate payment processing requirements"""
         # Check if payment method exists
         if method_id not in self.payment_methods:
@@ -617,25 +613,17 @@ async def main_revenue_tracker():
     tracker = RevenueTracker()
 
     # Setup payment methods
-    paypal_method = PaymentMethod(
-        platform=PaymentPlatform.PAYPAL, account_id="paypal_123", name="Primary PayPal Account", currency="USD"
-    )
+    paypal_method = PaymentMethod(platform=PaymentPlatform.PAYPAL, account_id="paypal_123", name="Primary PayPal Account", currency="USD")
     tracker.add_payment_method(paypal_method)
 
-    wise_method = PaymentMethod(
-        platform=PaymentPlatform.WISE, account_id="wise_456", name="Wise International", currency="ARS"
-    )
+    wise_method = PaymentMethod(platform=PaymentPlatform.WISE, account_id="wise_456", name="Wise International", currency="ARS")
     tracker.add_payment_method(wise_method)
 
     # Setup payment thresholds
-    bug_bounty_threshold = PaymentThreshold(
-        platform=PaymentPlatform.BUG_BOUNTY, min_amount=Decimal("50"), currency="USD", auto_approve=True
-    )
+    bug_bounty_threshold = PaymentThreshold(platform=PaymentPlatform.BUG_BOUNTY, min_amount=Decimal("50"), currency="USD", auto_approve=True)
     tracker.thresholds[PaymentPlatform.BUG_BOUNTY] = bug_bounty_threshold
 
-    dev_bounty_threshold = PaymentThreshold(
-        platform=PaymentPlatform.DEV_BOUNTY, min_amount=Decimal("100"), currency="USD", auto_approve=True
-    )
+    dev_bounty_threshold = PaymentThreshold(platform=PaymentPlatform.DEV_BOUNTY, min_amount=Decimal("100"), currency="USD", auto_approve=True)
     tracker.thresholds[PaymentPlatform.DEV_BOUNTY] = dev_bounty_threshold
 
     # Create some sample opportunities
@@ -688,9 +676,7 @@ async def main_revenue_tracker():
         {"transaction_id": "tx_123", "processed_at": datetime.now(UTC).isoformat(), "platform_fee": 50.00},
     )
 
-    tracker.update_opportunity_status(
-        "opp_2", PaymentStatus.ACCEPTED, {"review_completed_at": datetime.now(UTC).isoformat(), "approver": "john_doe"}
-    )
+    tracker.update_opportunity_status("opp_2", PaymentStatus.ACCEPTED, {"review_completed_at": datetime.now(UTC).isoformat(), "approver": "john_doe"})
 
     # Add some daily revenue data
     tracker.add_daily_revenue("bug_bounty", Decimal("5250.00"), "USD")  # Total paid to user

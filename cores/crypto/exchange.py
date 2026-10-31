@@ -88,17 +88,13 @@ class ExchangeConnector(CryptoConnector):
 
         balances: list[CryptoBalance] = []
         raw_balances = (
-            account_data.get("balances", [])
-            if self._exchange_name == "binance"
-            else account_data.get("wallet_balances", account_data.get("accounts", []))
+            account_data.get("balances", []) if self._exchange_name == "binance" else account_data.get("wallet_balances", account_data.get("accounts", []))
         )
 
         for item in raw_balances:
             if isinstance(item, dict):
                 asset = item.get("asset") or item.get("currency") or item.get("balance", {}).get("currency", "")
-                free = float(
-                    item.get("free", 0) or item.get("available", 0) or item.get("balance", {}).get("amount", 0)
-                )
+                free = float(item.get("free", 0) or item.get("available", 0) or item.get("balance", {}).get("amount", 0))
                 locked = float(item.get("locked", 0) or item.get("hold", 0) or 0)
                 total = free + locked
                 if total <= 0:
@@ -183,13 +179,7 @@ class ExchangeConnector(CryptoConnector):
         if wd_data and isinstance(wd_data, list):
             for w in wd_data[:limit]:
                 status_str = w.get("status", "")
-                status = (
-                    "confirmed"
-                    if status_str in (1, "1", "Completed")
-                    else "pending"
-                    if status_str in (0, "0", "Pending", "processing")
-                    else "failed"
-                )
+                status = "confirmed" if status_str in (1, "1", "Completed") else "pending" if status_str in (0, "0", "Pending", "processing") else "failed"
                 withdrawals.append(
                     CryptoWithdrawalInfo(
                         tx_hash=w.get("txId", w.get("txn_hash", "")),

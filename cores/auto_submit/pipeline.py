@@ -126,12 +126,7 @@ def _get_confidence_score(finding_id: int) -> float:
         if not finding or not finding.endpoint_id:
             return 0.0
 
-        verdict = (
-            session.query(models.Verdict)
-            .filter(models.Verdict.endpoint_id == finding.endpoint_id)
-            .order_by(models.Verdict.id.desc())
-            .first()
-        )
+        verdict = session.query(models.Verdict).filter(models.Verdict.endpoint_id == finding.endpoint_id).order_by(models.Verdict.id.desc()).first()
         if not verdict or not verdict.confidence:
             return 0.0
 

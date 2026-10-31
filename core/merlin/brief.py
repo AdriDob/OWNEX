@@ -94,9 +94,7 @@ class MerlinBrief:
             total = self._session.query(models.Target).count()
             with_endpoints = self._session.query(models.Endpoint.target_id).distinct().count()
             endpoints = self._session.query(models.Endpoint).count()
-            with_hypotheses = (
-                self._session.query(models.Endpoint).filter(models.Endpoint.hypothesis_id.isnot(None)).count()
-            )
+            with_hypotheses = self._session.query(models.Endpoint).filter(models.Endpoint.hypothesis_id.isnot(None)).count()
             return {
                 "total": total,
                 "with_endpoints": with_endpoints,
@@ -109,14 +107,10 @@ class MerlinBrief:
 
     def _pipeline_summary(self) -> dict[str, Any]:
         try:
-            last_scans = self._session.execute(
-                "SELECT target_name, status, started_at FROM scan_runs ORDER BY started_at DESC LIMIT 3"
-            ).fetchall()
+            last_scans = self._session.execute("SELECT target_name, status, started_at FROM scan_runs ORDER BY started_at DESC LIMIT 3").fetchall()
             last_scan = str(last_scans[0][2])[:19] if last_scans else None
             return {
-                "hypotheses_tested": self._session.query(models.Endpoint)
-                .filter(models.Endpoint.hypothesis_id.isnot(None))
-                .count(),
+                "hypotheses_tested": self._session.query(models.Endpoint).filter(models.Endpoint.hypothesis_id.isnot(None)).count(),
                 "last_scan": last_scan,
             }
         except Exception:

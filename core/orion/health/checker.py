@@ -106,9 +106,7 @@ async def collect_health_metrics() -> dict[str, Any]:
 
     # Overall status
     statuses = [c.get("status", "error") for c in components.values()]
-    overall = (
-        "ok" if all(s == "ok" for s in statuses) else "degraded" if any(s == "warning" for s in statuses) else "error"
-    )
+    overall = "ok" if all(s == "ok" for s in statuses) else "degraded" if any(s == "warning" for s in statuses) else "error"
 
     return {
         "overall": overall,

@@ -183,9 +183,7 @@ class CSVImporter:
         return entries
 
     @staticmethod
-    def _row_to_entry(
-        row: dict[str, str], headers: list[str], account_name: str, source_file: str
-    ) -> PayoutEntry | None:
+    def _row_to_entry(row: dict[str, str], headers: list[str], account_name: str, source_file: str) -> PayoutEntry | None:
         def _find_col(*names: str) -> str:
             for name in names:
                 for h in headers:
