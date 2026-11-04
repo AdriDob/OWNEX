@@ -39,9 +39,12 @@
 
 ## Overview 🚀
 
-> **OWNEX** (pronounced *OH-neks*) — *Personal Autonomous Work Operating System*.
+<div align="center">
+  <sub style="color: var(--ownex-blue);">OWNEX (pronounced *OH-neks*) — <em>Personal Autonomous Work Operating System</em></sub>
+</sub>
+</div>
 
-OWNEX is an autonomous work operating system that continuously discovers, understands, evaluates, organizes and prepares digital work opportunities while coordinating tools, agents, models and information.
+> **OWNEX** is an autonomous work operating system that continuously discovers, understands, evaluates, organizes and prepares digital work opportunities while coordinating tools, agents, models and information.
 
 ### The concept 💡
 
@@ -55,10 +58,9 @@ Every opportunity is scored against a **[zero-barrier spectrum](.ai/CURRENT_STAT
 
 The human sits at the **decision gate**. The system does everything before and after.
 
-<details>
-<summary><strong>🔮 The Revenue Rule</strong></summary>
-<p>no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</p>
-</details>
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0;">
+  <sub>🔮 <strong>The Revenue Rule:</strong> no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
+</div>
 
 ---
 
@@ -70,47 +72,83 @@ The human sits at the **decision gate**. The system does everything before and a
 
 > Central operational surface for monitoring opportunities, agents and active work.
 
-**Endpoints:** [`GET /api/mission/status`](.ai/CURRENT_STATE.md), [`GET /api/activity`](docs/diagrams/architecture.mmd), [`POST /api/hunt/start`](.ai/ROADMAP.md)
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Endpoints: <code>GET /api/mission/status</code>, <code>GET /api/activity</code>, <code>POST /api/hunt/start</code></sub>
+</div>
 
 ### Intelligence 🧠
 
 > Information processing and opportunity analysis surfaces — findings, hypotheses, evidence, confidence.
 
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Handles: findings generation, hypothesis building, evidence collection, confidence scoring</sub>
+</div>
+
 ### Targets 📍
 
 > Target intelligence and opportunity prioritization — scan queues, attack surface, prioritization.
+
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Includes: scan queues, attack surface mapping, EV ranking, prioritization engines</sub>
+</div>
 
 ### Capital 💰
 
 > Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
 
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Tracks: USD/hour per platform, payout timelines, ROI projections, earnings dashboard</sub>
+</div>
+
 ### MERLIN 🤖
 
 > AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
 
-**API:** [`POST /api/voice/assistant`](.ai/CURRENT_STATE.md), `POST /direct-work/daily-companion`
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>API: <code>POST /api/voice/assistant</code>, <code>POST /direct-work/daily-companion</code></sub>
+</div>
 
 ### Agents 👥
 
 > Twelve departmental specialists — Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator.
 
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>12 specialists across: Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator</sub>
+</div>
+
 ### Reports 📊
 
 > Report generation, submission tracking, finder queues.
+
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Manages: report generation, submission tracking, finder queues, status tracking SUBMITTED→PENDING→PAID</sub>
+</div>
 
 ### Settings ⚙️
 
 > System configuration, AI providers, credentials, scheduler, integrations.
 
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Configures: AI providers, credentials, scheduler, integrations, platform settings</sub>
+</div>
+
 ### Mobile (OMEGA) 📱
 
 > Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
+
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
+  <sub>Android APK ~5 MB, native mic, native voice, connects to local backend</sub>
+</div>
 
 ---
 
 ## Architecture 🏗️
 
 A **modular monolith**: one FastAPI process, EventBus-driven, single database. No microservices, no external message queue, no lock-in.
+
+<div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0; background: var(--ownex-bg);">
+  <sub>Full architecture diagram available in <code>docs/diagrams/architecture.mmd</code></sub>
+</div>
 
 ```mermaid
 flowchart TB
@@ -162,118 +200,120 @@ flowchart TB
     CYCLES --> ENGINES
     ENGINES --> AI
 ```
+```
 
 ### Stack (real, no smoke) 🛠️
 
-| Layer | Technology | Notes |
-|---|---|---|
-| **Backend** 🐍 | Python 3.11+ · FastAPI · SQLAlchemy 2.0 | 3,228+ tests, Ruff clean, mypy strict |
-| **Frontend** 🌐 | Vue 3 + TypeScript · Tailwind CSS v4 · Vite | 92 routed pages, Mission Control SPA |
-| **Desktop** 💻 | Tauri v2 (Rust+WebView2) + PyInstaller sidecar | Native desktop, `OWNEX Alpha` binary |
-| **Mobile** 📱 | Capacitor (Android) + Expo/React Native (OMEGA) | Native mic, native voice, APK ~5 MB |
-| **AI Stack** 🤖 | Free-first con fallback y modo degradado: local → free cloud → reglas | OAR runtime: routing, circuit breakers, quota tracking, observability, 13 adapters |
-| **Database** 📦 | SQLite (dev/desktop) · PostgreSQL (prod) | Single DB, no external queue |
-| **Security** 🔐 | Ed25519 licenses · AES-256-GCM vault · CSRF double-submit | IdentityVault, chmod 600 keys |
-| **Testing** ✅ | pytest · pytest-cov · pytest-timeout | `make test`, `make test-fast` |
+<div style="background: var(--ownex-bg); border: 1px solid var(--ownex-blue); border-radius: 4px; padding: 1rem; margin: 1rem 0;">
+<table>
+<tr><th>Layer</th><th>Technology</th><th>Notes</th></tr>
+<tr><td>**Backend** 🐍</td><td>Python 3.11+ · FastAPI · SQLAlchemy 2.0</td><td>3,228+ tests, Ruff clean, mypy strict</td></tr>
+<tr><td>**Frontend** 🌐</td><td>Vue 3 + TypeScript · Tailwind CSS v4 · Vite</td><td>92 routed pages, Mission Control SPA</td></tr>
+<tr><td>**Desktop** 💻</td><td>Tauri v2 (Rust+WebView2) + PyInstaller sidecar</td><td>Native desktop, <code>OWNEX Alpha</code> binary</td></tr>
+<tr><td>**Mobile** 📱</td><td>Capacitor (Android) + Expo/React Native (OMEGA)</td><td>Native mic, native voice, APK ~5 MB</td></tr>
+<tr><td>**AI Stack** 🤖</td><td>Free-first con fallback y modo degradado: local → free cloud → reglas</td><td>OAR runtime: routing, circuit breakers, quota tracking, observability, 13 adapters</td></tr>
+<tr><td>**Database** 📦</td><td>SQLite (dev/desktop) · PostgreSQL (prod)</td><td>Single DB, no external queue</td></tr>
+<tr><td>**Security** 🔐</td><td>Ed25519 licenses · AES-256-GCM vault · CSRF double-submit</td><td>IdentityVault, chmod 600 keys</td></tr>
+<tr><td>**Testing** ✅</td><td>pytest · pytest-cov · pytest-timeout</td><td><code>make test</code>, <code>make test-fast</code></td></tr>
+</table>
+</div>
 
 ### 7 Work Cycles 🔄
 
-OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
+OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler.
 
-| Cycle | Focus | Key APIs | Schedule |
-|---|---|---|---|
-| **🛡️ Security** | Bug bounty pipeline | [`/api/cycles/security/*`](.ai/CURRENT_STATE.md) | 30-min cron |
-| **🔨 Forge** | Dev bounty opportunities | [`/api/cycles/forge/*`](.ai/ROADMAP.md) | 2-hour cron |
-| **📈 Pulse** | AI work / market signals | [`/api/cycles/pulse/*`](docs/audit/INTERNAL_AUDIT.md) | 1-hour cron |
-| **💰 Vault** | Wealth management | [`/api/cycles/vault/*`](.ai/CURRENT_STATE.md) | 4-hour cron |
-| **🗺️ Atlas** | Intelligence | [`/api/cycles/atlas/*`](docs/audit/INTERNAL_AUDIT.md) | 4-hour cron |
-| **🧪 QA Cycle** | Test execution + regression | [`/api/cycles/qa/*`](.ai/ROADMAP.md) | daily 08:30 |
-| **💼 Direct Work** | Zero-barrier opportunities | [`/direct-work/*`](.ai/STRATEGIC_AUDIT.md) | daily 06:15 |
+<div style="background: var(--ownex-bg); border: 1px solid var(--ownex-blue); border-radius: 4px; padding: 1rem; margin: 1rem 0;">
+<table>
+<tr><th>Cycle</th><th>Focus</th><th>Key APIs</th><th>Schedule</th></tr>
+<tr><td>🛡️ Security</td><td>Bug bounty pipeline</td><td><code>/api/cycles/security/*</code></td><td>30-min cron</td></tr>
+<tr><td>🔨 Forge</td><td>Dev bounty opportunities</td><td><code>/api/cycles/forge/*</code></td><td>2-hour cron</td></tr>
+<tr><td>📈 Pulse</td><td>AI work / market signals</td><td><code>/api/cycles/pulse/*</code></td><td>1-hour cron</td></tr>
+<tr><td>💰 Vault</td><td>Wealth management</td><td><code>/api/cycles/vault/*</code></td><td>4-hour cron</td></tr>
+<tr><td>🗺️ Atlas</td><td>Intelligence</td><td><code>/api/cycles/atlas/*</code></td><td>4-hour cron</td></tr>
+<tr><td>🧪 QA Cycle</td><td>Test execution + regression</td><td><code>/api/cycles/qa/*</code></td><td>daily 08:30</td></tr>
+<tr><td>💼 Direct Work</td><td>Zero-barrier opportunities</td><td><code>/direct-work/*</code></td><td>daily 06:15</td></tr>
+</table>
+</div>
 
 ---
 
 ## How a Day Runs ⏰
 
-| Time | Cycle | What happens | Key APIs |
-|---|---|---|---|
-| **06:15** | 💼 Direct Work | Work Bank: discover → filter zero-barrier → rank by EV → prepare packages | [`POST /direct-work/workbank/cycle`](.ai/CURRENT_STATE.md) |
-| **06:30** | 🤖 MERLIN | `daily-companion` → consolidated briefing (system + personal + market + focus) | [`POST /direct-work/daily-companion`](.ai/CURRENT_STATE.md) |
-| **07:00** | 👁️ Mission Control | Top pick of the day + skill gap + learning plan | [`GET /api/activity`](docs/diagrams/architecture.mmd) |
-| **08:00** | 📈 Market | Platform report: friction tiers, retired sources, emerging categories | [`POST /api/direct-work/market-report`](.ai/ROADMAP.md) |
-| **09:00** | 💰 Capital | Revenue dashboard: earned/pending/ROI per platform, projection | [`POST /direct-work/income-dashboard`](.ai/CURRENT_STATE.md) |
-| **14:00** | 🛡️ Security | Findings → evidence → report → auto-submit | [`POST /api/cycles/security/run_pipe`](.ai/CURRENT_STATE.md) |
-| **18:00** | 👨‍💼 Executive | "Did we make money this week?" USD/hour per platform | [`GET /api/cycles/security/dashboard`](docs/audit/GITHUB_PRESENTATION_REPORT.md) |
-| **22:00** | 🛡️ Backup | Version backup + health snapshot persisted | [`/api/version-backup/*`](.ai/CURRENT_STATE.md) |
+<div style="background: var(--ownex-bg); border: 1px solid var(--ownex-blue); border-radius: 4px; padding: 1rem; margin: 1rem 0;">
+<table>
+<tr><th>Time</th><th>Cycle</th><th>What happens</th><th>Key APIs</th></tr>
+<tr><td><strong>06:15</strong></td><td>💼 Direct Work</td><td>Work Bank: discover → filter zero-barrier → rank by EV → prepare packages</td><td><code>POST /direct-work/workbank/cycle</code></td></tr>
+<tr><td><strong>06:30</strong></td><td>🤖 MERLIN</td><td><code>daily-companion</code> → consolidated briefing (system + personal + market + focus)</td><td><code>POST /direct-work/daily-companion</code></td></tr>
+<tr><td><strong>07:00</strong></td><td>👁️ Mission Control</td><td>Top pick of the day + skill gap + learning plan</td><td><code>GET /api/activity</code></td></tr>
+<tr><td><strong>08:00</strong></td><td>📈 Market</td><td>Platform report: friction tiers, retired sources, emerging categories</td><td><code>POST /api/direct-work/market-report</code></td></tr>
+<tr><td><strong>09:00</strong></td><td>💰 Capital</td><td>Revenue dashboard: earned/pending/ROI per platform, projection</td><td><code>POST /direct-work/income-dashboard</code></td></tr>
+<tr><td><strong>14:00</strong></td><td>🛡️ Security</td><td>Findings → evidence → report → auto-submit</td><td><code>POST /api/cycles/security/run_pipe</code></td></tr>
+<tr><td><strong>18:00</strong></td><td>👨‍💼 Executive</td><td>"Did we make money this week?" USD/hour per platform</td><td><code>GET /api/cycles/security/dashboard</code></td></tr>
+<tr><td><strong>22:00</strong></td><td>🛡️ Backup</td><td>Version backup + health snapshot persisted</td><td><code>/api/version-backup/*</code></td></tr>
+</table>
+</div>
 
 ---
 
 ## FAQ ❓
 
+<div style="background: var(--ownex-bg); border: 1px solid var(--ownex-blue); border-radius: 4px; padding: 1rem; margin: 1rem 0;">
 <details>
-<summary><strong>What is OWNEX exactly?</strong></summary>
+<summary><strong>¿Qué es OWNEX exactamente?</strong></summary>
 
-**OWNEX** is a personal autonomous work operating system — a private platform that discovers income opportunities (bug bounty, dev bounty, AI work, freelance), analyzes them with economic scoring, prepares deliverables autonomously, and tracks results. It is **not a SaaS product**: it runs on your machine and works for you.
-
+**OWNEX** es un sistema operativo personal de trabajo autónomo — una plataforma privada que descubre oportunidades de ingresos (bug bounty, dev bounty, AI work, freelance), las analiza con puntuación económica, prepara entregables de forma autónoma y realiza un seguimiento de los resultados. No es un producto SaaS: se ejecuta en tu máquina y trabaja para ti.
 </details>
 
 <details>
-<summary><strong>Is OWNEX open source? Can I contribute?</strong></summary>
+<summary><strong>¿OWNEX es de código abierto? ¿Puedo contribuir?</strong></summary>
 
-No — the code is **proprietary** and private. OWNEX is a personal competitive-advantage asset, not a community project. The repository is public for presentation, but the license is Proprietary and contributions are not accepted.
-
+No — el código es **propietario y privado**. OWNEX es un activo de ventaja competitiva personal, no un proyecto comunitario. El repositorio es público para presentación, pero la licencia es Propietaria y no se aceptan contribuciones.
 </details>
 
 <details>
-<summary><strong>What can it actually do today?</strong></summary>
+<summary><strong>¿Qué puede hacer realmente OWNEX hoy?</strong></summary>
 
-Verified working features (not roadmap): discovery from **135 curated sources** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), zero-barrier scoring, Work Bank that prepares jobs to 100% ready-to-deliver, EV ranking, Daily Brief/Companion, market evolution engine (OVOS + friction tiers), career/skill gap engine, revenue tracking + projections, security pipeline (recon → hypothesis → validation → evidence → report), scheduler with 28 cron jobs, 7 work cycles, mobile Android companion (APK), desktop (Tauri + PyInstaller), voice assistant, MERLIN chat, CSRF/rate-limit/auth security layers.
-
+Características verificadas y funcionando (no roadmap): descubrimiento desde **135 fuentes curadas** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), puntuación cero-barera, Work Bank que prepara trabajos al 100% listos para entregar, puntuación EV, Briefing Diario/Compañero, motor de evolución de mercado (OVOS + tiers de fricción), motor de brechas de carrera/habilidades, seguimiento de ingresos + proyecciones, pipeline de seguridad (recon → hipótesis → validación → evidencia → report), scheduler con 28 jobs cron, 7 work cycles, companion móvil Android (APK), desktop (Tauri + PyInstaller), asistente de voz, chat MERLIN, capas CSRF/rate-limit/seguridad de auth.
 </details>
 
 <details>
-<summary><strong>Does OWNEX submit reports and work by itself?</strong></summary>
+<summary><strong>¿OWNEX envía reports y trabajo por sí mismo?</strong></summary>
 
-No — by design (**Human Control layer**). OWNEX prepares everything: packages, reports, submissions, and negotiation analysis. The human is the final authority for actions that send data out (submissions, deliveries, payouts). Automations run only for internal preparation, discovery and analysis.
-
+No — por diseño (**Capa de Control Humano**). OWNEX prepara todo: packages, reports, submissions y análisis de negociación. El humano es la autoridad final para acciones que envían datos fuera (submissions, deliveries, payouts). Las automaciones solo se ejecutan para preparación interna, descubrimiento y análisis.
 </details>
 
 <details>
-<summary><strong>Do I need to be a bug bounty expert?</strong></summary>
+<summary><strong>¿Necesito ser un experto en bug bounty?</strong></summary>
 
-No. The Direct Work Engine scores opportunities by **entry barrier** and prioritizes zero-barrier public tasks; the career engine detects skill gaps and builds a daily training plan; the guided onboarding covers the fundamentals. You can start from zero and progress by category.
-
+No. El Direct Work Engine puntúa las oportunidades por **barera de entrada** y prioriza tareas cero-barera; el motor de carrera detecta gaps de habilidad y construye un plan de entrenamiento diario; el onboarding guiado cubre los fundamentos. Puedes empezar desde cero y progresar por categoría.
 </details>
 
 <details>
-<summary><strong>Does it require an internet connection or cloud services?</strong></summary>
+<summary><strong>¿Requiere conexión a internet o servicios en la nube?</strong></summary>
 
-No. Everything runs **100% local**: FastAPI backend, SQLite, local model via Ollama. Optional integrations (SMTP for email verification, platform APIs, cloud backup) are opt-in and never required. There is no telemetry, no account cloud.
-
+No. Todo funciona **100% local**: backend FastAPI, SQLite, modelo local via Ollama. Integraciones opcionales (SMTP para verificación de email, APIs de plataformas, backup en la nube) son opt-in y nunca requeridos. No hay telemetría, no hay cuenta en la nube.
 </details>
 
 <details>
-<summary><strong>Which AI models does it use? Do I need API keys?</strong></summary>
+<summary><strong>¿Qué modelos de IA usa? ¿Necesito keys de API?</strong></summary>
 
-No keys required to start. OWNEX prioritizes local (Ollama) and free providers (OpenCode, OmniRoute) with automatic fallback. When a provider fails or hits quotas, the circuit breaker routes to the next in the chain — and if all LLMs are unavailable, deterministic engines keep the system running in degraded mode. Paid providers exist but are disabled by default (`daily_budget = $0`).
-
+No se requieren keys para empezar. OWNEX prioriza local (Ollama) y proveedores gratuitos (OpenCode, Route libre) con fallback automático. Cuando un provider falla o agota sus quotas, el circuit breaker enruta al siguiente en la cadena — y si todos los LLMs están indisponibles, los engines deterministas mantienen el sistema en modo degradado. Providers pagados existen pero están desactivados por defecto (`daily_budget = $0`).
 </details>
 
 <details>
-<summary><strong>Does it really make money?</strong></summary>
+<summary><strong>¿Realmente gana dinero?</strong></summary>
 
-The system optimizes **probability × reward × speed** and tracks real outcomes (earnings, acceptance rates, USD/hour per platform) — it never fabricates rates. Revenue figures in the UI come from actual tracked payouts. Results depend on the market and on delivery; OWNEX maximizes the odds and removes the busywork.
-
+El sistema optimiza **probabilidad × recompensa × velocidad** y realiza un seguimiento de resultados reales (ganancias, tasas de aceptación, USD/hour por platform) — nunca fabrica tasas. Las figuras de revenue en la UI provienen de payouts reales rastreados. Los resultados dependen del mercado y de la entrega; OWNEX maximiza las probabilidades y elimina el busywork.
 </details>
 
 <details>
-<summary><strong>What platforms does it integrate with?</strong></summary>
+<summary><strong>¿Con qué plataformas se integra?</strong></summary>
 
-Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: Fiverr engine (11 gigs), Freelancer. Plus 135 curated discovery sources across 36 categories. Connectors for crypto/wealth (CoinGecko, Polymarket) and data annotation categories.
-
+Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: motor Fiverr (11 gigs), Freelancer. Más 135 fuentes de descubrimiento curadas en 36 categorías. Connectores para crypto/wealth (CoinGecko, Polymarket) y categorías de anotación de datos.
 </details>
 
 <details>
-<summary><strong>How do I install it?</strong></summary>
+<summary><strong>¿Cómo lo instalo?</strong></summary>
 
 ```bash
 git clone https://github.com/AdriDob/OWNEX.git && cd OWNEX
@@ -282,46 +322,41 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Open http://127.0.0.1:8000 — the guided personalization wizard takes you through setup. See [Quick Start](#quick-start).
-
+Open http://127.0.0.1:8000 — el wizard de personalización guiado te lleva a través del setup. Ver [Quick Start](#quick-start).
 </details>
 
 <details>
-<summary><strong>What platforms does it run on?</strong></summary>
+<summary><strong>¿En qué plataformas se ejecuta?</strong></summary>
 
 - **Desktop:** Linux, Windows, macOS (Python 3.11+; Tauri bundle + PyInstaller sidecar)
 - **Mobile companion:** Android (Capacitor APK, ~5 MB, native mic/voice)
-- The mobile app connects to your local backend; it does not require a cloud server.
-
+- La app móvil se conecta a tu backend local; no requiere un servidor en la nube.
 </details>
 
 <details>
-<summary><strong>Is my data safe?</strong></summary>
+<summary><strong>¿Está seguro mis datos?</strong></summary>
 
-Security is layered: AES-256-GCM IdentityVault (random key, `chmod 600`), Ed25519 licenses, double-submit CSRF, identity-based rate limiting, session tokens with device binding, audit log (append-only JSONL, rotated), 100% local storage. Details in [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
-
+La seguridad está en capas: AES-256-GCM IdentityVault (key aleatoria, `chmod 600`), Ed25519 licenses, double-submit CSRF, rate limiting basado en identidad con fallback IP, tokens de sesión con binding de dispositivo, audit log (JSONL append-only, rotado), almacenamiento 100% local. Detalles en [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
 </details>
 
 <details>
-<summary><strong>Is there a mobile/desktop app?</strong></summary>
+<summary><strong>¿Hay app móvil/desktop?</strong></summary>
 
-Yes — an Android APK (OMEGA companion: dashboard, agents, opportunities, MERLIN chat, notifications, watch sync) and a Tauri desktop bundle (`OWNEX OMEGA`). Both are build-verified; see [Project Status](#project-status).
-
+Sí — un APK Android (compañero OMEGA: dashboard, agentes, oportunidades, chat MERLIN, notificaciones, sincronización de reloj) y un bundle Tauri desktop (`OWNEX OMEGA`). Ambos son build-verified; ver [Project Status](#project-status).
 </details>
 
 <details>
-<summary><strong>What is the "Work Bank"?</strong></summary>
+<summary><strong>¿Qué es el "Work Bank"?</strong></summary>
 
-The Work Bank is an autonomous production engine: it discovers public zero-barrier jobs, filters and ranks them by EV, **prepares each one to 100% ready-to-deliver** (README, proposal, work package) and accumulates them (target: 10/day, 1000/month). You only review and deliver the best ones.
-
+El Work Bank es un motor de producción autónomo: descubre empleos públicos cero-barera, los filtra y ordena por EV, **prepara cada uno al 100% listo para entregar** (README, proposal, work package) y los acumula (objetivo: 10/día, 1000/mes). Solo revisas y entregas los mejores.
 </details>
 
 <details>
-<summary><strong>How is OWNEX different from a SaaS bounty tool?</strong></summary>
+<summary><strong>¿Cómo es OWNEX diferente a una herramienta SaaS de bounty?</strong></summary>
 
-SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator**. It doesn't just display findings — it discovers opportunities, prepares deliverables, projects income, learns from outcomes and runs a full daily cycle with zero external infrastructure. And your data never leaves your machine.
-
+Las herramientas SaaS son dashboards multitenant; OWNEX es un **operador autónomo privado**. No solo muestra findings — descubre oportunidades, prepara deliverables, proyecta ingresos, aprende de los outcomes y ejecuta un ciclo diario completo con infraestructura externa cero. Y tus datos nunca dejan tu máquina.
 </details>
+</div>
 
 ---
 
@@ -949,5 +984,12 @@ Open Source: ✅ 100% free, sin herramientas de pago
 <p align="center">
   <sub>🐝 Bee Monitor: <code>curl localhost:8000/api/health</code> · built with <code>make check</code></sub>
 </p>
+
+<div align="center">
+  <sub>© 2026 OWNEX — Autonomous Work Operating System · The Aperture Nexus</sub>
+</div>
+
+<hr style="border: 0; border-top: 1px solid var(--ownex-accent); margin: 2rem 0;">
+<hr style="border: 0; border-top: 1px solid var(--ownex-blue); margin: 1rem 0; opacity: 0.3;">
 
 ---
