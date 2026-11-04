@@ -40,26 +40,26 @@
 ## Overview 🚀
 
 <div align="center">
-  <sub style="color: var(--ownex-blue);">OWNEX (pronounced *OH-neks*) — <em>Personal Autonomous Work Operating System</em></sub>
+  <sub style="color: var(--ownex-blue);">OWNEX (se lee *OH-neks*) — <em>Sistema Operativo de Trabajo Personal Autónomo</em></sub>
 </sub>
 </div>
 
-> **OWNEX** is an autonomous work operating system that continuously discovers, understands, evaluates, organizes and prepares digital work opportunities while coordinating tools, agents, models and information.
+> **OWNEX** es un sistema de trabajo autónomo que descubre, evalúa y prepara oportunidades digitales mientras coordina herramientas, agentes y modelos con mínima intervención humana.
 
-### The concept 💡
+### El concepto 💡
 
-OWNEX is **not** a chatbot, a dashboard, or a collection of scripts. It is an **intelligent operating system** that navigates the universe of work opportunities, orchestrates multiple AI providers, and executes complex workflows with minimal human intervention.
+OWNEX **no** es un chatbot, un panel ni un conjunto de scripts. Es un **sistema operativo inteligente** que atraviesa el universo de oportunidades de trabajo, combina varios proveedores de IA y ejecuta flujos complejos con poco apoyo humano.
 
-### The approach 📊
+### El enfoque 📊
 
-Every opportunity is scored against a **[zero-barrier spectrum](.ai/CURRENT_STATE.md)** (0–100): how far is it from *finding* to *getting paid*, with no interview, no portfolio gate, no unpaid trial. The engine rank-orders thousands of candidates and surfaces the ones most likely to turn into revenue **this week**.
+Cada oportunidad se puntúa en un **[espectro cero-barera](.ai/CURRENT_STATE.md)** (0–100): qué tan lejos está de *encontrar* a *cobrar*, sin entrevistas, sin requisitos de portafolio, sin pruebas sin pago. El motor ordena miles de candidatos y destaca los que más probablemente generen ingresos **esta semana**.
 
-### The human role 👤
+### El rol humano 👤
 
-The human sits at the **decision gate**. The system does everything before and after.
+El humano toma la decisión final. El sistema hace todo lo demás antes y después.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0;">
-  <sub>🔮 <strong>The Revenue Rule:</strong> no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
+  <sub>🔮 <strong>La Regla de Revenue:</strong> ninguna feature entra al roadmap a menos que aumente detección de vulnerabilidades, calidad de evidencia, probabilidad de aceptación o aprendizaje del sistema. Sin excepciones.</sub>
 </div>
 
 ---
@@ -70,7 +70,7 @@ The human sits at the **decision gate**. The system does everything before and a
 
 ### Mission Control 🎛️
 
-> Central operational surface for monitoring opportunities, agents and active work.
+> Superficie operativa central para monitorear oportunidades, agentes y trabajo activo.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
   <sub>Endpoints: <code>GET /api/mission/status</code>, <code>GET /api/activity</code>, <code>POST /api/hunt/start</code></sub>
@@ -78,15 +78,15 @@ The human sits at the **decision gate**. The system does everything before and a
 
 ### Intelligence 🧠
 
-> Information processing and opportunity analysis surfaces — findings, hypotheses, evidence, confidence.
+> Procesamiento de información y superficies de análisis de oportunidades — hallazgos, hipótesis, evidencia, confianza.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>Handles: findings generation, hypothesis building, evidence collection, confidence scoring</sub>
+  <sub>Encabeza: generación de hallazgos, construcción de hipótesis, colección de evidencia, scoring de confianza</sub>
 </div>
 
 ### Targets 📍
 
-> Target intelligence and opportunity prioritization — scan queues, attack surface, prioritization.
+> Inteligencia de targets y priorización de oportunidades — colas de escaneo, superficie de ataque, priorización.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
   <sub>Includes: scan queues, attack surface mapping, EV ranking, prioritization engines</sub>
@@ -94,15 +94,15 @@ The human sits at the **decision gate**. The system does everything before and a
 
 ### Capital 💰
 
-> Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
+> Panel de seguimiento de ingresos y inteligencia financiera — USD/hora por plataforma, plazos de pago, ROI.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>Tracks: USD/hour per platform, payout timelines, ROI projections, earnings dashboard</sub>
+  <sub>Registra: USD/hora por plataforma, plazos de pago, proyecciones ROI, panel de ganancias</sub>
 </div>
 
 ### MERLIN 🤖
 
-> AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
+> Asistente IA con memoria persistente, análisis de intención, personalidad Office Retro (`calm_operator`, Piper TTS local-first, mic nativo).
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
   <sub>API: <code>POST /api/voice/assistant</code>, <code>POST /direct-work/daily-companion</code></sub>
@@ -110,34 +110,34 @@ The human sits at the **decision gate**. The system does everything before and a
 
 ### Agents 👥
 
-> Twelve departmental specialists — Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator.
+> Doce especialistas departamentales — Seguridad, Codificación, QA, Debug, Documentación, Investigación, Producto, Reingresos, Automatización, Infraestructura, Evolución, Orchestrator.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>12 specialists across: Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator</sub>
+  <sub>12 especialistas en: Seguridad, Codificación, QA, Debug, Documentación, Investigación, Producto, Reingresos, Automatización, Infraestructura, Evolución, Orchestrator</sub>
 </div>
 
 ### Reports 📊
 
-> Report generation, submission tracking, finder queues.
+> Generación de reports, seguimiento de submissions, colas de finders.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>Manages: report generation, submission tracking, finder queues, status tracking SUBMITTED→PENDING→PAID</sub>
+  <sub>Gestiona: generación de reports, seguimiento de submissions, colas de finders, tracking de estados SUBMITTED→PENDING→PAID</sub>
 </div>
 
 ### Settings ⚙️
 
-> System configuration, AI providers, credentials, scheduler, integrations.
+> Configuración del sistema, proveedores IA, credenciales, scheduler, integraciones.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>Configures: AI providers, credentials, scheduler, integrations, platform settings</sub>
+  <sub>Configura: proveedores IA, credenciales, scheduler, integraciones, ajustes de plataforma</sub>
 </div>
 
 ### Mobile (OMEGA) 📱
 
-> Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
+> Compañera nativa (Capacitor Android): inicio, agentes, oportunidades, chat MERLIN, notificaciones, sincronización de reloj.
 
 <div style="border-left: 3px solid var(--ownex-blue); padding-left: 1rem; margin: 1rem 0; border-radius: 0 4px 4px 0;">
-  <sub>Android APK ~5 MB, native mic, native voice, connects to local backend</sub>
+  <sub>APK Android ~5 MB, mic nativo, voz nativa, se conecta al backend local</sub>
 </div>
 
 ---
