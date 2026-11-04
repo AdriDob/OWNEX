@@ -1,51 +1,39 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/hero/hero-banner-dark.png?v=5">
-    <img src="docs/assets/github/hero/hero-banner-light.png?v=5" alt="OWNEX — Autonomous Work Operating System" width="100%"/>
-  </picture>
-</p>
+# OWNEX — Autonomous Work Operating System
 
 <p align="center">
   <strong>Autonomous Work Operating System</strong> 📡
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-9.0.0/>
-  <img src="https://img.shields.io/badge/python-3.11+-000000?style=flat-square&logo=python&logoColor=white"/>
-  <img src="https://img.shields.io/badge/fastapi-009688?style=flat-square&logo=fastapi&logoColor=white"/>
-  <img src="https://img.shields.io/badge/vue-3.5-4FC08D?style=flat-square&logo=vue.js&logoColor=white"/>
-  <img src="https://img.shields.io/badge/tests-154%20frontend%20pass%2073%20backend%20pass%2020%20preexistente%20%5Bmock%20Tauri%5D%20174%20total%20/
-  <img src="https://img.shields.io/badge/license-Proprietary-2D7FF9?style=flat-square"/>
-  <img src="https://img.shields.io/github/stars/AdriDob/OWNEX?style=flat-square&logo=github&logoColor=white&label=stars"/>
-  <img src="https://img.shields.io/github/last-commit/AdriDob/OWNEX?style=flat-square&label=last%20commit"/>
-  <img src="https://img.shields.io/github/repo-size/AdriDob/OWNEX?style=flat-square&label=repo%20size"/>
+  <sub>Version: <code>9.0.0</code> · Python 3.11+ · FastAPI · Vue 3 · Tauri v2</sub>
 </p>
 
 <p align="center">
-  <b>👁️ Mission Control</b> &bull; <b>🛡️ Security Cycle</b> &bull; <b>💰 Revenue Engine</b> &bull; <b>🤖 MERLIN</b> &bull; <b>⚙️ Automation</b> &bull; <b>🧠 Intelligence</b>
-</p>
-
-<p align="center">
-  <kbd><a href="#overview">Overview</a></kbd>
-  &nbsp;
-  <kbd><a href="#product">Product</a></kbd>
-  <kbd><a href="#architecture">Architecture</a></kbd>
-  <kbd><a href="#how-a-day-runs">Day Cycle</a></kbd>
-  <kbd><a href="#quick-start">Quick Start</a></kbd>
-  <kbd><a href="#development">Development</a></kbd>
-  <br/>
-  <br/>
-  <kbd><a href="#security">Security</a></kbd>
-  <kbd><a href="#roadmap">Roadmap</a></kbd>
-  <kbd><a href="#branding">Branding</a></kbd>
-  <kbd><a href="#documentation">Documentation</a></kbd>
-  <kbd><a href="#license">License</a></kbd>
+  <strong>👁️ Mission Control</strong> &bull; <strong>🛡️ Security Cycle</strong> &bull; <strong>💰 Revenue Engine</strong> &bull; <strong>🤖 MERLIN</strong> &bull; <strong>⚙️ Automation</strong> &bull; <strong>🧠 Intelligence</strong>
 </p>
 
 ---
 
-| [**↓ Jump to Section**](#table-of-contents) | [**👁️ View Demo Assets**](docs/assets/screenshots/desktop/) | [**📖 Full Docs**](.ai/) |
-|---|---|---|
+## Table of Contents
+
+<details>
+<summary>Click to expand 📖</summary>
+
+1. [Overview](#overview)
+2. [Product](#product)
+3. [Architecture](#architecture)
+4. [How a Day Runs](#how-a-day-runs)
+5. [FAQ](#faq)
+6. [Quick Start](#quick-start)
+7. [Development](#development)
+8. [Security](#security)
+9. [Project Status](#project-status)
+10. [Roadmap](#roadmap)
+11. [Branding](#branding)
+12. [Documentation](#documentation)
+13. [License](#license)
+
+</details>
 
 ---
 
@@ -67,9 +55,10 @@ Every opportunity is scored against a **[zero-barrier spectrum](.ai/CURRENT_STAT
 
 The human sits at the **decision gate**. The system does everything before and after.
 
-<p align="center">
-  <sub>🔮 The Revenue Rule: no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</sub>
-</p>
+<details>
+<summary><strong>🔮 The Revenue Rule</strong></summary>
+<p>no feature enters the roadmap unless it increases vulnerability detection, evidence quality, acceptance probability, or system learning. No exceptions.</p>
+</details>
 
 ---
 
@@ -78,80 +67,44 @@ The human sits at the **decision gate**. The system does everything before and a
 > Central surfaces: Mission Control, Intelligence, Targets, Capital, MERLIN, Agents, Reports, Settings. All backed by real endpoints — nothing is a mock.
 
 ### Mission Control 🎛️
-> Central operational surface for monitoring opportunities, agents and active work.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/mission-control.png?v=5" alt="Mission Control" width="100%"/>
-</p>
+> Central operational surface for monitoring opportunities, agents and active work.
 
 **Endpoints:** [`GET /api/mission/status`](.ai/CURRENT_STATE.md), [`GET /api/activity`](docs/diagrams/architecture.mmd), [`POST /api/hunt/start`](.ai/ROADMAP.md)
 
 ### Intelligence 🧠
+
 > Information processing and opportunity analysis surfaces — findings, hypotheses, evidence, confidence.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/intelligence.png?v=5" alt="Intelligence" width="100%"/>
-</p>
-
 ### Targets 📍
+
 > Target intelligence and opportunity prioritization — scan queues, attack surface, prioritization.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/targets.png?v=5" alt="Targets" width="100%"/>
-</p>
-
 ### Capital 💰
+
 > Revenue tracking and financial intelligence dashboard — USD/hour per platform, payout timelines, ROI.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/capital.png?v=5" alt="Capital" width="100%"/>
-</p>
-
 ### MERLIN 🤖
-> AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
 
-<p align="center">
-  <img src="docs/assets/github/desktop/merlin.png?v=5" alt="MERLIN" width="100%"/>
-</p>
+> AI assistant with persistent memory, intent analysis, Office Retro personality (`calm_operator`, local-first Piper TTS, native mic).
 
 **API:** [`POST /api/voice/assistant`](.ai/CURRENT_STATE.md), `POST /direct-work/daily-companion`
 
 ### Agents 👥
+
 > Twelve departmental specialists — Security, Coding, QA, Debug, Documentation, Research, Product, Revenue, Automation, Infrastructure, Evolution, Orchestrator.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/agents.png?v=5" alt="Agents" width="100%"/>
-</p>
-
 ### Reports 📊
+
 > Report generation, submission tracking, finder queues.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/reports.png?v=5" alt="Reports" width="100%"/>
-</p>
-
 ### Settings ⚙️
+
 > System configuration, AI providers, credentials, scheduler, integrations.
 
-<p align="center">
-  <img src="docs/assets/github/desktop/settings.png?v=5" alt="Settings" width="100%"/>
-</p>
-
 ### Mobile (OMEGA) 📱
-> Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
 
-<p align="center">
-  <img src="docs/assets/github/mobile/omega-home.png?v=5" alt="OMEGA home" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-agents.png?v=5" alt="OMEGA agents" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-opportunities.png?v=5" alt="OMEGA opportunities" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-merlin.png?v=5" alt="OMEGA MERLIN" width="24%"/>
-</p>
-<p align="center">
-  <img src="docs/assets/github/mobile/omega-notification.png?v=5" alt="OMEGA notifications" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-opportunity-detail.png?v=5" alt="OMEGA opportunity detail" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-settings.png?v=5" alt="OMEGA settings" width="24%"/>
-  <img src="docs/assets/github/mobile/omega-watch.png?v=5" alt="OMEGA watch" width="24%"/>
-</p>
+> Native companion (Capacitor Android): home, agents, opportunities, MERLIN chat, notifications, watch sync.
 
 ---
 
@@ -217,7 +170,7 @@ flowchart TB
 | **Backend** 🐍 | Python 3.11+ · FastAPI · SQLAlchemy 2.0 | 3,228+ tests, Ruff clean, mypy strict |
 | **Frontend** 🌐 | Vue 3 + TypeScript · Tailwind CSS v4 · Vite | 92 routed pages, Mission Control SPA |
 | **Desktop** 💻 | Tauri v2 (Rust+WebView2) + PyInstaller sidecar | Native desktop, `OWNEX Alpha` binary |
-| **Mobile** 📱 | Capacitor (Android) + Expo/React Native (OMEGA) | Native mic, native voice, APK 5.2 MB |
+| **Mobile** 📱 | Capacitor (Android) + Expo/React Native (OMEGA) | Native mic, native voice, APK ~5 MB |
 | **AI Stack** 🤖 | Free-first con fallback y modo degradado: local → free cloud → reglas | OAR runtime: routing, circuit breakers, quota tracking, observability, 13 adapters |
 | **Database** 📦 | SQLite (dev/desktop) · PostgreSQL (prod) | Single DB, no external queue |
 | **Security** 🔐 | Ed25519 licenses · AES-256-GCM vault · CSRF double-submit | IdentityVault, chmod 600 keys |
@@ -229,7 +182,7 @@ OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
 
 | Cycle | Focus | Key APIs | Schedule |
 |---|---|---|---|
-| **🛡️ Security** | Bug bounty pipeline | [`/api/cycles/security/*`](docs/diagrams/architecture.mmd) | 30-min cron |
+| **🛡️ Security** | Bug bounty pipeline | [`/api/cycles/security/*`](.ai/CURRENT_STATE.md) | 30-min cron |
 | **🔨 Forge** | Dev bounty opportunities | [`/api/cycles/forge/*`](.ai/ROADMAP.md) | 2-hour cron |
 | **📈 Pulse** | AI work / market signals | [`/api/cycles/pulse/*`](docs/audit/INTERNAL_AUDIT.md) | 1-hour cron |
 | **💰 Vault** | Wealth management | [`/api/cycles/vault/*`](.ai/CURRENT_STATE.md) | 4-hour cron |
@@ -239,7 +192,7 @@ OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
 
 ---
 
-## How a day runs ⏰
+## How a Day Runs ⏰
 
 | Time | Cycle | What happens | Key APIs |
 |---|---|---|---|
@@ -260,54 +213,63 @@ OWNEX runs as 7 autonomous work cycles, coordinated by the scheduler:
 <summary><strong>What is OWNEX exactly?</strong></summary>
 
 **OWNEX** is a personal autonomous work operating system — a private platform that discovers income opportunities (bug bounty, dev bounty, AI work, freelance), analyzes them with economic scoring, prepares deliverables autonomously, and tracks results. It is **not a SaaS product**: it runs on your machine and works for you.
+
 </details>
 
 <details>
 <summary><strong>Is OWNEX open source? Can I contribute?</strong></summary>
 
 No — the code is **proprietary** and private. OWNEX is a personal competitive-advantage asset, not a community project. The repository is public for presentation, but the license is Proprietary and contributions are not accepted.
+
 </details>
 
 <details>
 <summary><strong>What can it actually do today?</strong></summary>
 
 Verified working features (not roadmap): discovery from **135 curated sources** (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…), zero-barrier scoring, Work Bank that prepares jobs to 100% ready-to-deliver, EV ranking, Daily Brief/Companion, market evolution engine (OVOS + friction tiers), career/skill gap engine, revenue tracking + projections, security pipeline (recon → hypothesis → validation → evidence → report), scheduler with 28 cron jobs, 7 work cycles, mobile Android companion (APK), desktop (Tauri + PyInstaller), voice assistant, MERLIN chat, CSRF/rate-limit/auth security layers.
+
 </details>
 
 <details>
 <summary><strong>Does OWNEX submit reports and work by itself?</strong></summary>
 
 No — by design (**Human Control layer**). OWNEX prepares everything: packages, reports, submissions, and negotiation analysis. The human is the final authority for actions that send data out (submissions, deliveries, payouts). Automations run only for internal preparation, discovery and analysis.
+
 </details>
 
 <details>
 <summary><strong>Do I need to be a bug bounty expert?</strong></summary>
 
 No. The Direct Work Engine scores opportunities by **entry barrier** and prioritizes zero-barrier public tasks; the career engine detects skill gaps and builds a daily training plan; the guided onboarding covers the fundamentals. You can start from zero and progress by category.
+
 </details>
 
 <details>
 <summary><strong>Does it require an internet connection or cloud services?</strong></summary>
 
 No. Everything runs **100% local**: FastAPI backend, SQLite, local model via Ollama. Optional integrations (SMTP for email verification, platform APIs, cloud backup) are opt-in and never required. There is no telemetry, no account cloud.
+
 </details>
 
 <details>
 <summary><strong>Which AI models does it use? Do I need API keys?</strong></summary>
 
 No keys required to start. OWNEX prioritizes local (Ollama) and free providers (OpenCode, OmniRoute) with automatic fallback. When a provider fails or hits quotas, the circuit breaker routes to the next in the chain — and if all LLMs are unavailable, deterministic engines keep the system running in degraded mode. Paid providers exist but are disabled by default (`daily_budget = $0`).
+
 </details>
 
 <details>
 <summary><strong>Does it really make money?</strong></summary>
 
 The system optimizes **probability × reward × speed** and tracks real outcomes (earnings, acceptance rates, USD/hour per platform) — it never fabricates rates. Revenue figures in the UI come from actual tracked payouts. Results depend on the market and on delivery; OWNEX maximizes the odds and removes the busywork.
+
 </details>
 
 <details>
 <summary><strong>What platforms does it integrate with?</strong></summary>
 
 Bug bounty: HackerOne, Bugcrowd, Intigriti, YesWeHack. Dev bounty: Opire, IssueHunt, OpenCollective, Algora. Freelance: Fiverr engine (11 gigs), Freelancer. Plus 135 curated discovery sources across 36 categories. Connectors for crypto/wealth (CoinGecko, Polymarket) and data annotation categories.
+
 </details>
 
 <details>
@@ -321,6 +283,7 @@ python run.py
 ```
 
 Open http://127.0.0.1:8000 — the guided personalization wizard takes you through setup. See [Quick Start](#quick-start).
+
 </details>
 
 <details>
@@ -329,52 +292,34 @@ Open http://127.0.0.1:8000 — the guided personalization wizard takes you throu
 - **Desktop:** Linux, Windows, macOS (Python 3.11+; Tauri bundle + PyInstaller sidecar)
 - **Mobile companion:** Android (Capacitor APK, ~5 MB, native mic/voice)
 - The mobile app connects to your local backend; it does not require a cloud server.
+
 </details>
 
 <details>
 <summary><strong>Is my data safe?</strong></summary>
 
 Security is layered: AES-256-GCM IdentityVault (random key, `chmod 600`), Ed25519 licenses, double-submit CSRF, identity-based rate limiting, session tokens with device binding, audit log (append-only JSONL, rotated), 100% local storage. Details in [.ai/SECURITY_POLICY.md](.ai/SECURITY_POLICY.md).
+
 </details>
 
 <details>
 <summary><strong>Is there a mobile/desktop app?</strong></summary>
 
 Yes — an Android APK (OMEGA companion: dashboard, agents, opportunities, MERLIN chat, notifications, watch sync) and a Tauri desktop bundle (`OWNEX OMEGA`). Both are build-verified; see [Project Status](#project-status).
+
 </details>
 
 <details>
 <summary><strong>What is the "Work Bank"?</strong></summary>
 
 The Work Bank is an autonomous production engine: it discovers public zero-barrier jobs, filters and ranks them by EV, **prepares each one to 100% ready-to-deliver** (README, proposal, work package) and accumulates them (target: 10/day, 1000/month). You only review and deliver the best ones.
+
 </details>
 
 <details>
 <summary><strong>How is OWNEX different from a SaaS bounty tool?</strong></summary>
 
 SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator**. It doesn't just display findings — it discovers opportunities, prepares deliverables, projects income, learns from outcomes and runs a full daily cycle with zero external infrastructure. And your data never leaves your machine.
-</details>
-
----
-
-## Table of Contents
-
-<details>
-<summary>Click to expand 📖</summary>
-
-1. [Overview](#overview)
-2. [Product](#product)
-3. [Architecture](#architecture)
-4. [How a day runs](#how-a-day-runs)
-5. [FAQ](#faq)
-6. [Quick Start](#quick-start)
-7. [Development](#development)
-8. [Security](#security)
-9. [Project Status](#project-status)
-10. [Roadmap](#roadmap)
-11. [Branding](#branding)
-12. [Documentation](#documentation)
-13. [License](#license)
 
 </details>
 
@@ -387,6 +332,7 @@ SaaS tools are multi-tenant dashboards; OWNEX is a **private autonomous operator
 Choose your platform:
 
 #### 🪟 Windows 11 (with WSL) — Desktop Installer (Recommended)
+
 **Auto-contained bundle — no Python/Node required**
 
 1. Build or download the installer:
@@ -401,6 +347,7 @@ Choose your platform:
 **Detailed guide:** [README-INSTALACION.md](README-INSTALACION.md)
 
 #### 🐧 Linux — Development Setup
+
 ```bash
 # 1️⃣ Clone
 git clone https://github.com/AdriDob/OWNEX.git
@@ -419,6 +366,7 @@ cd frontend && npm run dev                # → Mission Control on http://localh
 ```
 
 #### 📱 Android — Mobile Companion
+
 ```bash
 cd android
 ./gradlew assembleDebug                  # → android/app/build/outputs/apk/debug/app-debug.apk
@@ -428,6 +376,7 @@ cd android
 **Detailed guide:** [android/BUILD_RELEASE_APK.md](android/BUILD_RELEASE_APK.md)
 
 #### ⌚ WearOS — Smartwatch Companion
+
 ```bash
 cd android
 ./gradlew :wear:assembleDebug           # → android/wear/build/outputs/apk/debug/wear-debug.apk
@@ -437,6 +386,7 @@ cd android
 **Detailed guide:** [.ai/WEAROS_DECISION.md](.ai/WEAROS_DECISION.md)
 
 ### Guided install (Linux/Dev)
+
 The universal installer (`install.py`) configures everything interactively:
 
 ```bash
@@ -584,9 +534,9 @@ Honest state of the system — nothing here is a mock:
 
 Single-user, local-first. New surfaces ship as **experimental** until they pass the end-to-end gate (persistence, restart survival, real output — no mocks).
 
-<p align="left">
-  <sub>🐝 Bee Monitor active: every <code>/api/health</code>, <code>/api/system/health</code> and <code>/api/system/status</code> is live. Check <code>.ai/CURRENT_STATE.md</code> for the latest honey — findings, reports, payouts.</sub>
-</p>
+<details>
+<summary><sub>🐝 Bee Monitor active: every <code>/api/health</code>, <code>/api/system/health</code> and <code>/api/system/status</code> is live. Check <code>.ai/CURRENT_STATE.md</code> for the latest honey — findings, reports, payouts.</sub></summary>
+</details>
 
 ---
 
@@ -620,32 +570,289 @@ Design language: **Tesla dark** — pure black surfaces, white primary accent, d
 
 > 📦 **Assets live at:** [`docs/assets/branding/`](docs/assets/branding/) and [`docs/assets/screenshots/`](docs/assets/screenshots/). See the [Asset Registry](docs/design/ASSET_REGISTRY.md).
 
-```
-docs/assets/branding/
-├── logo/      # O+X mark (white/black/mono/omega), wordmark, lockup, favicon
-├── banners/   # hero-banner 2400×900 — footer-banner, lockup, showdown
-├── social/    # open-graph preview 1200×630
-└── themes/    # design tokens SSOT (assets/branding/themes/tesla.json)
-docs/assets/screenshots/
-├── desktop/           # dark product screenshots
-└── desktop-light/     # light product screenshots
-```
-
 ### Branded deliverables 🖼️
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=4">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=4" alt="OWNEX lockup" width="60%"/>
-  </picture>
+  [LOGO_OSCURO]  —  [LOGO_CLARO]
 </p>
 
 <p align="center">
-  <img src="docs/assets/github/logo/mark-aperture-alpha.png?v=4" alt="OWNEX mark (ALPHA)" width="140"/>
-  <img src="docs/assets/github/logo/mark-aperture-omega.png?v=4" alt="OWNEX mark (OMEGA)" width="140"/>
+  [MARCA_ALFA]  —  [MARCA_OMEGA]
 </p>
 
-**Color palette:**
+### Capturas de Escritorio — Modo Oscuro 💻
+
+<p align="center">
+  [CAPTURA_MISSION_CONTROL_DARK]  —  [CAPTURA_MISSION_CONTROL_DARK_REF]
+</p>
+
+*pantalla principal de Mission Control con visión general de oportunidades activas, filtros y estadísticas en tiempo real*
+
+<p align="center">
+  [CAPTURA_INTELLIGENCE_DARK]  —  [CAPTURA_INTELLIGENCE_DARK_REF]
+</p>
+
+*vista de análisis de inteligencia con hallazgos, hipótesis y puntuación EV*
+
+<p align="center">
+  [CAPTURA_MERLIN_DARK]  —  [CAPTURA_MERLIN_DARK_REF]
+</p>
+
+*interfaz del asistente MERLIN con chat activo y memoria persistente*
+
+<p align="center">
+  [CAPTURA_CAPITAL_DARK]  —  [CAPTURA_CAPITAL_DARK_REF]
+</p>
+
+*panel de control financiero con seguimiento de ingresos, proyecciones ROI y estado de pagos*
+
+<p align="center">
+  [CAPTURA_REPORTS_DARK]  —  [CAPTURA_REPORTS_DARK_REF]
+</p>
+
+*gestión de reports y finder queues con seguimiento de estados SUBMITTED→PENDING→PAID*
+
+<p align="center">
+  [CAPTURA_SETTINGS_DARK]  —  [CAPTURA_SETTINGS_DARK_REF]
+</p>
+
+*configuración del sistema: AI providers, credentials, scheduler, integraciones*
+
+<p align="center">
+  [CAPTURA_TARGETS_DARK]  —  [CAPTURA_TARGETS_DARK_REF]
+</p>
+
+*Target intelligence y attack surface prioritization*
+
+<p align="center">
+  [CAPTURA_OPERATIONS_DARK]  —  [CAPTURA_OPERATIONS_DARK_REF]
+</p>
+
+*vista de operaciones activas y flujo de trabajo del día*
+
+### Capturas de Escritorio — Modo Claro 💻
+
+<p align="center">
+  [CAPTURA_MISSION_CONTROL_LIGHT]  —  [CAPTURA_MISSION_CONTROL_LIGHT_REF]
+</p>
+
+*pantalla principal de Mission Control en modo claro*
+
+<p align="center">
+  [CAPTURA_INTELLIGENCE_LIGHT]  —  [CAPTURA_INTELLIGENCE_LIGHT_REF]
+</p>
+
+*vista de inteligencia modo claro*
+
+<p align="center">
+  [CAPTURA_MERLIN_LIGHT]  —  [CAPTURA_MERLIN_LIGHT_REF]
+</p>
+
+*asistente MERLIN modo claro*
+
+<p align="center">
+  [CAPTURA_CAPITAL_LIGHT]  —  [CAPTURA_CAPITAL_LIGHT_REF]
+</p>
+
+*panel financiero modo claro*
+
+<p align="center">
+  [CAPTURA_REPORTS_LIGHT]  —  [CAPTURA_REPORTS_LIGHT_REF]
+</p>
+
+*gestión de reports modo claro*
+
+<p align="center">
+  [CAPTURA_SETTINGS_LIGHT]  —  [CAPTURA_SETTINGS_LIGHT_REF]
+</p>
+
+*configuración modo claro*
+
+<p align="center">
+  [CAPTURA_TARGETS_LIGHT]  —  [CAPTURA_TARGETS_LIGHT_REF]
+</p>
+
+*Target intelligence modo claro*
+
+<p align="center">
+  [CAPTURA_OPERATIONS_LIGHT]  —  [CAPTURA_OPERATIONS_LIGHT_REF]
+</p>
+
+*Operaciones modo claro*
+
+### Capturas Mobile — Modo Oscuro 📱
+
+<p align="center">
+  [CAPTURA_HOME_DARK]  —  [CAPTURA_HOME_DARK_REF]
+</p>
+
+*pantalla principal OMEGA companion — dashboard de oportunidades*
+
+<p align="center">
+  [CAPTURA_AGENTS_DARK]  —  [CAPTURA_AGENTS_DARK_REF]
+</p>
+
+*vista de agentes asignados y especialistas*
+
+<p align="center">
+  [CAPTURA_OPPORTUNITIES_DARK]  —  [CAPTURA_OPPORTUNITIES_DARK_REF]
+</p>
+
+*lista de oportunidades descubiertas y clasificadas*
+
+<p align="center">
+  [CAPTURA_MERLIN_CHAT_DARK]  —  [CAPTURA_MERLIN_CHAT_DARK_REF]
+</p>
+
+*chat con MERLIN dentro de la app móvil*
+
+<p align="center">
+  [CAPTURA_NOTIFICATIONS_DARK]  —  [CAPTURA_NOTIFICATIONS_DARK_REF]
+</p>
+
+*panel de notificaciones y alertas del sistema*
+
+<p align="center">
+  [CAPTURA_WATCH_SYNC_DARK]  —  [CAPTURA_WATCH_SYNC_DARK_REF]
+</p>
+
+*sincronización con Wear OS / smartwatch*
+
+### Capturas Mobile — Modo Claro 📱
+
+<p align="center">
+  [CAPTURA_HOME_LIGHT]  —  [CAPTURA_HOME_LIGHT_REF]
+</p>
+
+*dashboard oscuro-claro toggle*
+
+<p align="center">
+  [CAPTURA_AGENTS_LIGHT]  —  [CAPTURA_AGENTS_LIGHT_REF]
+</p>
+
+*Agents list modo claro*
+
+<p align="center">
+  [CAPTURA_OPPORTUNITIES_LIGHT]  —  [CAPTURA_OPPORTUNITIES_LIGHT_REF]
+</p>
+
+*Oportunidades modo claro*
+
+<p align="center">
+  [CAPTURA_MERLIN_CHAT_LIGHT]  —  [CAPTURA_MERLIN_CHAT_LIGHT_REF]
+</p>
+
+*Chat MERLIN modo claro*
+
+<p align="center">
+  [CAPTURA_NOTIFICATIONS_LIGHT]  —  [CAPTURA_NOTIFICATIONS_LIGHT_REF]
+</p>
+
+*Notificaciones modo claro*
+
+<p align="center">
+  [CAPTURA_WATCH_SYNC_LIGHT]  —  [CAPTURA_WATCH_SYNC_LIGHT_REF]
+</p>
+
+*Sincronización Wear OS modo claro*
+
+### Capturas Wear OS ⌚
+
+<p align="center">
+  [CAPTURA_WEAROS_DARK]  —  [CAPTURA_WEAROS_DARK_REF]
+</p>
+
+*interfaz nativa Wear OS — modo oscuro. Estado: ✅ COMPLETADO (.ai/WEAROS_DECISION.md)*
+
+<p align="center">
+  [CAPTURA_WEAROS_LIGHT]  —  [CAPTURA_WEAROS_LIGHT_REF]
+</p>
+
+*interfaz nativa Wear OS — modo claro*
+
+### Logotipos y Elementos de Marca
+
+<p align="center">
+  [MARCA_ALFA]  —  Marca OWNEX ALPHA (blanca/sobre fondo oscuro)
+</p>
+
+<p align="center">
+  [MARCA_OMEGA]  —  Marca OWNEX OMEGA (blanca/sobre fondo oscuro)
+</p>
+
+<p align="center">
+  [LOGO_OSCURO]  —  Logo oscuro principal (PNG transparente, versión completa)
+</p>
+
+<p align="center">
+  [LOGO_CLARO]  —  Logo claro principal (PNG transparente, versión completa)
+</p>
+
+<p align="center">
+  [ICONO_FAVICON]  —  Favicon SVG/PNG (16x16, 32x32)
+</p>
+
+<p align="center">
+  [MARCA_SOLO]  —  Marca/símbolo aislado (para favicons y pequeños renders)
+</p>
+
+### Banners y Activos de Presentación
+
+<p align="center">
+  [BANNER_HERO_OSCURO]  —  [BANNER_HERO_OSCURO_REF]
+</p>
+
+*hero-banner 2400×900 — dark mode. Usado en GitHub README principal*
+
+<p align="center">
+  [BANNER_HERO_CLARO]  —  [BANNER_HERO_CLARO_REF]
+</p>
+
+*hero-banner 2400×900 — light mode*
+
+<p align="center">
+  [BANNER_FOOTER_OSCURO]  —  [BANNER_FOOTER_OSCURO_REF]
+</p>
+
+*footer-banner para presentaciones y docs*
+
+<p align="center">
+  [BANNER_FOOTER_CLARO]  —  [BANNER_FOOTER_CLARO_REF]
+</p>
+
+*footer-banner modo claro*
+
+### Redes Sociales y Previsualización
+
+<p align="center">
+  [SOCIAL_PREVIEW_OSCURO]  —  [SOCIAL_PREVIEW_OSCURO_REF]
+</p>
+
+*open-graph preview 1200×630 — dark mode para compartir en redes*
+
+<p align="center">
+  [SOCIAL_PREVIEW_CLARO]  —  [SOCIAL_PREVIEW_CLARO_REF]
+</p>
+
+*open-graph preview 1200×630 — light mode*
+
+<p align="center">
+  [LOGO_HORIZONTAL_ALFA]  —  [LOGO_HORIZONTAL_ALFA_REF]
+</p>
+
+*logotype horizontal ALPHA — versión para redes y escritorio*
+
+<p align="center">
+  [LOGO_HORIZONTAL_OMEGA]  —  [LOGO_HORIZONTAL_OMEGA_REF]
+</p>
+
+*logotype horizontal OMEGA — versión para redes y escritorio*
+
+<p align="center">
+  [LOGO_MONOCROMO]  —  [LOGO_MONOCROMO_REF]
+</p>
+
+*marca monocromática — solo el símbolo O+X, para favicons y favicons pequeños*
 
 | Role | Color | Usage |
 |---|---|---|
@@ -704,43 +911,9 @@ docs/assets/screenshots/
 
 OWNEX is a private competitive-advantage asset. It does **not** sell a service to a customer. **OWNEX works for me.**
 
----
+### Estado de Validación (FASE G)
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/github/logo/lockup-horizontal.png?v=4">
-    <img src="docs/assets/github/logo/lockup-horizontal-light.png?v=4" alt="OWNEX" width="300"/>
-  </picture>
-</p>
-
-<p align="center">
-  <strong>OWNEX does not sell a service to a customer. OWNEX works for me.</strong>
-</p>
-
-<p align="center">
-  <sub>🔮 Personal Autonomous Work Operating System · The Aperture Nexus</sub>
-</p>
-
-<p align="center">
-  <a href=".ai/AGENT_CHARTER.md">🏛️ Charter</a>
-  &bull;
-  <a href=".ai/ROADMAP.md">🗺️ Roadmap</a>
-  &bull;
-  <a href=".ai/SECURITY_POLICY.md">🔐 Security</a>
-  &bull;
-  <a href="docs/README.md">📚 Docs</a>
-  &bull;
-  <a href="https://github.com/AdriDob/OWNEX">💻 GitHub</a>
-</p>
-
-<p align="center">
-  <sub>🐝 Bee Monitor: <code>curl localhost:8000/api/health</code> · built with <code>make check</code></sub>
-</p>
-
-## FASE G: Documentación y Capturas — OWNEX 9.0.0 ✅
-
-### Estado de Validación
-```
+```text
 Build: ✅ 11.2s | Tests: ✅ 119 passing | Version: ✅ 9.0.0 (sincronizada)
 Negocios: ✅ 3 integrados en ExtraWork | IA: ✅ AUTO_BEST_FREE activado
 Monitor: ✅ 3 paneles de salud | Temas: ✅ dark/light configurables
@@ -762,17 +935,19 @@ Open Source: ✅ 100% free, sin herramientas de pago
 | **Open source / free** | ✅ 0 herramientas de pago, modelos Ollama locales |
 
 ### Arquitectura Compartida (clave del éxito)
-- **RevenueLedger.ts** — Finanzas compartidas por todos los negocios
-- **TaskOrchestration.ts** — Cola priorizada y ejecución de tareas
-- **AIModelService.ts** — Política AUTO_BEST_FREE, mejores modelos gratuitos
+
+- **RevenueLedger** — Finanzas compartidas por todos los negocios
+- **TaskOrchestration** — Cola priorizada y ejecución de tareas
+- **AIModelService** — Política AUTO_BEST_FREE, mejores modelos gratuitos
 
 ### Siguiente Paso: FASE G+ — Validación Windows
+
 - Build y tests verificados exitosamente en Linux/WSL
 - Instalación nativa Windows: **pendiente** (requiere entorno Windows real para validación)
-- Health: YELLOW 9/10 (scheduler sin arrancar = falla visible y controlable, no oculto)da)
-
----
+- Health: YELLOW 9/10 (scheduler sin arrancar = falla visible y controlable, no oculto)
 
 <p align="center">
   <sub>🐝 Bee Monitor: <code>curl localhost:8000/api/health</code> · built with <code>make check</code></sub>
 </p>
+
+---
