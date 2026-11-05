@@ -80,10 +80,7 @@ def main() -> None:
     parser.add_argument("--no-uninstall", action="store_true", help="Skip uninstall step")
     args = parser.parse_args()
 
-    if args.installer:
-        installer = args.installer.resolve()
-    else:
-        installer = Path(__file__).resolve().parent.parent / "dist" / "CATEYEInstaller.exe"
+    installer = args.installer.resolve() if args.installer else Path(__file__).resolve().parent.parent / "dist" / "CATEYEInstaller.exe"
 
     if not installer.exists():
         print(f"\n\u2717 CATEYEInstaller.exe not found at: {installer}")

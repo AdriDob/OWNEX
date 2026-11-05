@@ -99,10 +99,7 @@ class ImmunefiAdapter(OpportunityAdapter):
                         slug = item.get("slug", item.get("id", name.lower().replace(" ", "-")))
                         payout_raw = item.get("maxPayout", item.get("maximum_payout", item.get("reward", 0)))
 
-                        if isinstance(payout_raw, (int, float)):
-                            payout = int(float(payout_raw))
-                        else:
-                            payout = self._parse_payout(str(payout_raw))
+                        payout = int(float(payout_raw)) if isinstance(payout_raw, (int, float)) else self._parse_payout(str(payout_raw))
 
                         techs = item.get("technologies", item.get("techStack", []))
                         if isinstance(techs, str):

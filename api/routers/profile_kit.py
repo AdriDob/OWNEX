@@ -51,8 +51,5 @@ async def profile_kit_save(payload: dict[str, Any] | None = None) -> dict[str, A
 async def profile_kit_generate(profile_data: dict[str, Any] | None = None) -> dict[str, Any]:
     """Genera textos listos para copiar por plataforma, a partir de los datos del perfil."""
     engine = _get_engine()
-    if profile_data:
-        profile = engine.profile_from_dict(profile_data)
-    else:
-        profile = engine.profile_from_dict(_seed_profile(engine))
+    profile = engine.profile_from_dict(profile_data) if profile_data else engine.profile_from_dict(_seed_profile(engine))
     return {"kits": engine.generate(profile)}

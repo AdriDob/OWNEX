@@ -75,10 +75,7 @@ def _plan_idor(candidate: AttackCandidate) -> ValidationPlan:
         orig_val = candidate.param_values.get(param, "1")
         # Probar con un valor diferente (secuencial)
         swapped_params = dict(params)
-        if orig_val.isdigit():
-            swapped_val = str(int(orig_val) + 1)
-        else:
-            swapped_val = "00000000-0000-0000-0000-000000000000" if "-" in orig_val else f"{orig_val}_other"
+        swapped_val = str(int(orig_val) + 1) if orig_val.isdigit() else "00000000-0000-0000-0000-000000000000" if "-" in orig_val else f"{orig_val}_other"
         swapped_params[param] = swapped_val
 
         probes.append(

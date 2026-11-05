@@ -86,10 +86,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=8000, help="Backend port")
     args = parser.parse_args()
 
-    if args.exe:
-        exe_path = args.exe.resolve()
-    else:
-        exe_path = Path(__file__).resolve().parent.parent / "dist" / "CATEYE" / "CATEYE.exe"
+    exe_path = args.exe.resolve() if args.exe else Path(__file__).resolve().parent.parent / "dist" / "CATEYE" / "CATEYE.exe"
 
     if not exe_path.exists():
         print(f"\n\u2717 CATEYE.exe not found at: {exe_path}")

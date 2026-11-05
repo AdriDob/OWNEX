@@ -102,10 +102,7 @@ def connector_status():
 @router.post("/webhook")
 def receive_webhook(data: WebhookPayload):
     connector = get_bank_payout_connector()
-    if data.source == "plaid":
-        entries = connector.handle_plaid_webhook(data.payload)
-    else:
-        entries = connector.handle_custom_webhook(data.payload)
+    entries = connector.handle_plaid_webhook(data.payload) if data.source == "plaid" else connector.handle_custom_webhook(data.payload)
     return {
         "status": "ok",
         "events_processed": len(entries),

@@ -95,10 +95,7 @@ def apply_time_awareness(raw_up: float, remaining_minutes: float | None, window_
 
     Time decay reduces confidence near expiry.
     """
-    if remaining_minutes is None or remaining_minutes <= 0:
-        time_decay = 0.0
-    else:
-        time_decay = clamp(remaining_minutes / window_minutes, 0.0, 1.0)
+    time_decay = 0.0 if remaining_minutes is None or remaining_minutes <= 0 else clamp(remaining_minutes / window_minutes, 0.0, 1.0)
 
     # Shrink towards 0.5 (neutral) as time runs out
     adjusted_up = clamp(0.5 + (raw_up - 0.5) * time_decay, 0.0, 1.0)

@@ -252,10 +252,7 @@ class SwarmCoordinator:
         if agent:
             agent.status = "busy"
         try:
-            if executor:
-                result = executor(task.payload, agent.metadata if agent else {})
-            else:
-                result = {"status": "simulated", "data": f"completed {task.name}"}
+            result = executor(task.payload, agent.metadata if agent else {}) if executor else {"status": "simulated", "data": f"completed {task.name}"}
             task.result = result
             task.status = TaskStatus.COMPLETED
             task.completed_at = datetime.utcnow()

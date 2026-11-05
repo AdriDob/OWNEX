@@ -278,10 +278,7 @@ class VpnAssistant:
     def check_outlier(self) -> dict[str, Any]:
         """Chequeo de alcance real: si IP actual permitiría Outlier/DA."""
         status = self.detect()
-        if status.compatible:
-            verdict = "OK — postulá directo (ver /api/applications/plan)"
-        else:
-            verdict = "Sin cobertura directa — revisá /api/applications/plan"
+        verdict = "OK — postulá directo (ver /api/applications/plan)" if status.compatible else "Sin cobertura directa — revisá /api/applications/plan"
         return {
             "compatible": status.compatible,
             "country": status.country_name,

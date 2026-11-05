@@ -407,8 +407,28 @@ class WorkBank:
         try:
             if self._store_path.exists():
                 data = json.loads(self._store_path.read_text())
+                valid_fields = {
+                    "id",
+                    "title",
+                    "platform",
+                    "category",
+                    "reward",
+                    "barrier_score",
+                    "employment_type",
+                    "status",
+                    "access_status",
+                    "access_requirement",
+                    "deliverables",
+                    "created_at",
+                    "ready_to_deliver",
+                    "description",
+                    "url",
+                    "payout_method",
+                    "payout_method_rationale",
+                }
                 for raw in data.get("items", []):
-                    self._items[raw["id"]] = WorkItem(**raw)
+                    filtered = {k: v for k, v in raw.items() if k in valid_fields}
+                    self._items[raw["id"]] = WorkItem(**filtered)
         except Exception as exc:  # pragma: no cover
             logger.warning("Could not load workbank store: %s", exc)
 

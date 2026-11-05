@@ -156,10 +156,7 @@ class GoalEvaluator:
         last_month = data.get("last_month_total", 0) or 0
         avg_monthly = data.get("avg_monthly", 0) or 0
 
-        if goal_type == "multiplier" and multiplier > 0:
-            target = round(last_month * multiplier, 2) if last_month else 0
-        else:
-            target = round(float(amount), 2)
+        target = (round(last_month * multiplier, 2) if last_month else 0) if goal_type == "multiplier" and multiplier > 0 else round(float(amount), 2)
 
         # Proyección realista del mes (fuentes activas + pipelines)
         plan_monthly = (data.get("plan_weekly_estimate", 0) or 0) * 4.3

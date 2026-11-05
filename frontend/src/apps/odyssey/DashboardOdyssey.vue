@@ -32,7 +32,19 @@ const summary = ref<SummaryData | null>(null)
 const roi = ref<ROI | null>(null)
 const perf = ref<PerfData | null>(null)
 const loading = ref(true)
+const loadingEligible = ref(true)
+interface EligibleSource {
+  source_id: string
+  name: string
+  overall_score: number
+  payout_methods: string[]
+  ar_compatible: boolean
+}
+
 const error = ref('')
+
+// Inicialmente vacío - se poblará desde el API fetchSourceIntel
+const eligibleSources = ref<EligibleSource[]>([])
 
 async function fetchData() {
   loading.value = true
@@ -57,7 +69,36 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData)
+async function fetchEligibleSources() {
+  loadingEligible.value = true
+  try {
+    const res = await fetch('/source-intel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    })
+    if (res.ok) {
+      const data = await res.json()
+      // Transform the PlatformAnalysis cards into our EligibleSource format
+      eligibleSources.value = (data.sources || []).filter((s: any) => s.argentina_compatibility === 'YES').map((s: any) => ({
+        source_id: s.source_id || s.name?.toLowerCase().replace(/ /g, '-') || 'unknown',
+        name: s.name,
+        overall_score: s.trust_score || 94,
+        payout_methods: typeof s.payment_method === 'string' ? [s.payment_method] : (s.payment_method || []),
+        ar_compatible: s.argentina_compatibility === 'YES',
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to fetch eligible sources:', e)
+  } finally {
+    loadingEligible.value = false
+  }
+}
+
+onMounted(() => {
+  fetchData()
+  fetchEligibleSources()
+})
 
 const hasData = () => (summary.value?.total_bets ?? 0) > 0
 const profitClass = (v: number | undefined) => v != null ? (v >= 0 ? 'text-success' : 'text-destructive') : ''
@@ -140,6 +181,23 @@ const profitClass = (v: number | undefined) => v != null ? (v >= 0 ? 'text-succe
         </div>
         <div class="text-2xl font-bold" :class="profitClass(perf?.profit)">
           {{ perf?.profit != null ? '$' + (perf.profit >= 0 ? '+' : '') + perf.profit.toLocaleString('es-AR', { minimumFractionDigits: 2 }) : '—' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Fuentes elegibles AR -->
+    <div v-if="!loading && !error && hasData() && !loadingEligible" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-card/50 border border-border/20 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-medium text-foreground mb-3">Fuentes Elegibles Argentina</h3>
+      <div class="space-y-2 text-xs text-muted-foreground">
+        <div v-for="source in eligibleSources" :key="source.source_id" class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
+            <svg class="h-3 w-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </span>
+          <span class="text-sm font-medium capitalize">{{ source.name }}</span>
+          <span class="text-[10px] text-primary/60">{{ source.overall_score }}/100</span>
+          <span class="text-[10px] text-success ml-2">✅ AR</span>
         </div>
       </div>
     </div>

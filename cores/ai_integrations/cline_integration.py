@@ -195,7 +195,7 @@ class ClineIntegration:
         ]
 
         # Version-specific capabilities
-        ver = self.status.version.lower()
+        self.status.version.lower()
         # Add capabilities based on what Cline supports
         base_caps.extend(
             [

@@ -132,10 +132,7 @@ def capture_screenshot(output_path: str | Path | None = None) -> str | Path:
     Supports: Linux (scrot/xdotool+import/xfce4-screenshooter),
               Windows (PIL/powershell), macOS (screencapture).
     """
-    if output_path is None:
-        output_path = Path(tempfile.gettempdir()) / f"ownex_screenshot_{int(time.time() * 1000)}.png"
-    else:
-        output_path = Path(output_path)
+    output_path = Path(tempfile.gettempdir()) / f"ownex_screenshot_{int(time.time() * 1000)}.png" if output_path is None else Path(output_path)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 

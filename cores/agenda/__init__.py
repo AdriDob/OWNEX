@@ -140,20 +140,29 @@ def _from_career() -> list[AgendaItem]:
 def _from_capital() -> list[AgendaItem]:
     items: list[AgendaItem] = []
     try:
-        from cores.capital.forecasting import CapitalForecaster
+        from cores.capital.forecasting import ForecastingEngine
 
-        # Si hay forecast disponible, agregar hito como item largo plazo
-        fc = CapitalForecaster()
-        result = fc.project(monthly_income=2000, monthly_expenses=1000)
-        if result and hasattr(result, "months_to_freedom"):
-            months = result.months_to_freedom
-            eta = datetime.now(UTC) + timedelta(days=30 * max(1, int(months or 12)))
+        fc = get_forecasting_engine()
+        result = fc.forecast(
+            work_income_usd_per_month=0,
+            savings_usd_per_month=0,
+            start_capital_usd=0,
+            annual_return_rate=0.10,
+            target_monthly_usd=2000,
+            horizon_months=12,
+        )
+        if result and result.get("horizons"):
+            horizons = result["horizons"]
+            # Use the longest horizon (month_12) and its month number for the agenda
+            longest_key = max(horizons.keys(), key=lambda k: int(k.split("_")[1]) if "_" in k else 0)
+            months = int(longest_key.split("_")[1]) if "_" in longest_key else 12
+            eta = datetime.now(UTC) + timedelta(days=30 * max(1, months))
             items.append(
                 AgendaItem(
                     date=eta.strftime("%Y-%m-%d"),
                     horizon=Horizon.LONG.value,
                     source=Source.CAPITAL.value,
-                    title=f"Libertad financiera proyectada (~{int(months or 12)} meses)",
+                    title=f"Libertad financiera proyectada (~{months} meses)",
                     action="Revisar allocation y runway mensualmente",
                 )
             )

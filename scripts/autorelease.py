@@ -241,10 +241,7 @@ def create_or_update_release(tag: str, artifact_dir: Path, dry_run: bool, force:
         return url
 
     notes_arg = []
-    if notes_path.exists():
-        notes_arg = [f"--notes-file={notes_path}"]
-    else:
-        notes_arg = ["--notes", f"CATEYE v{version} — Stable Release (automated)"]
+    notes_arg = [f"--notes-file={notes_path}"] if notes_path.exists() else ["--notes", f"CATEYE v{version} — Stable Release (automated)"]
 
     if dry_run:
         log("SKIP", "[dry-run] Would create release:")

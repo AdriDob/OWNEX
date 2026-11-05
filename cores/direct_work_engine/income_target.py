@@ -501,10 +501,7 @@ def parse_income_goal(text: str) -> tuple[float, str] | None:
     suffix = (match.group(2) or "").lower()
 
     # "10.000" / "10,000" (3-digit groups) = separador de miles; "1.5" / "1,5" = decimal
-    if _THOUSANDS_GROUP_RE.match(raw_number):
-        value = float(re.sub(r"[.,]", "", raw_number))
-    else:
-        value = float(raw_number.replace(",", "."))
+    value = float(re.sub(r"[.,]", "", raw_number)) if _THOUSANDS_GROUP_RE.match(raw_number) else float(raw_number.replace(",", "."))
 
     if suffix.startswith("k") or suffix.startswith("mil"):
         value *= 1000

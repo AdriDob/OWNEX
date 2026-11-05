@@ -235,10 +235,7 @@ def capture_screenshot(output_path: str | Path | None = None) -> Path | None:
     import shutil as _shutil
     import tempfile as _tmp
 
-    if output_path is None:
-        output_path = Path(_tmp.gettempdir()) / f"ownex_screenshot_{int(time.time() * 1000)}.png"
-    else:
-        output_path = Path(output_path)
+    output_path = Path(_tmp.gettempdir()) / f"ownex_screenshot_{int(time.time() * 1000)}.png" if output_path is None else Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     tools: list[list[str]] = [

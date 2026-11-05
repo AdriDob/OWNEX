@@ -9,7 +9,7 @@
 | Module | Path | Purpose | Responsibility | Dependencies | Status | Stability | Coverage | Last Modified |
 |--------|------|---------|----------------|--------------|--------|-----------|----------|---------------|
 | **Cycles** | `core/cycles/` | Security, Forge, Pulse, Executive Dashboard, Knowledge Capture | Cycle lifecycle, stage estimates, offensive category | `database`, `models`, `scheduler` | 🟡 Security 85%, Forge/Pulse 🔴 | High | Partial | 2026-07-30 |
-| **Scheduler** | `api/scheduler.py` | 10-stage autonomous pipeline | Discover→Recon→Hypothesis→Auto-validate→Promote→Validate→Report→AI Bounty | All cores, EventBus, COPILOT | ✅ Running | High | — | 2026-07-30 |
+| **Scheduler** | `api/scheduler.py` | 10-stage semi-autonomous pipeline | Discover→Recon→Hypothesis→Auto-validate→Promote→Validate→Report→AI Bounty | All cores, EventBus, COPILOT | ✅ Running | High | — | 2026-07-30 |
 | **Opportunity** | `core/opportunity/` | Unified scoring, Top5, history | EV, acceptance, difficulty, competition, fit, personal history | `core/priority`, `core/revenue`, `cores/opportunity` | ✅ 23 tests | High | 100% | 2026-07-26 |
 | **Revenue** | `core/revenue/` + `cores/financial/` | Multi-platform payouts, metrics | USD/ARS, 5 payment methods, USD/hour, dashboard | `database/models_economic`, `CoinGecko` | ✅ Production | High | — | 2026-07-24 |
 | **Health** | `core/health/` | Unified checks, snapshots | 3 legacy systems → 1, green/yellow/red, WAL | `database`, all cores | ✅ 25 tests | High | 100% | 2026-07-23 |
@@ -21,8 +21,8 @@
 | **Auto-Hunter** | `core/auto_hunter/` | AI Bounty (4 programs) | EV ranking, scheduler 2h, findings | `core/ai_bounty`, `scheduler` | ✅ 29 tests | High | 100% | 2026-07-23 |
 | **Auto-Submit** | `core/auto_submit/pipeline.py` | Quality gate, platform detection | Submission automation, EventBus | `core/reports`, `EventBus` | ✅ 12 tests | High | 100% | 2026-07-23 |
 | **Target Intel** | `core/target_intelligence/prioritizer.py` | EV + tech + attack plans | Budget-aware prioritization, ORION integration | `cores/orion`, `RewardLearner` | ✅ 22 tests | High | 100% | 2026-07-23 |
-| **Agents (7)** | `cores/agents/` | 7 autonomous agents | Copilot, Recon, Hypothesis, Validation, Report, Economic, Orion | `EventBus`, `scheduler` | ✅ Wired | High | — | 2026-07-23 |
-| **Agents (12 OMEGA)** | `cores/agents/omega/` | 12 autonomous agents | Observer, Researcher, Planner, Architect, Developer, Reviewer, Validator, Documentation, Repair, Infrastructure, Learning, Evolution | `EventBus`, `scheduler`, `cycles` | 🔴 Not created | — | — | — |
+| **Agents (7)** | `cores/agents/` | 7 semi-autonomous agents | Copilot, Recon, Hypothesis, Validation, Report, Economic, Orion | `EventBus`, `scheduler` | ✅ Wired | High | — | 2026-07-23 |
+| **Agents (12 OMEGA)** | `cores/agents/omega/` | 12 semi-autonomous agents | Observer, Researcher, Planner, Architect, Developer, Reviewer, Validator, Documentation, Repair, Infrastructure, Learning, Evolution | `EventBus`, `scheduler`, `cycles` | 🔴 Not created | — | — | — |
 | **Commands** | `core/commands/` | 107 commands, 14 categories | Permission-gated execution, EventBus | `EventBus`, `permissions` | ✅ 45 tests | High | 100% | 2026-07-23 |
 | **Hermes v2** | `apps/hermes/` | Events, permissions, security | 7 event types, 5 risk levels, path/PID validation | `EventBus`, `core/commands` | ✅ 48 tests | High | 100% | 2026-07-23 |
 | **Secrets** | `core/secrets/manager.py` | Vault, AES-256-GCM | IdentityVault bridge, env fallback, REST API | `cryptography`, `database` | ✅ 11 tests | High | 100% | 2026-07-23 |

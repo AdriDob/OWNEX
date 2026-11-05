@@ -30,10 +30,7 @@ class ReporterEngine:
             for f in findings:
                 sev_counts[f.severity] = sev_counts.get(f.severity, 0) + 1
 
-            if format == "html":
-                content = self._render_html(target, findings, scans, sev_counts)
-            else:
-                content = self._render_markdown(target, findings, scans, sev_counts)
+            content = self._render_html(target, findings, scans, sev_counts) if format == "html" else self._render_markdown(target, findings, scans, sev_counts)
 
             report = ScanReport(
                 target_id=target_id,

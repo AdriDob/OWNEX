@@ -179,10 +179,7 @@ class CompetitionIntelEngine:
             try:
                 from datetime import UTC, datetime
 
-                if isinstance(discovered_at, str):
-                    discovered = datetime.fromisoformat(discovered_at.replace("Z", "+00:00"))
-                else:
-                    discovered = discovered_at
+                discovered = datetime.fromisoformat(discovered_at.replace("Z", "+00:00")) if isinstance(discovered_at, str) else discovered_at
                 age_hours = (datetime.now(UTC) - discovered).total_seconds() / 3600
                 if age_hours < 24:
                     signals.append(

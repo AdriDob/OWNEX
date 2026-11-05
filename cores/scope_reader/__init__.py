@@ -312,10 +312,7 @@ def read_program_scope(url: str, program_name: str, previous_hash: str | None = 
 
     # 4. Detect changes
     changes: list[str] = []
-    if previous_hash and doc_hash == previous_hash:
-        changes = ["No changes detected"]
-    else:
-        changes = detect_changes(previous_text, raw_text)
+    changes = ["No changes detected"] if previous_hash and doc_hash == previous_hash else detect_changes(previous_text, raw_text)
 
     # 5. Extract assets
     assets = extract_assets(raw_text)

@@ -19,7 +19,7 @@
 - Audited extensions: 13 structured, discoverable, not integrated
 - Audited evolution: 9 stub modules, not wired
 - Rewrote `.ai/TASK_QUEUE.md` from evidence (was 291 chars stale)
-- **Defined OMEGA Multi-Cycle Architecture:** Security + Forge + Pulse with 12 autonomous agents
+- **Defined OMEGA Multi-Cycle Architecture:** Security + Forge + Pulse with 12 semi-autonomous agents
 
 ### Files Created
 ```
@@ -52,7 +52,7 @@
 4. **Desktop unbuilt:** Tauri configured, `npm run tauri build` never run
 5. **Repo hygiene:** 216 modified files uncommitted
 6. **No multi-cycle architecture:** Only Security cycle exists, Forge/Pulse missing
-7. **No autonomous agents system:** Only 7 core agents, no continuous observation
+7. **No semi-autonomous agents system:** Only 7 core agents, no continuous observation
 
 ### Problems Resolved
 - Documentation system created — future agents can onboard in <10 min

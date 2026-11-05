@@ -520,10 +520,7 @@ class BTCArbRunner:
 
                 for position in self._paper_engine.open_positions:
                     # Get current market price for this position
-                    if position.outcome.lower() in ("yes", "up"):
-                        current_price = self._market_data.polymarket_up
-                    else:
-                        current_price = self._market_data.polymarket_down
+                    current_price = self._market_data.polymarket_up if position.outcome.lower() in ("yes", "up") else self._market_data.polymarket_down
 
                     if current_price is None:
                         continue

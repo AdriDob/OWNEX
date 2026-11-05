@@ -167,10 +167,7 @@ class ValidationEngine:
         # Ejecutar cada probe del plan
         use_probe_engine = self._probe_engine is not None and candidate.original_hypothesis_id
 
-        if use_probe_engine:
-            vr = self._execute_with_probe_engine(candidate, plan)
-        else:
-            vr = self._execute_with_adapter(candidate, plan)
+        vr = self._execute_with_probe_engine(candidate, plan) if use_probe_engine else self._execute_with_adapter(candidate, plan)
 
         all_probes = vr.probes
         baseline_result = vr.baseline

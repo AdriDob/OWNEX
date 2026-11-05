@@ -138,10 +138,7 @@ class FreshnessBatchProcessor:
                 continue
 
             try:
-                if isinstance(discovered, str):
-                    dt = datetime.fromisoformat(discovered.replace("Z", "+00:00"))
-                else:
-                    dt = discovered
+                dt = datetime.fromisoformat(discovered.replace("Z", "+00:00")) if isinstance(discovered, str) else discovered
             except Exception:
                 continue
 

@@ -303,10 +303,7 @@ class NoiseReductionLayer:
         groups: dict[str, list[dict[str, Any]]] = {}
         for ep in endpoints:
             pattern = self._normalize_for_dedup(str(ep.get("path", "")))
-            if self.config.keep_all_methods_on_dedup:
-                key = f"{pattern}:::{str(ep.get('method', 'GET')).upper()}"
-            else:
-                key = pattern
+            key = f"{pattern}:::{str(ep.get('method', 'GET')).upper()}" if self.config.keep_all_methods_on_dedup else pattern
             groups.setdefault(key, []).append(ep)
 
         clean: list[dict[str, Any]] = []

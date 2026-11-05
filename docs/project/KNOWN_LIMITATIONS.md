@@ -8,7 +8,7 @@
 
 | Limitation | Impact | Workaround | Fix ETA |
 |------------|--------|------------|---------|
-| **Security Cycle not auto-bootstrapped** | No autonomous offensive cycles on startup | Manual API call to `/api/security/cycle/start` | Sprint 1 |
+| **Security Cycle not auto-bootstrapped** | No semi-autonomous offensive cycles on startup | Manual API call to `/api/security/cycle/start` | Sprint 1 |
 | **GamingConsole shows fake activity** | Dashboard credibility zero | None — hardcoded array | Sprint 1 |
 | **AgentFleet shows static agents** | No real agent health visibility | Fallback to Hermes/OpenCode/Cline/Ollama/FCC | Sprint 1 |
 | **Desktop installer never built** | Cannot distribute to Windows | Run in WSL only | Sprint 2 |

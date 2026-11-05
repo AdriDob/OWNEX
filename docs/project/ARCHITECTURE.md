@@ -103,7 +103,7 @@ core/
 └── priority/            # EV Engine
 
 cores/
-├── agents/              # 7 autonomous agents + bus
+├── agents/              # 7 semi-autonomous agents + bus
 ├── events/              # EventBus + types (unified)
 ├── orion/               # Next action, EVH scoring
 ├── crypto/              # CoinGecko, technical analysis

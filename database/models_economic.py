@@ -1,5 +1,7 @@
 """Economic Intelligence models — Program, Bounty, Scope, Intelligence Dossier."""
 
+from datetime import datetime
+
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.sql import func
 
@@ -196,3 +198,90 @@ class RevenueEvent(Base):
     event_type = Column(String, nullable=False, index=True)
     payload = Column(Text, nullable=True, default="{}")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AdapterPerformanceMetrics(Base):
+    """Adapter performance tracking for 300+ income sources.
+
+    Tracks recency, success rate and volume for automatic prioritization.
+    Priority score = recency(40%) + success_rate(40%) + volume(20%)
+    Half-life for recency: 30 days.
+
+    Each adapter represents a income source: bug bounty platforms, AI training
+    platforms, bounties, etc. Scores update dynamically as activity occurs.
+    """
+
+    __tablename__ = "adapter_performance_metrics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    adapter_name = Column(String(128), unique=True, nullable=False, index=True)
+    last_activity = Column(DateTime(timezone=True), nullable=False, default=None)
+    success_count = Column(Integer, nullable=False, default=0)
+    failure_count = Column(Integer, nullable=False, default=0)
+    total_requests = Column(Integer, nullable=False, default=0)
+    avg_response_time_ms = Column(Integer, nullable=False, default=0)
+    priority_score = Column(Float, nullable=False, default=0.5)
+    is_active = Column(Boolean, nullable=False, default=True)
+    category = Column(String(64), nullable=False, default="other")  # bounty, trading, sensor, other
+    last_validated = Column(DateTime(timezone=True), nullable=False, default=None)
+    meta_json = Column(Text, nullable=True)  # JSON string for adapter-specific data
+
+    # Note: created_at/updated_at not included - table predates this model field
+    # They are tracked separately if needed via application logic
+
+    @property
+    def recency_score(self) -> float:
+        """Recency component (40% weight) with 30-day half-life.
+
+        Decays from 1.0 to 0.0 over 30 days of inactivity.
+        """
+        if self.last_activity is None:
+            return 0.0
+        now = datetime.now()
+        days_since = (now - self.last_activity).days + 1e-10
+        # Exponential decay: half-life = 30 days
+        return max(0.0, round(2 ** (-days_since / 30), 4))
+
+    @property
+    def success_rate(self) -> float:
+        """Success rate component (40% weight)."""
+        return round(self.success_count / max(self.total_requests, 1), 4)
+
+    @property
+    def volume_score(self) -> float:
+        """Volume component (20% weight), saturated at 1000 requests."""
+        return round(min(self.total_requests / 1000, 1.0), 4)
+
+    @property
+    def priority_score_calculated(self) -> float:
+        """Final priority score: recency(40%) + success_rate(40%) + volume(20%)."""
+        return round(
+            self.recency_score * 0.4 + self.success_rate * 0.4 + self.volume_score * 0.2,
+            4,
+        )
+
+    def update_activity(self, success: bool = True, response_time_ms: int | None = None) -> None:
+        """Update metrics after a request/completed task.
+
+        Args:
+            success: Whether the request/task succeeded
+            response_time_ms: Response time in milliseconds (optional)
+        """
+        from datetime import UTC, datetime
+
+        now = datetime.now(UTC)
+        self.last_activity = now
+        self.total_requests += 1
+        if success:
+            self.success_count += 1
+        else:
+            self.failure_count += 1
+        if response_time_ms is not None:
+            # Running average
+            self.avg_response_time_ms = round(
+                (self.avg_response_time_ms * (self.total_requests - 1) + response_time_ms) / self.total_requests
+                if self.total_requests > 0
+                else response_time_ms
+            )
+        # Recalculate priority score
+        # (will be accessed via priority_score_calculated property)

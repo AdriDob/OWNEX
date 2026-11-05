@@ -40,10 +40,7 @@ def _get_vuln_type(hypothesis: Any) -> str:
     vt = getattr(hypothesis, "vulnerability_type", None)
     if vt is None:
         return "unknown"
-    if isinstance(vt, str):
-        key = vt.lower().replace(" ", "_")
-    else:
-        key = vt.value.lower().replace(" ", "_") if hasattr(vt, "value") else str(vt).lower()
+    key = vt.lower().replace(" ", "_") if isinstance(vt, str) else vt.value.lower().replace(" ", "_") if hasattr(vt, "value") else str(vt).lower()
     return VULN_TYPE_MAP.get(key, key)
 
 

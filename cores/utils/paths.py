@@ -187,15 +187,7 @@ def get_settings_path() -> Path:
 
 def get_icon_path() -> Path | None:
     """Return the application icon path."""
-    if _is_frozen():
-        candidates = [
-            _get_exe_dir() / "cateye.ico",
-            _get_app_root() / "cateye.ico",
-        ]
-    else:
-        candidates = [
-            _get_app_root() / "installer" / "icons" / "cateye.ico",
-        ]
+    candidates = [_get_exe_dir() / "cateye.ico", _get_app_root() / "cateye.ico"] if _is_frozen() else [_get_app_root() / "installer" / "icons" / "cateye.ico"]
     for c in candidates:
         if c.exists():
             return c

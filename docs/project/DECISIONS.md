@@ -101,7 +101,7 @@ Knowledge Engine  Knowledge     Knowledge
 
 ## 2026-07-23: OWNEX v7.0 — Self-Evolution Constitution
 
-**Problem:** System needed autonomous evolution capability without human bottleneck.
+**Problem:** System needed semi-autonomous evolution capability without human bottleneck.
 
 **Options Considered:**
 1. External CI/CD with human approval gates

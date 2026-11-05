@@ -63,7 +63,7 @@ Private competitive advantage asset, NOT a SaaS product. "OWNEX no vende un serv
 | Module | Path | Responsibility |
 |--------|------|----------------|
 | **Cycles** | `core/cycles/` | Security, Forge, Pulse, Executive Dashboard, Knowledge Capture |
-| **Scheduler** | `api/scheduler.py` | 10-stage autonomous pipeline |
+| **Scheduler** | `api/scheduler.py` | 10-stage semi-autonomous pipeline |
 | **Opportunity** | `core/opportunity/` | Unified scoring, Top5, personal history |
 | **Revenue** | `core/revenue/`, `cores/financial/` | Multi-platform payouts, USD/ARS, metrics |
 | **Health** | `core/health/` | Unified checks, snapshots, status |
@@ -74,7 +74,7 @@ Private competitive advantage asset, NOT a SaaS product. "OWNEX no vende un serv
 | **Recon** | `cores/recon/` | NaabuRunner, dedup, ReconRunner (23 tests) |
 | **Auto-submit** | `core/auto_submit/pipeline.py` | Quality gate, platform detection (12 tests) |
 | **AI Bounty** | `core/auto_hunter/` | 4 programs, EV ranking (29 tests) |
-| **Agents** | `cores/agents/` | 7 autonomous agents, EventBus integration |
+| **Agents** | `cores/agents/` | 7 semi-autonomous agents, EventBus integration |
 | **Extensions** | `extensions/` | 13 OSS integrations (LightRAG, Cognee, Graphiti, Skyvern, Crawl4AI, Composio, n8n, Kestra, Langfuse, Graphify, SkillSeekers, Promptfoo, Nanobot) |
 | **Evolution** | `core/evolution/` | 9 modules: analyze, engine, design, self_healer, self_tester, supervisor, tech_watcher, update_engine, infra_auditor |
 
@@ -163,6 +163,6 @@ Each capability directly increases at least one: **vulnerability detection**, **
 
 The only features that directly generate revenue across all three domains. Everything else is infrastructure.
 
-**Blocking:** Missing Forge and Pulse cycles, no multi-cycle orchestrator, no autonomous agents system, no continuous sensors, no mobile companion.
+**Blocking:** Missing Forge and Pulse cycles, no multi-cycle orchestrator, no semi-autonomous agents system, no continuous sensors, no mobile companion.
 
-**Target:** All three cycles operational with real API endpoints, autonomous agents observing/learning 24/7, mobile dashboard showing real-time state.
+**Target:** All three cycles operational with real API endpoints, semi-autonomous agents observing/learning 24/7, mobile dashboard showing real-time state.
