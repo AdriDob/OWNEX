@@ -2,41 +2,41 @@
 
 **Version:** 9.0.0  
 **Python:** 3.11+  
-**Built with:** FastAPI, Vue 3, Tauri v2, Mermaid
+**Built with:** FastAPI · Vue 3 · Tauri v2
 
 ---
 
 ## Quick overview
 
-OWNEX is a personal autonomous work operating system. It discovers opportunities (bug bounty, dev bounty, AI work, freelance), evaluates them, prepares deliverables, tracks results — and does it mostly on your machine, not in the cloud.
+OWNEX is a personal autonomous work operating system. It discovers opportunities (bug bounty, dev bounty, AI work, freelance), evaluates them, prepares deliverables, and tracks results — running mostly on your machine, not in the cloud.
 
 It's not a chatbot. It's not a dashboard. It's software that runs locally and works for you.
 
-**Core philosophy:** Freedom first. Zero barrier entry. Maximum value generation. Intelligence before action. Human control (you're the authority final). Universal solutions before specialized ones.
+**Core principles:** Freedom first · Zero barrier entry · Maximum value generation · Intelligence before action · Human control (you're the authority final) · Universal solutions before specialized ones
 
 ---
 
 ## What it actually does (verified, not roadmap)
 
 - Discovers opportunities from 135+ curated sources across 36 categories
-- Scores each opportunity on a 0–100 barrier/economic spectrum (no interviews, no portfolio requirements, no payment gates)
+- Scores each opportunity on a 0–100 barrier/economic spectrum (no interviews, no portfolio, no payment gates needed)
 - Prepares deliverables (READMEs, proposals, work packages) ready to submit
 - Runs 7 autonomous work cycles with 28 scheduled jobs
 - Generates daily briefings (system + personal + market + focus)
 - Tracks income, projections, ROI per platform
 - Security pipeline with 7 stages, auto-submit to finder queues
-- Desktop (Tauri v2 + PyInstaller), mobile companion (Android APK ~5MB), Wear OS
-- 100% local by default — nothing leaves your machine unless you explicitly send it
+- Desktop (Tauri v2 + PyInstaller), mobile companion (Android APK ~5 MB), Wear OS
+- **100% local by default** — nothing leaves your machine unless you explicitly send it
 
 > **The Revenue Rule:** No feature enters the roadmap unless it increases vulnerability detection quality, evidence quality, acceptance probability, or system learning. No exceptions.
 
 ---
 
-## Architecture (the boring part)
+## Architecture (the essentials)
 
 OWNEX is a **modular monolith**. One FastAPI process, EventBus-driven, single database. No microservices, no external message queue, no lock-in.
 
-If you want to see the diagram: `docs/diagrams/architecture.mmd` (Mermaid).
+Diagram: `docs/diagrams/architecture.mmd` (Mermaid)
 
 ---
 
@@ -73,7 +73,7 @@ python run.py          # FastAPI on http://localhost:8000
 
 ### Windows
 
-Download the Tauri installer from Releases (or build from source). Runs natively, no Python/Node required on your machine.
+Download the Tauri installer from Releases (or build from source). Runs natively, no Python/Node required.
 
 ### Android
 
@@ -94,7 +94,7 @@ python install.py
 
 ---
 
-## What's actually working (vs roadmap)
+## Actually working (vs roadmap)
 
 | Area | Status |
 |------|--------|
@@ -174,9 +174,9 @@ scripts/brand/regenerate.sh      # logo + banners + README badge sync
 
 ---
 
-## Built with Tesla dark style
+## Tesla dark style
 
-Pure black surfaces, white primary accent, `#e82127` (Tesla red) as the only saturated accent, no noise, no gradients, no glows.
+Pure black surfaces, white primary accent, `#e82127` (Tesla red) as the only saturated accent, no noise, no gradients, no glows, no colors beyond the palette.
 
 ---
 
