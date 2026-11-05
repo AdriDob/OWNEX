@@ -669,7 +669,7 @@ class LifeManagementSystem:
 
     # ============ INTEGRATION WITH MERLIN ============
 
-    def get_merlin_insight(self) -> str:
+    def get_copilot_insight(self) -> str:
         """Obtener insight de MERLIN sobre vida personal."""
         # Integrar con MERLIN para generar insights personalizados
         # Por ahora, retornar insight genérico

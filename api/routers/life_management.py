@@ -401,13 +401,13 @@ async def get_daily_summary():
         raise HTTPException(status_code=500, detail=str(e)) from None
 
 
-@router.get("/merlin-insight")
-async def get_merlin_insight():
-    """Get MERLIN insight on personal life."""
+@router.get("/copilot-insight")
+async def get_copilot_insight():
+    """Get COPILOT insight on personal life."""
     system = get_life_management_system()
 
     try:
-        insight = system.get_merlin_insight()
+        insight = system.get_copilot_insight()
 
         return {
             "success": True,
