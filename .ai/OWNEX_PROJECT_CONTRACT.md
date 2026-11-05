@@ -124,7 +124,7 @@ All domains and modules must participate in this common lifecycle where applicab
 
 ## 4. HUMAN INTERVENTION MODEL
 
-**Objective**: Maximum safe autonomy with minimum unnecessary interruptions.
+**Objective**: Maximum safe semi-autonomy with minimum unnecessary interruptions.
 
 **Classify operations into**:
 - MANUAL. ASSISTED. AUTO_REVERSIBLE. HUMAN_APPROVAL.

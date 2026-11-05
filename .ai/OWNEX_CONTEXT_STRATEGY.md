@@ -322,7 +322,7 @@ class ContextEngine:
         """
         prompts = {
             "analyst": (
-                "You are an autonomous work analyst for OWNEX. "
+                "You are an semi-autonomous work analyst for OWNEX. "
                 "Given an opportunity and its context, provide:\n"
                 "1. Technical assessment (feasibility, difficulty)\n"
                 "2. Value assessment (is this worth doing?)\n"
@@ -330,7 +330,7 @@ class ContextEngine:
                 "4. Recommended approach\n"
             ),
             "planner": (
-                "You are an autonomous work planner for OWNEX. "
+                "You are an semi-autonomous work planner for OWNEX. "
                 "Given an opportunity and context, create a detailed execution plan:\n"
                 "1. Steps required (in order)\n"
                 "2. Capabilities needed\n"

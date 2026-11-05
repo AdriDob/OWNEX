@@ -290,7 +290,7 @@ User prefers immediate execution — 'dale' means execute immediately, no stoppi
 §
 OWNEX Desktop: Tauri v2 + Vue3 xterm.js (TerminalView.vue) + Py FastAPI WS sidecar (terminal_ws.py). WS: CSRF middleware `if scope["type"]=="websocket": return await call_next(request)`. Tailwind4: no @apply w/ opacity modifiers. Vue SFC: one <script setup>.
 §
-Senior bug bounty engineer with autonomous intelligence expertise (CATEYE/ORION), Spanish speaker, immediate execution preference. Works with Hermes, EventBus, multi-platform bug bounty systems.
+Senior bug bounty engineer with semi-autonomous intelligence expertise (CATEYE/ORION), Spanish speaker, immediate execution preference. Works with Hermes, EventBus, multi-platform bug bounty systems.
 §
 WSL developer at /home/adrie/projects/Rastro using Hermes, FCC Proxy, OpenCode, Cline, Aider, Ollama, EventBus systems. Comfortable with git force push after risk assessment.
 §
@@ -306,7 +306,7 @@ Rastro twin trees core/ + cores/ (near-dups); import de core.investment; editar 
 ══════════════════════════════════════════════
 USER PROFILE (who the user is) [92% — 1,274/1,375 chars]
 ══════════════════════════════════════════════
-Senior bug bounty engineer, Spanish, solo contributor. OWNEX/Rastro autonomous work OS.
+Senior bug bounty engineer, Spanish, solo contributor. OWNEX/Rastro semi-autonomous work OS.
 §
 "dale" = execute immediately, no stopping, no status summaries mid-task. Deliver the result, not the plan.
 §

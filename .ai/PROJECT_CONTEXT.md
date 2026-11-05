@@ -84,7 +84,7 @@ Rastro (anteriormente CATEYE) es un sistema de inteligencia operativa privada qu
 
 ### 4. Automation & Operations
 - Scheduler – workflow execution and timing
-- Senior Copilot – autonomous decision-making and assistance
+- Senior Copilot – semi-autonomous decision-making and assistance
 - Extension SDK – module integration framework
 
 ---

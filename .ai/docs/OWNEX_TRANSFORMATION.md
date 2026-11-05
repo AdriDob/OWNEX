@@ -214,7 +214,7 @@ for opp in opportunities:
 
 #### During Day
 ```python
-# AI assistants work autonomously
+# AI assistants work semi-autonomously
 # Opportunity Discoverer finds tasks
 # Context Preparer gathers information
 # Work Executor performs tasks

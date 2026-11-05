@@ -16,7 +16,7 @@
 - ✅ OpenCode (CLI para code execution)
 - ✅ Devin (free AI agent)
 - ✅ Hermes (CLI agent)
-- ✅ Freebuff (GitHub autonomous coding agent) - INSTALADO
+- ✅ Freebuff (GitHub semi-autonomous coding agent) - INSTALADO
 
 **Providers en router COPILOT:**
 - Devin → Freebuff → OpenCode → FCC → NVIDIA → Ollama (code tasks)
@@ -58,7 +58,7 @@
 - ✅ Import agregado: `from cores.copilot.providers.freebuff_provider import FreebuffProvider`
 - ✅ Provider agregado a lista: `FreebuffProvider()`
 - ✅ Priority chain actualizada: `code -> Devin -> Freebuff -> OpenCode -> FCC -> NVIDIA -> Ollama`
-- ✅ Comentario actualizado: menciona Freebuff como "GitHub autonomous coding agent (cloud-friendly)"
+- ✅ Comentario actualizado: menciona Freebuff como "GitHub semi-autonomous coding agent (cloud-friendly)"
 
 **Router ahora tiene 6 providers:**
 ```python

@@ -2,7 +2,7 @@
 
 ORION is a Bug Bounty Operating System.
 
-Purpose: Transform vulnerability discovery into an intelligent, autonomous workflow:
+Purpose: Transform vulnerability discovery into an intelligent, semi-autonomous workflow:
 
 ```
 Discovery → Recon → Hypothesis → Validation → Evidence → Report → Acceptance → Revenue → Learning

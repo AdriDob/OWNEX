@@ -80,8 +80,8 @@ Each level inherits all abilities of lower levels.
 |---|---|---|
 | No action | < 0.40 | Do not act, recommend human review |
 | Request approval | 0.40–0.70 | Suggest but require human approval |
-| Safe execute | 0.70–0.90 | Execute safe tasks autonomously |
-| Auto close | > 0.90 | Can close the full workflow autonomously |
+| Safe execute | 0.70–0.90 | Execute safe tasks semi-autonomously |
+| Auto close | > 0.90 | Can close the full workflow semi-autonomously |
 
 Authority + Confidence are checked together:
 - Senior Hunter at 0.85 confidence → can execute safe tasks

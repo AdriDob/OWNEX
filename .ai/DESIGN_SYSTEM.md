@@ -6,7 +6,7 @@
 
 ## Identidad
 
-**"Mission control financiero + autonomous operating system"** — fondo negro
+**"Mission control financiero + semi-autonomous operating system"** — fondo negro
 profundo con ambiente azul oscuro (decisión owner 2026-08-25), tipografía
 técnica, datos en tabular-nums, cero decoración sin función.
 

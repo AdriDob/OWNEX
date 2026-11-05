@@ -21,7 +21,7 @@ If no → doesn't belong in the core.
 ## Seven Objectives (ranked)
 
 ```
-1. Vulnerability Detection   — find real bugs autonomously
+1. Vulnerability Detection   — find real bugs semi-autonomously
 2. Evidence Quality          — produce submission-ready reports
 3. Acceptance Rate           — learn what gets accepted/rejected
 4. Monthly Revenue           — grow income consistently
