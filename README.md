@@ -1,4 +1,4 @@
-# OWNEX — Autonomous Work Operating System
+# OWNEX — Semi-Autonomous Work Operating System
 
 **Version:** 9.0.0  
 **Python:** 3.11+  
