@@ -147,12 +147,13 @@ class QualityScorer:
             review_report = self.reviewer.review(finding_dict, verdict_dict)
             review_dict = review_report.to_dict()
 
-            context = CopilotContext(
-                finding=finding_dict,
-                verdict=verdict_dict,
-                evidence=evidence_dicts,
-                confidence_score=self._parse_confidence(verdict_dict),
-            )
+            context = CopilotContext(app_id="quality_scorer")
+            context.set_finding(finding_dict)
+            if verdict_dict:
+                context.set_verdict(verdict_dict)
+            for ev in evidence_dicts:
+                context.add_evidence(ev)
+            context.set_confidence_score(self._parse_confidence(verdict_dict))
             analysis = self.analyzer.analyze(context)
             analysis_dict = analysis.to_dict()
 

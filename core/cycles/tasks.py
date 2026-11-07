@@ -85,11 +85,56 @@ def auto_start_security_cycle(*args: Any, **kwargs: Any) -> dict[str, Any]:
     return {"status": "skipped", "reason": f"cycle status is {cycle.status}"}
 
 
+def _pick_scan_targets(limit: int = 2) -> list[str]:
+    """Pick a few active targets whose domain actually resolves.
+
+    Rotates through the target list so successive scheduler runs cover
+    different targets instead of rescanning the same ones.
+    """
+    import socket
+
+    from database import db
+    from database.models import Target
+
+    session = db.SessionLocal()
+    try:
+        rows = (
+            session.query(Target)
+            .filter(Target.active == True)  # noqa: E712
+            .order_by(Target.id)
+            .all()
+        )
+    finally:
+        session.close()
+
+    # Rotate: skip targets scanned in previous runs by using a persisted
+    # offset derived from the current hour — cheap and stateless.
+    import datetime as _dt
+
+    offset = int(_dt.datetime.now(_dt.UTC).hour) % max(len(rows), 1)
+    ordered = rows[offset:] + rows[:offset]
+
+    picked: list[str] = []
+    for t in ordered:
+        domain = (t.domain or t.name or "").strip()
+        if not domain or domain in picked:
+            continue
+        host = domain.split("/")[0].split(":")[0]
+        try:
+            socket.gethostbyname(host)
+        except OSError:
+            continue
+        picked.append(domain if domain.startswith(("http://", "https://")) else f"https://{domain}")
+        if len(picked) >= limit:
+            break
+    return picked
+
+
 def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
     """Auto-advance the Security Cycle pipeline.
 
     Called every 30 minutes by the scheduler. Runs the full 7-stage
-    pipeline end-to-end, connecting the stage executors with the DB cycle.
+    pipeline end-to-end against a few real, resolvable targets per run.
     """
     security = get_security_cycle()
     cycle = security.ensure_cycle()
@@ -97,18 +142,44 @@ def advance_security_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
     if cycle.status not in ("running", "idle", "inactive"):
         return {"status": "skipped", "reason": f"cycle status is {cycle.status}"}
 
-    try:
-        result = security.run_pipeline({"mode": "auto"})
-        return {
-            "status": "ok",
-            "overall": result.get("overall"),
-            "stages_completed": result.get("stages_completed"),
-            "stages_total": result.get("stages_total"),
-            "cycle_id": result.get("cycle_id"),
-        }
-    except Exception as e:
-        logger.error("Error advancing security pipeline: %s", e)
-        return {"status": "error", "message": str(e)}
+    targets = _pick_scan_targets(limit=2)
+    if not targets:
+        return {"status": "skipped", "reason": "no resolvable active targets"}
+
+    results = []
+    for target in targets:
+        try:
+            result = security.run_pipeline(
+                {
+                    "mode": "auto",
+                    "target": target,
+                    "scope": [target],
+                    "pipeline_context": {},
+                    "endpoints": [],
+                    "attack_surface": {},
+                    "hypotheses": [],
+                    "findings": [],
+                    "confirmed_findings": [],
+                    "reports": [],
+                    "evidence_packages": [],
+                }
+            )
+            results.append(
+                {
+                    "target": target,
+                    "overall": result.get("overall"),
+                    "stages_completed": result.get("stages_completed"),
+                }
+            )
+        except Exception as e:
+            logger.error("Pipeline failed for target %s: %s", target, e)
+            results.append({"target": target, "overall": "error", "error": str(e)[:200]})
+
+    return {
+        "status": "ok",
+        "targets": results,
+        "cycle_id": cycle.id,
+    }
 
 
 def run_daily_delivery_preparation(*args: Any, **kwargs: Any) -> dict[str, Any]:
@@ -248,18 +319,31 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
         if not confirmed:
             return {"status": "ok", "scanned": 0, "actions": [], "message": "no confirmed findings"}
 
-        # Exclude findings already linked to a submitted report
+        # Exclude findings already linked to a submitted/pending report
+        import json as _json
+
         from database import models as _m
 
         session = db.SessionLocal()
         try:
-            {row[0] for row in session.query(_m.Report.finding_ids).filter(_m.Report.status.in_(["submitted", "pending"])).all()}
+            submitted_ids: set[int] = set()
+            for (raw,) in session.query(_m.Report.finding_ids).filter(
+                _m.Report.status.in_(["submitted", "pending"])
+            ).all():
+                try:
+                    ids = _json.loads(raw) if raw else []
+                except (ValueError, TypeError):
+                    ids = []
+                if isinstance(ids, list):
+                    submitted_ids.update(int(i) for i in ids if str(i).isdigit())
         finally:
             session.close()
 
         pipeline = get_auto_submit_pipeline()
         actions: list[dict[str, Any]] = []
         for finding in confirmed:
+            if int(finding.id) in submitted_ids:  # type: ignore[arg-type]
+                continue
             try:
                 result = pipeline.process_finding(int(finding.id))  # type: ignore[arg-type]
                 actions.append(

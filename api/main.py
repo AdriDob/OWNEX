@@ -6,10 +6,10 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 
 from api.middleware.auth_middleware import AuthMiddleware
 from api.middleware.csrf_middleware import CSRFMiddleware
@@ -424,15 +424,21 @@ def configure_cors(app: FastAPI) -> None:
 configure_cors(app)
 
 
-@app.get("/", include_in_schema=False)
-async def root() -> dict:
-    """API-only root (owner directive 2026-08-25).
+_DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
-    The UI never lives here: it ships inside the Tauri bundle
-    (tauri://localhost) or runs via the Vite dev server. This route
-    exists so hitting the bare port returns an unambiguous JSON answer
-    instead of a 404 that could be mistaken for a missing frontend.
+
+@app.get("/", include_in_schema=False)
+async def root(request: Request):
+    """Root endpoint.
+
+    Browsers (Accept: text/html) get the built frontend so the dashboard is
+    reachable remotely (e.g. over Tailscale). API clients keep getting the
+    unambiguous JSON owner directive.
     """
+    accept = request.headers.get("accept", "")
+    index = _DIST_DIR / "index.html"
+    if "text/html" in accept and index.exists():
+        return FileResponse(index, media_type="text/html")
     return {
         "service": "OWNEX API",
         "version": _APP_VERSION,
@@ -784,6 +790,27 @@ async def _delayed_exit():
     await asyncio.sleep(0.5)
     logger.info("[SHUTDOWN] Exiting process")
     sys.exit(0)
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa_fallback(full_path: str):
+    """Serve the built Vue SPA for non-API paths (remote browser access).
+
+    Registered after every API route so API endpoints always win;
+    everything else resolves to a file in frontend/dist or falls back to
+    index.html for client-side routing.
+    """
+    if full_path.startswith(("api/", "direct-work/", "mobile/", "wear-os/")):
+        raise HTTPException(status_code=404)
+    if ".." in full_path:
+        raise HTTPException(status_code=404)
+    candidate = (_DIST_DIR / full_path).resolve()
+    if candidate.is_file() and str(candidate).startswith(str(_DIST_DIR.resolve())):
+        return FileResponse(candidate)
+    index = _DIST_DIR / "index.html"
+    if index.exists():
+        return FileResponse(index, media_type="text/html")
+    raise HTTPException(status_code=404)
 
 
 def main():

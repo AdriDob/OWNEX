@@ -125,6 +125,42 @@ def get_forge_jobs() -> list[JobDefinition]:
             metadata={"cycle": "forge", "platform": "opire"},
         )
     )
+    jobs.append(
+        _discovery_job(
+            job_id="forge_github_bounties_discover",
+            app_id="forge",
+            handler="core.opportunity.adapters.forge.github_bounties:fetch_opportunities",
+            seconds=3600,
+            metadata={"cycle": "forge", "platform": "github_bounties"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="forge_ethglobal_discover",
+            app_id="forge",
+            handler="core.opportunity.adapters.forge.ethglobal:fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "forge", "platform": "ethglobal"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="forge_onlydust_discover",
+            app_id="forge",
+            handler="core.opportunity.adapters.forge.onlydust:fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "forge", "platform": "onlydust"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="forge_codeforai_discover",
+            app_id="forge",
+            handler="core.opportunity.adapters.forge.codeforai:fetch_opportunities",
+            seconds=86400,
+            metadata={"cycle": "forge", "platform": "codeforai"},
+        )
+    )
 
     # Sync job — runs after all discovery (hourly at minute 55)
     jobs.append(
@@ -394,6 +430,53 @@ def get_security_jobs() -> list[JobDefinition]:
             handler="cores.opportunity.adapters.security.synack:SynackAdapter.fetch_opportunities",
             seconds=7200,
             metadata={"cycle": "security", "platform": "synack"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_cantina_discover",
+            app_id="security",
+            handler="cores.opportunity.adapters.security.cantina:CantinaAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "cantina"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_sherlock_discover",
+            app_id="security",
+            handler="cores.opportunity.adapters.security.sherlock:SherlockAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "sherlock"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_code4rena_discover",
+            app_id="security",
+            handler="cores.opportunity.adapters.security.code4rena:Code4renaAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "code4rena"},
+        )
+    )
+    jobs.append(
+        _discovery_job(
+            job_id="security_codehawks_discover",
+            app_id="security",
+            handler="cores.opportunity.adapters.security.codehawks:CodeHawksAdapter.fetch_opportunities",
+            seconds=7200,
+            metadata={"cycle": "security", "platform": "codehawks"},
+        )
+    )
+
+    # Sync real in-scope bounty domains into the targets table daily
+    jobs.append(
+        _cron_job(
+            job_id="targets_bounty_sync",
+            app_id="security",
+            handler="core.targets_sync:sync_bounty_targets",
+            cron="15 4 * * *",
+            metadata={"cycle": "security", "type": "target_sync"},
         )
     )
 
