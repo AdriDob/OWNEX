@@ -19,8 +19,9 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
     try:
         creds = get_platform_credentials("github")
         headers = {"Accept": "application/vnd.github.v3+json"}
-        if creds.get("token"):
-            headers["Authorization"] = f"Bearer {creds['token']}"
+        token = creds.get("token") or creds.get("api_key")
+        if token and not any(bad in str(token).lower() for bad in ("test", "your_", "placeholder", "xxx")):
+            headers["Authorization"] = f"Bearer {token}"
 
         async with httpx.AsyncClient() as client:
             # Search for repos with funding links

@@ -12,12 +12,12 @@ from typing import Any
 
 import httpx
 
-from core.credentials.vault import get_platform_credentials
-from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+from cores.credentials.vault import get_platform_credentials
+from cores.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 logger = logging.getLogger("ownex.adapters.security.immunefi")
 
-IMMUNEFI_EXPLORE = "https://immunefi.com/explore/"
+IMMUNEFI_EXPLORE = "https://immunefi.com/bug-bounty"
 
 
 class ImmunefiAdapter(OpportunityAdapter):
@@ -68,7 +68,7 @@ class ImmunefiAdapter(OpportunityAdapter):
     async def _fetch_programs(self) -> list[dict[str, Any]]:
         results: list[dict[str, Any]] = []
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             try:
                 resp = await client.get(IMMUNEFI_EXPLORE, headers={"Accept": "text/html"}, timeout=20)
                 if resp.status_code != 200:
@@ -133,7 +133,7 @@ class ImmunefiAdapter(OpportunityAdapter):
         return results
 
     async def _fallback_scrape(self, results: list[dict[str, Any]]) -> None:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             try:
                 resp = await client.get(IMMUNEFI_EXPLORE, timeout=20)
                 body = resp.text
