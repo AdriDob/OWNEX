@@ -21,7 +21,7 @@ Prioritized queue. Single write-owner per task. Check `.ai/TASK_QUEUE.md` for th
 |---|------|-------|-----------|-------|-------|-------|
 | 1 | Live-validate IOL/PPI/Binance sync | user+agent | user credentials | `cores/brokers/` | BLOCKED | needs real creds |
 | 2 | FX policy decision → capital engines wiring | user decision | #1 optional | `cores/capital/`, `core/investment/` | BLOCKED | currency mixing forbidden until decided |
-| 3 | Remote jobs: AR/ES-specific feeds | Work Intelligence | — | `cores/opportunity/job_feeds.py` | TODO | current feeds are EN-first |
+| 3 | Remote jobs: AR/ES-specific feeds | Work Intelligence | — | `cores/opportunity/job_feeds.py` | IN_PROGRESS | AR/ES adapter expansions + measurement framework in progress; P0 baseline & P1 upwork/kaggle/intigriti |
 | 4 | Perch E2E verification of OWNEX MCP | Connections | Perch install | `core/mcp_ownex_server.py` | TODO | consent flow ready |
 | 5 | Consolidate `core/` vs `cores/` twin trees | Coordinator | full audit | both trees | TODO | `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md` exists |
 | 6 | npm audit fix (devDeps) | Frontend | — | `frontend/package*.json` | TODO | `npm audit fix` crashes; needs lockfile regen or --force |

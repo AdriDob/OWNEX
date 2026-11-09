@@ -13,7 +13,7 @@ Verified against code on 2026-11-09. When two implementations exist, this table 
 | Income candidates bridge | `POST /api/connection-manager/portfolio/income-candidates/import` | — | VERIFIED |
 | OWNEX MCP server (for Perch/agents) | `core/mcp_ownex_server.py` | `core/mcp_rastro.py` (untracked WIP, NOT canonical) | VERIFIED |
 | Remote job matcher | `cores/opportunity/remote_job_matcher.py` | — | VERIFIED |
-| Job feeds (real) | `cores/opportunity/job_feeds.py` (Remotive/Arbeitnow/RemoteOK) | `core/opportunity/adapters/jobs/*` = MOCK, unregistered, NOT canonical | VERIFIED |
+| Job feeds (real) | `cores/opportunity/job_feeds.py` (Remotive, Arbeitnow, RemoteOK, Jobicy, WeWorkRemotely RSS) | `core/opportunity/adapters/jobs/*` = MOCK, unregistered, NOT canonical | VERIFIED |
 | Job tracker (application pipeline) | `cores/opportunity/job_tracker.py` | — | VERIFIED |
 | Application drafter | `cores/opportunity/application_drafter.py` | — | VERIFIED |
 | User profile (matcher/drafter) | `cores/opportunity/user_profile.py` + `GET/PUT /api/opportunities/profile` | — | VERIFIED |
