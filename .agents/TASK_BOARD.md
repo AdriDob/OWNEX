@@ -23,8 +23,8 @@ Prioritized queue. Single write-owner per task. Check `.ai/TASK_QUEUE.md` for th
 | 2 | FX policy decision → capital engines wiring | user decision | #1 optional | `cores/capital/`, `core/investment/` | BLOCKED | currency mixing forbidden until decided |
 | 3 | Remote jobs: AR/ES-specific feeds | Work Intelligence | — | `cores/opportunity/job_feeds.py` | IN_PROGRESS | AR/ES adapter expansions + measurement framework in progress; P0 baseline & P1 upwork/kaggle/intigriti |
 | 4 | Perch E2E verification of OWNEX MCP | Connections | Perch install | `core/mcp_ownex_server.py` | TODO | consent flow ready |
-| 5 | Consolidate `core/` vs `cores/` twin trees | Coordinator | full audit | both trees | TODO | `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md` exists |
-| 6 | npm audit fix (devDeps) | Frontend | — | `frontend/package*.json` | TODO | `npm audit fix` crashes; needs lockfile regen or --force |
+| 5 | Consolidate `core/` vs `cores/` twin trees | Coordinator | ADR-0002 acceptance | both trees | BLOCKED | audit DONE (`TWIN_TREE_AUDIT.md` + importers matrix); ADR-0002 (layout→cores/) + ADR-0003 (dual event bus) PROPOSED; needs dedicated worktree + user/architect sign-off |
+| 6 | npm audit fix (devDeps) | Frontend | — | `frontend/package*.json`, `package-lock.json` | DONE | 27→9 vulns, 0 critical/high; vue-i18n 10→11.4.18; remaining 9 moderate are devDeps |
 | 7 | Crypto/quant: real strategies | Finance | capital data flow | `core/quant/` (empty dirs) | DEFERRED | dirs exist but empty — don't build until income flows |
 
 ## Rules
