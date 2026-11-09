@@ -7,7 +7,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from cores.capabilities.registry import get_capability_registry
+from core.capabilities.registry import get_capability_registry
 from cores.copilot.analyzer import AnalysisResult, FindingAnalyzer
 from cores.copilot.auditor import AuditReport, IAuditor, get_all_auditors
 from cores.copilot.config import CopilotConfig

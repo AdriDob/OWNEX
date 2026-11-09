@@ -603,7 +603,7 @@ class AIRouterEngine:
     def register_capabilities(self) -> None:
         """Register capabilities with the capability registry."""
         try:
-            from cores.capabilities.registry import get_capability_registry
+            from core.capabilities.registry import get_capability_registry
 
             registry = get_capability_registry()
             registry.register(
