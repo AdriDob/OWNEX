@@ -16,7 +16,6 @@ import hashlib
 import logging
 from typing import Any
 
-from cores.opportunity.feedback import get_feedback_loop
 from core.opportunity.source_discovery import (
     SourceCandidate,
     SourceDiscoveryRegistry,

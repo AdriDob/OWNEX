@@ -1,7 +1,5 @@
 """Remote Job Integration tests — Remote Job Matcher ↔ Discovery ↔ Work Bank."""
 
-import pytest
-
 from cores.opportunity.remote_job_matcher import JobPreferences, match_job, rank_jobs
 
 

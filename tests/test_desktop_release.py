@@ -267,7 +267,7 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         assert path.is_file(), f"capacitor.config.json not found at {path}"
         content = path.read_text()
-        assert "ownex.desktop.app" in content
+        assert "ai.rastro.app" in content
         assert "OWNEX" in content
         assert "frontend/dist" in content
 
@@ -278,7 +278,7 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
         cfg = json.loads(content)
-        assert cfg["appId"] == "ownex.desktop.app"
+        assert cfg["appId"] == "ai.rastro.app"
         assert cfg["appName"] == "OWNEX"
         assert cfg["webDir"] == "frontend/dist"
 
