@@ -18,6 +18,22 @@ def get_opportunities(
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 
+@router.get("/profile")
+def get_user_profile():
+    """Current user profile used by matcher/drafter (real data only)."""
+    from cores.opportunity.user_profile import get_profile
+
+    return {"profile": get_profile()}
+
+
+@router.put("/profile")
+def put_user_profile(body: dict):
+    """Update user profile — only whitelisted fields are stored."""
+    from cores.opportunity.user_profile import update_profile
+
+    return {"profile": update_profile(body)}
+
+
 @router.get("/remote-jobs/search")
 def remote_jobs_search(
     q: str = Query("", max_length=200),
@@ -29,13 +45,15 @@ def remote_jobs_search(
     """Search real remote jobs (Remotive/Arbeitnow/RemoteOK) ranked by remote_job_matcher."""
     from cores.opportunity.job_feeds import search_remote_jobs
     from cores.opportunity.remote_job_matcher import JobPreferences
+    from cores.opportunity.user_profile import get_profile
 
+    profile = get_profile()
     prefs = JobPreferences(
         salary_min_usd=salary_min,
         max_tech_tests=max_tech_tests,
         payment_methods=tuple(p.strip().lower() for p in payment_methods.split(",") if p.strip()),
     )
-    jobs = search_remote_jobs(query=q, prefs=prefs, limit=limit)
+    jobs = search_remote_jobs(query=q, profile=profile or None, prefs=prefs, limit=limit)
     return {"jobs": jobs, "count": len(jobs)}
 
 
@@ -69,13 +87,14 @@ def remote_jobs_draft(job_id: str, body: dict):
     """
     from cores.opportunity.application_drafter import draft_application
     from cores.opportunity.job_tracker import list_jobs
+    from cores.opportunity.user_profile import get_profile
 
     entry = next((j for j in list_jobs() if j["id"] == job_id), None)
     if entry is None:
         from fastapi import HTTPException
 
         raise HTTPException(status_code=404, detail="job not found")
-    profile = body.get("profile") or {}
+    profile = body.get("profile") or get_profile() or {}
     draft = draft_application(entry["job"], profile)
     return {"id": job_id, **draft}
 

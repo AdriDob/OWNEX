@@ -34,6 +34,38 @@ const query = ref('')
 const salaryMin = ref(0)
 const maxTechTests = ref(1)
 const paymentMethods = ref('')
+
+// User profile (persisted server-side, used by matcher + drafter)
+const profile = ref({ name: '', headline: '', skills: '', experience_years: 0 })
+
+async function loadProfile() {
+  try {
+    const data = await api.get<{ profile: Record<string, unknown> }>('/opportunities/profile')
+    const p = data.profile || {}
+    profile.value = {
+      name: String(p.name || p.full_name || ''),
+      headline: String(p.headline || p.title || ''),
+      skills: Array.isArray(p.skills) ? (p.skills as string[]).join(', ') : '',
+      experience_years: Number(p.experience_years || 0),
+    }
+  } catch {
+  }
+}
+
+async function saveProfile() {
+  try {
+    await api.put('/opportunities/profile', {
+      name: profile.value.name,
+      headline: profile.value.headline,
+      skills: profile.value.skills.split(',').map((s) => s.trim()).filter(Boolean),
+      experience_years: profile.value.experience_years,
+    })
+  } catch {
+    // silent
+  }
+}
+
+loadProfile()
 const jobs = ref<RemoteJob[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -105,6 +137,20 @@ function scoreVariant(score: number) {
         <Search class="w-4 h-4 mr-1" /> Buscar
       </Button>
     </form>
+
+    <details class="mb-6 rounded-md border border-border p-3">
+      <summary class="text-xs font-medium cursor-pointer">Mi perfil (alimenta score y borradores)</summary>
+      <div class="grid gap-2 mt-3 text-xs sm:grid-cols-2">
+        <input v-model="profile.name" placeholder="Nombre" class="rounded border border-border bg-background px-2 py-1" />
+        <input v-model="profile.headline" placeholder="Headline / título" class="rounded border border-border bg-background px-2 py-1" />
+        <input v-model="profile.skills" placeholder="Skills (separadas por coma)" class="rounded border border-border bg-background px-2 py-1 sm:col-span-2" />
+        <label class="flex items-center gap-1.5">
+          Años de experiencia
+          <input v-model.number="profile.experience_years" type="number" min="0" class="w-20 rounded border border-border bg-background px-2 py-1" />
+        </label>
+        <Button size="sm" variant="outline" class="w-fit" @click="saveProfile">Guardar perfil</Button>
+      </div>
+    </details>
 
     <div class="flex flex-wrap gap-3 mb-6 text-xs">
       <label class="flex items-center gap-1.5">

@@ -155,3 +155,37 @@ def test_application_drafter() -> None:
     assert "python" in d["profile_summary"]["matched_skills"] or "python" in d["cover_letter"]
     # no invented skills: cover letter only mentions profile skills
     assert "excel" not in d["cover_letter"].lower()
+
+
+def test_user_profile_store(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import cores.connections.importer as imp
+    from cores.opportunity import user_profile
+
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(imp, "get_config", lambda: fake_cfg)
+
+    assert user_profile.get_profile() == {}
+    out = user_profile.update_profile({"name": "Adriel", "skills": ["python"], "hack": "drop-me"})
+    assert out["name"] == "Adriel" and "hack" not in out  # whitelist enforced
+    # persists
+    assert user_profile.get_profile()["skills"] == ["python"]
+
+
+def test_profile_endpoints(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    import cores.connections.importer as imp
+    from api.routers import opportunities
+
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(imp, "get_config", lambda: fake_cfg)
+    app = FastAPI()
+    app.include_router(opportunities.router)
+    c = TestClient(app)
+
+    r = c.put("/api/opportunities/profile", json={"name": "Adriel", "skills": ["go"], "secret_field": "x"})
+    assert r.status_code == 200 and r.json()["profile"]["name"] == "Adriel"
+    assert "secret_field" not in r.json()["profile"]
+    g = c.get("/api/opportunities/profile")
+    assert g.json()["profile"]["skills"] == ["go"]
