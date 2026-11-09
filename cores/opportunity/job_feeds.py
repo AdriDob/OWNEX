@@ -136,7 +136,95 @@ def fetch_remoteok(query: str = "", limit: int = 50) -> list[dict[str, Any]]:
         return []
 
 
-FEEDS = {"remotive": fetch_remotive, "arbeitnow": fetch_arbeitnow, "remoteok": fetch_remoteok}
+def fetch_jobicy(query: str = "", geo: str = "argentina", tag: str = "", limit: int = 50) -> list[dict[str, Any]]:
+    """Jobicy public API v2 — supports geo filter (argentina/worldwide/lonely etc)."""
+    try:
+        params: dict[str, Any] = {"count": min(limit * 2, 100), "geo": geo}
+        if tag:
+            params["tag"] = tag
+        r = httpx.get("https://jobicy.com/api/v2/remote-jobs", params=params, headers=HEADERS, timeout=TIMEOUT)
+        r.raise_for_status()
+        jobs = []
+        q = query.lower()
+        for j in (r.json().get("jobs") or []):
+            title = j.get("jobTitle") or ""
+            company = j.get("companyName") or ""
+            if q and q not in title.lower() and q not in company.lower():
+                continue
+            if len(jobs) >= limit:
+                break
+            job_geo = str(j.get("jobGeo") or "")
+            geo_l = job_geo.lower()
+            jobs.append(
+                _norm(
+                    j.get("jobTitle") or "",
+                    j.get("companyName") or "",
+                    j.get("url") or "",
+                    j.get("jobExcerpt") or "",
+                    "jobicy",
+                    published_at=j.get("pubDate"),
+                    remote=True,
+                    argentina_ok=("argentina" in geo_l or "latam" in geo_l or "worldwide" in geo_l or "global" in geo_l),
+                    salary_min=(j.get("salaryMin") if isinstance(j.get("salaryMin"), (int, float)) else None),
+                    tags=[str(t).lower() for t in (j.get("jobIndustry") or [])],
+                )
+            )
+        return jobs
+    except Exception as exc:
+        logger.warning("jobicy fetch failed: %s", exc)
+        return []
+
+
+def fetch_weworkremotely(query: str = "", limit: int = 50) -> list[dict[str, Any]]:
+    """WeWorkRemotely RSS — real programming/remote jobs feed."""
+    import xml.etree.ElementTree as ET
+
+    try:
+        r = httpx.get(
+            "https://weworkremotely.com/categories/remote-programming-jobs.rss",
+            headers=HEADERS,
+            timeout=TIMEOUT,
+        )
+        r.raise_for_status()
+        root = ET.fromstring(r.text)
+        jobs = []
+        q = query.lower()
+        for item in root.findall(".//item"):
+            title = (item.findtext("title") or "").strip()
+            if q and q not in title.lower():
+                continue
+            if len(jobs) >= limit:
+                break
+            link = (item.findtext("link") or "").strip()
+            desc = (item.findtext("description") or "")[:2000]
+            pub = item.findtext("pubDate") or ""
+            # WWR titles look like "Company: Role"
+            company, _, role = title.partition(":")
+            jobs.append(
+                _norm(
+                    role.strip() or title,
+                    company.strip() or "WeWorkRemotely",
+                    link,
+                    desc,
+                    "weworkremotely",
+                    published_at=pub,
+                    remote=True,
+                    tags=["programming"],
+                )
+            )
+        return jobs
+    except Exception as exc:
+        logger.warning("weworkremotely fetch failed: %s", exc)
+        return []
+
+
+FEEDS = {
+    "remotive": fetch_remotive,
+    "arbeitnow": fetch_arbeitnow,
+    "remoteok": fetch_remoteok,
+    "jobicy": fetch_jobicy,
+    "weworkremotely": fetch_weworkremotely,
+}
 
 
 def fetch_all(query: str = "", limit_per_feed: int = 50, feeds: list[str] | None = None) -> list[dict[str, Any]]:

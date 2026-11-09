@@ -189,3 +189,31 @@ def test_profile_endpoints(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert "secret_field" not in r.json()["profile"]
     g = c.get("/api/opportunities/profile")
     assert g.json()["profile"]["skills"] == ["go"]
+
+
+def test_fetch_jobicy_normalizes(monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = {"jobs": [{"jobTitle": "Dev", "companyName": "ACME", "url": "u", "jobExcerpt": "d", "pubDate": "2026-01-01", "jobGeo": "LATAM, Europe", "jobIndustry": ["Engineering"], "salaryMin": 3000}]}
+
+    class R:
+        def raise_for_status(self): pass
+        def json(self): return payload
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    jobs = job_feeds.fetch_jobicy()
+    assert len(jobs) == 1
+    assert jobs[0]["argentina_ok"] is True and jobs[0]["salary_min"] == 3000
+
+
+def test_fetch_weworkremotely_parses_rss(monkeypatch: pytest.MonkeyPatch) -> None:
+    rss = """<?xml version="1.0"?><rss version="2.0"><channel>
+    <item><title>ACME Corp: Backend Engineer</title><link>https://x</link><description>desc</description><pubDate>Mon, 01 Jan 2026</pubDate></item>
+    </channel></rss>"""
+
+    class R:
+        def raise_for_status(self): pass
+        text = rss
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    jobs = job_feeds.fetch_weworkremotely()
+    assert len(jobs) == 1
+    assert jobs[0]["title"] == "Backend Engineer" and jobs[0]["company"] == "ACME Corp"
