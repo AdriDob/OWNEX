@@ -1,4 +1,7 @@
 # Dev Bounty Maximization Extended — 72% → 95%+
+
+> **DEPRECATED AS A REVENUE FORECAST (2026-11-09):** This document is a historical/aspirational planning artifact. Its success percentages, bounty volumes, PR acceptance rates, hourly capacity, revenue totals and timelines have not been validated against real paid outcomes. Do not display or use its figures as expected income. See [the evidence-based Deep Revenue Opportunity Study](../docs/DEEP_REVENUE_OPPORTUNITY_STUDY.md) and [Income & Opportunity Validation](../docs/INCOME_AND_OPPORTUNITY_VALIDATION.md) for the current baseline and methodology.
+
 ## Plan extendido para Software Development Agent
 ### Objetivo: Llegar a 95%+ éxito y $10K/mes recurrente
 
