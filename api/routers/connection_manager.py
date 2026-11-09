@@ -13,11 +13,15 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from cores.brokers.binance_client import BinanceReadOnlyError, sync_binance_account
 from cores.brokers.iol_client import IOLAuthError, sync_iol_account
+from cores.brokers.ppi_client import PPIAuthError, sync_ppi_account
+from cores.connections import importer
 from cores.connections.catalog import AI_TOOLS, API_SYNC_PROVIDERS, INFRA, INVESTMENT_AR, ProviderSetup
 from cores.connections.snapshots import load_snapshot, save_snapshot
+from cores.connections.sync_history import get_history, record_event
 from cores.identity_vault import get_identity_vault
 from cores.opportunity.own_work_sources import SOURCE_PLATFORM_MAP
 
@@ -42,6 +46,8 @@ _AUTH_MECHANISMS: dict[str, str] = {
     "hackerone": "api_token",
     "bugcrowd": "api_token",
     "iol": "password_to_jwt",
+    "ppi": "api_key_headers",
+    "binance": "api_key_secret",
 }
 
 
@@ -228,22 +234,61 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
 
     if provider in API_SYNC_PROVIDERS:
         creds = vault.get_credentials(provider)
-        email = creds.get("email") or ""
-        password = creds.get("password") or ""
-        if not email or not password:
-            raise HTTPException(
-                status_code=400,
-                detail="Faltan credenciales (email + contraseña) para sincronizar por API",
-            )
-        try:
-            live = sync_iol_account(email, password)
-        except IOLAuthError as exc:
-            raise HTTPException(status_code=401, detail=f"IOL rechazó las credenciales: {exc}") from exc
-        except httpx.HTTPStatusError as exc:
-            status = 401 if exc.response.status_code in (401, 403) else 502
-            raise HTTPException(status_code=status, detail=f"IOL respondió {exc.response.status_code}") from exc
-        except Exception as exc:
-            raise HTTPException(status_code=502, detail=f"Error consultando IOL: {exc}") from exc
+        meta_extra = creds
+        if provider == "iol":
+            email = creds.get("email") or ""
+            password = creds.get("password") or ""
+            if not email or not password:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Faltan credenciales (email + contraseña) para sincronizar por API",
+                )
+            try:
+                live = sync_iol_account(email, password)
+            except IOLAuthError as exc:
+                raise HTTPException(status_code=401, detail=f"IOL rechazó las credenciales: {exc}") from exc
+            except httpx.HTTPStatusError as exc:
+                status = 401 if exc.response.status_code in (401, 403) else 502
+                raise HTTPException(status_code=status, detail=f"IOL respondió {exc.response.status_code}") from exc
+            except Exception as exc:
+                raise HTTPException(status_code=502, detail=f"Error consultando IOL: {exc}") from exc
+        elif provider == "ppi":
+            api_key = creds.get("token") or ""
+            api_secret = creds.get("password") or ""
+            authorized_client = str(meta_extra.get("authorized_client") or "")
+            client_key = str(meta_extra.get("client_key") or "")
+            base_url = str(meta_extra.get("base_url") or "") or None
+            if not all([api_key, api_secret, authorized_client, client_key]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Faltan credenciales PPI (ApiKey, ApiSecret, AuthorizedClient, ClientKey)",
+                )
+            try:
+                live = sync_ppi_account(api_key, api_secret, authorized_client, client_key, base_url)
+            except PPIAuthError as exc:
+                raise HTTPException(status_code=401, detail=f"PPI rechazó las credenciales: {exc}") from exc
+            except httpx.HTTPStatusError as exc:
+                status = 401 if exc.response.status_code in (401, 403) else 502
+                raise HTTPException(status_code=status, detail=f"PPI respondió {exc.response.status_code}") from exc
+            except Exception as exc:
+                raise HTTPException(status_code=502, detail=f"Error consultando PPI: {exc}") from exc
+        elif provider == "binance":
+            api_key = creds.get("token") or ""
+            api_secret = creds.get("password") or ""
+            if not api_key or not api_secret:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Faltan credenciales Binance (API Key + Secret, solo lectura)",
+                )
+            try:
+                live = sync_binance_account(api_key, api_secret)
+            except BinanceReadOnlyError as exc:
+                raise HTTPException(status_code=401, detail=f"Binance rechazó la consulta: {exc}") from exc
+            except Exception as exc:
+                raise HTTPException(status_code=502, detail=f"Error consultando Binance: {exc}") from exc
+        else:  # pragma: no cover - API_SYNC_PROVIDERS guard
+            raise HTTPException(status_code=400, detail="Sync por API no implementado para este provider")
+
         envelope = save_snapshot(provider, live, source="api")
         sync_meta.update({"source": "api", "keys": sorted(live.keys()), "partial_errors": live.get("partial_errors")})
     else:
@@ -262,6 +307,16 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
     vault.record_sync(provider, sync_meta)
     vault.update_session_state(provider, "connected")
     vault.update_health(provider, "healthy")
+    record_event(
+        provider,
+        {
+            "kind": "sync",
+            "mode": sync_mode,
+            "source": sync_meta.get("source", sync_mode),
+            "synced_at": envelope["synced_at"],
+            "partial_errors": sync_meta.get("partial_errors"),
+        },
+    )
 
     account = vault.get_account(provider)
     payload = _account_payload(provider, account, meta)
@@ -280,3 +335,69 @@ def latest_snapshot(provider: str) -> dict[str, Any]:
     if snapshot is None:
         raise HTTPException(status_code=404, detail="No hay snapshot sincronizado para este provider")
     return snapshot
+
+
+@router.get("/accounts/{provider}/sync/history")
+def sync_history(provider: str, limit: int = 50) -> dict[str, Any]:
+    """Return recent sync/import events for a provider (no secrets)."""
+    return {"provider": provider, "events": get_history(provider, limit)}
+
+
+@router.post("/accounts/{provider}/import/preview")
+async def import_preview(provider: str, file: UploadFile = File(...)) -> dict[str, Any]:
+    """Preview a manual import file (CSV/JSON/XLSX) without persisting."""
+    _require_provider(provider)
+    content, filename = await _read_upload(file)
+    try:
+        return importer.preview_import(provider, filename, content)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{provider}/import/confirm")
+async def import_confirm(provider: str, file: UploadFile = File(...), mapping: str | None = None) -> dict[str, Any]:
+    """Confirm and persist a manual import batch (deduplicated)."""
+    _require_provider(provider)
+    content, filename = await _read_upload(file)
+    parsed_mapping = None
+    if mapping:
+        try:
+            parsed_mapping = json.loads(mapping)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail="mapping debe ser JSON válido") from exc
+    try:
+        result = importer.confirm_import(provider, filename, content, parsed_mapping)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    vault = get_identity_vault()
+    if vault.get_account(provider):
+        vault.record_sync(provider, {"mode": "file_import", "batch_id": result["batch_id"], "imported": result["imported"]})
+    record_event(
+        provider,
+        {"kind": "import", "batch_id": result["batch_id"], "imported": result["imported"], "duplicates": result["duplicates"]},
+    )
+    return result
+
+
+@router.get("/accounts/{provider}/imports")
+def list_imports(provider: str) -> dict[str, Any]:
+    """List manual import batches for a provider."""
+    _require_provider(provider)
+    return {"provider": provider, "imports": importer.list_imports(provider)}
+
+
+def _require_provider(provider: str) -> None:
+    meta = _catalog_providers().get(provider)
+    if meta is None:
+        raise HTTPException(status_code=404, detail=f"Provider '{provider}' no está en el catálogo")
+
+
+async def _read_upload(file: UploadFile) -> tuple[bytes, str]:
+    """Extract bytes+filename from an uploaded file."""
+    filename = file.filename or "import.csv"
+    content = await file.read()
+    if isinstance(content, str):
+        content = content.encode()
+    if not content:
+        raise HTTPException(status_code=400, detail="Archivo vacío")
+    return bytes(content), str(filename)

@@ -28,6 +28,8 @@ class ProviderSetup:
     sync_mode: str = "manual_export"  # api | manual_export | cli | none
     setup_steps: tuple[str, ...] = ()
     notes: str = ""
+    integration_method: str = ""  # api_rest | api_rest_ws | mcp_remote | cli | manual_import | browser_session
+    permissions: tuple[str, ...] = ()  # read-only permission set granted to OWNEX
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -38,7 +40,25 @@ class ProviderSetup:
             "sync_mode": self.sync_mode,
             "setup_steps": list(self.setup_steps),
             "notes": self.notes,
+            "integration_method": self.integration_method
+            or {
+                "api": "api_rest",
+                "manual_export": "manual_import",
+                "cli": "cli",
+                "none": "none",
+            }.get(self.sync_mode, ""),
+            "permissions": list(self.permissions),
         }
+
+
+# Read-only permission set applied to every financial connection by default.
+# Write/trade/withdrawal capabilities are NEVER granted by OWNEX.
+READ_ONLY_PERMISSIONS = (
+    "PUBLIC_DATA_READ",
+    "PRIVATE_ACCOUNT_READ",
+    "PORTFOLIO_READ",
+    "TRANSACTION_READ",
+)
 
 
 # ── Argentine investment / fintech providers ──────────────────────────────
@@ -53,13 +73,50 @@ INVESTMENT_AR: dict[str, ProviderSetup] = {
         docs_url="https://developers.iolinversiones.com",
         credential_fields=("email", "password"),
         sync_mode="api",
+        integration_method="api_rest",
+        permissions=READ_ONLY_PERMISSIONS,
         setup_steps=(
             "Abrí tu cuenta comitente en IOL Inversiones",
-            "Generá/confirmá tu usuario y contraseña de plataforma",
+            "Confirmá tu usuario y contraseña de plataforma (la API usa OAuth2 password grant)",
             "Conectá acá con email + contraseña — OWNEX obtiene un token JWT",
-            "Usá 'Sincronizar' para traer saldos y posiciones reales (ARS/USD)",
+            "IOL además publica MCP oficial (mcp.invertironline.com) con modos de solo lectura",
+            "Usá 'Sincronizar' para traer saldos, posiciones y movimientos reales (ARS/USD)",
         ),
-        notes="API REST + WebSocket gratuita para clientes IOL. Cubre acciones, CEDEARs, bonos, FCIs, cripto.",
+        notes="API REST + WebSocket + MCP oficial, gratuita para clientes IOL. Solo lectura: OWNEX nunca opera ni retira.",
+    ),
+    "ppi": ProviderSetup(
+        domain="investment_ar",
+        login_url="https://www.portfoliopersonal.com",
+        docs_url="https://itatppi.github.io/ppi-official-api-docs/",
+        credential_fields=("email", "token", "password"),
+        sync_mode="api",
+        integration_method="api_rest",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "En PPI entrá a Gestiones → Gestión de servicio API y activá el servicio",
+            "Generá tus credenciales: ApiKey, ApiSecret, AuthorizedClient y ClientKey",
+            "En OWNEX: email = alias de cuenta, token = ApiKey, password = ApiSecret",
+            "Enviá AuthorizedClient y ClientKey en metadata al conectar (metadata.authorized_client / client_key)",
+            "Usá 'Sincronizar' para traer cuentas, saldos, posiciones y movimientos",
+        ),
+        notes="API REST oficial v1.0 con sandbox. LoginApi devuelve accessToken+refreshToken. Solo lectura.",
+    ),
+    "binance": ProviderSetup(
+        domain="investment_ar",
+        login_url="https://www.binance.com",
+        docs_url="https://developers.binance.com",
+        credential_fields=("email", "token", "password"),
+        sync_mode="api",
+        integration_method="api_rest",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "En Binance generá una API key con permisos SOLO de lectura (Enable Reading)",
+            "NO habilites trading, withdrawals ni transfers — OWNEX es solo lectura",
+            "Restringí la key por IP si es posible",
+            "En OWNEX: email = alias, token = API Key, password = API Secret",
+            "Usá 'Sincronizar' para traer balances spot y datos de cuenta",
+        ),
+        notes="API oficial ccxt. Config inicial: USER_DATA/lectura + datos públicos. Sin trading ni retiros.",
     ),
     "cocos": ProviderSetup(
         domain="investment_ar",
@@ -90,12 +147,57 @@ INVESTMENT_AR: dict[str, ProviderSetup] = {
         login_url="https://www.ripio.com",
         credential_fields=("email", "token"),
         sync_mode="manual_export",
+        integration_method="manual_import",
+        permissions=READ_ONLY_PERMISSIONS,
         setup_steps=(
-            "Ripio no tiene API pública para clientes minoristas",
-            "Exportá movimientos/saldos desde la app o web",
-            "Cargá el snapshot manual en OWNEX",
+            "Ripio Retail API existe pero su disponibilidad para clientes argentinos",
+            "y permisos de lectura debe verificarse por cuenta — OWNEX la clasifica CONDITIONAL",
+            "Mientras tanto: exportá movimientos/saldos desde la app o web",
+            "Cargá el snapshot manual o importá el archivo exportado",
         ),
-        notes="Cripto + pesos. Sync manual.",
+        notes="CONDITIONAL: apidocs.ripio.com contempla lectura y retiros — OWNEX solo lectura. Sync manual hasta verificar disponibilidad AR.",
+    ),
+    "bullmarket": ProviderSetup(
+        domain="investment_ar",
+        login_url="https://www.bullmarket.com.ar",
+        credential_fields=("email", "token"),
+        sync_mode="manual_export",
+        integration_method="manual_import",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "Bull Market Brokers: API/exportaciones oficiales pendientes de verificación",
+            "Descargá estado de cuenta o resumen de cartera desde la plataforma",
+            "Importá el archivo o cargá el snapshot manual",
+        ),
+        notes="Broker argentino. Integración pendiente de verificación — importación manual.",
+    ),
+    "banza": ProviderSetup(
+        domain="investment_ar",
+        login_url="https://www.banza.com.ar",
+        credential_fields=("email", "token"),
+        sync_mode="manual_export",
+        integration_method="manual_import",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "Banza: métodos de integración pendientes de investigación",
+            "Exportá resumen de inversiones desde la app/web",
+            "Importá el archivo o cargá el snapshot manual",
+        ),
+        notes="Fintech de inversión argentina. Importación manual.",
+    ),
+    "inviu": ProviderSetup(
+        domain="investment_ar",
+        login_url="https://www.inviu.com.ar",
+        credential_fields=("email", "token"),
+        sync_mode="manual_export",
+        integration_method="manual_import",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "Inviu: métodos de integración pendientes de investigación",
+            "Exportá estado de cuenta desde la plataforma",
+            "Importá el archivo o cargá el snapshot manual",
+        ),
+        notes="ALyC/banco de inversión. Importación manual.",
     ),
     "belo": ProviderSetup(
         domain="investment_ar",
@@ -120,18 +222,6 @@ INVESTMENT_AR: dict[str, ProviderSetup] = {
             "Cargá el snapshot manual en OWNEX",
         ),
         notes="ALyC con cauciones, MEP, FCIs. Sync manual.",
-    ),
-    "ppi": ProviderSetup(
-        domain="investment_ar",
-        login_url="https://www.portfoliopersonal.com",
-        credential_fields=("email", "token"),
-        sync_mode="manual_export",
-        setup_steps=(
-            "PPI (Portfolio Personal Inversiones) no tiene API pública",
-            "Descargá el resumen de tu comitente",
-            "Cargá el snapshot manual en OWNEX",
-        ),
-        notes="ALyC clásica: bonos, CEDEARs, acciones. Sync manual.",
     ),
     "ieb": ProviderSetup(
         domain="investment_ar",
@@ -209,4 +299,4 @@ INFRA: dict[str, ProviderSetup] = {
 }
 
 # Providers with a real API sync implemented in OWNEX today.
-API_SYNC_PROVIDERS = {"iol"}
+API_SYNC_PROVIDERS = {"iol", "ppi", "binance"}

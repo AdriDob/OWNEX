@@ -173,6 +173,28 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   }
 }
 
+async function requestForm<T>(path: string, form: FormData): Promise<T> {
+  if (isTauri && !(await whenBackendReady(20000))) {
+    throw new ApiError(0, 'Backend no disponible — el sistema está iniciando o el sidecar falló. Reintentá en unos segundos.')
+  }
+  const url = resolveApiUrl(path)
+  const headers: Record<string, string> = {}
+  const token = getToken()
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  const res = await fetch(url, { method: 'POST', headers, credentials: 'include', body: form })
+  if (res.status === 401) {
+    clearSession()
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+    throw new ApiError(401, 'Sesión expirada. Reautenticación requerida.')
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new ApiError(res.status, text || `HTTP ${res.status}`)
+  }
+  if (res.status === 204) return undefined as T
+  return res.json()
+}
+
 // ── Public API helpers ──
 
 export const api = {
@@ -180,6 +202,8 @@ export const api = {
     request<T>(path, { params }),
 
   post: <T>(path: string, body?: unknown, skipAuth?: boolean) => request<T>(path, { method: 'POST', body, skipAuth }),
+
+  postForm: <T>(path: string, form: FormData) => requestForm<T>(path, form),
 
   put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body }),
 

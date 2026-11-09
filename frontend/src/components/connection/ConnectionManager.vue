@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useOwnexState } from '@/composables/useOwnexState'
 import { useAuthStore } from '@/stores/auth'
 import { useExternalConnectionManager } from '@/composables/useExternalConnectionManager'
+import type { ImportPreview, ImportResult } from '@/composables/useExternalConnectionManager'
 import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 
@@ -64,6 +65,8 @@ const {
   remove,
   getConnection,
   requiresAuthentication,
+  importPreview,
+  importConfirm,
 } = ecm
 
 // Available providers for connection
@@ -76,8 +79,14 @@ const connectForm = ref({
   email: '' as string,
   token: '' as string,
   password: '' as string,
+  authorizedClient: '' as string,
+  clientKey: '' as string,
 })
 const manualSnapshot = ref('')
+const importFile = ref<File | null>(null)
+const importPreviewData = ref<ImportPreview | null>(null)
+const importResultData = ref<ImportResult | null>(null)
+const importLoading = ref(false)
 const domainFilter = ref<string>('all')
 
 const DOMAIN_LABELS: Record<string, string> = {
@@ -106,6 +115,7 @@ const selectedSetup = computed(() => {
 const needsPassword = computed(() =>
   !!selectedSetup.value?.credential_fields?.includes('password')
 )
+const needsPpiExtra = computed(() => selectedProvider.value === 'ppi')
 const isManualSync = computed(() => {
   const mode = selectedSetup.value?.sync_mode
   return mode === 'manual_export' || mode === 'cli'
@@ -188,8 +198,13 @@ async function openConnectFlow(provider: string) {
     email: '',
     token: '',
     password: '',
+    authorizedClient: '',
+    clientKey: '',
   }
   manualSnapshot.value = ''
+  importFile.value = null
+  importPreviewData.value = null
+  importResultData.value = null
 }
 
 // Close connect flow
@@ -200,8 +215,13 @@ function closeConnectFlow() {
     email: '',
     token: '',
     password: '',
+    authorizedClient: '',
+    clientKey: '',
   }
   manualSnapshot.value = ''
+  importFile.value = null
+  importPreviewData.value = null
+  importResultData.value = null
 }
 
 // Execute connect
@@ -209,11 +229,17 @@ async function executeConnect() {
   const { provider } = connectForm.value
   if (!provider) return
 
+  const metadata: Record<string, string> = {}
+  if (provider === 'ppi') {
+    if (connectForm.value.authorizedClient) metadata.authorized_client = connectForm.value.authorizedClient
+    if (connectForm.value.clientKey) metadata.client_key = connectForm.value.clientKey
+  }
   const success = await connect({
     provider,
     email: connectForm.value.email,
     token: connectForm.value.token,
     password: connectForm.value.password,
+    metadata,
   })
   if (success) {
     toast.success(`${provider} conectado correctamente`)
@@ -282,6 +308,41 @@ async function executeSync() {
     await ecm.loadExternalConnections()
   } else {
     toast.error('Error en sincronización: ' + result.message)
+  }
+}
+
+// ── Manual file import (CSV/JSON/XLSX) ──
+async function onImportFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0] || null
+  importFile.value = file
+  importPreviewData.value = null
+  importResultData.value = null
+  if (!file || !selectedProvider.value) return
+  importLoading.value = true
+  try {
+    importPreviewData.value = await importPreview(selectedProvider.value, file)
+  } catch (e: any) {
+    toast.error('No se pudo leer el archivo: ' + (e?.message || 'error'))
+  } finally {
+    importLoading.value = false
+  }
+}
+
+async function executeImportConfirm() {
+  if (!selectedProvider.value || !importFile.value) return
+  importLoading.value = true
+  try {
+    importResultData.value = await importConfirm(
+      selectedProvider.value,
+      importFile.value,
+      importPreviewData.value?.mapping,
+    )
+    toast.success(`Importación completada: ${importResultData.value.imported} registros`)
+  } catch (e: any) {
+    toast.error('Error en importación: ' + (e?.message || 'error'))
+  } finally {
+    importLoading.value = false
   }
 }
 
@@ -579,10 +640,30 @@ async function executeRemove(provider: string) {
                 v-if="needsPassword"
                 v-model="connectForm.password"
                 type="password"
-                placeholder="Contraseña de la plataforma"
+                :placeholder="selectedProvider === 'ppi' ? 'PPI ApiSecret' : selectedProvider === 'binance' ? 'Binance API Secret' : 'Contraseña de la plataforma'"
                 class="w-full mb-3"
                 :disabled="connectForm.provider !== selectedProvider"
               />
+              <template v-if="needsPpiExtra">
+                <Input
+                  v-model="connectForm.authorizedClient"
+                  type="password"
+                  placeholder="PPI AuthorizedClient"
+                  class="w-full mb-3"
+                />
+                <Input
+                  v-model="connectForm.clientKey"
+                  type="password"
+                  placeholder="PPI ClientKey"
+                  class="w-full mb-3"
+                />
+              </template>
+              <p
+                v-if="selectedSetup?.permissions?.length"
+                class="text-[10px] text-muted-foreground mb-2"
+              >
+                Permisos: {{ selectedSetup.permissions.join(' · ') }} — solo lectura, sin trading ni retiros
+              </p>
 
               <!-- Manual snapshot for providers without API sync -->
               <div v-if="isManualSync" class="mt-2">
@@ -595,6 +676,42 @@ async function executeRemove(provider: string) {
                   placeholder='{"portfolio_total_ars": 150000, "positions": [...]}'
                   class="w-full rounded border border-border bg-background p-2 text-xs font-mono"
                 />
+              </div>
+
+              <!-- File import (CSV/JSON/XLSX) for manual providers -->
+              <div v-if="isManualSync" class="mt-3 rounded border border-border p-3">
+                <label class="text-xs font-medium text-foreground block mb-1">
+                  Importar archivo (CSV / JSON / XLSX)
+                </label>
+                <input
+                  type="file"
+                  accept=".csv,.json,.xlsx,.xls"
+                  class="text-xs w-full mb-2"
+                  @change="onImportFileChange"
+                />
+                <div v-if="importLoading" class="text-xs text-muted-foreground">Procesando…</div>
+                <div v-else-if="importPreviewData" class="text-xs space-y-1">
+                  <p class="text-muted-foreground">
+                    {{ importPreviewData.format.toUpperCase() }} · {{ importPreviewData.total_rows }} filas
+                    · columnas mapeadas: {{ Object.keys(importPreviewData.mapping).join(', ') || 'ninguna' }}
+                  </p>
+                  <p v-if="importPreviewData.unmapped_headers.length" class="text-warning">
+                    Sin mapear: {{ importPreviewData.unmapped_headers.join(', ') }}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    :disabled="importResultData !== null"
+                    @click="executeImportConfirm"
+                  >
+                    Confirmar importación
+                  </Button>
+                </div>
+                <div v-if="importResultData" class="text-xs text-success">
+                  ✓ Importados {{ importResultData.imported }} registros
+                  <span v-if="importResultData.duplicates">(duplicados: {{ importResultData.duplicates }})</span>
+                  <span v-if="importResultData.rejected">(rechazados: {{ importResultData.rejected }})</span>
+                </div>
               </div>
             </div>
 

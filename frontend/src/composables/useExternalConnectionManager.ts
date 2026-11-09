@@ -35,6 +35,8 @@ export interface ProviderSetup {
   sync_mode: 'api' | 'manual_export' | 'cli' | 'none' | string
   setup_steps: string[]
   notes: string
+  integration_method?: string
+  permissions?: string[]
 }
 
 export interface PlatformConnection {
@@ -93,7 +95,39 @@ export interface ConnectOptions {
   email?: string
   token?: string
   password?: string
+  metadata?: Record<string, string>
   onComplete?: (success: boolean, account?: PlatformConnection) => void
+}
+
+export interface ImportPreview {
+  provider: string
+  format: string
+  filename: string
+  file_hash: string
+  total_rows: number
+  headers: string[]
+  mapping: Record<string, string>
+  unmapped_headers: string[]
+  preview: Record<string, string>[]
+}
+
+export interface ImportResult {
+  batch_id: string
+  provider: string
+  format: string
+  filename: string
+  imported: number
+  duplicates: number
+  rejected: number
+  total_rows: number
+  records_count: number
+}
+
+export interface SyncHistoryEvent {
+  ts: string
+  provider: string
+  kind: string
+  [key: string]: unknown
 }
 
 function toPlatformConnection(a: ConnectionManagerAccount): PlatformConnection {
@@ -159,7 +193,7 @@ export const useExternalConnectionManager = () => {
 
   // Connect to a new platform (stores credentials via the vault)
   async function connect(options: ConnectOptions): Promise<PlatformConnection | null> {
-    const { provider, email, token, password, onComplete } = options
+    const { provider, email, token, password, metadata, onComplete } = options
     connectionLoading.value = true
     connectionError.value = null
 
@@ -170,7 +204,7 @@ export const useExternalConnectionManager = () => {
       }
       const account = await api.post<ConnectionManagerAccount>(
         `/connection-manager/accounts/${encodeURIComponent(provider)}/connect`,
-        { email, token: token || '', password: password || '' }
+        { email, token: token || '', password: password || '', metadata: metadata || {} }
       )
       await loadExternalConnections()
       const mapped = toPlatformConnection(account)
@@ -298,6 +332,40 @@ export const useExternalConnectionManager = () => {
     }
   }
 
+  // Manual file import: preview then confirm (CSV/JSON/XLSX)
+  async function importPreview(provider: string, file: File): Promise<ImportPreview> {
+    const form = new FormData()
+    form.append('file', file)
+    return api.postForm<ImportPreview>(
+      `/connection-manager/accounts/${encodeURIComponent(provider)}/import/preview`,
+      form,
+    )
+  }
+
+  async function importConfirm(
+    provider: string,
+    file: File,
+    mapping?: Record<string, string>,
+  ): Promise<ImportResult> {
+    const form = new FormData()
+    form.append('file', file)
+    if (mapping) form.append('mapping', JSON.stringify(mapping))
+    const result = await api.postForm<ImportResult>(
+      `/connection-manager/accounts/${encodeURIComponent(provider)}/import/confirm`,
+      form,
+    )
+    await loadExternalConnections()
+    return result
+  }
+
+  async function listImports(provider: string): Promise<{ imports: Record<string, unknown>[] }> {
+    return api.get(`/connection-manager/accounts/${encodeURIComponent(provider)}/imports`)
+  }
+
+  async function syncHistory(provider: string): Promise<{ events: SyncHistoryEvent[] }> {
+    return api.get(`/connection-manager/accounts/${encodeURIComponent(provider)}/sync/history`)
+  }
+
   // Get a specific connection by provider
   function getConnection(provider: string): PlatformConnection | undefined {
     return externalConnections.value.find(c => c.provider === provider)
@@ -365,6 +433,10 @@ export const useExternalConnectionManager = () => {
     refresh,
     remove,
     getConnection,
+    importPreview,
+    importConfirm,
+    listImports,
+    syncHistory,
 
     // Computeds
     totalEarnings,
