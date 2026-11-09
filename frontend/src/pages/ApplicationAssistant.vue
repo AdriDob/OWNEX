@@ -47,7 +47,7 @@ interface OverviewResponse {
   next_action: { platform: string; platform_name: string; url?: string; step: string } | null
 }
 
-type ActionSource = 'workbank' | 'first_day' | 'applications'
+type ActionSource = 'workbank' | 'first_day' | 'applications' | 'remote_jobs'
 interface PayoffRange {
   low: number
   high: number
@@ -66,6 +66,9 @@ interface IncomeAction {
   assessment_required?: boolean
   access_probability?: string
   unlocks_stream?: { hourly_rate_usd?: number | null; cash_speed_days?: number | null } | null
+  job_id?: string
+  job_status?: string
+  match_score?: number | null
 }
 interface CommandCenter {
   today: PayoffRange

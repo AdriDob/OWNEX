@@ -37,23 +37,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(email: string, password: string, displayName?: string) {
+  async function loginWithToken(token: string) {
+    // Login with a manual JWT token (for platform tokens, bug bounty workflows).
     loading.value = true
     error.value = null
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
-        '/auth/users/register', { email, password, display_name: displayName || email.split('@')[0] }, true
+      // Validate the token by calling the internal sessions validate endpoint
+      const res = await api.post<{ valid: boolean; user?: any }>(
+        '/auth/internal/sessions/validate', { token }, true
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
+      if (res?.valid && res?.user) {
+        setToken(token)
+        token.value = token
         user.value = res.user
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
-        }
+        // Set session expiry from token if available
+        const tokenExpires = Date.now() + 30 * 24 * 60 * 60 * 1000
+        setSessionExpiry(String(tokenExpires))
+      } else {
+        error.value = 'Token inválido o expirado'
+        throw new Error('Token inválido o expirado')
       }
     } catch (e: any) {
-      error.value = e?.message || 'Error al registrarse'
+      error.value = e?.message || 'Error al validar el token'
       throw e
     } finally {
       loading.value = false
@@ -113,5 +118,6 @@ export const useAuthStore = defineStore('auth', () => {
     getPlatformStatus: async (provider: string) => {
       return await (await import('@/composables/useExternalConnectionManager')).getPlatformStatus(provider)
     },
+    loginWithToken,
   }
 })
