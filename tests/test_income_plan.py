@@ -240,13 +240,25 @@ class TestRemoteJobsTrack:
             {
                 "id": "j1",
                 "status": "approved",
-                "job": {"title": "Backend Dev", "company": "Acme", "url": "https://x/1", "source": "remotive"},
+                "job": {
+                    "title": "Backend Dev",
+                    "company": "Acme",
+                    "url": "https://x/1",
+                    "source": "remotive",
+                    "employment_type": "full_time",
+                },
                 "match": {"score": 88, "salary_min": 3000, "eligible": True, "missing_requirements": []},
             },
             {
                 "id": "j2",
                 "status": "prepared",
-                "job": {"title": "QA Engineer", "company": "Beta", "url": "https://x/2", "source": "jobicy"},
+                "job": {
+                    "title": "QA Engineer",
+                    "company": "Beta",
+                    "url": "https://x/2",
+                    "source": "jobicy",
+                    "employment_type": "part_time",
+                },
                 "match": {"score": 72, "salary_min": None, "eligible": True, "missing_requirements": ["inglés"]},
             },
             {
@@ -255,6 +267,12 @@ class TestRemoteJobsTrack:
                 "job": {"title": "Designer", "company": "Gamma", "url": "https://x/3"},
                 "match": {"score": 40},
             },
+            {
+                "id": "j4",
+                "status": "approved",
+                "job": {"title": "Freelance Landing Page", "company": "Delta", "url": "https://x/4", "job_type": "contract"},
+                "match": {"score": 91, "salary_min": 500},
+            },
         ]
 
     def test_track_summary_and_status_counts(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
@@ -262,8 +280,8 @@ class TestRemoteJobsTrack:
         plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
         track = plan["tracks"]["remote_jobs"]
         assert track["available"] is True
-        assert track["total"] == 3
-        assert track["by_status"] == {"approved": 1, "prepared": 1, "saved": 1}
+        assert track["total"] == 4
+        assert track["by_status"] == {"approved": 2, "prepared": 1, "saved": 1}
 
     def test_approved_remote_job_becomes_ranked_action(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
         monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
@@ -272,7 +290,36 @@ class TestRemoteJobsTrack:
         assert "remote_jobs" in sources
         action = next(a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs")
         assert action["job_status"] == "approved"
-        assert action["payoff_range"] == {"low": 3000, "high": 3000}
+        assert action["relationship"] == "permanent_employment"
+        # Un salario anunciado no es plata cobrada: va aparte y no suma al payoff.
+        assert action["payoff_range"] is None
+        assert action["salary_range"]["low"] == 3000
+        assert action["salary_range"]["source"] == "feed_reported"
+
+    def test_contract_and_freelance_stay_out_of_primary_ranking(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        remote_actions = [a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs"]
+        assert all(a["job_id"] != "j4" for a in remote_actions)
+        track = plan["tracks"]["remote_jobs"]
+        assert track["excluded_non_permanent"] == 1
+        assert track["by_relationship"]["temporary_employment"] == 1
+        assert track["scope"] == "permanent_only"
+
+    def test_scope_all_puts_contract_back_in(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        monkeypatch.setenv("OWNEX_REMOTE_JOBS_SCOPE", "all")
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        remote_actions = [a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs"]
+        assert any(a["job_id"] == "j4" for a in remote_actions)
+        assert plan["tracks"]["remote_jobs"]["excluded_non_permanent"] == 0
+
+    def test_zero_experience_is_unknown_not_false(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        action = next(a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs")
+        # El feed no dijo nada sobre experiencia: se reporta desconocido, no "False".
+        assert action["zero_experience"] is None
 
     def test_saved_jobs_do_not_generate_actions(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
         monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())

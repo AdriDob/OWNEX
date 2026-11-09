@@ -25,6 +25,7 @@ probabilidades de aceptación ni disponibilidad — se etiquetan desconocidas.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -44,6 +45,14 @@ _SOURCE_REMOTE_JOBS = "remote_jobs"
 
 # Estados del job_tracker que requieren acción humana inmediata.
 _REMOTE_ACTIONABLE = {"prepared", "approved"}
+
+# Alcance de las vacantes remotas dentro del ranking principal.
+# ``permanent_only`` (default): solo empleo permanente. Un contrato temporal,
+# freelance o microtarea sigue disponible en su categoría pero no compite con
+# las entregas y bounties que sí pagan. ``all``: todo habilitado a mano.
+_REMOTE_SCOPE_ENV = "OWNEX_REMOTE_JOBS_SCOPE"
+_REMOTE_SCOPE_PERMANENT = "permanent_only"
+_REMOTE_SCOPE_ALL = "all"
 
 # Payoff documentado en la propia First-Day Guide para dev-bounty micro.
 _FD_PAYOFF_LOW, _FD_PAYOFF_HIGH = 50.0, 150.0
@@ -267,8 +276,16 @@ class UnifiedIncomePlan:
         """Vacantes remotas guardadas que ya tienen draft/preparación.
 
         Solo estados ``prepared``/``approved`` generan acción — el resto es
-        pipeline en curso y se resume en ``by_status``. Sin probabilidades
-        inventadas: salary viene del match si el feed lo reportó.
+        pipeline en curso y se resume en ``by_status``. Una vacante no es un
+        ingreso: el salario reportado se publica en ``salary_range`` con su
+        moneda y periodicidad, y ``payoff_range`` queda en ``None`` porque
+        todavía no entró dinero. Ningún dato se inventa: si el feed no dice si
+        pide experiencia, ``zero_experience`` es ``None``, no ``False``.
+
+        El default solo deja competir al **empleo permanente**
+        (``OWNEX_REMOTE_JOBS_SCOPE=permanent_only``); contrato temporal,
+        freelance y microtareas se cuentan en ``by_relationship`` pero quedan
+        fuera del ranking salvo ``OWNEX_REMOTE_JOBS_SCOPE=all``.
         """
         try:
             from cores.opportunity.job_tracker import list_jobs
@@ -278,22 +295,39 @@ class UnifiedIncomePlan:
             logger.debug("job_tracker unavailable for income plan", exc_info=True)
             return [], {"available": False}
 
+        from cores.opportunity.employment import (
+            PRIMARY_GROUPS,
+            classify,
+            salary_range,
+            zero_experience_required,
+        )
+
+        scope = os.environ.get(_REMOTE_SCOPE_ENV, _REMOTE_SCOPE_PERMANENT).strip().lower()
+        include_all = scope == _REMOTE_SCOPE_ALL
+
         counts: dict[str, int] = {}
+        by_relationship: dict[str, int] = {}
         actions: list[dict[str, Any]] = []
+        excluded = 0
         for entry in jobs:
             status = entry.get("status", "")
             counts[status] = counts.get(status, 0) + 1
-            if status not in _REMOTE_ACTIONABLE:
-                continue
             job = entry.get("job") or {}
             match = entry.get("match") or {}
-            salary = match.get("salary_min")
+            employment = classify(job)
+            by_relationship[employment.group] = by_relationship.get(employment.group, 0) + 1
+            if status not in _REMOTE_ACTIONABLE:
+                continue
+            if not include_all and employment.relationship not in PRIMARY_GROUPS:
+                excluded += 1
+                continue
             actions.append(
                 {
                     "source": _SOURCE_REMOTE_JOBS,
                     "title": f"Postulá (remoto): {job.get('title') or 'vacante'} — {job.get('company') or 'empresa?'}",
                     "detail": (
-                        f"Estado: {status}. Score match: {match.get('score', '?')}/100. "
+                        f"Estado: {status}. Tipo: {employment.group}. "
+                        f"Score match: {match.get('score', '?')}/100. "
                         f"Fuente: {job.get('source', '?')}. Requiere aprobación humana para enviar."
                     ),
                     "url": job.get("url"),
@@ -301,16 +335,25 @@ class UnifiedIncomePlan:
                     "job_status": status,
                     "human_hours": None,
                     "ev_per_human_hour_usd": None,
-                    "payoff_range": {"low": salary, "high": salary} if salary else None,
+                    "salary_range": salary_range(job, match),
+                    "payoff_range": None,
                     "cash_speed_days": None,
-                    "zero_experience": False,
+                    "zero_experience": zero_experience_required(job, match),
                     "assessment_required": bool(match.get("missing_requirements")),
                     "access_probability": "desconocida",
                     "match_score": match.get("score"),
+                    **employment.as_dict(),
                 }
             )
         actions.sort(key=lambda a: -(a.get("match_score") or 0))
-        return actions, {"available": True, "total": len(jobs), "by_status": counts}
+        return actions, {
+            "available": True,
+            "total": len(jobs),
+            "by_status": counts,
+            "by_relationship": by_relationship,
+            "scope": scope,
+            "excluded_non_permanent": excluded,
+        }
 
     # ── Ranking ──
 

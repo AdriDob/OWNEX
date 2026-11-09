@@ -62,7 +62,10 @@ interface IncomeAction {
   ev_per_human_hour_usd?: number | null
   payoff_range?: PayoffRange | null
   cash_speed_days?: number | null
-  zero_experience?: boolean
+  zero_experience?: boolean | null
+  employment_type?: string | null
+  relationship?: string | null
+  salary_range?: { low?: number | null; high?: number | null; currency?: string; period?: string } | null
   assessment_required?: boolean
   access_probability?: string
   unlocks_stream?: { hourly_rate_usd?: number | null; cash_speed_days?: number | null } | null
@@ -251,9 +254,11 @@ onMounted(load)
                 <span v-if="income.next_action.cash_speed_days != null">
                   1er pago ~{{ income.next_action.cash_speed_days }}d
                 </span>
-                <span :class="income.next_action.zero_experience ? 'text-success' : ''">
-                  experiencia: {{ income.next_action.zero_experience ? 'NO requerida' : 'requerida' }}
+                <span :class="income.next_action.zero_experience === true ? 'text-success' : ''">
+                  experiencia:
+                  {{ income.next_action.zero_experience === true ? 'NO requerida' : income.next_action.zero_experience === false ? 'requerida' : 'sin dato' }}
                 </span>
+                <span v-if="income.next_action.relationship">tipo: {{ income.next_action.relationship }}</span>
                 <span>assessment: {{ income.next_action.assessment_required ? 'SÍ' : 'no' }}</span>
               </dl>
             </div>
