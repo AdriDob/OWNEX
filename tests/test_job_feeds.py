@@ -64,3 +64,20 @@ def test_search_ranks_real_shape(monkeypatch: pytest.MonkeyPatch) -> None:
     prefs = JobPreferences(payment_methods=())
     ranked = job_feeds.search_remote_jobs(query="soporte", prefs=prefs)
     assert ranked and all("match" in j for j in ranked)
+
+
+def test_remote_jobs_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from api.routers import opportunities
+    from cores.opportunity import job_feeds as jf
+
+    fake = [{"title": "Job", "match": {"score": 90.0, "eligible": True}}]
+    monkeypatch.setattr(jf, "search_remote_jobs", lambda **kw: fake)
+    app = FastAPI()
+    app.include_router(opportunities.router)
+    resp = TestClient(app).get("/api/opportunities/remote-jobs/search?q=dev&limit=5")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["count"] == 1 and body["jobs"][0]["title"] == "Job"
