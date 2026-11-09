@@ -181,3 +181,21 @@ Verified: 4/5 facades import clean; cores.cycles chain blocked only by
 parallel-agent WIP syntax error in cores/opportunity/global_sources.py
 (unrelated). Kept cycles files import core.cycles.* — never the deleted
 siblings.
+
+### Batch 3 — straggler migration + first cores-wins (same session)
+
+- `cores/capabilities/registry.py`, `cores/cycles/security.py`,
+  `cores/opportunity/executors/mindrift_executor.py`,
+  `cores/autonomy/workflow_engine.py`: last importers migrated to core
+  canonical (test patch targets, driver lazy imports, facade __init__),
+  dead twins deleted. core mindrift is a superset.
+- `auto_submit/pipeline.py`: **cores-wins** — functional superset
+  (elite gate + rate limit + never_submit_without_approval governance).
+  All 5 core-side importers migrated; core twin deleted; latent bug
+  fixed (`SubmissionRecord.created_at` → `submitted_at`).
+- `credentials/vault.py`, `knowledge/models.py`, `knowledge/graph.py`,
+  `evidence/composer.py`, `opportunity/scoring.py`,
+  `opportunity/models.py`, `cycles/knowledge_capture.py`,
+  `copilot/providers/*`: **both-live divergent — merge candidates, NOT
+  delete candidates.** cores vault has rotation-config API; core vault
+  has audit-log/secret-scan/rotate API. Domain consolidation needed.
