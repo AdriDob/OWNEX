@@ -23,6 +23,7 @@ from core.opportunity.source_discovery import (
     run_daily_meta_discovery,
 )
 from cores.direct_work_engine.models import EmploymentType, Opportunity, OpportunityCategory, PaymentMethod, WorkPlatform
+from core.opportunity.engine import OpportunityType
 from cores.direct_work_engine.workbank import get_workbank
 
 logger = logging.getLogger("ownex.opportunity.discovery_to_wb")
@@ -126,6 +127,71 @@ def _normalize_category(raw: str | None) -> OpportunityCategory:
     if canonical and canonical in _VALID_CATEGORIES:
         return OpportunityCategory(canonical)
     return OpportunityCategory.DEV_BOUNTY
+
+
+def _normalize_opportunity_type(raw: str | None) -> OpportunityType:
+    """Map a free-text category string to an OpportunityType enum.
+
+    Maps OWNEX P0/P1/P2 priority categories to the engine OpportunityType.
+    Priority mapping (P0=highest, P3=lowest):
+      - P0 (critical): security_bounty, ai_work
+      - P1 (high): dev_bounty, freelance
+      - P2 (medium): data_annotation
+    """
+    if not raw:
+        return OpportunityType.DEV_BOUNTY
+    cat = raw.strip().lower()
+    # Direct exact-match first
+    type_map: dict[str, OpportunityType] = {
+        "security_bounty": OpportunityType.SECURITY_BOUNTY,
+        "dev_bounty": OpportunityType.DEV_BOUNTY,
+        "ai_work": OpportunityType.AI_WORK,
+        "freelance": OpportunityType.FREELANCE,
+        "data_annotation": OpportunityType.DATA_ANNOTATION,
+        "bug_bounty": OpportunityType.SECURITY_BOUNTY,
+        "dev_bounty": OpportunityType.DEV_BOUNTY,
+        "data_entry": OpportunityType.DATA_ANNOTATION,
+        "data_entry-level": OpportunityType.DATA_ANNOTATION,
+    }
+    if cat in type_map:
+        return type_map[cat]
+    # Alias resolution
+    alias_map: dict[str, str] = {
+        "bug bounty": "security_bounty",
+        "security": "security_bounty",
+        "dev bounty": "dev_bounty",
+        "development": "dev_bounty",
+        "data annotation": "data_annotation",
+        "data entry": "data_annotation",
+        "qa": "dev_bounty",
+        "qa testing": "dev_bounty",
+        "reverse engineering": "ai_work",
+        "malware analysis": "ai_work",
+        "iot": "ai_work",
+        "mobile dev": "dev_bounty",
+        "mobile development": "dev_bounty",
+        "api dev": "dev_bounty",
+        "full stack": "dev_bounty",
+        "frontend": "dev_bounty",
+        "backend": "dev_bounty",
+        "devops": "dev_bounty",
+        "cloud": "ai_work",
+        "infrastructure": "ai_work",
+        "ai engineering": "ai_work",
+        "machine learning": "ai_work",
+        "llm engineering": "ai_work",
+        "prompt engineering": "ai_work",
+        "web scraping": "dev_bounty",
+        "code review": "dev_bounty",
+        "game development": "dev_bounty",
+        "competitions": "dev_bounty",
+        "research": "research",
+        "content creation": "content_creation",
+    }
+    alias_cat = alias_map.get(cat)
+    if alias_cat and alias_cat in type_map:
+        return type_map[alias_cat]
+    return OpportunityType.DEV_BOUNTY
 
 
 def _normalize_platform(url: str | None) -> WorkPlatform:
