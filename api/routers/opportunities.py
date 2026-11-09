@@ -78,6 +78,26 @@ def remote_jobs_saved(status: str = ""):
     return {"jobs": jobs, "count": len(jobs)}
 
 
+@router.post("/remote-jobs/import")
+def remote_jobs_import(body: dict):
+    """Import jobs manually (JSON list or {jobs:[...]}) — for sources without API
+    (Computrabajo, Bumeran, LinkedIn exports, etc). Each job keeps its source tag.
+    """
+    from cores.opportunity.job_tracker import save_job
+    from cores.opportunity.remote_job_matcher import match_job
+
+    jobs = body.get("jobs") or ([body] if body.get("title") else [])
+    saved, skipped = 0, 0
+    for j in jobs[:200]:
+        if not isinstance(j, dict) or not j.get("title"):
+            skipped += 1
+            continue
+        match = j.get("match") or match_job(j).as_dict()
+        save_job(j, match)
+        saved += 1
+    return {"imported": saved, "skipped": skipped}
+
+
 @router.post("/remote-jobs/{job_id}/draft")
 def remote_jobs_draft(job_id: str, body: dict):
     """Generate a DRAFT application (cover letter + gap notes) from real profile data.

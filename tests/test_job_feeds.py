@@ -217,3 +217,29 @@ def test_fetch_weworkremotely_parses_rss(monkeypatch: pytest.MonkeyPatch) -> Non
     jobs = job_feeds.fetch_weworkremotely()
     assert len(jobs) == 1
     assert jobs[0]["title"] == "Backend Engineer" and jobs[0]["company"] == "ACME Corp"
+
+
+def test_remote_jobs_import(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    import cores.connections.importer as imp
+    from api.routers import opportunities
+
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(imp, "get_config", lambda: fake_cfg)
+    app = FastAPI()
+    app.include_router(opportunities.router)
+    c = TestClient(app)
+
+    r = c.post("/api/opportunities/remote-jobs/import", json={"jobs": [
+        {"title": "Soporte AR", "company": "X", "source": "computrabajo", "argentina_ok": True, "remote": True, "language": "es"},
+        {"bad": "no title"},
+    ]})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["imported"] == 1 and body["skipped"] == 1
+    saved = c.get("/api/opportunities/remote-jobs/saved")
+    assert saved.json()["count"] == 1
+    assert saved.json()["jobs"][0]["job"]["source"] == "computrabajo"
+    assert "match" in saved.json()["jobs"][0]
