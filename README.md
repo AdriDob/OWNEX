@@ -28,6 +28,8 @@ OWNEX is a local-first personal system for discovering work opportunities, evalu
 
 The detailed, dated record is [`.ai/CURRENT_STATE.md`](.ai/CURRENT_STATE.md). Architecture findings are documented in the audit and decision records.
 
+For the full economic assessment, including the 176-source adaptation snapshot, high-ceiling revenue models, USD 10K/month unit economics, and a phased validation plan, see [**Deep Revenue Opportunity Study**](docs/DEEP_REVENUE_OPPORTUNITY_STUDY.md).
+
 ## What is not claimed
 
 - Verified recurring income attributable to OWNEX is currently **USD 0**.
