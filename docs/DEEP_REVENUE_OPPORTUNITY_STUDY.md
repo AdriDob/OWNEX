@@ -229,3 +229,48 @@ A meaningful OWNEX source forecast requires at least 8–12 weeks of observation
 - [Outlier official FAQ](https://outlier.ai/faq) and [coding opportunity](https://app.outlier.ai/opportunities/4543118005)
 - [Opire official payment rules](https://docs.opire.dev/rewards/pricing)
 - [Immunefi Q3 2026 ecosystem update](https://docs.immunefi.foundation/september-2026-immunefi-ecosystem-update/)
+
+
+## 10. Repository-level data-quality findings that affect revenue estimates
+
+The deep review found several inconsistencies that must be resolved before OWNEX can claim source-level intelligence is authoritative:
+
+1. **Source Intelligence scratch task overstates completion.** `odd/tasks/source_intelligence.md` says 29 sources were registered and 7 were fully eligible for Argentina with score 94/100. However, the current `cores/source_intelligence/registry.py` has `_initialize_known_sources()` implemented as `pass`; the registry does not populate itself from the adapter system. The scratch task is not proof that 29 sources or 7 Argentina-eligible sources are live in the current runtime. The claimed 7 should be downgraded to **UNVERIFIED** until an executable registry snapshot and source-level evidence are produced.
+
+2. **Legacy catalog metadata is overconfident.** The module header in `cores/opportunity/global_sources.py` says all sources are pre-filtered for no experience, no interview and no portfolio. Its `SourceDefinition` defaults also set those booleans to false. Those defaults are not evidence that a platform or specific opportunity has no interview, experience, degree or portfolio requirement. OWNEX must treat missing or inherited defaults as UNKNOWN, not "not required".
+
+3. **Upwork remains in the raw catalog.** `global_sources.py` still defines `Upwork (entry-level)`, while `docs/architecture/CANONICAL_COMPONENTS.md` says Upwork is excluded and its platform connector is disabled. Runtime exclusion may be correct, but the raw catalog entry is stale and creates regression risk. Keep the user preference authoritative: Upwork must not appear in active discovery, ranking, Work Bank or recommendations.
+
+4. **Separate registries are not a single source of truth.** The repository has a 176-source adaptation union, a separate Source Intelligence registry, legacy adapters, and source-family classification. Their counts and verification states are not interchangeable. Until reconciled, use the conservative source-adaptation baseline (0 integration-verified / Argentina-verified / production-active) and report other claims as conflicting evidence.
+
+5. **Adapter readiness is not a live integration.** A registered adapter can still use mock data, require manual login, have incomplete pagination, or lack a real task feed. The canonical component map explicitly identifies some job adapter files as mock/unregistered and marks broker clients as mock-only. OWNEX must test the actual canonical runtime path rather than count files or classes.
+
+6. **Payment network catalogue is not 76 connected accounts.** The 76 payment/account entries are compatibility metadata. The capital audit says most banks and processors do not have live connectors or balance synchronization. Only a provider with a tested, user-authorized connection should be shown as synchronized.
+
+These are not cosmetic documentation issues. They directly affect ranking, eligibility, conversion rates, payout timing, and any forecast. A source should never receive a high expected-value score from a stale rate, a default `requires_interview=False`, or a non-populated registry.
+
+## 11. Inventory of the original curated source catalog
+
+The original `global_sources.py` contains 151 definitions before deduplication and later extension waves. The following list is a raw catalog inventory, **not a verified active-source list**. Repeated names across categories are intentional legacy duplicates and must be reconciled by canonical source ID.
+
+### Bug bounty / security / vulnerability research (39 definitions)
+
+HackerOne; Bugcrowd; Intigriti; OpenBugBounty; YesWeHack; HackenProof; Huntr (GitHub Advisory); Immunefi; Federacy; Detectify Crowdsource; Zerocopter; Synack; Cobalt; BountyGraph; Disclose.io; BypassBounty; PentesterLand; HackerOne Hacktivity; Bugcrowd Researcher; Reddit r/bugbounty; r/Hacking; r/netsec; RootedCON; HackTheBox (Bug Bounty); TryHackMe (bug bounty path); PortSwigger Web Security; Exploit-DB; CVE Details; Vulnerability Lab; OWASP Bug Bounty; NIST NVD; CVE Mitre; Sherlock; Code4rena; Cantina; Hats; Superteam Earn; GitHub bounty labels; Polar.
+
+### Developer bounties, competitions, employment and freelance discovery (53 definitions)
+
+GitHub Issues (bounty-labeled); Bountysource; Gitcoin; OnlyDust; Algora; Codefund (by Gitcoin); Sovran; OpenQ; IssueHunt; Opire; CodinGame; HackerEarth Sprint; Devfolio; Devpost; Major League Hacking (MLH); Codeforces (Prize contests); LeetCode (Contests); Topcoder; CodeChef; HackerRank (Jobs); Codewars; Exercism; Upwork (entry-level, excluded by user preference); Freelancer (coding); PeoplePerHour; Toptal (entry screening); Guru (software dev); Turing (remote dev); Arc.dev; Remote OK (dev); We Work Remotely; LinkedIn (Easy Apply); Indeed (entry-level dev); Glassdoor (no exp.); Reddit r/forhire; r/slavelabour (dev); r/Jobs4Bitcoins; XDA Developers (paid tasks); Stack Overflow Jobs; Dribbble (design+dev); Behance (freelance dev); Working Not Working; Solidity Jobs; CryptoJobsList; UseWeb3; EthGlobal (bounties); HackerLink (dev bounties); Dework; Guild.xyz; Buidlbox; Superteam Earn; GitHub bounty labels; Polar.
+
+### Data, testing, annotation, usability and microtask platforms (53 definitions)
+
+Amazon Mechanical Turk; Appen; Clickworker; Toloka; Remotasks; Labelbox; Scale AI (Remotask); CloudFactory; Figure Eight (Appen Crowd); TaskRabbit (remote); Lionbridge (TELUS International); uTest; Prolific; UserTesting; Userlytics; UserZoom; TryMyUI; WhatUsersDo (WUD); Enroll (UserTesting); TestBirds; GlobalLogic Crowdtest; Fivesquid; Tasker (by Amazon); AppJobs; Field Nation; WorkMarket (by ADP); OneSpace; Fancy Hands; Virtuance; Data Annotation Tech; Surge AI; Hive Micro; Centaur Labs; Samasource (Sama); iMerit; Kili Technology; SuperAnnotate; Dataloop; Label Studio Community; TELUS International AI Community; Scribie; Rev; GoTranscript; TranscribeMe; 3Play Media; CrowdSurf; Quicktate; Daily Transcription; Focus Forward; Reddit r/dataentry; r/WorkOnline; r/beermoney (data tasks); r/paidstudy.
+
+### AI evaluation and QA (6 definitions)
+
+Outlier; Mercor; Alignerr; Mindrift; OneForma; Test IO.
+
+### Additional OWNEX work-source extensions
+
+The separate `own_work_sources.py` file contains 18 definitions before deduplication: WordPress Plugin Bounties (public programs); GitHub Sponsors / funded issues (public repos); IssueHunt; Bountysource; SeaPay Bounties; Superteam Earn; Algora; Opire; Opyre; BountyHub; TaskBounty; FreelanceMap (dev tasks, not hiring); Stack Overflow Jobs / listings; Immunefi; Hats Finance; Secure3; BugRap; ChainLove. Further extension-wave builders add more entries to the adaptation union; do not add these counts together and call the result unique.
+
+The list is intentionally preserved as a review inventory. Each entry still needs a current canonical URL, active/retired status, program-level Argentina access, work requirements, current funded inventory, payment evidence and owner preference check.
