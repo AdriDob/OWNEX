@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers import connection_manager
-from cores.brokers import binance_client, ppi_client
+from cores.brokers import binance_client, iol_client, ppi_client
 from cores.connections import financial_normalizer, importer, sync_history
 
 
@@ -313,17 +313,81 @@ def _norm_cfg(tmp_path, monkeypatch):
 
 def test_normalize_iol_snapshot(tmp_path, monkeypatch) -> None:
     _norm_cfg(tmp_path, monkeypatch)
+    # Real IOL API shapes (developers.iolinversiones.com)
     snap = {
-        "positions": [{"ticker": "GGAL", "quantity": 10, "price": 1500, "currency": "ARS", "value": 15000}],
-        "balances": {"ARS": 50000, "USD": 100},
+        "positions": {
+            "account": "AR",
+            "currency": "USD",
+            "positions": [
+                {
+                    "instrument": {"symbol": "GGAL", "name": "Grupo Galicia", "asset_class": "STOCK", "currency": "ARS"},
+                    "availability": {"quantity_available": 10, "quantity_held": 0, "quantity_pending": 0},
+                    "cost_basis": {"average_entry_price": 1400, "total_cost": 14000},
+                    "market_value": {"current_price": 1500, "price_change_percent": 7.1, "value": 15000},
+                }
+            ],
+        },
+        "balances": {
+            "ars": {"available": {"t0": 30000, "t1": 20000}, "available_for_withdrawal": 50000},
+            "usd": {"available": {"t0": 100}, "available_for_withdrawal": 100},
+        },
         "movements": [{"ticker": "GGAL", "type": "buy", "amount": -15000, "currency": "ARS", "date": "2026-01-01"}],
     }
     out = financial_normalizer.normalize_provider("iol", snap)
     assert out["position_count"] == 1
     assert out["positions"][0]["symbol"] == "GGAL"
+    assert out["positions"][0]["quantity"] == 10
+    assert out["positions"][0]["avg_price"] == 1400
     assert out["cash_by_currency"] == {"ARS": 50000, "USD": 100}
     assert out["transaction_count"] == 1
     assert financial_normalizer.load_normalized("iol")["provider"] == "iol"
+
+
+def test_iol_authenticate_sends_oauth2_grant(monkeypatch: pytest.MonkeyPatch) -> None:
+    """IOL /auth/token requires grant_type=password per official docs."""
+    captured: dict = {}
+
+    class FakeResp:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"data": {"access_token": "jwt", "refresh_token": "rt", "expires_in": 3600, "expires_at": "2026-01-01T01:00:00Z", "token_type": "bearer"}}
+
+    def fake_post(url, json=None, timeout=None):
+        captured["url"] = url
+        captured["json"] = json
+        return FakeResp()
+
+    monkeypatch.setattr(iol_client.httpx, "post", fake_post)
+    client = iol_client.IOLClient()
+    auth = client.authenticate("u@x.com", "pw")
+    assert captured["json"]["grant_type"] == "password"
+    assert captured["json"]["username"] == "u@x.com"
+    assert auth["access_token"] == "jwt"
+    assert auth["refresh_token"] == "rt"
+
+
+def test_iol_refresh_grant(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict = {}
+
+    class FakeResp:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"data": {"access_token": "new-jwt", "refresh_token": "rt2"}}
+
+    def fake_post(url, json=None, timeout=None):
+        captured["json"] = json
+        return FakeResp()
+
+    monkeypatch.setattr(iol_client.httpx, "post", fake_post)
+    out = iol_client.IOLClient().refresh("rt-old")
+    assert captured["json"] == {"grant_type": "refresh_token", "refresh_token": "rt-old"}
+    assert out["access_token"] == "new-jwt"
 
 
 def test_normalize_ppi_snapshot(tmp_path, monkeypatch) -> None:

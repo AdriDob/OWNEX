@@ -3384,3 +3384,11 @@ Características del Sistema Completo:
 - **Frontend**: composable `getNormalized`/`getPortfolio`; `ConnectionManager.vue` muestra panel "Cartera consolidada" con saldos por moneda (sin FX) que se refresca tras sync/import.
 - **Verificación**: 28 passed (5 tests nuevos de normalizer: IOL/PPI/Binance shapes, no-FX-mixing, endpoints). Ruff format+check limpio; Biome+vue-tsc limpio.
 - **Pendiente**: normalizer no consume aún `cores/financial/truth_layer` ni `cores/capital` engines (el consolidado es read-model propio); cotizaciones/valoración de posiciones requiere mercado (próximo: quotes IOL/PPI/Binance); P12 OWNEX MCP server pendiente.
+
+## 2026-11-09 — IOL alineado a OAuth 2.0 oficial + normalizer con shapes reales
+
+- **Corrección importante**: la doc oficial (`developers.iolinversiones.com/api/llms`) confirma `POST /auth/token` = **OAuth2 password grant** (`grant_type: "password"|"refresh_token"`). El cliente anterior NO enviaba `grant_type` → probablemente rechazado por IOL. Ahora envía el grant correcto, parsea el envelope `{data:{access_token, refresh_token, expires_in, expires_at}}`, y expone `refresh()` para el grant `refresh_token`.
+- **`get_positions`** acepta `valuation_currency` (ARS/USD/MEP/CCL); el sync usa USD. Snapshot incluye `token_expires_at`/`token_expires_in`.
+- **`normalize_iol` reescrito** para los shapes reales documentados: balances `{ars:{available:{t0..}, available_for_withdrawal}}` → cash por moneda; positions `{instrument, availability, cost_basis, market_value}` → NormalizedPosition con avg_price/total_cost/price_change_percent.
+- Tests: auth grant + refresh grant + normalize con shape real. 30 passed total en connections.
+- **Pendiente IOL**: persistir `refresh_token` en vault metadata para no re-autenticar con password en cada sync (necesita `update_metadata` en vault); endpoints de mercado/cotizaciones, órdenes pending, WebSocket y MCP oficial (`mcp.invertironline.com`) sin implementar; sin prueba con credenciales reales.

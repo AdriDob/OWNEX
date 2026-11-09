@@ -49,26 +49,56 @@ def _currency_totals(records: list[dict[str, Any]], amount_key: str = "amount") 
 
 
 def normalize_iol(snapshot: dict[str, Any]) -> dict[str, Any]:
+    # Real IOL shapes: positions -> {account, currency, positions:[{instrument, availability, cost_basis, market_value}]}
+    # balances -> {ars: {available, totals, available_for_withdrawal}, usd: {...}}
+    raw_positions = snapshot.get("positions") or {}
+    if isinstance(raw_positions, dict):
+        raw_positions = raw_positions.get("positions") or []
     positions: list[NormalizedPosition] = []
-    for p in snapshot.get("positions") or []:
+    for p in raw_positions or []:
         if not isinstance(p, dict):
             continue
+        inst = p.get("instrument") or {}
+        avail = p.get("availability") or {}
+        cost = p.get("cost_basis") or {}
+        mkt = p.get("market_value") or {}
+        qty = _num(avail.get("quantity_available") or avail.get("quantity") or p.get("quantity") or p.get("amount"))
         positions.append(
             NormalizedPosition(
-                symbol=str(p.get("ticker") or p.get("instrument") or ""),
-                name=str(p.get("name") or p.get("description") or ""),
-                asset_type=str(p.get("type") or p.get("asset_class") or ""),
-                quantity=_num(p.get("quantity") or p.get("amount")),
-                avg_price=_num(p.get("average_price") or p.get("avg_price")),
-                current_price=_num(p.get("price") or p.get("current_price")),
-                value=_num(p.get("value") or p.get("market_value")),
-                currency=str(p.get("currency") or "ARS"),
+                symbol=str(inst.get("symbol") or p.get("ticker") or p.get("instrument") or ""),
+                name=str(inst.get("name") or p.get("name") or p.get("description") or ""),
+                asset_type=str(inst.get("asset_class") or inst.get("type") or p.get("type") or ""),
+                quantity=qty,
+                avg_price=_num(cost.get("average_entry_price") or p.get("average_price") or p.get("avg_price")),
+                current_price=_num(mkt.get("current_price") or p.get("price") or p.get("current_price")),
+                value=_num(mkt.get("value") or mkt.get("total") or p.get("value") or p.get("market_value")),
+                currency=str(inst.get("currency") or p.get("currency") or "ARS"),
                 exchange="iol",
+                extra={
+                    "total_cost": cost.get("total_cost"),
+                    "price_change_percent": mkt.get("price_change_percent"),
+                },
             )
         )
-    balances = snapshot.get("balances") or {}
-    cash_by_currency = balances if isinstance(balances, dict) else {}
+    cash_by_currency = _iol_cash(snapshot.get("balances"))
     return _envelope("iol", positions, cash_by_currency, snapshot.get("movements") or [])
+
+
+def _iol_cash(balances: Any) -> dict[str, float]:
+    """IOL balances: {ARS: {available:{t0..}, available_for_withdrawal}, USD: {...}}."""
+    cash: dict[str, float] = {}
+    if not isinstance(balances, dict):
+        return cash
+    for cur, block in balances.items():
+        if not isinstance(block, dict):
+            continue
+        available = block.get("available") or {}
+        amount = sum(_num(v) for v in available.values()) if isinstance(available, dict) else _num(available)
+        if block.get("available_for_withdrawal") is not None:
+            amount = _num(block["available_for_withdrawal"])
+        cur_key = str(cur).upper()
+        cash[cur_key] = cash.get(cur_key, 0.0) + amount
+    return {k: round(v, 8) for k, v in cash.items() if v != 0}
 
 
 def normalize_ppi(snapshot: dict[str, Any]) -> dict[str, Any]:
