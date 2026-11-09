@@ -44,22 +44,22 @@ from core.opportunity.scoring import (
     OpportunityEngineLegacy,
     get_legacy_engine,
 )
-from core.opportunity.scoring import (
-    PersonalHistoryTracker as LegacyPersonalHistoryTracker,
-)
-from core.opportunity.scoring import (
-    Top5Engine as LegacyTop5Engine,
-)
-from core.opportunity.scoring import (
-    Top5Entry as LegacyTop5Entry,
-)
-from core.opportunity.scoring import (
-    UnifiedScore as LegacyUnifiedScore,
-)
-from cores.opportunity.personal import PersonalHistoryTracker
+from cores.opportunity import global_sources as _global_sources
+from cores.opportunity import own_work_sources as _own_work_sources
 
-# Top5Engine and PersonalHistoryTracker for tests (from cores/opportunity)
+# Make legacy modules importable from core.opportunity
+from cores.opportunity import source_payment_docs as _source_payment_docs
+
+# Legacy modules from cores - re-exported for compatibility
+from cores.opportunity.personal import PersonalHistoryTracker
 from cores.opportunity.top5 import Top5Engine
+
+# Attach as core.opportunity attributes for backward compatibility
+global_sources = _global_sources
+source_payment_docs = _source_payment_docs
+own_work_sources = _own_work_sources
+
+# Legacy Finding-based scoring engine (backward compatibility)
 
 # Export all
 __all__ = [

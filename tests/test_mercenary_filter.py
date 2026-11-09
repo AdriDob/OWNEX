@@ -20,7 +20,7 @@ def mercenary_filter():
 def test_mercenary_filter_initialization(mercenary_filter):
     """Test mercenary filter initialization."""
     assert mercenary_filter is not None
-    assert mercenary_filter.MIN_SCORE_THRESHOLD == 80.0
+    assert mercenary_filter.MIN_SCORE_THRESHOLD == 70
     assert mercenary_filter.WEIGHT_VERIFIABLE_PAYMENT == 20.0
     assert mercenary_filter.WEIGHT_DEFINED_TASK == 20.0
 

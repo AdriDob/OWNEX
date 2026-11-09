@@ -20,6 +20,14 @@ from core.credentials.vault import (
 def _clear_credentials_singleton(monkeypatch):
     from core.credentials import vault as _vault
 
+    # Isolate from the real ~/.config/ownex/opportunity.env file, which may
+    # contain leftover values; tests must only see monkeypatched env vars.
+    real_cls = _vault.OpportunityCredentials
+    monkeypatch.setattr(
+        _vault,
+        "OpportunityCredentials",
+        lambda *a, **kw: real_cls(*a, _env_file=None, **kw),
+    )
     _vault._credentials = None
     # Clear env vars that may be set in dev environment
     monkeypatch.delenv("FCC_API_KEY", raising=False)

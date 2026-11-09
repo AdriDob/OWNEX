@@ -15,13 +15,14 @@ import hashlib
 import logging
 from typing import Any
 
-from cores.direct_work_engine.models import Opportunity, OpportunityCategory
-from cores.direct_work_engine.workbank import get_workbank
 from core.opportunity.source_discovery import (
     SourceCandidate,
     SourceDiscoveryRegistry,
     SourceLifecycle,
+    run_daily_meta_discovery,
 )
+from cores.direct_work_engine.models import EmploymentType, Opportunity, OpportunityCategory, PaymentMethod, WorkPlatform
+from cores.direct_work_engine.workbank import get_workbank
 
 logger = logging.getLogger("ownex.opportunity.discovery_to_wb")
 
@@ -77,10 +78,11 @@ def _normalize_category(raw: str | None) -> OpportunityCategory:
     """Map a free-text category string to an OpportunityCategory enum.
 
     Only maps to categories that exist in the OpportunityCategory enum.
-    Falls back to BUG_BOUNTY (the first enum value) for unrecognized strings.
+    Falls back to DEV_BOUNTY for unrecognized strings (never BUG_BOUNTY as a
+    universal fallback).
     """
     if not raw:
-        return OpportunityCategory.BUG_BOUNTY
+        return OpportunityCategory.DEV_BOUNTY
     cat = raw.strip().lower()
     # Direct exact-match first
     if cat in _VALID_CATEGORIES:
@@ -122,44 +124,51 @@ def _normalize_category(raw: str | None) -> OpportunityCategory:
     canonical = alias_map.get(cat)
     if canonical and canonical in _VALID_CATEGORIES:
         return OpportunityCategory(canonical)
-    # Fallback: return the first enum value (BUG_BOUNTY)
-    return OpportunityCategory.BUG_BOUNTY
+    return OpportunityCategory.DEV_BOUNTY
 
 
-def _normalize_platform(url: str | None) -> str:
+def _normalize_platform(url: str | None) -> WorkPlatform:
     """Guess the WorkPlatform from the source URL (best-effort)."""
     if not url:
-        return "unknown"
+        return WorkPlatform.OTHER
     u = url.lower()
-    if "github.com" in u or "github" in u:
-        return "github"
+    if "github.com" in u:
+        return WorkPlatform.GITHUB
     if "hackerone.com" in u:
-        return "hackerone"
+        return WorkPlatform.HACKERONE
     if "bugcrowd.com" in u:
-        return "bugcrowd"
+        return WorkPlatform.BUG_CROWD
     if "intigriti.com" in u:
-        return "intigriti"
+        return WorkPlatform.INTIGRITI
     if "yeswehack.com" in u:
-        return "yeswehack"
-    if "crowdsource.com" in u:
-        return "crowdsource"
-    if "cobalt.io" in u:
-        return "cobalt"
-    if "fluidattacks.com" in u:
-        return "fluid-attacks"
-    if "patchr.com" in u:
-        return "patchr"
+        return WorkPlatform.YES_WE_HACK
     if "synack.com" in u:
-        return "synack"
-    if "bug bounty" in u or "vulnerability" in u:
-        return "unknown_bounty"
-    return "unknown"
+        return WorkPlatform.SYNACK
+    if "immunefi.com" in u:
+        return WorkPlatform.IMMUNEFI
+    if "issuehunt" in u:
+        return WorkPlatform.ISSUE_HUNT
+    if "opire" in u:
+        return WorkPlatform.OPIRE
+    if "algora" in u:
+        return WorkPlatform.ALGORA
+    if "superteam" in u:
+        return WorkPlatform.SUPER_TEAM
+    if "opencollective.com" in u:
+        return WorkPlatform.OPEN_COLLECTIVE
+    if "freelancer.com" in u:
+        return WorkPlatform.FREELANCER
+    if "upwork.com" in u:
+        return WorkPlatform.UPWORK
+    if "fiverr.com" in u:
+        return WorkPlatform.FIVERR
+    return WorkPlatform.OTHER
 
 
 def candidate_to_opportunity(
     candidate: SourceCandidate,
     *,
-    default_category: str = "general",
+    default_category: str = "dev_bounty",
     default_platform: str = "unknown",
 ) -> Opportunity:
     """Convert a SourceCandidate discovered via meta-discovery into a Work Bank Opportunity.
@@ -193,18 +202,34 @@ def candidate_to_opportunity(
         desc_parts.append("Capabilities: " + "; ".join(capabilities[:10]))
     if auth_methods:
         desc_parts.append("Auth: " + "; ".join(auth_methods[:5]))
+    evidence_urls = [str(ev.get("url", ""))[:200] for ev in evidence if isinstance(ev, dict) and ev.get("url")]
+    if evidence_urls:
+        desc_parts.append("Evidence: " + "; ".join(evidence_urls[:5]))
     description = " | ".join(desc_parts) if desc_parts else ""
 
     # --- Extract reward information (maps to Opportunity.payment) ---
+    # Key rule: NO inferred rewards and NO inferred verification. A parsed
+    # amount is only "reported" evidence; payment_proven stays False until an
+    # independent payout/escrow verification exists.
     reward_reported: Any = profile.get("reward_reported")
-    payment: float = 0.0
-    if isinstance(reward_reported, (int, float)):
+    reward_currency = profile.get("reward_currency")
+    currency = reward_currency.strip().upper() if isinstance(reward_currency, str) and reward_currency.strip() else "USD"
+    payment: float
+    if reward_reported is None or reward_reported == "":
+        payment = 0.0
+    elif isinstance(reward_reported, (int, float)):
         payment = float(reward_reported)
     elif isinstance(reward_reported, str):
         try:
-            payment = float(reward_reported.replace("$", "").replace("€", "").replace(",", "."))
+            cleaned = reward_reported.replace("$", "").replace("€", "").replace(",", ".")
+            payment = float(cleaned)
         except ValueError:
             payment = 0.0
+        else:
+            if payment <= 0:
+                payment = 0.0
+    else:
+        payment = 0.0
 
     # --- Canonical category from evidence ---
     canonical_category: str = default_category
@@ -228,6 +253,7 @@ def candidate_to_opportunity(
 
     # --- Platform detection ---
     platform = _normalize_platform(source_url)
+    rate_source = "reported" if payment > 0 else "unknown"
 
     # --- Category enum ---
     category_enum = _normalize_category(canonical_category)
@@ -239,8 +265,13 @@ def candidate_to_opportunity(
         description=(description[:10000] or ""),
         url=(source_url[:500] if source_url else ""),
         payment=payment,
+        currency=currency[:10] or "USD",
+        payment_proven=False,
         category=category_enum,
         platform=platform,
+        payment_method=PaymentMethod.OTHER,
+        employment_type=EmploymentType.BOUNTY,
+        rate_source=rate_source,
     )
     return opp
 
@@ -255,14 +286,15 @@ def integrate_meta_discovery_into_workbank(
     registry: SourceDiscoveryRegistry | None = None,
     limit: int = 200,
 ) -> dict[str, Any]:
-    """Integrate meta-discovered sources into the Work Bank pipeline.
+    """Integrate meta-discovered opportunity candidates into the Work Bank pipeline.
 
     Steps:
     1. Load or create the SourceDiscoveryRegistry
-    2. List ACTIVE and VERIFIED sources (exclude DECAY/DEACTIVATED)
+    2. List opportunity candidates (record_type="opportunity", exclude DECAY/DEACTIVATED)
     3. Convert each to Opportunity format
-    4. Deduplicate against existing bank items (by opportunity.id)
-    5. Return summary + new opportunities ready for daily_cycle ingestion
+    4. Drop candidates without a demonstrable reward (payment <= 0)
+    5. Deduplicate against existing bank items (by opportunity.id)
+    6. Return summary + new opportunities ready for daily_cycle ingestion
 
     Return dict with:
     - new_opportunities: list[Opportunity] ready for bank ingestion
@@ -272,17 +304,22 @@ def integrate_meta_discovery_into_workbank(
     """
     registry = registry or SourceDiscoveryRegistry()
 
-    # List ACTIVE and VERIFIED sources (not DECAYED/DEACTIVATED)
+    # Only concrete opportunity candidates (record_type="opportunity") can become
+    # Work Bank items. Source candidates (repos/platforms) stay in the registry.
     all_sources = registry.list(limit=limit)
-    active_sources = [s for s in all_sources if s.lifecycle in {SourceLifecycle.ACTIVE, SourceLifecycle.VERIFIED}]
+    opportunity_sources = [
+        s
+        for s in all_sources
+        if getattr(s, "record_type", "source") == "opportunity" and s.lifecycle not in {SourceLifecycle.DECAY, SourceLifecycle.DEACTIVATED}
+    ]
+    source_candidates_skipped = sum(1 for s in all_sources if getattr(s, "record_type", "source") != "opportunity")
 
-    # Convert verified sources to Opportunities with deduplication
     new_opportunities: list[Opportunity] = []
     seen_ids: set[str] = set()
     skipped_duplicates = 0
+    skipped_no_reward = 0
 
-    for source in active_sources:
-        # Skip if already seen by source ID
+    for source in opportunity_sources:
         if source.id in seen_ids:
             skipped_duplicates += 1
             continue
@@ -290,13 +327,14 @@ def integrate_meta_discovery_into_workbank(
 
         try:
             opp = candidate_to_opportunity(source)
-            # Double-check: don't add if same ID already in bank
+            if opp.payment <= 0:
+                skipped_no_reward += 1
+                continue
             bank = get_workbank()
             existing_ids = set(bank._items.keys()) if hasattr(bank, "_items") else set()
             if opp.id in existing_ids:
                 skipped_duplicates += 1
                 continue
-            # Final dedup within this batch
             if opp.id in seen_ids:
                 skipped_duplicates += 1
                 continue
@@ -304,24 +342,25 @@ def integrate_meta_discovery_into_workbank(
             new_opportunities.append(opp)
         except Exception as exc:
             logger.warning(
-                "Could not convert source %s (%s) to opportunity: %s",
+                "Could not convert opportunity %s (%s) to work item: %s",
                 source.id[:12],
                 source.source_url[:80] if source.source_url else "no-url",
                 exc,
             )
 
-    # Get lifecycle breakdown
-    source_lifecycles: dict[str, int] = {sl.value: sum(1 for s in active_sources if s.lifecycle == sl) for sl in SourceLifecycle}
+    source_lifecycles: dict[str, int] = {sl.value: sum(1 for s in opportunity_sources if s.lifecycle == sl) for sl in SourceLifecycle}
 
-    # Get existing bank count
     bank = get_workbank()
     existing_count = len(bank._items) if hasattr(bank, "_items") else 0
 
     return {
         "new_opportunities": new_opportunities,
         "skipped_duplicates": skipped_duplicates,
+        "skipped_no_reward": skipped_no_reward,
+        "source_candidates_skipped": source_candidates_skipped,
         "total_considered": len(all_sources),
-        "active_verified_count": len(active_sources),
+        "opportunity_candidates_considered": len(opportunity_sources),
+        "active_verified_count": len(opportunity_sources),
         "source_lifecycles": source_lifecycles,
         "existing_in_bank": existing_count,
         "will_add_to_bank": len(new_opportunities),
@@ -344,22 +383,79 @@ def run_daily_cycle_with_meta_discovery_integration(
     internal Ownex scheduler) to ensure that every day the Work Bank incorporates
     newly discovered opportunities from meta-discovery sources.
 
-    Returns the integration summary dict.
+    Returns the integration summary dict plus the daily-cycle result.
     """
+    integration = integrate_meta_discovery_into_workbank(limit=limit)
+    new_opps = integration["new_opportunities"]
+
+    if not new_opps:
+        return {**integration, "daily_cycle": {"status": "no_new_opps", "items_prepared": 0}}
+
+    from cores.direct_work_engine.scoring import ZeroBarrierScorer
     from cores.direct_work_engine.workbank import run_daily_cycle
 
-    # 1. Run integration bridge
-    integration = integrate_meta_discovery_into_workbank(limit=limit)
+    scorer = ZeroBarrierScorer()
+    scored = scorer.score_opportunities(new_opps)
+    top_n = min(len(scored), target or 20)
+    cycle_result = run_daily_cycle(target=target, opportunities=scored[:top_n])
+    return {**integration, "daily_cycle": cycle_result}
 
-    # 2. Get the new opportunities from the bridge
-    new_opps: list[Opportunity] = integration["new_opportunities"]
 
-    # 3. Run the normal daily cycle with the new opportunities
-    # For now, return the integration summary
-    # TODO: full integration with the async daily_cycle when ready
+def run_daily_meta_discovery_and_integrate() -> dict[str, Any]:
+    """Scheduler entry point: discover GitHub repos and integrate into Work Bank.
 
+    Steps:
+    1. Run meta-discovery (GitHub topic search)
+    2. Integrate new sources into the SourceDiscoveryRegistry
+    3. Convert verified sources to Opportunities
+    4. Run the daily_cycle with the new opportunities
+    5. Return summary of the full pipeline
+    """
+    from cores.direct_work_engine.scoring import ZeroBarrierScorer
+    from cores.direct_work_engine.workbank import run_daily_cycle
+
+    # Step 1: Run GitHub discovery (repositories as sources + reward-backed issues as opportunities)
+    discovery = run_daily_meta_discovery()
+    logger.info("GitHub discovery: %s", discovery)
+
+    # Step 2: Integrate discovered candidates into the registry
+    registry = SourceDiscoveryRegistry()
+    registry._load()
+
+    # Step 3: Integrate into Work Bank pipeline
+    integration = integrate_meta_discovery_into_workbank(limit=200)
+    new_opportunities = integration["new_opportunities"]
+    skipped_duplicates = integration["skipped_duplicates"]
+    logger.info(
+        "Integration: %d new opportunities, %d duplicates skipped",
+        len(new_opportunities),
+        skipped_duplicates,
+    )
+
+    # Step 4: Run daily cycle with new opportunities (if any)
+    if new_opportunities:
+        # Score the new opportunities
+        scorer = ZeroBarrierScorer()
+        scored = scorer.score_opportunities(new_opportunities)
+        # Take top ones for the daily cycle
+        top_n = min(len(scored), 20)
+        top_opps = scored[:top_n]
+
+        # Run the daily cycle (without success_floor arg - it uses internal defaults)
+        cycle_result = run_daily_cycle(
+            target=20,
+            opportunities=top_opps,
+        )
+        logger.info("Daily cycle result: %s", cycle_result)
+    else:
+        cycle_result = {"status": "no_new_opps", "items_prepared": 0}
+
+    # Step 5: Return full summary
     return {
+        "discovery": discovery,
         "integration_summary": integration,
-        "new_opportunities_count": len(new_opps),
-        "note": "Meta-discovered opportunities identified but not yet auto-merged into daily_cycle; use API endpoint /api/direct-work/ingest-sources or configure scheduler to call integrate_meta_discovery_into_workbank().",
+        "new_opportunities_count": len(new_opportunities),
+        "skipped_duplicates": skipped_duplicates,
+        "cycle_result": cycle_result,
+        "note": "Full pipeline: discovery -> registry -> Work Bank integration -> daily cycle",
     }

@@ -29,7 +29,6 @@ from api.routers import (
     attack,
     attack_surface,
     auth,
-    auth_user,
     auth_users,
     authhub,
     auto_apply,
@@ -40,6 +39,7 @@ from api.routers import (
     capability_expansion,
     career,
     commands,
+    connection_manager,
     connections,
     contracts,
     control,
@@ -527,7 +527,6 @@ app.include_router(bounty_pipeline.router)
 app.include_router(agent_coordinator.router)
 app.include_router(auth.router)
 app.include_router(auth_users.router)
-app.include_router(auth_user.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
 app.include_router(outlook.router)
@@ -577,6 +576,7 @@ app.include_router(economic.router)
 app.include_router(agents_router.router)
 app.include_router(zap.router)
 app.include_router(connections.router)
+app.include_router(connection_manager.router)
 app.include_router(platforms.router)
 app.include_router(financial_sync.router)
 app.include_router(financial_truth.router)

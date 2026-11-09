@@ -339,8 +339,14 @@ class TestDeliveryFlow:
 
         bank = WorkBank(tmp_path / "wb-delivered.json")
         bank._items["delivery-only"] = WorkItem(
-            id="delivery-only", title="Fix issue", platform="algora", category="dev_bounty", reward=200,
-            barrier_score=80, employment_type="bounty", ready_to_deliver=True,
+            id="delivery-only",
+            title="Fix issue",
+            platform="algora",
+            category="dev_bounty",
+            reward=200,
+            barrier_score=80,
+            employment_type="bounty",
+            ready_to_deliver=True,
         )
         monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
         monkeypatch.setattr("api.routers.direct_work.apply_learning", lambda *_args: pytest.fail("delivery is not acceptance"))
@@ -359,8 +365,14 @@ class TestDeliveryFlow:
         bank = WorkBank(tmp_path / "wb-detail.json")
         monkeypatch.setattr("api.routers.direct_work.get_workbank", lambda: bank)
         bank._items["detail-1"] = WorkItem(
-            id="detail-1", title="Fix auth", platform="algora", category="dev_bounty", reward=100,
-            barrier_score=75, employment_type="bounty", description="Reproduce and fix issue",
+            id="detail-1",
+            title="Fix auth",
+            platform="algora",
+            category="dev_bounty",
+            reward=100,
+            barrier_score=75,
+            employment_type="bounty",
+            description="Reproduce and fix issue",
             url="https://example.test/issue/1",
         )
 
@@ -415,7 +427,7 @@ class TestDeliveryFlow:
         assert done.status_code == 200
         assert done.json()["status"] == "delivered"
         assert done.json()["reward"] == 120.0
-        assert "aceptación y pago siguen sin confirmar" in done.json()["message"]
+        assert "aceptación y pago siguen sin confirmar" in done.json()["message"].lower()
 
         item = bank.get_item("deliv-1")
         assert item is not None
@@ -720,15 +732,17 @@ class TestAutoSubmitTruthfulness:
         from cores.direct_work_engine.workbank import WorkBank
 
         bank = WorkBank(tmp_path / "workbank.json")
-        bank.daily_cycle([
-            Opportunity(
-                id="not-submitted",
-                title="Fix an issue",
-                platform=WorkPlatform.OPIRE,
-                category=OpportunityCategory.DEV_BOUNTY,
-                payment=100,
-            )
-        ])
+        bank.daily_cycle(
+            [
+                Opportunity(
+                    id="not-submitted",
+                    title="Fix an issue",
+                    platform=WorkPlatform.OPIRE,
+                    category=OpportunityCategory.DEV_BOUNTY,
+                    payment=100,
+                )
+            ]
+        )
         monkeypatch.setattr(direct_work, "get_workbank", lambda: bank)
         monkeypatch.setattr(
             "core.trust_engine.get_trust_engine",
@@ -741,6 +755,7 @@ class TestAutoSubmitTruthfulness:
         assert result["status"] == "manual_submission_required"
         assert result["submitted"] is False
         assert result["requires_manual_action"] is True
+
 
 class TestSourceIntelApi:
     def test_radar_reports_curated_database(self) -> None:

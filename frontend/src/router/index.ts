@@ -78,13 +78,15 @@ export const routes: RouteRecordRaw[] = [
 
   // ── 1. COMMAND CENTER ──
   {
-    // 2026-08-30: '/' = OWNEX Command Center (IncomeHome).
-    // Único entry point. Otros dashboards legacy redirigen aquí.
+    // 2026-11-09: '/' = OWNEX Command Center consolidado.
+    // Entry point único: System State + Next Best Action + Opportunities + Income.
     path: '/',
     name: 'command-center',
-    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/IncomeHome.vue'),
+    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/CommandCenter.vue'),
     meta: { title: 'OWNEX Command Center' },
   },
+  // Legacy IncomeHome redirect → Command Center
+  { path: '/income-home', redirect: '/' },
   // Legacy redirects → Command Center
   { path: '/welcome', redirect: '/' },
   { path: '/dashboard', redirect: '/' },
@@ -467,8 +469,7 @@ export const routes: RouteRecordRaw[] = [
   },
 
   // ── LEGACY REDIRECTS (mantener compatibilidad) ──
-  // Home redirect
-  { path: '/home', redirect: '/dashboard' },
+  // `/home` ya redirige a `/` en el bloque Command Center; no duplicar aquí.
 
   // ── FEATURE PARITY SURFACES (Command Center satellites) ──
   {

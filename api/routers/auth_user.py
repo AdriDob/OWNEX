@@ -1,5 +1,11 @@
 """
 API Router for User Authentication
+
+DEPRECATED (OWNEX v10): legacy root-mounted `/auth/*` (email+password) router.
+Unmounted from api/main.py — zero canonical consumers. Canonical auth is:
+- `auth_users.py` → `/api/auth/users/*` (OWNEX account: register/login/session/user)
+- `auth.py`       → `/api/auth/*`      (device/session auth)
+Kept for reference/migration only; do not remount without a consumer audit.
 """
 
 from fastapi import APIRouter, Header, HTTPException

@@ -243,13 +243,16 @@ class TestCoreEnvConfig:
     def test_module_exists(self):
         assert (PROJECT_DIR / "cores" / "env" / "config.py").is_file()
 
-    def test_config_dir_default(self):
+    def test_config_dir_default(self, monkeypatch):
+        monkeypatch.delenv("OWNEX_CONFIG_DIR", raising=False)
         from cores.env.config import EnvConfig
 
         cfg = EnvConfig()
         assert "OWNEX" in str(cfg.config_dir)
 
-    def test_data_dir_default(self):
+    def test_data_dir_default(self, monkeypatch):
+        # api.main sets OWNEX_DATA_DIR at import time; the default must be tested clean.
+        monkeypatch.delenv("OWNEX_DATA_DIR", raising=False)
         from cores.env.config import EnvConfig
 
         cfg = EnvConfig()
@@ -264,8 +267,8 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         assert path.is_file(), f"capacitor.config.json not found at {path}"
         content = path.read_text()
-        assert "ai.rastro.app" in content
-        assert "CATEYE" in content
+        assert "ownex.desktop.app" in content
+        assert "OWNEX" in content
         assert "frontend/dist" in content
 
     def test_capacitor_config_is_valid_json(self):
@@ -275,8 +278,8 @@ class TestCapacitorConfig:
         path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
         cfg = json.loads(content)
-        assert cfg["appId"] == "ai.rastro.app"
-        assert cfg["appName"] == "CATEYE"
+        assert cfg["appId"] == "ownex.desktop.app"
+        assert cfg["appName"] == "OWNEX"
         assert cfg["webDir"] == "frontend/dist"
 
 

@@ -1,5 +1,17 @@
 # Session Checkpoint — 2026-10-29
 
+## OWNEX v9 FASE 0-2 — discovery concreto → Work Bank (2026-11-09)
+
+- `SourceCandidate` ahora distingue `record_type="source"` (repo/plataforma) de `record_type="opportunity"` (issue/tarea concreta). Los repositorios descubiertos por topics quedan como fuentes; solo issues concretos pueden convertirse en `Opportunity`.
+- `discover_github_repositories()` amplía queries por topics, lenguajes, frameworks, plataformas de recompensas y actividad reciente; `discover_github_bounty_issues()` busca issues abiertos con labels/body de bounty/reward y preserva `reward_reported`, `reward_currency` y `reward_status`.
+- GitHub search usa `GITHUB_TOKEN`/`GH_TOKEN`, `Authorization: Bearer`, throttle por intervalo, retry/backoff acotado para 403/429/5xx, `max_pages` limitado y caché persistente con TTL.
+- `_extract_github_bounty_reward_details()` exige contexto bounty/reward/paid/funding/prize/payout para montos en body y preserva USD/USDC/USDT/EUR/GBP; un "$" suelto ya no cuenta como recompensa.
+- `candidate_to_opportunity()` ya no marca `payment_proven=True` por un monto reportado: el Work Bank lo etiqueta `reward_reported`, no `reward_verified`. La moneda reportada se conserva; evidencia URL queda en la descripción porque `Opportunity` no tiene campo metadata.
+- `integrate_meta_discovery_into_workbank()` filtra `record_type="opportunity"`, excluye DECAY/DEACTIVATED, descarta `payment<=0`, deduplica por ID generado y contra Work Bank, y devuelve contadores (`source_candidates_skipped`, `skipped_no_reward`, `will_add_to_bank`, etc.).
+- Scheduler `meta_source_discovery_daily` ahora ejecuta `run_daily_meta_discovery_and_integrate` (discovery → registry → scoring → `run_daily_cycle`).
+- Verificación: Ruff limpio en archivos tocados; mypy scoped sin errores; suite enfocada **140 passed** (`test_source_discovery`, `test_discovery_to_workbank`, `test_workbank`, `test_workbank_payout_integration`, `test_scheduler_jobs`, `test_direct_work_engine`).
+- Pendiente/fuera de alcance: no se hicieron llamadas reales a GitHub; recompensa reportada sigue sin verificación independiente; candidatos `DISCOVERED` con reward explícito pueden entrar al Work Bank como candidatos (revisar si debe exigirse VERIFIED/ACTIVE); DNS rebinding del probe sigue abierto; `core/` vs `cores/` permanece duplicado.
+
 ## Panel de trabajos + proveedor Codex (continuación 2026-10-29)
 
 - Corrección de integridad Work Bank: `_prepare_deliverables()` afirmaba términos cumplidos, compatibilidad de perfil y `reward_verified` con solo tener una cantidad. Ahora registra las comprobaciones como pendientes, distingue recompensa reportada de `payment_proven` y muestra moneda del modelo. Dos tests focalizados pasan; la suite completa `tests/test_workbank.py` se interrumpió por el bloqueo del TestClient del entorno. Ruff y `git diff --check` scoped pasan.

@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
+
+# Ensure the repo root precedes tests/ on sys.path so the real `core` package
+# is not shadowed by the tests/core fixtures directory when pytest is invoked
+# via the console script (which does not add the cwd to sys.path).
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 os.environ.setdefault("CATEYE_CSRF_DISABLED", "1")
 

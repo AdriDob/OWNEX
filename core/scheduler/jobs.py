@@ -524,12 +524,12 @@ def get_direct_work_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="meta_source_discovery_daily",
             app_id="direct-work",
-            handler="core.opportunity.source_discovery:run_daily_meta_discovery",
+            handler="core.opportunity.discovery_to_workbank:run_daily_meta_discovery_and_integrate",
             cron="0 8 * * *",
             args=[],
             metadata={
                 "type": "meta_discovery",
-                "desc": "detecta repositorios candidatos en GitHub; no activa fuentes automáticamente",
+                "desc": "detecta repositorios candidatos en GitHub y los integra al Work Bank",
             },
         ),
         _cron_job(

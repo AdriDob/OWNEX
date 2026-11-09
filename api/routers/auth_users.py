@@ -13,6 +13,7 @@ import logging
 import os
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel
@@ -68,17 +69,54 @@ def _verify_password(password: str, stored: str) -> bool:
     return dk.hex() == dk_hex
 
 
+def _derive_username(email: str, display_name: str | None) -> str:
+    base = (display_name or email.split("@", 1)[0] or "user").lower()
+    cleaned = "".join(ch if ch.isascii() and (ch.isalnum() or ch == "_") else "_" for ch in base)
+    cleaned = cleaned.strip("_")
+    if len(cleaned) < 3:
+        cleaned = f"user_{cleaned}" if cleaned else "user"
+    return cleaned[:48]
+
+
+def _unique_username(session, base: str) -> str:
+    candidate = base
+    for _ in range(20):
+        exists = session.query(User).filter(User.username == candidate).first()
+        if not exists:
+            return candidate
+        candidate = f"{base[:44]}_{secrets.token_hex(2)}"
+    return f"{base[:40]}_{secrets.token_hex(4)}"
+
+
+def _session_payload(access_token: str) -> dict[str, Any]:
+    expires_at = datetime.now(UTC) + timedelta(hours=TOKEN_TTL_HOURS)
+    return {"token": access_token, "expires_at": expires_at.isoformat()}
+
+
+def _user_payload(user: User) -> dict[str, Any]:
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "is_active": user.is_active,
+        "email_verified": user.email_verified,
+        "created_at": user.created_at.isoformat() if user.created_at else "",
+    }
+
+
 # ─── Schemas ─────────────────────────────────────────────────────────
 
 
 class RegisterRequest(BaseModel):
-    username: str
+    username: str | None = None
     email: str
     password: str
+    display_name: str | None = None
 
 
 class LoginRequest(BaseModel):
-    username: str
+    username: str | None = None
+    email: str | None = None
     password: str
 
 
@@ -87,6 +125,8 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
     email_verified: bool = True
+    session: dict[str, Any] | None = None
+    user: dict[str, Any] | None = None
 
 
 class RefreshRequest(BaseModel):
@@ -119,13 +159,19 @@ class UserProfile(BaseModel):
 def register(body: RegisterRequest, request: Request, response: Response):
     if len(body.password) < 8:
         raise HTTPException(400, "Password must be at least 8 characters")
-    if len(body.username) < 3:
+    if body.username is not None and len(body.username) < 3:
         raise HTTPException(400, "Username must be at least 3 characters")
 
     session = SessionLocal()
     try:
-        if session.query(User).filter((User.username == body.username) | (User.email == body.email)).first():
+        if session.query(User).filter(User.email == body.email).first():
             raise HTTPException(409, "Username or email already exists")
+        if body.username:
+            username = body.username
+            if session.query(User).filter(User.username == username).first():
+                raise HTTPException(409, "Username or email already exists")
+        else:
+            username = _unique_username(session, _derive_username(body.email, body.display_name))
 
         requires_verification = mail_configured()
         verification_token: str | None = None
@@ -135,7 +181,7 @@ def register(body: RegisterRequest, request: Request, response: Response):
             verification_token = _hash_token(raw_verification_token)
 
         user = User(
-            username=body.username,
+            username=username,
             email=body.email,
             password_hash=_hash_password(body.password),
             is_active=not requires_verification,
@@ -164,6 +210,8 @@ def register(body: RegisterRequest, request: Request, response: Response):
             access_token=access_token,
             refresh_token=refresh_token,
             email_verified=user.email_verified,
+            session=_session_payload(access_token),
+            user=_user_payload(user),
         )
     finally:
         session.close()
@@ -228,7 +276,10 @@ def resend_verification(body: ResendRequest):
 def login(body: LoginRequest, request: Request, response: Response):
     session = SessionLocal()
     try:
-        user = session.query(User).filter(User.username == body.username).first()
+        identifier = (body.username or body.email or "").strip()
+        if not identifier:
+            raise HTTPException(400, "username or email is required")
+        user = session.query(User).filter((User.username == identifier) | (User.email == identifier)).first()
         if not user or not _verify_password(body.password, user.password_hash):
             raise HTTPException(401, "Invalid username or password")
         if not user.is_active:
@@ -242,7 +293,12 @@ def login(body: LoginRequest, request: Request, response: Response):
         )
         refresh_token = create_refresh_token(user_id=str(user.id))
         _set_session_cookie(response, access_token, request.url.scheme == "https")
-        return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            session=_session_payload(access_token),
+            user=_user_payload(user),
+        )
     finally:
         session.close()
 
@@ -266,7 +322,12 @@ def refresh_token(body: RefreshRequest, request: Request, response: Response):
         )
         new_refresh = create_refresh_token(user_id=str(user.id))
         _set_session_cookie(response, new_access, request.url.scheme == "https")
-        return TokenResponse(access_token=new_access, refresh_token=new_refresh)
+        return TokenResponse(
+            access_token=new_access,
+            refresh_token=new_refresh,
+            session=_session_payload(new_access),
+            user=_user_payload(user),
+        )
     finally:
         session.close()
 

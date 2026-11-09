@@ -20,9 +20,12 @@ def client():
 
 
 @pytest.fixture(autouse=True)
-def reset_limiter():
+def reset_limiter(client):
     from cores.gateway.rate_limit import reset_rate_limiter
 
+    # The module-scoped client persists the ownex-session cookie set by login;
+    # clear it so "no token" tests really run unauthenticated.
+    client.cookies.clear()
     reset_rate_limiter()
 
 

@@ -95,13 +95,15 @@ class BaseDiscoveryAdapter(ABC):
         accepts_ai_tools: bool = True,
         asynchronous: bool = True,
         specialization: GameDevSpecialization | None = None,
+        platform: WorkPlatform | None = None,
         **kwargs: Any,
     ) -> Opportunity:
         """Helper to create a normalized Opportunity with defaults."""
+        resolved_platform = platform or self.source.platform
         return Opportunity(
-            id=f"{self.source.platform.value}_{external_id}",
+            id=f"{resolved_platform.value}_{external_id}",
             title=title,
-            platform=self.source.platform,
+            platform=resolved_platform,
             category=category,
             url=url,
             description=description,

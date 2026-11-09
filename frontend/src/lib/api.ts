@@ -236,22 +236,26 @@ export interface PlatformAccount {
   last_checked?: string
   session_state?: string
   health_status?: string
+  state?: string
+  auth_mechanism?: string
+  connect_supported?: boolean
+  source_count?: number
 }
 
 export async function getPlatformAccounts() {
-  return api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
+  return api.get<{ accounts: PlatformAccount[]; summary?: any }>('/connection-manager/accounts')
 }
 
 export async function storePlatformCredentials(provider: string, email: string, token: string) {
-  return api.post('/opportunity/identity/store', { provider, email, token })
+  return api.post(`/connection-manager/accounts/${encodeURIComponent(provider)}/connect`, { email, token })
 }
 
 export async function removePlatformAccount(provider: string) {
-  return api.post(`/opportunity/identity/remove/${provider}`, {})
+  return api.post(`/connection-manager/accounts/${encodeURIComponent(provider)}/disconnect`, {})
 }
 
 export async function getPlatformStatus(provider: string) {
-  return api.get(`/opportunity/identity/status/${provider}`)
+  return api.get(`/connection-manager/accounts/${encodeURIComponent(provider)}/status`)
 }
 
 // ── Bank / Payout Accounts ──

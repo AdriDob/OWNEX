@@ -147,6 +147,52 @@ class TestLogin:
         )
         assert resp.status_code == 401
 
+    def test_login_with_email(self, client):
+        client.post(
+            "/api/auth/users/register",
+            json={
+                "username": "testuserfe2",
+                "email": "testuserfe2@example.com",
+                "password": "strongpass123",
+            },
+        )
+        resp = client.post(
+            "/api/auth/users/login",
+            json={
+                "email": "testuserfe2@example.com",
+                "password": "strongpass123",
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["session"]["token"] == data["access_token"]
+        assert data["user"]["email"] == "testuserfe2@example.com"
+
+    def test_login_requires_identifier(self, client):
+        resp = client.post(
+            "/api/auth/users/login",
+            json={"password": "strongpass123"},
+        )
+        assert resp.status_code == 400
+
+
+class TestFrontendContract:
+    def test_register_frontend_shape(self, client):
+        resp = client.post(
+            "/api/auth/users/register",
+            json={
+                "email": "testuserfe1@example.com",
+                "password": "strongpass123",
+                "display_name": "testuserfe1",
+            },
+        )
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["session"]["token"] == data["access_token"]
+        assert data["session"]["expires_at"]
+        assert data["user"]["email"] == "testuserfe1@example.com"
+        assert data["user"]["username"] == "testuserfe1"
+
 
 class TestProfile:
     def test_me_authenticated(self, client):

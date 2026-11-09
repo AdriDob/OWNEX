@@ -1,17 +1,25 @@
 # OWNEX Task Queue — Product Core
 
+## P0 — OWNEX v10: contrato rector + auth/connections
+
+- **Contrato rector (2026-11-09):** priorizar funcionalidad integral, ingresos y usabilidad. Audit-first; **no eliminar duplicados sin determinar canónico, dependencias y migración segura**. Docs: `.ai/OWNEX_GLOBAL_ARCHITECTURE_AUDIT.md`, `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md`.
+- **Hecho:** P0 auth contract corregido en `api/routers/auth_users.py` (acepta `username` o `email`, devuelve `session.token`+`user`); `tests/test_auth_users.py` 14 passed.
+- **Siguiente:** Connection Manager único (estados `NOT_CONNECTED/CONNECTING/CONNECTED/EXPIRED/ERROR/REVOKED/MANUAL_SETUP/UNSUPPORTED`) unificando `identity_center`+`connections`+`useExternalConnectionManager`; deprecar `auth_user.py` tras verificar consumidores; mapear imports `core.`/`cores.` por dominio antes de cualquier borrado.
+
 ## P0 — Cerrar flujo visible de fuentes a trabajo verificable
 
-- Estado: PARCIAL (2026-10-29). Mission Control muestra el Work Bank y detalle por tarea, pero los candidatos meta-discovered todavía no se conectan al Work Bank. La UI distingue evidencia declarada de verificación independiente, y autorización de metadatos de una fuente operativa. WorkBank ahora marca términos/perfil como pendientes y recompensa como reportada salvo prueba explícita; no afirma pago solo por existir un bounty.
-- Próximo corte: elegir una fuente con acceso de lectura verificable, mapear su task schema con evidencia, normalizar al contrato `Opportunity` y deduplicar antes de entrar al Work Bank. Mantener escrituras apagadas hasta aprobar policy y cubrir ejecución.
+- Estado: PARCIAL (2026-11-09). Mission Control muestra el Work Bank y detalle por tarea. GitHub ya produce dos tipos de candidatos: `record_type="source"` (repos/plataformas) y `record_type="opportunity"` (issues concretos). Solo opportunities con reward reportado explícito pasan al Work Bank; `payment_proven` queda `False` y el Work Bank lo etiqueta `reward_reported`, no `reward_verified`.
+- Próximo corte: verificar en vivo un issue GitHub con reward (schema, elegibilidad, método de pago y evidencia), mapear `payment_method`/`employment_type`/`rate_source` con fuentes primarias y exponer el estado `reported → verified → paid` sin confundir delivery con aceptación/payout.
+- Métrica de adaptación: `cores/opportunity/source_adaptation.py` ya separa catálogo de operación real (176 union → 17 `adapter_ready`, 33 `discoverable`, 126 `catalog_only`; niveles verificados en 0). Usarla en Command Center antes de reportar "fuentes adaptadas".
+- Expansión acordada: `source_family` nivel 2 ya existe (`cores/opportunity/source_families.py`) sin agregar categorías canónicas. Sobre la unión 176: `ai_coding_evaluation=12`, `qa_testing_services=6`, `funded_oss_grants=16`, `api_sdk/devops/data_eng/browser_automation=0`, `unclassified=142`. Poblar familias con fuentes verificables; cada fuente nueva entra como `catalog_only` hasta tener platform map + pago documentado + verificación live.
 - Codex CLI está instalado y autenticado en el WSL actual; proveedor OAR añadido con read-only ephemeral. Validar health/llamada desde proceso API y cuota bajo uso real limitado antes de confiarlo como proveedor unattended; no se registró coste por llamada.
 
 ## P0 — Cerrar integración segura de Meta-Discovery
 
-- Estado: PARCIAL (2026-10-29). `/api/discovery/sources/*` persiste candidatos, perfila protocolos públicos, exige evidence + aprobación y scheduler consulta GitHub a diario.
-- Bloqueo: fuentes aprobadas todavía no llegan al Work Bank; `SourceProfile` no demuestra por sí mismo schema/reward/eligibility. No marcar ACTIVE como proveedor operativo hasta mapear y verificar lectura de tasks en el pipeline canónico.
+- Estado: PARCIAL (2026-11-09). `/api/discovery/sources/*` persiste candidatos, perfila protocolos públicos, exige evidence + aprobación y scheduler consulta GitHub a diario. `meta_source_discovery_daily` ahora ejecuta discovery → registry → Work Bank para opportunities concretas con reward reportado.
+- Bloqueo: fuentes `source` aprobadas todavía no alimentan Work Bank (correcto: no son tareas); opportunities `DISCOVERED` con reward explícito pueden entrar como candidatas — decidir si exigir VERIFIED/ACTIVE o solo evidencia de reward. No marcar ACTIVE como proveedor operativo hasta mapear y verificar lectura de tasks en el pipeline canónico.
 - Antes de habilitar polling unattended: cerrar DNS-rebinding mediante pinning de IP/egress policy; probar desde un entorno con acceso de red autorizado y registrar status/rate limits de GitHub.
-- Luego extender feeds uno por sprint solo con contratos/evidencia primaria (MCP registries, bounty feed, ARD/x402), sin habilitar ejecución de tools/código descubierto.
+- Luego extender feeds uno por sprint solo con contratos/evidencia primaria (Algora/Opire/IssueHunt/OnlyDust APIs, MCP registries, bounty feed, ARD/x402), sin habilitar ejecución de tools/código descubierto.
 - Fuentes prioridad 1 auditadas: Algora ya tiene adapter (probar contrato en entorno permitido antes de declararlo live); x402 Bounty Radar es pagado y su señal anti-scam es heurística, así que no activar llamadas de pago sin aprobación explícita; WarpSpeed OPEN no es apto para crawling/auto-submit según sus términos y las fechas de las tareas indexadas consultadas están vencidas.
 
 > **REGLAS:**
@@ -355,3 +363,21 @@ Orden propuesto: (1) AUDIT_BACKEND_ALPHA_1.0.md ← primera acción próxima ses
 **Dónde:** nuevo módulo `cores/agenda/` + router `/api/agenda` + página `/agenda`
 **Prioridad:** Media-Alta (mejora retención diaria del usuario)
 **Esfuerzo estimado:** 2-3 días
+
+---
+
+## OWNEX v10 — prioridades vigentes (FASE A→J)
+
+- [x] FASE A: auditoría global frontend/backend + duplicaciones (`.ai/OWNEX_GLOBAL_ARCHITECTURE_AUDIT.md`, `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md`)
+- [x] P0: contrato auth frontend/backend (`auth_users.py` email/username + `session.token`/`user`)
+- [x] Connection Manager backend unificado (`/api/connection-manager`, estados explícitos, `cores.identity_vault` SSOT)
+- [x] Fix entorno: editable `ownex-omega` reinstalado desde raíz canónica (v9.0.0); fix `tests/conftest.py` sys.path (`tests/core` shadowing)
+- [x] Migrar `useExternalConnectionManager` (frontend) a `/api/connection-manager` (legacy `/opportunity/identity/*` permanece)
+- [ ] Consolidar `identity_center` + `authhub` + `connections` + `opportunity_intelligence /identity/*` en el Connection Manager canónico
+- [x] Migrar `Connections.vue`/`lib/api.ts` a `/api/connection-manager` (corrige bug `provider_name`/`provider`)
+- [x] Deprecar `api/routers/auth_user.py` (0 consumidores canónicos; desmontado, conservado)
+- [x] `core/cores/` → backup + cuarentena en `.quarantine/core_cores_2026-11-09/` (owner decision; `core.cores` ya no importable, nada lo consumía)
+- [x] `work/ownex-economy-active-earn` gitlink → **conservado intacto** (owner decision; fuera del runtime canónico)
+- [x] Mapa de imports `core.`/`cores.` por dominio → plan de migración ejecutable (evidencia + orden en `OWNEX_DUPLICATION_CONSOLIDATION.md`)
+- [x] Triage 24 fallos suite completa → 11 reales corregidos (hhd_tracker tz bug, payment_trail status/payout claims, tests stale rebrand OWNEX, vault test isolation)
+- [ ] Verificación live GitHub issue con reward + política `DISCOVERED→VERIFIED/ACTIVE` antes de Work Bank

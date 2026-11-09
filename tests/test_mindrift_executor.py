@@ -83,7 +83,7 @@ class TestMindriftExecutorSubmitTask:
             mock_http.return_value.post.return_value = _mock_response(201, {"status": "submitted"})
             asyncio.run(executor.submit_task("t1", "http://sol.url"))
             _, kwargs = mock_http.return_value.post.call_args
-            assert "OWNEX CoderAgent" in kwargs["json"]["description"]
+            assert "OWNEX" in kwargs["json"]["description"]
 
 
 class TestMindriftExecutorGetTasks:

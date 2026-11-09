@@ -19,9 +19,9 @@ from enum import StrEnum
 from typing import Any
 
 from core.health.engine import get_health_center
-from core.memory.store import get_unified_memory
+from core.memory.store import get_memory_store as get_unified_memory
+from cores.agents.types import EventType
 from cores.events.event_bus import get_event_bus
-from cores.events.types import EventType
 
 logger = logging.getLogger("orion.life_scheduler")
 

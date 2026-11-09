@@ -58,6 +58,34 @@ def list_source_candidates(limit: int = Query(100, ge=1, le=500)):
     }
 
 
+@router.get("/sources/adaptation")
+def source_adaptation_summary():
+    """Catalog vs operational adaptation levels for curated sources."""
+    from cores.opportunity.source_adaptation import catalog_adaptation_summary
+
+    return catalog_adaptation_summary()
+
+
+@router.get("/sources/families")
+def source_family_summary():
+    """Level-2 source family coverage across the deduplicated catalog."""
+    from cores.opportunity.source_families import catalog_family_summary
+
+    return catalog_family_summary()
+
+
+@router.get("/sources/overview")
+def source_catalog_overview():
+    """Combined catalog adaptation + family coverage for Command Center."""
+    from cores.opportunity.source_adaptation import catalog_adaptation_summary
+    from cores.opportunity.source_families import catalog_family_summary
+
+    return {
+        "adaptation": catalog_adaptation_summary(),
+        "families": catalog_family_summary(),
+    }
+
+
 @router.post("/sources/discover")
 def discover_source_candidates():
     """Run a bounded GitHub repository search; candidates remain inactive."""

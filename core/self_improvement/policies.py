@@ -8,6 +8,7 @@ deterministic so verification stays objective.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +42,10 @@ class ExecutionPolicy:
         if not argv:
             return ["empty command"]
         executable = Path(argv[0]).name
-        if executable not in self.config.allowed_commands:
+        # The interpreter running the harness is always allowed (its basename
+        # varies: python, python3, python3.14, ...).
+        allowed = {*self.config.allowed_commands, Path(sys.executable).name}
+        if executable not in allowed:
             violations.append(f"command not allowed: {executable}")
         joined = " ".join(argv)
         for kw in self.config.forbidden_keywords:

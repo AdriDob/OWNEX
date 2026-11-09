@@ -10,6 +10,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => isSessionValid())
 
+  // ── Level 1: OWNEX Account ──
+  // Authenticated session user data
+  const ownexAccount = computed(() => user.value)
+
   async function loginWithCredentials(email: string, password: string) {
     loading.value = true
     error.value = null
@@ -81,11 +85,33 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
     token.value = null
     user.value = null
+    // Also clear external connections when logging out
+    // (will be refetched on next login)
   }
 
   function tryGetDeviceId(): string | null {
     try { return localStorage.getItem('CATEYE-device-id') } catch { return null }
   }
 
-  return { user, token, loading, error, isAuthenticated, loginWithCredentials, register, autoLogin, logout }
+  // ── Level 2: External Account Connections ──
+  // Connected platforms (Fiverr, Freelancer, Direct Work, etc.)
+  // These are separate from the OWNEX account but linked to it
+  // Connection state is managed by useExternalConnectionManager
+  return {
+    user, token, loading, error, isAuthenticated,
+    ownexAccount,
+    // External connection manager access
+    getPlatformAccounts: async () => {
+      return await (await import('@/composables/useExternalConnectionManager')).getPlatformAccounts()
+    },
+    storePlatformCredentials: async (provider: string, email: string, token: string) => {
+      return await (await import('@/composables/useExternalConnectionManager')).storePlatformCredentials(provider, email, token)
+    },
+    removePlatformAccount: async (provider: string) => {
+      return await (await import('@/composables/useExternalConnectionManager')).removePlatformAccount(provider)
+    },
+    getPlatformStatus: async (provider: string) => {
+      return await (await import('@/composables/useExternalConnectionManager')).getPlatformStatus(provider)
+    },
+  }
 })

@@ -58,6 +58,9 @@ class SourceDefinition:
     typical_hourly_rate_usd: float | None = None  # conservative midpoint of documented range; source="platform"
     time_to_first_work_hours: float | None = None  # human hours until first paid task (assessment+onboarding)
     payout_cadence_days: int | None = None  # documented payout frequency
+    # Level-2 source family (e.g. "ai_coding_evaluation"). Empty = derive by
+    # keyword; canonical OpportunityCategory remains the level-1 taxonomy.
+    source_family: str = ""
 
 
 # ═══════════════════════════════════════════════
@@ -1365,6 +1368,7 @@ DATA_ENTRY_SOURCES: list[SourceDefinition] = [
         requires_portfolio=False,
         priority=6,
         tags=["qa", "testing", "bugs", "mobile"],
+        source_family="qa_testing_services",
     ),
     SourceDefinition(
         "Prolific",
@@ -1970,6 +1974,7 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$15-40/h by test type",
         tags=["testing", "qa", "bug-bounty", "crowdsourced"],
         priority=8,
+        source_family="qa_testing_services",
     ),
 ]
 

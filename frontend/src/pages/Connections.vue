@@ -48,6 +48,11 @@ const methodTypeIcon: Record<string, string> = {
   wallet: 'text-primary',
   bank: 'text-accent',
   p2p: 'text-success',
+  fintech: 'text-primary',
+  traditional: 'text-accent',
+  remittance: 'text-info',
+  gift_card: 'text-muted-foreground',
+  prepaid: 'text-success',
 }
 
 const methodTypeLabel: Record<string, string> = {
@@ -55,6 +60,68 @@ const methodTypeLabel: Record<string, string> = {
   wallet: 'Billetera virtual',
   bank: 'Transferencia bancaria',
   p2p: 'P2P Exchange',
+  fintech: 'Fintech',
+  traditional: 'Banco',
+  remittance: 'Remesa',
+  gift_card: 'Gift Card',
+  prepaid: 'Tarjeta prepaga',
+}
+
+// ── Connection States ──────────────────────────────────────────
+const connectionStates = [
+  'NOT_CONNECTED',
+  'CONNECTING',
+  'CONNECTED',
+  'EXPIRED',
+  'ERROR',
+  'REVOKED',
+  'MANUAL_SETUP',
+  'UNSUPPORTED',
+]
+
+const connectionStateDescriptions: Record<string, string> = {
+  NOT_CONNECTED: 'No conectado a la plataforma',
+  CONNECTING: 'Conectando a la plataforma…',
+  CONNECTED: 'Conectado y autenticado',
+  EXPIRED: 'Sesión expirada, re‑autenticación requerida',
+  ERROR: 'Error de autenticación',
+  REVOKED: 'Conexión revocada',
+  MANUAL_SETUP: 'Configuración manual requerida (OAuth no disponible)',
+  UNSUPPORTED: 'Autenticación no soportada por esta plataforma',
+}
+
+const connectionStateColors: Record<string, string> = {
+  NOT_CONNECTED: 'text-muted-foreground',
+  CONNECTING: 'text-warning',
+  CONNECTED: 'text-success',
+  EXPIRED: 'text-warning',
+  ERROR: 'text-error',
+  REVOKED: 'text-muted-foreground',
+  MANUAL_SETUP: 'text-info',
+  UNSUPPORTED: 'text-error',
+}
+
+async function loadPlatformStates() {
+  try {
+    const res = await api.get<{
+      platforms: {
+        provider: string
+        state: string
+        state_label: string
+        state_color: string
+        connected: boolean
+        email: string
+        username: string
+        earnings: number
+        pending: number
+        last_sync: string
+        MANUAL_SETUP: boolean
+      }[]
+    }>('/api/connections/platforms')
+    platforms.value = res.platforms || []
+  } catch (e) {
+    error.value = e?.message || 'Error loading platform states'
+  }
 }
 
 async function loadPayoutRecommendations() {
@@ -111,7 +178,10 @@ const statusColor = (s: string) => {
 
 const definitions = ref<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>({ platforms: [], osint_services: [] })
 const allPlatforms = computed(() => definitions.value.platforms.map(p => p.name))
+const platforms = computed(() => resPlatforms.value)
 
+// ── Connection state from API ──
+const resPlatforms = ref<any[]>([])
 const connectedProvs = computed(() => accounts.value.map(a => a.provider.toLowerCase()))
 
 function platformIcon(provider: string) {
@@ -122,18 +192,36 @@ async function loadData() {
   loading.value = true
   error.value = null
   try {
-    const [acctRes, payoutRes, subRes, wdRes, defRes] = await Promise.allSettled([
-      api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts'),
+    const [acctRes, payoutRes, subRes, wdRes, defRes, stateRes] = await Promise.allSettled([
+      api.get<{ accounts: PlatformAccount[]; summary?: any }>('/connection-manager/accounts'),
       api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<{ submissions: SubmissionRecord[]; total: number }>('/reports/submissions', { limit: 20 }),
       api.get<{ withdrawals: Withdrawal[] }>('/connections/withdrawals'),
       api.get<{ platforms: { id: string; name: string }[]; osint_services: { id: string; name: string }[] }>('/system/definitions'),
+      api.get<{ platforms: any[] }>('/api/connections/platforms'),
     ])
     if (acctRes.status === 'fulfilled') accounts.value = acctRes.value.accounts || []
     if (payoutRes.status === 'fulfilled') payoutAccounts.value = payoutRes.value.accounts || []
     if (subRes.status === 'fulfilled') submissions.value = subRes.value.submissions || []
     if (wdRes.status === 'fulfilled') withdrawals.value = wdRes.value.withdrawals || []
     if (defRes.status === 'fulfilled') definitions.value = defRes.value
+    if (stateRes.status === 'fulfilled') resPlatforms.value = stateRes.value.platforms || []
+    if (stateRes.status !== 'fulfilled') {
+      // Fallback: derive platforms from accounts
+      resPlatforms.value = accounts.value.map(a => ({
+        provider: a.provider,
+        state: a.state || (a.session_state === 'connected' ? 'CONNECTED' : 'NOT_CONNECTED'),
+        state_label: a.state === 'CONNECTED' || a.session_state === 'connected' ? 'Conectado' : 'No conectado',
+        state_color: a.state === 'CONNECTED' || a.session_state === 'connected' ? 'text-success' : 'text-muted-foreground',
+        connected: a.has_credentials,
+        email: a.email || '',
+        username: a.username || '',
+        earnings: a.earnings || 0,
+        pending: a.pending || 0,
+        last_sync: a.last_sync || '',
+        MANUAL_SETUP: false,
+      }))
+    }
   } catch (e: any) { error.value = e?.message || 'Error al cargar conexiones' }
   finally { loading.value = false }
 }
@@ -170,21 +258,23 @@ onMounted(() => {
 async function connectPlatform(provider: string) {
   if (!connectEmail.value || !connectToken.value) return
   try {
-    await api.post('/opportunity/identity/store', {
-      provider, email: connectEmail.value, token: connectToken.value,
+    await api.post(`/connection-manager/accounts/${provider}/connect`, {
+      email: connectEmail.value, token: connectToken.value,
     })
     showConnectForm.value = null
     connectEmail.value = ''
     connectToken.value = ''
-    const res = await api.get<{ accounts: PlatformAccount[] }>('/opportunity/identity/accounts')
+    const res = await api.get<{ accounts: PlatformAccount[] }>('/connection-manager/accounts')
     accounts.value = res.accounts || []
   } catch { /* ignore */ }
 }
 
 async function disconnectPlatform(provider: string) {
   try {
-    await api.post(`/opportunity/identity/remove/${provider}`, {})
+    await api.post(`/connection-manager/accounts/${provider}/disconnect`, {})
     accounts.value = accounts.value.filter((a: any) => a.provider !== provider)
+    // Also remove from platforms state
+    resPlatforms.value = resPlatforms.value.filter((p: any) => p.provider !== provider)
   } catch { /* ignore */ }
 }
 
@@ -215,8 +305,8 @@ async function savePlatformRegistration() {
       password: p.password,
     })
     if (p.token) {
-      await api.post('/opportunity/identity/store', {
-        provider: p.provider, email: p.email, token: p.token,
+      await api.post(`/connection-manager/accounts/${p.provider}/connect`, {
+        email: p.email, token: p.token,
       })
     }
     platformSuccess.value = `${p.provider} registrada correctamente`
@@ -339,7 +429,7 @@ function formatMoney(n: number | null | undefined) {
         <h3 class="text-xs font-semibold text-foreground mb-3">Estado de Conexiones</h3>
         <DoughnutChart
           :labels="['Conectadas', 'No conectadas']"
-          :data="[accounts.filter((a: any) => a.has_credentials).length, allPlatforms.length - accounts.filter((a: any) => a.has_credentials).length]"
+          :data="[platforms.filter((p: any) => p.state === 'CONNECTED').length, platforms.length - platforms.filter((p: any) => p.state === 'CONNECTED').length]"
           :height="200"
         />
       </Card>
@@ -351,63 +441,97 @@ function formatMoney(n: number | null | undefined) {
         </Button>
       </div>
 
-      <!-- Platform Accounts -->
+      <!-- Platforms List -->
       <section class="animate-in space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-semibold text-foreground flex items-center gap-2">
-            <Globe class="h-3.5 w-3.5 text-primary" />
-            Plataformas bug bounty
+            <Globe class="h-3.5 w-3.5 text-primary" /> Plataformas bug bounty
           </h2>
-          <span class="text-[10px] text-muted-foreground">{{ accounts.filter((a: any) => a.has_credentials).length }}/{{ allPlatforms.length }} conectadas</span>
+          <span class="text-[10px] text-muted-foreground">
+            {{ platforms.filter((p: any) => p.state === 'CONNECTED').length }}/{{ platforms.length }} conectadas
+          </span>
         </div>
 
         <div class="grid gap-3 sm:grid-cols-2">
           <div
-            v-for="platform in allPlatforms" :key="platform"
+            v-for="platform in platforms" :key="platform.provider"
             class="card-base rounded-xl p-4"
           >
             <div class="flex items-start justify-between">
               <div class="flex items-center gap-3">
-                <div :class="['flex h-9 w-9 items-center justify-center rounded-lg', platformMeta[platform.toLowerCase()]?.bg || 'bg-surface/50']">
-                  <Globe :class="['h-4 w-4', platformMeta[platform.toLowerCase()]?.color || 'text-muted-foreground']" />
+                <div
+                  :class="[
+                    'flex h-9 w-9 items-center justify-center rounded-lg',
+                    platform.state_color
+                  ]"
+                >
+                  <Globe
+                    :class="[
+                      'h-4 w-4',
+                      platform.state_color
+                    ]"
+                  />
                 </div>
                 <div>
-                  <p class="text-sm font-semibold text-foreground">{{ platform }}</p>
-                  <template v-if="accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.has_credentials">
-                    <p class="text-xs text-success flex items-center gap-1">
-                      <CheckCircle2 class="h-3 w-3" />
-                      Conectado
-                    </p>
-                  </template>
-                  <template v-else>
-                    <p class="text-xs text-muted-foreground">No conectado</p>
-                  </template>
+                  <p class="text-sm font-semibold text-foreground">
+                    {{ platform.provider }}
+                  </p>
+                  <p
+                    class="text-[9px]"
+                    :class="platform.state_color"
+                  >
+                    {{ connectionStateDescriptions[platform.state] }}
+                  </p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <template v-if="accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.has_credentials">
+                <template v-if="platform.state === 'CONNECTED'">
                   <Badge variant="success" class="text-[9px]">ACTIVO</Badge>
                   <button
-                    @click="disconnectPlatform(platform.toLowerCase())"
+                    @click="disconnectPlatform(platform.provider.toLowerCase())"
                     class="text-muted-foreground hover:text-destructive transition-colors"
                     title="Desconectar"
                   >
                     <XCircle class="h-4 w-4" />
                   </button>
                 </template>
-                <template v-else>
-                  <Button variant="outline" size="sm" @click="showConnectForm = showConnectForm === platform ? null : platform">
+                <template v-else-if="platform.state === 'MANUAL_SETUP'">
+                  <Badge variant="info" class="text-[9px]">
+                    MANUAL
+                  </Badge>
+                  <button
+                    @click="showConnectForm = platform.provider.toLowerCase()"
+                    class="text-muted-foreground hover:text-destructive transition-colors"
+                    title="Conectar"
+                  >
                     <Plus class="h-3 w-3" /> Conectar
-                  </Button>
+                  </button>
+                </template>
+                <template v-else-if="platform.state === 'ERROR'">
+                  <Badge variant="error" class="text-[9px]">
+                    ERROR
+                  </Badge>
+                  <span class="text-[9px] text-destructive">{{ platform.provider }} falló</span>
+                </template>
+                <template v-else>
+                  <Badge variant="muted" class="text-[9px]">
+                    {{ platform.state }}
+                  </Badge>
+                  <span class="text-[9px] text-muted-foreground">
+                    {{ connectionStateDescriptions[platform.state] }}
+                  </span>
                 </template>
               </div>
             </div>
 
             <!-- Connect form -->
-            <div v-if="showConnectForm === platform" class="mt-3 space-y-2 border-t border-border/30 pt-3">
+            <div
+              v-if="showConnectForm === platform"
+              class="mt-3 space-y-2 border-t border-border/30 pt-3"
+            >
               <input
                 v-model="connectEmail"
-                placeholder="Email en {{ platform }}"
+                placeholder="Email en {{ platform.provider }}"
                 class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-1.5 text-xs text-foreground"
               />
               <input
@@ -417,86 +541,46 @@ function formatMoney(n: number | null | undefined) {
                 class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-1.5 text-xs text-foreground"
               />
               <div class="flex gap-2">
-                <Button size="sm" @click="connectPlatform(platform.toLowerCase())">
+                <Button size="sm" @click="connectPlatform(platform.provider.toLowerCase())">
                   <Link class="h-3 w-3" /> Vincular
                 </Button>
-                <Button variant="ghost" size="sm" @click="showConnectForm = null">Cancelar</Button>
+                <Button variant="ghost" size="sm" @click="showConnectForm = null">
+                  Cancelar
+                </Button>
               </div>
             </div>
 
             <!-- Account data -->
-            <template v-if="accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.has_credentials">
+            <template v-if="platform.state === 'CONNECTED'">
               <div class="mt-3 grid grid-cols-2 gap-3 border-t border-border/30 pt-3">
                 <div>
                   <p class="text-[9px] text-muted-foreground">Email</p>
                   <p class="text-xs font-medium text-foreground">
-                    {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.email || '—' }}
+                    {{ platform.email || '—' }}
                   </p>
                 </div>
                 <div>
-                  <p class="text-[9px] text-muted-foreground">Última sincronización</p>
-                  <div class="flex items-center gap-1">
-                    <p class="text-xs font-medium text-foreground">
-                      {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_sync?.slice(0, 10) || accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.last_checked?.slice(0, 10) || '—' }}
-                    </p>
-                    <button
-                      @click="syncPlatform(platform.toLowerCase())"
-                      :disabled="syncingPlatform === platform.toLowerCase()"
-                      class="text-muted-foreground/50 hover:text-foreground transition-colors"
-                      title="Sincronizar ahora"
-                    >
-                      <RefreshCw :class="['h-3 w-3', syncingPlatform === platform.toLowerCase() ? 'animate-spin' : '']" />
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <p class="text-[9px] text-muted-foreground">Estado</p>
-                  <p class="text-xs font-medium" :class="accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.session_state === 'connected' ? 'text-success' : 'text-muted-foreground'">
-                    {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.session_state || 'desconocido' }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-[9px] text-muted-foreground">Salud</p>
+                  <p class="text-[9px] text-muted-foreground">Usuario</p>
                   <p class="text-xs font-medium text-foreground">
-                    {{ accounts.find((a: any) => a.provider_name?.toLowerCase() === platform.toLowerCase())?.health_status || '—' }}
+                    {{ platform.username || '—' }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[9px] text-muted-foreground">Ganancias</p>
+                  <p class="text-xs font-medium text-foreground"> ${{ platform.earnings }}</p>
+                </div>
+                <div>
+                  <p class="text-[9px] text-muted-foreground">Pendientes</p>
+                  <p class="text-xs font-medium text-foreground"> ${{ platform.pending }}</p>
+                </div>
+                <div>
+                  <p class="text-[9px] text-muted-foreground">Última sinc.</p>
+                  <p class="text-xs font-medium text-foreground">
+                    {{ platform.last_sync || '—' }}
                   </p>
                 </div>
               </div>
             </template>
-
-            <!-- Payout methods for this platform -->
-            <div class="mt-3 border-t border-border/30 pt-3">
-              <button
-                @click="expandedPlatformPayout = expandedPlatformPayout === platform.toLowerCase() ? null : platform.toLowerCase(); if (expandedPlatformPayout === platform.toLowerCase()) loadPlatformPayout(platform.toLowerCase())"
-                class="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <span class="flex items-center gap-1">
-                  <DollarSign class="h-3 w-3" />
-                  Métodos de retiro recomendados (Argentina)
-                </span>
-                <ChevronDown v-if="expandedPlatformPayout !== platform.toLowerCase()" class="h-3 w-3" />
-                <ChevronUp v-else class="h-3 w-3" />
-              </button>
-              <div v-if="expandedPlatformPayout === platform.toLowerCase() && platformPayouts[platform.toLowerCase()]" class="mt-2 space-y-1.5">
-                <p class="text-[9px] text-muted-foreground">KYC requerido: {{ platformPayouts[platform.toLowerCase()].kyc_required }}</p>
-                <div v-for="m in platformPayouts[platform.toLowerCase()].recommended_methods" :key="m.id" class="rounded-lg bg-surface/20 px-2.5 py-2">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-xs font-semibold text-foreground">{{ m.name }}</p>
-                      <p class="text-[9px]" :class="methodTypeIcon[m.type] || 'text-muted-foreground'">{{ methodTypeLabel[m.type] || m.type }} · KYC: {{ m.kyc_level }}</p>
-                    </div>
-                    <div class="text-right text-[9px] text-muted-foreground">
-                      <p v-if="m.fee_percent > 0">{{ m.fee_percent }}% fee</p>
-                      <p v-else>0% fee</p>
-                      <p>{{ m.arrival_days }}</p>
-                    </div>
-                  </div>
-                  <p class="mt-0.5 text-[9px] text-muted-foreground">{{ m.notes }}</p>
-                </div>
-                <p v-if="platformPayouts[platform.toLowerCase()].notes" class="mt-1 text-[9px] italic text-muted-foreground">{{ platformPayouts[platform.toLowerCase()].notes }}</p>
-              </div>
-              <div v-else-if="expandedPlatformPayout === platform.toLowerCase()" class="mt-2 text-[9px] text-muted-foreground animate-pulse">Cargando recomendaciones...</div>
-            </div>
           </div>
         </div>
       </section>
@@ -505,8 +589,7 @@ function formatMoney(n: number | null | undefined) {
       <section v-if="payoutMethods.length" class="animate-in space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-semibold text-foreground flex items-center gap-2">
-            <Info class="h-3.5 w-3.5 text-primary" />
-            Guía de retiro para Argentina
+            <Info class="h-3.5 w-3.5 text-primary" /> Guía de retiro para Argentina
           </h2>
           <Button variant="ghost" size="sm" @click="showPayoutGuide = !showPayoutGuide">
             {{ showPayoutGuide ? 'Ocultar' : 'Ver todos' }}
@@ -540,8 +623,7 @@ function formatMoney(n: number | null | undefined) {
       <section class="animate-in space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-semibold text-foreground flex items-center gap-2">
-            <Wallet class="h-3.5 w-3.5 text-primary" />
-            Cuentas de cobro y retiros
+            <Wallet class="h-3.5 w-3.5 text-primary" /> Cuentas de cobro y retiros
           </h2>
           <div class="flex gap-1">
             <Button variant="outline" size="sm" @click="openPayoutWizard('bank')">
@@ -599,8 +681,7 @@ function formatMoney(n: number | null | undefined) {
       <!-- Withdrawals History -->
       <section v-if="withdrawals.length" class="animate-in space-y-3">
         <h2 class="text-xs font-semibold text-foreground flex items-center gap-2">
-          <History class="h-3.5 w-3.5 text-primary" />
-          Historial de retiros
+          <History class="h-3.5 w-3.5 text-primary" /> Historial de retiros
         </h2>
 
         <div class="card-base rounded-xl overflow-hidden">
@@ -622,8 +703,7 @@ function formatMoney(n: number | null | undefined) {
       <!-- Submission History -->
       <section class="animate-in space-y-3">
         <h2 class="text-xs font-semibold text-foreground flex items-center gap-2">
-          <History class="h-3.5 w-3.5 text-primary" />
-          Historial de envíos
+          <History class="h-3.5 w-3.5 text-primary" /> Historial de envíos
         </h2>
 
         <div class="card-base rounded-xl overflow-hidden">
@@ -711,15 +791,12 @@ function formatMoney(n: number | null | undefined) {
               class="w-full rounded-lg border border-border/60 bg-surface/50 px-3 py-2 text-xs text-foreground"
             />
             <p class="text-[9px] text-muted-foreground">Las credenciales se almacenan cifradas con AES-256-GCM. Nunca se comparten.</p>
-
             <div v-if="platformError" class="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{{ platformError }}</div>
             <div v-if="platformSuccess" class="rounded-lg bg-success/10 px-3 py-2 text-xs text-success">{{ platformSuccess }}</div>
-
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="ghost" size="sm" @click="platformWizardStep = 1">Atrás</Button>
               <Button size="sm" :disabled="platformSaving" @click="savePlatformRegistration">
-                <Loader2 v-if="platformSaving" class="h-3 w-3 animate-spin" />
-                <Link v-else class="h-3 w-3" />
+                <Loader2 v-if="platformSaving" class="h-3 w-3 animate-spin" /> <Link v-else class="h-3 w-3" />
                 {{ platformSaving ? 'Guardando...' : 'Guardar y conectar' }}
               </Button>
             </div>
@@ -806,12 +883,10 @@ function formatMoney(n: number | null | undefined) {
 
             <div v-if="payoutError" class="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{{ payoutError }}</div>
             <div v-if="payoutSuccess" class="rounded-lg bg-success/10 px-3 py-2 text-xs text-success">{{ payoutSuccess }}</div>
-
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="ghost" size="sm" @click="showPayoutWizard = false">Cancelar</Button>
               <Button size="sm" :disabled="payoutSaving" @click="savePayoutAccount">
-                <Loader2 v-if="payoutSaving" class="h-3 w-3 animate-spin" />
-                <CheckCircle2 v-else class="h-3 w-3" />
+                <Loader2 v-if="payoutSaving" class="h-3 w-3 animate-spin" /> <CheckCircle2 v-else class="h-3 w-3" />
                 {{ payoutSaving ? 'Guardando...' : 'Guardar cuenta' }}
               </Button>
             </div>
@@ -820,7 +895,7 @@ function formatMoney(n: number | null | undefined) {
       </div>
     </Teleport>
 
-    <!-- ═══ OSINT INTELLIGENCE ═══ -->
+    <!-- ══════════ OSINT INTELLIGENCE ══════════ -->
     <div class="card-base rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">

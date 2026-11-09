@@ -11,10 +11,11 @@ import hashlib
 import ipaddress
 import json
 import logging
-import re
 import os
+import re
 import socket
 import tempfile
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
@@ -31,6 +32,31 @@ MAX_OPENAPI_PATHS = 100
 MAX_PROFILE_ENDPOINTS = 100
 HTTP_TIMEOUT_SECONDS = 8.0
 USER_AGENT = "OWNEX-SourceDiscovery/1.0 (metadata-only; contact: owner-configured)"
+GITHUB_API_BASE = "https://api.github.com"
+GITHUB_SEARCH_CACHE_TTL_SECONDS = 6 * 60 * 60
+_GITHUB_RETRYABLE_STATUS = {403, 429, 500, 502, 503}
+_BOUNTY_CONTEXT_TERMS = ("bounty", "reward", "paid", "funding", "funded", "prize", "payout")
+
+# Argentina compatibility signals - keywords that indicate a source supports
+# Argentina payout methods (USDC, Payoneer, AirTM, etc.)
+_ARGENTINA_PAYOUT_KEYWORDS = (
+    "usdc",
+    "usdt",
+    "airtm",
+    "payoneer",
+    "btc",
+    "eth",
+    "argentina",
+    "ar",
+    "argentino",
+    "usd",
+    "crypto",
+    "stablecoin",
+    "latam",
+    "latin",
+    "dolar",
+    "dolares",
+)
 
 
 class SourceLifecycle(StrEnum):
@@ -65,6 +91,7 @@ class SourceCandidate:
     name: str
     source_url: str
     discovered_by: str
+    record_type: str = "source"
     lifecycle: SourceLifecycle = SourceLifecycle.DISCOVERED
     discovered_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     profile: dict[str, Any] | None = None
@@ -344,13 +371,34 @@ class SourceDiscoveryRegistry:
             if os.path.exists(temporary):
                 os.unlink(temporary)
 
-    def add(self, name: str, url: str, discovered_by: str) -> SourceCandidate:
+    def add(
+        self,
+        name: str,
+        url: str,
+        discovered_by: str,
+        *,
+        record_type: str = "source",
+        profile: dict[str, Any] | None = None,
+    ) -> SourceCandidate:
         source_url = _validate_public_url(url)
         source_id = hashlib.sha256(source_url.encode()).hexdigest()[:24]
         existing = self._candidates.get(source_id)
         if existing:
+            if record_type == "opportunity" and existing.record_type != "opportunity":
+                existing.record_type = "opportunity"
+                existing.discovered_by = discovered_by[:100]
+                if profile:
+                    existing.profile = profile
+                self._save()
             return existing
-        item = SourceCandidate(source_id, name[:200], source_url, discovered_by[:100])
+        item = SourceCandidate(
+            source_id,
+            name[:200],
+            source_url,
+            discovered_by[:100],
+            record_type=record_type,
+            profile=profile,
+        )
         self._candidates[source_id] = item
         self._save()
         return item
@@ -444,66 +492,380 @@ class SourceDiscoveryRegistry:
         return item
 
 
-def discover_github_repositories(*, registry: SourceDiscoveryRegistry | None = None, client: httpx.Client | None = None) -> dict[str, Any]:
-    """Fetch a bounded set of GitHub topic candidates. Never auto-probes or activates them."""
+def _github_token(github_token: str | None = None) -> str:
+    return github_token if github_token is not None else (os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN") or "")
+
+
+def _github_search_interval(github_token: str | None = None) -> float:
+    token = _github_token(github_token)
+    default = "2.1" if token else "6.5"
+    try:
+        return max(0.0, float(os.getenv("GITHUB_SEARCH_MIN_INTERVAL", default)))
+    except ValueError:
+        return 2.1 if token else 6.5
+
+
+def _github_headers(github_token: str | None = None) -> dict[str, str]:
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
+    token = _github_token(github_token)
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _is_argentina_compatible(repo: dict[str, Any]) -> bool:
+    """Check if a GitHub repository is Argentina-compatible based on its description and topics.
+
+    A repository is considered Argentina-compatible if its description or topics contain
+    keywords indicating support for Argentina payout methods (USDC, Payoneer, AirTM, crypto, etc.).
+    This helps filter opportunities that can pay users in Argentina.
+    """
+    description = repo.get("description", "") or ""
+    topics = repo.get("topic", []) if isinstance(repo.get("topic"), list) else []
+    if isinstance(topics, str):
+        topics = [topics]
+    # Normalize to lowercase for matching
+    desc_lower = description.lower()
+    # Check description for Argentina payout keywords
+    for keyword in _ARGENTINA_PAYOUT_KEYWORDS:
+        if keyword in desc_lower:
+            return True
+    # Check topics for Argentina signals
+    for topic in topics:
+        topic_lower = str(topic).lower() if isinstance(topic, str) else ""
+        if topic_lower in _ARGENTINA_PAYOUT_KEYWORDS:
+            return True
+        # Also check if topic contains any keyword
+        for keyword in _ARGENTINA_PAYOUT_KEYWORDS:
+            if keyword in topic_lower:
+                return True
+    return False
+
+
+def _search_cache_path(registry: SourceDiscoveryRegistry) -> Path:
+    return registry.path.parent / "github_search_cache.json"
+
+
+def _load_search_cache(path: Path) -> dict[str, Any]:
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+def _save_search_cache(path: Path, cache: dict[str, Any]) -> None:
+    fd, temporary = tempfile.mkstemp(prefix="github-search-", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(cache, stream, indent=2, sort_keys=True)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def _cache_key(params: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def _fresh_entry(entry: Any, ttl_seconds: float) -> bool:
+    if not isinstance(entry, dict) or ttl_seconds <= 0:
+        return False
+    try:
+        fetched = datetime.fromisoformat(str(entry.get("fetched_at", "")))
+    except ValueError:
+        return False
+    if fetched.tzinfo is None:
+        fetched = fetched.replace(tzinfo=UTC)
+    return (datetime.now(UTC) - fetched).total_seconds() < ttl_seconds
+
+
+def _github_search_items(
+    client: httpx.Client,
+    endpoint: str,
+    params: dict[str, Any],
+    headers: dict[str, str],
+    *,
+    min_interval_seconds: float,
+    cache_ttl_seconds: float,
+    cache: dict[str, Any],
+    state: dict[str, Any],
+) -> tuple[list[Any] | None, str | None]:
+    key = _cache_key(params)
+    entry = cache.get(key)
+    if _fresh_entry(entry, cache_ttl_seconds):
+        state["cache_hits"] += 1
+        items = entry.get("items") if isinstance(entry, dict) else None
+        return (items if isinstance(items, list) else []), None
+
+    if min_interval_seconds > 0 and state.get("last_request") is not None:
+        elapsed = time.monotonic() - float(state["last_request"])
+        if elapsed < min_interval_seconds:
+            time.sleep(min_interval_seconds - elapsed)
+
+    attempts = 0
+    while True:
+        state["last_request"] = time.monotonic()
+        state["http_requests"] += 1
+        try:
+            response = client.get(f"{GITHUB_API_BASE}{endpoint}", params=params, headers=headers)
+        except httpx.HTTPError as exc:
+            return None, f"github_search_{type(exc).__name__}"
+        if response.status_code in _GITHUB_RETRYABLE_STATUS and attempts < 1:
+            attempts += 1
+            retry_after = response.headers.get("retry-after", "")
+            try:
+                delay = float(retry_after) if retry_after else 5.0
+            except ValueError:
+                delay = 5.0
+            time.sleep(max(0.0, min(delay, 30.0)))
+            continue
+        if response.status_code != 200:
+            return None, f"github_search_http_{response.status_code}"
+        if len(response.content) > MAX_DOCUMENT_BYTES:
+            return None, "github_search_response_too_large"
+        payload = _decode_json(response)
+        if payload is None:
+            return None, "github_search_malformed"
+        items = payload.get("items")
+        if not isinstance(items, list):
+            return None, "github_search_malformed"
+        cache[key] = {"fetched_at": datetime.now(UTC).isoformat(), "items": items}
+        state["dirty"] = True
+        return items, None
+
+
+def discover_github_repositories(
+    *,
+    registry: SourceDiscoveryRegistry | None = None,
+    client: httpx.Client | None = None,
+    github_token: str | None = None,
+    min_interval_seconds: float = 0.0,
+    cache_ttl_seconds: float = GITHUB_SEARCH_CACHE_TTL_SECONDS,
+    max_pages: int = 1,
+) -> dict[str, Any]:
+    """Fetch bounded GitHub repository candidates.
+
+    Searches across multiple dimensions:
+    - Topics (bounty, payment, frameworks, languages)
+    - Programming languages with minimum stars
+    - Recent activity and popularity
+    - Specialized platforms (Algora, Opire, IssueHunt, OnlyDust)
+    Never auto-probes or activates them.
+    """
     registry = registry or SourceDiscoveryRegistry()
     own_client = client is None
+    headers = _github_headers(github_token)
     http = client or httpx.Client(
         timeout=httpx.Timeout(HTTP_TIMEOUT_SECONDS),
         follow_redirects=False,
         trust_env=False,
-        headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"},
+        headers=headers,
     )
     today = datetime.now(UTC).date()
+
+    # Expanded queries across multiple dimensions
     queries = (
+        # Original bounty/payment topics
         f"topic:ai-agent-bounty created:<={today - timedelta(days=30)} stars:>10",
         f"topic:x402 created:<={today - timedelta(days=60)}",
         f"topic:agent-payment created:<={today - timedelta(days=60)}",
-        f"topic:bounty-platform created:<={today - timedelta(days=60)}",
+        # Data annotation & AI training topics (alignerr, codeforai.tech, datannotation)
+        f"topic:data-annotation created:<={today - timedelta(days=90)} stars:>3",
+        f"topic:ai-coding created:<={today - timedelta(days=90)} stars:>3",
+        f"topic:ai-training created:<={today - timedelta(days=90)} stars:>3",
+        # Languages with stars
+        f"language:python created:<={today - timedelta(days=90)} stars:>5",
+        f"language:javascript created:<={today - timedelta(days=90)} stars:>5",
+        f"language:typescript created:<={today - timedelta(days=90)} stars:>5",
+        f"language:go created:<={today - timedelta(days=90)} stars:>5",
+        f"language:rust created:<={today - timedelta(days=90)} stars:>5",
+        f"language:java created:<={today - timedelta(days=90)} stars:>5",
+        f"language:csharp created:<={today - timedelta(days=90)} stars:>5",
+        # Framework-specific
+        f"topic:fastapi created:<={today - timedelta(days=90)} stars:>3",
+        f"topic:spring created:<={today - timedelta(days=90)} stars:>3",
+        f"topic:react created:<={today - timedelta(days=90)} stars:>3",
+        f"topic:angular created:<={today - timedelta(days=90)} stars:>3",
+        # Specialized platforms
+        f"topic:algora created:<={today - timedelta(days=120)}",
+        f"topic:opire created:<={today - timedelta(days=120)}",
+        f"topic:issuehunt created:<={today - timedelta(days=120)}",
+        f"topic:onlydust created:<={today - timedelta(days=120)}",
+        # Bounty platforms
+        f"topic:bugcrowd created:<={today - timedelta(days=120)} stars:>3",
+        f"topic:hackerone created:<={today - timedelta(days=120)} stars:>3",
+        f"topic:intigriti created:<={today - timedelta(days=120)} stars:>3",
+        # General open source and freelance
+        f"topic:open-source created:<={today - timedelta(days=90)} stars:>10",
+        f"topic:freelance created:<={today - timedelta(days=90)} stars:>5",
         f"topic:mcp-server created:<={today - timedelta(days=60)} stars:>10",
+        # Recent activity
+        f"created:<={today - timedelta(days=30)} stars:>15",
+        "updated:>2024-01-01 stars:>20",
     )
+    cache_path = _search_cache_path(registry)
+    cache = _load_search_cache(cache_path)
+    state: dict[str, Any] = {"last_request": None, "http_requests": 0, "cache_hits": 0, "dirty": False}
     discovered = 0
-    errors = []
+    errors: list[str] = []
     known_urls = registry.known_urls()
     try:
         for query in queries:
-            try:
-                response = http.get("https://api.github.com/search/repositories", params={"q": query, "sort": "updated", "per_page": 30})
-                if response.status_code != 200:
-                    errors.append(f"github_search_http_{response.status_code}")
-                    continue
-                if len(response.content) > MAX_DOCUMENT_BYTES:
-                    errors.append("github_search_response_too_large")
-                    continue
-                payload = _decode_json(response) or {}
-                items = payload.get("items", [])
-                if not isinstance(items, list):
-                    errors.append("github_search_malformed")
-                    continue
-                for repo in items[:30]:
+            for page in range(1, max(1, max_pages) + 1):
+                params = {"q": query, "sort": "updated", "per_page": 30, "page": page}
+                items, error = _github_search_items(
+                    http,
+                    "/search/repositories",
+                    params,
+                    headers,
+                    min_interval_seconds=min_interval_seconds,
+                    cache_ttl_seconds=cache_ttl_seconds,
+                    cache=cache,
+                    state=state,
+                )
+                if error:
+                    errors.append(error)
+                    break
+                for repo in items or []:
                     if not isinstance(repo, dict) or repo.get("archived") or repo.get("fork"):
                         continue
                     html_url = repo.get("html_url")
                     full_name = repo.get("full_name")
                     if not isinstance(html_url, str) or not isinstance(full_name, str) or not html_url.startswith("https://github.com/"):
                         continue
+                    # Filter: only keep Argentina-compatible repositories
+                    if not _is_argentina_compatible(repo):
+                        continue
                     if html_url not in known_urls:
                         registry.add(full_name, html_url, "github_topic_search")
                         discovered += 1
                         known_urls.add(html_url)
-            except httpx.HTTPError as exc:
-                errors.append(f"github_search_{type(exc).__name__}")
     finally:
+        if state["dirty"]:
+            _save_search_cache(cache_path, cache)
         if own_client:
             http.close()
     registry.refresh_lifecycle()
-    return {"source": "github_topic_search", "new_candidates": discovered, "errors": errors, "activation_requires_human": True}
+    return {
+        "source": "github_topic_search",
+        "new_candidates": discovered,
+        "errors": errors,
+        "activation_requires_human": True,
+        "http_requests": state["http_requests"],
+        "cache_hits": state["cache_hits"],
+    }
+
+
+def discover_github_bounty_issues(
+    *,
+    registry: SourceDiscoveryRegistry | None = None,
+    client: httpx.Client | None = None,
+    github_token: str | None = None,
+    min_interval_seconds: float = 0.0,
+    cache_ttl_seconds: float = GITHUB_SEARCH_CACHE_TTL_SECONDS,
+    max_pages: int = 1,
+) -> dict[str, Any]:
+    """Discover concrete GitHub issues that look reward-backed.
+
+    These are opportunity candidates (record_type="opportunity"), not sources.
+    Reward remains reported/unknown until independently verified.
+    """
+    registry = registry or SourceDiscoveryRegistry()
+    own_client = client is None
+    headers = _github_headers(github_token)
+    http = client or httpx.Client(
+        timeout=httpx.Timeout(HTTP_TIMEOUT_SECONDS),
+        follow_redirects=False,
+        trust_env=False,
+        headers=headers,
+    )
+    queries = (
+        "label:bounty is:issue is:open",
+        "label:reward is:issue is:open",
+        "label:USD is:issue is:open",
+        "label:USDC is:issue is:open",
+        "bounty in:title is:issue is:open",
+    )
+    cache_path = _search_cache_path(registry)
+    cache = _load_search_cache(cache_path)
+    state: dict[str, Any] = {"last_request": None, "http_requests": 0, "cache_hits": 0, "dirty": False}
+    discovered = 0
+    rewarded = 0
+    errors: list[str] = []
+    known_urls = registry.known_urls()
+    try:
+        for query in queries:
+            for page in range(1, max(1, max_pages) + 1):
+                params = {"q": query, "sort": "updated", "order": "desc", "per_page": 30, "page": page}
+                items, error = _github_search_items(
+                    http,
+                    "/search/issues",
+                    params,
+                    headers,
+                    min_interval_seconds=min_interval_seconds,
+                    cache_ttl_seconds=cache_ttl_seconds,
+                    cache=cache,
+                    state=state,
+                )
+                if error:
+                    errors.append(error)
+                    break
+                for issue in items or []:
+                    if not isinstance(issue, dict) or "pull_request" in issue:
+                        continue
+                    html_url = issue.get("html_url")
+                    title = issue.get("title")
+                    if not isinstance(html_url, str) or not isinstance(title, str):
+                        continue
+                    if not html_url.startswith("https://github.com/") or "/issues/" not in html_url:
+                        continue
+                    reward, reward_currency = _extract_github_bounty_reward_details(issue)
+                    profile = {
+                        "endpoints": [],
+                        "capabilities": ["issue"],
+                        "auth_methods": [],
+                        "evidence": [{"url": html_url, "type": "github_issue"}],
+                        "reward_reported": reward,
+                        "reward_currency": reward_currency,
+                        "reward_status": "REPORTED" if reward is not None else "UNKNOWN",
+                        "record_type": "opportunity",
+                    }
+                    if html_url not in known_urls:
+                        registry.add(title[:200], html_url, "github_issue_search", record_type="opportunity", profile=profile)
+                        discovered += 1
+                        known_urls.add(html_url)
+                        if reward is not None:
+                            rewarded += 1
+    finally:
+        if state["dirty"]:
+            _save_search_cache(cache_path, cache)
+        if own_client:
+            http.close()
+    registry.refresh_lifecycle()
+    return {
+        "source": "github_issue_search",
+        "new_opportunities": discovered,
+        "reward_reported": rewarded,
+        "errors": errors,
+        "http_requests": state["http_requests"],
+        "cache_hits": state["cache_hits"],
+        "reward_verification_required": True,
+    }
 
 
 def run_daily_meta_discovery() -> dict[str, Any]:
     """Scheduler entry point; GitHub is currently the only enabled discovery feed."""
     try:
-        return discover_github_repositories()
+        registry = SourceDiscoveryRegistry()
+        token = _github_token()
+        interval = _github_search_interval(token)
+        repos = discover_github_repositories(registry=registry, github_token=token, min_interval_seconds=interval)
+        issues = discover_github_bounty_issues(registry=registry, github_token=token, min_interval_seconds=interval)
+        return {"repositories": repos, "issues": issues, "activation_requires_human": True}
     except Exception as exc:  # noqa: BLE001
         logger.warning("Daily meta-discovery failed: %s", exc)
         return {"status": "error", "error": type(exc).__name__}
@@ -529,10 +891,6 @@ def fetch_github_bounties(
     - Reward extraction from labels or issue body
     - ID format: github_{owner}_{repo}_{issue_number}
     """
-    import hashlib
-    import json
-    import re
-    from datetime import datetime, timezone
 
     headers = {"Accept": "application/vnd.github+json"}
     if github_token:
@@ -564,20 +922,23 @@ def fetch_github_bounties(
                 break
 
             for issue in issues:
+                reward, reward_currency = _extract_github_bounty_reward_details(issue)
                 # Map GitHub issue to SourceCandidate
                 candidate = SourceCandidate(
                     id=f"github_{repo_owner}_{repo_name}_{issue['number']}",
                     name=issue.get("title", "GitHub Bounty Issue")[:200],
                     source_url=issue.get("html_url", ""),
                     discovered_by="github_api",
+                    record_type="opportunity",
                     # Extract reward from issue body or labels
                     profile={
                         "endpoints": [{"method": "GET", "path": issue.get("body", "")[:200]}] if issue.get("body") else [],
                         "capabilities": ["bug-reporting"],
                         "auth_methods": [],
                         "evidence": [{"url": issue.get("html_url", ""), "type": "github_issue"}],
-                        "reward_reported": _extract_github_bounty_reward(issue),
-                        "reward_status": "UNKNOWN" if not _extract_github_bounty_reward(issue) else "REPORTED",
+                        "reward_reported": reward,
+                        "reward_currency": reward_currency,
+                        "reward_status": "UNKNOWN" if reward is None else "REPORTED",
                     },
                 )
                 candidate.lifecycle = SourceLifecycle.DISCOVERED
@@ -595,35 +956,75 @@ def fetch_github_bounties(
     return bounties
 
 
-def _extract_github_bounty_reward(issue: dict) -> float | None:
-    """Extract USD amount from GitHub issue bounty labels or body.
+_REWARD_AMOUNT_RE = re.compile(
+    r"\$\s*(?P<usd_amount>\d+(?:\.\d{1,2})?)"
+    r"|(?P<amount_before>\d+(?:\.\d{1,2})?)[-\s]*(?P<currency_after>USDC|USDT|USD|EUR|GBP)\b"
+    r"|\b(?P<currency_before>USDC|USDT|USD|EUR|GBP)[-\s]*(?P<amount_after>\d+(?:\.\d{1,2})?)",
+    re.IGNORECASE,
+)
 
-    Aligned with OWNEX revenue rule: only processes bounties with
-    declared/reportable reward amounts.
-    """
-    # Check labels for $ amount
-    labels = issue.get("labels", [])
-    for label in labels:
-        label_name = label.get("name", "").lower()
-        match = re.search(r"\$(\d+(?:\.\d{1,2})?)", label_name)
-        if match:
-            return float(match.group(1))
 
-    # Check body for $ amounts
-    body = issue.get("body", "")
-    match = re.search(r"\$(\d+(?:\.\d{1,2})?)", body)
-    if match:
-        return float(match.group(1))
-
-    # Check milestone for amount
-    milestone = issue.get("milestone")
-    if milestone and milestone.get("amount"):
-        try:
-            return float(milestone["amount"])
-        except (ValueError, TypeError):
-            pass
-
+def _reward_match(match: re.Match[str]) -> tuple[float, str] | None:
+    if match.group("usd_amount") is not None:
+        return float(match.group("usd_amount")), "USD"
+    if match.group("amount_before") is not None:
+        return float(match.group("amount_before")), str(match.group("currency_after")).upper()
+    if match.group("amount_after") is not None:
+        return float(match.group("amount_after")), str(match.group("currency_before")).upper()
     return None
+
+
+def _reward_context_near(text: str, start: int, end: int, title: str) -> bool:
+    window = text[max(0, start - 160) : min(len(text), end + 160)].lower()
+    title_lower = title.lower()
+    return any(term in window or term in title_lower for term in _BOUNTY_CONTEXT_TERMS)
+
+
+def _extract_github_bounty_reward_details(issue: dict) -> tuple[float | None, str | None]:
+    """Extract a reported reward amount/currency from labels, body, or milestone.
+
+    Body amounts only count when bounty context appears nearby; a random "$"
+    mention is not treated as a reward. The result is still only reported
+    evidence — never verified payment.
+    """
+    labels = issue.get("labels", [])
+    if isinstance(labels, list):
+        for label in labels:
+            name = label.get("name", "") if isinstance(label, dict) else str(label)
+            match = _REWARD_AMOUNT_RE.search(str(name))
+            if match:
+                found = _reward_match(match)
+                if found:
+                    return found
+
+    body = issue.get("body")
+    raw_title = issue.get("title")
+    title = raw_title if isinstance(raw_title, str) else ""
+    if isinstance(body, str) and body:
+        for match in _REWARD_AMOUNT_RE.finditer(body):
+            if not _reward_context_near(body, match.start(), match.end(), title):
+                continue
+            found = _reward_match(match)
+            if found:
+                return found
+
+    milestone = issue.get("milestone")
+    if isinstance(milestone, dict) and milestone.get("amount") is not None:
+        try:
+            amount = float(milestone["amount"])
+        except (ValueError, TypeError):
+            amount = None
+        if amount is not None and amount > 0:
+            currency = milestone.get("currency")
+            return amount, str(currency).upper() if isinstance(currency, str) and currency.strip() else "USD"
+
+    return None, None
+
+
+def _extract_github_bounty_reward(issue: dict) -> float | None:
+    """Backward-compatible amount-only view of ``_extract_github_bounty_reward_details``."""
+    amount, _currency = _extract_github_bounty_reward_details(issue)
+    return amount
 
 
 # End of GitHub Bounty Detection module
