@@ -468,7 +468,7 @@ class FreebuffProvider(AIProvider):
 
     def __init__(self, config_path: str | None = None):
         try:
-            from core.ai_providers.freebuff import detect_freebuff, load_config
+            from cores.ai_providers.freebuff import detect_freebuff, load_config
         except ImportError:
             from cores.ai_providers.freebuff import detect_freebuff, load_config
 
@@ -497,7 +497,7 @@ class FreebuffProvider(AIProvider):
             return "No se proporcionó ninguna tarea para Freebuff."
 
         try:
-            from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+            from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
         except ImportError:
             from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
 
@@ -556,7 +556,11 @@ class CodexCLIProvider(AIProvider):
             return False
         try:
             status = subprocess.run(
-                [executable, "login", "status"], capture_output=True, text=True, timeout=5, check=False,
+                [executable, "login", "status"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
                 env=self._cli_environment(),
             )
             return status.returncode == 0 and "logged in" in f"{status.stdout} {status.stderr}".lower()
