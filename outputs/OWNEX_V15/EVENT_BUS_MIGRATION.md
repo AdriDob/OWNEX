@@ -152,7 +152,23 @@ Existing `tests/test_orion_core.py::TestCoreEventBus` must keep passing
 - [x] Producer/consumer audit (this doc)
 - [x] API diff documented
 - [x] Canonical choice justified (cores + extension)
-- [ ] Phase E1 implementation + tests
-- [ ] Phase E2 facade + tests
-- [ ] Phase E3/E4 cleanup
-- [ ] `api/routers/activity.py` end-to-end verification
+- [x] Phase E1 implemented: wildcard patterns (`app:*`, `*`), `subscribe`/
+      `subscribe_async` return unsubscribe callables, `subscribe_app`/
+      `app_event` helpers, `get_history(app_id=)` filter — all in
+      `cores/events/event_bus.py`
+- [x] Phase E2 implemented: `core/events/event_bus.py` rewritten as
+      `CoreEventBus` facade over canonical bus (namespaces, wildcards,
+      `app_id` history shape preserved; `_bridge_to_legacy` and
+      `core_event_log` writes removed — single bus, no double-publish);
+      `get_event_bus` alias exported fixing latent ImportError in
+      `cores/platform_connectors/universal_connector.py`
+- [x] Phase E3: `get_core_event_bus = get_event_bus` alias kept (harmless —
+      both names now resolve to the same canonical singleton)
+- [x] Phase E4: `core_event_log` writes stopped; table left in place for
+      historical data; `event_bus_history` is the single audit trail
+- [x] Tests: `tests/test_event_bus_unification.py` (15 tests — cross-tree
+      delivery both directions, wildcards, namespaces, no-dup, unsubscribe,
+      persistence/history, legacy imports, async) — all pass;
+      `test_orion_core.py` + event-related subset (298 tests) green
+- [ ] `api/routers/activity.py` end-to-end verification against running
+      backend (unit-level covered by history-shape tests)

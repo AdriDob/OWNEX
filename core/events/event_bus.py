@@ -1,108 +1,103 @@
-"""Core EventBus — namespace-aware event bus with SQLite persistence.
+"""Core EventBus — compatibility facade over the canonical cores EventBus.
 
-Bridges events to CATEYE's legacy EventBus so app events reach
-legacy subscribers.
+ADR-0003 / OWNEX V15: there is now a single event bus
+(``cores.events.event_bus.EventBus``) owning delivery, priority
+classification, async dispatch and SQLite persistence. This module preserves
+the historical ``CoreEventBus`` API — ``app:event`` namespaces, wildcard
+patterns, ``app_id``-filtered history and unsubscribe callables — by
+delegating to that canonical bus, so existing consumers keep working while
+events can no longer be lost between the two trees.
 """
 
 from __future__ import annotations
 
-import json
 import logging
-import time
-from collections import deque
+import threading
 from collections.abc import Callable
 from typing import Any
-
-from sqlalchemy import Column, Float, Integer, String, Text
-from sqlalchemy.orm import declarative_base
 
 from core.interfaces.event_bus import IEventBus
 
 logger = logging.getLogger("orion.core.events")
 
-# ── Persistence model (defined once at module level) ──────────
-
-_PERSIST_BASE = declarative_base()
-
-
-class _EventRecord(_PERSIST_BASE):
-    __tablename__ = "core_event_log"
-    id = Column(Integer, primary_key=True)
-    event = Column(String(128), nullable=False, index=True)
-    app_id = Column(String(32), nullable=False, index=True)
-    payload = Column(Text, default="")
-    timestamp = Column(Float, default=time.time)
+EventHandler = Callable[..., Any]
 
 
 class CoreEventBus(IEventBus):
-    """Namespaced event bus with persistence and legacy bridge."""
+    """Namespace/wildcard facade over the canonical cores EventBus."""
 
     def __init__(self) -> None:
-        self._handlers: dict[str, list[Callable[..., Any]]] = {}
-        self._namespaces: dict[str, str] = {}
-        self._recent: deque[dict[str, Any]] = deque(maxlen=1000)
-        self._persist = True
-        self._bridge = True  # Enable legacy bridge by default
-        self._db_registered = False
+        self._handlers: dict[str, list[EventHandler]] = {}
+        self._lock = threading.Lock()
+        self._bus: Any = None
+        self._registered = False
+
+    # ── Canonical bus access ─────────────────────────────────────
+
+    def _canonical(self) -> Any:
+        if self._bus is None:
+            from cores.events.event_bus import get_event_bus
+
+            self._bus = get_event_bus()
+        return self._bus
+
+    def _ensure_dispatcher(self) -> None:
+        if self._registered:
+            return
+        self._canonical().subscribe("*", self._dispatch)
+        self._registered = True
+
+    # ── IEventBus ────────────────────────────────────────────────
 
     def publish(self, event: str, **data: Any) -> None:
         logger.debug("Event: %s %s", event, data)
+        self._canonical().publish(event, **data)
 
-        # 1. Notificar handlers locales
-        for pattern, handlers in self._handlers.items():
-            if self._match(pattern, event):
-                for handler in handlers:
-                    try:
-                        handler(event=event, **data)
-                    except Exception:
-                        logger.exception("Handler failed for %s", event)
-
-        # 2. Registrar en historial en memoria
-        self._recent.append(
-            {
-                "event": event,
-                "data": data,
-                "timestamp": time.time(),
-                "app_id": event.split(":")[0] if ":" in event else "core",
-            }
-        )
-
-        # 3. Persistir a SQLite
-        if self._persist:
-            self._persist_event(event, data)
-
-        # 4. Bridge al legacy EventBus de CATEYE
-        if self._bridge:
-            self._bridge_to_legacy(event, **data)
-
-    def subscribe(self, event: str, handler: Callable[..., Any]) -> Callable[[], None]:
-        self._handlers.setdefault(event, []).append(handler)
+    def subscribe(self, event: str, handler: EventHandler) -> Callable[[], None]:
+        self._ensure_dispatcher()
+        with self._lock:
+            self._handlers.setdefault(event, []).append(handler)
 
         def unsubscribe() -> None:
-            handlers = self._handlers.get(event)
-            if handlers and handler in handlers:
-                handlers.remove(handler)
+            with self._lock:
+                handlers = self._handlers.get(event)
+                if handlers and handler in handlers:
+                    handlers.remove(handler)
 
         return unsubscribe
 
     def clear(self) -> None:
-        self._handlers.clear()
+        with self._lock:
+            self._handlers.clear()
 
     def get_history(self, app_id: str | None = None, limit: int = 100) -> list[dict]:
-        recent = list(self._recent)
-        if app_id:
-            recent = [e for e in recent if e.get("app_id") == app_id]
-        return recent[-limit:]
+        records = self._canonical().get_history(limit=max(limit * 4, 200))
+        out: list[dict] = []
+        for rec in records:
+            event = str(rec.get("type", ""))
+            prefix = event.split(":")[0] if ":" in event else "core"
+            if app_id and prefix != app_id:
+                continue
+            out.append(
+                {
+                    "event": event,
+                    "data": rec.get("payload") or {},
+                    "timestamp": float(rec.get("timestamp", 0.0) or 0.0),
+                    "app_id": prefix,
+                }
+            )
+        return out[-limit:]
 
     # ── Namespace helpers ────────────────────────────────────────
 
-    def app_event(self, app_id: str, event: str) -> str:
+    @staticmethod
+    def app_event(app_id: str, event: str) -> str:
         return f"{app_id}:{event}"
 
-    def subscribe_app(self, app_id: str, handler: Callable[..., Any]) -> Callable[[], None]:
+    def subscribe_app(self, app_id: str, handler: EventHandler) -> Callable[[], None]:
         return self.subscribe(f"{app_id}:*", handler)
 
-    # ── Wildcard matching ────────────────────────────────────────
+    # ── Wildcard matching (local fan-out from canonical "*") ─────
 
     @staticmethod
     def _match(pattern: str, event: str) -> bool:
@@ -112,60 +107,38 @@ class CoreEventBus(IEventBus):
             return event.startswith(pattern[:-1])
         return False
 
-    # ── Persistence ──────────────────────────────────────────────
+    def _dispatch(
+        self,
+        event_type: str | None = None,
+        priority: str | None = None,
+        _priority: str | None = None,
+        **payload: Any,
+    ) -> None:
+        event = str(event_type)
+        with self._lock:
+            snapshot = list(self._handlers.items())
+        for pattern, handlers in snapshot:
+            if not self._match(pattern, event):
+                continue
+            for handler in handlers:
+                try:
+                    handler(event=event, **payload)
+                except Exception:
+                    logger.exception("Handler failed for %s", event)
 
-    def _persist_event(self, event: str, data: dict) -> None:
-        try:
-            from core.database.manager import get_db_manager
-
-            dbm = get_db_manager()
-            if not self._db_registered:
-                dbm.register("orion_core", "orion_core.db")
-                _PERSIST_BASE.metadata.create_all(dbm.get_engine("orion_core"))
-                self._db_registered = True
-            session = dbm.get_session("orion_core")
-            try:
-                record = _EventRecord(
-                    event=event,
-                    app_id=event.split(":")[0] if ":" in event else "core",
-                    payload=json.dumps({k: str(v) for k, v in data.items()}),
-                    timestamp=time.time(),
-                )
-                session.add(record)
-                session.commit()
-            except Exception:
-                session.rollback()
-            finally:
-                session.close()
-        except Exception as exc:
-            logger.warning("Event persistence failed: %s", exc)
-
-    # ── Legacy bridge ────────────────────────────────────────────
-
-    @staticmethod
-    def _bridge_to_legacy(event: str, **data: Any) -> None:
-        try:
-            from cores.events.event_bus import get_event_bus
-
-            bus = get_event_bus()
-            bus.publish(event, **data)
-        except Exception as exc:
-            logger.debug("Legacy bridge skipped: %s", exc)
-
-    # ── Config ───────────────────────────────────────────────────
+    # ── Config compat (persistence/bridge owned by canonical bus) ─
 
     def disable_persistence(self) -> None:
-        self._persist = False
+        pass
 
     def disable_bridge(self) -> None:
-        self._bridge = False
+        pass
 
     def enable_bridge(self) -> None:
-        """Enable the legacy CATEYE EventBus bridge."""
-        self._bridge = True
+        pass
 
 
-# ── Singleton ────────────────────────────────────────
+# ── Singleton ────────────────────────────────────────────────────
 
 _bus: CoreEventBus | None = None
 
@@ -175,3 +148,14 @@ def get_core_event_bus() -> CoreEventBus:
     if _bus is None:
         _bus = CoreEventBus()
     return _bus
+
+
+def get_event_bus() -> Any:
+    """Alias kept for legacy importers of this module (e.g. universal_connector).
+
+    Returns the canonical cores EventBus, matching the
+    ``cores.events.event_bus.get_event_bus`` contract.
+    """
+    from cores.events.event_bus import get_event_bus as _canonical
+
+    return _canonical()

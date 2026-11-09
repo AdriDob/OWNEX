@@ -119,22 +119,65 @@ class EventBus:
         self._history: list[dict[str, Any]] = []
         self._max_history = 500
 
-    def subscribe(self, event_type: str, handler: EventHandler) -> None:
+    @staticmethod
+    def _pattern_matches(pattern: str, event_type: str) -> bool:
+        if pattern == "*":
+            return True
+        if pattern.endswith("*"):
+            return event_type.startswith(pattern[:-1])
+        return pattern == event_type
+
+    def _sync_handlers_for(self, event_type: str) -> list[EventHandler]:
+        with self._lock:
+            out: list[EventHandler] = []
+            for pattern, handlers in self._handlers.items():
+                if self._pattern_matches(pattern, event_type):
+                    out.extend(handlers)
+            return out
+
+    def _async_handlers_for(self, event_type: str) -> list[EventHandler]:
+        with self._lock:
+            out: list[EventHandler] = []
+            for pattern, handlers in self._async_handlers.items():
+                if self._pattern_matches(pattern, event_type):
+                    out.extend(handlers)
+            return out
+
+    def subscribe(self, event_type: str, handler: EventHandler) -> Callable[[], None]:
+        """Subscribe to an event type or trailing-wildcard pattern (``app:*``).
+
+        Returns an unsubscribe callable.
+        """
         with self._lock:
             if event_type not in self._handlers:
                 self._handlers[event_type] = []
             self._handlers[event_type].append(handler)
 
-    def subscribe_async(self, event_type: str, handler: EventHandler) -> None:
+        def unsubscribe() -> None:
+            self.unsubscribe(event_type, handler)
+
+        return unsubscribe
+
+    def subscribe_async(self, event_type: str, handler: EventHandler) -> Callable[[], None]:
         with self._lock:
             if event_type not in self._async_handlers:
                 self._async_handlers[event_type] = []
             self._async_handlers[event_type].append(handler)
 
+        def unsubscribe() -> None:
+            self.unsubscribe_async(event_type, handler)
+
+        return unsubscribe
+
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         with self._lock:
             if event_type in self._handlers:
                 self._handlers[event_type] = [h for h in self._handlers[event_type] if h != handler]
+            if event_type in self._async_handlers:
+                self._async_handlers[event_type] = [h for h in self._async_handlers[event_type] if h != handler]
+
+    def unsubscribe_async(self, event_type: str, handler: EventHandler) -> None:
+        with self._lock:
             if event_type in self._async_handlers:
                 self._async_handlers[event_type] = [h for h in self._async_handlers[event_type] if h != handler]
 
@@ -173,9 +216,7 @@ class EventBus:
         except Exception as exc:
             logger.debug("Priority routing skipped: %s", exc)
 
-        with self._lock:
-            handlers = list(self._handlers.get(event_type, [])) + list(self._handlers.get("*", []))
-        for handler in handlers:
+        for handler in self._sync_handlers_for(event_type):
             try:
                 kwargs: dict[str, Any] = {"event_type": event_type, **payload}
                 kwargs.setdefault("priority", priority)
@@ -183,8 +224,7 @@ class EventBus:
             except Exception as exc:
                 logger.warning("Event handler error on %s: %s", event_type, exc)
 
-        with self._lock:
-            async_handlers = list(self._async_handlers.get(event_type, [])) + list(self._async_handlers.get("*", []))
+        async_handlers = self._async_handlers_for(event_type)
         if async_handlers:
             loop = _get_loop()
             if loop is None or loop.is_closed():
@@ -199,7 +239,19 @@ class EventBus:
                     except Exception as exc:
                         logger.warning("Async event handler error on %s: %s", event_type, exc)
 
-    def get_history(self, event_type: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
+    @staticmethod
+    def app_event(app_id: str, event: str) -> str:
+        return f"{app_id}:{event}"
+
+    def subscribe_app(self, app_id: str, handler: EventHandler) -> Callable[[], None]:
+        return self.subscribe(f"{app_id}:*", handler)
+
+    def get_history(
+        self,
+        event_type: str | None = None,
+        limit: int = 50,
+        app_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Get recent events, combining in-memory cache with persisted history."""
         db_events: list[dict[str, Any]] = []
         try:
@@ -251,6 +303,9 @@ class EventBus:
             if ts_key not in seen_ids:
                 seen_ids.add(ts_key)
                 combined.append(e)
+
+        if app_id:
+            combined = [e for e in combined if str(e.get("type", "")).split(":", 1)[0] == app_id]
 
         return combined[-limit:]
 
