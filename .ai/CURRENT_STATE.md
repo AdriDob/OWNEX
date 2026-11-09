@@ -3392,3 +3392,10 @@ Características del Sistema Completo:
 - **`normalize_iol` reescrito** para los shapes reales documentados: balances `{ars:{available:{t0..}, available_for_withdrawal}}` → cash por moneda; positions `{instrument, availability, cost_basis, market_value}` → NormalizedPosition con avg_price/total_cost/price_change_percent.
 - Tests: auth grant + refresh grant + normalize con shape real. 30 passed total en connections.
 - **Pendiente IOL**: persistir `refresh_token` en vault metadata para no re-autenticar con password en cada sync (necesita `update_metadata` en vault); endpoints de mercado/cotizaciones, órdenes pending, WebSocket y MCP oficial (`mcp.invertironline.com`) sin implementar; sin prueba con credenciales reales.
+
+## 2026-11-09 — IOL refresh_token persistido cifrado + sync sin re-login
+
+- **`IdentityVault.set_secret/get_secret`**: secretos extra (refresh_token OAuth) cifrados AES-256-GCM dentro del metadata JSON (`enc_{name}`). Nunca viajan en `get_credentials` plano ni en snapshots.
+- **`sync_iol_account(email, password, refresh_token=None)`**: prefiere `grant_type=refresh_token`; si falla, fallback a password grant. Devuelve el refresh rotado bajo `_auth` — el router lo extrae con `pop` ANTES de `save_snapshot` (verificado: el token jamás llega al snapshot persistido) y lo guarda con `set_secret`.
+- Syncs siguientes usan el refresh token → sin password grant en cada sync.
+- Tests: `_auth` stripped del snapshot, refresh almacenado/rotado, firma actualizada. 51 passed en connections+vault.

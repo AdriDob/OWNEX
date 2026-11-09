@@ -94,14 +94,25 @@ class IOLAuthError(Exception):
     """IOL rejected the credentials or returned an unexpected payload."""
 
 
-def sync_iol_account(email: str, password: str) -> dict[str, Any]:
-    """Full sync: OAuth2 password grant then pull balances, positions and movements.
+def sync_iol_account(email: str, password: str, refresh_token: str | None = None) -> dict[str, Any]:
+    """Full sync: OAuth2 token (refresh grant preferred, password grant fallback)
+    then pull balances, positions and movements.
 
-    Returns a snapshot payload. Raises on auth or transport failure — callers
-    must surface the error honestly (no fake data).
+    The rotated refresh_token is returned under ``_auth`` so the caller can
+    persist it securely — it is NEVER included in persisted snapshots.
+    Raises on auth or transport failure — callers must surface the error
+    honestly (no fake data).
     """
     client = IOLClient()
-    auth = client.authenticate(email, password)
+    auth: dict[str, Any] | None = None
+    if refresh_token:
+        try:
+            auth = client.refresh(refresh_token)
+        except Exception as exc:
+            logger.info("IOL refresh grant failed, falling back to password grant: %s", exc)
+            auth = None
+    if auth is None:
+        auth = client.authenticate(email, password)
     token = auth["access_token"]
     snapshot: dict[str, Any] = {
         "authenticated": True,
@@ -121,4 +132,6 @@ def sync_iol_account(email: str, password: str) -> dict[str, Any]:
             errors[name] = str(exc)
     if errors:
         snapshot["partial_errors"] = errors
+    # _auth carries secrets for the caller only — stripped before persistence
+    snapshot["_auth"] = {"refresh_token": auth.get("refresh_token")}
     return snapshot

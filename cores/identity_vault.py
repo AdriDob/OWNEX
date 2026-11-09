@@ -220,6 +220,38 @@ class IdentityVault:
             **metadata,
         }
 
+    def set_secret(self, provider: str, name: str, value: str) -> None:
+        """Store an extra secret (e.g. OAuth refresh_token) encrypted inside metadata."""
+        data = _VAULT_DATA.get(provider)
+        if not data:
+            logger.warning("Cannot set secret for unknown provider: %s", provider)
+            return
+        try:
+            metadata = json.loads(data.get("metadata", "{}"))
+        except (json.JSONDecodeError, TypeError):
+            metadata = {}
+        metadata[f"enc_{name}"] = _encrypt(value)
+        data["metadata"] = json.dumps(metadata)
+        self._save()
+
+    def get_secret(self, provider: str, name: str) -> str:
+        """Retrieve and decrypt a secret stored via set_secret. Empty if absent."""
+        data = _VAULT_DATA.get(provider)
+        if not data:
+            return ""
+        try:
+            metadata = json.loads(data.get("metadata", "{}"))
+        except (json.JSONDecodeError, TypeError):
+            return ""
+        blob = metadata.get(f"enc_{name}", "")
+        if not blob:
+            return ""
+        try:
+            return _decrypt(blob)
+        except Exception as exc:
+            logger.warning("Failed to decrypt secret %s for %s: %s", name, provider, exc)
+            return ""
+
     def remove_credentials(self, provider: str) -> None:
         if provider in _VAULT_DATA:
             del _VAULT_DATA[provider]

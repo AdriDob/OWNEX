@@ -20,6 +20,7 @@ class FakeVault:
 
     def __init__(self) -> None:
         self.data: dict[str, dict] = {}
+        self.secrets: dict[tuple[str, str], str] = {}
 
     def _public(self, provider: str, data: dict) -> dict:
         return {
@@ -80,6 +81,12 @@ class FakeVault:
 
     def check_session_health(self, provider: str) -> dict:
         return {"provider": provider, "health": "unknown"}
+
+    def set_secret(self, provider: str, name: str, value: str) -> None:
+        self.secrets[(provider, name)] = value
+
+    def get_secret(self, provider: str, name: str) -> str:
+        return self.secrets.get((provider, name), "")
 
 
 @pytest.fixture()
@@ -463,3 +470,68 @@ def test_normalized_endpoints(client: TestClient, monkeypatch: pytest.MonkeyPatc
     cons = client.get("/api/connection-manager/portfolio")
     assert cons.status_code == 200
     assert cons.json()["provider_count"] >= 1
+
+
+def test_iol_sync_strips_auth_blob_and_stores_refresh(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """_auth secrets must never reach the persisted snapshot."""
+    saved: dict[str, dict] = {}
+    monkeypatch.setattr(
+        connection_manager,
+        "save_snapshot",
+        lambda p, payload, source="api": saved.setdefault(p, {"provider": p, "source": source, "synced_at": "t", "data": payload}),
+    )
+
+    def fake_sync(email, password, refresh_token=None):
+        assert refresh_token is None  # first sync: no stored refresh token
+        return {
+            "authenticated": True,
+            "balances": {"ars": {"available": {"t0": 1}, "available_for_withdrawal": 1}},
+            "positions": {"positions": []},
+            "movements": [],
+            "_auth": {"refresh_token": "rt-rotated"},
+        }
+
+    monkeypatch.setattr(connection_manager, "sync_iol_account", fake_sync)
+    # normalize_provider would write to real data dir — stub it
+    monkeypatch.setattr(connection_manager.financial_normalizer, "normalize_provider", lambda *a, **k: {})
+
+    client.post("/api/connection-manager/accounts/iol/connect", json={"email": "io@x.com", "password": "pw"})
+    resp = client.post("/api/connection-manager/accounts/iol/sync", json={})
+    assert resp.status_code == 200
+    stored = saved["iol"]["data"]
+    assert "_auth" not in stored
+    assert "rt-rotated" not in json.dumps(stored)
+
+
+def test_iol_sync_uses_stored_refresh_token(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict = {}
+    saved: dict[str, dict] = {}
+    monkeypatch.setattr(
+        connection_manager,
+        "save_snapshot",
+        lambda p, payload, source="api": saved.setdefault(p, {"provider": p, "source": source, "synced_at": "t", "data": payload}),
+    )
+    monkeypatch.setattr(connection_manager.financial_normalizer, "normalize_provider", lambda *a, **k: {})
+
+    vault_holder: dict = {}
+
+    class VaultWithSecret(FakeVault):
+        def get_secret(self, provider, name):
+            return "rt-stored" if name == "refresh_token" else ""
+
+        def set_secret(self, provider, name, value):
+            vault_holder[(provider, name)] = value
+
+    vault_instance = VaultWithSecret()
+    monkeypatch.setattr(connection_manager, "get_identity_vault", lambda: vault_instance)
+
+    def fake_sync(email, password, refresh_token=None):
+        captured["refresh_token"] = refresh_token
+        return {"authenticated": True, "_auth": {"refresh_token": "rt-new"}}
+
+    monkeypatch.setattr(connection_manager, "sync_iol_account", fake_sync)
+    client.post("/api/connection-manager/accounts/iol/connect", json={"email": "io@x.com", "password": "pw"})
+    resp = client.post("/api/connection-manager/accounts/iol/sync", json={})
+    assert resp.status_code == 200
+    assert captured["refresh_token"] == "rt-stored"
+    assert vault_holder[("iol", "refresh_token")] == "rt-new"

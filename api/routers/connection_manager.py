@@ -243,8 +243,11 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
                     status_code=400,
                     detail="Faltan credenciales (email + contraseña) para sincronizar por API",
                 )
+            refresh_token = ""
+            if hasattr(vault, "get_secret"):
+                refresh_token = vault.get_secret(provider, "refresh_token") or ""
             try:
-                live = sync_iol_account(email, password)
+                live = sync_iol_account(email, password, refresh_token=refresh_token or None)
             except IOLAuthError as exc:
                 raise HTTPException(status_code=401, detail=f"IOL rechazó las credenciales: {exc}") from exc
             except httpx.HTTPStatusError as exc:
@@ -289,6 +292,12 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
         else:  # pragma: no cover - API_SYNC_PROVIDERS guard
             raise HTTPException(status_code=400, detail="Sync por API no implementado para este provider")
 
+        # Persist rotated OAuth secrets securely; never let them reach snapshots
+        auth_blob = live.pop("_auth", None) if isinstance(live, dict) else None
+        if auth_blob and hasattr(vault, "set_secret"):
+            new_rt = auth_blob.get("refresh_token")
+            if new_rt:
+                vault.set_secret(provider, "refresh_token", str(new_rt))
         envelope = save_snapshot(provider, live, source="api")
         sync_meta.update({"source": "api", "keys": sorted(live.keys()), "partial_errors": live.get("partial_errors")})
         try:

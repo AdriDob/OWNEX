@@ -198,7 +198,7 @@ def test_iol_api_sync_uses_stored_credentials(client: TestClient, monkeypatch: p
     monkeypatch.setattr(connection_manager, "load_snapshot", lambda provider: None)
     captured: dict[str, str] = {}
 
-    def fake_sync(email: str, password: str) -> dict:
+    def fake_sync(email: str, password: str, refresh_token: str | None = None) -> dict:
         captured["email"] = email
         captured["password"] = password
         return {"authenticated": True, "balances": {"ars": {"available": 100}}, "positions": [], "movements": []}
