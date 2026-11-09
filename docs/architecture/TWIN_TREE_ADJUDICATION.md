@@ -199,3 +199,21 @@ siblings.
   `copilot/providers/*`: **both-live divergent — merge candidates, NOT
   delete candidates.** cores vault has rotation-config API; core vault
   has audit-log/secret-scan/rotate API. Domain consolidation needed.
+
+### Batch 4 — dead orchestrators + scoring analysis
+
+- `core/integration/orchestrator.py` + `cores/integration/orchestrator.py`:
+  **both dead** — zero importers repo-wide (all "orchestrator" hits were
+  api/routers/orchestrator.py, cores/orchestrator/, workflow modules).
+  core version was additionally BROKEN: imported FeedbackOutcome/get_engine
+  which only exist in cores.opportunity.scoring. Both deleted; empty
+  core/integration/ + cores/integration/ dirs removed.
+- `opportunity/scoring.py`: confirmed both-live INTENTIONAL coexistence —
+  core exposes OpportunityEngineLegacy/get_legacy_engine, cores exposes
+  OpportunityEngine/get_engine/FeedbackOutcome. Different APIs, both
+  imported by their own package __init__ + orchestrators. NOT twins —
+  rename-level disambiguation only.
+- `copilot/providers/*`: cores subtree has extra providers (devin,
+  freebuff) + serves run.py/mobile.py; core subtree serves
+  api/routers/copilot.py + core modules. Merge candidate — provider-set
+  union needed, not deletion.
