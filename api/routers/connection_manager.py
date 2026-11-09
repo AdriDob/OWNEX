@@ -18,7 +18,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from cores.brokers.binance_client import BinanceReadOnlyError, sync_binance_account
 from cores.brokers.iol_client import IOLAuthError, sync_iol_account
 from cores.brokers.ppi_client import PPIAuthError, sync_ppi_account
-from cores.connections import importer
+from cores.connections import financial_normalizer, importer
 from cores.connections.catalog import AI_TOOLS, API_SYNC_PROVIDERS, INFRA, INVESTMENT_AR, ProviderSetup
 from cores.connections.snapshots import load_snapshot, save_snapshot
 from cores.connections.sync_history import get_history, record_event
@@ -291,6 +291,10 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
 
         envelope = save_snapshot(provider, live, source="api")
         sync_meta.update({"source": "api", "keys": sorted(live.keys()), "partial_errors": live.get("partial_errors")})
+        try:
+            financial_normalizer.normalize_provider(provider, live)
+        except Exception:
+            logger.warning("Normalization failed for %s", provider, exc_info=True)
     else:
         if snapshot_payload is None:
             raise HTTPException(
@@ -301,6 +305,10 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
             raise HTTPException(status_code=400, detail="snapshot debe ser un objeto JSON")
         envelope = save_snapshot(provider, snapshot_payload, source="manual")
         sync_meta.update({"source": "manual", "keys": sorted(snapshot_payload.keys())})
+        try:
+            financial_normalizer.normalize_provider(provider, snapshot_payload)
+        except Exception:
+            logger.warning("Normalization failed for %s", provider, exc_info=True)
 
     if note:
         sync_meta["note"] = note
@@ -369,6 +377,22 @@ async def import_confirm(provider: str, file: UploadFile = File(...), mapping: s
         result = importer.confirm_import(provider, filename, content, parsed_mapping)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    # Merge imported records into the provider's normalized transaction log
+    try:
+        records = importer.load_import_records(provider, result["batch_id"])
+        existing = financial_normalizer.load_normalized(provider) or {
+            "provider": provider,
+            "positions": [],
+            "transactions": [],
+            "cash_by_currency": {},
+        }
+        new_txs = financial_normalizer.normalize_import_records(provider, records)
+        existing["transactions"] = (existing.get("transactions") or []) + [t.__dict__ for t in new_txs]
+        existing["transaction_count"] = len(existing["transactions"])
+        existing["normalized_at"] = datetime.now(UTC).isoformat()
+        financial_normalizer.save_normalized(provider, existing)
+    except Exception:
+        logger.warning("Import normalization failed for %s", provider, exc_info=True)
     vault = get_identity_vault()
     if vault.get_account(provider):
         vault.record_sync(provider, {"mode": "file_import", "batch_id": result["batch_id"], "imported": result["imported"]})
@@ -384,6 +408,22 @@ def list_imports(provider: str) -> dict[str, Any]:
     """List manual import batches for a provider."""
     _require_provider(provider)
     return {"provider": provider, "imports": importer.list_imports(provider)}
+
+
+@router.get("/accounts/{provider}/normalized")
+def normalized_provider(provider: str) -> dict[str, Any]:
+    """Return normalized financial data for a provider (positions/transactions/cash)."""
+    _require_provider(provider)
+    data = financial_normalizer.load_normalized(provider)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Sin datos normalizados — sincronizá primero")
+    return data
+
+
+@router.get("/portfolio")
+def consolidated_portfolio() -> dict[str, Any]:
+    """Consolidated normalized portfolio across all synced providers (per-currency, no FX mixing)."""
+    return financial_normalizer.consolidated_portfolio()
 
 
 def _require_provider(provider: str) -> None:

@@ -3375,3 +3375,12 @@ Características del Sistema Completo:
 - **Frontend**: `api.postForm` (FormData), composable +`importPreview/importConfirm/listImports/syncHistory` + metadata en connect, ProviderSetup tipa integration_method/permissions. `ConnectionManager.vue`: campos PPI (AuthorizedClient/ClientKey), badge de permisos read-only, importador de archivo con preview→confirm para providers manuales.
 - **Verificación**: `tests/test_financial_connections.py` 13 nuevos + `test_connection_manager.py` 11 = 24 passed; ruff limpio; Biome limpio; vue-tsc limpio en archivos tocados. Build vite sigue bloqueado por `Discovery.vue` (WIP sesión paralela, no relacionado).
 - **Pendiente honesto**: IOL/PPI/Binance NO probados contra credenciales reales; PPI prod host inferido del patrón sandbox; snapshots/imports aún no alimentan financial_truth/capital panel (P8); OWNEX MCP server para Perch (P12) no iniciado; normalización a modelos canónicos de portfolio pendiente.
+
+## 2026-11-09 — P8: normalización financiera + cartera consolidada
+
+- **`cores/connections/financial_normalizer.py`** (nuevo): snapshots de IOL/PPI/Binance y providers manuales → tipos canónicos `core.normalizer.base` (NormalizedPosition/Transaction). Persistencia por provider en `OWNEX_DATA_DIR/connections/normalized/{provider}.json` con provenance. Regla dura: cash y posiciones agrupados por moneda, NUNCA suma nominal entre monedas ni FX inventado.
+- **Auto-normalización**: `sync` (api y manual) y `import/confirm` disparan `normalize_provider` automáticamente; los records importados se anexan al log de transacciones normalizado del provider.
+- **Endpoints nuevos**: `GET /api/connection-manager/accounts/{p}/normalized` (posiciones/transacciones/cash del provider) y `GET /api/connection-manager/portfolio` (consolidado cross-provider: providers + cash_by_currency + provider_count).
+- **Frontend**: composable `getNormalized`/`getPortfolio`; `ConnectionManager.vue` muestra panel "Cartera consolidada" con saldos por moneda (sin FX) que se refresca tras sync/import.
+- **Verificación**: 28 passed (5 tests nuevos de normalizer: IOL/PPI/Binance shapes, no-FX-mixing, endpoints). Ruff format+check limpio; Biome+vue-tsc limpio.
+- **Pendiente**: normalizer no consume aún `cores/financial/truth_layer` ni `cores/capital` engines (el consolidado es read-model propio); cotizaciones/valoración de posiciones requiere mercado (próximo: quotes IOL/PPI/Binance); P12 OWNEX MCP server pendiente.

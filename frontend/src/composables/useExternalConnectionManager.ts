@@ -366,6 +366,19 @@ export const useExternalConnectionManager = () => {
     return api.get(`/connection-manager/accounts/${encodeURIComponent(provider)}/sync/history`)
   }
 
+  // Normalized financial data (P8): per-provider + consolidated portfolio
+  async function getNormalized(provider: string): Promise<Record<string, unknown>> {
+    return api.get(`/connection-manager/accounts/${encodeURIComponent(provider)}/normalized`)
+  }
+
+  async function getPortfolio(): Promise<{
+    providers: Record<string, { position_count: number; transaction_count: number; cash_by_currency: Record<string, number>; normalized_at: string }>
+    cash_by_currency: Record<string, number>
+    provider_count: number
+  }> {
+    return api.get('/connection-manager/portfolio')
+  }
+
   // Get a specific connection by provider
   function getConnection(provider: string): PlatformConnection | undefined {
     return externalConnections.value.find(c => c.provider === provider)
@@ -437,6 +450,8 @@ export const useExternalConnectionManager = () => {
     importConfirm,
     listImports,
     syncHistory,
+    getNormalized,
+    getPortfolio,
 
     // Computeds
     totalEarnings,

@@ -31,6 +31,7 @@ watch(
   async (authenticated) => {
     if (authenticated) {
       await ecm.loadExternalConnections()
+      await loadPortfolio()
     }
   }
 )
@@ -67,7 +68,23 @@ const {
   requiresAuthentication,
   importPreview,
   importConfirm,
+  getPortfolio,
 } = ecm
+
+// Consolidated normalized portfolio (P8)
+const portfolio = ref<{
+  providers: Record<string, { position_count: number; transaction_count: number; cash_by_currency: Record<string, number>; normalized_at: string }>
+  cash_by_currency: Record<string, number>
+  provider_count: number
+} | null>(null)
+
+async function loadPortfolio() {
+  try {
+    portfolio.value = await getPortfolio()
+  } catch {
+    portfolio.value = null
+  }
+}
 
 // Available providers for connection
 const availableProviders = ['fiverr', 'freelancer', 'direct_work']
@@ -306,6 +323,7 @@ async function executeSync() {
     toast.success('Sincronización completada: ' + result.message)
     manualSnapshot.value = ''
     await ecm.loadExternalConnections()
+    await loadPortfolio()
   } else {
     toast.error('Error en sincronización: ' + result.message)
   }
@@ -339,6 +357,7 @@ async function executeImportConfirm() {
       importPreviewData.value?.mapping,
     )
     toast.success(`Importación completada: ${importResultData.value.imported} registros`)
+    await loadPortfolio()
   } catch (e: any) {
     toast.error('Error en importación: ' + (e?.message || 'error'))
   } finally {
@@ -458,6 +477,24 @@ async function executeRemove(provider: string) {
         >
           Conectar Primera Plataforma
         </Button>
+      </section>
+
+      <!-- Consolidated portfolio (normalized data from synced providers) -->
+      <section v-if="portfolio && portfolio.provider_count > 0" class="mb-4 rounded-lg border border-border bg-card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-foreground">Cartera consolidada</h3>
+          <span class="text-xs text-muted-foreground">{{ portfolio.provider_count }} proveedor{{ portfolio.provider_count > 1 ? 'es' : '' }} con datos</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="(amt, cur) in portfolio.cash_by_currency"
+            :key="cur"
+            class="px-2 py-1 rounded bg-muted/40 text-xs font-mono"
+          >{{ cur }} {{ amt.toLocaleString('es-AR', { maximumFractionDigits: 2 }) }}</span>
+        </div>
+        <p class="text-[10px] text-muted-foreground mt-2">
+          Saldos por moneda — sin conversión FX. Posiciones y movimientos en cada proveedor.
+        </p>
       </section>
 
       <!-- Domain filter tabs -->

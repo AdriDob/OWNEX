@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from api.routers import connection_manager
 from cores.brokers import binance_client, ppi_client
-from cores.connections import importer, sync_history
+from cores.connections import financial_normalizer, importer, sync_history
 
 
 class FakeVault:
@@ -301,3 +301,101 @@ def test_sync_history_endpoint(client: TestClient, monkeypatch: pytest.MonkeyPat
     resp = client.get("/api/connection-manager/accounts/cocos/sync/history")
     assert resp.status_code == 200
     assert resp.json()["events"] == [{"kind": "sync"}]
+
+
+# ── Financial normalizer (P8) ─────────────────────────────────────────────
+
+
+def _norm_cfg(tmp_path, monkeypatch):
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(financial_normalizer, "get_config", lambda: fake_cfg)
+
+
+def test_normalize_iol_snapshot(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    snap = {
+        "positions": [{"ticker": "GGAL", "quantity": 10, "price": 1500, "currency": "ARS", "value": 15000}],
+        "balances": {"ARS": 50000, "USD": 100},
+        "movements": [{"ticker": "GGAL", "type": "buy", "amount": -15000, "currency": "ARS", "date": "2026-01-01"}],
+    }
+    out = financial_normalizer.normalize_provider("iol", snap)
+    assert out["position_count"] == 1
+    assert out["positions"][0]["symbol"] == "GGAL"
+    assert out["cash_by_currency"] == {"ARS": 50000, "USD": 100}
+    assert out["transaction_count"] == 1
+    assert financial_normalizer.load_normalized("iol")["provider"] == "iol"
+
+
+def test_normalize_ppi_snapshot(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    snap = {
+        "account_details": [
+            {
+                "account_number": "1",
+                "balances_and_positions": {
+                    "groupedAvailability": [{"availability": [{"name": "ARS", "amount": 2000, "settlement": "INMEDIATA"}]}],
+                    "groupedInstruments": [{"name": "Acciones", "instruments": [{"ticker": "YPF", "amount": 5, "price": 30000, "currency": "ARS"}]}],
+                },
+                "available_balance": [{"name": "USD", "amount": 50}],
+                "movements": [{"ticker": "YPF", "amount": -150000, "currency": "ARS", "settlementDate": "2026-01-05"}],
+            }
+        ]
+    }
+    out = financial_normalizer.normalize_provider("ppi", snap)
+    assert out["position_count"] == 1
+    assert out["positions"][0]["symbol"] == "YPF"
+    assert out["cash_by_currency"]["ARS"] == 2000
+    assert out["cash_by_currency"]["USD"] == 50
+    assert out["transaction_count"] == 1
+
+
+def test_normalize_binance_snapshot(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    snap = {"balances": {"total": {"BTC": 0.1, "USDT": 500, "XRP": 0}, "free": {"BTC": 0.1}, "used": {}}}
+    out = financial_normalizer.normalize_provider("binance", snap)
+    assert out["position_count"] == 2  # BTC + USDT, XRP dropped (zero)
+    symbols = {p["symbol"] for p in out["positions"]}
+    assert symbols == {"BTC", "USDT"}
+
+
+def test_consolidated_portfolio_no_fx_mixing(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    financial_normalizer.save_normalized(
+        "iol",
+        {"provider": "iol", "positions": [], "transactions": [], "cash_by_currency": {"ARS": 100, "USD": 10}, "position_count": 0, "transaction_count": 0},
+    )
+    financial_normalizer.save_normalized(
+        "binance", {"provider": "binance", "positions": [], "transactions": [], "cash_by_currency": {"USDT": 5}, "position_count": 0, "transaction_count": 0}
+    )
+    cons = financial_normalizer.consolidated_portfolio()
+    assert cons["provider_count"] == 2
+    assert cons["cash_by_currency"]["ARS"] == 100
+    assert cons["cash_by_currency"]["USD"] == 10
+    assert cons["cash_by_currency"]["USDT"] == 5
+    # never a single blended total
+    assert "total" not in cons
+
+
+def test_normalized_endpoints(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    # 404 before any sync
+    assert client.get("/api/connection-manager/accounts/cocos/normalized").status_code == 404
+    # manual sync triggers normalization
+    saved = {}
+    monkeypatch.setattr(
+        connection_manager,
+        "save_snapshot",
+        lambda p, payload, source="manual": saved.setdefault(p, {"provider": p, "source": source, "synced_at": "t", "data": payload}),
+    )
+    client.post("/api/connection-manager/accounts/cocos/connect", json={"email": "u@x.com"})
+    resp = client.post(
+        "/api/connection-manager/accounts/cocos/sync",
+        json={"snapshot": {"positions": [{"ticker": "AL30", "quantity": 100, "price": 80, "currency": "USD"}]}},
+    )
+    assert resp.status_code == 200
+    norm = client.get("/api/connection-manager/accounts/cocos/normalized")
+    assert norm.status_code == 200
+    assert norm.json()["position_count"] == 1
+    cons = client.get("/api/connection-manager/portfolio")
+    assert cons.status_code == 200
+    assert cons.json()["provider_count"] >= 1
