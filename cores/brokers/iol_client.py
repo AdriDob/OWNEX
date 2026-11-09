@@ -78,6 +78,14 @@ class IOLClient:
         """Account activity/movements."""
         return self._get(f"/broker/accounts/{country}/movements", token)
 
+    def get_quote(self, token: str, symbol: str, market: str = "BCBA", term: str = "T0") -> dict[str, Any]:
+        """Real-time market quote for an asset (documented endpoint)."""
+        return self._get(
+            f"/broker/market-data/{symbol}/quote",
+            token,
+            params={"market": market, "term": term},
+        )
+
     def _get(self, path: str, token: str, params: dict[str, str] | None = None) -> dict[str, Any]:
         resp = httpx.get(
             f"{self._base}{path}",
@@ -132,6 +140,23 @@ def sync_iol_account(email: str, password: str, refresh_token: str | None = None
             errors[name] = str(exc)
     if errors:
         snapshot["partial_errors"] = errors
+    # Best-effort quotes for held instruments (provenance: fetched_at per quote)
+    quotes: dict[str, Any] = {}
+    positions_data = snapshot.get("positions")
+    raw_list = positions_data.get("positions") if isinstance(positions_data, dict) else positions_data
+    symbols: list[str] = []
+    for p in raw_list or []:
+        if isinstance(p, dict):
+            sym = (p.get("instrument") or {}).get("symbol") or p.get("ticker")
+            if sym and sym not in symbols:
+                symbols.append(str(sym))
+    for sym in symbols[:15]:
+        try:
+            quotes[sym] = client.get_quote(token, sym)
+        except Exception as exc:
+            logger.info("IOL quote failed for %s: %s", sym, exc)
+    if quotes:
+        snapshot["quotes"] = quotes
     # _auth carries secrets for the caller only — stripped before persistence
     snapshot["_auth"] = {"refresh_token": auth.get("refresh_token")}
     return snapshot

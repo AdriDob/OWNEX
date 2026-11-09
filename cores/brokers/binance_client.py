@@ -45,6 +45,18 @@ def sync_binance_account(api_key: str, api_secret: str) -> dict[str, Any]:
     nonzero_free = {k: v for k, v in free.items() if isinstance(v, (int, float)) and v != 0}
     nonzero_used = {k: v for k, v in used.items() if isinstance(v, (int, float)) and v != 0}
 
+    # Public market quotes for held assets (no auth needed, read-only)
+    quotes: dict[str, Any] = {}
+    fiat = {"USDT", "USDC", "FDUSD", "BUSD", "BNB"}
+    for asset in list(nonzero_total.keys()):
+        if asset in fiat:
+            continue
+        try:
+            ticker = exchange.fetch_ticker(f"{asset}/USDT")
+            quotes[str(asset)] = {"last": ticker.get("last"), "timestamp": ticker.get("timestamp")}
+        except Exception as exc:
+            logger.info("Binance quote failed for %s: %s", asset, exc)
+
     return {
         "authenticated": True,
         "exchange": "binance",
@@ -55,5 +67,6 @@ def sync_binance_account(api_key: str, api_secret: str) -> dict[str, Any]:
             "free": nonzero_free,
             "used": nonzero_used,
         },
+        "quotes": quotes,
         "info_keys": sorted((balance.get("info") or {}).keys())[:20],
     }

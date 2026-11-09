@@ -3399,3 +3399,11 @@ Características del Sistema Completo:
 - **`sync_iol_account(email, password, refresh_token=None)`**: prefiere `grant_type=refresh_token`; si falla, fallback a password grant. Devuelve el refresh rotado bajo `_auth` — el router lo extrae con `pop` ANTES de `save_snapshot` (verificado: el token jamás llega al snapshot persistido) y lo guarda con `set_secret`.
 - Syncs siguientes usan el refresh token → sin password grant en cada sync.
 - Tests: `_auth` stripped del snapshot, refresh almacenado/rotado, firma actualizada. 51 passed en connections+vault.
+
+## 2026-11-09 — Cotizaciones de mercado + valuación de posiciones
+
+- **IOL**: `get_quote(token, symbol, market, term)` → `GET /broker/market-data/{symbol}/quote` (endpoint documentado, bearer). `sync_iol_account` trae quotes best-effort para hasta 15 símbolos en cartera → `snapshot["quotes"]`.
+- **Binance**: `fetch_ticker` público (sin auth) para cada cripto no-fiat en balance → `snapshot["quotes"][asset] = {last, timestamp}`.
+- **Normalizer**: posiciones Binance ahora tienen `current_price`/`value` real en USDT (fiat 1:1); posiciones IOL usan quote como fallback cuando `market_value` falta y guardan `quote_ts` (provenance). Regla mantenida: valuación solo en moneda de cotización, sin FX inventado.
+- Tests: valuación Binance con quotes, fallback IOL, shapes. 34 passed connections.
+- **Pendiente**: PPI marketdata quotes (requiere auth + instrument params), WebSocket IOL/Binance streaming, IOL MCP oficial, endpoints de órdenes/pending orders.

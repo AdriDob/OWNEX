@@ -81,6 +81,17 @@ def normalize_iol(snapshot: dict[str, Any]) -> dict[str, Any]:
             )
         )
     cash_by_currency = _iol_cash(snapshot.get("balances"))
+    quotes = snapshot.get("quotes") or {}
+    for pos in positions:
+        q = quotes.get(pos.symbol) or {}
+        if isinstance(q, dict):
+            price = _num(q.get("price") or q.get("last") or (q.get("data") or {}).get("price"))
+            if price:
+                if not pos.current_price:
+                    pos.current_price = price
+                if not pos.value and pos.quantity:
+                    pos.value = round(pos.quantity * price, 8)
+                pos.extra["quote_ts"] = q.get("timestamp") or q.get("fetched_at")
     return _envelope("iol", positions, cash_by_currency, snapshot.get("movements") or [])
 
 
@@ -169,18 +180,23 @@ def normalize_binance(snapshot: dict[str, Any]) -> dict[str, Any]:
     balances = snapshot.get("balances") or {}
     total = balances.get("total") or {}
     free = balances.get("free") or {}
+    quotes = snapshot.get("quotes") or {}
     for asset, qty in total.items():
         if not isinstance(qty, (int, float)) or qty == 0:
             continue
+        quote = quotes.get(str(asset)) or {}
+        price = _num(quote.get("last"))
+        is_fiat = str(asset) in ("USDT", "USDC", "FDUSD", "BUSD")
         positions.append(
             NormalizedPosition(
                 symbol=str(asset),
                 asset_type="crypto",
                 quantity=float(qty),
-                value=0.0,  # spot balance; no FX valuation without quotes
-                currency=str(asset),
+                current_price=price if price else (1.0 if is_fiat else 0.0),
+                value=round(float(qty) * price, 8) if price else (float(qty) if is_fiat else 0.0),
+                currency="USDT" if price or is_fiat else str(asset),
                 exchange="binance",
-                extra={"free": free.get(asset, 0.0)},
+                extra={"free": free.get(asset, 0.0), "quote_ts": quote.get("timestamp")},
             )
         )
     cash = {str(k): float(v) for k, v in total.items() if isinstance(v, (int, float)) and v != 0 and str(k) in ("USDT", "USDC", "FDUSD", "BUSD")}

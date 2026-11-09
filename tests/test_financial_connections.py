@@ -535,3 +535,33 @@ def test_iol_sync_uses_stored_refresh_token(client: TestClient, monkeypatch: pyt
     assert resp.status_code == 200
     assert captured["refresh_token"] == "rt-stored"
     assert vault_holder[("iol", "refresh_token")] == "rt-new"
+
+
+def test_binance_valuation_with_quotes(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    snap = {
+        "balances": {"total": {"BTC": 0.5, "USDT": 100}, "free": {"BTC": 0.5}, "used": {}},
+        "quotes": {"BTC": {"last": 100000.0, "timestamp": 1700000000000}},
+    }
+    out = financial_normalizer.normalize_provider("binance", snap)
+    btc = next(p for p in out["positions"] if p["symbol"] == "BTC")
+    usdt = next(p for p in out["positions"] if p["symbol"] == "USDT")
+    assert btc["current_price"] == 100000.0
+    assert btc["value"] == 50000.0
+    assert btc["currency"] == "USDT"
+    assert usdt["value"] == 100.0  # fiat 1:1
+    assert btc["extra"]["quote_ts"] == 1700000000000
+
+
+def test_iol_quote_fallback_valuation(tmp_path, monkeypatch) -> None:
+    _norm_cfg(tmp_path, monkeypatch)
+    snap = {
+        "positions": {"positions": [{"instrument": {"symbol": "GGAL", "currency": "ARS"}, "availability": {"quantity_available": 10}}]},
+        "balances": {},
+        "quotes": {"GGAL": {"price": 1550.0, "timestamp": "2026-01-01T00:00:00Z"}},
+    }
+    out = financial_normalizer.normalize_provider("iol", snap)
+    pos = out["positions"][0]
+    assert pos["current_price"] == 1550.0
+    assert pos["value"] == 15500.0
+    assert pos["extra"]["quote_ts"] == "2026-01-01T00:00:00Z"
