@@ -648,7 +648,7 @@ def _init_auto_report(bus: Any) -> None:
         if payload.get("new_status") != "confirmed":
             return
         with suppress(Exception):
-            from core.auto_submit.pipeline import get_auto_submit_pipeline
+            from cores.auto_submit.pipeline import get_auto_submit_pipeline
 
             pipeline = get_auto_submit_pipeline()
             pipeline.process_finding(payload["id"])

@@ -4,16 +4,34 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
+from cores.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
 from core.revenue.pipeline import PipelineResult
 
 
 @pytest.fixture(autouse=True)
 def reset_singleton():
-    import core.auto_submit.pipeline as mod
+    import cores.auto_submit.pipeline as mod
 
     mod._PIPELINE = None
     yield
+
+
+def _fake_get_setting(key, default=None):
+    if key == "CATEYE.never_submit_without_approval":
+        return False
+    return default
+
+
+@pytest.fixture(autouse=True)
+def _elite_gate_helpers():
+    with (
+        patch("cores.auto_submit.pipeline._get_confidence_score", return_value=0.95),
+        patch("cores.auto_submit.pipeline._get_evidence_count", return_value=3),
+        patch("cores.auto_submit.pipeline._check_reproduction_steps", return_value=True),
+        patch("cores.auto_submit.pipeline.get_setting", side_effect=_fake_get_setting),
+        patch("cores.auto_submit.pipeline._check_rate_limit", return_value=(True, "ok")),
+    ):
+        yield
 
 
 @pytest.fixture
@@ -61,9 +79,9 @@ def _make_classification(passed: bool = True):
 # ── on_finding_confirmed ──────────────────────────────────────
 
 
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.QualityClassifier")
+@patch("cores.auto_submit.pipeline.QualityScorer")
+@patch("cores.auto_submit.pipeline.db")
 def test_skip_below_review(mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
@@ -76,9 +94,9 @@ def test_skip_below_review(mock_db, mock_scorer_cls, mock_classifier_cls, pipeli
     assert result["score"] == 30.0
 
 
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.QualityClassifier")
+@patch("cores.auto_submit.pipeline.QualityScorer")
+@patch("cores.auto_submit.pipeline.db")
 def test_review_between_thresholds(mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
@@ -94,12 +112,12 @@ def test_review_between_thresholds(mock_db, mock_scorer_cls, mock_classifier_cls
     assert result["score"] == 70.0
 
 
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-@patch("core.auto_submit.pipeline.get_bus")
-@patch("core.auto_submit.pipeline.get_vault")
-@patch("core.auto_submit.pipeline.get_revenue_pipeline")
+@patch("cores.auto_submit.pipeline.QualityClassifier")
+@patch("cores.auto_submit.pipeline.QualityScorer")
+@patch("cores.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.get_bus")
+@patch("cores.auto_submit.pipeline.get_vault")
+@patch("cores.auto_submit.pipeline.get_revenue_pipeline")
 def test_elite_auto_submits(mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_db.SessionLocal.side_effect = None
     mock_session = MagicMock()
@@ -162,15 +180,16 @@ def test_elite_auto_submits(mock_get_revenue, mock_get_vault, mock_get_bus, mock
         success=True,
         submission_id=42,
         error=None,
+        submit_reason="elite_auto_approve",
     )
 
 
-@patch("core.auto_submit.pipeline.QualityClassifier")
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
-@patch("core.auto_submit.pipeline.get_bus")
-@patch("core.auto_submit.pipeline.get_vault")
-@patch("core.auto_submit.pipeline.get_revenue_pipeline")
+@patch("cores.auto_submit.pipeline.QualityClassifier")
+@patch("cores.auto_submit.pipeline.QualityScorer")
+@patch("cores.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.get_bus")
+@patch("cores.auto_submit.pipeline.get_vault")
+@patch("cores.auto_submit.pipeline.get_revenue_pipeline")
 def test_elite_no_api_key_falls_back_to_review(mock_get_revenue, mock_get_vault, mock_get_bus, mock_db, mock_scorer_cls, mock_classifier_cls, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
@@ -197,13 +216,13 @@ def test_elite_no_api_key_falls_back_to_review(mock_get_revenue, mock_get_vault,
 # ── _detect_platform ────────────────────────────────────────────
 
 
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.db")
 def test_detect_platform_no_target(mock_db, pipeline):
     finding = _make_finding(target_id=None)
     assert pipeline._detect_platform(finding) == "hackerone"
 
 
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.db")
 def test_detect_platform_from_target_name(mock_db, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
@@ -214,7 +233,7 @@ def test_detect_platform_from_target_name(mock_db, pipeline):
     assert pipeline._detect_platform(finding) == "bugcrowd"
 
 
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.db")
 def test_detect_platform_unknown_prefix(mock_db, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session
@@ -228,7 +247,7 @@ def test_detect_platform_unknown_prefix(mock_db, pipeline):
 # ── _get_api_key ──────────────────────────────────────────────
 
 
-@patch("core.auto_submit.pipeline.get_vault")
+@patch("cores.auto_submit.pipeline.get_vault")
 def test_get_api_key_from_vault(mock_get_vault, pipeline):
     mock_vault = MagicMock()
     mock_vault.get.return_value = "vault-key-123"
@@ -236,7 +255,7 @@ def test_get_api_key_from_vault(mock_get_vault, pipeline):
     assert pipeline._get_api_key("hackerone") == "vault-key-123"
 
 
-@patch("core.auto_submit.pipeline.get_vault")
+@patch("cores.auto_submit.pipeline.get_vault")
 def test_get_api_key_fallback_env(mock_get_vault, pipeline):
     mock_vault = MagicMock()
     mock_vault.get.return_value = None
@@ -263,8 +282,8 @@ def test_get_auto_submit_pipeline_defaults():
 # ── finding not found ──────────────────────────────────────────
 
 
-@patch("core.auto_submit.pipeline.QualityScorer")
-@patch("core.auto_submit.pipeline.db")
+@patch("cores.auto_submit.pipeline.QualityScorer")
+@patch("cores.auto_submit.pipeline.db")
 def test_on_finding_confirmed_not_found(mock_db, mock_scorer_cls, pipeline):
     mock_session = MagicMock()
     mock_db.SessionLocal.return_value = mock_session

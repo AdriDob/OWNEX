@@ -307,7 +307,7 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
     findings to their target platform.
     """
     try:
-        from core.auto_submit.pipeline import get_auto_submit_pipeline
+        from cores.auto_submit.pipeline import get_auto_submit_pipeline
         from database import db, models
 
         session = db.SessionLocal()

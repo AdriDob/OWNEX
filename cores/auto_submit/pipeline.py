@@ -84,7 +84,7 @@ def _check_rate_limit(max_per_hour: int = _MAX_SUBMISSIONS_PER_HOUR) -> tuple[bo
         recent_count = (
             session.query(models.SubmissionRecord)
             .filter(
-                models.SubmissionRecord.created_at >= one_hour_ago,
+                models.SubmissionRecord.submitted_at >= one_hour_ago,
                 models.SubmissionRecord.status.in_(["submitted", "auto_submitted"]),
             )
             .count()
