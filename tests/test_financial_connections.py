@@ -797,3 +797,42 @@ def test_income_import_endpoint(client: TestClient, monkeypatch: pytest.MonkeyPa
     resp2 = client.post("/api/connection-manager/portfolio/income-candidates/import", json={})
     assert resp2.json()["skipped_duplicates"] == 1
     assert resp2.json()["imported"] == 0
+
+
+# ── IOL WebSocket stream client (P5) ────────────────────────────────────
+
+def test_iol_stream_parse_quote() -> None:
+    from cores.brokers.iol_stream import parse_message
+
+    raw = '{"type":"Q","code":200,"msg":{"S":"GGAL","M":"BCBA","T":"T0","V":[{"T":"BID","X":5803,"P":5950,"N":1},{"T":"OFFER","X":499,"P":5955,"N":1}],"D":"2026-10-21T16:27:29-03:00"}}'
+    out = parse_message(raw)
+    assert out["type"] == "Q"
+    assert out["symbol"] == "GGAL" and out["bid"] == 5950 and out["ask"] == 5955
+    assert out["bid_size"] == 5803 and out["ts"].startswith("2026-10-21")
+
+
+def test_iol_stream_parse_book_and_trade() -> None:
+    from cores.brokers.iol_stream import parse_message
+
+    book = parse_message('{"type":"B","code":200,"msg":{"S":"AL30","M":"BCBA","T":"T0","V":[{"T":"OFFER","X":1,"P":60,"N":1},{"T":"BID","X":2,"P":59,"N":1}],"D":"x"}}')
+    assert len(book["bids"]) == 1 and len(book["offers"]) == 1 and book["bids"][0]["P"] == 59
+    trade = parse_message('{"type":"T","code":200,"msg":{"S":"GGAL","M":"BCBA","T":"T0","P":5960,"V":0.3,"TS":1000,"TP":5960000,"D":"x"}}')
+    assert trade["last"] == 5960 and trade["variation_pct"] == 0.3
+
+
+def test_iol_stream_error_and_build_subscribe() -> None:
+    import pytest as _pytest
+
+    from cores.brokers.iol_stream import IOLStreamError, build_subscribe, parse_message
+
+    with _pytest.raises(IOLStreamError) as ei:
+        parse_message('{"type":"Error","code":401,"msg":"Authentication Error"}')
+    assert ei.value.code == 401
+
+    payload = build_subscribe(["GGAL|BCBA|T0"], titles_book=["AL30|BCBA|T0"])
+    assert payload == {
+        "action": "subscribe",
+        "trades": [],
+        "quotes": ["GGAL|BCBA|T0"],
+        "order_book": ["AL30|BCBA|T0"],
+    }
