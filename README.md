@@ -94,6 +94,27 @@ python install.py
 
 ---
 
+## v12 — Real Integrations & Income OS
+
+External connections, financial data, and remote-job pipeline — all read-only by default, human approval for anything that moves money or submits work.
+
+| Module | Status |
+|--------|--------|
+| Connection Manager (`/integrations/connections`) | ✅ catalog, setup, sync, import |
+| IOL Inversiones (REST OAuth2 + refresh token cifrado + quotes + WebSocket market data) | ✅ implemented — requiere credenciales reales para validar |
+| PPI Portfolio Personal (REST oficial v1.0) | ✅ implemented — sandbox disponible |
+| Binance (ccxt, solo lectura) | ✅ implemented — sin trading/withdrawals por diseño |
+| Importación manual CSV/JSON/XLSX (Cocos, Balanz, etc.) | ✅ con dedup + provenance |
+| Cartera consolidada normalizada (sin mezclar monedas, sin FX inventado) | ✅ |
+| Income → Ledger bridge (ingresos de inversión al ledger canónico) | ✅ acción explícita del usuario |
+| OWNEX MCP Server (`python -m core.mcp_ownex_server`) | ✅ 9 tools read-only + consent scopes + audit log |
+| Remote Job Matcher (`/operations/remote-jobs`) | ✅ feeds reales (Remotive/Arbeitnow/RemoteOK) + score explicable + perfil persistente + tracker con aprobación humana |
+| Application drafter (borradores solo con datos reales del perfil) | ✅ drafts, nunca auto-envío |
+
+**Honestidad:** ninguna integración externa fue validada con credenciales reales todavía — están implementadas según documentación oficial y testeadas con mocks. Upwork está excluido del catálogo activo.
+
+---
+
 ## Actually working (vs roadmap)
 
 | Area | Status |
