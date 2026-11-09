@@ -460,6 +460,46 @@ def portfolio_income_candidates() -> dict[str, Any]:
     return {"candidates": items, "count": len(items)}
 
 
+@router.post("/portfolio/income-candidates/import")
+def portfolio_income_import(data: dict[str, Any]) -> dict[str, Any]:
+    """Promote income candidates to the canonical ledger — explicit user action only.
+
+    Dedup: each candidate is recorded with source_id derived from its content
+    hash; already-imported candidates are skipped (idempotent).
+    """
+    import hashlib
+
+    from cores.connections import portfolio_view
+    from cores.ledger import LedgerEvent, _all_entries, record_event
+
+    provider_filter = str(data.get("provider") or "")
+    candidates = [t for t in portfolio_view.income_candidates() if not provider_filter or t.get("provider") == provider_filter]
+    existing_ids = {e.source_id for e in _all_entries() if e.source == "connection_sync"}
+
+    imported = 0
+    skipped = 0
+    for tx in candidates:
+        canonical = json.dumps({k: tx.get(k) for k in ("provider", "symbol", "tx_type", "total", "currency", "executed_at")}, sort_keys=True, default=str)
+        source_id = "inc_" + hashlib.sha256(canonical.encode()).hexdigest()[:20]
+        if source_id in existing_ids:
+            skipped += 1
+            continue
+        extra = tx.get("extra") if isinstance(tx.get("extra"), dict) else {}
+        record_event(
+            LedgerEvent.ADJUSTMENT_MANUAL,
+            amount=float(tx.get("total") or 0),
+            currency=str(tx.get("currency") or "USD"),
+            description=f"Investment income ({tx.get('provider')}): {extra.get('description') or tx.get('tx_type')}",
+            source="connection_sync",
+            source_id=source_id,
+            platform=str(tx.get("provider") or "external"),
+            metadata={"kind": "investment_income", "symbol": tx.get("symbol"), "classified_kind": tx.get("kind")},
+        )
+        existing_ids.add(source_id)
+        imported += 1
+    return {"imported": imported, "skipped_duplicates": skipped, "candidates": len(candidates)}
+
+
 # ── MCP agent consent + audit (P12 hardening) ───────────────────────────
 
 

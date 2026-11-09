@@ -69,20 +69,37 @@ const {
   importPreview,
   importConfirm,
   getPortfolio,
+  getPortfolioDetail,
+  importIncomeCandidates,
 } = ecm
 
-// Consolidated normalized portfolio (P8)
+// Consolidated normalized portfolio (P8/P13)
 const portfolio = ref<{
   providers: Record<string, { position_count: number; transaction_count: number; cash_by_currency: Record<string, number>; normalized_at: string }>
   cash_by_currency: Record<string, number>
   provider_count: number
 } | null>(null)
+const portfolioDetail = ref<{
+  positions: Array<Record<string, unknown> & { provider: string; symbol: string }>
+} | null>(null)
+const incomeImportResult = ref<{ imported: number; skipped_duplicates: number; candidates: number } | null>(null)
 
 async function loadPortfolio() {
   try {
     portfolio.value = await getPortfolio()
+    portfolioDetail.value = await getPortfolioDetail()
   } catch {
     portfolio.value = null
+    portfolioDetail.value = null
+  }
+}
+
+async function executeIncomeImport() {
+  try {
+    incomeImportResult.value = await importIncomeCandidates()
+    toast.success(`Ingresos registrados en ledger: ${incomeImportResult.value.imported} (duplicados omitidos: ${incomeImportResult.value.skipped_duplicates})`)
+  } catch (e: any) {
+    toast.error('Error importando ingresos: ' + (e?.message || 'error'))
   }
 }
 
@@ -495,6 +512,33 @@ async function executeRemove(provider: string) {
         <p class="text-[10px] text-muted-foreground mt-2">
           Saldos por moneda — sin conversión FX. Posiciones y movimientos en cada proveedor.
         </p>
+
+        <!-- Positions across providers -->
+        <div v-if="portfolioDetail?.positions?.length" class="mt-3">
+          <p class="text-xs font-medium text-foreground mb-1">Posiciones ({{ portfolioDetail.positions.length }})</p>
+          <div class="max-h-40 overflow-y-auto space-y-1">
+            <div
+              v-for="(pos, i) in portfolioDetail.positions.slice(0, 50)"
+              :key="i"
+              class="flex justify-between text-xs border-b border-border/40 py-1"
+            >
+              <span class="font-mono">{{ pos.provider }} · {{ pos.symbol }}</span>
+              <span class="text-muted-foreground">
+                {{ pos.quantity }} × {{ pos.current_price || '—' }} = {{ pos.value || '—' }} {{ pos.currency }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Income -> ledger (explicit user action) -->
+        <div class="mt-3 flex items-center gap-3">
+          <Button size="sm" variant="link" class="text-primary/90 text-xs" @click="executeIncomeImport">
+            Registrar ingresos de inversión en el ledger
+          </Button>
+          <span v-if="incomeImportResult" class="text-[10px] text-muted-foreground">
+            {{ incomeImportResult.imported }} registrados · {{ incomeImportResult.skipped_duplicates }} duplicados
+          </span>
+        </div>
       </section>
 
       <!-- Domain filter tabs -->

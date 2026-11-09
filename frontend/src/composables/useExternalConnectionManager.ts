@@ -379,6 +379,19 @@ export const useExternalConnectionManager = () => {
     return api.get('/connection-manager/portfolio')
   }
 
+  async function getPortfolioDetail(): Promise<{
+    providers: Record<string, { position_count: number; transaction_count: number; cash_by_currency: Record<string, number>; normalized_at: string }>
+    positions: Array<Record<string, unknown> & { provider: string; symbol: string }>
+    cash_by_currency: Record<string, number>
+    provider_count: number
+  }> {
+    return api.get('/connection-manager/portfolio/detail')
+  }
+
+  async function importIncomeCandidates(provider?: string): Promise<{ imported: number; skipped_duplicates: number; candidates: number }> {
+    return api.post('/connection-manager/portfolio/income-candidates/import', { provider: provider || '' })
+  }
+
   // Get a specific connection by provider
   function getConnection(provider: string): PlatformConnection | undefined {
     return externalConnections.value.find(c => c.provider === provider)
@@ -452,6 +465,8 @@ export const useExternalConnectionManager = () => {
     syncHistory,
     getNormalized,
     getPortfolio,
+    getPortfolioDetail,
+    importIncomeCandidates,
 
     // Computeds
     totalEarnings,

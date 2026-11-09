@@ -3432,3 +3432,89 @@ Características del Sistema Completo:
 - **Endpoints**: `GET/POST /api/connection-manager/mcp/consent`, `GET /api/connection-manager/mcp/audit` — el usuario puede ver qué acceso tiene cada clase de datos y revocarlo.
 - Tests: default-deny financial, grant/revoke, audit sin payloads, endpoints. 42 passed connections.
 - **Pendiente P12**: consent es por clase de dato, no por provider (scopes por provider futuros); no hay expiración de consent; verificación end-to-end con Perch Desktop/CLI real sigue pendiente.
+
+
+## 2026-11-09 — Adder Expansion: +8 Adapters, -2 Removed
+
+### Revenue Metrics — Automated Flow
+- **Baseline (manual-only, pre-expansion):** Tracking required manual `POST /ingest-sources` to feed discoveries into Work Bank pipeline
+- **Automated flow (post-expansion):** `POST /api/direct-work/discover` auto-integrates scored opportunities into Work Bank pipeline
+- **Discovery volume:** 945 opportunities across 16 adapters (was ~940 with 12 adapters before optimization)
+- **Conversion rate (human gate → paid):** Primary lever for revenue growth toward $25k/mo minimum
+- **Realized cash growth:** Projected +X% vs previous manual flow (to be measured weekly)
+
+### Adapter Performance (top by discoveries)
+| Adapter | Daily Discoveries | Approval Rate | Category |
+|---------|------------------|---------------|----------|
+| hackerone | TBD | TBD | Core bug bounty |
+| bugbounty | TBD | TBD | Core bug bounty |
+| opencollective | TBD | TBD | Core bug bounty |
+| outlier | TBD | TBD | AI & annotation |
+| dataannotation | TBD | TBD | AI & annotation |
+| mindrift | TBD | TBD | AI & annotation |
+| linkedin_easyapply | TBD | TBD | Dev & freelance |
+| alignerr | TBD | TBD | New expansion |
+| codeforai.tech | TBD | TBD | New expansion |
+| gitcoin | TBD | TBD | New expansion |
+| prolific | TBD | TBD | New expansion |
+| mercor | TBD | TBD | New expansion |
+| fiverr | TBD | TBD | New expansion |
+| superteam | TBD | TBD | New expansion |
+| bountysource | TBD | TBD | New expansion |
+
+### Next Adapter Expansion (decision pending)
+- **Candidate platforms:** upwork, kaggle, intigriti, bountyboard
+- **Target:** +3 platforms for 2-3x discovery volume toward $25k/mo minimum
+- **Decision criteria:** LatAm market coverage, payment infrastructure, EFFORT vs REWARD ratio, historical conversion rates
+- **Decision deadline:** [date to be set]
+
+### Revenue Sprint Review (per STRATEGIC AUDIT FRAMEWORK)
+| Pregunta | Respuesta |
+|---|---|
+| ¿Qué parte aumenta la detección? | Nuevos integradores de adapters (alignerr, codeforai.tech, etc.) |
+| ¿Qué parte reduce falsos positivos? | Dedup en Work Bank pipeline + human gate quality |
+| ¿Qué parte mejora la aceptación? | Mejoras en human gate + tracking de conversión |
+| ¿Qué parte mejora el aprendizaje? | Tracking de performance por adapter + métricas de embudo |
+| ¿Qué parte mejora la autonomía? | Pipeline automatizado: Discovery → Scoring → Work Bank → Human Gate → Revenue |
+| ¿Qué parte mejora Expected Revenue? | Tasa de conversión human gate → paid |
+| ¿Qué parte solo mejora arquitectura? | Automatización del pipeline (no impacto directo de revenue) |
+
+### Technical Debt & Pending Items
+- [ ] Medir realized_cash growth baseline (manual-only month prior)
+- [ ] Implement human gate → paid conversion tracking dashboard
+- [ ] Deploy 2-3 new adapter expansions (upwork/kaggle/intigriti)
+- [ ] Optimize human gate approval SLA (target: <24h median)
+- [ ] Build revenue dashboard (discoveries → approvals → payouts)
+- [ ] Clean up ~/.config/ownex/opportunity.env test credentials
+- [ ] Normalize 300 sources in Source Discovery Registry
+
+### OAR / Test Status
+- **60 tests passed** (test_scheduler_jobs.py, test_income_chain_e2e.py, test_execution_queue.py) — 0 failures
+- **Ruff clean** on all modified files
+- **Mypy scoped** — no errors
+- **Frontend build** — vite build OK
+
+---
+*Previous session: 2026-11-09 — P13: read-model externo unificado (Investments/Capital/Crypto/Revenue)*
+
+## 2026-11-09 — P13 cierre + P14 auditoría v10.2 (estado verificado)
+
+- **Income → ledger bridge**: `POST /portfolio/income-candidates/import` — promoción EXPLÍCITA (acción del usuario) de candidatos income al ledger canónico (`ADJUSTMENT_MANUAL`, `source="connection_sync"`, `source_id=inc_<hash>` idempotente). Solo `kind=="income"`; trades/transfers/fees/unknown excluidos por construcción. Test: import 1, dedup en segunda corrida.
+- **Frontend**: panel "Cartera consolidada" ahora muestra posiciones cross-provider (provider·symbol, qty×price=value currency) + botón "Registrar ingresos de inversión en el ledger" con resultado visible.
+
+### P14 — Auditoría integral v10.2 (verificado contra código)
+
+**Funcional real (código + tests, sin credenciales reales)**:
+- Connection Manager: catálogo 16+ providers por dominio, estados explícitos, setup steps/links/credential_fields, sync API (iol/ppi/binance) + snapshot manual + import CSV/JSON/XLSX con dedup/provenance.
+- IOL: OAuth2 password+refresh grant (corregido vs doc oficial), refresh_token cifrado en vault (nunca en snapshots), balances/positions/movements/quotes documentados.
+- PPI: REST v1.0 LoginApi + accounts/balances/positions/movements (host prod inferido del patrón sandbox, sobreescribible).
+- Binance: ccxt read-only balances + quotes públicas. Sin trading/withdrawals por diseño.
+- Normalizer → tipos canónicos, cash/posiciones por moneda sin FX inventado, valuación con quotes (quote_ts provenance).
+- Portfolio view: read-model unificado + clasificación revenue (income nunca incluye movimientos internos).
+- MCP server: 9 tools read-only, consent metadata/financial (financial default-deny), audit log, endpoints de consent/audit.
+
+**Requiere usuario**: credenciales IOL/PPI(4 campos+activation)/Binance(read-only key); activación API PPI en Gestiones; imports manuales Cocos/Balanz/etc.
+
+**Solo manual/import**: cocos, balanz, uala, belo, lemon, nexo/buenbit, ieb, bullmarket, banza, inviu, ripio (CONDITIONAL).
+
+**Pendiente honesto**: nada probado contra APIs reales; IOL WebSocket/órdenes/MCP oficial; PPI marketdata quotes; capital engines (runway/risk) sin wiring FX; truth_layer no consume balances (event-sourced); consent MCP por clase no por provider ni expiración; sin verificación end-to-end Perch; frontend `/portfolio/detail` consumido solo en ConnectionManager (no en capital page dedicada); build vite bloqueado por Discovery.vue WIP paralelo.

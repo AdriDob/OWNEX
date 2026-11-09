@@ -746,3 +746,54 @@ def test_mcp_consent_endpoints(client: TestClient, monkeypatch: pytest.MonkeyPat
 
     audit = client.get("/api/connection-manager/mcp/audit")
     assert audit.status_code == 200
+
+
+def test_income_import_endpoint(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    _pv_cfg(tmp_path, monkeypatch)
+    financial_normalizer.save_normalized(
+        "iol",
+        {
+            "provider": "iol",
+            "positions": [],
+            "transactions": [
+                {"symbol": "", "tx_type": "dividend", "total": 120, "currency": "USD", "executed_at": "2026-01-03"},
+                {"symbol": "GGAL", "tx_type": "buy", "total": -1000, "currency": "ARS", "executed_at": "2026-01-01"},
+            ],
+            "cash_by_currency": {},
+            "position_count": 0,
+            "transaction_count": 2,
+            "normalized_at": "t",
+        },
+    )
+    recorded: list[dict] = []
+    existing: list = []
+
+    class FakeEntry:
+        def __init__(self, source_id):
+            self.source_id = source_id
+            self.source = "connection_sync"
+
+    import cores.ledger as ledger_mod
+
+    monkeypatch.setattr(ledger_mod, "_all_entries", lambda: existing)
+    monkeypatch.setattr(
+        ledger_mod,
+        "record_event",
+        lambda event, amount, currency="USD", description="", source="system", source_id="", platform="internal", metadata=None: recorded.append(
+            {"event": event, "amount": amount, "currency": currency, "source_id": source_id}
+        ),
+    )
+
+    resp = client.post("/api/connection-manager/portfolio/income-candidates/import", json={})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["imported"] == 1  # only the dividend, not the buy
+    assert body["candidates"] == 1
+    assert recorded[0]["amount"] == 120
+    assert recorded[0]["source_id"].startswith("inc_")
+
+    # second run: same candidate -> duplicate skipped
+    existing.append(FakeEntry(recorded[0]["source_id"]))
+    resp2 = client.post("/api/connection-manager/portfolio/income-candidates/import", json={})
+    assert resp2.json()["skipped_duplicates"] == 1
+    assert resp2.json()["imported"] == 0
