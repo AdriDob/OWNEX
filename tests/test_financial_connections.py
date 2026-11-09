@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from api.routers import connection_manager
 from cores.brokers import binance_client, iol_client, ppi_client
-from cores.connections import financial_normalizer, importer, portfolio_view, sync_history
+from cores.connections import financial_normalizer, importer, mcp_consent, portfolio_view, sync_history
 
 
 class FakeVault:
@@ -687,3 +687,62 @@ def test_portfolio_detail_and_endpoints(client: TestClient, monkeypatch: pytest.
     income = client.get("/api/connection-manager/portfolio/income-candidates")
     assert income.status_code == 200
     assert income.json()["count"] == 0
+
+
+# ── MCP consent + audit (P12 hardening) ─────────────────────────────────
+
+
+def _consent_cfg(tmp_path, monkeypatch):
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(mcp_consent, "get_config", lambda: fake_cfg)
+
+
+def test_mcp_consent_default_denies_financial(tmp_path, monkeypatch) -> None:
+    _consent_cfg(tmp_path, monkeypatch)
+    assert mcp_consent.get_consents() == {"metadata": False, "financial": False}
+    ok, _ = mcp_consent.check_tool_allowed("get_ownex_status")
+    assert ok  # metadata class always allowed
+    ok, reason = mcp_consent.check_tool_allowed("get_portfolio_positions")
+    assert not ok and "consentimiento" in reason
+    ok, _ = mcp_consent.check_tool_allowed("place_order")
+    assert not ok
+
+
+def test_mcp_consent_grant_and_revoke(tmp_path, monkeypatch) -> None:
+    _consent_cfg(tmp_path, monkeypatch)
+    mcp_consent.set_consent("financial", True)
+    ok, _ = mcp_consent.check_tool_allowed("get_cash_balances")
+    assert ok
+    mcp_consent.set_consent("financial", False)
+    ok, _ = mcp_consent.check_tool_allowed("get_cash_balances")
+    assert not ok
+    with pytest.raises(ValueError):
+        mcp_consent.set_consent("everything", True)
+
+
+def test_mcp_audit_log(tmp_path, monkeypatch) -> None:
+    _consent_cfg(tmp_path, monkeypatch)
+    mcp_consent.record_call("get_portfolio_positions", "iol", "ok")
+    mcp_consent.record_call("get_cash_balances", "binance", "denied")
+    entries = mcp_consent.get_audit()
+    assert len(entries) == 2
+    assert entries[0]["outcome"] == "denied"  # newest first
+    assert entries[1]["data_class"] == "financial"
+    assert "arguments" not in entries[0]  # no payloads logged
+
+
+def test_mcp_consent_endpoints(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    _consent_cfg(tmp_path, monkeypatch)
+    status = client.get("/api/connection-manager/mcp/consent")
+    assert status.status_code == 200
+    assert status.json()["consents"]["financial"] is False
+
+    grant = client.post("/api/connection-manager/mcp/consent", json={"data_class": "financial", "granted": True})
+    assert grant.status_code == 200
+    assert grant.json()["consents"]["financial"] is True
+
+    bad = client.post("/api/connection-manager/mcp/consent", json={"data_class": "root", "granted": True})
+    assert bad.status_code == 400
+
+    audit = client.get("/api/connection-manager/mcp/audit")
+    assert audit.status_code == 200

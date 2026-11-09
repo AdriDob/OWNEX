@@ -3424,3 +3424,11 @@ Características del Sistema Completo:
 - **Endpoints**: `GET /portfolio/detail` (posiciones+providers+cash), `GET /portfolio/transactions?limit=`, `GET /portfolio/income-candidates`.
 - Tests: clasificación (buy/deposit/dividend/comisión/mystery), income_candidates excluye movimientos internos, endpoints. 38 passed connections.
 - **Pendiente P13**: engines `cores/capital` (runway/risk/allocation) siguen recibiendo inputs manuales — integrar cash_by_currency requiere decisión de FX (hoy prohibido inventar tasas); truth_layer es event-sourced (los balances no son eventos); wiring de income_candidates al revenue ledger real pendiente; frontend capital panel consume `/portfolio` pero no `/portfolio/detail` todavía.
+
+## 2026-11-09 — P12 hardening: consent scopes + audit log MCP
+
+- **`cores/connections/mcp_consent.py`** (nuevo): dos clases de datos — `metadata` (catálogo/estado/sync-health, siempre permitido) y `financial` (posiciones/saldos/transacciones, requiere consentimiento explícito, default DENY). Consent en `OWNEX_DATA_DIR/mcp/consent.json`; audit append-only JSONL (tool, clase, provider, outcome — nunca payloads ni secretos).
+- **`mcp_ownex_server._call_tool_handler`**: verifica `check_tool_allowed` antes de ejecutar; denegados se registran como `denied` y devuelven error explícito. Tools desconocidas siempre denegadas.
+- **Endpoints**: `GET/POST /api/connection-manager/mcp/consent`, `GET /api/connection-manager/mcp/audit` — el usuario puede ver qué acceso tiene cada clase de datos y revocarlo.
+- Tests: default-deny financial, grant/revoke, audit sin payloads, endpoints. 42 passed connections.
+- **Pendiente P12**: consent es por clase de dato, no por provider (scopes por provider futuros); no hay expiración de consent; verificación end-to-end con Perch Desktop/CLI real sigue pendiente.

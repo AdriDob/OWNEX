@@ -460,6 +460,39 @@ def portfolio_income_candidates() -> dict[str, Any]:
     return {"candidates": items, "count": len(items)}
 
 
+# ── MCP agent consent + audit (P12 hardening) ───────────────────────────
+
+
+@router.get("/mcp/consent")
+def mcp_consent_status() -> dict[str, Any]:
+    """Current consent grants for external MCP agents (Perch etc.)."""
+    from cores.connections import mcp_consent
+
+    return {"consents": mcp_consent.get_consents(), "data_classes": list(mcp_consent.DATA_CLASSES)}
+
+
+@router.post("/mcp/consent")
+def mcp_consent_update(data: dict[str, Any]) -> dict[str, Any]:
+    """Grant or revoke a data class for external MCP agents."""
+    from cores.connections import mcp_consent
+
+    data_class = str(data.get("data_class", ""))
+    granted = bool(data.get("granted", False))
+    try:
+        consents = mcp_consent.set_consent(data_class, granted)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"consents": consents}
+
+
+@router.get("/mcp/audit")
+def mcp_audit(limit: int = 100) -> dict[str, Any]:
+    """Recent MCP tool-call audit entries (tool, class, provider, outcome — no payloads)."""
+    from cores.connections import mcp_consent
+
+    return {"entries": mcp_consent.get_audit(limit)}
+
+
 def _require_provider(provider: str) -> None:
     meta = _catalog_providers().get(provider)
     if meta is None:

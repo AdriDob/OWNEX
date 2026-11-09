@@ -25,6 +25,8 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from cores.connections import mcp_consent
+
 logger = logging.getLogger("ownex.mcp_server")
 
 server = Server("ownex")
@@ -254,6 +256,16 @@ async def _list_tools_handler(_request: types.ListToolsRequest, _ctx: Any) -> ty
 async def _call_tool_handler(request: types.CallToolRequest, _ctx: Any) -> types.CallToolResult:
     name = request.params.name
     arguments = dict(request.params.arguments or {})
+    provider = str(arguments.get("provider", ""))
+    allowed, reason = mcp_consent.check_tool_allowed(name)
+    if not allowed:
+        mcp_consent.record_call(name, provider, "denied")
+        result = {"error": reason, "denied": True}
+        return types.CallToolResult(
+            content=[TextContent(type="text", text=json.dumps(result))],
+            structuredContent=result,
+            isError=True,
+        )
     try:
         result = call_tool(name, arguments)
         is_error = "error" in result
@@ -261,6 +273,7 @@ async def _call_tool_handler(request: types.CallToolRequest, _ctx: Any) -> types
         logger.warning("MCP tool %s failed: %s", name, exc)
         result = {"error": f"falló la consulta: {exc}"}
         is_error = True
+    mcp_consent.record_call(name, provider, "error" if is_error else "ok")
     return types.CallToolResult(
         content=[TextContent(type="text", text=json.dumps(result, default=str))],
         structuredContent=result,
