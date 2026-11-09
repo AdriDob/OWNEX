@@ -1,62 +1,84 @@
-# OWNEX — Semi-Autonomous Work Operating System
+# OWNEX
 
-**Version:** 9.0.0  
-**Python:** 3.11+  
-**Built with:** FastAPI · Vue 3 · Tauri v2
+**Personal Work & Income Operating System**  
+**Status:** Active development · **Default branch:** `main`
 
----
+OWNEX is a local-first system for discovering work opportunities, evaluating their requirements, preparing work, connecting selected services, and tracking financial outcomes. It combines opportunity intelligence, automation, security workflows, integrations, and an income ledger under human control.
 
-## Quick overview
+> **Reality rule:** an opportunity is not income. A projection is not a payout. A connected integration is not a production-validated integration.
 
-OWNEX is a personal autonomous work operating system. It discovers opportunities (bug bounty, dev bounty, AI work, freelance), evaluates them, prepares deliverables, and tracks results — running mostly on your machine, not in the cloud.
+## Current status
 
-It's not a chatbot. It's not a dashboard. It's software that runs locally and works for you.
+The repository is under active development. The latest engineering state is documented in [`.ai/CURRENT_STATE.md`](.ai/CURRENT_STATE.md). That document is the source of truth for implementation details and known limitations.
 
-**Core principles:** Freedom first · Zero barrier entry · Maximum value generation · Intelligence before action · Human control (you're the authority final) · Universal solutions before specialized ones
+| Area | Current, evidence-based description |
+|---|---|
+| Opportunity discovery | Multiple source adapters and discovery flows exist; source presence does not prove eligibility or active access |
+| Work Bank | Discovery, scoring, preparation, and human review workflows are implemented in parts of the system |
+| Income tracking | Ledger and financial tracking distinguish potential, expected, pending, and paid amounts |
+| Financial connections | IOL, PPI, and Binance read-oriented connectors are implemented; real-account validation remains pending |
+| Manual imports | CSV, JSON, and XLSX import flows with deduplication and provenance are implemented |
+| MCP | A read-oriented OWNEX MCP server exists with consent checks and audit logging |
+| Desktop / mobile / Wear OS | Do not assume release readiness from source code alone; consult build and device validation records |
 
----
+### What is not claimed
 
-## What it actually does (verified, not roadmap)
+- No verified recurring income is currently attributed to OWNEX.
+- No external broker connection is represented as production-validated without a real credential-based test.
+- No source is marked fully eligible merely because it appears in the catalog.
+- No automated real-money trading, withdrawal, or final job application is implied.
+- Counts of sources, adapters, tests, routes, or scheduled jobs are snapshots, not proof of successful real-world outcomes.
 
-- Discovers opportunities from 135+ curated sources across 36 categories
-- Scores each opportunity on a 0–100 barrier/economic spectrum (no interviews, no portfolio, no payment gates needed)
-- Prepares deliverables (READMEs, proposals, work packages) ready to submit
-- Runs 7 autonomous work cycles with 28 scheduled jobs
-- Generates daily briefings (system + personal + market + focus)
-- Tracks income, projections, ROI per platform
-- Security pipeline with 7 stages, auto-submit to finder queues
-- Desktop (Tauri v2 + PyInstaller), mobile companion (Android APK ~5 MB), Wear OS
-- **100% local by default** — nothing leaves your machine unless you explicitly send it
+## Core principles
 
-> **The Revenue Rule:** No feature enters the roadmap unless it increases vulnerability detection quality, evidence quality, acceptance probability, or system learning. No exceptions.
+- **Local-first and privacy-aware:** keep personal data local by default.
+- **Evidence before ranking:** show requirements, eligibility, payment method, and uncertainty.
+- **Human approval:** preserve user control over applications, sensitive access, and financial actions.
+- **One source of truth:** avoid duplicate engines, registries, event buses, and data stores.
+- **Honest accounting:** potential, expected, approved, pending, paid, and withdrawn are different states.
 
----
+## Architecture
 
-## Architecture (the essentials)
+OWNEX is intended to be a modular monolith with a FastAPI backend, a Vue 3 + TypeScript frontend, and a Tauri desktop shell.
 
-OWNEX is a **modular monolith**. One FastAPI process, EventBus-driven, single database. No microservices, no external message queue, no lock-in.
+- Backend: Python 3.11+, FastAPI
+- Frontend: Vue 3, TypeScript, Vite
+- Desktop: Tauri v2
+- Data: SQLite for local development; PostgreSQL support is present in the codebase
+- Integrations: provider-specific connectors and manual import paths
+- AI: local-first provider routing with optional external providers
 
-Diagram: `docs/diagrams/architecture.mmd` (Mermaid)
+Architecture consolidation is still an active engineering concern. In particular, the relationship between `core/` and `cores/`, the event bus, scheduler ownership, and worktree boundaries must be resolved according to the current audit before further consolidation.
 
----
+## Opportunity and income model
 
-## Daily flow (approximately)
+OWNEX can organize opportunities across:
 
-| Time | What happens |
-|------|-------------|
-| 06:15 | Work Bank: discover → filter → rank by EV → prepare packages |
-| 07:00 | Mission Control: top pick of the day + skill gap + learning plan |
-| 08:00 | Market: platform report, friction tiers, emerging categories |
-| 09:00 | Capital: revenue dashboard, earned/pending/ROI per platform |
-| 14:00 | Security: findings → evidence → report → auto-submit |
-| 18:00 | Executive: "Did we make money this week?" USD/hour per platform |
-| 22:00 | Backup: version backup + health snapshot persisted |
+- Software development and open-source bounties
+- Bug bounty and application security programs
+- AI coding and code-evaluation tasks
+- QA and software testing
+- Developer platforms and paid issue programs
+- Freelance marketplaces (Fiverr and Freelancer; **Upwork is intentionally excluded**)
 
----
+Every source needs independent checks for country eligibility, experience requirements, interviews, assessments, payment rails, fees, and actual withdrawal availability in Argentina.
 
-## Installation (choose your platform)
+See [Income and opportunity validation](docs/INCOME_AND_OPPORTUNITY_VALIDATION.md) for the current accounting rules and planning assumptions.
 
-### Linux (development)
+## Financial integrations
+
+The connection layer currently includes read-oriented integration work for:
+
+- InvertirOnline (IOL)
+- Portfolio Personal (PPI)
+- Binance (read-only)
+- Manual imports for providers without a supported public API
+
+**Important:** implementation and mocked tests do not equal live validation. Real credentials, account permissions, provider terms, and end-to-end reconciliation are still required. Financial MCP access defaults to deny until consent is granted. OWNEX does not expose trading or withdrawal tools through its read-only MCP server.
+
+## Quick start
+
+### Linux development
 
 ```bash
 git clone https://github.com/AdriDob/OWNEX.git
@@ -65,143 +87,49 @@ cd OWNEX
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cd frontend && npm install
 
-python run.py          # FastAPI on http://localhost:8000
-# another terminal: cd frontend && npm run dev  # Mission Control on http://localhost:5173
+cd frontend
+npm install
+cd ..
+
+python run.py
 ```
 
-### Windows
-
-Download the Tauri installer from Releases (or build from source). Runs natively, no Python/Node required.
-
-### Android
+In a second terminal:
 
 ```bash
-cd android
-./gradlew assembleDebug
-# Install the APK via ADB or transfer to device
-# ~5 MB, native mic/voice, connects to your local backend
+cd frontend
+npm run dev
 ```
 
-### The universal installer
+The exact setup may change. Check the repository's dependency files and scripts before running commands. Do not run migrations or destructive maintenance commands against valuable local data without a backup.
+
+## Verification
+
+Run the checks that match the area you changed. Typical commands include:
 
 ```bash
-python install.py
-# Guided wizard: use case → modules → experience level → platforms → integrations
-# Sets up .venv, DB, credentials, desktop, notifications
+# Backend
+python -m pytest
+
+# Frontend
+cd frontend
+npm run build
 ```
 
----
+The full suite and frontend build have had changing results during parallel development. Check the latest CI run and `.ai/CURRENT_STATE.md`; this README intentionally does not freeze an unverified test count.
 
-## v12 — Real Integrations & Income OS
+## Documentation
 
-External connections, financial data, and remote-job pipeline — all read-only by default, human approval for anything that moves money or submits work.
-
-**V12.1 — Upwork Removed + Remote Job Matcher Integrated**
-
-| Module | Status |
-|--------|--------|
-| Connection Manager (`/integrations/connections`) | ✅ catalog, setup, sync, import |
-| IOL Inversiones (REST OAuth2 + refresh token cifrado + quotes + WebSocket market data) | ✅ implemented — requiere credenciales reales para validar |
-| PPI Portfolio Personal (REST oficial v1.0) | ✅ implemented — sandbox disponible |
-| Binance (ccxt, solo lectura) | ✅ implemented — sin trading/withdrawals por diseño |
-| Importación manual CSV/JSON/XLSX (Cocos, Balanz, etc.) | ✅ con dedup + provenance |
-| Cartera consolidada normalizada (sin mezclar monedas, sin FX inventado) | ✅ |
-| Income → Ledger bridge (ingresos de inversión al ledger canónico) | ✅ acción explícita del usuario |
-| OWNEX MCP Server (`python -m core.mcp_ownex_server`) | ✅ 9 tools read-only + consent scopes + audit log |
-| **Remote Job Matcher (`/operations/remote-jobs`)** | ✅ **feeds reales (Remotive/Arbeitnow/RemoteOK) + score explicable + perfil persistente + tracker con aprobación humana** |
-| Application drafter (borradores solo con datos reales del perfil) | ✅ drafts, nunca auto-envío |
-| **Upwork** | ❌ **Excluido del catálogo activo** — removido V12.1 |
-
-**Honestidad:** ninguna integración externa fue validada con credenciales reales todavía — están implementadas según documentación oficial y testeadas con mocks. Upwork está excluido del catálogo activo.
-
----\n\n## Actually working (vs roadmap)
-
-| Area | Status |
-|------|--------|
-| 135+ discovery sources (HackerOne, Bugcrowd, Intigriti, YesWeHack, Opire, IssueHunt, Freelancer, OpenCollective…) | ✅ |
-| Zero-barrier scoring spectrum (0–100) | ✅ |
-| Work Bank + daily companion + preparation | ✅ |
-| 7 work cycles, 28 scheduled jobs | ✅ |
-| Desktop (Tauri + PyInstaller), mobile companion (Android) | ✅ build-verified |
-| Wear OS native | ✅ Completed |
-| Income tracking + projections | ✅ |
-| Security pipeline (recon → hypothesis → validation → evidence → report) | ✅ |
-| OAR AI Runtime (routing + resilience + observability) | ✅ |
-| AI providers: local-first (Ollama), free cloud fallback, deterministic degradation | ✅ |
-| No telemetry, no cloud account required | ✅ |
-| Revenue tracking with real payout data | ✅ |
-
----
-
-## Security (because it matters)
-
-Everything is local-first by default. Security layers:
-
-- **IdentityVault:** AES-256-GCM, random key, `chmod 600`
-- **Ed25519 licenses:** 25-character format
-- **CSRF protection:** Double-submit cookie on all mutating endpoints
-- **Rate limiting:** Per-identity with IP fallback
-- **Audit log:** Append-only JSONL, 10 MB rotation
-- **Session security:** AES-256-GCM, device binding, 30-min expiry
-
-No telemetry. No cloud account. Your data stays on your machine.
-
----
+- [Current engineering state](.ai/CURRENT_STATE.md)
+- [Architecture audit](.ai/OWNEX_GLOBAL_ARCHITECTURE_AUDIT.md)
+- [Duplication and consolidation plan](.ai/OWNEX_DUPLICATION_CONSOLIDATION.md)
+- [Income and opportunity validation](docs/INCOME_AND_OPPORTUNITY_VALIDATION.md)
 
 ## License
 
-**Proprietary.** All rights reserved.
-
-OWNEX is a private competitive-advantage asset. It does **not** sell a service to a customer. **OWNEX works for me.**
+The repository currently contains a `LICENSE` file whose legal terms must be treated as authoritative until the owner resolves the mismatch between that file and older README wording. Do not infer proprietary status from this README.
 
 ---
 
-## Built with
-
-- **Backend:** Python 3.11+ · FastAPI · SQLAlchemy 2.0 · 3,228+ tests, Ruff clean, mypy strict
-- **Frontend:** Vue 3 + TypeScript · Tailwind CSS v4 · Vite · 92 routed pages
-- **Desktop:** Tauri v2 (Rust + WebView2) + PyInstaller sidecar
-- **Mobile:** Capacitor (Android) · native mic/voice, APK ~5 MB
-- **AI Stack:** Free-first con fallback y modo degradado: local → free cloud → reglas
-- **Database:** SQLite (dev/desktop) · PostgreSQL (prod) · Single DB, no external queue
-- **Testing:** pytest · pytest-cov · pytest-timeout · `make test` · `make test-fast`
-
----
-
-## Commands you'll actually use
-
-```bash
-# Testing
-python scripts/dev test          # full suite (excluye test_security.py)
-python scripts/dev test-fast     # smoke: scoring + scheduler + DWE
-
-# Lint + typecheck
-make check                       # ruff + mypy scoped + fast tests
-make fmt                         # write fixes
-
-# Backend
-python run.py                    # full system
-python run.py --add-target <name> --domain <domain>
-python run.py --backup
-
-# Frontend (from frontend/)
-npm run dev                      # dev server
-npm run build                    # production build
-
-# Branding pipeline
-scripts/brand/regenerate.sh      # logo + banners + README badge sync
-```
-
----
-
-## Tesla dark style
-
-Pure black surfaces, white primary accent, `#e82127` (Tesla red) as the only saturated accent, no noise, no gradients, no glows, no colors beyond the palette.
-
----
-
-**© 2026 OWNEX — Autonomous Work Operating System · The Aperture Nexus**
-
-*Built with discipline, not hype. Works for one person, on one machine, with maximum autonomy.*
+**Built for personal leverage, with evidence over hype.**
