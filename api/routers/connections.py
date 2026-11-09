@@ -98,6 +98,21 @@ def create_payout_account(data: dict[str, Any]):
     return {"status": "ok", "account": entry}
 
 
+@router.put("/payout-accounts/{account_id}")
+def update_payout_account(account_id: int, data: dict[str, Any]):
+    """Update editable fields of a payout account (address, label, network, etc.)."""
+    accounts = _get_config_value(PAYOUT_KEY, [])
+    account = next((a for a in accounts if a.get("id") == account_id), None)
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    for field in ("label", "type", "address", "network", "currency", "bank_name", "last_four", "is_default"):
+        if field in data:
+            account[field] = data[field]
+    _set_config_value(PAYOUT_KEY, accounts)
+    return {"status": "ok", "account": account}
+
+
 @router.delete("/payout-accounts/{account_id}")
 def remove_payout_account(account_id: int):
     accounts = _get_config_value(PAYOUT_KEY, [])
@@ -149,11 +164,64 @@ def request_withdrawal(data: dict[str, Any]):
 
 
 # ── Registered Platforms ─────────────────────────────────────────
+# ── Connection States ──────────────────────────────────────────
+CONNECTION_STATES = [
+    "NOT_CONNECTED",
+    "CONNECTING",
+    "CONNECTED",
+    "EXPIRED",
+    "ERROR",
+    "REVOKED",
+    "MANUAL_SETUP",
+    "UNSUPPORTED",
+]
+
+CONNECTION_STATE_DESC = {
+    "NOT_CONNECTED": "Not connected to platform",
+    "CONNECTING": "Connecting to platform…",
+    "CONNECTED": "Connected and authenticated",
+    "EXPIRED": "Session expired, re‑auth required",
+    "ERROR": "Authentication error",
+    "REVOKED": "Connection revoked",
+    "MANUAL_SETUP": "Manual setup required (OAuth not available)",
+    "UNSUPPORTED": "Platform authentication not supported",
+}
+
+
+# ── Connection State Helper ────────────────────────────────────
+
+
+def _connection_state(provider: str, vault_account: dict | None) -> tuple[str, str]:
+    """Return (state_key, state_label) for a provider based on vault status."""
+    if not vault_account:
+        return "NOT_CONNECTED", CONNECTION_STATE_DESC["NOT_CONNECTED"]
+
+    state = vault_account.get("session_state", "NOT_CONNECTED")
+    health = vault_account.get("health", "unknown")
+
+    state_map = {
+        "connected": ("CONNECTED", CONNECTION_STATE_DESC["CONNECTED"]),
+        "expired": ("EXPIRED", CONNECTION_STATE_DESC["EXPIRED"]),
+        "error": ("ERROR", CONNECTION_STATE_DESC["ERROR"]),
+        "revoked": ("REVOKED", CONNECTION_STATE_DESC["REVOKED"]),
+        "manual": ("MANUAL_SETUP", CONNECTION_STATE_DESC["MANUAL_SETUP"]),
+    }
+
+    key, label = state_map.get(state, (state.upper(), CONNECTION_STATE_DESC.get(state, "Unknown state")))
+
+    # If health indicates MFA/CAPTCHA block, downgrade to ERROR
+    if health in ("mfa_required", "captcha_required", "geo_blocked"):
+        key, label = "ERROR", "Authentication blocked (" + health + ")"
+
+    return key, label
+
+
+# ── Registered Platforms with States ────────────────────────────
 
 
 @router.get("/platforms")
 def list_registered_platforms():
-    """List user-registered platforms (not just vault-stored)."""
+    """List user-registered platforms with full connection state."""
     registered = _get_config_value(PLATFORM_REG_KEY, [])
     vault = get_identity_vault()
     vault_accounts = vault.list_accounts()
@@ -162,25 +230,56 @@ def list_registered_platforms():
     merged = []
     seen = set()
     for p in registered:
-        seen.add(p.get("provider", "").lower())
-        v = vault_map.get(p["provider"].lower(), {})
-        merged.append({**p, **v, "connected": v.get("has_credentials", False)})
+        prov = p.get("provider", "").lower()
+        seen.add(prov)
+        v = vault_map.get(prov, {})
+        state_key, state_label = _connection_state(prov, v)
+        merged.append(
+            {
+                **p,
+                **v,
+                "connected": v.get("has_credentials", False),
+                "state": state_key,
+                "state_label": state_label,
+                "state_color": _state_color(state_key),
+            }
+        )
 
     for v in vault_accounts:
-        if v["provider_name"].lower() not in seen:
+        pname = v["provider_name"].lower()
+        if pname not in seen:
+            state_key, state_label = _connection_state(pname, v)
             merged.append(
                 {
                     "provider": v["provider_name"],
-                    "connected": v.get("has_credentials", False),
+                    "state": state_key,
+                    "state_label": state_label,
+                    "state_color": _state_color(state_key),
                     "email": v.get("email", ""),
                     "username": v.get("username", ""),
                     "earnings": 0,
                     "pending": 0,
                     "last_sync": v.get("last_checked", ""),
+                    "MANUAL_SETUP": v.get("setup_type", "") == "manual",
                 }
             )
 
     return {"platforms": merged}
+
+
+def _state_color(state: str) -> str:
+    """Return Tailwind color class for connection state."""
+    colors = {
+        "NOT_CONNECTED": "text-muted-foreground",
+        "CONNECTING": "text-warning",
+        "CONNECTED": "text-success",
+        "EXPIRED": "text-warning",
+        "ERROR": "text-error",
+        "REVOKED": "text-muted-foreground",
+        "MANUAL_SETUP": "text-info",
+        "UNSUPPORTED": "text-error",
+    }
+    return colors.get(state, "text-muted-foreground")
 
 
 @router.post("/platforms")

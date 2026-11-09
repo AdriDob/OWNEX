@@ -3341,3 +3341,14 @@ Características del Sistema Completo:
 - **`test_credentials_vault.py`**: el `env_file` real `~/.config/ownex/opportunity.env` contiene valores de test dejados por corridas anteriores (`*_test_key`, `ghp_test...`) → `get_credentials()` los leía. Fixture autouse ahora instancia `OpportunityCredentials(_env_file=None)` → tests aislados del archivo real.
 - **Verificación**: 211 passed en los archivos antes fallidos; ruff limpio en los 8 archivos tocados.
 - **Pendiente owner**: `~/.config/ownex/opportunity.env` tiene credenciales de test mezcladas con posibles reales — revisar/limpiar manualmente (no tocar sin confirmación).
+
+## 2026-11-09 — Consolidación identity: legacy `/opportunity/identity/*` eliminado + Wallets.vue reparada
+
+- **`/api/opportunity/identity/*` (4 endpoints) eliminados** de `opportunity_intelligence.py` — duplicaban `/api/connection-manager` sobre el mismo vault. Verificado: 0 consumidores tras migrar Wallets.vue (grep frontend+tests+api). Import `get_identity_vault` removido.
+- **`PUT /api/connections/payout-accounts/{id}`** agregado — actualiza address/label/network/currency/bank fields (dominio payout, antes no existía vía de edición).
+- **`Wallets.vue` reparada** (estaba rota: llamaba `GET/PUT /identity-center/wallets*` que no existen en ningún router → siempre error):
+  - wallets → `GET /connections/payout-accounts` (shape real: id/label/type/address/is_default)
+  - editar dirección → `PUT /connections/payout-accounts/{id}`
+  - "Earnings por Plataforma" (fake: `earned`/`pending` nunca existieron en `vault.list_accounts`) → "Conexiones por estado" con `summary.by_state` real de `/connection-manager/accounts`
+- **Decisión de dominio**: `authhub` (`/api/authhub`) se mantiene — envuelve `cores/authhub/` (gmail/whatsapp/telegram messaging), inicializado en lifespan; NO son credenciales de plataformas de earning. `identity_center` se mantiene — settings únicos (mode/never-submit/email/wallets) sobre el mismo vault; su connect/disconnect solapa pero es superficie de settings, no de conexiones. `connections.py` payout/withdrawals sigue separado por diseño. `identity.py`/`target_identity.py` son identidad OWNEX y recon — fuera del scope Level-2.
+- Verificación: ruff limpio, biome limpio, `vite build` OK (10.99s), 19 tests auth/connection-manager passed, PUT route en OpenAPI, legacy identity fuera de OpenAPI.

@@ -373,7 +373,7 @@ Orden propuesto: (1) AUDIT_BACKEND_ALPHA_1.0.md ← primera acción próxima ses
 - [x] Connection Manager backend unificado (`/api/connection-manager`, estados explícitos, `cores.identity_vault` SSOT)
 - [x] Fix entorno: editable `ownex-omega` reinstalado desde raíz canónica (v9.0.0); fix `tests/conftest.py` sys.path (`tests/core` shadowing)
 - [x] Migrar `useExternalConnectionManager` (frontend) a `/api/connection-manager` (legacy `/opportunity/identity/*` permanece)
-- [ ] Consolidar `identity_center` + `authhub` + `connections` + `opportunity_intelligence /identity/*` en el Connection Manager canónico
+- [x] Consolidación identity parcial: `/api/opportunity/identity/*` legacy eliminado (0 consumidores); `Wallets.vue` migrada a `/connections/payout-accounts` + `/connection-manager/accounts`; `PUT /payout-accounts/{id}` agregado. `authhub`/`identity_center`/`connections`/`identity`/`target_identity` evaluados y mantenidos por dominio distinto (documentado en CURRENT_STATE)
 - [x] Migrar `Connections.vue`/`lib/api.ts` a `/api/connection-manager` (corrige bug `provider_name`/`provider`)
 - [x] Deprecar `api/routers/auth_user.py` (0 consumidores canónicos; desmontado, conservado)
 - [x] `core/cores/` → backup + cuarentena en `.quarantine/core_cores_2026-11-09/` (owner decision; `core.cores` ya no importable, nada lo consumía)

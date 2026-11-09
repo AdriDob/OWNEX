@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import shutil
 import subprocess
 import tempfile
@@ -45,7 +46,35 @@ DEFAULT_PROFILE: dict[str, Any] = {
 # Piper CLI detection: `piper` binary or the python3 -m piper module.
 PIPER_BIN = shutil.which("piper")
 PIPER_MODEL_ENV = "OWNEX_PIPER_MODEL"
+PIPER_DATA_DIR_ENV = "OWNEX_PIPER_DATA_DIR"
 PIPER_DEFAULT_MODEL = "es_MX-ald-medium"  # Spanish (Mexico), male, calm — closest to es-419 neutral.
+PIPER_VOICE_DIRS = (
+    Path("data"),
+    Path.home() / ".local" / "share" / "piper",
+    Path.home() / ".piper",
+)
+
+
+def resolve_piper_voice(model: str = PIPER_DEFAULT_MODEL) -> tuple[Path, list[Path]]:
+    """Resolve a piper voice name or path to ``(onnx_path, data_dirs)``.
+
+    piper >= 1.8 only accepts a real ``.onnx`` path or a voice name inside one of
+    its ``--data_dir`` entries; passing the bare name therefore fails. We resolve
+    the voice ourselves and hand piper the data dirs as a second chance.
+    """
+    override = os.environ.get(PIPER_MODEL_ENV)
+    candidate = Path(override).expanduser() if override else Path(model).expanduser()
+    if candidate.exists():
+        return candidate, [candidate.parent]
+
+    name = candidate.name.removesuffix(".onnx")
+    env_dir = os.environ.get(PIPER_DATA_DIR_ENV)
+    dirs = ([Path(env_dir).expanduser()] if env_dir else []) + [Path.cwd(), *PIPER_VOICE_DIRS]
+    for directory in dirs:
+        voice_path = directory / f"{name}.onnx"
+        if voice_path.exists():
+            return voice_path, dirs
+    return Path(model), dirs
 
 
 @dataclass
@@ -178,18 +207,20 @@ class TTSManager:
         return None
 
     def _piper_wav(self, text: str, profile: VoiceProfile) -> bytes:
-        model = PIPER_DEFAULT_MODEL
+        model_path, data_dirs = resolve_piper_voice(PIPER_DEFAULT_MODEL)
         with tempfile.TemporaryDirectory(prefix="ownex_tts_") as tmp:
             out_wav = Path(tmp) / "out.wav"
-            cmd = [
-                self.piper_bin or "piper",
-                "--model",
-                model,
-                "--output_file",
-                str(out_wav),
-                "--length_scale",
-                str(1.0 / profile.speed if profile.speed > 0 else 1.0),
-            ]
+            cmd = [self.piper_bin or "piper", "--model", str(model_path)]
+            for data_dir in data_dirs:
+                cmd.extend(["--data_dir", str(data_dir)])
+            cmd.extend(
+                [
+                    "--output_file",
+                    str(out_wav),
+                    "--length_scale",
+                    str(1.0 / profile.speed if profile.speed > 0 else 1.0),
+                ]
+            )
             proc = subprocess.run(
                 cmd,
                 input=text.encode("utf-8"),

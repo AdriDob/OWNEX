@@ -9,14 +9,18 @@ import BarChart from '@/components/charts/BarChart.vue'
 import DoughnutChart from '@/components/charts/DoughnutChart.vue'
 import { AlertTriangle, BarChart3, CreditCard, DollarSign, PiggyBank, Plus, RotateCw, RefreshCw, Save, TrendingUp, Wallet } from '@lucide/vue'
 
-interface PlatformWithEarnings {
-  provider: string
-  earned: number
-  pending: number
+interface PayoutAccount {
+  id: number
+  label: string
+  type: string
+  address: string
+  network?: string
+  currency?: string
+  is_default: boolean
 }
 
 interface WalletEntry {
-  id: string
+  id: number
   platform: string
   address: string
   label?: string
@@ -36,13 +40,13 @@ interface ReportStats {
 interface WalletsData {
   wallets: WalletEntry[]
   stats: ReportStats | null
-  platformEarnings: PlatformWithEarnings[]
+  connectionStates: Record<string, number>
 }
 
 const data = ref<WalletsData | null>(null)
 const loading = ref(true)
 const error = ref('')
-const editingWallet = ref<string | null>(null)
+const editingWallet = ref<number | null>(null)
 const editAddress = ref('')
 const savingAddress = ref(false)
 
@@ -55,11 +59,11 @@ const payoutStatusData = computed(() => {
   return Object.values(data.value.stats.status_counts)
 })
 
-const earningsByPlatformLabels = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.provider) || []
+const connectionStateLabels = computed(() => {
+  return Object.keys(data.value?.connectionStates || {})
 })
-const earningsByPlatformData = computed(() => {
-  return data.value?.platformEarnings?.map(p => p.earned) || []
+const connectionStateData = computed(() => {
+  return Object.values(data.value?.connectionStates || {})
 })
 
 function platformIcon(platform: string) {
@@ -80,10 +84,10 @@ function cancelEdit() {
   editAddress.value = ''
 }
 
-async function saveAddress(walletId: string) {
+async function saveAddress(walletId: number) {
   savingAddress.value = true
   try {
-    await api.put(`/identity-center/wallets/${walletId}`, { address: editAddress.value })
+    await api.put(`/connections/payout-accounts/${walletId}`, { address: editAddress.value })
     if (data.value) {
       const w = data.value.wallets.find(w => w.id === walletId)
       if (w) w.address = editAddress.value
@@ -100,19 +104,23 @@ async function fetchWallets() {
   loading.value = true
   error.value = ''
   try {
-    const [walletsRes, statsRes, platformsRes] = await Promise.all([
-      api.get<{ wallets: WalletEntry[] }>('/identity-center/wallets'),
+    const [walletsRes, statsRes, connsRes] = await Promise.all([
+      api.get<{ accounts: PayoutAccount[] }>('/connections/payout-accounts'),
       api.get<ReportStats>('/reports/stats').catch(() => null),
-      api.get<{ accounts: PlatformWithEarnings[] }>('/opportunity/identity/accounts').catch(() => null),
+      api.get<{ accounts: unknown[]; summary?: { by_state?: Record<string, number> } }>('/connection-manager/accounts').catch(() => null),
     ])
     data.value = {
-      wallets: walletsRes.wallets || [],
+      wallets: (walletsRes.accounts || []).map(a => ({
+        id: a.id,
+        platform: a.label || a.type,
+        address: a.address,
+        label: a.label,
+        is_default: a.is_default,
+        network: a.network,
+        currency: a.currency,
+      })),
       stats: statsRes,
-      platformEarnings: platformsRes?.accounts?.filter(a => a.earned)?.map(a => ({
-        provider: a.provider,
-        earned: a.earned || 0,
-        pending: a.pending || 0,
-      })) || [],
+      connectionStates: connsRes?.summary?.by_state || {},
     }
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar billeteras'
@@ -237,13 +245,12 @@ onMounted(fetchWallets)
         <Card class="p-4">
           <div class="flex items-center gap-2 mb-3">
             <BarChart3 class="h-4 w-4 text-accent" />
-            <p class="text-xs font-semibold text-foreground">Earnings por Plataforma</p>
+            <p class="text-xs font-semibold text-foreground">Conexiones por estado</p>
           </div>
           <BarChart
-            :labels="earningsByPlatformLabels"
-            :datasets="[{ label: 'Earnings', data: earningsByPlatformData, backgroundColor: ['#00d5ff', '#ffffff', '#16A34A', '#A16207', '#00d5ff'] }]"
+            :labels="connectionStateLabels"
+            :datasets="[{ label: 'Cuentas', data: connectionStateData, backgroundColor: ['#00d5ff', '#ffffff', '#16A34A', '#A16207', '#00d5ff'] }]"
             :height="220"
-            yLabel="USD"
             horizontal
           />
         </Card>

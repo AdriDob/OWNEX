@@ -16,7 +16,6 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from cores.identity_vault import get_identity_vault
 from cores.opportunity import get_engine
 from cores.targets.hunter import Hunter
 
@@ -285,57 +284,6 @@ def list_categories():
         "categories": [{"name": k, "count": v} for k, v in sorted(categories.items())],
         "total": len(all_opps),
     }
-
-
-# ── Identity Vault Endpoints ─────────────────────────────────────────
-
-
-@router.get("/identity/accounts")
-def list_identity_accounts():
-    """List all stored provider identities (no secrets)."""
-    vault = get_identity_vault()
-    return {
-        "accounts": vault.list_accounts(),
-        "connected_count": vault.connected_count(),
-    }
-
-
-@router.post("/identity/store")
-def store_identity(data: dict[str, Any]):
-    """Store encrypted credentials for a provider."""
-    provider = data.get("provider", "")
-    email = data.get("email", "")
-    token = data.get("token", "")
-    password = data.get("password", "")
-    metadata = data.get("metadata")
-
-    if not provider:
-        raise HTTPException(status_code=400, detail="provider name required")
-    if not email:
-        raise HTTPException(status_code=400, detail="email required")
-
-    vault = get_identity_vault()
-    vault.store_credentials(provider, email, token, password, metadata)
-    return {"status": "ok", "provider": provider, "email": email}
-
-
-@router.post("/identity/remove/{provider}")
-def remove_identity(provider: str):
-    """Remove stored credentials for a provider."""
-    vault = get_identity_vault()
-    vault.remove_credentials(provider)
-    return {"status": "ok", "provider": provider}
-
-
-@router.get("/identity/status/{provider}")
-def identity_status(provider: str):
-    """Check session health for a provider identity."""
-    vault = get_identity_vault()
-    account = vault.get_account(provider)
-    if not account:
-        raise HTTPException(status_code=404, detail="No identity stored for provider")
-    health = vault.check_session_health(provider)
-    return {"provider": provider, "account": account, "session_health": health}
 
 
 # ── Emerging / Category endpoints ────────────────────────────────────
