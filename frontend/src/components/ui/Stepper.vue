@@ -66,11 +66,12 @@ const props = withDefaults(defineProps<Props>(), {
         >
           <div
             :class="[
-              'w-8 h-8 rounded-full flex items-center justify-center',
-              'bg-primary': i < props.activeStep - 1,
-              'bg-surface/50': i === props.activeStep - 1,
-              'bg-border': i > props.activeStep - 1,
-              'text-[10px] font-mono',
+              'w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-mono',
+              {
+                'bg-primary': i < props.activeStep - 1,
+                'bg-surface/50': i === props.activeStep - 1,
+                'bg-border': i > props.activeStep - 1,
+              },
             ]"
           >
             {{ i + 1 }}
