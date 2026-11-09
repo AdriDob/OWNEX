@@ -142,3 +142,16 @@ def test_gap_analysis() -> None:
     assert "python" in out["matched_skills"]
     assert any("experience" in g for g in out["gaps"])
     assert any("portfolio" in g for g in out["gaps"])
+
+
+def test_application_drafter() -> None:
+    from cores.opportunity.application_drafter import draft_application
+
+    job = {"title": "Soporte Técnico", "company": "ACME", "url": "u", "experience_years_required": 1, "tags": ["python"]}
+    profile = {"name": "Adriel", "headline": "Desarrollador", "skills": ["python", "sql"], "experience_years": 2}
+    d = draft_application(job, profile)
+    assert d["requires_approval"] is True
+    assert "ACME" in d["cover_letter"] and "Adriel" in d["cover_letter"]
+    assert "python" in d["profile_summary"]["matched_skills"] or "python" in d["cover_letter"]
+    # no invented skills: cover letter only mentions profile skills
+    assert "excel" not in d["cover_letter"].lower()

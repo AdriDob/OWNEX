@@ -60,6 +60,26 @@ def remote_jobs_saved(status: str = ""):
     return {"jobs": jobs, "count": len(jobs)}
 
 
+@router.post("/remote-jobs/{job_id}/draft")
+def remote_jobs_draft(job_id: str, body: dict):
+    """Generate a DRAFT application (cover letter + gap notes) from real profile data.
+
+    Requires profile in body: {name, skills[], experience_years, ...}.
+    Output is always requires_approval — nothing is ever submitted.
+    """
+    from cores.opportunity.application_drafter import draft_application
+    from cores.opportunity.job_tracker import list_jobs
+
+    entry = next((j for j in list_jobs() if j["id"] == job_id), None)
+    if entry is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="job not found")
+    profile = body.get("profile") or {}
+    draft = draft_application(entry["job"], profile)
+    return {"id": job_id, **draft}
+
+
 @router.post("/remote-jobs/{job_id}/transition")
 def remote_jobs_transition(job_id: str, body: dict):
     """Advance a tracked job: saved→analyzed→prepared→approved→applied→accepted/rejected."""
