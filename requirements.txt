@@ -40,3 +40,4 @@ pandas>=2.0.0
 base58>=2.1.0
 solders>=0.3.0
 # taipy>=4.0.0  -- removed: dashboard_taipy/ directory does not exist
+mcp>=1.8.0

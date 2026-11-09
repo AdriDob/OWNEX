@@ -565,3 +565,61 @@ def test_iol_quote_fallback_valuation(tmp_path, monkeypatch) -> None:
     assert pos["current_price"] == 1550.0
     assert pos["value"] == 15500.0
     assert pos["extra"]["quote_ts"] == "2026-01-01T00:00:00Z"
+
+
+# ── OWNEX MCP server (P12) ──────────────────────────────────────────────
+
+
+def test_mcp_tool_catalog_is_read_only() -> None:
+    from core import mcp_ownex_server
+
+    names = {t.name for t in mcp_ownex_server.TOOLS}
+    assert names == {
+        "get_ownex_status",
+        "list_connected_providers",
+        "get_connection_status",
+        "get_portfolio_snapshot",
+        "get_portfolio_positions",
+        "get_cash_balances",
+        "get_transaction_history",
+        "get_last_sync_results",
+        "get_data_quality_report",
+    }
+    # no write/trade/withdraw tools exist at all
+    assert not any(w in n for n in names for w in ("order", "trade", "withdraw", "transfer", "buy", "sell"))
+
+
+def test_mcp_call_tool_handlers(tmp_path, monkeypatch) -> None:
+    from core import mcp_ownex_server
+
+    _norm_cfg(tmp_path, monkeypatch)
+    financial_normalizer.save_normalized(
+        "iol",
+        {
+            "provider": "iol",
+            "positions": [{"symbol": "GGAL", "quantity": 10, "value": 15000, "currency": "ARS"}],
+            "transactions": [{"symbol": "GGAL", "tx_type": "buy", "total": -15000}],
+            "cash_by_currency": {"ARS": 50000},
+            "position_count": 1,
+            "transaction_count": 1,
+            "normalized_at": "t",
+        },
+    )
+
+    status = mcp_ownex_server.call_tool("get_ownex_status", {})
+    assert "iol" in status["providers_with_normalized_data"]
+
+    positions = mcp_ownex_server.call_tool("get_portfolio_positions", {"provider": "iol"})
+    assert positions["positions"][0]["symbol"] == "GGAL"
+
+    cash = mcp_ownex_server.call_tool("get_cash_balances", {"provider": "iol"})
+    assert cash["cash_by_currency"]["ARS"] == 50000
+
+    txs = mcp_ownex_server.call_tool("get_transaction_history", {"provider": "iol"})
+    assert txs["count"] == 1
+
+    unknown = mcp_ownex_server.call_tool("get_portfolio_positions", {"provider": "nope"})
+    assert "error" in unknown
+
+    bad_tool = mcp_ownex_server.call_tool("place_order", {})
+    assert "error" in bad_tool

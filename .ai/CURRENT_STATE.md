@@ -3407,3 +3407,12 @@ Características del Sistema Completo:
 - **Normalizer**: posiciones Binance ahora tienen `current_price`/`value` real en USDT (fiat 1:1); posiciones IOL usan quote como fallback cuando `market_value` falta y guardan `quote_ts` (provenance). Regla mantenida: valuación solo en moneda de cotización, sin FX inventado.
 - Tests: valuación Binance con quotes, fallback IOL, shapes. 34 passed connections.
 - **Pendiente**: PPI marketdata quotes (requiere auth + instrument params), WebSocket IOL/Binance streaming, IOL MCP oficial, endpoints de órdenes/pending orders.
+
+## 2026-11-09 — P12: OWNEX MCP Server (read-only) para Perch/agentes externos
+
+- **`core/mcp_ownex_server.py`** (nuevo): servidor MCP stdio real (`mcp` SDK low-level `Server` + `stdio_server`). 9 tools read-only allowlisteadas: get_ownex_status, list_connected_providers, get_connection_status, get_portfolio_snapshot, get_portfolio_positions, get_cash_balances, get_transaction_history, get_last_sync_results, get_data_quality_report. Ninguna tool de escritura/trading/retiro existe — `call_tool` rechaza nombres desconocidos.
+- Datos vía módulos canónicos (catalog, identity_vault sin secretos, financial_normalizer, snapshots, sync_history, importer). Secretos jamás salen: el vault no desencripta en payloads.
+- Ejecutar: `python -m core.mcp_ownex_server`. Config Perch (`~/.perch/mcp.json` o `.perch/mcp.json`): `{"mcpServers":{"ownex":{"command":"python","args":["-m","core.mcp_ownex_server"],"cwd":"<repo>"}}}`.
+- `mcp>=1.8.0` agregado a requirements.txt. `ccxt` sigue siendo dep opcional (import lazy con error honesto).
+- Tests: catálogo read-only (sin tools de orden/trade/withdraw), handlers con datos normalizados mockeados, provider desconocido y tool inexistente → error. 25 passed en test_financial_connections.
+- **Pendiente P12**: consentimiento/scopes por clase de dato sensible (hoy todo el dataset normalizado es visible para quien configure el server), audit log de tool-calls, revocación, integración de artefactos que Perch devuelva, y verificación end-to-end con Perch Desktop/CLI real.
