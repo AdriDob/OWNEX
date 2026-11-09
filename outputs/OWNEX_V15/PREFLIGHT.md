@@ -42,7 +42,10 @@ estado = DIVERGED
 
 No se hizo merge, ni reset, ni force push. Hay 82 tags en el repo y releases v7.x publicados.
 
-## Licencia: contradicción confirmada
+## Licencia: contradicción confirmada (estado en Fase A — ya resuelta)
+
+> Estado **histórico**, tal como estaba al iniciar V15. El propietario eligió
+> licencia privada el 2026-11-09; la resolución está en `LICENSE_DECISION.md`.
 
 | Fuente | Dice |
 |---|---|

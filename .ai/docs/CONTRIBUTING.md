@@ -96,7 +96,7 @@ chore: update dependencies
 
 ## 📄 License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions become part of OWNEX and are owned by the project copyright holder under the terms of LICENSE (proprietary, all rights reserved). Do not submit code you cannot assign this way.
 
 ---
 

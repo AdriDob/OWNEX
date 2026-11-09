@@ -1,6 +1,39 @@
 # OWNEX V15 — LICENSE DECISION
 
-Estado: **BLOQUEADO POR DECISIÓN DEL PROPIETARIO** · no se modificó `LICENSE` ni `README.md`
+Estado: **RESUELTO — Opción B ejecutada (2026-11-09)** · el propietario eligió licencia privada
+
+## Implementación
+
+| Archivo | Antes | Ahora |
+|---|---|---|
+| `LICENSE` | texto MIT | **propietario, all rights reserved**, con sección `LICENSE HISTORY` |
+| `LICENSE-MIT-legacy.txt` | no existía | texto MIT exacto que aplicó hasta 2026-11-09, preservado sin modificar |
+| `README.md` | "Proprietary" sin matices | Proprietary + historia de la licencia y enlace al texto legacy |
+| `.ai/docs/CONTRIBUTING.md` | "contributions licensed under the MIT License" | contribuciones asignadas al titular bajo LICENSE |
+| `.ai/docs/SUPPORT.md` | "Yes, MIT licensed" ×2 | proprietary; MIT solo para versiones previas al 2026-11-09 |
+
+Se conservó la sección de historia en el propio `LICENSE` y en el README porque afirmar
+"all rights reserved en todas las versiones" sería falso: el código estuvo bajo MIT desde
+`5ae7280e` (2026-06-28) y se distribuyó bajo esos términos.
+
+### Verificación de coherencia
+
+```
+LICENSE                        -> Proprietary
+README.md                      -> Proprietary (+ historia MIT)
+.ai/docs/SUPPORT.md            -> proprietary
+.ai/docs/CONTRIBUTING.md       -> proprietary
+docs/MONETIZATION.md           -> Proprietary (ya lo decía)
+assets/badges/README.md        -> badge Proprietary (ya lo decía)
+```
+
+Queda una acción que **solo el propietario puede hacer**: decidir si el repositorio de GitHub
+pasa a privado (Opción C). El texto ya no depende de eso, pero un repo público con licencia
+propietaria sigue siendo legible por cualquiera.
+
+---
+
+## Registro previo (estado antes de la decisión)
 
 ## Hechos verificados
 

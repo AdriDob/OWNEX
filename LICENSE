@@ -1,21 +1,55 @@
-MIT License
+OWNEX — Proprietary License
+Copyright (c) 2026 Rastro. All rights reserved.
 
-Copyright (c) 2026 Rastro
+This software and its source code, documentation, schemas, datasets, prompts,
+configuration and assets (the "Software") are proprietary and confidential.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. NO LICENSE GRANTED
+   No right or license is granted to use, copy, modify, merge, publish,
+   distribute, sublicense, sell, host, or create derivative works from the
+   Software, in whole or in part, without the prior written permission of the
+   copyright holder.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. NO REDISTRIBUTION
+   You may not make the Software available to any third party, whether by
+   publishing the source, distributing binaries, offering it as a service, or
+   including it in another product.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. PERMITTED USE
+   The copyright holder may use, modify and distribute the Software without
+   restriction. Nothing in this license limits the copyright holder's rights.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+   IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+5. TRADEMARKS
+   "OWNEX" and associated names and logos are marks of the copyright holder.
+   This license grants no right to use them.
+
+--------------------------------------------------------------------------------
+LICENSE HISTORY — READ THIS BEFORE RELYING ON ANY PERMISSION
+--------------------------------------------------------------------------------
+
+The Software was published under the MIT License from 2026-06-28 (commit
+5ae7280e, "ui: add product screenshots and MIT license") and was distributed
+publicly under those terms until this license was adopted on 2026-11-09.
+
+Changing the license does NOT revoke permissions already granted. Every copy of
+the Software obtained while the MIT License was in force remains governed by the
+MIT License for that copy, forever, and those recipients keep the rights they
+were given, including use, modification, sublicense and sale.
+
+The exact MIT text that applied to those versions is preserved unmodified in
+LICENSE-MIT-legacy.txt. It applies only to versions published under it, not to
+the current version or to anything added after 2026-11-09.
+
+Consequence, stated plainly: this repository is proprietary going forward, and
+the historical versions are not. Any statement that the project was "never open
+source", or that all rights in all versions are reserved, would be false.
+
+For permission requests, contact the copyright holder.

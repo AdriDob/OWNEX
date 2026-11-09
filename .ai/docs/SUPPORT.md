@@ -66,7 +66,7 @@ uvicorn api.main:app --reload --port 8000
 **A**: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Q: Is OWNEX free?
-**A**: Yes, MIT licensed. Commercial support available.
+**A**: No. OWNEX is proprietary (all rights reserved) and is not distributed to third parties. Versions published before 2026-11-09 were MIT and stay MIT for those copies — see `LICENSE-MIT-legacy.txt`.
 
 ## Status & Health
 
@@ -97,4 +97,5 @@ cd frontend && npm install
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Proprietary, all rights reserved - see [LICENSE](../../LICENSE) for details, and
+`LICENSE-MIT-legacy.txt` for the terms that applied to earlier versions.
