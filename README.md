@@ -19,7 +19,7 @@ Intelligence before action · Human control · Local-first, no telemetry.
 
 | Capability | Status | Evidence |
 |---|---|---|
-| Opportunity discovery (135+ sources, 36 categories, barrier-scored 0–100) | ✅ VERIFIED | `cores/opportunity/`, `core/opportunity/`, `tests/test_opportunity_*` |
+| Opportunity discovery (150+ sources in catalog, barrier-scored 0–100) | ✅ VERIFIED | `cores/opportunity/global_sources.py` (`get_sources()` → 151), `cores/opportunity/`, `core/opportunity/`, `tests/test_opportunity_*` |
 | Remote-job pipeline: 5 real feeds (Remotive, Arbeitnow, RemoteOK, Jobicy, WeWorkRemotely) → explainable match score → persistent profile → tracker → draft | ✅ VERIFIED | `cores/opportunity/{job_feeds,remote_job_matcher,user_profile,job_tracker,application_drafter}.py`, `tests/test_{job_feeds,remote_job_matcher,remote_job_integration,income_plan}.py` |
 | Employment classification (permanent / temporary / independent / microtask / bounty) — permanent jobs ranked separately, contracts excluded by default | ✅ VERIFIED | `cores/opportunity/employment.py` (`OWNEX_REMOTE_JOBS_SCOPE=all` opts out) |
 | Unified income plan (first-day actions, accepted streams, work-bank, remote jobs) | ✅ VERIFIED | `cores/direct_work_engine/income_plan.py`, `tests/test_income_plan.py` (20 tests) |
@@ -28,7 +28,7 @@ Intelligence before action · Human control · Local-first, no telemetry.
 | OWNEX MCP server: 9 read-only tools + consent scopes + audit log | ✅ VERIFIED | `core/mcp_ownex_server.py` |
 | Work cycles + scheduler (runtime canonical: `core/scheduler/jobs.py`) | ✅ VERIFIED | `tests/test_scheduler*.py` |
 | Security pipeline (recon → hypothesis → validation → evidence → report), DRY_RUN trading default | ✅ VERIFIED | `core/trading/`, `tests/test_offensive*.py` |
-| Frontend: ~79 routed pages, Vue 3 + TS + Tailwind v4 + Vite, `vite build` green | ✅ BUILD_VERIFIED | `frontend/`, `vite build` |
+| Frontend: 79 page components / 140+ routes, Vue 3 + TS + Tailwind v4 + Vite, `vite build` green | ✅ BUILD_VERIFIED | `frontend/`, `vite build` |
 | Desktop: Tauri v2 + PyInstaller sidecar | 🔶 BUILD_VERIFIED | `src-tauri/`, `desktop/` |
 | Android companion (Capacitor, `android/` Gradle project, `BUILD_RELEASE_APK.md`) | 🔶 BUILD_VERIFIED | `android/` — APK build documented, device flows not re-verified this release |
 | Wear OS companion (`cores/wear_os/`, `MobileCompanionJarvis.vue`) | 🟡 EXPERIMENTAL | partial implementation; not install-verified |
@@ -166,13 +166,20 @@ Pre-commit hooks run ruff + the pytest suite. Governance for all agents:
 
 ## License
 
-**Status: unresolved — owner decision pending.**
+**Proprietary. All rights reserved** — see [LICENSE](LICENSE). No right to use,
+copy, modify or redistribute is granted without written permission.
 
-The `LICENSE` file contains the MIT license (added `5ae7280e`, 2026-06-28) and
-the project has been distributed under it since. An earlier README revision
-declared the work proprietary. Changing the license text today does not revoke
-MIT permissions already granted on published versions. Until the owner resolves
-this, neither claim should be treated as final — see
+**License history, stated plainly.** OWNEX was published under the MIT License
+from 2026-06-28 ([`5ae7280e`](../../commit/5ae7280e)) until 2026-11-09, and it was
+distributed publicly under those terms. Changing the license does not revoke
+permissions already granted: every copy obtained while MIT was in force stays
+MIT for that copy, permanently. The exact text is preserved unmodified in
+[LICENSE-MIT-legacy.txt](LICENSE-MIT-legacy.txt) and applies only to versions
+published under it.
+
+So the project is proprietary **going forward**; the historical versions are
+not. Any claim that OWNEX was never open source, or that all rights in all
+versions are reserved, would be false. Decision record:
 `outputs/OWNEX_V15/LICENSE_DECISION.md`.
 
 ---
