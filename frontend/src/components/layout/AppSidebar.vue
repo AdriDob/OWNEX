@@ -109,6 +109,7 @@ const navSections = [
     items: [
       { name: 'Activos', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
       { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo, badge: 'workQueue' },
+      { name: 'Empleos Remotos', path: '/operations/remote-jobs', icon: Search },
       { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
     ],
   },

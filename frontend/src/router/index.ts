@@ -287,6 +287,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Cola de Trabajo' },
       },
       {
+        path: 'remote-jobs',
+        name: 'remote-jobs',
+        component: () => import(/* webpackChunkName: "remote-jobs" */ '@/pages/RemoteJobs.vue'),
+        meta: { title: 'Empleos Remotos' },
+      },
+      {
         path: 'work-room/:id',
         name: 'work-room',
         component: () => import(/* webpackChunkName: "work-room" */ '@/components/guided-mode/GuidedDashboard.vue'),
