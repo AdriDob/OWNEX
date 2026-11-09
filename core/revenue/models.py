@@ -87,7 +87,7 @@ ARGENTINA_METHODS: dict[str, ArgentinaPaymentMethod] = {
     "paypal": ArgentinaPaymentMethod(
         name="paypal",
         display_name="PayPal",
-        platform_support=["hackerone", "bugcrowd", "fiverr", "upwork"],
+        platform_support=["hackerone", "bugcrowd", "fiverr"],
         fee_percent=4.5,
         speed_days=5.0,
         min_amount_usd=10.0,
@@ -96,7 +96,7 @@ ARGENTINA_METHODS: dict[str, ArgentinaPaymentMethod] = {
     "payoneer": ArgentinaPaymentMethod(
         name="payoneer",
         display_name="Payoneer",
-        platform_support=["fiverr", "upwork", "freelancer"],
+        platform_support=["fiverr", "freelancer"],
         fee_percent=2.0,
         speed_days=3.0,
         min_amount_usd=20.0,
@@ -105,7 +105,7 @@ ARGENTINA_METHODS: dict[str, ArgentinaPaymentMethod] = {
     "wise": ArgentinaPaymentMethod(
         name="wise",
         display_name="Wise (TransferWise)",
-        platform_support=["bugcrowd", "hackerone", "upwork"],
+        platform_support=["bugcrowd", "hackerone"],
         fee_percent=1.5,
         speed_days=1.0,
         min_amount_usd=5.0,

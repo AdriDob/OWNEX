@@ -23,7 +23,6 @@ DEFAULT_CONFIG = {
     "intigriti": {"enabled": False, "api_base": "https://api.intigriti.com/external"},
     "immunefi": {"enabled": False, "api_base": "https://immunefi.com/api"},
     "github": {"enabled": False, "api_base": "https://api.github.com"},
-    "upwork": {"enabled": False, "api_base": "https://www.upwork.com/api/v3"},
     "outlier": {"enabled": False, "api_base": "https://platform.outlier.ai/api"},
     "dataannotation": {"enabled": False, "api_base": "https://dataannotation.tech/api"},
     "algora": {"enabled": False, "api_base": "https://api.algora.io/v1"},
@@ -33,7 +32,6 @@ DEFAULT_CONFIG = {
 DEFAULT_STATE = {
     "configs": DEFAULT_CONFIG,
     "last_sync": {},
-    "cached_data": {},
 }
 
 
@@ -104,25 +102,10 @@ class GitHubConnector(PlatformConnector):
         return {"platform": "github", "connected": bool(self.credentials.get("token"))}
 
 
-class UpworkConnector(PlatformConnector):
-    async def authenticate(self) -> bool:
-        return bool(self.credentials.get("access_token"))
-
-    async def list_opportunities(self) -> list[dict[str, Any]]:
-        return []
-
-    async def get_payments(self) -> list[dict[str, Any]]:
-        return []
-
-    async def get_account_status(self) -> dict[str, Any]:
-        return {"platform": "upwork", "connected": bool(self.credentials.get("access_token"))}
-
-
 CONNECTORS = {
     "hackerone": HackerOneConnector,
     "bugcrowd": BugcrowdConnector,
     "github": GitHubConnector,
-    "upwork": UpworkConnector,
 }
 
 

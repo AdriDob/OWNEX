@@ -98,6 +98,8 @@ python install.py
 
 External connections, financial data, and remote-job pipeline — all read-only by default, human approval for anything that moves money or submits work.
 
+**V12.1 — Upwork Removed + Remote Job Matcher Integrated**
+
 | Module | Status |
 |--------|--------|
 | Connection Manager (`/integrations/connections`) | ✅ catalog, setup, sync, import |
@@ -108,14 +110,13 @@ External connections, financial data, and remote-job pipeline — all read-only 
 | Cartera consolidada normalizada (sin mezclar monedas, sin FX inventado) | ✅ |
 | Income → Ledger bridge (ingresos de inversión al ledger canónico) | ✅ acción explícita del usuario |
 | OWNEX MCP Server (`python -m core.mcp_ownex_server`) | ✅ 9 tools read-only + consent scopes + audit log |
-| Remote Job Matcher (`/operations/remote-jobs`) | ✅ feeds reales (Remotive/Arbeitnow/RemoteOK) + score explicable + perfil persistente + tracker con aprobación humana |
+| **Remote Job Matcher (`/operations/remote-jobs`)** | ✅ **feeds reales (Remotive/Arbeitnow/RemoteOK) + score explicable + perfil persistente + tracker con aprobación humana** |
 | Application drafter (borradores solo con datos reales del perfil) | ✅ drafts, nunca auto-envío |
+| **Upwork** | ❌ **Excluido del catálogo activo** — removido V12.1 |
 
 **Honestidad:** ninguna integración externa fue validada con credenciales reales todavía — están implementadas según documentación oficial y testeadas con mocks. Upwork está excluido del catálogo activo.
 
----
-
-## Actually working (vs roadmap)
+---\n\n## Actually working (vs roadmap)
 
 | Area | Status |
 |------|--------|

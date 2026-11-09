@@ -7,6 +7,7 @@ It performs:
   1. Schema mapping: SourceCandidate fields → Opportunity model fields
   2. Deduplication: by source ID + URL hash against existing bank items
   3. Pipeline integration: returns Opportunities ready for daily_cycle consumption
+  4. Feedback tracking: records user acceptance/rejection for learning loop
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import hashlib
 import logging
 from typing import Any
 
+from cores.opportunity.feedback import get_feedback_loop
 from core.opportunity.source_discovery import (
     SourceCandidate,
     SourceDiscoveryRegistry,
@@ -158,8 +160,6 @@ def _normalize_platform(url: str | None) -> WorkPlatform:
         return WorkPlatform.OPEN_COLLECTIVE
     if "freelancer.com" in u:
         return WorkPlatform.FREELANCER
-    if "upwork.com" in u:
-        return WorkPlatform.UPWORK
     if "fiverr.com" in u:
         return WorkPlatform.FIVERR
     return WorkPlatform.OTHER
