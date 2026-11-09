@@ -10,7 +10,7 @@ Canonical detailed registers: `.ai/TECHNICAL_DEBT.md` and `.ai/KNOWN_DEBT.md` (s
 | TD-04 | External portfolio not wired to `cores/capital` engines | P2 | finance | capital runway/risk ignore real balances | needs FX policy decision (user) | BLOCKED |
 | TD-05 | npm audit: 21 vulns (mostly devDeps) | P2 | frontend | `npm audit fix` crashes on lockfile | regen lockfile or targeted updates | OPEN |
 | TD-06 | Parallel-session WIP files break vue-tsc (type errors) | P3 | frontend | typecheck noise hides real errors | owners fix their WIP | OPEN |
-| TD-07 | `api/routers/opportunity.py` dead + broken import | P3 | api | confusion, dead code | delete or fix+register | OPEN |
+| TD-07 | ~~`api/routers/opportunity.py`~~ | — | api | — | DELETED (zero refs, broken import, not in main.py) | CLOSED |
 | TD-08 | `work/ownex-economy-active-earn/` + `.quarantine/` copies in repo | P3 | repo | agent confusion, repo bloat | move out of repo or document as frozen | OPEN |
 | TD-09 | Job feeds mostly EN-first; Jobicy adds LATAM geo but no ES-native board verified | P3 | work discovery | matcher penalizes ES-only AR jobs | add Computrabajo/Bumeran manual import or verified API | OPEN (improved) |
 | TD-10 | IOL/PPI/Binance never validated with real credentials | P1 | connections | "implemented" ≠ "works" | user provides creds → live sync test | BLOCKED |
