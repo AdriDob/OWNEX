@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from api.routers import connection_manager
 from cores.brokers import binance_client, iol_client, ppi_client
-from cores.connections import financial_normalizer, importer, sync_history
+from cores.connections import financial_normalizer, importer, portfolio_view, sync_history
 
 
 class FakeVault:
@@ -623,3 +623,67 @@ def test_mcp_call_tool_handlers(tmp_path, monkeypatch) -> None:
 
     bad_tool = mcp_ownex_server.call_tool("place_order", {})
     assert "error" in bad_tool
+
+
+# ── P13: external portfolio view / revenue separation ───────────────────
+
+
+def _pv_cfg(tmp_path, monkeypatch):
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(portfolio_view, "get_config", lambda: fake_cfg)
+    monkeypatch.setattr(financial_normalizer, "get_config", lambda: fake_cfg)
+
+
+def test_transaction_classification_separates_income(tmp_path, monkeypatch) -> None:
+    _pv_cfg(tmp_path, monkeypatch)
+    financial_normalizer.save_normalized(
+        "cocos",
+        {
+            "provider": "cocos",
+            "positions": [],
+            "transactions": [
+                {"symbol": "GGAL", "tx_type": "buy", "total": -1000, "currency": "ARS", "executed_at": "2026-01-01"},
+                {"symbol": "", "tx_type": "deposit", "total": 50000, "currency": "ARS", "executed_at": "2026-01-02"},
+                {"symbol": "", "tx_type": "dividend", "total": 120, "currency": "USD", "executed_at": "2026-01-03"},
+                {"symbol": "", "tx_type": "", "total": 50, "currency": "ARS", "executed_at": "2026-01-04", "extra": {"description": "Comision por operación"}},
+                {"symbol": "", "tx_type": "mystery", "total": 10, "currency": "ARS", "executed_at": "2026-01-05"},
+            ],
+            "cash_by_currency": {},
+            "position_count": 0,
+            "transaction_count": 5,
+        },
+    )
+    income = portfolio_view.income_candidates()
+    assert len(income) == 1
+    assert income[0]["tx_type"] == "dividend"
+    # internal moves never become income
+    kinds = {t["kind"] for t in portfolio_view.external_transactions()}
+    assert "trade" in kinds and "transfer" in kinds and "fee" in kinds and "unknown" in kinds
+
+
+def test_portfolio_detail_and_endpoints(client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    _pv_cfg(tmp_path, monkeypatch)
+    financial_normalizer.save_normalized(
+        "binance",
+        {
+            "provider": "binance",
+            "positions": [{"symbol": "BTC", "quantity": 0.1, "value": 5000, "currency": "USDT"}],
+            "transactions": [],
+            "cash_by_currency": {"USDT": 100},
+            "position_count": 1,
+            "transaction_count": 0,
+            "normalized_at": "t",
+        },
+    )
+    detail = client.get("/api/connection-manager/portfolio/detail")
+    assert detail.status_code == 200
+    body = detail.json()
+    assert body["provider_count"] == 1
+    assert body["positions"][0]["provider"] == "binance"
+
+    txs = client.get("/api/connection-manager/portfolio/transactions")
+    assert txs.status_code == 200
+
+    income = client.get("/api/connection-manager/portfolio/income-candidates")
+    assert income.status_code == 200
+    assert income.json()["count"] == 0

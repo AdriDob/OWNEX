@@ -3416,3 +3416,11 @@ Características del Sistema Completo:
 - `mcp>=1.8.0` agregado a requirements.txt. `ccxt` sigue siendo dep opcional (import lazy con error honesto).
 - Tests: catálogo read-only (sin tools de orden/trade/withdraw), handlers con datos normalizados mockeados, provider desconocido y tool inexistente → error. 25 passed en test_financial_connections.
 - **Pendiente P12**: consentimiento/scopes por clase de dato sensible (hoy todo el dataset normalizado es visible para quien configure el server), audit log de tool-calls, revocación, integración de artefactos que Perch devuelva, y verificación end-to-end con Perch Desktop/CLI real.
+
+## 2026-11-09 — P13: read-model externo unificado (Investments/Capital/Crypto/Revenue)
+
+- **`cores/connections/portfolio_view.py`** (nuevo): merge read-only de datos normalizados cross-provider. `external_positions()`, `external_transactions()` (clasificadas), `income_candidates()`, `portfolio_detail()`.
+- **Separación revenue-ledger por construcción**: `_classify_tx` clasifica trade/transfer/fee/income/unknown por tipo y descripción; `income_candidates()` solo devuelve `income` — depósitos propios, transferencias, trades y fees NUNCA cuentan como ingreso. Desconocidos → `unknown`, nunca income.
+- **Endpoints**: `GET /portfolio/detail` (posiciones+providers+cash), `GET /portfolio/transactions?limit=`, `GET /portfolio/income-candidates`.
+- Tests: clasificación (buy/deposit/dividend/comisión/mystery), income_candidates excluye movimientos internos, endpoints. 38 passed connections.
+- **Pendiente P13**: engines `cores/capital` (runway/risk/allocation) siguen recibiendo inputs manuales — integrar cash_by_currency requiere decisión de FX (hoy prohibido inventar tasas); truth_layer es event-sourced (los balances no son eventos); wiring de income_candidates al revenue ledger real pendiente; frontend capital panel consume `/portfolio` pero no `/portfolio/detail` todavía.

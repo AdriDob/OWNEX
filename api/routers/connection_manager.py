@@ -435,6 +435,31 @@ def consolidated_portfolio() -> dict[str, Any]:
     return financial_normalizer.consolidated_portfolio()
 
 
+@router.get("/portfolio/detail")
+def portfolio_detail() -> dict[str, Any]:
+    """Full external portfolio read-model: positions + providers + cash (P13)."""
+    from cores.connections import portfolio_view
+
+    return portfolio_view.portfolio_detail()
+
+
+@router.get("/portfolio/transactions")
+def portfolio_transactions(limit: int = 500) -> dict[str, Any]:
+    """Merged normalized transactions classified for revenue-ledger separation (P13)."""
+    from cores.connections import portfolio_view
+
+    return {"transactions": portfolio_view.external_transactions(min(limit, 1000)), "count": min(limit, 1000)}
+
+
+@router.get("/portfolio/income-candidates")
+def portfolio_income_candidates() -> dict[str, Any]:
+    """Transactions classified as income only — internal moves never count (P13)."""
+    from cores.connections import portfolio_view
+
+    items = portfolio_view.income_candidates()
+    return {"candidates": items, "count": len(items)}
+
+
 def _require_provider(provider: str) -> None:
     meta = _catalog_providers().get(provider)
     if meta is None:
