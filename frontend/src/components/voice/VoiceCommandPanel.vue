@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Mic, MicOff, Volume2, VolumeX, Settings as SettingsIcon } from '@lucide/vue'
+import { useOwnVoice } from '@/composables/useOwnVoice'
+
+const voice = useOwnVoice()
 
 const isListening = ref(false)
 const isProcessing = ref(false)
@@ -11,8 +14,17 @@ const transcript = ref('')
 
 let recognition: SpeechRecognition | null = null
 
+// MediaRecorder fallback: the browser records a clip and the backend transcribes it
+// (needed on Capacitor/Android WebView, where Web Speech is unavailable).
+let recorder: MediaRecorder | null = null
+let chunks: Blob[] = []
+const lastResult = ref('')
+const recorderSupported =
+  typeof MediaRecorder !== 'undefined' && typeof navigator !== 'undefined' && !!navigator.mediaDevices
+
 onMounted(() => {
   initSpeechRecognition()
+  void voice.init()
 })
 
 onUnmounted(() => {
@@ -68,16 +80,73 @@ function initSpeechRecognition() {
   }
 }
 
-function toggleListening() {
-  if (!recognition) {
-    alert('Speech recognition not supported in this browser')
+async function toggleListening() {
+  if (recognition) {
+    if (isListening.value) {
+      recognition.stop()
+    } else {
+      recognition.start()
+    }
     return
   }
 
-  if (isListening.value) {
-    recognition.stop()
-  } else {
-    recognition.start()
+  if (!recorderSupported) return
+
+  if (recorder && recorder.state === 'recording') {
+    recorder.stop()
+    return
+  }
+
+  await startRecording()
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    chunks = []
+    recorder = new MediaRecorder(stream)
+    recorder.ondataavailable = (event: BlobEvent) => {
+      if (event.data.size > 0) chunks.push(event.data)
+    }
+    recorder.onstop = async () => {
+      stream.getTracks().forEach((track) => track.stop())
+      isListening.value = false
+      const blob = new Blob(chunks, { type: recorder?.mimeType || 'audio/webm' })
+      await processAudio(blob)
+    }
+    recorder.start()
+    isListening.value = true
+  } catch (error) {
+    console.error('Microphone unavailable:', error)
+    lastResult.value = 'Micrófono no disponible'
+  }
+}
+
+/** Backend round-trip: audio → local STT → voice command → result. */
+async function processAudio(blob: Blob) {
+  isProcessing.value = true
+  try {
+    const form = new FormData()
+    form.append('audio', blob, 'command.webm')
+    form.append('language', 'es')
+
+    const response = await fetch('/api/voice/commands/audio', { method: 'POST', body: form })
+    const result = await response.json()
+
+    if (!response.ok) {
+      lastResult.value = result?.detail ?? `Error ${response.status}`
+      return
+    }
+
+    transcript.value = result.transcript ?? ''
+    lastCommand.value = result.command_type
+    lastResult.value = result.message ?? ''
+    speakFeedback(result.voice_feedback)
+  } catch (error) {
+    console.error('Error sending audio command:', error)
+    lastResult.value = 'Error enviando audio'
+  } finally {
+    isProcessing.value = false
   }
 }
 
@@ -93,18 +162,28 @@ async function processCommand(text: string) {
     })
 
     const result = await response.json()
+    lastResult.value = result?.message ?? ''
+    speakFeedback(result?.voice_feedback)
   } catch (error) {
     console.error('Error processing voice command:', error)
+    lastResult.value = 'Error procesando comando'
   } finally {
     isProcessing.value = false
   }
 }
 
-function toggleMute() {
-  isMuted.value = !isMuted.value
+/** Speak the backend's voice feedback: local piper, browser speechSynthesis otherwise. */
+function speakFeedback(feedback?: string) {
+  if (!feedback || isMuted.value) return
+  void voice.speak(feedback)
 }
 
-const canListen = computed(() => recognition !== null)
+function toggleMute() {
+  isMuted.value = !isMuted.value
+  if (isMuted.value) voice.cancelSpeech()
+}
+
+const canListen = computed(() => recognition !== null || recorderSupported)
 const statusText = computed(() => {
   if (isListening.value) return 'Escuchando...'
   if (isProcessing.value) return 'Procesando...'
@@ -136,6 +215,9 @@ const statusText = computed(() => {
         </p>
         <p v-if="lastCommand" class="font-mono text-xs text-success mt-1">
           Comando: {{ lastCommand }}
+        </p>
+        <p v-if="lastResult" class="font-mono text-xs text-foreground mt-1">
+          {{ lastResult }}
         </p>
       </div>
 

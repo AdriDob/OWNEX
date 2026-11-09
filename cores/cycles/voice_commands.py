@@ -11,10 +11,12 @@ text and drives the loop.
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import logging
 import shutil
 import subprocess
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -42,12 +44,17 @@ def _load_model(model_size: str):
     return _MODEL_CACHE[model_size]
 
 
-def transcribe_audio(audio_path: Path | str, model_size: str = DEFAULT_MODEL_SIZE) -> str | None:
+def transcribe_audio(
+    audio_path: Path | str,
+    model_size: str = DEFAULT_MODEL_SIZE,
+    language: str | None = None,
+) -> str | None:
     """Transcribe an audio file to text, or ``None`` when unavailable.
 
     Args:
         audio_path: Path to the WAV/MP3/M4A file to transcribe.
         model_size: faster-whisper model size (``base`` is enough for commands).
+        language: Optional ISO code hint (``es``, ``en``); auto-detected when omitted.
     """
     path = Path(audio_path)
     if not path.exists():
@@ -55,7 +62,7 @@ def transcribe_audio(audio_path: Path | str, model_size: str = DEFAULT_MODEL_SIZ
         return None
     try:
         model = _load_model(model_size)
-        segments, _info = model.transcribe(str(path), vad_filter=True)
+        segments, _info = model.transcribe(str(path), language=language, vad_filter=True)
         text = " ".join(segment.text.strip() for segment in segments).strip()
         return text or None
     except Exception as exc:
@@ -88,6 +95,9 @@ def listen_from_mic(timeout: int = 5) -> str | None:
 
 # ── Spoken feedback ─────────────────────────────────────────────────────
 
+# CLI players able to play the generated WAV (first one wins).
+PLAYER_CANDIDATES = ("aplay", "paplay", "ffplay")
+
 
 def speak(text: str) -> bool:
     """Speak ``text`` locally. Returns False when no TTS/player is available."""
@@ -95,7 +105,7 @@ def speak(text: str) -> bool:
     if wav is None:
         return False
 
-    player = shutil.which("aplay") or shutil.which("paplay") or shutil.which("ffplay")
+    player = _find_player()
     if player is None:
         logger.debug("No WAV player found; skipping playback")
         return False
@@ -172,6 +182,7 @@ def main() -> None:
     parser.add_argument("--text", help="Execute one text command without audio")
     parser.add_argument("--speak", action="store_true", help="Speak feedback with local piper TTS")
     parser.add_argument("--model", default=DEFAULT_MODEL_SIZE, help="faster-whisper model size")
+    parser.add_argument("--language", help="ISO language hint (es, en); auto-detect when omitted")
     args = parser.parse_args()
 
     if args.text:
@@ -184,7 +195,7 @@ def main() -> None:
         return
 
     if args.audio:
-        text = transcribe_audio(args.audio, model_size=args.model)
+        text = transcribe_audio(args.audio, model_size=args.model, language=args.language)
         if text is None:
             print("❌ No pude transcribir ese audio")
             return
@@ -202,3 +213,125 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# ── Stack health ────────────────────────────────────────────────────────
+
+_STT_MODULE = "faster_whisper"
+_MIC_MODULE = "speech_recognition"
+
+
+def _has_module(name: str) -> bool:
+    """True when ``name`` is importable — checked without importing it."""
+    try:
+        return importlib.util.find_spec(name) is not None
+    except (ImportError, ValueError):  # broken parent package / odd sys.path
+        return False
+
+
+def _find_player() -> str | None:
+    """First available CLI player able to play a WAV file."""
+    for candidate in PLAYER_CANDIDATES:
+        found = shutil.which(candidate)
+        if found:
+            return found
+    return None
+
+
+def _stt_health() -> dict[str, Any]:
+    """Local STT component: faster-whisper, with browser recognition as fallback."""
+    available = _has_module(_STT_MODULE)
+    return {
+        "available": available,
+        "provider": "faster-whisper",
+        "model": DEFAULT_MODEL_SIZE,
+        "model_loaded": DEFAULT_MODEL_SIZE in _MODEL_CACHE,
+        "mic_capture": _has_module(_MIC_MODULE),
+        "detail": (f"faster-whisper ready (model {DEFAULT_MODEL_SIZE})" if available else "faster-whisper not installed"),
+        "fallback": "browser_speech_recognition",
+        "fallback_detail": ("the dashboard records audio in the browser and posts it to /api/voice/commands/audio"),
+    }
+
+
+def _tts_health() -> dict[str, Any]:
+    """Local TTS component: piper binary plus a real ``.onnx`` voice."""
+    fallback_detail = "browser speechSynthesis speaks the reply (/api/voice/tts returns 415 and the dashboard falls back locally)"
+    try:
+        from cores.voice.voice_engine import (
+            PIPER_BIN,
+            PIPER_DEFAULT_MODEL,
+            get_tts_manager,
+            resolve_piper_voice,
+        )
+
+        voice_path, _dirs = resolve_piper_voice(PIPER_DEFAULT_MODEL)
+        voice_ready = voice_path.exists()
+        available = bool(PIPER_BIN) and voice_ready
+        if available:
+            detail = f"piper ready (voice {voice_path})"
+        elif not PIPER_BIN:
+            detail = "piper binary not found"
+        else:
+            detail = f"voice {PIPER_DEFAULT_MODEL} missing (download it into data/piper_voices)"
+        return {
+            "available": available,
+            "provider": "piper",
+            "binary": PIPER_BIN,
+            "voice": str(voice_path) if voice_ready else None,
+            "voice_model": PIPER_DEFAULT_MODEL,
+            "active_provider": get_tts_manager().provider_status().get("active"),
+            "detail": detail,
+            "fallback": "system_tts",
+            "fallback_detail": fallback_detail,
+        }
+    except Exception as exc:  # voice engine unusable → browser TTS only
+        return {
+            "available": False,
+            "provider": "piper",
+            "binary": None,
+            "voice": None,
+            "voice_model": None,
+            "active_provider": "system_tts",
+            "detail": f"voice engine unavailable ({exc})",
+            "fallback": "system_tts",
+            "fallback_detail": fallback_detail,
+        }
+
+
+def _player_health() -> dict[str, Any]:
+    """Playback component: speak() needs a CLI player for the generated WAV."""
+    player_bin = _find_player()
+    return {
+        "available": player_bin is not None,
+        "binary": player_bin,
+        "candidates": list(PLAYER_CANDIDATES),
+        "detail": (f"CLI player {player_bin}" if player_bin else "no CLI player found (aplay/paplay/ffplay)"),
+        "fallback": "browser_audio_element",
+        "fallback_detail": ("speak() returns False; the dashboard plays the WAV returned by /api/voice/tts in the browser"),
+    }
+
+
+def voice_stack_health() -> dict[str, Any]:
+    """Per-component health of the local voice stack, with honest fallbacks.
+
+    Each component reports whether it is usable, why, and what happens instead
+    when it is not — so a missing piece never silently degrades the round-trip.
+    """
+    stt = _stt_health()
+    tts = _tts_health()
+    player = _player_health()
+    components = {"stt": stt, "tts": tts, "audio_player": player}
+
+    if not stt["available"]:
+        status = "unavailable"
+    elif not (tts["available"] and player["available"]):
+        status = "degraded"
+    else:
+        status = "ok"
+
+    return {
+        "status": status,
+        "checked_at": datetime.now(UTC).isoformat(),
+        "components": components,
+        "fallbacks": [f"{name}: {section['fallback_detail']}" for name, section in components.items() if not section["available"]],
+    }

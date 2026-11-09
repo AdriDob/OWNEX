@@ -27,6 +27,16 @@ export type ConnectionState =
   | 'MANUAL_SETUP'
   | 'UNSUPPORTED'
 
+export interface ProviderSetup {
+  domain: string
+  login_url: string
+  docs_url: string
+  credential_fields: string[]
+  sync_mode: 'api' | 'manual_export' | 'cli' | 'none' | string
+  setup_steps: string[]
+  notes: string
+}
+
 export interface PlatformConnection {
   provider: string
   connected: boolean
@@ -43,6 +53,12 @@ export interface PlatformConnection {
   session_state?: string
   health_status?: 'healthy' | 'unhealthy' | 'unknown'
   requires_authentication?: boolean
+  domain?: string
+  last_sync_at?: string | null
+  last_sync_meta?: Record<string, unknown> | null
+  has_snapshot?: boolean
+  actions?: string[]
+  setup?: ProviderSetup | null
 }
 
 interface ConnectionManagerAccount {
@@ -51,11 +67,17 @@ interface ConnectionManagerAccount {
   auth_mechanism: string
   connect_supported: boolean
   source_count: number
+  domain?: string
   email: string
   has_credentials: boolean
   session_state: string | null
   health_status: string | null
   last_checked: string | null
+  last_sync_at?: string | null
+  last_sync_meta?: Record<string, unknown> | null
+  has_snapshot?: boolean
+  actions?: string[]
+  setup?: ProviderSetup | null
 }
 
 export interface ConnectionManagerState {
@@ -85,6 +107,12 @@ function toPlatformConnection(a: ConnectionManagerAccount): PlatformConnection {
     last_checked: a.last_checked || undefined,
     session_state: a.session_state || a.state,
     health_status: (a.health_status as PlatformConnection['health_status']) || 'unknown',
+    domain: a.domain,
+    last_sync_at: a.last_sync_at,
+    last_sync_meta: a.last_sync_meta,
+    has_snapshot: a.has_snapshot,
+    actions: a.actions,
+    setup: a.setup,
   }
 }
 
@@ -136,8 +164,9 @@ export const useExternalConnectionManager = () => {
     connectionError.value = null
 
     try {
-      if (!email || (!token && !password)) {
-        throw new Error('Email y token o contraseña son requeridos')
+      // Email is always required; token/password depend on the provider setup.
+      if (!email) {
+        throw new Error('Email es requerido')
       }
       const account = await api.post<ConnectionManagerAccount>(
         `/connection-manager/accounts/${encodeURIComponent(provider)}/connect`,
@@ -195,8 +224,13 @@ export const useExternalConnectionManager = () => {
     return authenticate(provider)
   }
 
-  // Sync data from a provider — honest status check (no fake sync endpoint yet)
-  async function sync(provider: string): Promise<{ success: boolean; message: string; accounts?: PlatformConnection[] }> {
+  // Sync real data from a provider.
+  // api providers pull live data; manual providers accept an optional snapshot payload.
+  async function sync(
+    provider: string,
+    snapshot?: Record<string, unknown>,
+    note?: string,
+  ): Promise<{ success: boolean; message: string; accounts?: PlatformConnection[]; syncResult?: Record<string, unknown> }> {
     if (!auth.isAuthenticated) {
       return { success: false, message: 'Sesión OWNEX no autenticada' }
     }
@@ -205,19 +239,22 @@ export const useExternalConnectionManager = () => {
     connectionRefreshing.value[key] = true
 
     try {
-      const result = await api.get<{ state: ConnectionState; last_checked?: string | null }>(
-        `/connection-manager/accounts/${encodeURIComponent(provider)}/status`
+      const result = await api.post<ConnectionManagerAccount & { sync_result?: Record<string, unknown> }>(
+        `/connection-manager/accounts/${encodeURIComponent(provider)}/sync`,
+        { snapshot: snapshot ?? null, note: note ?? '' }
       )
       await loadExternalConnections()
       connectionRefreshing.value[key] = false
+      const sr = result.sync_result as Record<string, unknown> | undefined
       return {
         success: true,
-        message: `Estado consultado: ${result.state}`,
+        message: sr ? `Sincronizado (${String(sr.source)})` : 'Sincronización completada',
         accounts: externalConnections.value,
+        syncResult: sr,
       }
     } catch (e: any) {
       connectionRefreshing.value[key] = false
-      const message = e?.message || 'Error durante la sincronización'
+      const message = e?.message || e?.detail || 'Error durante la sincronización'
       return { success: false, message }
     }
   }

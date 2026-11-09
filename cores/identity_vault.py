@@ -136,6 +136,8 @@ class IdentityVault:
                     "last_checked": data.get("last_checked"),
                     "health_status": data.get("health_status", "unknown"),
                     "has_credentials": bool(data.get("encrypted_token") or data.get("encrypted_password")),
+                    "last_sync_at": data.get("last_sync_at"),
+                    "last_sync_meta": data.get("last_sync_meta"),
                 }
             )
         return result
@@ -151,7 +153,18 @@ class IdentityVault:
             "last_checked": data.get("last_checked"),
             "health_status": data.get("health_status", "unknown"),
             "has_credentials": bool(data.get("encrypted_token") or data.get("encrypted_password")),
+            "last_sync_at": data.get("last_sync_at"),
+            "last_sync_meta": data.get("last_sync_meta"),
         }
+
+    def record_sync(self, provider: str, meta: dict[str, Any] | None = None) -> None:
+        """Stamp a successful sync for a provider (non-secret metadata only)."""
+        if provider not in _VAULT_DATA:
+            return
+        _VAULT_DATA[provider]["last_sync_at"] = datetime.now(UTC).isoformat()
+        if meta is not None:
+            _VAULT_DATA[provider]["last_sync_meta"] = json.dumps(meta, default=str)
+        self._save()
 
     def store_credentials(
         self,

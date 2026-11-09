@@ -104,6 +104,9 @@ def detect_platform(text: str) -> str | None:
 _VULN_ALTERNATION = _spoken_alternation(VULN_VOCABULARY)
 _PLATFORM_ALTERNATION = _spoken_alternation(PLATFORM_VOCABULARY)
 
+# Memory nouns as Whisper actually hears them ("engrams" often lands as "in grams").
+_MEMORY_NOUNS = r"(?:engrams?|(?:in[ -]?)?grams?|memor(?:y|ies|ias)|knowledge(?:\s+entries)?|aprendizajes|hallazgos)"
+
 
 def synthesize_feedback(text: str) -> bytes | None:
     """Return WAV bytes for spoken feedback, or ``None`` without local TTS."""
@@ -210,11 +213,11 @@ class VoiceCommandExecutor:
         ],
         VoiceCommandType.ENGRAM_LIST: [
             re.compile(
-                r"\b(?:list|show|mostrar)\s+(?:(?:my|mis)\s+)?(?:recent\s+|ultimos\s+|últimos\s+)?"
-                r"(?:engrams?|memor(?:y|ies|ias)|knowledge\s+entries|aprendizajes|hallazgos)\b",
+                rf"\b(?:list|show|mostrar)\s+(?:me\s+)?(?:(?:my|mis)\s+)*"
+                rf"(?:recent\w*\s+|ultimos\s+|últimos\s+)?{_MEMORY_NOUNS}\b",
                 re.IGNORECASE,
             ),
-            re.compile(r"\b(?:ultimos|últimos)\s+(?:hallazgos|aprendizajes|engrams?)\b", re.IGNORECASE),
+            re.compile(rf"\b(?:ultimos|últimos)\s+{_MEMORY_NOUNS}\b", re.IGNORECASE),
         ],
         VoiceCommandType.CLAIM_BOUNTY: [
             re.compile(r"claim\s+(?:bounty\s+)?([a-zA-Z0-9_-]+)", re.IGNORECASE),

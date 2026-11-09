@@ -21,6 +21,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -48,8 +49,24 @@ PIPER_BIN = shutil.which("piper")
 PIPER_MODEL_ENV = "OWNEX_PIPER_MODEL"
 PIPER_DATA_DIR_ENV = "OWNEX_PIPER_DATA_DIR"
 PIPER_DEFAULT_MODEL = "es_MX-ald-medium"  # Spanish (Mexico), male, calm — closest to es-419 neutral.
+
+
+def _resolve_piper_bin() -> str | None:
+    """Locate the piper CLI: PATH first, then next to the running interpreter."""
+    found = shutil.which("piper")
+    if found:
+        return found
+    sibling = Path(sys.executable).parent / "piper"
+    return str(sibling) if sibling.exists() else None
+
+
+# Piper CLI detection: the interpreter's own bin dir beats a bare PATH lookup.
+PIPER_BIN = _resolve_piper_bin()
+
+# Persistent voice dir (gitignored, survives /tmp cleanup) — searched before user dirs.
 PIPER_VOICE_DIRS = (
-    Path("data"),
+    DEFAULT_DATA_DIR / "piper_voices",
+    DEFAULT_DATA_DIR,
     Path.home() / ".local" / "share" / "piper",
     Path.home() / ".piper",
 )

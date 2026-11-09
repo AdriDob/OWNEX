@@ -126,6 +126,12 @@ class TestEngramParsing:
         assert _executor().parse_command("list recent engrams").command_type == VoiceCommandType.ENGRAM_LIST
         assert _executor().parse_command("últimos hallazgos").command_type == VoiceCommandType.ENGRAM_LIST
 
+    def test_list_survives_whisper_phonetics(self) -> None:
+        # Real transcripts land as "in grams" / "recenting grams" (see round-trip run).
+        assert _executor().parse_command("List recent in grams.").command_type == VoiceCommandType.ENGRAM_LIST
+        assert _executor().parse_command("List recenting grams.").command_type == VoiceCommandType.ENGRAM_LIST
+        assert _executor().parse_command("show me my engrams").command_type == VoiceCommandType.ENGRAM_LIST
+
     def test_existing_commands_still_parse(self) -> None:
         executor = _executor()
         assert executor.parse_command("claim bounty abc").command_type == VoiceCommandType.CLAIM_BOUNTY
@@ -209,7 +215,7 @@ class TestPiperVoiceResolution:
         model.write_bytes(b"")
         monkeypatch.setenv("OWNEX_PIPER_MODEL", str(model))
         path, dirs = resolve_piper_voice("es_MX-ald-medium")
-        assert path == model
+        assert path.resolve() == model.resolve()
         assert dirs == [tmp_path]
 
     def test_data_dir_env_resolves_voice_name(self, tmp_path: Path, monkeypatch) -> None:
@@ -218,8 +224,20 @@ class TestPiperVoiceResolution:
         monkeypatch.delenv("OWNEX_PIPER_MODEL", raising=False)
         monkeypatch.setenv("OWNEX_PIPER_DATA_DIR", str(tmp_path))
         path, dirs = resolve_piper_voice("es_MX-ald-medium")
-        assert path == model
+        assert path.resolve() == model.resolve()
         assert tmp_path in dirs
+
+    def test_project_voices_dir_is_searched_by_default(self, tmp_path: Path, monkeypatch) -> None:
+        # data/piper_voices is the persistent, gitignored home for piper models.
+        voices = tmp_path / "data" / "piper_voices"
+        voices.mkdir(parents=True)
+        model = voices / "es_MX-ald-medium.onnx"
+        model.write_bytes(b"")
+        monkeypatch.delenv("OWNEX_PIPER_MODEL", raising=False)
+        monkeypatch.delenv("OWNEX_PIPER_DATA_DIR", raising=False)
+        monkeypatch.chdir(tmp_path)
+        path, _dirs = resolve_piper_voice("es_MX-ald-medium")
+        assert path.resolve() == model.resolve()
 
     def test_unresolved_voice_falls_back_to_name(self, tmp_path: Path, monkeypatch) -> None:
         monkeypatch.delenv("OWNEX_PIPER_MODEL", raising=False)

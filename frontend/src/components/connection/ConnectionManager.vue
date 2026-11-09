@@ -75,6 +75,40 @@ const connectForm = ref({
   provider: '' as string,
   email: '' as string,
   token: '' as string,
+  password: '' as string,
+})
+const manualSnapshot = ref('')
+const domainFilter = ref<string>('all')
+
+const DOMAIN_LABELS: Record<string, string> = {
+  opportunity: 'Oportunidades',
+  investment_ar: 'Inversiones AR',
+  ai_tool: 'Herramientas IA',
+  infra: 'Infraestructura',
+}
+
+const domainTabs = computed(() => {
+  const domains = new Set(externalConnections.value.map((c) => c.domain || 'opportunity'))
+  return ['all', ...Array.from(domains)]
+})
+
+const filteredConnections = computed(() =>
+  domainFilter.value === 'all'
+    ? externalConnections.value
+    : externalConnections.value.filter((c) => (c.domain || 'opportunity') === domainFilter.value)
+)
+
+const selectedSetup = computed(() => {
+  if (!selectedProvider.value) return null
+  return externalConnections.value.find((c) => c.provider === selectedProvider.value)?.setup || null
+})
+
+const needsPassword = computed(() =>
+  !!selectedSetup.value?.credential_fields?.includes('password')
+)
+const isManualSync = computed(() => {
+  const mode = selectedSetup.value?.sync_mode
+  return mode === 'manual_export' || mode === 'cli'
 })
 
 // ── Render Sections ──
@@ -127,7 +161,7 @@ const level2Summary = computed(() => {
 
 // Available connections list
 const connectionList = computed(() => {
-  return externalConnections.value.map((conn) => ({
+  return filteredConnections.value.map((conn) => ({
     ...conn,
     // Add display-friendly fields
     displayName: conn.username || conn.email || conn.provider,
@@ -153,7 +187,9 @@ async function openConnectFlow(provider: string) {
     provider,
     email: '',
     token: '',
+    password: '',
   }
+  manualSnapshot.value = ''
 }
 
 // Close connect flow
@@ -163,7 +199,9 @@ function closeConnectFlow() {
     provider: '',
     email: '',
     token: '',
+    password: '',
   }
+  manualSnapshot.value = ''
 }
 
 // Execute connect
@@ -175,6 +213,7 @@ async function executeConnect() {
     provider,
     email: connectForm.value.email,
     token: connectForm.value.token,
+    password: connectForm.value.password,
   })
   if (success) {
     toast.success(`${provider} conectado correctamente`)
@@ -216,14 +255,30 @@ async function executeTest() {
   }
 }
 
-// Execute sync
+// Execute sync — api providers pull live data; manual providers send a snapshot
 async function executeSync() {
-  const provider = (connectForm.value || {}).provider
+  const provider = (connectForm.value || {}).provider || selectedProvider.value
   if (!provider) return
 
-  const result = await sync(provider)
+  let snapshot: Record<string, unknown> | undefined
+  if (isManualSync.value) {
+    const raw = manualSnapshot.value.trim()
+    if (!raw) {
+      toast.error('Pegá el snapshot exportado de la plataforma (JSON)')
+      return
+    }
+    try {
+      snapshot = JSON.parse(raw)
+    } catch {
+      toast.error('El snapshot no es JSON válido')
+      return
+    }
+  }
+
+  const result = await sync(provider, snapshot)
   if (result.success) {
     toast.success('Sincronización completada: ' + result.message)
+    manualSnapshot.value = ''
     await ecm.loadExternalConnections()
   } else {
     toast.error('Error en sincronización: ' + result.message)
@@ -344,6 +399,21 @@ async function executeRemove(provider: string) {
         </Button>
       </section>
 
+      <!-- Domain filter tabs -->
+      <section v-if="externalConnections.length > 0" class="mb-4 flex flex-wrap gap-2">
+        <button
+          v-for="d in domainTabs"
+          :key="d"
+          class="px-3 py-1 rounded-full text-xs border transition-colors"
+          :class="domainFilter === d
+            ? 'bg-primary/15 border-primary/40 text-primary'
+            : 'border-border text-muted-foreground hover:text-foreground'"
+          @click="domainFilter = d"
+        >
+          {{ d === 'all' ? 'Todos' : (DOMAIN_LABELS[d] || d) }}
+        </button>
+      </section>
+
       <!-- Connections List -->
       <section v-if="externalConnections.length > 0" class="mb-6 rounded-lg border border-border bg-card p-4 sm:p-6">
         <div class="flex items-center justify-between mb-4">
@@ -381,9 +451,19 @@ async function executeRemove(provider: string) {
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-foreground truncated" title="{{ conn.displayName }}">
                   {{ conn.displayName }}
+                  <span
+                    v-if="conn.domain && conn.domain !== 'opportunity'"
+                    class="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground"
+                  >
+                    {{ DOMAIN_LABELS[conn.domain] || conn.domain }}
+                  </span>
                 </p>
                 <p class="text-xs text-muted-foreground">
                   {{ conn.last_checked || 'Sin verificar' }}
+                  <span v-if="conn.last_sync_at" class="ml-1 text-primary/80">
+                    · sync {{ conn.last_sync_at }}
+                  </span>
+                  <span v-else-if="conn.has_snapshot" class="ml-1 text-primary/80">· con snapshot</span>
                 </p>
               </div>
 
@@ -456,6 +536,30 @@ async function executeRemove(provider: string) {
                 rastrear ingresos y sincronizar pagos.
               </p>
 
+              <!-- Provider setup instructions -->
+              <div v-if="selectedSetup" class="mb-3 rounded border border-border bg-muted/30 p-3 text-xs space-y-2">
+                <ol v-if="selectedSetup.setup_steps?.length" class="list-decimal list-inside space-y-1 text-muted-foreground">
+                  <li v-for="(step, i) in selectedSetup.setup_steps" :key="i">{{ step }}</li>
+                </ol>
+                <p v-if="selectedSetup.notes" class="text-muted-foreground italic">{{ selectedSetup.notes }}</p>
+                <div class="flex gap-3 pt-1">
+                  <a
+                    v-if="selectedSetup.login_url"
+                    :href="selectedSetup.login_url"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-primary hover:underline"
+                  >Abrir sitio ↗</a>
+                  <a
+                    v-if="selectedSetup.docs_url"
+                    :href="selectedSetup.docs_url"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-primary hover:underline"
+                  >Docs ↗</a>
+                </div>
+              </div>
+
               <Input
                 v-model="connectForm.email"
                 type="email"
@@ -464,12 +568,34 @@ async function executeRemove(provider: string) {
                 :disabled="connectForm.provider !== selectedProvider"
               />
               <Input
+                v-if="selectedSetup?.credential_fields?.includes('token') !== false"
                 v-model="connectForm.token"
                 type="password"
-                placeholder="Token o contraseña (opcional)"
+                placeholder="Token o API key (opcional)"
                 class="w-full mb-3"
                 :disabled="connectForm.provider !== selectedProvider"
               />
+              <Input
+                v-if="needsPassword"
+                v-model="connectForm.password"
+                type="password"
+                placeholder="Contraseña de la plataforma"
+                class="w-full mb-3"
+                :disabled="connectForm.provider !== selectedProvider"
+              />
+
+              <!-- Manual snapshot for providers without API sync -->
+              <div v-if="isManualSync" class="mt-2">
+                <label class="text-xs text-muted-foreground block mb-1">
+                  Snapshot manual (JSON exportado de la plataforma)
+                </label>
+                <textarea
+                  v-model="manualSnapshot"
+                  rows="4"
+                  placeholder='{"portfolio_total_ars": 150000, "positions": [...]}'
+                  class="w-full rounded border border-border bg-background p-2 text-xs font-mono"
+                />
+              </div>
             </div>
 
             <div class="space-y-3">
