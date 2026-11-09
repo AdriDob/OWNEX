@@ -163,3 +163,21 @@ diverged from the lean signal in both directions:
 **Lesson:** path-equal files are not necessarily twins. `validation/confidence.py`
 proved the trees legitimately host different modules at the same path.
 Adjudication MUST diff symbols, not just count importers.
+
+### Batch 2 — facade packages (same session)
+
+`cores/<pkg>/__init__.py` re-exports from `core.<pkg>` for ai_router,
+cycles, extension, integrations, target_intelligence — same dead-subtree
+pattern as investment. Deleted divergent dead twins with **0 importers**
+(absolute + relative + `from pkg import mod` forms all checked):
+
+- `cores/ai_router/{engine,provider_store}.py` (provider_store identical twin)
+- `cores/target_intelligence/prioritizer.py`
+- `cores/extension/{capabilities,hooks,manifest,registry,settings}.py` — whole subtree dead, package is pure facade
+- `cores/integrations/{discovery,registry}.py` — kept live cores-only modules: outlook/, arca/, ext/, ai_sandbox_integration.py
+- `cores/cycles/{events,executive_dashboard,metrics,models,qa,registry,schemas,service,tasks}.py` — kept live: security.py, knowledge_capture.py, voice_commands.py, stages/ (imported by api/routers, tests, core/cycles/security.py)
+
+Verified: 4/5 facades import clean; cores.cycles chain blocked only by
+parallel-agent WIP syntax error in cores/opportunity/global_sources.py
+(unrelated). Kept cycles files import core.cycles.* — never the deleted
+siblings.
