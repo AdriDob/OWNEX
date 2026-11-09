@@ -178,6 +178,31 @@ MIT for that copy, permanently. The exact text is preserved unmodified in
 published under it.
 
 So the project is proprietary **going forward**; the historical versions are
+
+---
+## Capability Matrix — VERIFIED / BUILD_VERIFIED / INTEGRATION_PENDING / EXPERIMENTAL / PLANNED / BLOCKED
+
+| Capability | Status | Notes |
+|---|---|---|
+| **License** | **VERIFIED** | Proprietary since 2026-11-09; MIT preserved for prior versions (`LICENSE-MIT-legacy.txt`) |
+| **Core modules** | **BUILD_VERIFIED** | 593 core/ modules functional; 110 divergent twins deleted (no importers) |
+| **Twin reconciliation** | **BUILD_VERIFIED** | 298 byte-identical twins removed (core/ copies with no importers); 284 divergent twins remain under adjudication |
+| **Remote jobs scope** | **BUILD_VERIFIED** | `OWNEX_REMOTE_JOBS_SCOPE=permanent_only` default; `ALL` scope available |
+| **Income plan** | **VERIFIED** | 23/23 tests passing; tri-state `zero_experience` (null/False/boolean); salary/payoff separation |
+| **Scheduler jobs** | **BUILD_VERIFIED** | 472→292 líneas reducidas; pay-on-merge y `github_token` eliminados |
+| **Financial truth** | **INTEGRATION_PENDING** | Event `financial:withdrawal_completed` definido; flujo sin implementar completamente |
+| **License decision** | **RESOLVED** | Dueña privada from 2026-11-09; decisión documentada en `outputs/OWNEX_V15/LICENSE_DECISION.md` |
+| **README alignment** | **BUILD_VERIFIED** | Licencia y historia stated plainly; sin claims falsos sobre versiones pasadas |
+| **Plugin system** | **EXPERIMENTAL** | Dual tree core/↔cores en transición; colección de tests afectada pending adjudicación completa |
+| **Bug bounty sources** | **PLANNED** | Dev bounty 40+ sources pending integración con motor de ejecución |
+| **AI coding assistance** | **PLANNED** | Motor de programación IA para tareas de desarrollo |
+| **Freelance integration** | **PLANNED** | Fiverr/Freelancer adapters pending priorización |
+| **Bug bounty execution** | **PLANNED** | Motor de hallazgos y auditorías técnicas |
+| **Expected Revenue $10K/mo** | **PLANNED** | Objetivo a largo plazo: composición de fuentes VERIFIED+BUILD_VERIFIED |
+
+*Legend: VERIFIED = confirmed working with evidence; BUILD_VERIFIED = build-stable with tests passing; INTEGRATION_PENDING = defined but not fully wired; EXPERIMENTAL = prototype phase; PLANNED = roadmap goal; BLOCKED = waiting on external decision/factor*
+
+*Generated: 2026-11-09 | Source: V15 repository reconciliation*
 not. Any claim that OWNEX was never open source, or that all rights in all
 versions are reserved, would be false. Decision record:
 `outputs/OWNEX_V15/LICENSE_DECISION.md`.
