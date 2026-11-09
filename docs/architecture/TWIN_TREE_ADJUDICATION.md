@@ -142,3 +142,24 @@ Generated 2026-11-09 · 115 divergent same-path modules · evidence-based, no au
    leaf modules are adjudicated, since `__init__` content follows its package.
 4. Never delete a divergent file until its domain's canonical side is chosen
    AND all importers (incl. dynamic `importlib` strings) are migrated.
+
+## Adjudication log (session 2026-11-09)
+
+First per-file verification of the 9 lean-cores rows — importer evidence
+diverged from the lean signal in both directions:
+
+| Path | Matrix lean | Verified result | Action |
+|------|-------------|-----------------|--------|
+| `finance/models.py` | cores | `core.finance` package: **0 importers** (dead code; `finance_guru.py` is a different module). `cores.finance.models` live via `api/routers/finance.py`, `cores/finance/{store,engine}.py`, `tests/test_finance.py` | **DELETED** `core/finance/` (models.py + empty `__init__.py`) |
+| `execution/request_mutator.py` | cores | `core.execution.request_mutator`: **0 importers**. Live path is `cores.execution.request_mutator` via `api/routers/validation.py`, `cores/execution/__init__.py` | **DELETED** `core/execution/request_mutator.py` |
+| `validation/confidence.py` | cores | **FALSE POSITIVE — not a twin.** `core/` version = `ConfidenceEngine` (bug-bounty evidence confidence, imported by BOTH `core/validation/*` AND `cores/validation/*` + test). `cores/` version = `ConfidenceScore`/`ConfidenceScorer` (report scoring, exported by `cores/validation/__init__.py`). Different symbols, both live | KEEP BOTH — rename disambiguation deferred |
+| `merlin/memory.py` | cores | Both live: `core.merlin.memory` ← `core/merlin/{__init__,decision_log}`; `cores.merlin.memory` ← `api/routers/merlin.py`, `cores/merlin/*`, `cores/memory/unified_memory`. Diff = 400 lines — true divergence | KEEP BOTH — domain decision pending |
+| `copilot/providers/fcc_provider.py` | cores | Both live via respective `providers/router.py`; diff = 234 lines | KEEP BOTH — domain decision pending |
+| `copilot/providers/nvidia_provider.py` | cores | Both live; diff = 52 lines | KEEP BOTH — domain decision pending |
+| `events/event_bus.py` | cores | Already adjudicated: unified `bacaab8d` (cores canonical + core facade) | DONE |
+| `opportunity/engine.py` | cores | 4 core-side importers — both trees live | KEEP BOTH — pending (parallel agent active in `cores/opportunity/`) |
+| `opportunity/adapters/forge/opire.py` | cores | 2 core-side importers — both live | KEEP BOTH — pending |
+
+**Lesson:** path-equal files are not necessarily twins. `validation/confidence.py`
+proved the trees legitimately host different modules at the same path.
+Adjudication MUST diff symbols, not just count importers.
