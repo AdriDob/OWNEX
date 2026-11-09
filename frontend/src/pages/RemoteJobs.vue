@@ -63,6 +63,23 @@ async function search() {
   }
 }
 
+const savedIds = ref<Set<string>>(new Set())
+const savingId = ref<string | null>(null)
+
+async function saveJob(job: RemoteJob) {
+  const key = job.url || `${job.title}|${job.company}`
+  if (savedIds.value.has(key)) return
+  savingId.value = key
+  try {
+    await api.post('/opportunities/remote-jobs/save', { job, match: job.match })
+    savedIds.value = new Set([...savedIds.value, key])
+  } catch {
+    // silent — tracker unavailable
+  } finally {
+    savingId.value = null
+  }
+}
+
 function scoreVariant(score: number) {
   if (score >= 80) return 'success' as const
   if (score >= 60) return 'warning' as const
@@ -128,6 +145,14 @@ function scoreVariant(score: number) {
             </p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="savedIds.has(job.url || `${job.title}|${job.company}`) || savingId === (job.url || `${job.title}|${job.company}`)"
+              @click="saveJob(job)"
+            >
+              {{ savedIds.has(job.url || `${job.title}|${job.company}`) ? 'Guardada' : 'Guardar' }}
+            </Button>
             <Badge :variant="scoreVariant(job.match?.score ?? 0)">
               {{ Math.round(job.match?.score ?? 0) }}
             </Badge>

@@ -1,6 +1,5 @@
 """Job feeds tests — mocked HTTP, normalization, matcher integration."""
 
-
 import httpx
 import pytest
 
@@ -11,15 +10,31 @@ from cores.opportunity.remote_job_matcher import JobPreferences
 def _mock_get(handler):
     def fake_get(url, **kwargs):
         return handler(url)
+
     return fake_get
 
 
 def test_fetch_remotive_normalizes(monkeypatch: pytest.MonkeyPatch) -> None:
-    payload = {"jobs": [{"title": "Dev", "company_name": "ACME", "url": "https://x", "description": "d", "publication_date": "2026-01-01", "candidate_required_location": "Worldwide", "tags": ["Python"]}]}
+    payload = {
+        "jobs": [
+            {
+                "title": "Dev",
+                "company_name": "ACME",
+                "url": "https://x",
+                "description": "d",
+                "publication_date": "2026-01-01",
+                "candidate_required_location": "Worldwide",
+                "tags": ["Python"],
+            }
+        ]
+    }
 
     class R:
-        def raise_for_status(self): pass
-        def json(self): return payload
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
 
     monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
     jobs = job_feeds.fetch_remotive()
@@ -29,11 +44,17 @@ def test_fetch_remotive_normalizes(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_fetch_remoteok_skips_meta(monkeypatch: pytest.MonkeyPatch) -> None:
-    payload = [{"legal": "x"}, {"position": "Eng", "company": "ACME", "id": 1, "url": "u", "description": "d", "date": "2026-01-01", "salary_min": 5000, "tags": ["go"]}]
+    payload = [
+        {"legal": "x"},
+        {"position": "Eng", "company": "ACME", "id": 1, "url": "u", "description": "d", "date": "2026-01-01", "salary_min": 5000, "tags": ["go"]},
+    ]
 
     class R:
-        def raise_for_status(self): pass
-        def json(self): return payload
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
 
     monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
     jobs = job_feeds.fetch_remoteok()
@@ -51,14 +72,19 @@ def test_fetch_failure_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_search_ranks_real_shape(monkeypatch: pytest.MonkeyPatch) -> None:
-    payload = {"jobs": [
-        {"title": "Soporte es", "company_name": "A", "url": "u1", "description": "", "candidate_required_location": "Worldwide", "tags": []},
-        {"title": "Senior US only", "company_name": "B", "url": "u2", "description": "", "candidate_required_location": "US Only", "tags": []},
-    ]}
+    payload = {
+        "jobs": [
+            {"title": "Soporte es", "company_name": "A", "url": "u1", "description": "", "candidate_required_location": "Worldwide", "tags": []},
+            {"title": "Senior US only", "company_name": "B", "url": "u2", "description": "", "candidate_required_location": "US Only", "tags": []},
+        ]
+    }
 
     class R:
-        def raise_for_status(self): pass
-        def json(self): return payload
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
 
     monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R() if "remotive" in a[0] else (_ for _ in ()).throw(httpx.ConnectError("x")))
     prefs = JobPreferences(payment_methods=())
@@ -81,3 +107,38 @@ def test_remote_jobs_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["count"] == 1 and body["jobs"][0]["title"] == "Job"
+
+
+def test_job_tracker_pipeline(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import cores.connections.importer as imp
+    from cores.opportunity import job_tracker
+
+    fake_cfg = type("Cfg", (), {"data_dir": tmp_path})()
+    monkeypatch.setattr(imp, "get_config", lambda: fake_cfg)
+
+    entry = job_tracker.save_job({"title": "Dev", "url": "https://x", "company": "ACME"}, {"score": 88})
+    assert entry["status"] == "saved"
+    # idempotent by url
+    again = job_tracker.save_job({"title": "Dev", "url": "https://x"}, None)
+    assert again["id"] == entry["id"]
+
+    job_tracker.transition(entry["id"], "analyzed")
+    job_tracker.transition(entry["id"], "prepared")
+    job_tracker.transition(entry["id"], "approved")
+    job_tracker.transition(entry["id"], "applied", note="sent manually")
+    assert job_tracker.list_jobs(status="applied")[0]["id"] == entry["id"]
+    # invalid transition
+    import pytest as _p
+
+    with _p.raises(ValueError):
+        job_tracker.transition(entry["id"], "saved")
+
+
+def test_gap_analysis() -> None:
+    from cores.opportunity.job_tracker import gap_analysis
+
+    job = {"title": "Dev", "description": "python django", "tags": ["python"], "experience_years_required": 3, "portfolio_required": True}
+    out = gap_analysis(job, {"skills": ["python"], "experience_years": 1})
+    assert "python" in out["matched_skills"]
+    assert any("experience" in g for g in out["gaps"])
+    assert any("portfolio" in g for g in out["gaps"])

@@ -37,3 +37,38 @@ def remote_jobs_search(
     )
     jobs = search_remote_jobs(query=q, prefs=prefs, limit=limit)
     return {"jobs": jobs, "count": len(jobs)}
+
+
+@router.post("/remote-jobs/save")
+def remote_jobs_save(body: dict):
+    """Save a remote job (+optional match) into the application tracker."""
+    from cores.opportunity.job_tracker import save_job
+
+    job = body.get("job") or {}
+    if not job.get("title"):
+        return {"error": "job.title required"}
+    entry = save_job(job, body.get("match"))
+    return {"saved": True, "id": entry["id"], "status": entry["status"]}
+
+
+@router.get("/remote-jobs/saved")
+def remote_jobs_saved(status: str = ""):
+    """List tracked remote jobs, optionally filtered by pipeline status."""
+    from cores.opportunity.job_tracker import list_jobs
+
+    jobs = list_jobs(status or None)
+    return {"jobs": jobs, "count": len(jobs)}
+
+
+@router.post("/remote-jobs/{job_id}/transition")
+def remote_jobs_transition(job_id: str, body: dict):
+    """Advance a tracked job: saved→analyzed→prepared→approved→applied→accepted/rejected."""
+    from cores.opportunity.job_tracker import transition
+
+    try:
+        entry = transition(job_id, str(body.get("status") or ""), str(body.get("note") or ""))
+    except (ValueError, KeyError) as e:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return {"id": entry["id"], "status": entry["status"]}
