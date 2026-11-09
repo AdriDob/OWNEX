@@ -217,3 +217,22 @@ siblings.
   freebuff) + serves run.py/mobile.py; core subtree serves
   api/routers/copilot.py + core modules. Merge candidate — provider-set
   union needed, not deletion.
+
+
+## Session tally (2026-11-09, continued)
+
+- Divergent shared-path files: 114 → **86** (28 resolved)
+- Deleted dead twins: ~45 files total across batches
+- First cores-wins adjudication: auto_submit (functional superset +
+  governance features + latent created_at bug fixed)
+- Both-live confirmed (merge candidates, NOT deletable):
+  credentials/vault, copilot/providers/*, trading/* (7), opportunity/*
+  cluster (engine/models/scoring/source_payment_docs/adapters),
+  knowledge/{models,graph}, evidence/composer, merlin/memory,
+  validation/{confidence,learning}, health/engine (HealthCenter vs
+  SystemHealthEngine — different consumers), autonomy/*, update/engine,
+  osint/engine, sensors/base, pipeline/*, reports/quality/*,
+  revenue_multiplier/*, discovery/*, cycles/knowledge_capture
+- Remaining work is DOMAIN MERGES (union of features), not file deletion.
+  trading/ is the largest: cores canonical for api (has mt5/), core
+  still serves scheduler/jobs + revenue_multiplier/crypto_trader.
