@@ -1,0 +1,16 @@
+# OWNEX Technical Debt Register (v1.0)
+
+Canonical detailed registers: `.ai/TECHNICAL_DEBT.md` and `.ai/KNOWN_DEBT.md` (source of truth). This file tracks **active, agent-relevant** debt with priorities P0–P4.
+
+| ID | Problem | Sev | Module | Risk | Proposed fix | Status |
+|----|---------|-----|--------|------|--------------|--------|
+| TD-01 | `core/` vs `cores/` twin trees diverge; unclear ownership per module | P2 | repo-wide | agents edit wrong copy | consolidate per CANONICAL_COMPONENTS.md | OPEN |
+| TD-02 | `core/quant/{strategies,research,performance}` empty dirs | P3 | quant | dead structure implies features that don't exist | implement or remove | OPEN |
+| TD-03 | `core/opportunity/adapters/jobs/*` return mock data | P1 | work discovery | fake opportunities if ever registered | keep unregistered; replace with real feeds or delete | OPEN |
+| TD-04 | External portfolio not wired to `cores/capital` engines | P2 | finance | capital runway/risk ignore real balances | needs FX policy decision (user) | BLOCKED |
+| TD-05 | npm audit: 21 vulns (mostly devDeps) | P2 | frontend | `npm audit fix` crashes on lockfile | regen lockfile or targeted updates | OPEN |
+| TD-06 | Parallel-session WIP files break vue-tsc (type errors) | P3 | frontend | typecheck noise hides real errors | owners fix their WIP | OPEN |
+| TD-07 | `api/routers/opportunity.py` dead + broken import | P3 | api | confusion, dead code | delete or fix+register | OPEN |
+| TD-08 | `work/ownex-economy-active-earn/` + `.quarantine/` copies in repo | P3 | repo | agent confusion, repo bloat | move out of repo or document as frozen | OPEN |
+| TD-09 | Job feeds are EN-first; no AR/ES-native source verified | P2 | work discovery | matcher penalizes most real AR jobs | add Computrabajo/Bumeran real API or manual import | OPEN |
+| TD-10 | IOL/PPI/Binance never validated with real credentials | P1 | connections | "implemented" ≠ "works" | user provides creds → live sync test | BLOCKED |

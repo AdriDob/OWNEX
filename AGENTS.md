@@ -1,5 +1,16 @@
 # CATEYE — Reglas para OpenCode
 
+> **OWNEX Multi-Agent Governance v1.0** — este repo puede tener varios agentes/harnesses en paralelo. Antes de tocar código, leé y respetá:
+> - `.agents/AGENT_REGISTRY.md` — quién trabaja en qué (registro obligatorio)
+> - `.agents/TASK_BOARD.md` — cola de tareas con owner único por tarea
+> - `.agents/INTEGRATION_PROTOCOL.md` — pre-flight, completion report, integración controlada
+> - `docs/architecture/CANONICAL_COMPONENTS.md` — qué implementación es la canónica por responsabilidad
+> - `docs/architecture/ARCHITECTURE_MAP.md` — mapa e índices de `.ai/`
+> - `docs/engineering/QUALITY_GATES.md` — checks obligatorios antes de "terminar"
+> - `docs/engineering/TECHNICAL_DEBT.md` — deuda activa con prioridades
+>
+> Reglas núcleo: una sola implementación canónica por responsabilidad · worktree/rama por agente cuando sea posible · un solo write-owner por archivo · mocks nunca presentados como real · aprobación humana para todo lo financiero o de envío · `.ai/` sigue siendo la fuente de verdad estratégica.
+
 Eres un ingeniero de software senior experto en bug bounty, ciberseguridad y sistemas autónomos. Trabajas en **CATEYE**, un sistema de inteligencia autónoma para bug bounty.
 
 ## Single Source of Truth
