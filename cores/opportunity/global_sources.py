@@ -49,7 +49,6 @@ class SourceDefinition:
     requires_experience: bool = False  # NO experience needed
     language: str = "en"
     region: str = "global"
-    argentina_ok: bool = False  # Argentina-compatible payout method
     estimated_payout_range: str = "varies"
     tags: list[str] = field(default_factory=list)
     last_verified: str = "2026-07-30"
@@ -482,8 +481,12 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
         requires_portfolio=False,
         requires_experience=False,
         requires_interview=False,
-        quality_score=0.85,
-            ),
+        estimated_payout_range="$500-$5,000 per finding",
+        tags=["smart-contract", "audit", "solidity", "high-severity"],
+        priority=8,
+    ),
+    SourceDefinition(
+        "Cantina",
         "https://cantina.sh",
         OpportunityCategory.bug_bounty,
         "Smart contract security platform with formal audit and bug bounty programs. Focus on EVM-based protocols.",

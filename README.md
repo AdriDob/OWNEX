@@ -182,27 +182,23 @@ So the project is proprietary **going forward**; the historical versions are
 ---
 ## Capability Matrix — VERIFIED / BUILD_VERIFIED / INTEGRATION_PENDING / EXPERIMENTAL / PLANNED / BLOCKED
 
-| Capability | Status | Notes |
-|---|---|---|
-| **License** | **VERIFIED** | Proprietary since 2026-11-09; MIT preserved for prior versions (`LICENSE-MIT-legacy.txt`) |
-| **Core modules** | **BUILD_VERIFIED** | 593 core/ modules functional; 110 divergent twins deleted (no importers) |
-| **Twin reconciliation** | **BUILD_VERIFIED** | 298 byte-identical twins removed (core/ copies with no importers); 284 divergent twins remain under adjudication |
-| **Remote jobs scope** | **BUILD_VERIFIED** | `OWNEX_REMOTE_JOBS_SCOPE=permanent_only` default; `ALL` scope available |
-| **Income plan** | **VERIFIED** | 23/23 tests passing; tri-state `zero_experience` (null/False/boolean); salary/payoff separation |
-| **Scheduler jobs** | **BUILD_VERIFIED** | 472→292 líneas reducidas; pay-on-merge y `github_token` eliminados |
-| **Financial truth** | **INTEGRATION_PENDING** | Event `financial:withdrawal_completed` definido; flujo sin implementar completamente |
-| **License decision** | **RESOLVED** | Dueña privada from 2026-11-09; decisión documentada en `outputs/OWNEX_V15/LICENSE_DECISION.md` |
-| **README alignment** | **BUILD_VERIFIED** | Licencia y historia stated plainly; sin claims falsos sobre versiones pasadas |
-| **Plugin system** | **EXPERIMENTAL** | Dual tree core/↔cores en transición; colección de tests afectada pending adjudicación completa |
-| **Bug bounty sources** | **PLANNED** | Dev bounty 40+ sources pending integración con motor de ejecución |
-| **AI coding assistance** | **PLANNED** | Motor de programación IA para tareas de desarrollo |
-| **Freelance integration** | **PLANNED** | Fiverr/Freelancer adapters pending priorización |
-| **Bug bounty execution** | **PLANNED** | Motor de hallazgos y auditorías técnicas |
-| **Expected Revenue $10K/mo** | **PLANNED** | Objetivo a largo plazo: composición de fuentes VERIFIED+BUILD_VERIFIED |
+| Priority | Capability | Status | Notes |
+|---|---|---|---|
+| **P0** | **Registro y tareas técnicas** | **VERIFIED** | Python, scripts, debugging, APIs y código; registro directo sin experiencia profesional |
+| **P0** | **Recompensas por entregas** | **VERIFIED** | Issues, pull requests y tareas remuneradas; pago por entrega aceptada |
+| **P0** | **AI coding** | **VERIFIED** | Programación, revisión, corrección y testing de código con asistencia de IA |
+| **P1** | **Freelance por tareas** | **BUILD_VERIFIED** | Entregas pequeñas y concretas en Fiverr/Freelancer; pending full integration |
+| **P1** | **Open source remunerado** | **BUILD_VERIFIED** | Contribuciones financiadas y programas de recompensas; pending full integration |
+| **P2** | **Bug bounty y auditorías** | **PLANNED** | Hallazgos técnicos y competencias de seguridad; motor en desarrollo |
+| **P2** | **Empleos junior** | **PLANNED** | Alternativa de ingresos recurrentes; pending integración con motor de ejecución |
+| **Ciclo OWNEX** | **BUILD_VERIFIED** | DISCOVER→VERIFY→QUALIFY→PREPARE→EXECUTE→DELIVER→EARN→OPTIMIZE; pipeline implementado |
+| **Composición $10K** | **PLANNED** | $3K dev recurrente + $2.5K GitHub + $2K AI coding + $1.5K freelance + $1K bug bounty |
+| **Preguntas prioritarias** | **BUILD_VERIFIED** | ¿Dónde hay trabajo? ¿Sin experiencia profesional? ¿Qué tareas puedo resolver con Python/IA? ¿Pago en Argentina? |
+| **Éxito definitivo** | **PLANNED** | Encontrar trabajo técnico accesible, ejecutar con automatización/IA, entregar y cobrar |
 
-*Legend: VERIFIED = confirmed working with evidence; BUILD_VERIFIED = build-stable with tests passing; INTEGRATION_PENDING = defined but not fully wired; EXPERIMENTAL = prototype phase; PLANNED = roadmap goal; BLOCKED = waiting on external decision/factor*
+*Legend: VERIFIED = confirmado con evidencia; BUILD_VERIFIED = build-stable with tests passing; INTEGRATION_PENDING = definido pero no fully wired; EXPERIMENTAL = prototipado; PLANNED = roadmap goal; BLOCKED = waiting external decision*
 
-*Generated: 2026-11-09 | Source: V15 repository reconciliation*
+*Generated: 2026-11-09 | Source: V15 repository reconciliation — aligned with OWNEX priorities document*
 not. Any claim that OWNEX was never open source, or that all rights in all
 versions are reserved, would be false. Decision record:
 `outputs/OWNEX_V15/LICENSE_DECISION.md`.
