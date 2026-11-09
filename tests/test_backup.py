@@ -52,7 +52,7 @@ class TestCreateBackup:
 
         import zipfile
 
-        from core.version import OWNEX_VERSION
+        from cores.version import OWNEX_VERSION
 
         with zipfile.ZipFile(result["backup_path"]) as zf:
             assert "manifest.json" in zf.namelist()
@@ -182,7 +182,7 @@ class TestAPIEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)
@@ -198,7 +198,7 @@ class TestAPIEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)
@@ -213,7 +213,7 @@ class TestAPIEndpoints:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
-        from core.api.routers import router
+        from cores.api.routers import router
 
         app = FastAPI()
         app.include_router(router)

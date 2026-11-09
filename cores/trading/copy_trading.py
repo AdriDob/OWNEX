@@ -20,10 +20,10 @@ from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 from typing import Any
 
-from core.trading.config import TradingConfig
-from core.trading.executor import ExecutionEngine, create_executor
-from core.trading.models import Order, OrderSide, OrderType, TimeInForce
-from core.trading.store import TradingStore
+from cores.trading.config import TradingConfig
+from cores.trading.executor import ExecutionEngine, create_executor
+from cores.trading.models import Order, OrderSide, OrderType, TimeInForce
+from cores.trading.store import TradingStore
 
 logger = logging.getLogger("catseye.trading.copy")
 

@@ -47,7 +47,7 @@ class UpdateManager:
     """Manages version checks, update download, and rollback."""
 
     def __init__(self) -> None:
-        from core.version import OWNEX_VERSION
+        from cores.version import OWNEX_VERSION
 
         self._current_version = OWNEX_VERSION
         self._remote_version: str | None = None

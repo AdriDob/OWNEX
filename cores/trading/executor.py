@@ -9,12 +9,12 @@ from decimal import Decimal
 from enum import Enum, auto
 from typing import Any, Protocol
 
-from core.trading.config import TradingConfig, TradingMode
-from core.trading.dex.jupiter import SOL_MINT, USDC_MINT, JupiterClient
-from core.trading.dex.solana_wallet import SolanaWallet
-from core.trading.errors import SecurityViolationError
-from core.trading.metrics import PerformanceMetrics, TradeRecord, calculate_performance
-from core.trading.models import (
+from cores.trading.config import TradingConfig, TradingMode
+from cores.trading.dex.jupiter import SOL_MINT, USDC_MINT, JupiterClient
+from cores.trading.dex.solana_wallet import SolanaWallet
+from cores.trading.errors import SecurityViolationError
+from cores.trading.metrics import PerformanceMetrics, TradeRecord, calculate_performance
+from cores.trading.models import (
     Balance,
     ExecutionReport,
     ExecutionResult,
@@ -26,7 +26,7 @@ from core.trading.models import (
     Trade,
     WalletSnapshot,
 )
-from core.trading.virtual_wallet import VirtualWallet
+from cores.trading.virtual_wallet import VirtualWallet
 
 logger = logging.getLogger("orion.trading.executor")
 

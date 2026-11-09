@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass, field
@@ -102,6 +103,12 @@ class VersionBackupSystem:
         """Ensure backup directory exists."""
         self.backup_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _git_env() -> dict[str, str]:
+        """Env for git subprocesses: strip GIT_* so hooks/CI can't leak
+        GIT_DIR/GIT_WORK_TREE and make `git describe` resolve the wrong repo."""
+        return {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
     def get_current_version(self) -> str:
         """Get current version from git or version file."""
         try:
@@ -111,6 +118,7 @@ class VersionBackupSystem:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                env=self._git_env(),
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -133,6 +141,7 @@ class VersionBackupSystem:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                env=self._git_env(),
             )
             if result.returncode == 0:
                 return result.stdout.strip()
@@ -502,6 +511,7 @@ class VersionBackupSystem:
                         cwd=self.ownex_dir,
                         capture_output=True,
                         timeout=30,
+                        env=self._git_env(),
                     )
                     logger.info(f"[VERSION BACKUP] Git restored to commit: {target_snapshot.git_commit}")
                 except Exception as e:
