@@ -4,7 +4,7 @@
  * Fuente: GET /api/opportunities/remote-jobs/search (Remotive/Arbeitnow/RemoteOK).
  */
 import { ref } from 'vue'
-import { Search } from 'lucide-vue-next'
+import { Search } from '@lucide/vue'
 import { api } from '@/lib/api'
 import Badge from '@/components/ui/Badge.vue'
 import Card from '@/components/ui/Card.vue'
@@ -31,6 +31,9 @@ interface RemoteJob {
 }
 
 const query = ref('')
+const salaryMin = ref(0)
+const maxTechTests = ref(1)
+const paymentMethods = ref('')
 const jobs = ref<RemoteJob[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -41,8 +44,15 @@ async function search() {
   error.value = null
   searched.value = true
   try {
+    const params = new URLSearchParams({
+      q: query.value,
+      limit: '50',
+      salary_min: String(salaryMin.value || 0),
+      max_tech_tests: String(maxTechTests.value),
+      payment_methods: paymentMethods.value,
+    })
     const data = await api.get<{ jobs: RemoteJob[]; count: number }>(
-      `/opportunities/remote-jobs/search?q=${encodeURIComponent(query.value)}&limit=50`,
+      `/opportunities/remote-jobs/search?${params.toString()}`,
     )
     jobs.value = data.jobs ?? []
   } catch (e: any) {
@@ -79,6 +89,21 @@ function scoreVariant(score: number) {
       </Button>
     </form>
 
+    <div class="flex flex-wrap gap-3 mb-6 text-xs">
+      <label class="flex items-center gap-1.5">
+        Salario mín. USD
+        <input v-model.number="salaryMin" type="number" min="0" class="w-24 rounded border border-border bg-background px-2 py-1" />
+      </label>
+      <label class="flex items-center gap-1.5">
+        Máx. tests técnicos
+        <input v-model.number="maxTechTests" type="number" min="0" max="10" class="w-16 rounded border border-border bg-background px-2 py-1" />
+      </label>
+      <label class="flex items-center gap-1.5">
+        Cobros (sep. por coma)
+        <input v-model="paymentMethods" type="text" placeholder="payoneer, wise, crypto" class="w-44 rounded border border-border bg-background px-2 py-1" />
+      </label>
+    </div>
+
     <LoadingState v-if="loading" />
     <ErrorState v-else-if="error" :message="error" />
     <div v-else-if="searched && jobs.length === 0" class="text-sm text-muted-foreground">
@@ -106,7 +131,7 @@ function scoreVariant(score: number) {
             <Badge :variant="scoreVariant(job.match?.score ?? 0)">
               {{ Math.round(job.match?.score ?? 0) }}
             </Badge>
-            <Badge v-if="job.match && !job.match.eligible" variant="error">No elegible</Badge>
+            <Badge v-if="job.match && !job.match.eligible" variant="destructive">No elegible</Badge>
           </div>
         </div>
 
