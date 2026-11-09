@@ -1,5 +1,5 @@
 {
-  "appId": "ownex.desktop.app",
+  "appId": "ai.rastro.app",
   "appName": "OWNEX",
   "webDir": "frontend/dist",
   "server": {
