@@ -536,6 +536,10 @@ class McpBridge:
         round_number: int = 1,
     ) -> dict[str, Any]:
         """Handle calculate_multiplier MCP tool."""
+        from decimal import Decimal
+
+        from cores.income_multiplier import IncomeMultiplier, MultiplierStrategy
+
         strat = MultiplierStrategy(strategy)
         config = type(self.income_multiplier.config)(
             strategy=strat,
@@ -548,11 +552,9 @@ class McpBridge:
         )
 
         # Recreate multiplier with new parameters
-        from cores.income_multiplier import IncomeMultiplier
-
         new_multiplier = IncomeMultiplier(config)
         state = new_multiplier.initialize_compound_state(round_number=round_number)
-        result = new_multiplier.calculate_multiplier(daily_earnings=DailyEarnings(daily_earnings), current_state=state)
+        result = new_multiplier.calculate_multiplier(daily_earnings=Decimal(str(daily_earnings)), current_state=state)
 
         return {
             "cycle_id": result.cycle_id,

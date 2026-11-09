@@ -14,7 +14,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from .registry import SourceStatus
+from .registry import SourceInfo, SourceStatus
 
 
 class RenewalDecision(Enum):

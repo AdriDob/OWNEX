@@ -140,7 +140,7 @@ def _from_career() -> list[AgendaItem]:
 def _from_capital() -> list[AgendaItem]:
     items: list[AgendaItem] = []
     try:
-        from cores.capital.forecasting import ForecastingEngine
+        from cores.capital.forecasting import get_forecasting_engine
 
         fc = get_forecasting_engine()
         result = fc.forecast(

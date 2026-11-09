@@ -14,6 +14,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from .verifier import SourceVerdict
+
 
 class SourcePriority(Enum):
     """Priority level for a source."""

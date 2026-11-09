@@ -204,7 +204,7 @@ def request_withdrawal(req: WithdrawalRequest) -> dict[str, Any]:
         fee=req.fee,
     )
     publish_financial_event(
-        "financial:withdrawal_completed" if False else "financial:sync_completed",
+        "financial:withdrawal_completed",
         amount=req.amount,
         currency=req.currency,
         platform=req.platform,

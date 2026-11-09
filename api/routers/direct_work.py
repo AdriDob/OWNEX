@@ -265,7 +265,7 @@ def _ranked_to_dict(ranked: RankedOpportunity) -> dict[str, Any]:
 
         hours = float(getattr(ranked.opportunity, "estimated_time_hours", 0) or 0)
         proj = compute_htroi(
-            expected_income_usd=float(expected_cash["days_to_cash"] or 0) if False else float(ranked.expected_value),
+            expected_income_usd=float(ranked.expected_value),
             human_hours=hours,
         )
         htroi = {
