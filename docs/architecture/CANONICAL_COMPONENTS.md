@@ -21,7 +21,8 @@ Verified against code on 2026-11-09. When two implementations exist, this table 
 | Adapter registry | `core/opportunity/adapters/__init__.py` (`_seed_defaults`) | `cores/opportunity/` twins exist | CANONICAL = core |
 | Zero-barrier eligibility | `cores/zero_barrier_eligibility.py` | — | IMPLEMENTED |
 | Mercenary scorer | `core/opportunity/mercenary_filter.py` | — | IMPLEMENTED |
-| Scheduler runtime | `core/scheduler/jobs.py` | `cores/` copy is STALE | CANONICAL = core |
+| Scheduler runtime | `core/scheduler/jobs.py` (`cores/` has NO scheduler pkg) | `cores/` copy is STALE | CANONICAL = core |
+| Twin-tree ownership map | `docs/architecture/TWIN_TREE_AUDIT.md` — 421 common paths, 115 divergent, runtime split verified | — | AUDITED |
 | Frontend | `frontend/` (Vue3+Vite+Tailwind4) | — | VERIFIED (build green) |
 | Trading engine | `core/trading/` (default DRY_RUN) | `cores/trading/` twin | CANONICAL = core; consolidation pending |
 | Capital engines | `cores/capital/*` (runway, risk, allocation…) | `core/investment/*` | PARTIAL — not wired to external portfolio (FX decision pending) |

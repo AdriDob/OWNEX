@@ -4,11 +4,11 @@ Canonical detailed registers: `.ai/TECHNICAL_DEBT.md` and `.ai/KNOWN_DEBT.md` (s
 
 | ID | Problem | Sev | Module | Risk | Proposed fix | Status |
 |----|---------|-----|--------|------|--------------|--------|
-| TD-01 | `core/` vs `cores/` twin trees diverge; unclear ownership per module | P2 | repo-wide | agents edit wrong copy | consolidate per CANONICAL_COMPONENTS.md | OPEN |
+| TD-01 | `core/` vs `cores/` twin trees diverge; unclear ownership per module | P2 | repo-wide | agents edit wrong copy | audit done → `docs/architecture/TWIN_TREE_AUDIT.md` (421 common paths, 115 divergent, both trees live at runtime); consolidate per-file in dedicated worktree | AUDITED |
 | TD-02 | `core/quant/{strategies,research,performance}` empty dirs | P3 | quant | dead structure implies features that don't exist | implement or remove | OPEN |
 | TD-03 | `core/opportunity/adapters/jobs/*` return mock data | P1 | work discovery | fake opportunities if ever registered | keep unregistered; replace with real feeds or delete | OPEN |
 | TD-04 | External portfolio not wired to `cores/capital` engines | P2 | finance | capital runway/risk ignore real balances | needs FX policy decision (user) | BLOCKED |
-| TD-05 | npm audit: 21 vulns (mostly devDeps) | P2 | frontend | `npm audit fix` crashes on lockfile | regen lockfile or targeted updates | OPEN |
+| TD-05 | npm audit: 9 moderate vulns remain (vitest mocker, glob, minimatch — devDeps) | P3 | frontend | dev-server/test-only attack surface | `audit fix --force` would bump vue-tsc etc.; low risk for local app | OPEN |
 | TD-06 | Parallel-session WIP files break vue-tsc (type errors) | P3 | frontend | typecheck noise hides real errors | owners fix their WIP | OPEN |
 | TD-07 | ~~`api/routers/opportunity.py`~~ | — | api | — | DELETED (zero refs, broken import, not in main.py) | CLOSED |
 | TD-08 | `work/ownex-economy-active-earn/` + `.quarantine/` copies in repo | P3 | repo | agent confusion, repo bloat | move out of repo or document as frozen | OPEN |
