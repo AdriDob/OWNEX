@@ -30,6 +30,7 @@ class ProviderSetup:
     notes: str = ""
     integration_method: str = ""  # api_rest | api_rest_ws | mcp_remote | cli | manual_import | browser_session
     permissions: tuple[str, ...] = ()  # read-only permission set granted to OWNEX
+    mcp_url: str = ""  # official remote MCP endpoint, if the provider publishes one
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -48,6 +49,7 @@ class ProviderSetup:
                 "none": "none",
             }.get(self.sync_mode, ""),
             "permissions": list(self.permissions),
+            "mcp_url": self.mcp_url,
         }
 
 
@@ -73,16 +75,17 @@ INVESTMENT_AR: dict[str, ProviderSetup] = {
         docs_url="https://developers.iolinversiones.com",
         credential_fields=("email", "password"),
         sync_mode="api",
-        integration_method="api_rest",
+        integration_method="api_rest_ws",
         permissions=READ_ONLY_PERMISSIONS,
+        mcp_url="https://mcp.invertironline.com",
         setup_steps=(
             "Abrí tu cuenta comitente en IOL Inversiones",
             "Confirmá tu usuario y contraseña de plataforma (la API usa OAuth2 password grant)",
             "Conectá acá con email + contraseña — OWNEX obtiene un token JWT",
-            "IOL además publica MCP oficial (mcp.invertironline.com) con modos de solo lectura",
+            "IOL además publica MCP oficial https://mcp.invertironline.com (OAuth interactivo en browser, modos Automático/Confirmar/Solo lectura) — pensable para Hermes/OpenCode/Perch como cliente MCP",
             "Usá 'Sincronizar' para traer saldos, posiciones y movimientos reales (ARS/USD)",
         ),
-        notes="API REST + WebSocket + MCP oficial, gratuita para clientes IOL. Solo lectura: OWNEX nunca opera ni retira.",
+        notes="API REST + WebSocket (stream-marketdata) + MCP oficial con OAuth. Solo lectura en OWNEX: nunca opera ni retira.",
     ),
     "ppi": ProviderSetup(
         domain="investment_ar",

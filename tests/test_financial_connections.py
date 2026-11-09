@@ -115,11 +115,16 @@ def test_catalog_exposes_permissions_and_methods(client: TestClient) -> None:
     body = client.get("/api/connection-manager/accounts").json()
     by_provider = {a["provider"]: a for a in body["accounts"]}
 
-    for name in ("iol", "ppi", "binance"):
+    for name in ("ppi", "binance"):
         setup = by_provider[name]["setup"]
         assert setup["integration_method"] == "api_rest"
         assert "PORTFOLIO_READ" in setup["permissions"]
         assert "TRADE_REQUIRES_CONFIRMATION" not in setup["permissions"]
+
+    iol_setup = by_provider["iol"]["setup"]
+    assert iol_setup["integration_method"] == "api_rest_ws"
+    assert iol_setup["mcp_url"] == "https://mcp.invertironline.com"
+    assert "PORTFOLIO_READ" in iol_setup["permissions"]
 
     assert by_provider["ripio"]["setup"]["integration_method"] == "manual_import"
     assert by_provider["bullmarket"]["domain"] == "investment_ar"

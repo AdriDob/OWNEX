@@ -3518,3 +3518,7 @@ Características del Sistema Completo:
 **Solo manual/import**: cocos, balanz, uala, belo, lemon, nexo/buenbit, ieb, bullmarket, banza, inviu, ripio (CONDITIONAL).
 
 **Pendiente honesto**: nada probado contra APIs reales; IOL WebSocket/órdenes/MCP oficial; PPI marketdata quotes; capital engines (runway/risk) sin wiring FX; truth_layer no consume balances (event-sourced); consent MCP por clase no por provider ni expiración; sin verificación end-to-end Perch; frontend `/portfolio/detail` consumido solo en ConnectionManager (no en capital page dedicada); build vite bloqueado por Discovery.vue WIP paralelo.
+
+### Update P5/P12 (post-audit)
+- **IOL WebSocket**: `cores/brokers/iol_stream.py` implementado según docs oficiales (wss://stream-marketdata, auth_token, subscribe SYMBOL|MARKET|TERM, ping 15s, frames Q/B/T). Solo market data.
+- **IOL MCP oficial**: `mcp.invertironline.com` verificado — servidor MCP remoto con OAuth interactivo (browser+2FA), modos Automático/Confirmar/Solo lectura. `ProviderSetup.mcp_url` expone el endpoint; OWNEX sync sigue por REST. Conectar como cliente MCP requiere flujo OAuth interactivo — no automatizable sin sesión de usuario.
