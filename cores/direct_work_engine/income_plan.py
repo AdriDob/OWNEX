@@ -40,6 +40,10 @@ _ACCEPTED_STATUS = frozenset({"accepted"})
 _SOURCE_DELIVER = "workbank"
 _SOURCE_FIRST_DAY = "first_day"
 _SOURCE_APPLICATIONS = "applications"
+_SOURCE_REMOTE_JOBS = "remote_jobs"
+
+# Estados del job_tracker que requieren acción humana inmediata.
+_REMOTE_ACTIONABLE = {"prepared", "approved"}
 
 # Payoff documentado en la propia First-Day Guide para dev-bounty micro.
 _FD_PAYOFF_LOW, _FD_PAYOFF_HIGH = 50.0, 150.0
@@ -79,8 +83,16 @@ class UnifiedIncomePlan:
         deliver_actions = [self._deliver_action(item) for item in ready_items]
         fd_actions = [self._fd_action(s) for s in fd_pending]
         app_actions, bootstrap = self._app_actions(apps_overview.get("next_action"), apps_plan, accepted_keys)
+        remote_actions, remote_summary = self._remote_job_track()
 
-        ranked = self._rank(deliver_actions, fd_actions, app_actions, bootstrap, bool(accepted_keys))
+        ranked = self._rank(
+            deliver_actions,
+            fd_actions,
+            app_actions,
+            bootstrap,
+            bool(accepted_keys),
+            remote_actions,
+        )
         next_action = ranked[0] if ranked else None
 
         return {
@@ -110,6 +122,10 @@ class UnifiedIncomePlan:
                     "progress_pct": apps_overview.get("progress_pct", 0),
                     "by_status": apps_overview.get("by_status", {}),
                     "accepted_streams": sorted(accepted_keys),
+                },
+                "remote_jobs": {
+                    "label": "Empleos remotos (Remote Job Matcher)",
+                    **remote_summary,
                 },
             },
             "income_command_center": self._command_center(ranked[:3], ready_items, apps_plan, accepted_keys),
@@ -245,6 +261,57 @@ class UnifiedIncomePlan:
         heads.sort(key=lambda h: not h.pop("is_head_of_overview"))
         return heads
 
+    # ── Remote jobs track (job_tracker → acciones rankeadas) ──
+
+    def _remote_job_track(self) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """Vacantes remotas guardadas que ya tienen draft/preparación.
+
+        Solo estados ``prepared``/``approved`` generan acción — el resto es
+        pipeline en curso y se resume en ``by_status``. Sin probabilidades
+        inventadas: salary viene del match si el feed lo reportó.
+        """
+        try:
+            from cores.opportunity.job_tracker import list_jobs
+
+            jobs = list_jobs()
+        except Exception:
+            logger.debug("job_tracker unavailable for income plan", exc_info=True)
+            return [], {"available": False}
+
+        counts: dict[str, int] = {}
+        actions: list[dict[str, Any]] = []
+        for entry in jobs:
+            status = entry.get("status", "")
+            counts[status] = counts.get(status, 0) + 1
+            if status not in _REMOTE_ACTIONABLE:
+                continue
+            job = entry.get("job") or {}
+            match = entry.get("match") or {}
+            salary = match.get("salary_min")
+            actions.append(
+                {
+                    "source": _SOURCE_REMOTE_JOBS,
+                    "title": f"Postulá (remoto): {job.get('title') or 'vacante'} — {job.get('company') or 'empresa?'}",
+                    "detail": (
+                        f"Estado: {status}. Score match: {match.get('score', '?')}/100. "
+                        f"Fuente: {job.get('source', '?')}. Requiere aprobación humana para enviar."
+                    ),
+                    "url": job.get("url"),
+                    "job_id": entry.get("id"),
+                    "job_status": status,
+                    "human_hours": None,
+                    "ev_per_human_hour_usd": None,
+                    "payoff_range": {"low": salary, "high": salary} if salary else None,
+                    "cash_speed_days": None,
+                    "zero_experience": False,
+                    "assessment_required": bool(match.get("missing_requirements")),
+                    "access_probability": "desconocida",
+                    "match_score": match.get("score"),
+                }
+            )
+        actions.sort(key=lambda a: -(a.get("match_score") or 0))
+        return actions, {"available": True, "total": len(jobs), "by_status": counts}
+
     # ── Ranking ──
 
     def _rank(
@@ -254,6 +321,7 @@ class UnifiedIncomePlan:
         app_actions: list[dict[str, Any]],
         bootstrap: dict[str, Any] | None,
         any_stream_accepted: bool,
+        remote_actions: list[dict[str, Any]] | None = None,
     ) -> list[dict[str, Any]]:
         """Orden determinista por (tier, -EV/hora conservadora).
 
@@ -274,8 +342,15 @@ class UnifiedIncomePlan:
         for a in fd_actions:
             ev = a.get("ev_per_human_hour_usd")
             keys[id(a)] = (2, -(ev or 0.0))
+        for a in remote_actions or []:
+            # approved = lista para enviar (tier 1, como bootstrap);
+            # prepared = draft listo, rankea por match_score dentro de tier 2.
+            if a.get("job_status") == "approved":
+                keys[id(a)] = (1, 0.0)
+            else:
+                keys[id(a)] = (2, -((a.get("match_score") or 0) / 100.0))
 
-        pool = [*deliver, *fd_actions, *app_actions]
+        pool = [*deliver, *fd_actions, *app_actions, *(remote_actions or [])]
         pool.sort(key=lambda a: keys[id(a)])
         return pool
 

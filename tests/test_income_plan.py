@@ -230,3 +230,60 @@ class TestMultiStreamHourBudget:
         cc = plan["income_command_center"]
         stream_week_high = cc["week"]["high"] - cc["today"]["high"]
         assert stream_week_high == pytest.approx(25.0 * 40.0, abs=0.01)
+
+
+class TestRemoteJobsTrack:
+    """Remote Job Matcher (job_tracker) integrado al income plan."""
+
+    def _jobs(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "id": "j1",
+                "status": "approved",
+                "job": {"title": "Backend Dev", "company": "Acme", "url": "https://x/1", "source": "remotive"},
+                "match": {"score": 88, "salary_min": 3000, "eligible": True, "missing_requirements": []},
+            },
+            {
+                "id": "j2",
+                "status": "prepared",
+                "job": {"title": "QA Engineer", "company": "Beta", "url": "https://x/2", "source": "jobicy"},
+                "match": {"score": 72, "salary_min": None, "eligible": True, "missing_requirements": ["inglés"]},
+            },
+            {
+                "id": "j3",
+                "status": "saved",
+                "job": {"title": "Designer", "company": "Gamma", "url": "https://x/3"},
+                "match": {"score": 40},
+            },
+        ]
+
+    def test_track_summary_and_status_counts(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        track = plan["tracks"]["remote_jobs"]
+        assert track["available"] is True
+        assert track["total"] == 3
+        assert track["by_status"] == {"approved": 1, "prepared": 1, "saved": 1}
+
+    def test_approved_remote_job_becomes_ranked_action(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        sources = [a["source"] for a in plan["phases"]["now"] + plan["phases"]["this_week"]]
+        assert "remote_jobs" in sources
+        action = next(a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs")
+        assert action["job_status"] == "approved"
+        assert action["payoff_range"] == {"low": 3000, "high": 3000}
+
+    def test_saved_jobs_do_not_generate_actions(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", lambda: self._jobs())
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        remote_actions = [a for a in plan["phases"]["now"] + plan["phases"]["this_week"] if a["source"] == "remote_jobs"]
+        assert all(a["job_id"] != "j3" for a in remote_actions)
+
+    def test_tracker_unavailable_degrades_gracefully(self, fresh_assistant, fresh_first_day, monkeypatch) -> None:
+        def _boom():
+            raise RuntimeError("no store")
+
+        monkeypatch.setattr("cores.opportunity.job_tracker.list_jobs", _boom)
+        plan = UnifiedIncomePlan(fresh_assistant, fresh_first_day, _StubBank()).build()
+        assert plan["tracks"]["remote_jobs"]["available"] is False
