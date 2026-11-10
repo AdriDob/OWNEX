@@ -6,14 +6,14 @@ para operaciones internas: Work Bank, conexiones, sincronización.
 
 from typing import Any
 
-from fastapi import APIRouter, Header, Request, Response
-
-# Sessions router for internalOWNEX operations
-sessions_router = APIRouter(prefix="/api/internal/sessions", tags=["internal-sessions"])
+from fastapi import APIRouter, Request, Response
 
 from cores.auth.auth_manager import get_auth_manager
 from cores.auth.session_validator import get_session_validator
 from cores.gateway.schemas import error, ok
+
+# Sessions router for internalOWNEX operations
+sessions_router = APIRouter(prefix="/api/internal/sessions", tags=["internal-sessions"])
 
 TOKEN_TTL = 30 * 24 * 60 * 60  # 30 días
 
@@ -42,15 +42,17 @@ async def create_internal_session(request: Request):
 
     # También establecer cookie httpOnly para consistencia
     response = Response(content=None, status_code=200)
-    from api.middleware.auth_middleware import SESSION_COOKIE, _set_session_cookie
+    from api.middleware.auth_middleware import _set_session_cookie
 
     _set_session_cookie(response, result["token"], request.url.scheme == "https")
 
-    return ok({
-        "token": result["token"],
-        "device_id": result["device_id"],
-        "expires_at": int(__import__("time").time()) + TOKEN_TTL,
-    })
+    return ok(
+        {
+            "token": result["token"],
+            "device_id": result["device_id"],
+            "expires_at": int(__import__("time").time()) + TOKEN_TTL,
+        }
+    )
 
 
 @sessions_router.post("/validate")

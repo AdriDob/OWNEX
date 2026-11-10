@@ -85,10 +85,7 @@ class AttackDecisionEngine:
     def detect_object_reference(self, path: str, params: dict[str, Any]) -> bool:
         if ID_PATTERN.search(path):
             return True
-        for key in params:
-            if any(token == key.lower() or token in key.lower() for token in OBJECT_REFERENCE_TOKENS):
-                return True
-        return False
+        return any(any(token == key.lower() or token in key.lower() for token in OBJECT_REFERENCE_TOKENS) for key in params)
 
     def detect_ownership_risk(self, path: str, params: dict[str, Any]) -> bool:
         candidate = any(token in path.lower() for token in OWNERSHIP_HINTS)

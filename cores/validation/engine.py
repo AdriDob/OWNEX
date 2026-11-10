@@ -24,8 +24,8 @@ import time
 from typing import Any
 
 from core.validation.adapters import HTTPAdapter
-from core.validation.evidence_confidence import ConfidenceEngine
 from core.validation.economic_scorer import EconomicScorer
+from core.validation.evidence_confidence import ConfidenceEngine
 from core.validation.models import (
     AttackCandidate,
     ConfidenceScore,

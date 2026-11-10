@@ -35,7 +35,8 @@ def _get_current_tier() -> str:
         if os.path.exists(license_path):
             import json
 
-            data = json.loads(open(license_path).read())
+            with open(license_path, encoding="utf-8") as handle:
+                data = json.loads(handle.read())
             if data.get("valid") and data.get("tier"):
                 return data["tier"]
             if data.get("valid"):

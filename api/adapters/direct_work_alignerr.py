@@ -83,10 +83,7 @@ def _is_argentina_compatible_source(source: Any) -> bool:
     url = getattr(source, "url", "") or ""
     text = f"{name} {url}".lower()
     argentina_keywords = ["argentina", "ar", "ar$", "usdc", "payoneer", "airtm"]
-    for kw in argentina_keywords:
-        if kw in text:
-            return True
-    return False
+    return any(kw in text for kw in argentina_keywords)
 
 
 def _documented_payment_methods_for_source(source: Any) -> list[str]:
@@ -120,7 +117,7 @@ _PARENT_PAYMENT_METHOD_ALIASES: dict[str, PaymentMethod] = {
 }
 
 
-def _Alignerr_payment_method_for_source(source: Any) -> PaymentMethod:
+def _alignerr_payment_method_for_source(source: Any) -> PaymentMethod:
     """Map Alignerr payment methods using extended aliases."""
     for method in _documented_payment_methods_for_source(source):
         key = str(method).strip().lower()
@@ -160,7 +157,7 @@ class AlignerrDweAdapter(BaseDiscoveryAdapter):
         """Build a single Alignerr opportunity from catalog source."""
         platform = _platform_for_source(source)
         category = _category_for_source(source)
-        payment_method = _Alignerr_payment_method_for_source(source)
+        payment_method = _alignerr_payment_method_for_source(source)
         employment_type = _employment_type_for_source(source)
         source_id = getattr(source, "id", None) or getattr(source, "name", "unknown")
         url = _normalize_url(getattr(source, "url", "") or "")
@@ -208,6 +205,7 @@ class AlignerrDweAdapter(BaseDiscoveryAdapter):
 
         return opp
 
+    @staticmethod
     def _resolve_alignerr_platform(source: Any) -> WorkPlatform:
         """Resolve the platform for an Alignerr source."""
         name = getattr(source, "name", "") or ""

@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cores.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
 from core.revenue.pipeline import PipelineResult
+from cores.auto_submit.pipeline import AutoSubmitPipeline, get_auto_submit_pipeline
 
 
 @pytest.fixture(autouse=True)

@@ -33,7 +33,7 @@ from pathlib import Path
 PROJECT_ROOT = Path.cwd()
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.opportunity.source_discovery import (
+from core.opportunity.source_discovery import (  # noqa: E402 — sys.path bootstrap above
     SourceCandidate,
     SourceDiscoveryRegistry,
     SourceLifecycle,
@@ -213,7 +213,7 @@ def main():
     classification_counts: dict[str, int] = {}
     lifecycle_counts: dict[str, int] = {}
 
-    for source_id, report in results.items():
+    for _source_id, report in results.items():
         status_counts[report["status"]] = status_counts.get(report["status"], 0) + 1
         if "classification" in report:
             classification_counts[report["classification"]] = classification_counts.get(report["classification"], 0) + 1
@@ -242,7 +242,7 @@ def main():
         print(f"Duplication handling: {dedup_count} entries were duplicates of earlier URLs")
         # Show which prefixes map to the same source_id
         id_to_prefixes: dict[str, list[str]] = {}
-        for prefix, name, url, cls, note in CATALOG_60:
+        for prefix, _name, url, _cls, _note in CATALOG_60:
             sid = make_source_id(url)
             id_to_prefixes.setdefault(sid, []).append(prefix)
         for sid, prefixes in id_to_prefixes.items():

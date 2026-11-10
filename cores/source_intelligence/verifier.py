@@ -286,13 +286,12 @@ class SourceVerifier:
             scored += 5.0
 
         # Check citizenship is NOT restricted to specific countries (Argentina should be OK)
-        if rules.requires_citizenship:
-            # Check if Argentina is in the allowed list or if it's open
-            if "AR" not in (rules.requires_citizenship or []) and len(rules.requires_citizenship) > 0:
-                # Explicitly restricts to non-AR countries
-                details.append(f"Cittadinanza restringida a: {rules.requires_citizenship}")
-                passes = False
-                scored = 0.0
+        # Check if Argentina is in the allowed list or if it's open
+        if rules.requires_citizenship and "AR" not in rules.requires_citizenship:
+            # Explicitly restricts to non-AR countries
+            details.append(f"Cittadinanza restringida a: {rules.requires_citizenship}")
+            passes = False
+            scored = 0.0
 
         result = VerificationResult.PASS if passes else VerificationResult.FAIL
 

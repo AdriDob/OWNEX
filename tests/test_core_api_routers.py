@@ -6,8 +6,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cores.api.routers import router as core_router
 from core.health.engine import get_health_center
+from cores.api.routers import router as core_router
 
 app = FastAPI()
 app.include_router(core_router)

@@ -16,9 +16,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from core.validation.adapters import HTTPAdapter, ProbeResponse
-from core.validation.evidence_confidence import ConfidenceEngine
 from core.validation.economic_scorer import EconomicScorer
 from core.validation.engine import ValidationEngine
+from core.validation.evidence_confidence import ConfidenceEngine
 from core.validation.models import (
     AttackCandidate,
     ConfidenceScore,

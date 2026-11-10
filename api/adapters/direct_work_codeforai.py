@@ -78,10 +78,7 @@ def _is_argentina_compatible_source(source: Any) -> bool:
     url = getattr(source, "url", "") or ""
     text = f"{name} {url}".lower()
     argentina_keywords = ["argentina", "ar", "crypto", "usdc"]
-    for kw in argentina_keywords:
-        if kw in text:
-            return True
-    return False
+    return any(kw in text for kw in argentina_keywords)
 
 
 def _documented_payment_methods_for_source(source: Any) -> list[str]:
@@ -124,7 +121,7 @@ def _codeforai_payment_method_for_source(source: Any) -> PaymentMethod:
     return PaymentMethod.CRYPTO
 
 
-class codeforaiDweAdapter(BaseDiscoveryAdapter):
+class CodeforaiDweAdapter(BaseDiscoveryAdapter):
     """Direct Work Engine adapter for codeforai.tech platform.
 
     Maps codeforai. AI code generation and coding task opportunities
@@ -204,6 +201,7 @@ class codeforaiDweAdapter(BaseDiscoveryAdapter):
 
         return opp
 
+    @staticmethod
     def _resolve_codeforai_platform(source: Any) -> WorkPlatform:
         """Resolve the platform for a codeforai.tech source."""
         name = getattr(source, "name", "") or ""
@@ -219,7 +217,7 @@ class codeforaiDweAdapter(BaseDiscoveryAdapter):
         return WorkPlatform.OTHER
 
 
-def build_codeforai_adapter() -> codeforaiDweAdapter:
+def build_codeforai_adapter() -> CodeforaiDweAdapter:
     """Build the codeforai.tech DWE adapter instance."""
     from cores.direct_work_engine.discovery import DiscoverySource
     from cores.direct_work_engine.models import OpportunityCategory, WorkPlatform
@@ -231,5 +229,5 @@ def build_codeforai_adapter() -> codeforaiDweAdapter:
         tier=2,
         analysis_cadence_hours=24,
     )
-    adapter = codeforaiDweAdapter(source=source)
+    adapter = CodeforaiDweAdapter(source=source)
     return adapter

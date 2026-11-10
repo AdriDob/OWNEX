@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 def test_monte_carlo_projection_uses_expected_returns() -> None:
-    from cores.capital.maximizer_advanced import MonteCarloProjection
+    from cores.capital.maximizer_advanced import monte_carlo_projection
 
-    result = MonteCarloProjection(
+    result = monte_carlo_projection(
         current_portfolio={"cash": 1_000.0},
         expected_returns={"cash": 0.12},
         volatilities={"cash": 0.0},

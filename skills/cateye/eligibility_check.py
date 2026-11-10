@@ -27,7 +27,7 @@ from skills.bounties.argentina_check import (
 
 
 # CATEYE-specific status extensions
-class ArgentinaStatusCATEYE(AfricaStatus):
+class ArgentinaStatusCATEYE(ArgentinaStatus):
     """Extended Argentina status for CATEYE with additional levels."""
 
     ACTIVE = "ACTIVE"  # Full eligibility, no restrictions
@@ -230,7 +230,7 @@ def check_opportunity_argentina_eligibility_cateye(
     # CATEYE-specific: always enforce professional_experience_policy != "mandatory"
     if professional_experience_policy == "mandatory":
         # CATEYE: this is a hard block - mark as restricted regardless
-        cateye_status = ArgentinaStatusCATEYe.RESTRICTED
+        cateye_status = ArgentinaStatusCATEYE.RESTRICTED
         # Add penalty to eligibility score will be applied by caller
 
     # CATEYE-specific: enforce max 1 technical test
@@ -396,8 +396,8 @@ def generate_source_manifest_cateye(
     professional_experience_policy: str = "no_mandatory",
     interview_policy: str = "no_mandatory_interviews",
     portfolio_policy: str = "no_mandatory_portfolio",
-    technical_test_policy: dict[str, Any] = {"max_tests": 1},
-    payment_methods: list[dict[str, Any]] = [{"method": "usdc_base", "country_support": "argentina"}],
+    technical_test_policy: dict[str, Any] | None = None,
+    payment_methods: list[dict[str, Any]] | None = None,
     payment_country_support: ArgentinaStatusCATEYE = ArgentinaStatusCATEYE.ACTIVE,
     api_documentation: str | None = None,
     mcp_configuration: dict[str, Any] | None = None,
@@ -417,6 +417,10 @@ def generate_source_manifest_cateye(
     Adaptado de generate_source_manifest de OWNEX con campos y políticas
     específicas de CATEYE.
     """
+    if technical_test_policy is None:
+        technical_test_policy = {"max_tests": 1}
+    if payment_methods is None:
+        payment_methods = [{"method": "usdc_base", "country_support": "argentina"}]
 
     # Reuse OWNEX manifest generation
     base_manifest = generate_source_manifest(

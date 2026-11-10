@@ -26,7 +26,7 @@ class ArmSession:
             self.ttl_seconds: float = ttl_hours * 3600
         self.expires_at: float = self.armed_at + self.ttl_seconds
         self.max_lot: float = body.get("max_lot", 0.01)
-        self.whitelist: List[str] = body.get("symbols", ["EURUSD"])
+        self.whitelist: list[str] = body.get("symbols", ["EURUSD"])
         self.max_open: int = body.get("max_open", 1)
         self.max_daily_loss_pct: float = body.get("max_daily_loss_pct", 2.0)
         self.purpose: str = body.get("purpose", "demo-canary")
@@ -75,7 +75,3 @@ def get_session() -> ArmSession | None:
 
 # Backward compatibility aliases
 set_session = create_session
-
-
-def get_session() -> ArmSession | None:
-    return None

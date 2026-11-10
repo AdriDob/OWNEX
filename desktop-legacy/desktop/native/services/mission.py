@@ -16,9 +16,9 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Any, TypeVar
 
+from core.system.hhd_tracker import get_hhd_summary
 from cores.direct_work_engine.engine import DirectWorkEngine
 from cores.opportunity import get_engine as get_opportunity_engine
-from core.system.hhd_tracker import get_hhd_summary
 
 from .api_client import ApiClient
 from .base import AsyncResult, ServiceError, service_call

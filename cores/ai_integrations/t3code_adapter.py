@@ -132,9 +132,7 @@ class T3CodeIntegration:
         try:
             import urllib.request
 
-            result = urllib.request.urlopen(
-                f"{self._server_url}/health", timeout=3
-            )
+            result = urllib.request.urlopen(f"{self._server_url}/health", timeout=3)
             self.status.server_running = result.status == 200
         except Exception:
             self.status.server_running = False
@@ -273,8 +271,8 @@ class T3CodeIntegration:
             }
 
         try:
-            import urllib.request
             import urllib.error
+            import urllib.request
 
             # Prepare the task payload
             payload = {
@@ -356,16 +354,12 @@ class T3CodeIntegration:
             self.status.telemetry_enabled = enabled
 
         # Apply the environment variable
-        os.environ["T3CODE_TELEMETRY_ENABLED"] = (
-            "1" if self.status.telemetry_enabled else "0"
-        )
+        os.environ["T3CODE_TELEMETRY_ENABLED"] = "1" if self.status.telemetry_enabled else "0"
 
         return {
             "success": True,
             "telemetry_enabled": self.status.telemetry_enabled,
-            "message": (
-                "Telemetry enabled" if self.status.telemetry_enabled else "Telemetry disabled"
-            ),
+            "message": ("Telemetry enabled" if self.status.telemetry_enabled else "Telemetry disabled"),
         }
 
     def set_server_url(self, url: str) -> dict[str, Any]:

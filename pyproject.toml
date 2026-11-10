@@ -15,6 +15,9 @@ exclude = ["extensions.*.*"]
 target-version = "py311"
 line-length = 160
 indent-width = 4
+# Vendored trees are separate checkouts (git submodules / gitlinks), not this
+# repository's source. Linting them reports ~1600 findings nobody here owns.
+extend-exclude = ["cognee", "work"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
@@ -24,6 +27,8 @@ ignore = ["E501", "E731", "B008"]
 "__init__.py" = ["F401"]
 "tests/*" = ["SIM"]
 "desktop/service.py" = ["N802"]
+# pywin32 mandates these callback names on the service framework class.
+"desktop-legacy/desktop/service.py" = ["N802"]
 "alembic/*" = ["E402", "UP035", "UP007", "W291", "I001"]
 "database/db.py" = ["E402"]
 

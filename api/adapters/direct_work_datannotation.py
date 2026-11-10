@@ -79,10 +79,7 @@ def _is_argentina_compatible_source(source: Any) -> bool:
     url = getattr(source, "url", "") or ""
     text = f"{name} {url}".lower()
     argentina_keywords = ["argentina", "ar", "usdc", "payoneer", "airtm"]
-    for kw in argentina_keywords:
-        if kw in text:
-            return True
-    return False
+    return any(kw in text for kw in argentina_keywords)
 
 
 def _documented_payment_methods_for_source(source: Any) -> list[str]:
@@ -125,7 +122,7 @@ def _datannotation_payment_method_for_source(source: Any) -> PaymentMethod:
     return PaymentMethod.STABLECOIN
 
 
-class datannotationDweAdapter(BaseDiscoveryAdapter):
+class DatannotationDweAdapter(BaseDiscoveryAdapter):
     """Direct Work Engine adapter for datannotation platform.
 
     Maps datannotation data annotation and AI training opportunities
@@ -205,6 +202,7 @@ class datannotationDweAdapter(BaseDiscoveryAdapter):
 
         return opp
 
+    @staticmethod
     def _resolve_datannotation_platform(source: Any) -> WorkPlatform:
         """Resolve the platform for a datannotation source."""
         name = getattr(source, "name", "") or ""
@@ -220,7 +218,7 @@ class datannotationDweAdapter(BaseDiscoveryAdapter):
         return WorkPlatform.OTHER
 
 
-def build_datannotation_adapter() -> datannotationDweAdapter:
+def build_datannotation_adapter() -> DatannotationDweAdapter:
     """Build the datannotation DWE adapter instance."""
     from cores.direct_work_engine.discovery import DiscoverySource
     from cores.direct_work_engine.models import OpportunityCategory, WorkPlatform
@@ -232,5 +230,5 @@ def build_datannotation_adapter() -> datannotationDweAdapter:
         tier=2,
         analysis_cadence_hours=24,
     )
-    adapter = datannotationDweAdapter(source=source)
+    adapter = DatannotationDweAdapter(source=source)
     return adapter

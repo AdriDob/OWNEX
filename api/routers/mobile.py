@@ -69,8 +69,8 @@ async def mobile_copilot_approve(request: dict[str, Any]):
 @router.get("/providers/status")
 async def mobile_providers_status():
     """Health check of all AI providers for mobile."""
-    from cores.ai.provider import PROVIDER_CATALOG
     from core.copilot.providers.router import get_provider_router
+    from cores.ai.provider import PROVIDER_CATALOG
 
     router = get_provider_router()
     provider_status = {}

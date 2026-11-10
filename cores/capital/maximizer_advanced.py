@@ -179,7 +179,7 @@ def compute_rebalancing_recommendations(
 # ── Monte Carlo Projections ────────────────────────────────────────────────
 
 
-def MonteCarloProjection(
+def monte_carlo_projection(
     current_portfolio: dict[str, float],
     expected_returns: dict[str, float],
     volatilities: dict[str, float],
@@ -297,12 +297,8 @@ class AdvancedWealthMaximizer:
         remaining_score = 0.0
         for platform, balance in platform_balances.items():
             base_score = base_results["platform_bounty"]["allocations"][platform]["score"]
-            corr_adjusted = _compute_correlation_adjusted_score(
-                platform, base_score, portfolio, self.correlation_matrix
-            )
-            vol_adjusted = _compute_volatility_adjusted_score(
-                platform, corr_adjusted, historical_returns=[], risk_tolerance=risk_tolerance
-            )
+            corr_adjusted = _compute_correlation_adjusted_score(platform, base_score, portfolio, self.correlation_matrix)
+            vol_adjusted = _compute_volatility_adjusted_score(platform, corr_adjusted, historical_returns=[], risk_tolerance=risk_tolerance)
 
             # Determine action
             if balance > 5000 and vol_adjusted > 0.6:
@@ -321,9 +317,7 @@ class AdvancedWealthMaximizer:
                 "suggested_allocation_pct": round(
                     max(
                         0.05,
-                        vol_adjusted
-                        / sum(p["volatility_adjusted_score"] for p in platform_adjusted["allocations"].values())
-                        * 100,
+                        vol_adjusted / sum(p["volatility_adjusted_score"] for p in platform_adjusted["allocations"].values()) * 100,
                     )
                     if platform_adjusted["allocations"]
                     else 0,
@@ -387,9 +381,7 @@ class AdvancedWealthMaximizer:
                     "suggested_allocation_pct": round(
                         max(
                             0.05,
-                            vol_adjusted
-                            / sum(c["volatility_adjusted_score"] for c in crypto_adjusted["allocations"].values())
-                            * 100,
+                            vol_adjusted / sum(c["volatility_adjusted_score"] for c in crypto_adjusted["allocations"].values()) * 100,
                         )
                         if crypto_adjusted["allocations"]
                         else 0,
@@ -476,7 +468,7 @@ def get_advanced_maximization_report(
 __all__ = [
     "AdvancedWealthMaximizer",
     "get_advanced_maximization_report",
-    "MonteCarloProjection",
+    "monte_carlo_projection",
     "compute_rebalancing_recommendations",
     "_compute_correlation_adjusted_score",
     "_compute_volatility_adjusted_score",

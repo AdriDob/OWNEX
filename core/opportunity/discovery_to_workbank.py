@@ -16,6 +16,7 @@ import hashlib
 import logging
 from typing import Any
 
+from core.opportunity.engine import OpportunityType
 from core.opportunity.source_discovery import (
     SourceCandidate,
     SourceDiscoveryRegistry,
@@ -23,7 +24,6 @@ from core.opportunity.source_discovery import (
     run_daily_meta_discovery,
 )
 from cores.direct_work_engine.models import EmploymentType, Opportunity, OpportunityCategory, PaymentMethod, WorkPlatform
-from core.opportunity.engine import OpportunityType
 from cores.direct_work_engine.workbank import get_workbank
 
 logger = logging.getLogger("ownex.opportunity.discovery_to_wb")
@@ -149,7 +149,6 @@ def _normalize_opportunity_type(raw: str | None) -> OpportunityType:
         "freelance": OpportunityType.FREELANCE,
         "data_annotation": OpportunityType.DATA_ANNOTATION,
         "bug_bounty": OpportunityType.SECURITY_BOUNTY,
-        "dev_bounty": OpportunityType.DEV_BOUNTY,
         "data_entry": OpportunityType.DATA_ANNOTATION,
         "data_entry-level": OpportunityType.DATA_ANNOTATION,
     }

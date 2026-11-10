@@ -7,6 +7,7 @@ No interview, portfolio, or experience required. Uses criteria-based classificat
 
 from __future__ import annotations
 
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
@@ -237,10 +238,8 @@ class ZeroBarrierEligibilityEngine:
             recommended_actions.append(f"Difficulty '{difficulty}' exceeds maximum '{self.criteria.max_difficulty}'")
             onboarding_minutes = 30
             # Reduce earnings estimate for high-difficulty beginner tasks
-            try:
+            with contextlib.suppress(TypeError, ValueError):
                 estimated_earnings = min(estimated_earnings, 50.0)  # Cap at $50 for beginner-level high-difficulty
-            except (TypeError, ValueError):
-                pass
 
         # Check amount threshold (very low amounts may not be worth onboarding)
         amount = opportunity_data.get("amount", 0.0)
