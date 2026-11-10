@@ -86,7 +86,8 @@ class SourceIntelEngine:
     ) -> dict[str, Any]:
         sources = self._curated_sources()
         if categories:
-            sources = [s for s in sources if s.category.value in categories]
+            wanted = set(categories)
+            sources = [s for s in sources if (s.category.value if hasattr(s.category, "value") else str(s.category)) in wanted]
         if query:
             needle = query.strip().lower()
             sources = [s for s in sources if needle in s.name.lower() or needle in (s.url or "").lower()]

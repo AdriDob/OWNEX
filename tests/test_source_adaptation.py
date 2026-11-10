@@ -1,8 +1,10 @@
 """Source adaptation level contract.
 
 Guards the Command Center metric that separates catalog size from real
-adaptation: 176 registered sources must not be reported as 176 operational
-integrations.
+adaptation: a large registered catalog must not be reported as equally
+many operational integrations. Counts are data-driven — the catalog grew
+from 176 curated entries to 1000+ with the 2026-11 sources expansion —
+while the curated adapter_ready/discoverable sets stay pinned.
 """
 
 from __future__ import annotations
@@ -42,11 +44,25 @@ class TestAdaptationLevels:
 
 class TestCatalogSummary:
     def test_summary_counts_match_curated_union(self) -> None:
+        from cores.opportunity.global_sources import get_total_source_count
+
         summary = catalog_adaptation_summary()
-        assert summary["total_sources"] == 176
+
+        # The summary covers the deduplicated union of the capped global
+        # catalog PLUS own_work_sources extensions — it can exceed the
+        # 1000-source scan cap but never be smaller than it.
+        assert summary["total_sources"] >= get_total_source_count()
         assert summary["levels"]["adapter_ready"] == 17
         assert summary["levels"]["discoverable"] == 33
-        assert summary["levels"]["catalog_only"] == 126
+        levels = summary["levels"]
+        assert levels["catalog_only"] == (
+            summary["total_sources"]
+            - levels["adapter_ready"]
+            - levels["discoverable"]
+            - levels["integration_verified"]
+            - levels["argentina_verified"]
+            - levels["production_active"]
+        )
 
     def test_adapter_ready_names_match_programmed_or_payout_ready_sources(self) -> None:
         assert adapter_ready_source_names() == frozenset(

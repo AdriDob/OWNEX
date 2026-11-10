@@ -53,7 +53,12 @@ class TestSourceFamilies:
 
     def test_summary_counts_match_current_catalog(self) -> None:
         summary = catalog_family_summary()
-        assert summary["total_catalog_entries"] == 176
+        # 2026-11-10: catalog expanded past the 1000-source cap; the summary
+        # unions the capped catalog with own_work_sources extensions, so
+        # totals track the live catalog — assert consistency, not literals.
+        classified = sum(summary["family_counts"].values())
+        assert summary["unclassified"] == summary["total_catalog_entries"] - classified
+        assert summary["total_catalog_entries"] >= 1000
         assert summary["family_counts"]["ai_coding_evaluation"] == 12
         assert summary["family_counts"]["qa_testing_services"] == 6
         assert summary["family_counts"]["funded_oss_grants"] == 16
@@ -61,7 +66,6 @@ class TestSourceFamilies:
         assert summary["family_counts"]["devops_cloud_tasks"] == 0
         assert summary["family_counts"]["data_engineering_tasks"] == 0
         assert summary["family_counts"]["browser_automation_gigs"] == 0
-        assert summary["unclassified"] == 142
         by_family = summary["sources_by_family"]
         assert "Algora" in by_family["funded_oss_grants"]
         assert "Test IO" in by_family["qa_testing_services"]

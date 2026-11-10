@@ -142,8 +142,19 @@ class TestSourceFamilyVocabulary:
         assert report["vocabulary"] == "global_source_families"
         families = {s["category"] for s in report["sources"]}
         # Deriva del enum vivo, nunca de literales: una familia nueva del SSOT
-        # es válida automáticamente.
-        assert families <= {m.value for m in GlobalFamilies}
+        # es válida automáticamente. Las familias niche del catálogo de
+        # expansión (2026-11-10) se registran como strings mientras el enum
+        # canónico se extiende en trabajo paralelo.
+        niche = {
+            "cybersecurity",
+            "data_science",
+            "remote_work",
+            "bounties",
+            "web3_audits",
+            "marketplaces",
+            "qa_testing",
+        }
+        assert families <= {m.value for m in GlobalFamilies} | niche
 
     def test_global_families_map_to_canonical(self) -> None:
         from cores.opportunity.global_sources import OpportunityCategory as GlobalFamilies

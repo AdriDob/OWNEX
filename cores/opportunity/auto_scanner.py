@@ -44,6 +44,17 @@ try:
 except ImportError:
     _SOURCES_AVAILABLE = False
 
+try:
+    from cores.opportunity.sources_expansion import (
+        get_credential_requirement,
+        get_fallback_chain,
+        sources_for_scan,
+    )
+
+    _EXPANSION_AVAILABLE = True
+except ImportError:
+    _EXPANSION_AVAILABLE = False
+
 
 def _source_categories() -> list[OpportunityCategory]:
     """Iterate the curated source families instead of hardcoding their names."""
@@ -70,6 +81,9 @@ class DiscoveryRecord:
     requires_portfolio: bool = True
     apply_type: str = "unknown"
     tags: list[str] = field(default_factory=list)
+    # "source_lead" = catalog entry surfaced for manual follow-up (NOT a live
+    # task); "live_opportunity" = confirmed by a real fetch/parser/API check.
+    kind: str = "source_lead"
 
 
 @dataclass
@@ -78,11 +92,17 @@ class DiscoveryReport:
 
     timestamp: str = ""
     sources_scanned: int = 0
+    catalog_total: int = 0
+    sources_eligible: int = 0
+    sources_substituted: int = 0
+    credential_gated: int = 0
+    payment_fallback_sources: int = 0
     opportunities_found: int = 0
     filtered_out_experience: int = 0
     filtered_out_interview: int = 0
     filtered_out_portfolio: int = 0
     qualifying: int = 0
+    live_opportunities_found: int = 0
     by_category: dict[str, int] = field(default_factory=dict)
     favorites: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
@@ -108,18 +128,19 @@ def check_source_available(url: str, timeout: int = 5) -> bool:
 
 def parse_source_opportunities(source: SourceDefinition) -> list[DiscoveryRecord]:
     """
-    Attempt to parse opportunities from a source's URL.
-    For most sources, we'll log the source itself as an opportunity
-    (the user can then visit the URL to find specific listings).
+    Surface a source as a discovery *lead* — NOT a live opportunity.
+
+    A catalog entry only becomes a live opportunity after a real
+    fetch/parser/API/browser check confirms an actual open task.
+    Until per-source parsers exist, every record is ``kind="source_lead"``.
     """
     records: list[DiscoveryRecord] = []
     try:
-        # Default: log the source as a discoverable opportunity
         record = DiscoveryRecord(
             source_name=source.name,
             source_url=source.url,
             category=source.category.value,
-            title=f"New {source.category.value.replace('_', ' ').title()} Opportunity",
+            title=f"{source.name} — {source.category.value.replace('_', ' ')} source lead",
             url=source.url,
             description=source.description,
             requirements=f"Experience: {'Required' if source.requires_experience else 'Not Required'} | "
@@ -147,23 +168,45 @@ def run_scan(deep: bool = False) -> DiscoveryReport:
         report.errors.append("Global sources database not available")
         return report
 
-    sources = get_sources()
+    if _EXPANSION_AVAILABLE:
+        sources = sources_for_scan(eligible_only=True)
+        report.catalog_total = len(sources_for_scan(eligible_only=False))
+        report.sources_eligible = len(sources)
+        report.credential_gated = sum(1 for s in sources if (get_credential_requirement(s) or {}).get("kind") not in (None, "none"))
+        report.payment_fallback_sources = sum(1 for s in sources if not getattr(s, "argentina_ok", True))
+    else:
+        sources = get_sources()
+        report.sources_eligible = len(sources)
     report.sources_scanned = len(sources)
 
     all_discoveries: list[DiscoveryRecord] = []
 
     for _idx, source in enumerate(sources):
         try:
-            # Deep scan: check source availability
+            scan_source = source
+            # Deep scan: check availability; on failure substitute the first
+            # reachable alternate from the source's fallback chain (subfuente
+            # replacement per OWNEX spec).
             if deep:
                 available = check_source_available(source.url)
                 if not available:
-                    report.errors.append(f"Source unreachable: {source.name} ({source.url})")
-                    continue
+                    substituted = False
+                    if _EXPANSION_AVAILABLE:
+                        for alt in get_fallback_chain(source):
+                            if check_source_available(alt.url):
+                                scan_source = alt
+                                substituted = True
+                                report.sources_substituted += 1
+                                report.errors.append(f"Source unreachable, substituted: {source.name} -> {alt.name}")
+                                break
+                    if not substituted:
+                        report.errors.append(f"Source unreachable: {source.name} ({source.url})")
+                        continue
 
-            opportunities = parse_source_opportunities(source)
+            opportunities = parse_source_opportunities(scan_source)
             all_discoveries.extend(opportunities)
             report.opportunities_found += len(opportunities)
+            report.live_opportunities_found += sum(1 for o in opportunities if o.kind == "live_opportunity")
 
             # Apply the user's no-experience/no-interview/no-portfolio filter
             for opp in opportunities:
@@ -198,7 +241,13 @@ def run_scan(deep: bool = False) -> DiscoveryReport:
                 {
                     "timestamp": report.timestamp,
                     "total_sources": report.sources_scanned,
+                    "catalog_total": report.catalog_total,
+                    "sources_eligible": report.sources_eligible,
+                    "sources_substituted": report.sources_substituted,
+                    "credential_gated": report.credential_gated,
+                    "payment_fallback_sources": report.payment_fallback_sources,
                     "opportunities_found": report.opportunities_found,
+                    "live_opportunities_found": report.live_opportunities_found,
                     "qualifying": report.qualifying,
                     "by_category": report.by_category,
                     "favorites": report.favorites,

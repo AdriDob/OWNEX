@@ -29,8 +29,8 @@ class OpportunityCategory(StrEnum):
     bug_bounty = "bug_bounty"
     dev_bounty = "dev_bounty"
     data_entry = "data_entry"
-    ai_evaluation = "ai_evaluation",
-    junior_jobs = "junior_jobs",
+    ai_evaluation = ("ai_evaluation",)
+    junior_jobs = ("junior_jobs",)
 
 
 @dataclass(frozen=True)
@@ -50,7 +50,8 @@ class SourceDefinition:
     requires_experience: bool = False  # NO experience needed
     language: str = "en"
     region: str = "global"
-    argentina_ok: bool = False  # Argentina-compatible payment methods    estimated_payout_range: str = "varies"
+    argentina_ok: bool = False  # Argentina-compatible payment methods
+    estimated_payout_range: str = "varies"
     tags: list[str] = field(default_factory=list)
     last_verified: str = "2026-07-30"
     priority: int = 0  # higher = more recommended
@@ -559,6 +560,21 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
         requires_interview=False,
         estimated_payout_range="$50-$2,000 per bounty",
         tags=["crypto", "bounty", "community", "web3"],
+        priority=6,
+    ),
+    SourceDefinition(
+        name="SpartanAudit",
+        url="https://spartanaudit.com",
+        category=OpportunityCategory.bug_bounty,
+        description="High-value smart contract audits, bug bounties and bridge/protocol security reviews. Curated security research.",
+        apply_method="profile_only",
+        type="platform",
+        quality_score=0.88,
+        requires_portfolio=False,
+        requires_experience=False,
+        requires_interview=False,
+        estimated_payout_range="varies per program",
+        tags=["web3", "audits", "smart-contracts", "protocol-security"],
         priority=6,
     ),
 ]
@@ -1992,20 +2008,39 @@ _ALL_CATEGORIES = {
 }
 
 
-def get_sources(category: OpportunityCategory | None = None) -> list[SourceDefinition]:
-    """Get all sources, optionally filtered by category."""
+def get_base_sources(category: OpportunityCategory | None = None) -> list[SourceDefinition]:
+    """Base catalog only (no expansion merge). Used by the expansion package
+    to build the capped merged catalog without recursion."""
     if category:
         return list(_ALL_CATEGORIES.get(category, []))
-    result = []
+    result: list[SourceDefinition] = []
     for cat_sources in _ALL_CATEGORIES.values():
         result.extend(cat_sources)
     return result
 
 
+def get_sources(category: OpportunityCategory | None = None) -> list[SourceDefinition]:
+    """Get all sources (base catalog + expansion), deduped by name,
+    hard-capped at MAX_TOTAL_SOURCES via the expansion package's
+    stratified cap (every category keeps representation)."""
+    try:
+        from cores.opportunity.sources_expansion import get_all_sources
+
+        capped = get_all_sources()
+    except Exception:
+        capped = None
+    if capped is not None:
+        if category is None:
+            return list(capped)
+        return [s for s in capped if s.category == category]
+    # Expansion package unavailable: base catalog only.
+    return get_base_sources(category)
+
+
 def get_favorites(category: OpportunityCategory, limit: int = 10) -> list[SourceDefinition]:
     """Get the top N highest-priority sources for a category."""
     sources = sorted(
-        _ALL_CATEGORIES.get(category, []),
+        get_sources(category),
         key=lambda s: s.priority,
         reverse=True,
     )
@@ -2013,8 +2048,8 @@ def get_favorites(category: OpportunityCategory, limit: int = 10) -> list[Source
 
 
 def get_total_source_count() -> int:
-    """Return the total number of sources across all categories."""
-    return sum(len(sources) for sources in _ALL_CATEGORIES.values())
+    """Return the total number of sources across all categories (capped)."""
+    return len(get_sources())
 
 
 def find_curated_entry_model(name_or_url_key: str) -> dict[str, Any] | None:
@@ -2047,5 +2082,9 @@ def find_curated_entry_model(name_or_url_key: str) -> dict[str, Any] | None:
 
 
 def get_categorized_counts() -> dict[str, int]:
-    """Return a breakdown of sources by category."""
-    return {cat.value: len(sources) for cat, sources in _ALL_CATEGORIES.items()}
+    """Return a breakdown of sources by category (incl. expansion)."""
+    counts: dict[str, int] = {}
+    for src in get_sources():
+        key = src.category.value if hasattr(src.category, "value") else str(src.category)
+        counts[key] = counts.get(key, 0) + 1
+    return counts

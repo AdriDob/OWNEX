@@ -65,6 +65,25 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
     # AI-training platforms (Outlier/Mercor/Alignerr/Mindrift family,
     # curated 2026-08-25): hourly evaluation streams ≈ ai_evaluation.
     GlobalSourceCategory.ai_evaluation: OpportunityCategory.AI_EVALUATION,
+    # 2026-11-10 source-catalog expansion families (junior_jobs + niche
+    # categories). Mapped defensively so the module imports even while
+    # parallel agents extend/revert the enum mid-edit.
+    **{
+        member: canonical
+        for name, canonical in {
+            # Entry-level/junior job boards: employment-family ≈ software
+            # engineering (same precedent as FREELANCE_TECH/DIGITAL_PRODUCTS).
+            "junior_jobs": OpportunityCategory.SOFTWARE_ENGINEERING,
+            "cybersecurity": OpportunityCategory.SECURITY_RESEARCH,
+            "data_science": OpportunityCategory.DATA_ENGINEERING,
+            "remote_work": OpportunityCategory.SOFTWARE_ENGINEERING,
+            "bounties": OpportunityCategory.OSS_BOUNTIES,
+            "web3_audits": OpportunityCategory.SMART_CONTRACTS,
+            "marketplaces": OpportunityCategory.SOFTWARE_ENGINEERING,
+            "qa_testing": OpportunityCategory.QA_AUTOMATION,
+        }.items()
+        if (member := getattr(GlobalSourceCategory, name, None)) is not None
+    },
 }
 
 # core.opportunity.mercenary_filter (11 prioritized categories) -> canonical
