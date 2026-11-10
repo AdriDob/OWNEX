@@ -124,9 +124,7 @@ def source_onboarding_guide(limit: int = Query(200, ge=1, le=1000)):
             )
         fb = get_payment_fallback(s)
         if fb:
-            payment_fallbacks.append(
-                {"name": s.name, "fallback": fb.get("method", fb)}
-            )
+            payment_fallbacks.append({"name": s.name, "fallback": fb.get("method", fb)})
     return {
         "catalog_total": len(catalog),
         "shown": len(sources),
@@ -135,14 +133,10 @@ def source_onboarding_guide(limit: int = Query(200, ge=1, le=1000)):
         "payment_fallback_sources": payment_fallbacks,
         "instructions": [
             "Sources with kind 'none' work without any credentials.",
-            "kind 'login': create an account on the platform, then store "
-            "email/password or session cookie via the connection manager.",
-            "kind 'api_key': generate a key in the platform settings and "
-            "store it as a credential — never commit keys to the repo.",
-            "kind 'cookie': export the session cookie from your browser "
-            "after logging in; store it via the connection manager.",
-            "kind 'direct_message': no platform account needed — negotiate "
-            "payment via the platform's private-message channel.",
+            "kind 'login': create an account on the platform, then store email/password or session cookie via the connection manager.",
+            "kind 'api_key': generate a key in the platform settings and store it as a credential — never commit keys to the repo.",
+            "kind 'cookie': export the session cookie from your browser after logging in; store it via the connection manager.",
+            "kind 'direct_message': no platform account needed — negotiate payment via the platform's private-message channel.",
             "payment_fallback entries are not Argentina-compatible "
             "directly; use the listed alternative (e.g. private message, "
             "crypto, Payoneer) before applying.",
@@ -394,3 +388,42 @@ async def stop_monitor():
     monitor = get_discovery_monitor()
     await monitor.stop()
     return {"status": "stopped"}
+
+
+# --- Live opportunity pipeline (fetch-confirmed, never catalog leads) ---
+
+
+@router.get("/live/stats")
+def live_opportunity_stats():
+    """Counts + provenance for fetch-confirmed live opportunities."""
+    from cores.opportunity.live_pipeline import live_opportunity_stats as _stats
+
+    return _stats()
+
+
+@router.get("/live/opportunities")
+def list_live_opportunities(
+    status: str | None = Query(None, description="discovered|verified|ready|expired|rejected"),
+    platform: str | None = Query(None),
+    limit: int = Query(200, ge=1, le=1000),
+):
+    """Live opportunities discovered by real adapter fetches (deduped)."""
+    from cores.opportunity.live_pipeline import get_live_opportunities
+
+    return {"opportunities": get_live_opportunities(status=status, platform=platform, limit=limit)}
+
+
+class LiveScanRequest(BaseModel):
+    fetchers: list[str] | None = None
+
+
+@router.post("/live/scan")
+async def run_live_scan(request: LiveScanRequest | None = None):
+    """Run real platform fetchers and persist confirmed opportunities.
+
+    Only fetchers wired to public APIs run without credentials; gated ones
+    report errors instead of fabricating results.
+    """
+    from cores.opportunity.live_pipeline import run_live_scan as _scan
+
+    return await _scan(fetchers=request.fetchers if request else None)

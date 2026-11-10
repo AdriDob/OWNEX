@@ -11,7 +11,10 @@ from core.credentials.vault import get_platform_credentials
 
 logger = logging.getLogger("ownex.adapters.forge.algora")
 
-API_BASE = "https://api.algora.xyz/v1"
+# api.algora.xyz is dead (TLS mismatch); api.algora.io is the documented
+# host. Unauthenticated /v1/bounties currently 404s — ALGORA_API_KEY may be
+# required. GitHub Algora bounties are still captured via github_bounties.
+API_BASE = "https://api.algora.io/v1"
 
 
 async def fetch_opportunities() -> list[dict[str, Any]]:
