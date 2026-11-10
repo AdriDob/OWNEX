@@ -1,4 +1,7 @@
 # Financial Roadmap — $100K Ahorro + $10K/mes Recurrente
+
+> **DEPRECATED AS A REVENUE FORECAST (2026-11-09):** This document is a historical/aspirational planning artifact. Its success percentages, bounty volumes, PR acceptance rates, hourly capacity, revenue totals and timelines have not been validated against real paid outcomes. Do not display or use its figures as expected income. See [the evidence-based Deep Revenue Opportunity Study](../docs/DEEP_REVENUE_OPPORTUNITY_STUDY.md) and [Income & Opportunity Validation](../docs/INCOME_AND_OPPORTUNITY_VALIDATION.md) for the current baseline and methodology.
+
 ## Modelo financiero integrado OWNEX con categorías 0-barrier
 
 > **Objetivo:** $100,000 ahorro + $10,000/mes ingreso recurrente usando OWNEX maximizado
