@@ -332,3 +332,23 @@ class TestEligibility:
         item = store.all()[0]
         assert item.status == "eligibility_checked"
         assert item.raw["eligibility"]["argentina_compatible"] == "yes"
+
+
+class TestWorkbankPromotion:
+    def test_candidates_include_eligibility_checked(self, store):
+        from cores.opportunity.live_pipeline import live_candidates_for_workbank
+
+        store.upsert(LiveOpportunity(id="1", platform="algora", adapter="a", title="t", url="u", status="eligibility_checked"))
+        store.upsert(LiveOpportunity(id="2", platform="opire", adapter="a", title="t", url="u", status="ready"))
+        cands = live_candidates_for_workbank(store=store)
+        assert len(cands) == 1  # ready excluded, eligibility_checked included
+
+    def test_mark_ready_accepts_eligibility_checked(self, store):
+        from types import SimpleNamespace
+
+        from cores.opportunity.live_pipeline import mark_ready_from_workbank
+
+        store.upsert(LiveOpportunity(id="1", platform="algora", adapter="a", title="t", url="u", status="eligibility_checked"))
+        n = mark_ready_from_workbank([SimpleNamespace(id="live:algora:1")], store)
+        assert n == 1
+        assert store.all(status="ready")

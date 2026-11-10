@@ -3587,3 +3587,14 @@ Características del Sistema Completo:
 - **API**: `GET /api/discovery/live/stats|opportunities|eligibility`, `POST /api/discovery/live/scan|eligibility/check`.
 - **Tests**: 24 live_pipeline + scheduler jobs actualizados (64 jobs totales).
 - **Pendiente honesto**: estados verified/ready requieren evidencia de scorer/workbank cycle; ejecución asistida, connection testing y frontend de métricas live pendientes. Ingreso real: USD 0.
+
+---
+
+## 2026-11-10 — WorkBank promotion: primeras oportunidades READY reales
+
+- **`promote_live_to_workbank()`**: alimenta candidatos live al `WorkBank.daily_cycle` canónico (ZeroBarrierScorer + StrictFilter + access check). Items con `ready_to_deliver` → status `ready` (evidencia de scorer, no flip manual).
+- **Resultado real**: 401 WorkItems creados desde 442 candidatos; **9 ready_to_deliver** ($5–$750: issuehunt/opire), 392 needs_access (requieren setup de credenciales de plataforma). StrictFilter rechazó items con `unclear_payment`/`unpaid_mandatory_work` — comportamiento correcto.
+- **Store**: 9 ready · 432 eligibility_checked · 14 expired · 1 discovered.
+- **API**: `POST /api/discovery/live/promote`.
+- **Nota honesta**: rewards de bug-bounty programs son techos de programa, no payout por tarea; "500 Server Error - Auto Solve hcaptcha" ($20) pasó el filtro — trabajo de captcha-solving éticamente dudoso, revisar antes de ejecutar.
+- **Pendiente**: connection testing, ejecución asistida con aprobación, frontend métricas live, estados submitted/accepted/paid requieren evidencia externa real.

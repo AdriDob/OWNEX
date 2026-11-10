@@ -26,6 +26,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 logger = logging.getLogger("ownex.opportunity.live_pipeline")
@@ -493,12 +494,54 @@ def to_dwe_opportunity(opp: LiveOpportunity):
 
 
 def live_candidates_for_workbank(
-    status: str = "discovered",
+    status: str | set[str] | None = None,
     store: LiveStore | None = None,
     limit: int = 500,
 ) -> list[Any]:
-    """DWE Opportunities ready for ``WorkBank.daily_cycle`` scoring."""
-    return [to_dwe_opportunity(opp) for opp in (store or LiveStore()).all(status=status)[:limit]]
+    """DWE Opportunities ready for ``WorkBank.daily_cycle`` scoring.
+
+    Defaults to all actionable states (``discovered`` +
+    ``eligibility_checked``) — ``ready``/``expired``/``rejected`` are
+    terminal-ish and excluded.
+    """
+    store = store or LiveStore()
+    statuses = {status} if isinstance(status, str) else (status or {"discovered", "eligibility_checked"})
+    items = [opp for opp in store.all() if opp.status in statuses][:limit]
+    return [to_dwe_opportunity(opp) for opp in items]
+
+
+def promote_live_to_workbank(
+    store: LiveStore | None = None,
+    target: int | None = None,
+) -> dict[str, Any]:
+    """Run the canonical Work Bank cycle over live opportunities.
+
+    ``WorkBank.daily_cycle`` applies the real ZeroBarrierScorer +
+    StrictFilter and creates WorkItems (``ready_to_deliver`` /
+    ``needs_access``). Live items that land ``ready_to_deliver`` are
+    marked ``ready`` in the live store — evidence: the real scorer and
+    access-check accepted them. Never raises.
+    """
+    store = store or LiveStore()
+    try:
+        from cores.direct_work_engine.workbank import get_workbank
+
+        candidates = live_candidates_for_workbank(store=store)
+        if not candidates:
+            return {"promoted": 0, "reason": "no_candidates"}
+        bank = get_workbank()
+        summary = bank.daily_cycle(candidates, target=target or len(candidates))
+        ready_ids = {item_id for item_id, item in bank._items.items() if getattr(item, "ready_to_deliver", False)}
+        marked = mark_ready_from_workbank([SimpleNamespace(id=i) for i in ready_ids], store)
+        return {
+            "candidates": len(candidates),
+            "workbank_summary": summary if isinstance(summary, dict) else str(summary),
+            "ready_to_deliver": len(ready_ids),
+            "marked_ready": marked,
+        }
+    except Exception as exc:
+        logger.warning("promote_live_to_workbank failed: %s", exc)
+        return {"error": str(exc)}
 
 
 def mark_ready_from_workbank(
@@ -515,7 +558,7 @@ def mark_ready_from_workbank(
     ready_ids = {getattr(item, "opportunity_id", None) or getattr(item, "id", "") for item in scored}
     count = 0
     for key, opp in store._items.items():
-        if f"live:{key}" in ready_ids and opp.status == "discovered":
+        if f"live:{key}" in ready_ids and opp.status in ("discovered", "eligibility_checked"):
             opp.status = "ready"
             count += 1
     if count:

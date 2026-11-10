@@ -459,3 +459,16 @@ def live_eligibility_check():
     from cores.opportunity.live_pipeline import run_eligibility_check
 
     return run_eligibility_check()
+
+
+@router.post("/live/promote")
+def live_promote_to_workbank(target: int | None = Query(None, ge=1, le=500)):
+    """Run the canonical Work Bank cycle over live opportunities.
+
+    Items that pass ZeroBarrierScorer + StrictFilter and get
+    ``ready_to_deliver`` are marked ``ready`` — real evidence, not a
+    status flip.
+    """
+    from cores.opportunity.live_pipeline import promote_live_to_workbank
+
+    return promote_live_to_workbank(target=target)
