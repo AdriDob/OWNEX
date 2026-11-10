@@ -27,15 +27,21 @@ def client():
     s.commit()
     s.close()
 
-    # Register a test user and get token
-    reg = c.post(
-        "/api/auth/users/register",
-        json={
-            "username": "ple_test_user",
-            "email": "ple@test.com",
-            "password": "ple_test_pass_123",
-        },
-    )
+    # Register a test user and get token. Registration sends a verification
+    # email; this fixture only needs the token, and no SMTP is configured
+    # outside production (registration 503s when the send fails), so the
+    # sender is stubbed instead of depending on a working mail stack.
+    from unittest.mock import patch
+
+    with patch("api.routers.auth_users.send_verification_email"):
+        reg = c.post(
+            "/api/auth/users/register",
+            json={
+                "username": "ple_test_user",
+                "email": "ple@test.com",
+                "password": "ple_test_pass_123",
+            },
+        )
     token = reg.json()["access_token"]
     c.headers = {"Authorization": f"Bearer {token}"}
     return c

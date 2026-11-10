@@ -131,3 +131,6 @@ backups/
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 graft/
 .quarantine/
+
+# Playwright browser binaries downloaded by the test tooling (656 MB)
+.playwright-browsers/
