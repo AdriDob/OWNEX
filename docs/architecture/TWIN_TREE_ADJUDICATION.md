@@ -236,3 +236,46 @@ siblings.
 - Remaining work is DOMAIN MERGES (union of features), not file deletion.
   trading/ is the largest: cores canonical for api (has mt5/), core
   still serves scheduler/jobs + revenue_multiplier/crypto_trader.
+
+## Session tally (2026-11-10) — parallel sweep repair + verified-impl port
+
+The parallel agent executed a core-wins sweep (120 deletions + 10
+overwrites in cores/, uncommitted). Verified each breakage class:
+
+**Restored (sweep was wrong — live importers/features lost):**
+- `cores/events/event_bus.py` — agent copied the core facade OVER the
+  canonical bus, inverting ADR-0003 unification (circular self-import +
+  lost EVENT_PRIORITY_MAP). Restored from HEAD.
+- `cores/opportunity/models.py` — core version (ScoredOpportunity) has
+  NO `Opportunity` class; 13+ cores consumers broke. Restored.
+- `cores/validation/confidence.py` — agent overwrote with ConfidenceEngine
+  variant; feedback_tuner/loop_engine need ConfidenceScorer (report
+  scoring). Restored. NOTE: trust.py ConfidenceScorer is a DIFFERENT
+  class (knowledge-source trust) — name collision, not a move target.
+- All `cores/**/__init__.py` deleted by sweep — restored (facades).
+
+**Ported (cores impl was functionally SUPERIOR):**
+- `core/opportunity/adapters/forge/opire.py` — cores used VERIFIED public
+  API `api.opire.dev/rewards` (no auth, USD_CENT→USD); core hit
+  unverified `api.opire.com/v1/bounties`. Ported verified impl to core.
+
+**Migrated:**
+- `desktop{,-legacy}/native/services/mission.py` → core.system.hhd_tracker
+- `tests/test_audit_contest_adapters.py`, `test_imports.py` →
+  core.opportunity.adapters for forge/opyre/pulse; KEPT cores for
+  security.* subpackage + get_adapter_registry (only exist in cores).
+
+**Completed agent's half-edit:** added `argentina_ok: bool = True` field
+to SourceDefinition in cores/opportunity/global_sources.py (agent passed
+the kwarg ~20x without declaring the field → TypeError at import).
+
+**Verified safe overwrites (identical symbol sets):**
+cores/{autonomy/coder_agent, credentials/vault, cycles/knowledge_capture,
+evidence/composer, health/engine, memory/__init__, opportunity/scoring,
+opportunity/source_payment_docs} — agent's core-wins convergence, same
+public API. Left uncommitted for agent to finish/commit.
+
+**Lesson reinforced:** identical filenames + identical top-level symbols
+still hides semantic divergence (opire API endpoints, security subpackage
+registry, ConfidenceScorer vs trust ConfidenceScorer). Diff BEHAVIOR
+(API URLs, response parsing, registered adapters), not just symbols.
