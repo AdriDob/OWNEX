@@ -28,7 +28,7 @@ from api.adapters.own_work_catalog_adapter import (
     _technology_tags_for_source,
 )
 from core.opportunity import global_sources as catalog
-from core.opportunity.source_payment_docs import KNOWN_PAYMENT_METHODS
+from core.opportunity.adapter_payment_docs import KNOWN_PAYMENT_METHODS
 from cores.direct_work_engine.discovery import BaseDiscoveryAdapter
 from cores.direct_work_engine.models import (
     EmploymentType,
