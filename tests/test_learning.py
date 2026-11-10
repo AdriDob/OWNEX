@@ -27,10 +27,12 @@ def client():
     s.commit()
     s.close()
 
-    # Register a test user and get token. Registration sends a verification
-    # email; this fixture only needs the token, and no SMTP is configured
-    # outside production (registration 503s when the send fails), so the
-    # sender is stubbed instead of depending on a working mail stack.
+    # Register a test user and get token. Two things must not leak in here:
+    # the address has to be on a domain the mail layer does not reserve for
+    # testing (test.com, example.com, localhost), and the send itself must not
+    # be attempted at all — registration returns 503 when it fails, and no SMTP
+    # host exists outside production. So the domain is a real one the project
+    # owns and the sender is stubbed; this fixture only needs the token.
     from unittest.mock import patch
 
     with patch("api.routers.auth_users.send_verification_email"):
@@ -38,7 +40,7 @@ def client():
             "/api/auth/users/register",
             json={
                 "username": "ple_test_user",
-                "email": "ple@test.com",
+                "email": "ple.qa@ownex.io",
                 "password": "ple_test_pass_123",
             },
         )
