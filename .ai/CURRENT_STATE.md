@@ -3559,3 +3559,18 @@ Características del Sistema Completo:
 - **Onboarding API**: `GET /api/discovery/sources/onboarding` devuelve qué credenciales pedir por fuente + payment fallbacks + instrucciones.
 - **Smoke verificado**: catalog=1000, eligible=558, credential_gated=525, payment_fallback=115, source_leads=472, live=0, errors=0. Tests: 39 expansion + 171 targeted verdes; ruff clean.
 - **Pendiente honesto**: las fuentes son *leads de catálogo*, no tareas confirmadas — adapters fetcher/parser por fuente son trabajo separado. Credenciales reales del usuario pendientes.
+
+---
+
+## 2026-11-10 — Live opportunity pipeline (verificado con endpoints reales)
+
+- **`cores/opportunity/live_pipeline.py`**: puente catálogo→oportunidades reales. 12 fetchers forge (`core.opportunity.adapters.forge.*`) ejecutan HTTP real; resultados se normalizan a `LiveOpportunity` con provenance (`fetched_at`, `adapter`, `evidence_url`), dedup persistente `(platform, id)` en `data/live_opportunities.json`, y marcado `expired` para items ausentes del último scan.
+- **Upwork excluido** a nivel store y normalización.
+- **Puente Work Bank**: `to_dwe_opportunity()` convierte a `Opportunity` DWE canónico → `ZeroBarrierScorer`/`StrictFilter` reales deciden readiness. Nada de elegibilidad inventada.
+- **API**: `GET /api/discovery/live/stats`, `GET /api/discovery/live/opportunities`, `POST /api/discovery/live/scan`.
+- **Smoke real**: 12 fetchers, 77 items crudos → 77 persistidos `discovered` (opire 3, superteam 9, github_bounties 40, github_sponsors 20, ethglobal 4, codeforai 1; algora/polar/issuehunt vía github_bounties). Scorer: 77/77 ≥60 pts barrier.
+- **Fix**: `forge/algora.py` host `api.algora.xyz`→`api.algora.io` (TLS muerto); `/v1/bounties` sin auth da 404 → probablemente requiere `ALGORA_API_KEY`. Cobertura Algora sigue vía github_bounties.
+- **Vacíos honestos**: issuehunt/onlydust/opencollective/freelancer devolvieron 0 (credenciales o endpoints caídos — reportado, no silenciado a nivel pipeline; los fetchers loguean).
+- **Estados**: implementados discovered/verified/ready/expired/rejected; `verified`/`ready` solo se marcan con evidencia (scorer acceptance vía `mark_ready_from_workbank`). Pendiente: eligibility AR/entrevista/pago por item, connection manager testing, ejecución asistida.
+- **Tests**: 16 en `tests/test_live_pipeline.py` (fixtures, sin red). Commit `407ffbc1`.
+- **Ingreso real**: USD 0 — oportunidades descubiertas ≠ cobradas.
