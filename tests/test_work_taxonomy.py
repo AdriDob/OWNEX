@@ -80,8 +80,7 @@ class TestContract:
     def test_mappings_are_total_and_nonempty(self) -> None:
         assert len(ENGINE_TO_CANONICAL) == len(EngineOpportunityCategory) == 11
         # 2026-08-25: ai_evaluation family added to the curated catalog.
-        # 2026-11-10: junior_jobs family added (OWNEX remote-jobs scope).
-        assert len(GLOBAL_SOURCE_TO_CANONICAL) == len(GlobalSourceCategory) == 5
+        assert len(GLOBAL_SOURCE_TO_CANONICAL) == len(GlobalSourceCategory) == 4
         assert len(MERCENARY_TO_CANONICAL) == len(MercenaryCategory) == 11
 
 

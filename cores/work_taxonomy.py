@@ -65,9 +65,6 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
     # AI-training platforms (Outlier/Mercor/Alignerr/Mindrift family,
     # curated 2026-08-25): hourly evaluation streams ≈ ai_evaluation.
     GlobalSourceCategory.ai_evaluation: OpportunityCategory.AI_EVALUATION,
-    # Entry-level remote dev jobs/trainee programs ≈ general engineering
-    # (same rationale as EngineOpportunityCategory.FREELANCE_TECH).
-    GlobalSourceCategory.junior_jobs: OpportunityCategory.SOFTWARE_ENGINEERING,
 }
 
 # core.opportunity.mercenary_filter (11 prioritized categories) -> canonical
