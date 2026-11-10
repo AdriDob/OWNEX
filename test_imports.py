@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """Test all opportunity adapters work correctly after refactoring."""
 
-from cores.opportunity.adapters.atlas import (
+from core.opportunity.adapters.atlas import (
     CVEAdapter,
     ExploitDBAdapter,
     GitHubAdvisoryAdapter,
     GoogleTrendsAdapter,
     ShodanAdapter,
 )
-from cores.opportunity.adapters.forge import AlgoraAdapter, ForgeAdapter, OpireAdapter, SuperteamAdapter
-from cores.opportunity.adapters.freelancer import FreelancerMicrotaskAdapter as FreelancerMicrotaskAdapterForge
-from cores.opportunity.adapters.issuehunt import IssueHandAdapter, IssueHuntAdapter
-from cores.opportunity.adapters.linkedin import LinkedInJobsAdapter
-from cores.opportunity.adapters.opencollective import OpenCollectiveAdapter, OpenCollectiveProjectsAdapter
-from cores.opportunity.adapters.opire import OpireAdapter as OpireAdapterPulse
-from cores.opportunity.adapters.opire import OpyreAdapter as OpyreFullAdapter
-from cores.opportunity.adapters.opire import OpyreMicrotaskAdapter as OpyreMicrotaskAdapterPulse
-from cores.opportunity.adapters.opyre import OpyreAdapter as OpyreAdapterOpyre
-from cores.opportunity.adapters.opyre import OpyreMicrotaskAdapter as OpyreMicrotaskAdapterOpyre
-from cores.opportunity.adapters.pulse import (
+from core.opportunity.adapters.forge import AlgoraAdapter, ForgeAdapter, OpireAdapter, SuperteamAdapter
+from core.opportunity.adapters.freelancer import FreelancerMicrotaskAdapter as FreelancerMicrotaskAdapterForge
+from core.opportunity.adapters.issuehunt import IssueHandAdapter, IssueHuntAdapter
+from core.opportunity.adapters.linkedin import LinkedInJobsAdapter
+from core.opportunity.adapters.opencollective import OpenCollectiveAdapter, OpenCollectiveProjectsAdapter
+from core.opportunity.adapters.opire import OpireAdapter as OpireAdapterPulse
+from core.opportunity.adapters.opire import OpyreAdapter as OpyreFullAdapter
+from core.opportunity.adapters.opire import OpyreMicrotaskAdapter as OpyreMicrotaskAdapterPulse
+from core.opportunity.adapters.opyre import OpyreAdapter as OpyreAdapterOpyre
+from core.opportunity.adapters.opyre import OpyreMicrotaskAdapter as OpyreMicrotaskAdapterOpyre
+from core.opportunity.adapters.pulse import (
     DataAnnotationAdapter,
     FreelancerMicrotaskAdapter,
     LinkedInEasyApplyAdapter,
@@ -27,8 +27,8 @@ from cores.opportunity.adapters.pulse import (
     OutlierAdapter,
     RemotasksAdapter,
 )
-from cores.opportunity.adapters.security import SecurityAdapter
-from cores.opportunity.adapters.vault import BinanceAdapter, CoinGeckoAdapter, DefiLlamaAdapter, FireflyAdapter
+from core.opportunity.adapters.security import SecurityAdapter
+from core.opportunity.adapters.vault import BinanceAdapter, CoinGeckoAdapter, DefiLlamaAdapter, FireflyAdapter
 
 print("All opportunity adapters imported successfully!")
 
