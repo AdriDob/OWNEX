@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from cores.knowledge.abstracts import KnowledgeSourceConnector, KnowledgeStore
-from cores.knowledge.graph import KnowledgeGraphEdge, KnowledgeGraphManager, KnowledgeGraphNode
+from cores.knowledge.graph_manager import KnowledgeGraphEdge, KnowledgeGraphManager, KnowledgeGraphNode
 from cores.knowledge.pipeline import KnowledgeIngestPipeline
 
 logger = logging.getLogger("ownex.knowledge.manager")
