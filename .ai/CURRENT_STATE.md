@@ -1,3 +1,28 @@
+## Fuentes de Trabajo Registradas (151 total)
+
+### BUG_BOUNTY (P0 - Crítico) — 39 fuentes
+- HackerOne, Bugcrowd, Intigriti, OpenBugBounty, YesWeHack, HackenProof, Huntr (GitHub Advisory), Immunefi, Federacy, Detectify Crowdsource, Zerocopter, Synack, Cobalt, BountyGraph, Disclose.io, BypassBounty, PentesterLand, HackerOne Hacktivity, Bugcrowd Researcher, Reddit r/bugbounty, r/Hacking, r/netsec, RootedCON, HackTheBox (Bug Bounty), TryHackMe (bug bounty path), PortSwigger Web Security, Exploit-DB, CVE Details, Vulnerability Lab, OWASP Bug Bounty, NIST NVD, CVE Mitre, Sherlock, Code4rena, Cantina, Hats, Superteam Earn, GitHub bounty labels, Polar
+
+### DEV_BOUNTY (P1 - Alto) — 53 fuentes
+- GitHub Issues (bounty-labeled), Bountysource, Gitcoin, OnlyDust, Algora, Codefund, Sovran, OpenQ, IssueHunt, Opire, CodinGame, HackerEarth Sprint, Devfolio, Devpost, MLH, Codeforces, LeetCode, Topcoder, CodeChef, HackerRank, Codewars, Exercism, Upwork (entry), Freelancer (coding), PeoplePerHour, Toptal (entry), Guru (software dev), Turing (remote dev), Arc.dev, Remote OK (dev), We Work Remotely, LinkedIn (Easy Apply), Indeed (entry-level dev), Glassdoor (no exp.), Reddit r/forhire, r/slavelabour (dev), r/Jobs4Bitcoins, XDA Developers (paid tasks), Stack Overflow Jobs, Dribbble, Behance, Working Not Working, Solidity Jobs, CryptoJobsList, UseWeb3, EthGlobal, HackerLink, Dework, Guild.xyz, Buidlbox, Superteam Earn, GitHub bounty labels, Polar
+
+### DATA_ENTRY / AI_EVALUATION (P2 - Medio) — 59 fuentes
+- Amazon MTurk, Appen, Clickworker, Toloka, Remotasks, Labelbox, Scale AI, CloudFactory, Figure Eight, TaskRabbit, Lionbridge, uTest, Prolific, UserTesting, Userlytics, UserZoom, TryMyUI, WhatUsersDo, Enroll, TestBirds, GlobalLogic, Fivesquid, Tasker, AppJobs, Field Nation, WorkMarket, OneSpace, Fancy Hands, Virtuance, Data Annotation Tech, Surge AI, Hive Micro, Centaur Labs, Samasource, iMerit, Kili Technology, SuperAnnotate, Dataloop, Label Studio, TELUS International, Scribie, Rev, GoTranscript, TranscribeMe, 3Play Media, CrowdSurf, Quicktate, Daily Transcription, Focus Forward, Reddit r/dataentry, r/WorkOnline, r/beermoney, r/paidstudy
+- AI: Outlier, Mercor, Alignerr, Mindrift, OneForma, Test IO
+
+## Sesión 2026-11-10 — MOTOR DE DISCOVERY INTEGRADO CON WORK BANK PIPELINE
+
+> **QUÉ SE HIZO:** Integración completa del motor de descubrimiento de oportunidades técnicas con el pipeline del Work Bank. Se mapearon las categorías de fuentes (`global_sources.py`) al `OpportunityType` del motor de oportunidades (`engine.py`) y se completó el flujo `source_discovery → discovery_to_workbank → scoring`.
+> - **Integración pipeline**: `candidate_to_opportunity()` ahora crea `Opportunity` completos con campos de barrier (experience_required, accepts_beginner, etc.) usando `cores.direct_work_engine.models.Opportunity`; el `type` se mapea internamente a `OpportunityType` para tracking de descubrimiento.
+> - **Mapeo categorías → tipos**: 13 categorías mapeadas alineadas a OWNEX P0/P1/P2:
+>   - P0 (crítico): `bug_bounty → security_bounty`
+>   - P1 (alto): `dev_bounty, freelance → dev_bounty, freelance`
+>   - P2 (medio): `ai_work, data_annotation, content_creation, research → ai_work, data_annotation, content_creation, research`
+> - **Adjudicación twin tree**: eliminados 122 twins huérfanos de `cores/` (sin importers); restaurado `cores/memory/__init__.py` (necesario para imports de paquete); 198 twins restantes (186 idénticos, 12 divergentes documentados en `ai/twin_tree_adjudication.md`).
+> - **Corrección global_sources.py**: eliminadas referencias a `OpportunityCategory.junior_jobs` (no existe en enum canónico) → reemplazadas con `DEV_BOUNTY`.
+> - **End-to-end verificado**: discovery registra 50 fuentes activas; `integrate_meta_discovery_into_workbank` filtra y deduplica; ZeroBarrierScorer califica oportunidades (ej: 90.2/100 very_low barrier).
+> - **Verificación**: `make check` = **100 passed, 1 skipped**.
+
 ## Sesión 2026-11-09 (v10) — AUDITORÍA GLOBAL + P0 AUTH CONTRACT CORREGIDO
 
 > **QUÉ SE HIZO:** Se adoptó el megaprompt rector **OWNEX v10** (prioridad: funcionalidad integral, ingresos, usabilidad; audit-first, no borrar duplicados sin dependencias). Se reescribieron `.ai/OWNEX_GLOBAL_ARCHITECTURE_AUDIT.md` y `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md` con evidencia medida (graft repo map, `api/main.py`, router frontend, conteo de imports, hashes).
@@ -3522,3 +3547,15 @@ Características del Sistema Completo:
 ### Update P5/P12 (post-audit)
 - **IOL WebSocket**: `cores/brokers/iol_stream.py` implementado según docs oficiales (wss://stream-marketdata, auth_token, subscribe SYMBOL|MARKET|TERM, ping 15s, frames Q/B/T). Solo market data.
 - **IOL MCP oficial**: `mcp.invertironline.com` verificado — servidor MCP remoto con OAuth interactivo (browser+2FA), modos Automático/Confirmar/Solo lectura. `ProviderSetup.mcp_url` expone el endpoint; OWNEX sync sigue por REST. Conectar como cliente MCP requiere flujo OAuth interactivo — no automatizable sin sesión de usuario.
+
+---
+
+## 2026-11-10 — Source catalog expansion: 1000-source cap + niche families (verificado)
+
+- **Catálogo fusionado**: `cores/opportunity/sources_expansion/` — 1050+ plataformas reales curadas en 12 familias (bug_bounty, dev_bounty, data_entry, ai_evaluation, junior_jobs + cybersecurity, data_science, remote_work, bounties, web3_audits, marketplaces, qa_testing). Dedup por nombre, Upwork excluido.
+- **Cap duro 1000**: `MAX_TOTAL_SOURCES=1000` con `_stratified_cap` round-robin por categoría (las familias niche no quedan famélicas por orden de prioridad). 17 fuentes adapter-backed pineadas (`PINNED_SOURCE_NAMES`) — nunca se dropean.
+- **Credenciales honestas**: `CREDENTIAL_REQUIREMENTS` (login/api_key/cookie/none/direct_message) + `PAYMENT_FALLBACKS` + `FALLBACK_CHAINS` (depth≤5) por fuente. Nada hardcodeado — el usuario configura manualmente.
+- **Scanner**: `auto_scanner.run_scan` usa `sources_for_scan`; reporta catalog_total/sources_eligible/credential_gated/payment_fallback_sources/sources_substituted/live_opportunities_found. `DiscoveryRecord.kind="source_lead"` default; `live_opportunity` solo con fetch/parser confirmado — 0 live en smoke (honesto).
+- **Onboarding API**: `GET /api/discovery/sources/onboarding` devuelve qué credenciales pedir por fuente + payment fallbacks + instrucciones.
+- **Smoke verificado**: catalog=1000, eligible=558, credential_gated=525, payment_fallback=115, source_leads=472, live=0, errors=0. Tests: 39 expansion + 171 targeted verdes; ruff clean.
+- **Pendiente honesto**: las fuentes son *leads de catálogo*, no tareas confirmadas — adapters fetcher/parser por fuente son trabajo separado. Credenciales reales del usuario pendientes.

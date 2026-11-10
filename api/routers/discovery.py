@@ -86,6 +86,70 @@ def source_catalog_overview():
     }
 
 
+@router.get("/sources/onboarding")
+def source_onboarding_guide(limit: int = Query(200, ge=1, le=1000)):
+    """Credential + payment setup guide for the expanded source catalog.
+
+    Tells the frontend exactly which personal data (logins, API keys,
+    cookies) each gated source needs before real work can be fetched —
+    nothing is hardcoded; the user configures it manually.
+    """
+    from collections import Counter
+
+    from cores.opportunity.sources_expansion import (
+        get_credential_requirement,
+        get_payment_fallback,
+        sources_for_scan,
+    )
+
+    if not isinstance(limit, int):  # direct call bypasses FastAPI injection
+        limit = 200
+    catalog = list(sources_for_scan(eligible_only=False))
+    sources = catalog[:limit]
+    by_kind: Counter[str] = Counter()
+    gated: list[dict] = []
+    payment_fallbacks: list[dict] = []
+    for s in sources:
+        req = get_credential_requirement(s) or {"kind": "unknown"}
+        kind = str(req.get("kind", "unknown"))
+        by_kind[kind] += 1
+        if kind not in ("none", "public"):
+            gated.append(
+                {
+                    "name": s.name,
+                    "category": str(s.category),
+                    "kind": kind,
+                    "notes": req.get("notes", ""),
+                }
+            )
+        fb = get_payment_fallback(s)
+        if fb:
+            payment_fallbacks.append(
+                {"name": s.name, "fallback": fb.get("method", fb)}
+            )
+    return {
+        "catalog_total": len(catalog),
+        "shown": len(sources),
+        "credential_kinds": dict(by_kind),
+        "gated_sources": gated,
+        "payment_fallback_sources": payment_fallbacks,
+        "instructions": [
+            "Sources with kind 'none' work without any credentials.",
+            "kind 'login': create an account on the platform, then store "
+            "email/password or session cookie via the connection manager.",
+            "kind 'api_key': generate a key in the platform settings and "
+            "store it as a credential — never commit keys to the repo.",
+            "kind 'cookie': export the session cookie from your browser "
+            "after logging in; store it via the connection manager.",
+            "kind 'direct_message': no platform account needed — negotiate "
+            "payment via the platform's private-message channel.",
+            "payment_fallback entries are not Argentina-compatible "
+            "directly; use the listed alternative (e.g. private message, "
+            "crypto, Payoneer) before applying.",
+        ],
+    }
+
+
 @router.post("/sources/discover")
 def discover_source_candidates():
     """Run a bounded GitHub repository search; candidates remain inactive."""
