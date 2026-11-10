@@ -300,7 +300,7 @@ class TestLoopEngineIntegration:
         assert verdict.contradiction_results[0]["supports_vulnerability"] is True
 
     def test_learning_record_persisted_on_refutation(self, tmp_path, monkeypatch) -> None:
-        from cores.validation.learning import get_contradiction_stats
+        from core.validation.learning import get_contradiction_stats
 
         self._evaluate(self._engine(False, tmp_path, monkeypatch))
         stats = get_contradiction_stats()

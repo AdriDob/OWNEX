@@ -232,7 +232,7 @@ class ValidationLoopEngine:
         result: ContradictionResult,
     ) -> None:
         try:
-            from cores.validation.learning import record_contradiction_outcome
+            from core.validation.learning import record_contradiction_outcome
 
             record_contradiction_outcome(
                 vulnerability_type=vulnerability_type,
