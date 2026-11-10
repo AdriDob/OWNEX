@@ -4,15 +4,14 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:  # pragma: no cover - annotations only
-    from core.investment.models import TradeEvidence
+from core.investment.models import TradeEvidence
 
 logger = logging.getLogger("orion.investment.attribution")
 
 
-def _completeness_flag(trades: list[Any]) -> str:
+def _completeness_flag(trades: list[TradeEvidence]) -> str:
     """Classify how much of a group's net P&L rests on complete data.
 
     A trade carries a complete net figure only when its

@@ -160,6 +160,58 @@ class InvestmentEvent:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+class ProvenanceLevel(StrEnum):
+    """Where a trade's numbers came from, strongest evidence first.
+
+    Attribution reports provenance per group and never mixes levels silently, so
+    a figure pulled from an exchange fill is distinguishable from one typed by
+    hand or derived from another record.
+    """
+
+    EXCHANGE = "EXCHANGE"
+    API = "API"
+    IMPORTED = "IMPORTED"
+    MANUAL = "MANUAL"
+    DERIVED = "DERIVED"
+    UNKNOWN = "UNKNOWN"
+
+
+@dataclass
+class TradeEvidence:
+    """One trade exactly as it was recorded, for attribution to work from.
+
+    Nothing here is inferred. A field that was never captured stays empty and is
+    surfaced as UNAVAILABLE by the attribution engine instead of being guessed,
+    which is why ``exchange``, ``account_id`` and ``asset`` all default to "".
+
+    ``net_pnl_completeness`` says whether ``net_pnl_calc`` is a real, fully
+    costed net figure. Use COMPLETE when fees and slippage are included, PARTIAL
+    when some costs are missing, INCOMPLETE when only gross exists, and UNKNOWN
+    when nothing was recorded. Attribution aggregates net P&L and win/loss only
+    from COMPLETE trades, never from gross alone.
+
+    ``created_at`` is an ISO 8601 string, the form attribution parses into a
+    period.
+    """
+
+    trade_id: str
+    strategy_id: str
+    symbol: str
+    side: str
+    currency: str
+    gross_pnl: float | None = None
+    fees: float = 0.0
+    slippage: float = 0.0
+    net_pnl: float | None = None
+    net_pnl_calc: float = 0.0
+    net_pnl_completeness: str = "UNKNOWN"
+    exchange: str = ""
+    account_id: str = ""
+    asset: str = ""
+    provenance_level: ProvenanceLevel = ProvenanceLevel.UNKNOWN
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+
 STRATEGY_REGISTRY: list[StrategyProfile] = [
     StrategyProfile(
         id="ccxt_spot",
