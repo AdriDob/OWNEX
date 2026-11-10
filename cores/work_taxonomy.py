@@ -81,6 +81,13 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
             "web3_audits": OpportunityCategory.SMART_CONTRACTS,
             "marketplaces": OpportunityCategory.SOFTWARE_ENGINEERING,
             "qa_testing": OpportunityCategory.QA_AUTOMATION,
+            # Consulting/design/support are work types, not IT domains:
+            # they land on the employment-family catch-all and on
+            # FRONTEND for creative work, same precedent as
+            # FREELANCE_TECH / DIGITAL_PRODUCTS below.
+            "consulting": OpportunityCategory.SOFTWARE_ENGINEERING,
+            "tech_support": OpportunityCategory.SOFTWARE_ENGINEERING,
+            "design": OpportunityCategory.FRONTEND,
         }.items()
         if (member := getattr(GlobalSourceCategory, name, None)) is not None
     },

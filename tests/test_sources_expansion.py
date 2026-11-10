@@ -67,6 +67,9 @@ class TestCatalogSize:
             "web3_audits",
             "marketplaces",
             "qa_testing",
+            "consulting",
+            "tech_support",
+            "design",
         }
         assert all(s.category in valid for s in all_sources)
 

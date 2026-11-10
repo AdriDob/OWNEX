@@ -49,12 +49,15 @@ from cores.opportunity.sources_expansion.junior_jobs_extra import (
 )
 from cores.opportunity.sources_expansion.niche_categories import (
     BOUNTIES_EXTRA,
+    CONSULTING_EXTRA,
     CYBERSECURITY_EXTRA,
     DATA_SCIENCE_EXTRA,
+    DESIGN_EXTRA,
     MARKETPLACES_EXTRA,
     MARKETPLACES_EXTRA_2,
     QA_TESTING_EXTRA,
     REMOTE_WORK_EXTRA,
+    TECH_SUPPORT_EXTRA,
     WEB3_AUDITS_EXTRA,
 )
 from cores.opportunity.sources_expansion.niche_special import NICHE_SPECIAL
@@ -97,6 +100,9 @@ def _by_category() -> dict[OpportunityCategory, list[SourceDefinition]]:
         "web3_audits": list(WEB3_AUDITS_EXTRA),
         "marketplaces": list(MARKETPLACES_EXTRA) + list(MARKETPLACES_EXTRA_2),
         "qa_testing": list(QA_TESTING_EXTRA),
+        "consulting": list(CONSULTING_EXTRA),
+        "tech_support": list(TECH_SUPPORT_EXTRA),
+        "design": list(DESIGN_EXTRA),
     }
 
 

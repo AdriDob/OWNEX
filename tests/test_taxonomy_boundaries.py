@@ -153,6 +153,9 @@ class TestSourceFamilyVocabulary:
             "web3_audits",
             "marketplaces",
             "qa_testing",
+            "consulting",
+            "tech_support",
+            "design",
         }
         assert families <= {m.value for m in GlobalFamilies} | niche
 
