@@ -81,6 +81,8 @@ GLOBAL_SOURCE_TO_CANONICAL: dict[GlobalSourceCategory, OpportunityCategory] = {
             "web3_audits": OpportunityCategory.SMART_CONTRACTS,
             "marketplaces": OpportunityCategory.SOFTWARE_ENGINEERING,
             "qa_testing": OpportunityCategory.QA_AUTOMATION,
+            # Freelance task boards are employment-family work.
+            "freelance_tasks": OpportunityCategory.SOFTWARE_ENGINEERING,
             # Consulting/design/support are work types, not IT domains:
             # they land on the employment-family catch-all and on
             # FRONTEND for creative work, same precedent as
