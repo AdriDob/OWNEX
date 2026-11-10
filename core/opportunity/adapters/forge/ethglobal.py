@@ -27,15 +27,23 @@ _TIME_RE = re.compile(r"<time[^>]*>(.*?)</time>", re.S)
 _LOC_RE = re.compile(r'<div class="flex-4 hidden md:flex flex-col">\s*<p[^>]*>(.*?)</p>\s*<p[^>]*>(.*?)</p>', re.S)
 _TYPE_RE = re.compile(r'rounded-sm">([^<]+)</div>')
 _TAG_RE = re.compile(r"<[^>]+>")
-_MONTH_RE = re.compile(
-    r">(January|February|March|April|May|June|July|August|September|October|November|December)<"
-)
+_MONTH_RE = re.compile(r">(January|February|March|April|May|June|July|August|September|October|November|December)<")
 _YEAR_RE = re.compile(r"\b(20\d\d)\b")
 _TYPE2_RE = re.compile(r"(IRL Hackathon|Hackathon|Summit|Conference|Meetup)")
 _LOC2_RE = re.compile(r">([A-Z][A-Za-z .'-]{1,40},\s*[A-Z][A-Za-z .'-]{1,40})<")
 _MONTHS = (
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 )
 
 _PRIZE_HINTS = {
@@ -106,9 +114,7 @@ def _parse_events(html: str) -> list[dict[str, Any]]:
             for t in reversed(times):
                 for fmt in ("%b %d, %Y", "%B %d, %Y", "%b %d", "%B %d"):
                     try:
-                        dt = datetime.strptime(
-                            t.replace("th", "").replace("st", "").replace("nd", "").replace("rd", ""), fmt
-                        )
+                        dt = datetime.strptime(t.replace("th", "").replace("st", "").replace("nd", "").replace("rd", ""), fmt)
                         year = dt.year if dt.year != 1900 else today.year
                         cand = datetime(year, dt.month, dt.day, tzinfo=UTC).date()
                         if cand < today:

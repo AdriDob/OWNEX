@@ -192,11 +192,27 @@ def test_profile_endpoints(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_fetch_jobicy_normalizes(monkeypatch: pytest.MonkeyPatch) -> None:
-    payload = {"jobs": [{"jobTitle": "Dev", "companyName": "ACME", "url": "u", "jobExcerpt": "d", "pubDate": "2026-01-01", "jobGeo": "LATAM, Europe", "jobIndustry": ["Engineering"], "salaryMin": 3000}]}
+    payload = {
+        "jobs": [
+            {
+                "jobTitle": "Dev",
+                "companyName": "ACME",
+                "url": "u",
+                "jobExcerpt": "d",
+                "pubDate": "2026-01-01",
+                "jobGeo": "LATAM, Europe",
+                "jobIndustry": ["Engineering"],
+                "salaryMin": 3000,
+            }
+        ]
+    }
 
     class R:
-        def raise_for_status(self): pass
-        def json(self): return payload
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
 
     monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
     jobs = job_feeds.fetch_jobicy()
@@ -210,7 +226,9 @@ def test_fetch_weworkremotely_parses_rss(monkeypatch: pytest.MonkeyPatch) -> Non
     </channel></rss>"""
 
     class R:
-        def raise_for_status(self): pass
+        def raise_for_status(self):
+            pass
+
         text = rss
 
     monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
@@ -232,10 +250,15 @@ def test_remote_jobs_import(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     app.include_router(opportunities.router)
     c = TestClient(app)
 
-    r = c.post("/api/opportunities/remote-jobs/import", json={"jobs": [
-        {"title": "Soporte AR", "company": "X", "source": "computrabajo", "argentina_ok": True, "remote": True, "language": "es"},
-        {"bad": "no title"},
-    ]})
+    r = c.post(
+        "/api/opportunities/remote-jobs/import",
+        json={
+            "jobs": [
+                {"title": "Soporte AR", "company": "X", "source": "computrabajo", "argentina_ok": True, "remote": True, "language": "es"},
+                {"bad": "no title"},
+            ]
+        },
+    )
     assert r.status_code == 200
     body = r.json()
     assert body["imported"] == 1 and body["skipped"] == 1

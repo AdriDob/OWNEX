@@ -30,6 +30,7 @@ _payment_adapter = PaymentAdapter(config={})
 
 # ── Métodos de pago disponibles ──────────────────────────────────────────────
 
+
 @router.get("/")
 async def list_payment_methods() -> dict[str, Any]:
     """
@@ -107,8 +108,6 @@ async def get_payment_methods_status() -> dict[str, Any]:
         "all_statuses": [s.status.value for s in adapter.get_all_statuses()],
         "total_methods": len(get_payment_methods()),
         "verified_count": len(adapter.get_verified_methods()),
-        "verified_percentage": round(
-            len(adapter.get_verified_methods()) / max(len(get_payment_methods()), 1) * 100, 1
-        ),
+        "verified_percentage": round(len(adapter.get_verified_methods()) / max(len(get_payment_methods()), 1) * 100, 1),
         "timestamp": __import__("datetime").datetime.now(__import__("datetime").UTC).isoformat(),
     }

@@ -155,9 +155,7 @@ class AgentBountiesAdapter:
 
     # ── 3. Deduplicación de la oportunidad ─────────────────────
 
-    def deduplicate(
-        self, opportunities: list[AgentBountiesOpportunity], max_age_hours: float = 24.0
-    ) -> list[AgentBountiesOpportunity]:
+    def deduplicate(self, opportunities: list[AgentBountiesOpportunity], max_age_hours: float = 24.0) -> list[AgentBountiesOpportunity]:
         """Deduplicar oportunidades por id y tiempo de creación."""
         seen: set[str] = set()
         result = []
@@ -407,13 +405,11 @@ class AgentBountiesAdapter:
 
     def __getattr__(self, name: str) -> None:
         """Denegar acciones desconocidas por defecto."""
-        raise AttributeError(
-            f"AgentBountiesAdapter no tiene método '{name}'. "
-            f"Solo se permite el flujo declarado y aprobado."
-        )
+        raise AttributeError(f"AgentBountiesAdapter no tiene método '{name}'. Solo se permite el flujo declarado y aprobado.")
 
 
 # ── Authenticación (modo sandbox) ─────────────────────────────
+
 
 class AgentBountiesAuth:
     """

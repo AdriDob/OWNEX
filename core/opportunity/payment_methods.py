@@ -150,8 +150,7 @@ _STANDARD_METHODS: list[PaymentMethod] = [
         name="Wise",
         provider="Wise",
         description=(
-            "Wise (antes TransferWise) es una opción internacional para transferencias "
-            "y recibos. Formalmente,Wise ajusta los límites de cobro por país."
+            "Wise (antes TransferWise) es una opción internacional para transferencias y recibos. Formalmente,Wise ajusta los límites de cobro por país."
         ),
         payout_currency=None,
         min_amount=None,
@@ -164,19 +163,13 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Verificar límite de cobro",
             "¿Tienen cuenta empresarial en Argentina?",
         ],
-        verification_notes=(
-            "Wise: aprobar República Argentina. No almacenar credenciales, solo "
-            "verificar si tienen cuenta adecuada."
-        ),
+        verification_notes=("Wise: aprobar República Argentina. No almacenar credenciales, solo verificar si tienen cuenta adecuada."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.PAYPAL,
         name="PayPal",
         provider="PayPal",
-        description=(
-            "PayPal es una opción común, pero tiene restricciones de país para recibir "
-            "pagos. Verificar en la lista oficial de países admitidos."
-        ),
+        description=("PayPal es una opción común, pero tiene restricciones de país para recibir pagos. Verificar en la lista oficial de países admitidos."),
         payout_currency=None,
         min_amount=None,
         max_amount=None,
@@ -187,10 +180,7 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Verificar país admitido",
             "¿Cuenta verificada? ¿Pueden recibir pagos de Argentina?",
         ],
-        verification_notes=(
-            "PayPal: verificar país admitido. No almacenar credenciales, solo "
-            "verificar si tienen cuenta adecuada."
-        ),
+        verification_notes=("PayPal: verificar país admitido. No almacenar credenciales, solo verificar si tienen cuenta adecuada."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.BANK_TRANSFER,
@@ -207,22 +197,14 @@ _STANDARD_METHODS: list[PaymentMethod] = [
         fees=None,
         verified_at=None,
         eligibility=PaymentMethodStatus.REQUIRES_HUMAN,
-        requirements=[
-            "Cuenta bancaria en el banco"
-        ],
-        verification_notes=(
-            "Bancolombia: transferencias de Argentinosa. No almacenar credenciales, "
-            "verificar luego."
-        ),
+        requirements=["Cuenta bancaria en el banco"],
+        verification_notes=("Bancolombia: transferencias de Argentinosa. No almacenar credenciales, verificar luego."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.CRYPTO_USDC,
         name="USDC / Cripto",
         provider="Ethereum / Base / Solana",
-        description=(
-            "Solución de cobro no-KYC alternativa. USDC en Ethereum, Base o Solana, "
-            "verificar que la plataforma admita cripto para pagos."
-        ),
+        description=("Solución de cobro no-KYC alternativa. USDC en Ethereum, Base o Solana, verificar que la plataforma admita cripto para pagos."),
         payout_currency=None,
         min_amount=None,
         max_amount=None,
@@ -233,19 +215,13 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Carnet de identidad o documento fiscal",
             "Sentir de portafolio para cobrar",
         ],
-        verification_notes=(
-            "No-KYC: si el usuario tiene wallet con USDC y puede recibir. Verificar "
-            "que la plataforma admite cripto."
-        ),
+        verification_notes=("No-KYC: si el usuario tiene wallet con USDC y puede recibir. Verificar que la plataforma admite cripto."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.MANUAL_BANK,
         name="Recibo bancario manual",
         provider="Usuario",
-        description=(
-            "Metodo no-KYC: generar un recibo bancario y enviarlo al usuario. "
-            "El usuario transfiere y el usuario verifica el ingreso."
-        ),
+        description=("Metodo no-KYC: generar un recibo bancario y enviarlo al usuario. El usuario transfiere y el usuario verifica el ingreso."),
         payout_currency=None,
         min_amount=None,
         max_amount=None,
@@ -256,17 +232,13 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Usuario debe poder generar un recibo",
             "Usuario debe verificar el ingreso",
         ],
-        verification_notes=(
-            "Recibo manual: no requiere KYC. Verificar después."
-        ),
+        verification_notes=("Recibo manual: no requiere KYC. Verificar después."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.BITCOIN,
         name="Bitcoin",
         provider="Bitcoin",
-        description=(
-            "Bitcoin: cobro descentralizado, no-KYC. Verificar luego."
-        ),
+        description=("Bitcoin: cobro descentralizado, no-KYC. Verificar luego."),
         payout_currency=None,
         min_amount=None,
         max_amount=None,
@@ -277,18 +249,13 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Verificar que la plataforma admita cripto",
             "¿El usuario puede recibir Bitcoin?",
         ],
-        verification_notes=(
-            "Bitcoin: no almacenar credenciales, solo verificar si el usuario tiene "
-            "wallet y la plataforma admite cripto."
-        ),
+        verification_notes=("Bitcoin: no almacenar credenciales, solo verificar si el usuario tiene wallet y la plataforma admite cripto."),
     ),
     PaymentMethod(
         method_type=PaymentMethodType.ETHEREUM,
         name="Ethereum",
         provider="Ethereum",
-        description=(
-            "Ethereum: cobro descentralizado, no-KYC. Verificar luego."
-        ),
+        description=("Ethereum: cobro descentralizado, no-KYC. Verificar luego."),
         payout_currency=None,
         min_amount=None,
         max_amount=None,
@@ -299,10 +266,7 @@ _STANDARD_METHODS: list[PaymentMethod] = [
             "Verificar que la plataforma admita cripto",
             "¿El usuario puede recibir Ethereum?",
         ],
-        verification_notes=(
-            "Ethereum: no almacenar credenciales, solo verificar si el usuario tiene "
-            "wallet y la plataforma acepta cripto."
-        ),
+        verification_notes=("Ethereum: no almacenar credenciales, solo verificar si el usuario tiene wallet y la plataforma acepta cripto."),
     ),
 ]
 

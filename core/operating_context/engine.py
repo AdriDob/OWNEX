@@ -97,13 +97,24 @@ PAUSED_SOURCES = {"mcp_marketplace", "mcpize", "gravity", "apify", "forecast_bot
 
 # Sources blocked
 BLOCKED_SOURCES = {
-    "trybounty", "algora", "dealwork", "x402_bazaar", "moltjobs", "clawtasks",
-    "nanocorp", "gpt_store", "mulerun", "agenton", "activepieces", "aigen_protocol",
+    "trybounty",
+    "algora",
+    "dealwork",
+    "x402_bazaar",
+    "moltjobs",
+    "clawtasks",
+    "nanocorp",
+    "gpt_store",
+    "mulerun",
+    "agenton",
+    "activepieces",
+    "aigen_protocol",
 }
 
 
 class OperatingContextError(Exception):
     """Base error for Operating Context."""
+
     pass
 
 
@@ -289,9 +300,7 @@ class OperatingContext:
             entries = store.query(namespace=OPCONTEXT_NAMESPACE, include_expired=True)
             if entries:
                 try:
-                    self._sources_status = eval(
-                        entries[0].get("content", "{}")
-                    )
+                    self._sources_status = eval(entries[0].get("content", "{}"))
                 except Exception:
                     self._sources_status = {}
         return dict(self._sources_status)

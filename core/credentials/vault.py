@@ -63,9 +63,7 @@ class OpportunityCredentials(BaseSettings):
 
     linkedin_client_id: str = Field(default="", alias="LINKEDIN_CLIENT_ID")
     linkedin_client_secret: str = Field(default="", alias="LINKEDIN_CLIENT_SECRET")
-    linkedin_redirect_uri: str = Field(
-        default="http://localhost:8000/auth/linkedin/callback", alias="LINKEDIN_REDIRECT_URI"
-    )
+    linkedin_redirect_uri: str = Field(default="http://localhost:8000/auth/linkedin/callback", alias="LINKEDIN_REDIRECT_URI")
 
     opyre_micro_api_key: str = Field(default="", alias="OPYRE_MICRO_API_KEY")
     opyre_micro_api_url: str = Field(default="https://opyre.com/api", alias="OPYRE_MICRO_API_URL")

@@ -147,9 +147,7 @@ class PaymentAdapter:
             method_type=method_type,
             status=status,
             verified=verified,
-            verification_notes=(
-                f"Confirmación manual registrada por {safe_evidence['verified_by']}" if verified else "Elegibilidad no confirmada"
-            ),
+            verification_notes=(f"Confirmación manual registrada por {safe_evidence['verified_by']}" if verified else "Elegibilidad no confirmada"),
             evidence=safe_evidence,
             verification_date=datetime.now(UTC),
         )

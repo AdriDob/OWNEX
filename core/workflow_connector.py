@@ -331,16 +331,9 @@ class WorkflowConnector:
 
             # All stages passed
             result.success = True
-            total_capacity = float(
-                mult_result.earnings_processed + mult_result.new_earnings_capacity
-            )
-            multiplier_factor = (
-                total_capacity / float(earnings_decimal) if float(earnings_decimal) else 0.0
-            )
-            logger.info(
-                f"[WORKFLOW] Full pipeline complete: ${earnings_decimal} → "
-                f"${total_capacity:.2f} (x{multiplier_factor:.2f}x)"
-            )
+            total_capacity = float(mult_result.earnings_processed + mult_result.new_earnings_capacity)
+            multiplier_factor = total_capacity / float(earnings_decimal) if float(earnings_decimal) else 0.0
+            logger.info(f"[WORKFLOW] Full pipeline complete: ${earnings_decimal} → ${total_capacity:.2f} (x{multiplier_factor:.2f}x)")
 
         except Exception as e:
             logger.error(f"[WORKFLOW] Pipeline error: {e}", exc_info=True)

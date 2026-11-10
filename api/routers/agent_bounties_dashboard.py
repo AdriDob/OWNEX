@@ -237,9 +237,7 @@ async def update_trail_status(opportunity_id: str, payload: dict[str, Any]) -> d
     try:
         next_state_enum = PaymentState(next_state)
     except ValueError:
-        raise HTTPException(
-            status_code=400, detail=f"Estado inválido: {next_state}"
-        ) from None
+        raise HTTPException(status_code=400, detail=f"Estado inválido: {next_state}") from None
 
     evidence = payload.get("evidence", {})
     transition(trail, next_state_enum, evidence)

@@ -327,9 +327,7 @@ def auto_submit_pending_findings(*args: Any, **kwargs: Any) -> dict[str, Any]:
         session = db.SessionLocal()
         try:
             submitted_ids: set[int] = set()
-            for (raw,) in session.query(_m.Report.finding_ids).filter(
-                _m.Report.status.in_(["submitted", "pending"])
-            ).all():
+            for (raw,) in session.query(_m.Report.finding_ids).filter(_m.Report.status.in_(["submitted", "pending"])).all():
                 try:
                     ids = _json.loads(raw) if raw else []
                 except (ValueError, TypeError):

@@ -14,9 +14,19 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 ALLOWED_FIELDS = {
-    "name", "full_name", "headline", "title", "skills", "experience_years",
-    "english_level", "portfolio_url", "location", "payment_methods",
-    "availability", "bio", "cv_text",
+    "name",
+    "full_name",
+    "headline",
+    "title",
+    "skills",
+    "experience_years",
+    "english_level",
+    "portfolio_url",
+    "location",
+    "payment_methods",
+    "availability",
+    "bio",
+    "cv_text",
 }
 
 

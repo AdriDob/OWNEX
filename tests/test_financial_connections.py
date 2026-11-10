@@ -806,6 +806,7 @@ def test_income_import_endpoint(client: TestClient, monkeypatch: pytest.MonkeyPa
 
 # ── IOL WebSocket stream client (P5) ────────────────────────────────────
 
+
 def test_iol_stream_parse_quote() -> None:
     from cores.brokers.iol_stream import parse_message
 
@@ -819,7 +820,9 @@ def test_iol_stream_parse_quote() -> None:
 def test_iol_stream_parse_book_and_trade() -> None:
     from cores.brokers.iol_stream import parse_message
 
-    book = parse_message('{"type":"B","code":200,"msg":{"S":"AL30","M":"BCBA","T":"T0","V":[{"T":"OFFER","X":1,"P":60,"N":1},{"T":"BID","X":2,"P":59,"N":1}],"D":"x"}}')
+    book = parse_message(
+        '{"type":"B","code":200,"msg":{"S":"AL30","M":"BCBA","T":"T0","V":[{"T":"OFFER","X":1,"P":60,"N":1},{"T":"BID","X":2,"P":59,"N":1}],"D":"x"}}'
+    )
     assert len(book["bids"]) == 1 and len(book["offers"]) == 1 and book["bids"][0]["P"] == 59
     trade = parse_message('{"type":"T","code":200,"msg":{"S":"GGAL","M":"BCBA","T":"T0","P":5960,"V":0.3,"TS":1000,"TP":5960000,"D":"x"}}')
     assert trade["last"] == 5960 and trade["variation_pct"] == 0.3

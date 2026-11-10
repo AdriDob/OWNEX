@@ -84,11 +84,7 @@ def _programs(platform: str, data: list[dict[str, Any]]) -> list[dict[str, Any]]
             if not (prog.get("offers_bounties") and prog.get("submission_state") == "open"):
                 continue
             handle = prog.get("handle") or _slugify(prog.get("name", ""))
-            assets = [
-                a.get("asset_identifier", "")
-                for a in scope
-                if a.get("eligible_for_bounty") and a.get("eligible_for_submission")
-            ]
+            assets = [a.get("asset_identifier", "") for a in scope if a.get("eligible_for_bounty") and a.get("eligible_for_submission")]
         elif platform == "bugcrowd":
             if not (prog.get("max_payout") or 0) > 0:
                 continue
@@ -175,12 +171,7 @@ def sync_bounty_targets() -> dict[str, Any]:
         fresh_pairs = set(fresh.keys())
         deactivated = 0
         for (name, domain), row in existing.items():
-            if (
-                row.active
-                and name
-                and name.startswith(_PLATFORM_PREFIXES)
-                and (name, domain) not in fresh_pairs
-            ):
+            if row.active and name and name.startswith(_PLATFORM_PREFIXES) and (name, domain) not in fresh_pairs:
                 row.active = False
                 deactivated += 1
 

@@ -29,8 +29,19 @@ _TRADE_TYPES = {"buy", "sell", "compra", "venta", "suscripcion-fci", "rescate-fc
 _TRANSFER_TYPES = {"deposit", "withdrawal", "transfer", "deposito", "retiro", "transferencia"}
 _FEE_TYPES = {"fee", "commission", "comision", "gas", "exchange_fee"}
 _INCOME_TYPES = {
-    "dividend", "dividendo", "interest", "interes", "yield", "rendimiento",
-    "staking", "staking_reward", "airdrop", "recompensa", "reward", "coupon", "cupon",
+    "dividend",
+    "dividendo",
+    "interest",
+    "interes",
+    "yield",
+    "rendimiento",
+    "staking",
+    "staking_reward",
+    "airdrop",
+    "recompensa",
+    "reward",
+    "coupon",
+    "cupon",
 }
 
 

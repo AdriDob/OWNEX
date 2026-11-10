@@ -24,6 +24,7 @@ logger = logging.getLogger("orion.core.operating_context")
 
 # ── Context state ────────────────────────────────────────────────────────────
 
+
 class ContextStatus(StrEnum):
     """How the Operating Context itself is considered valid."""
 
@@ -62,6 +63,7 @@ class OpportunityState(StrEnum):
 
 # ── The Operating Context policy group ──────────────────────────────────────
 
+
 class OperatingContextPolicies:
     """Bundle of policies that constrain the operating context behavior."""
 
@@ -85,9 +87,7 @@ class OperatingContextPolicies:
             Policy(
                 name="opcontext:paid_only_with_evidence",
                 description=(
-                    "PAID solo con evidencia (tx hash, Stripe confirmation, o "
-                    "cambio de estado en la plataforma). Merge ≠ Paid. "
-                    "Source: REGLA 2 — MI MANDATO"
+                    "PAID solo con evidencia (tx hash, Stripe confirmation, o cambio de estado en la plataforma). Merge ≠ Paid. Source: REGLA 2 — MI MANDATO"
                 ),
                 level=AuthorityLevel.SENIOR_HUNTER,
             )
@@ -106,63 +106,42 @@ class OperatingContextPolicies:
         self.engine.add(
             Policy(
                 name="opcontext:limit_submissions_per_day",
-                description=(
-                    "No más de 5 submissions/día. No más de 1 security report/semana. "
-                    "Source: REGLA 5 — MI MANDATO"
-                ),
+                description=("No más de 5 submissions/día. No más de 1 security report/semana. Source: REGLA 5 — MI MANDATO"),
                 level=AuthorityLevel.OPERATOR,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:human_gate_irreversible",
-                description=(
-                    "Acciones irreversibles (submit, publish, withdraw, spend >$5) "
-                    "→ SIEMPRE aprobación humana. "
-                    "Source: REGLA 6 — MI MANDATO"
-                ),
+                description=("Acciones irreversibles (submit, publish, withdraw, spend >$5) → SIEMPRE aprobación humana. Source: REGLA 6 — MI MANDATO"),
                 level=AuthorityLevel.SENIOR_HUNTER,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:never_delete_history",
-                description=(
-                    "No borrar tareas REJECTED/EXPIRED/CANCELLED del historial. "
-                    "Source: REGLA 7 — MI MANDATO"
-                ),
+                description=("No borrar tareas REJECTED/EXPIRED/CANCELLED del historial. Source: REGLA 7 — MI MANDATO"),
                 level=AuthorityLevel.ADMINISTRATOR,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:adapter_exception_not_success",
-                description=(
-                    "Si un adaptador lanza excepción → NO interpretar como éxito. "
-                    "Source: REGLA 8 — MI MANDATO"
-                ),
+                description=("Si un adaptador lanza excepción → NO interpretar como éxito. Source: REGLA 8 — MI MANDATO"),
                 level=AuthorityLevel.OPERATOR,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:ambiguous_response_pending",
-                description=(
-                    "Si la respuesta de la plataforma es ambigua → PENDING, no "
-                    "DELIVERED. "
-                    "Source: REGLA 9 — MI MANDATO"
-                ),
+                description=("Si la respuesta de la plataforma es ambigua → PENDING, no DELIVERED. Source: REGLA 9 — MI MANDATO"),
                 level=AuthorityLevel.ASSISTANT,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:no_compete_early_bounty",
-                description=(
-                    "No competir por bounties < 2h de antigüedad (8-158 PRs llegan "
-                    "en las primeras horas). "
-                    "Source: REGLA 10 — MI MANDATO"
-                ),
+                description=("No competir por bounties < 2h de antigüedad (8-158 PRs llegan en las primeras horas). Source: REGLA 10 — MI MANDATO"),
                 level=AuthorityLevel.ASSISTANT,
             )
         )
@@ -172,20 +151,14 @@ class OperatingContextPolicies:
         self.engine.add(
             Policy(
                 name="opcontext:limit_lilly_prs",
-                description=(
-                    "Máx 2 PRs simultáneos en Lilly-Protocol. "
-                    "Source: Operating Context §1"
-                ),
+                description=("Máx 2 PRs simultáneos en Lilly-Protocol. Source: Operating Context §1"),
                 level=AuthorityLevel.OPERATOR,
             )
         )
         self.engine.add(
             Policy(
                 name="opcontext:limit_huntr_reports",
-                description=(
-                    "Máx 1 report/semana en huntr. "
-                    "Source: Operating Context §2"
-                ),
+                description=("Máx 1 report/semana en huntr. Source: Operating Context §2"),
                 level=AuthorityLevel.SENIOR_HUNTER,
             )
         )
@@ -215,11 +188,7 @@ class OperatingContextPolicies:
         self.engine.add(
             Policy(
                 name="opcontext:budget_never_guaranteed",
-                description=(
-                    "Piso es $0. No hay ingreso garantizado. No presupuestar nada "
-                    "como seguro. "
-                    "Source: REGLA 1 — MI MANDATO"
-                ),
+                description=("Piso es $0. No hay ingreso garantizado. No presupuestar nada como seguro. Source: REGLA 1 — MI MANDATO"),
                 level=AuthorityLevel.SENIOR_HUNTER,
             )
         )
@@ -240,6 +209,7 @@ class OperatingContextPolicies:
 
 
 # ── Policy registry: opportunity states ─────────────────────────────────────
+
 
 class OpportunityPolicyEngine(PolicyEngine):
     """PolicyEngine subclass that understands opportunity states and the

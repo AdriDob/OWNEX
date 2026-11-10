@@ -146,7 +146,7 @@ def fetch_jobicy(query: str = "", geo: str = "argentina", tag: str = "", limit: 
         r.raise_for_status()
         jobs = []
         q = query.lower()
-        for j in (r.json().get("jobs") or []):
+        for j in r.json().get("jobs") or []:
             title = j.get("jobTitle") or ""
             company = j.get("companyName") or ""
             if q and q not in title.lower() and q not in company.lower():
