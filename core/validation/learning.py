@@ -28,6 +28,7 @@ logger = logging.getLogger("orion.core.validation.learning")
 
 LEARNING_DIR = Path(os.environ.get("ORION_DATA_DIR", Path.home() / ".orion" / "data" / "learning"))
 LEARNING_FILE = LEARNING_DIR / "outcomes.jsonl"
+CONTRADICTION_FILE = LEARNING_DIR / "contradictions.jsonl"
 
 _LEARNING_LOCK = threading.Lock()
 
@@ -98,6 +99,78 @@ def record_outcomes(batch: list[ValidationOutcome]) -> None:
         for line in lines:
             f.write(line + "\n")
     logger.info("[LEARNING] Recorded %d outcomes in batch", len(batch))
+
+
+# ── Contradiction test outcomes (SELF-5) ─────────────────────────
+
+
+def record_contradiction_outcome(
+    vulnerability_type: str,
+    test_type: str,
+    info_gain: str,
+    supports_vulnerability: bool | None,
+    endpoint_path: str = "",
+) -> None:
+    """Persiste el resultado de un contradiction test ejecutado.
+
+    Alimenta el Learning Loop (FeedbackLearner via FeedbackTuner) sin
+    contaminar los priors de validación (archivo separado de outcomes.jsonl).
+    """
+    try:
+        _ensure_dir()
+        line = json.dumps(
+            {
+                "kind": "contradiction",
+                "vuln_type": vulnerability_type.lower(),
+                "test_type": test_type,
+                "info_gain": info_gain,
+                "supports_vulnerability": supports_vulnerability,
+                "endpoint_path": endpoint_path,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
+        with _LEARNING_LOCK, open(CONTRADICTION_FILE, "a") as f:
+            f.write(line + "\n")
+    except Exception as exc:  # learning must never break validation
+        logger.warning("[LEARNING] Contradiction record failed: %s", exc)
+
+
+def get_contradiction_stats() -> dict[str, Any]:
+    """Stats agregadas de contradiction tests ejecutados."""
+    if not CONTRADICTION_FILE.exists():
+        return {"total": 0, "refuted": 0, "supported": 0, "inconclusive": 0, "by_test_type": {}}
+    by_test_type: dict[str, dict[str, int]] = defaultdict(lambda: {"total": 0, "refuted": 0, "supported": 0})
+    total = refuted = supported = inconclusive = 0
+    with _LEARNING_LOCK, open(CONTRADICTION_FILE) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if record.get("kind") != "contradiction":
+                continue
+            supports = record.get("supports_vulnerability")
+            test_type = record.get("test_type", "unknown")
+            total += 1
+            by_test_type[test_type]["total"] += 1
+            if supports is True:
+                supported += 1
+                by_test_type[test_type]["supported"] += 1
+            elif supports is False:
+                refuted += 1
+                by_test_type[test_type]["refuted"] += 1
+            else:
+                inconclusive += 1
+    return {
+        "total": total,
+        "refuted": refuted,
+        "supported": supported,
+        "inconclusive": inconclusive,
+        "by_test_type": dict(by_test_type),
+    }
 
 
 # ── Aggregation & priors ─────────────────────────────────────────

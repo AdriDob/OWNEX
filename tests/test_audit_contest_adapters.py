@@ -267,7 +267,7 @@ class TestRegistryRegistration:
 
 class TestSuperteamAdapter:
     def test_parses_open_listings(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cores.opportunity.adapters.forge.superteam import fetch_opportunities
+        from core.opportunity.adapters.forge.superteam import fetch_opportunities
 
         payload = [
             {
@@ -301,7 +301,7 @@ class TestSuperteamAdapter:
                 assert url.endswith("/api/listings")
                 return FakeResp()
 
-        monkeypatch.setattr("cores.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("core.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
         monkeypatch.setattr("httpx.AsyncClient", FakeClient)
         results = _run(fetch_opportunities())
         ids = [r["id"] for r in results]
@@ -312,7 +312,7 @@ class TestSuperteamAdapter:
         assert bounty["url"] == "https://earn.superteam.fun/listings/solana-bounty"
 
     def test_network_error_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cores.opportunity.adapters.forge.superteam import fetch_opportunities
+        from core.opportunity.adapters.forge.superteam import fetch_opportunities
 
         class Dead:
             def __init__(self, *a: Any, **kw: Any) -> None:
@@ -324,7 +324,7 @@ class TestSuperteamAdapter:
             async def __aexit__(self, *a: Any) -> None:
                 pass
 
-        monkeypatch.setattr("cores.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("core.opportunity.adapters.forge.superteam.get_platform_credentials", lambda p: {})
         monkeypatch.setattr("httpx.AsyncClient", Dead)
         try:
             results = _run(fetch_opportunities())
@@ -335,7 +335,7 @@ class TestSuperteamAdapter:
 
 class TestOpireAdapter:
     def test_parses_rewards_with_cents_conversion(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cores.opportunity.adapters.forge.opire import fetch_opportunities
+        from core.opportunity.adapters.forge.opire import fetch_opportunities
 
         payload = [
             {
@@ -375,7 +375,7 @@ class TestOpireAdapter:
                 assert url == "https://api.opire.dev/rewards"
                 return FakeResp()
 
-        monkeypatch.setattr("cores.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("core.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
         monkeypatch.setattr("httpx.AsyncClient", FakeClient)
         results = _run(fetch_opportunities())
         assert len(results) == 2
@@ -386,7 +386,7 @@ class TestOpireAdapter:
         assert results[1]["reward"] == 0.0
 
     def test_network_error_returns_empty(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        from cores.opportunity.adapters.forge.opire import fetch_opportunities
+        from core.opportunity.adapters.forge.opire import fetch_opportunities
 
         class Dead:
             def __init__(self, *a: Any, **kw: Any) -> None:
@@ -398,7 +398,7 @@ class TestOpireAdapter:
             async def __aexit__(self, *a: Any) -> None:
                 pass
 
-        monkeypatch.setattr("cores.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
+        monkeypatch.setattr("core.opportunity.adapters.forge.opire.get_platform_credentials", lambda p: {})
         monkeypatch.setattr("httpx.AsyncClient", Dead)
         try:
             results = _run(fetch_opportunities())

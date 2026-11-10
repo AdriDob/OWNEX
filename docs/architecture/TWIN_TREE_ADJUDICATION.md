@@ -142,3 +142,168 @@ Generated 2026-11-09 · 115 divergent same-path modules · evidence-based, no au
    leaf modules are adjudicated, since `__init__` content follows its package.
 4. Never delete a divergent file until its domain's canonical side is chosen
    AND all importers (incl. dynamic `importlib` strings) are migrated.
+
+## Adjudication log (session 2026-11-09)
+
+First per-file verification of the 9 lean-cores rows — importer evidence
+diverged from the lean signal in both directions:
+
+| Path | Matrix lean | Verified result | Action |
+|------|-------------|-----------------|--------|
+| `finance/models.py` | cores | `core.finance` package: **0 importers** (dead code; `finance_guru.py` is a different module). `cores.finance.models` live via `api/routers/finance.py`, `cores/finance/{store,engine}.py`, `tests/test_finance.py` | **DELETED** `core/finance/` (models.py + empty `__init__.py`) |
+| `execution/request_mutator.py` | cores | `core.execution.request_mutator`: **0 importers**. Live path is `cores.execution.request_mutator` via `api/routers/validation.py`, `cores/execution/__init__.py` | **DELETED** `core/execution/request_mutator.py` |
+| `validation/confidence.py` | cores | **FALSE POSITIVE — not a twin.** `core/` version = `ConfidenceEngine` (bug-bounty evidence confidence, imported by BOTH `core/validation/*` AND `cores/validation/*` + test). `cores/` version = `ConfidenceScore`/`ConfidenceScorer` (report scoring, exported by `cores/validation/__init__.py`). Different symbols, both live | KEEP BOTH — rename disambiguation deferred |
+| `merlin/memory.py` | cores | Both live: `core.merlin.memory` ← `core/merlin/{__init__,decision_log}`; `cores.merlin.memory` ← `api/routers/merlin.py`, `cores/merlin/*`, `cores/memory/unified_memory`. Diff = 400 lines — true divergence | KEEP BOTH — domain decision pending |
+| `copilot/providers/fcc_provider.py` | cores | Both live via respective `providers/router.py`; diff = 234 lines | KEEP BOTH — domain decision pending |
+| `copilot/providers/nvidia_provider.py` | cores | Both live; diff = 52 lines | KEEP BOTH — domain decision pending |
+| `events/event_bus.py` | cores | Already adjudicated: unified `bacaab8d` (cores canonical + core facade) | DONE |
+| `opportunity/engine.py` | cores | 4 core-side importers — both trees live | KEEP BOTH — pending (parallel agent active in `cores/opportunity/`) |
+| `opportunity/adapters/forge/opire.py` | cores | 2 core-side importers — both live | KEEP BOTH — pending |
+
+**Lesson:** path-equal files are not necessarily twins. `validation/confidence.py`
+proved the trees legitimately host different modules at the same path.
+Adjudication MUST diff symbols, not just count importers.
+
+### Batch 2 — facade packages (same session)
+
+`cores/<pkg>/__init__.py` re-exports from `core.<pkg>` for ai_router,
+cycles, extension, integrations, target_intelligence — same dead-subtree
+pattern as investment. Deleted divergent dead twins with **0 importers**
+(absolute + relative + `from pkg import mod` forms all checked):
+
+- `cores/ai_router/{engine,provider_store}.py` (provider_store identical twin)
+- `cores/target_intelligence/prioritizer.py`
+- `cores/extension/{capabilities,hooks,manifest,registry,settings}.py` — whole subtree dead, package is pure facade
+- `cores/integrations/{discovery,registry}.py` — kept live cores-only modules: outlook/, arca/, ext/, ai_sandbox_integration.py
+- `cores/cycles/{events,executive_dashboard,metrics,models,qa,registry,schemas,service,tasks}.py` — kept live: security.py, knowledge_capture.py, voice_commands.py, stages/ (imported by api/routers, tests, core/cycles/security.py)
+
+Verified: 4/5 facades import clean; cores.cycles chain blocked only by
+parallel-agent WIP syntax error in cores/opportunity/global_sources.py
+(unrelated). Kept cycles files import core.cycles.* — never the deleted
+siblings.
+
+### Batch 3 — straggler migration + first cores-wins (same session)
+
+- `cores/capabilities/registry.py`, `cores/cycles/security.py`,
+  `cores/opportunity/executors/mindrift_executor.py`,
+  `cores/autonomy/workflow_engine.py`: last importers migrated to core
+  canonical (test patch targets, driver lazy imports, facade __init__),
+  dead twins deleted. core mindrift is a superset.
+- `auto_submit/pipeline.py`: **cores-wins** — functional superset
+  (elite gate + rate limit + never_submit_without_approval governance).
+  All 5 core-side importers migrated; core twin deleted; latent bug
+  fixed (`SubmissionRecord.created_at` → `submitted_at`).
+- `credentials/vault.py`, `knowledge/models.py`, `knowledge/graph.py`,
+  `evidence/composer.py`, `opportunity/scoring.py`,
+  `opportunity/models.py`, `cycles/knowledge_capture.py`,
+  `copilot/providers/*`: **both-live divergent — merge candidates, NOT
+  delete candidates.** cores vault has rotation-config API; core vault
+  has audit-log/secret-scan/rotate API. Domain consolidation needed.
+
+### Batch 4 — dead orchestrators + scoring analysis
+
+- `core/integration/orchestrator.py` + `cores/integration/orchestrator.py`:
+  **both dead** — zero importers repo-wide (all "orchestrator" hits were
+  api/routers/orchestrator.py, cores/orchestrator/, workflow modules).
+  core version was additionally BROKEN: imported FeedbackOutcome/get_engine
+  which only exist in cores.opportunity.scoring. Both deleted; empty
+  core/integration/ + cores/integration/ dirs removed.
+- `opportunity/scoring.py`: confirmed both-live INTENTIONAL coexistence —
+  core exposes OpportunityEngineLegacy/get_legacy_engine, cores exposes
+  OpportunityEngine/get_engine/FeedbackOutcome. Different APIs, both
+  imported by their own package __init__ + orchestrators. NOT twins —
+  rename-level disambiguation only.
+- `copilot/providers/*`: cores subtree has extra providers (devin,
+  freebuff) + serves run.py/mobile.py; core subtree serves
+  api/routers/copilot.py + core modules. Merge candidate — provider-set
+  union needed, not deletion.
+
+
+## Session tally (2026-11-09, continued)
+
+- Divergent shared-path files: 114 → **86** (28 resolved)
+- Deleted dead twins: ~45 files total across batches
+- First cores-wins adjudication: auto_submit (functional superset +
+  governance features + latent created_at bug fixed)
+- Both-live confirmed (merge candidates, NOT deletable):
+  credentials/vault, copilot/providers/*, trading/* (7), opportunity/*
+  cluster (engine/models/scoring/source_payment_docs/adapters),
+  knowledge/{models,graph}, evidence/composer, merlin/memory,
+  validation/{confidence,learning}, health/engine (HealthCenter vs
+  SystemHealthEngine — different consumers), autonomy/*, update/engine,
+  osint/engine, sensors/base, pipeline/*, reports/quality/*,
+  revenue_multiplier/*, discovery/*, cycles/knowledge_capture
+- Remaining work is DOMAIN MERGES (union of features), not file deletion.
+  trading/ is the largest: cores canonical for api (has mt5/), core
+  still serves scheduler/jobs + revenue_multiplier/crypto_trader.
+
+## Session tally (2026-11-10) — parallel sweep repair + verified-impl port
+
+The parallel agent executed a core-wins sweep (120 deletions + 10
+overwrites in cores/, uncommitted). Verified each breakage class:
+
+**Restored (sweep was wrong — live importers/features lost):**
+- `cores/events/event_bus.py` — agent copied the core facade OVER the
+  canonical bus, inverting ADR-0003 unification (circular self-import +
+  lost EVENT_PRIORITY_MAP). Restored from HEAD.
+- `cores/opportunity/models.py` — core version (ScoredOpportunity) has
+  NO `Opportunity` class; 13+ cores consumers broke. Restored.
+- `cores/validation/confidence.py` — agent overwrote with ConfidenceEngine
+  variant; feedback_tuner/loop_engine need ConfidenceScorer (report
+  scoring). Restored. NOTE: trust.py ConfidenceScorer is a DIFFERENT
+  class (knowledge-source trust) — name collision, not a move target.
+- All `cores/**/__init__.py` deleted by sweep — restored (facades).
+
+**Ported (cores impl was functionally SUPERIOR):**
+- `core/opportunity/adapters/forge/opire.py` — cores used VERIFIED public
+  API `api.opire.dev/rewards` (no auth, USD_CENT→USD); core hit
+  unverified `api.opire.com/v1/bounties`. Ported verified impl to core.
+
+**Migrated:**
+- `desktop{,-legacy}/native/services/mission.py` → core.system.hhd_tracker
+- `tests/test_audit_contest_adapters.py`, `test_imports.py` →
+  core.opportunity.adapters for forge/opyre/pulse; KEPT cores for
+  security.* subpackage + get_adapter_registry (only exist in cores).
+
+**Completed agent's half-edit:** added `argentina_ok: bool = True` field
+to SourceDefinition in cores/opportunity/global_sources.py (agent passed
+the kwarg ~20x without declaring the field → TypeError at import).
+
+**Verified safe overwrites (identical symbol sets):**
+cores/{autonomy/coder_agent, credentials/vault, cycles/knowledge_capture,
+evidence/composer, health/engine, memory/__init__, opportunity/scoring,
+opportunity/source_payment_docs} — agent's core-wins convergence, same
+public API. Left uncommitted for agent to finish/commit.
+
+**Lesson reinforced:** identical filenames + identical top-level symbols
+still hides semantic divergence (opire API endpoints, security subpackage
+registry, ConfidenceScorer vs trust ConfidenceScorer). Diff BEHAVIOR
+(API URLs, response parsing, registered adapters), not just symbols.
+
+## Session tally (2026-11-10, cont.) — false-twin renames + E2E fix
+
+Renamed (false twins — disjoint APIs, both live):
+- `core/validation/confidence.py` → `evidence_confidence.py`
+  (ConfidenceEngine bug-bounty evidence; cores keeps
+  ConfidenceScore/Scorer report-scoring). 5 importers migrated.
+- `core/opportunity/source_payment_docs.py` → `adapter_payment_docs.py`
+  (4-key adapter methods/currencies map for api/adapters/direct_work_*).
+  cores version is the curated 35-source payment-docs registry — different
+  schema and purpose. 3 importers migrated.
+
+Confirmed false twins — DEFERRED (agent actively working cores/opportunity):
+- `opportunity/models.py`: core=score-record fields vs cores=Opportunity
+  Intelligence dataclasses (Opportunity, EVHRating, OpportunityScore).
+- `opportunity/engine.py`: core=orchestrator/preparator/scorer pipeline vs
+  cores=discovery/ranker engine. ~30 cross-import sites; rename after the
+  parallel opportunity work settles.
+
+Intentional divergence (do NOT merge):
+- `events/event_bus.py`: core=5432B ADR-0003 facade, cores=13052B canonical
+  bus. By design.
+
+E2E fix: test_09_create_report had ordering dependency (finding_id class
+attr set by test_08) → standalone run sent finding_ids=[null] → 422.
+Added _ensure_finding() chain builder. Passes standalone + full file.
+
+Generated with [Devin](https://devin.ai)

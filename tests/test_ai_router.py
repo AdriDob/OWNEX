@@ -428,7 +428,7 @@ class TestAIRouterEngine:
         from core.ai_router.engine import AIRouterEngine
 
         mock_registry = MagicMock()
-        with patch("cores.capabilities.registry.get_capability_registry", return_value=mock_registry):
+        with patch("core.capabilities.registry.get_capability_registry", return_value=mock_registry):
             e = AIRouterEngine()
             e.register_capabilities()
             assert mock_registry.register.call_count == 1

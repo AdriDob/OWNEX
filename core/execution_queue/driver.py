@@ -310,7 +310,7 @@ def _execute_algora_action(action: str, payload: dict) -> dict:
 
 def _execute_mindrift_action(action: str, payload: dict) -> dict:
     try:
-        from cores.opportunity.executors.mindrift_executor import MindriftExecutor
+        from core.opportunity.executors.mindrift_executor import MindriftExecutor
 
         executor = MindriftExecutor()
         result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
@@ -334,7 +334,7 @@ def _execute_outlier_action(action: str, payload: dict) -> dict:
 
 def _execute_autonomous_workflow(action: str, payload: dict) -> dict:
     try:
-        from cores.autonomy.workflow_engine import AutonomousWorkflow
+        from core.autonomy.workflow_engine import AutonomousWorkflow
 
         workflow = AutonomousWorkflow()
         result = workflow.execute(action, payload) if hasattr(workflow, "execute") else {}

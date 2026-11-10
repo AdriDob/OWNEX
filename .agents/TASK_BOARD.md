@@ -23,8 +23,8 @@ Prioritized queue. Single write-owner per task. Check `.ai/TASK_QUEUE.md` for th
 | 2 | FX policy decision → capital engines wiring | user decision | #1 optional | `cores/capital/`, `core/investment/` | BLOCKED | currency mixing forbidden until decided |
 | 3 | Remote jobs: AR/ES-specific feeds | Work Intelligence | — | `cores/opportunity/job_feeds.py` | IN_PROGRESS | AR/ES adapter expansions + measurement framework in progress; P0 baseline & P1 upwork/kaggle/intigriti |
 | 4 | Perch E2E verification of OWNEX MCP | Connections | Perch install | `core/mcp_ownex_server.py` | TODO | consent flow ready |
-| 5 | Consolidate `core/` vs `cores/` twin trees | Coordinator | ADR-0002 acceptance | both trees | BLOCKED | audit DONE (`TWIN_TREE_AUDIT.md` + importers matrix); ADR-0002 (layout→cores/) + ADR-0003 (dual event bus) PROPOSED; needs dedicated worktree + user/architect sign-off |
-| 6 | npm audit fix (devDeps) | Frontend | — | `frontend/package*.json`, `package-lock.json` | DONE | 27→9 vulns, 0 critical/high; vue-i18n 10→11.4.18; remaining 9 moderate are devDeps |
+| 5 | Consolidate `core/` vs `cores/` twin trees | Coordinator | ADR-0002 v2 accepted | both trees | IN_PROGRESS | phase-1 merged; event bus unified `bacaab8d`; adjudication session: 31 dead twins deleted (`99053839`,`35eac594`,`fb7b5e98`), 18 live-importer files restored after agent sweep `72a58b69`+`828db5e1`; key lesson: path-equal ≠ twin (validation/confidence false positive); remaining: 59 ties + per-domain decisions |
+| 6 | npm audit fix (devDeps) | Frontend | — | `frontend/package*.json`, `package-lock.json` | DONE | vitest/^4.1.12 + ownex-contracts ^1→^4.1.12 (critical cleared); audit 9→6 moderate, all dev-only chains needing breaking bumps (vue-tsc 3.x dependabot branch exists) |
 | 7 | Crypto/quant: real strategies | Finance | capital data flow | `core/quant/` (empty dirs) | DEFERRED | dirs exist but empty — don't build until income flows |
 
 ## Rules

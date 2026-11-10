@@ -662,7 +662,7 @@ app.include_router(payment_compat.router)
 # ── ORION Platform: core + app routers ──
 # NOT fail-fast silencioso: si esto explota, el backend arranca sin sus rutas
 # (404 masivos intermitentes). El error debe ser visible en boot.
-from core.api.routers import router as core_router  # noqa: E402
+from cores.api.routers import router as core_router  # noqa: E402
 
 app.include_router(core_router)
 from core.app_registry import get_app_registry  # noqa: E402

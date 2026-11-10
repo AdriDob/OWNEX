@@ -671,7 +671,7 @@ def get_trading_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="trading_risk_check",
             app_id="trading",
-            handler="core.trading.copy_trading:run_trading_risk_check",
+            handler="cores.trading.copy_trading:run_trading_risk_check",
             cron="*/5 * * * *",
             args=[],
             metadata={
@@ -683,7 +683,7 @@ def get_trading_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="trading_dna_update",
             app_id="trading",
-            handler="core.trading.reasoning:run_dna_update",
+            handler="cores.trading.reasoning:run_dna_update",
             cron="30 3 * * *",
             args=[],
             metadata={
@@ -695,7 +695,7 @@ def get_trading_jobs() -> list[JobDefinition]:
         _cron_job(
             job_id="trading_discovery",
             app_id="trading",
-            handler="core.trading.trader_intelligence:run_discovery",
+            handler="cores.trading.trader_intelligence:run_discovery",
             cron="30 6 * * *",
             args=[],
             metadata={

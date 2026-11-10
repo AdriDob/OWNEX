@@ -29,7 +29,8 @@ class OpportunityCategory(StrEnum):
     bug_bounty = "bug_bounty"
     dev_bounty = "dev_bounty"
     data_entry = "data_entry"
-    ai_evaluation = "ai_evaluation"
+    ai_evaluation = "ai_evaluation",
+    junior_jobs = "junior_jobs",
 
 
 @dataclass(frozen=True)
@@ -49,7 +50,7 @@ class SourceDefinition:
     requires_experience: bool = False  # NO experience needed
     language: str = "en"
     region: str = "global"
-    estimated_payout_range: str = "varies"
+    argentina_ok: bool = False  # Argentina-compatible payment methods    estimated_payout_range: str = "varies"
     tags: list[str] = field(default_factory=list)
     last_verified: str = "2026-07-30"
     priority: int = 0  # higher = more recommended

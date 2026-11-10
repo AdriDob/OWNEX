@@ -46,7 +46,7 @@ class ExtensionValidationSystem:
         self.good_capability_names = {
             "core.memory": ["memory_retrieve", "memory_store", "memory_consolidate"],
             "core.text": ["text_process", "translation", "summarization"],
-            "core.api": ["api_call", "webhook_handler", "endpoint_management"],
+            "cores.api": ["api_call", "webhook_handler", "endpoint_management"],
             "core.communication": ["email_sender", "sms_sender", "notification"],
             "core.data": ["database_query", "data_transformation", "file_processing"],
             "core.engineering": ["code_analyzer", "dependency_resolver", "error_handler"],

@@ -14,7 +14,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from core.trading.store import TradingStore
+from cores.trading.store import TradingStore
 
 logger = logging.getLogger("catseye.trading.intelligence")
 

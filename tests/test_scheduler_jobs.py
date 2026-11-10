@@ -209,7 +209,7 @@ class TestTradingJobs:
     def test_risk_check_handler_resolves(self):
         for job in get_trading_jobs():
             if job.job_id == "trading_risk_check":
-                assert job.handler == "core.trading.copy_trading:run_trading_risk_check"
+                assert job.handler == "cores.trading.copy_trading:run_trading_risk_check"
 
 
 class TestGetAllJobs:

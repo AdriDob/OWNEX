@@ -830,7 +830,7 @@ async def update_history(limit: int = 10):
 @router.get("/version")
 async def version_info():
     """OWNEX Platform version and API contract versions."""
-    from core.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, OWNEX_VERSION, PLUGIN_API
+    from cores.version import DECISION_JOURNAL, EVENT_SCHEMA, MEMORY_SCHEMA, NORMALIZER_API, OWNEX_VERSION, PLUGIN_API
 
     return {
         "ownex_version": OWNEX_VERSION,

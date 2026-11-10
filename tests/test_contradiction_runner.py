@@ -215,8 +215,8 @@ class TestLoopEngineIntegration:
         from cores.validation.rules import ValidationRuleSet
 
         monkeypatch.setattr("cores.validation.gate.STATE_FILE", tmp_path / "gate_state.json")
-        monkeypatch.setattr("cores.validation.learning.CONTRADICTION_FILE", tmp_path / "contradictions.jsonl")
-        monkeypatch.setattr("cores.validation.learning.LEARNING_DIR", tmp_path)
+        monkeypatch.setattr("core.validation.learning.CONTRADICTION_FILE", tmp_path / "contradictions.jsonl")
+        monkeypatch.setattr("core.validation.learning.LEARNING_DIR", tmp_path)
 
         class HighScorer(ConfidenceScorer):
             def calculate(self, results, validation, endpoint_signals, llm_boost=0.0, uncertainty_penalty=0.0):
@@ -300,7 +300,7 @@ class TestLoopEngineIntegration:
         assert verdict.contradiction_results[0]["supports_vulnerability"] is True
 
     def test_learning_record_persisted_on_refutation(self, tmp_path, monkeypatch) -> None:
-        from cores.validation.learning import get_contradiction_stats
+        from core.validation.learning import get_contradiction_stats
 
         self._evaluate(self._engine(False, tmp_path, monkeypatch))
         stats = get_contradiction_stats()

@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from cores.knowledge.abstracts import KnowledgeNormalizer
-from cores.knowledge.models import CanonicalKnowledgeArtifact, KnowledgeContentType, KnowledgeMetadata
+from cores.knowledge.content_models import CanonicalKnowledgeArtifact, KnowledgeContentType, KnowledgeMetadata
 
 
 class GenericKnowledgeNormalizer(KnowledgeNormalizer):

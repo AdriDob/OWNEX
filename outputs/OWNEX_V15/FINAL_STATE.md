@@ -89,3 +89,33 @@ cualquier migración de `core/`+`cores/` ejecutada en ese estado se pierde o se 
 - No afirma que la arquitectura esté resuelta: está diagnosticada y con estrategia, sin ejecutar.
 - No afirma que el README describa el producto: **no se reescribió**, y no puede hacerse
   honestamente mientras la sección de licencia contradiga `LICENSE`.
+
+---
+
+## Addendum — continuación post-V15 (2026-11-09, commits `bacaab8d`..`a41d1de1`)
+
+Estado real posterior a los commits de esta fecha:
+
+- **Event bus unificado** (`bacaab8d`): `cores.events.EventBus` canónico;
+  `core.events.CoreEventBus` es fachada de compatibilidad. Se eliminaron la
+  pérdida de eventos entre árboles, el bridge unidireccional y la doble
+  persistencia (`core_event_log` → `event_bus_history` única). 15 tests de
+  unificación + subset de 298 verdes.
+- **Twin-tree fase 1 mergeada** (`a41d1de1`): codemod conservador
+  (`scripts/codemod_twin_tree.py`), ADR-0002 v2 (consolidación por dominio,
+  no rename global), 2 módulos absorbidos, suite verde. Los 114 divergentes
+  quedan para adjudicación por dominio.
+- **Licencia resuelta** (`8925573f`): proprietary desde 2026-11-09, MIT
+  preservado para versiones previas.
+- **Dependabot** (`b2ec6e3f`): vitest crítico eliminado; audit 9→6 moderate
+  (resto dev-only, bumps majors pendientes vía dependabot).
+- **Auth store fix** (`b2ec6e3f`): exports restaurados (`autoLogin`,
+  `logout`, `loginWithCredentials`, `register`) — bug real de runtime.
+- **README**: reescrito con matriz de estados honestos; el agente paralelo
+  lo sigue refinando en `feat/readme-v15-reality-check`.
+- **Android**: appId mismatch corregido (`capacitor.config.json` →
+  `ai.rastro.app`, alineado con build.gradle y el assets sincronizado).
+
+**Bloqueos sin cambio:** credenciales IOL/PPI/Binance, SDK Android/emulador,
+`release/win11-stable` (diverged, congelada), decisión FX, licencia ya
+resuelta por el owner.

@@ -10,8 +10,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from core.trading.errors import InsufficientBalanceError, WalletPersistenceError
-from core.trading.models import Balance
+from cores.trading.errors import InsufficientBalanceError, WalletPersistenceError
+from cores.trading.models import Balance
 
 logger = logging.getLogger("orion.trading.wallet")
 

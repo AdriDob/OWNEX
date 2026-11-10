@@ -38,7 +38,7 @@
     "@tailwindcss/vite": "^4.1.6",
     "@tauri-apps/cli": "^2.11.4",
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.12",
     "@vue/test-utils": "^2.4.11",
     "biome": "^0.2.2",
     "jsdom": "^29.1.1",
@@ -46,7 +46,7 @@
     "tailwindcss": "^4.1.6",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "vitest": "^4.1.9",
+    "vitest": "^4.1.12",
     "vue-tsc": "^2.2.12"
   }
 }

@@ -111,7 +111,7 @@ class TestSecurityCycleE2E:
     """Real E2E: security cycle start -> stages -> dashboard -> learning"""
 
     def test_1_security_cycle_has_7_stages(self):
-        from cores.cycles.security import get_security_cycle
+        from core.cycles.security import get_security_cycle
 
         sc = get_security_cycle()
         assert len(sc.STAGE_ORDER) == 7

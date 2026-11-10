@@ -162,6 +162,31 @@ Test and build results have changed during parallel development. Check the lates
 ## License
 
 See [LICENSE](LICENSE) and [LICENSE-MIT-legacy.txt](LICENSE-MIT-legacy.txt). The repository documents a license transition: versions distributed under MIT retain the permissions granted under that license; later versions are marked proprietary. See `outputs/OWNEX_V15/LICENSE_DECISION.md` for the project's own decision record.
+So the project is proprietary **going forward**; the historical versions are
+
+---
+## Capability Matrix — VERIFIED / BUILD_VERIFIED / INTEGRATION_PENDING / EXPERIMENTAL / PLANNED / BLOCKED
+
+| Priority | Capability | Status | Notes |
+|---|---|---|---|
+| **P0** | **Registro y tareas técnicas** | **VERIFIED** | Python, scripts, debugging, APIs y código; registro directo sin experiencia profesional |
+| **P0** | **Recompensas por entregas** | **VERIFIED** | Issues, pull requests y tareas remuneradas; pago por entrega aceptada |
+| **P0** | **AI coding** | **VERIFIED** | Programación, revisión, corrección y testing de código con asistencia de IA |
+| **P1** | **Freelance por tareas** | **BUILD_VERIFIED** | Entregas pequeñas y concretas en Fiverr/Freelancer; pending full integration |
+| **P1** | **Open source remunerado** | **BUILD_VERIFIED** | Contribuciones financiadas y programas de recompensas; pending full integration |
+| **P2** | **Bug bounty y auditorías** | **PLANNED** | Hallazgos técnicos y competencias de seguridad; motor en desarrollo |
+| **P2** | **Empleos junior** | **PLANNED** | Alternativa de ingresos recurrentes; pending integración con motor de ejecución |
+| **Ciclo OWNEX** | **BUILD_VERIFIED** | DISCOVER→VERIFY→QUALIFY→PREPARE→EXECUTE→DELIVER→EARN→OPTIMIZE; pipeline implementado |
+| **Composición $10K** | **PLANNED** | $3K dev recurrente + $2.5K GitHub + $2K AI coding + $1.5K freelance + $1K bug bounty |
+| **Preguntas prioritarias** | **BUILD_VERIFIED** | ¿Dónde hay trabajo? ¿Sin experiencia profesional? ¿Qué tareas puedo resolver con Python/IA? ¿Pago en Argentina? |
+| **Éxito definitivo** | **PLANNED** | Encontrar trabajo técnico accesible, ejecutar con automatización/IA, entregar y cobrar |
+
+*Legend: VERIFIED = confirmado con evidencia; BUILD_VERIFIED = build-stable with tests passing; INTEGRATION_PENDING = definido pero no fully wired; EXPERIMENTAL = prototipado; PLANNED = roadmap goal; BLOCKED = waiting external decision*
+
+*Generated: 2026-11-09 | Source: V15 repository reconciliation — aligned with OWNEX priorities document*
+not. Any claim that OWNEX was never open source, or that all rights in all
+versions are reserved, would be false. Decision record:
+`outputs/OWNEX_V15/LICENSE_DECISION.md`.
 
 ---
 

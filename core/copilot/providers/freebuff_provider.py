@@ -43,7 +43,7 @@ class FreebuffProvider(BaseProvider):
         try:
             # Try to import freebuff detection
             try:
-                from core.ai_providers.freebuff import detect_freebuff, load_config
+                from cores.ai_providers.freebuff import detect_freebuff, load_config
             except ImportError:
                 from cores.ai_providers.freebuff import detect_freebuff, load_config
 
@@ -81,7 +81,7 @@ class FreebuffProvider(BaseProvider):
         try:
             # Import Freebuff modules
             try:
-                from core.ai_providers.freebuff import FreebuffTaskRequest, route_task
+                from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
             except ImportError:
                 from cores.ai_providers.freebuff import FreebuffTaskRequest, route_task
 

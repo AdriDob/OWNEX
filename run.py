@@ -538,11 +538,11 @@ def _handle_daemon(args: list[str]) -> None:
 
     async def _run_health_checks():
         try:
-            from cores.copilot.providers.fcc_provider import FCCProvider
-            from cores.copilot.providers.nvidia_provider import NvidiaProvider
-            from cores.copilot.providers.ollama_provider import OllamaProvider
-            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
-            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+            from core.copilot.providers.fcc_provider import FCCProvider
+            from core.copilot.providers.nvidia_provider import NvidiaProvider
+            from core.copilot.providers.ollama_provider import OllamaProvider
+            from core.copilot.providers.omniroute_provider import OmniRouteProvider
+            from core.copilot.providers.opencode_provider import OpenCodeProvider
 
             providers = [
                 ("FCC", FCCProvider()),
@@ -565,11 +565,11 @@ def _handle_daemon(args: list[str]) -> None:
     async def _health_watchdog():
         """Check providers and log unhealthy ones for monitoring."""
         try:
-            from cores.copilot.providers.fcc_provider import FCCProvider
-            from cores.copilot.providers.nvidia_provider import NvidiaProvider
-            from cores.copilot.providers.ollama_provider import OllamaProvider
-            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
-            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+            from core.copilot.providers.fcc_provider import FCCProvider
+            from core.copilot.providers.nvidia_provider import NvidiaProvider
+            from core.copilot.providers.ollama_provider import OllamaProvider
+            from core.copilot.providers.omniroute_provider import OmniRouteProvider
+            from core.copilot.providers.opencode_provider import OpenCodeProvider
 
             providers = [
                 ("FCC", FCCProvider()),
@@ -1107,11 +1107,11 @@ def _handle_doctor(args: list[str]) -> None:
     async def check_providers():
         # Import providers
         try:
-            from cores.copilot.providers.fcc_provider import FCCProvider
-            from cores.copilot.providers.nvidia_provider import NvidiaProvider
-            from cores.copilot.providers.ollama_provider import OllamaProvider
-            from cores.copilot.providers.omniroute_provider import OmniRouteProvider
-            from cores.copilot.providers.opencode_provider import OpenCodeProvider
+            from core.copilot.providers.fcc_provider import FCCProvider
+            from core.copilot.providers.nvidia_provider import NvidiaProvider
+            from core.copilot.providers.ollama_provider import OllamaProvider
+            from core.copilot.providers.omniroute_provider import OmniRouteProvider
+            from core.copilot.providers.opencode_provider import OpenCodeProvider
 
             providers = [
                 ("FCC (Claude Proxy)", FCCProvider()),

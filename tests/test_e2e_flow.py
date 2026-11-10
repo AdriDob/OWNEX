@@ -158,13 +158,48 @@ class TestE2EFlow:
 
         self.__class__.finding_id = finding_id
 
+    def _ensure_finding(self, client) -> int:
+        """Create target→endpoint→finding chain when run standalone."""
+        if self.__class__.finding_id is not None:
+            return self.__class__.finding_id
+        resp = client.post(
+            "/api/targets",
+            json={"name": self.TARGET_NAME, "domain": self.TARGET_DOMAIN},
+        )
+        assert resp.status_code == 200, f"Target creation failed: {resp.text}"
+        self.__class__.target_id = resp.json()["id"]
+        resp = client.post(
+            "/api/endpoints",
+            json={
+                "target_id": self.__class__.target_id,
+                "path": "/api/test",
+                "method": "GET",
+            },
+        )
+        assert resp.status_code in (200, 201), f"Endpoint creation failed: {resp.text}"
+        self.__class__.endpoint_id = resp.json()["id"]
+        resp = client.post(
+            "/api/findings",
+            json={
+                "target_id": self.__class__.target_id,
+                "endpoint_id": self.__class__.endpoint_id,
+                "severity": "high",
+                "title": "E2E Test Finding",
+                "description": "Test finding from E2E validation",
+            },
+        )
+        assert resp.status_code in (200, 201), f"Finding creation failed: {resp.text}"
+        self.__class__.finding_id = resp.json()["id"]
+        return self.__class__.finding_id
+
     def test_09_create_report(self, client, db_session):
         """Create a report from findings."""
+        finding_id = self._ensure_finding(client)
         resp = client.post(
             "/api/reports",
             json={
                 "title": "E2E Test Report",
-                "finding_ids": [self.__class__.finding_id],
+                "finding_ids": [finding_id],
                 "program": self.TARGET_NAME,
                 "vulnerability": "idor",
                 "severity": "high",
@@ -176,7 +211,7 @@ class TestE2EFlow:
             resp = client.post(
                 "/api/reports",
                 json={
-                    "finding_ids": [self.__class__.finding_id],
+                    "finding_ids": [finding_id],
                     "program": self.TARGET_NAME,
                     "vulnerability": "idor",
                 },

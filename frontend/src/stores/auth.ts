@@ -37,6 +37,30 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function register(email: string, password: string, displayName?: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await api.post<{ session?: { token: string; expires_at?: string }; access_token?: string; user?: any }>(
+        '/auth/users/register', { email, password, display_name: displayName }, true
+      )
+      const newToken = res?.session?.token ?? res?.access_token
+      if (newToken) {
+        setToken(newToken)
+        token.value = newToken
+        user.value = res.user ?? null
+        if (res.session?.expires_at) {
+          setSessionExpiry(res.session.expires_at)
+        }
+      }
+    } catch (e: any) {
+      error.value = e?.message || 'Error al registrar'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function loginWithToken(token: string) {
     // Login with a manual JWT token (for platform tokens, bug bounty workflows).
     loading.value = true
@@ -118,6 +142,10 @@ export const useAuthStore = defineStore('auth', () => {
     getPlatformStatus: async (provider: string) => {
       return await (await import('@/composables/useExternalConnectionManager')).getPlatformStatus(provider)
     },
+    loginWithCredentials,
+    register,
     loginWithToken,
+    autoLogin,
+    logout,
   }
 })

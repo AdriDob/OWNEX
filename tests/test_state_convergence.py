@@ -62,11 +62,13 @@ def test_store_default_honors_ownex_data_dir(monkeypatch, tmp_path) -> None:
 def test_store_default_dev_falls_inside_repo() -> None:
     """Sin env var, dev cae dentro del repo ./data (no parents[2] roto)."""
     import os
+    from pathlib import Path
 
     old = os.environ.pop("OWNEX_DATA_DIR", None)
     try:
         resolved = _default_store_path_importable()
-        assert "Rastro/data" in str(resolved)
+        repo_data = Path(__file__).resolve().parents[1] / "data"
+        assert str(repo_data) in str(resolved)
     finally:
         if old is not None:
             os.environ["OWNEX_DATA_DIR"] = old
