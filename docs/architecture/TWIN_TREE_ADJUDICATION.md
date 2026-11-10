@@ -279,3 +279,31 @@ public API. Left uncommitted for agent to finish/commit.
 still hides semantic divergence (opire API endpoints, security subpackage
 registry, ConfidenceScorer vs trust ConfidenceScorer). Diff BEHAVIOR
 (API URLs, response parsing, registered adapters), not just symbols.
+
+## Session tally (2026-11-10, cont.) — false-twin renames + E2E fix
+
+Renamed (false twins — disjoint APIs, both live):
+- `core/validation/confidence.py` → `evidence_confidence.py`
+  (ConfidenceEngine bug-bounty evidence; cores keeps
+  ConfidenceScore/Scorer report-scoring). 5 importers migrated.
+- `core/opportunity/source_payment_docs.py` → `adapter_payment_docs.py`
+  (4-key adapter methods/currencies map for api/adapters/direct_work_*).
+  cores version is the curated 35-source payment-docs registry — different
+  schema and purpose. 3 importers migrated.
+
+Confirmed false twins — DEFERRED (agent actively working cores/opportunity):
+- `opportunity/models.py`: core=score-record fields vs cores=Opportunity
+  Intelligence dataclasses (Opportunity, EVHRating, OpportunityScore).
+- `opportunity/engine.py`: core=orchestrator/preparator/scorer pipeline vs
+  cores=discovery/ranker engine. ~30 cross-import sites; rename after the
+  parallel opportunity work settles.
+
+Intentional divergence (do NOT merge):
+- `events/event_bus.py`: core=5432B ADR-0003 facade, cores=13052B canonical
+  bus. By design.
+
+E2E fix: test_09_create_report had ordering dependency (finding_id class
+attr set by test_08) → standalone run sent finding_ids=[null] → 422.
+Added _ensure_finding() chain builder. Passes standalone + full file.
+
+Generated with [Devin](https://devin.ai)
