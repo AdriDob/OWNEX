@@ -11,6 +11,6 @@ from __future__ import annotations
 
 from core.merlin.brief import MerlinBrief
 from core.merlin.decision_log import MerlinDecisionLog
-from core.merlin.memory import MerlinMemory
+from core.merlin.strategic_memory import MerlinMemory
 
 __all__ = ["MerlinBrief", "MerlinDecisionLog", "MerlinMemory"]

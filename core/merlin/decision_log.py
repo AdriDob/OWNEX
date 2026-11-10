@@ -10,7 +10,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from core.merlin.memory import MerlinMemory
+from core.merlin.strategic_memory import MerlinMemory
 
 logger = logging.getLogger("orion.core.merlin.decisions")
 
