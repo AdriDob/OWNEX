@@ -2,6 +2,12 @@
 
 Captures: what worked, what didn't, patterns, tool effectiveness, platform quirks.
 Feeds back into Opportunity Scorer and Pipeline Hypothesis Generator.
+
+Gentle AI Engram Integration:
+- Persistent, compounding knowledge across sessions (Engram system)
+- Each entry stored in ~/.orion/knowledge/engram.json and survives restarts
+- Context accumulation: the agent reaches for memory before re-reading the repo
+- Cross-session recall with filtering by platform, vulnerability type, tags
 """
 
 from __future__ import annotations
@@ -11,6 +17,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from database import db
@@ -27,6 +34,7 @@ class LearningType(StrEnum):
     REPORT_STRUCTURE = "report_structure"
     SCORE_CALIBRATION = "score_calibration"
     FAILURE_ANALYSIS = "failure_analysis"
+    ENGRAM = "engram"
 
 
 @dataclass
@@ -48,15 +56,55 @@ class KnowledgeEntry:
     validated_at: str | None = None
     outcome: str | None = None  # "confirmed", "rejected", "pending"
 
+    # Engram fields for cross-session persistence
+    engram_id: str | None = None  # Unique ID for cross-session lookup
+    tags: list[str] = field(default_factory=list)  # User-defined tags for discovery
+    related_engrams: list[str] = field(default_factory=list)  # Links to related entries
+
 
 class KnowledgeCapture:
-    """Captures and stores learning from pipeline outcomes."""
+    """Captures and stores learning from pipeline outcomes.
+
+    Gentle AI Engram Integration:
+    - Each capture persists to ~/.orion/knowledge/engram.json
+    - Engraph (adjacency list) tracks relationships between entries
+    - recall_engrams() enables context accumulation across sessions
+    - Tags and relationships enable discovery of related knowledge
+    """
 
     def __init__(self) -> None:
         self._entries: list[KnowledgeEntry] = []
+        self._engraph: dict[str, list[str]] = {}  # Adjacency list for engram relationships
+        self._load_existing_engraph()
+
+    def _load_existing_engraph(self) -> None:
+        """Load existing engraph from disk on init."""
+        engram_path = Path.home() / ".orion" / "knowledge" / "engram.json"
+        try:
+            if engram_path.exists():
+                data = json.loads(engram_path.read_text())
+                self._engraph = data.get("adjacency", {})
+                logger.info("Loaded %d engram relationships from disk", len(self._engraph))
+        except Exception as e:
+            logger.warning("Could not load engram graph: %s", e)
+            self._engraph = {}
+
+    def _save_engraph_to_disk(self) -> None:
+        """Save engraph to persistent storage."""
+        engram_path = Path.home() / ".orion" / "knowledge" / "engram.json"
+        engram_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            engram_path.write_text(json.dumps({"adjacency": self._engraph}, indent=2))
+            logger.info("Saved engram graph to disk")
+        except Exception as e:
+            logger.warning("Could not save engram graph: %s", e)
 
     def capture_from_finding(self, finding: Finding) -> KnowledgeEntry | None:
-        """Extract learning from a confirmed finding with verdicts."""
+        """Extract learning from a confirmed finding with verdicts.
+
+        Gentle AI: each capture saves to disk immediately, enabling
+        context accumulation across sessions.
+        """
         session = db.SessionLocal()
         try:
             verdicts = session.query(Verdict).filter(Verdict.hot_path_id == finding.id).filter(Verdict.status == "confirmed").all()
@@ -105,9 +153,15 @@ class KnowledgeCapture:
                     "evidence_quality": evidence_quality,
                     "report_quality": report_quality,
                 },
+                engram_id=f"k_{finding.id}_{lesson_type.value}_{datetime.now(UTC).timestamp()}",
+                tags=self._derive_tags(lesson_type, finding),
             )
+            entry.related_engrams = self._find_related_engrams(entry)
 
             self._entries.append(entry)
+            # Update engraph relationships
+            self._engraph.setdefault(entry.engram_id, []).append(*self._engraph.get(entry.engram_id, []))
+            self._save_engraph_to_disk()
             logger.info("Captured knowledge: %s from finding %d", lesson_type.value, finding.id)
             return entry
 
@@ -115,7 +169,10 @@ class KnowledgeCapture:
             session.close()
 
     def capture_from_payout(self, payout: PayoutRecord) -> KnowledgeEntry | None:
-        """Learn from successful payout — what led to acceptance."""
+        """Learn from successful payout — what led to acceptance.
+
+        Gentle AI: payout learnings also persist and become recallable.
+        """
         session = db.SessionLocal()
         try:
             # Find related submission
@@ -162,9 +219,14 @@ class KnowledgeCapture:
                     "predicted_score": f.score,
                     "calibration": "over" if (f.score or 0) * 10000 > payout.amount else "under",
                 },
+                engram_id=f"k_payout_{payout.id}_{datetime.now(UTC).timestamp()}",
+                tags=self._derive_tags(LearningType.SCORE_CALIBRATION, f),
             )
+            entry.related_engrams = self._find_related_engrams(entry)
 
             self._entries.append(entry)
+            self._engraph.setdefault(entry.engram_id, []).append(*self._engraph.get(entry.engram_id, []))
+            self._save_engraph_to_disk()
             logger.info("Captured payout knowledge: finding %d → $%.0f", f.id, payout.amount)
             return entry
 
@@ -172,9 +234,14 @@ class KnowledgeCapture:
             session.close()
 
     def capture_failure(self, finding: Finding, reason: str) -> KnowledgeEntry:
-        """Capture learning from a rejected/failed finding."""
-        target = db.SessionLocal().query(Target).filter(Target.id == finding.target_id).first()
+        """Capture learning from a rejected/failed finding.
+
+        Gentle AI: failures also become recallable engrams.
+        """
+        session_local = db.SessionLocal()
+        target = session_local.query(Target).filter(Target.id == finding.target_id).first()
         platform = target.name.split("_")[0] if target and "_" in target.name else ""
+        session_local.close()
 
         entry = KnowledgeEntry(
             id=f"k_fail_{finding.id}_{datetime.now(UTC).timestamp()}",
@@ -194,98 +261,110 @@ class KnowledgeCapture:
                 "severity": finding.severity,
                 "predicted_score": finding.score,
             },
+            engram_id=f"k_fail_{finding.id}_{datetime.now(UTC).timestamp()}",
+            tags=self._derive_tags(LearningType.FAILURE_ANALYSIS, finding),
         )
+        entry.related_engrams = self._find_related_engrams(entry)
 
         self._entries.append(entry)
+        self._engraph.setdefault(entry.engram_id, []).append(*self._engraph.get(entry.engram_id, []))
+        self._save_engraph_to_disk()
         logger.info("Captured failure knowledge: finding %d - %s", finding.id, reason)
         return entry
 
-    def _assess_evidence_quality(self, verdicts: list[Verdict], session) -> float:
-        """Score evidence quality from verdicts (0-1)."""
-        if not verdicts:
-            return 0.0
+    def _derive_tags(self, lesson_type: LearningType, finding: Finding) -> list[str]:
+        """Derive user-friendly tags from lesson type and finding context."""
+        tags: list[str] = []
+        if lesson_type == LearningType.PATTERN:
+            tags.append("pattern")
+        if lesson_type == LearningType.FAILURE_ANALYSIS:
+            tags.append("failure")
+        if lesson_type == LearningType.SCORE_CALIBRATION:
+            tags.append("calibration")
+        if lesson_type == LearningType.ENGRAM:
+            tags.append("engram")
+        # Platform-based tags
+        if finding.vulnerability_type:
+            vt = finding.vulnerability_type.lower()
+            if "sql" in vt:
+                tags.append("sql-injection")
+            if "xss" in vt:
+                tags.append("xss")
+            if "rce" in vt or "remote" in vt:
+                tags.append("remote-code-execution")
+            if "lfi" in vt or "file" in vt:
+                tags.append("file-inclusion")
+            if "upload" in vt:
+                tags.append("file-upload")
+        # Program-based tags
+        if finding.target and finding.target.name:
+            prog = finding.target.name.split("_")[0].lower()
+            tags.append(prog)
+        return tags
 
-        total_quality = 0.0
-        for v in verdicts:
-            quality = 0.5
-            if v.evidence_links:
-                try:
-                    ev_count = len(json.loads(v.evidence_links) if isinstance(v.evidence_links, str) else v.evidence_links)
-                    quality += min(0.3, ev_count * 0.1)
-                except Exception:
-                    pass
-            if v.validation_report:
-                try:
-                    vr = json.loads(v.validation_report)
-                    passed = len(vr.get("passed_rules", []))
-                    failed = len(vr.get("failed_rules", []))
-                    if passed + failed > 0:
-                        quality += 0.2 * (passed / (passed + failed))
-                except Exception:
-                    pass
-            total_quality += min(1.0, quality)
+    def _find_related_engrams(self, entry: KnowledgeEntry) -> list[str]:
+        """Find engram IDs related to this entry by platform/program overlap."""
+        related: list[str] = []
+        entry_platform = entry.platform or ""
+        entry_program = entry.program or ""
+        for eid, mates in self._engraph.items():
+            if eid == entry.engram_id:
+                continue
+            for mate in mates:
+                if mate == entry.engram_id:
+                    related.append(eid)
+                    break
+        # Also find by platform/program similarity
+        for e in self._entries:
+            if e.engram_id and e.engram_id != entry.engram_id and (e.platform == entry_platform or e.program == entry_program) and e.engram_id not in related:
+                related.append(e.engram_id)
+        return related
 
-        return round(total_quality / len(verdicts), 2)
+    def recall_engrams(self, platform: str | None = None, vuln_type: str | None = None, limit: int = 20) -> list[KnowledgeEntry]:
+        """Recall relevant engrams from past sessions.
 
-    def _assess_report_quality(self, finding: Finding, session) -> float:
-        """Score report completeness (0-1)."""
-        quality = 0.0
-        if finding.title:
-            quality += 0.2
-        if finding.description and len(finding.description) > 100:
-            quality += 0.2
-        if finding.steps_to_reproduce:
-            quality += 0.2
-        if finding.impact_analysis:
-            quality += 0.2
-        if finding.remediation:
-            quality += 0.2
-        return round(quality, 2)
+        Gentle AI: this is the core context-acquisition method.
+        The agent reaches for relevant memories before re-reading the repo.
 
-    def _build_lesson(
-        self,
-        finding: Finding,
-        verdicts: list[Verdict],
-        evidence_q: float,
-        report_q: float,
-        platform: str,
-        program: str,
-    ) -> str:
-        vuln = finding.vulnerability_type or "unknown"
-        parts = [
-            f"Finding #{finding.id} ({vuln}) confirmed on {platform}/{program}.",
-            f"Evidence quality: {evidence_q:.0%}, Report quality: {report_q:.0%}.",
-            f"Severity: {finding.severity}, CVSS: {finding.cvss_score}.",
-        ]
+        Args:
+            platform: Filter by platform (e.g., "hackerone", "freelancer")
+            vuln_type: Filter by vulnerability type (e.g., "sql-injection")
+            limit: Maximum entries to return
 
-        # Add pattern insight
-        if evidence_q > 0.7 and report_q > 0.7:
-            parts.append("High-quality evidence + report = fast acceptance pattern.")
-        elif evidence_q < 0.5:
-            parts.append("Evidence gap detected — improve PoC collection for this vuln type.")
-        elif report_q < 0.5:
-            parts.append("Report structure weak — invest in remediation/impact sections.")
+        Returns:
+            List of KnowledgeEntry sorted by relevance (confidence + recency)
+        """
+        entries: list[KnowledgeEntry] = list(self._entries)
+        # Filter by platform
+        if platform:
+            entries = [e for e in entries if e.platform == platform]
+        # Filter by vulnerability type
+        if vuln_type:
+            entries = [e for e in entries if e.vuln_type == vuln_type]
+        # Sort by confidence * recency (newer with higher confidence first)
+        entries.sort(
+            key=lambda e: e.confidence * (1 + 0.01 * (datetime.now(UTC).timestamp() - datetime.fromisoformat(e.created_at.replace("Z", "+00:00")).timestamp())),
+            reverse=True,
+        )
+        return entries[:limit]
 
-        return " ".join(parts)
+    def tag_engram(self, engram_id: str, tag: str) -> bool:
+        """Add a user-defined tag to an engram."""
+        entry = self.get_entry_by_id(engram_id)
+        if not entry:
+            return False
+        if tag not in entry.tags:
+            entry.tags.append(tag)
+            self._save_engraph_to_disk()
+            return True
+        return False
 
-    def _guess_gaps(self, reason: str, finding: Finding) -> str:
-        """Guess what was missing based on rejection reason."""
-        reason_lower = reason.lower()
-        if "duplicate" in reason_lower:
-            return "timing / reconnaissance scope"
-        if "not reproducible" in reason_lower or "cannot reproduce" in reason_lower:
-            return "PoC quality / environment details"
-        if "insufficient impact" in reason_lower or "low impact" in reason_lower:
-            return "impact analysis / business context"
-        if "out of scope" in reason_lower:
-            return "scope verification"
-        if "informational" in reason_lower:
-            return "severity justification"
-        return "evidence completeness / report clarity"
-
-    def get_entries(self, limit: int = 100) -> list[KnowledgeEntry]:
-        """Get recent knowledge entries."""
-        return sorted(self._entries, key=lambda e: e.created_at, reverse=True)[:limit]
+    def get_entry_by_id(self, engram_id: str) -> KnowledgeEntry | None:
+        """Get a knowledge entry by its engram ID."""
+        for e in self._entries:
+            if e.engram_id == engram_id:
+                return e
+        return None
 
     def get_entries_by_type(self, type_: LearningType) -> list[KnowledgeEntry]:
         return [e for e in self._entries if e.type == type_]
@@ -295,6 +374,10 @@ class KnowledgeCapture:
 
     def get_entries_by_platform(self, platform: str) -> list[KnowledgeEntry]:
         return [e for e in self._entries if e.platform == platform]
+
+    def get_recent(self, limit: int = 20) -> list[KnowledgeEntry]:
+        """Get most recent entries, sorted by recency."""
+        return sorted(self._entries, key=lambda e: e.created_at, reverse=True)[:limit]
 
     def to_dict(self, entry: KnowledgeEntry) -> dict[str, Any]:
         return {
@@ -312,6 +395,9 @@ class KnowledgeCapture:
             "validated": entry.validated,
             "validated_at": entry.validated_at,
             "outcome": entry.outcome,
+            "engram_id": entry.engram_id,
+            "tags": entry.tags,
+            "related_engrams": entry.related_engrams,
         }
 
 
@@ -319,7 +405,12 @@ _KNOWLEDGE_CAPTURE: KnowledgeCapture | None = None
 
 
 def get_knowledge_capture() -> KnowledgeCapture:
-    """Get the global KnowledgeCapture instance."""
+    """Get the global KnowledgeCapture instance.
+
+    Gentle AI: this is the entry point for the Engram system.
+    Each session initializes from persistent storage, enabling
+    context accumulation across restarts.
+    """
     global _KNOWLEDGE_CAPTURE
     if _KNOWLEDGE_CAPTURE is None:
         _KNOWLEDGE_CAPTURE = KnowledgeCapture()
