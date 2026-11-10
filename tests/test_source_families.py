@@ -59,12 +59,15 @@ class TestSourceFamilies:
         classified = sum(summary["family_counts"].values())
         assert summary["unclassified"] == summary["total_catalog_entries"] - classified
         assert summary["total_catalog_entries"] >= 1000
-        assert summary["family_counts"]["ai_coding_evaluation"] == 12
+        # 2026-08-04: base catalog +40 sources; Defined.ai and Shaip
+        # land in ai_coding_evaluation (12 -> 14).
+        assert summary["family_counts"]["ai_coding_evaluation"] == 14
         assert summary["family_counts"]["qa_testing_services"] == 6
         assert summary["family_counts"]["funded_oss_grants"] == 16
         assert summary["family_counts"]["api_sdk_integration"] == 0
         assert summary["family_counts"]["devops_cloud_tasks"] == 0
-        assert summary["family_counts"]["data_engineering_tasks"] == 0
+        # 2026-08-04: Innodata lands in data_engineering_tasks (0 -> 1).
+        assert summary["family_counts"]["data_engineering_tasks"] == 1
         assert summary["family_counts"]["browser_automation_gigs"] == 0
         by_family = summary["sources_by_family"]
         assert "Algora" in by_family["funded_oss_grants"]
