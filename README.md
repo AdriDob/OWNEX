@@ -12,7 +12,7 @@ OWNEX is a local-first personal system for discovering technical work, evaluatin
 
 | Capability | Status | Evidence / limits |
 |---|---|---|
-| Opportunity catalog and discovery | Implemented, validation incomplete | The 2026-11-09 adaptation snapshot recorded 176 deduplicated source definitions; this is not 176 active jobs or Argentina-verified sources |
+| Opportunity catalog and discovery | Implemented, validation incomplete | The catalog is hard-capped at 1,000 deduplicated source definitions across 12 families (2026-11-10 expansion); this is not 1,000 active jobs or Argentina-verified sources — most entries are source leads until a per-source adapter confirms live tasks |
 | Remote-job pipeline | Implemented | Five feeds (Remotive, Arbeitnow, RemoteOK, Jobicy, WeWorkRemotely), explainable matching, profile, tracker, and draft preparation; final submission remains human-controlled |
 | Employment classification | Implemented | Permanent, temporary, independent, microtask, and bounty work are classified separately |
 | Unified income plan | Implemented | Aggregates first-day actions, accepted streams, Work Bank, and remote-job signals; estimated opportunity value is not realized cash |

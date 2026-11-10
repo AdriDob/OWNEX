@@ -9,7 +9,7 @@
 - Verified recurring monthly income attributable to OWNEX: **USD 0**.
 - Source counts, advertised rates, discoveries, and estimated rewards are not revenue.
 - There is not yet enough source-level conversion history to calculate a statistical forecast.
-- The latest adaptation snapshot available to this review recorded 176 deduplicated source definitions, 17 adapter-ready, 33 discoverable, 126 catalog-only, and 0 integration-verified, 0 Argentina-verified, and 0 production-active. These are historical audit counts, not a claim about the current runtime.
+- The catalog was expanded on 2026-11-10 to a hard cap of 1,000 deduplicated source definitions across 12 families (bug bounty, dev bounty, data entry, AI evaluation, junior jobs, cybersecurity, data science, remote work, bounties, web3 audits, marketplaces, QA testing). Catalog size is not verified income: entries remain source leads until per-source adapters confirm live, eligible tasks. The earlier adaptation snapshot (176 definitions, 17 adapter-ready, 33 discoverable) is historical.
 
 ## Monthly potential scenarios (not forecasts)
 
