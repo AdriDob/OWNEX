@@ -3574,3 +3574,16 @@ Características del Sistema Completo:
 - **Estados**: implementados discovered/verified/ready/expired/rejected; `verified`/`ready` solo se marcan con evidencia (scorer acceptance vía `mark_ready_from_workbank`). Pendiente: eligibility AR/entrevista/pago por item, connection manager testing, ejecución asistida.
 - **Tests**: 16 en `tests/test_live_pipeline.py` (fixtures, sin red). Commit `407ffbc1`.
 - **Ingreso real**: USD 0 — oportunidades descubiertas ≠ cobradas.
+
+---
+
+## 2026-11-10 — Live pipeline: security adapters + eligibility + scheduler (en commit)
+
+- **22 fetchers live**: 12 forge module-functions + 10 class-based security `OpportunityAdapter` (hackerone, bugcrowd, intigriti, yeswehack, immunefi, synack, cantina, sherlock, code4rena, codehawks) vía specs `module:ClassName`.
+- **Store real**: 456 oportunidades fetch-confirmed en `data/live_opportunities.json` (442 discovered + 14 expired). Smoke: hackerone 216, intigriti 65, yeswehack 51, bugcrowd 28, github_bounties 40, github_sponsors 20, superteam 9, opire 3, synack 3, ethglobal 4, codeforai 1, code4rena 2.
+- **Eligibility**: `evaluate_eligibility()` cruza cada item con el catálogo canónico (tri-state yes/no/unknown + blockers + evidence `catalog:<name>`). Smoke: 441/442 con match de catálogo; 24 AR-compatibles; 431 con `no_argentina_path` (metadata conservadora del catálogo — HackerOne/Intigriti marcan argentina_ok=False por falta de rail verificado, no por imposibilidad probada).
+- **Expiry scoped**: `mark_expired_missing` solo expira items de adapters que corrieron OK — un scan parcial ya no expira plataformas no consultadas. Items que reaparecen reviven expired→discovered.
+- **Scheduler**: `live_pipeline_scan` job cada 6h → `scheduled_live_scan()` (scan + eligibility refresh), registrado en `get_all_jobs()["live_pipeline"]`.
+- **API**: `GET /api/discovery/live/stats|opportunities|eligibility`, `POST /api/discovery/live/scan|eligibility/check`.
+- **Tests**: 24 live_pipeline + scheduler jobs actualizados (64 jobs totales).
+- **Pendiente honesto**: estados verified/ready requieren evidencia de scorer/workbank cycle; ejecución asistida, connection testing y frontend de métricas live pendientes. Ingreso real: USD 0.

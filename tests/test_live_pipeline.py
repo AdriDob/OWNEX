@@ -188,3 +188,147 @@ class TestDweBridge:
 
         assert mark_ready_from_workbank([FakeItem()], store) == 1
         assert store.all(status="ready")[0].platform == "algora"
+
+
+class TestSecurityBridge:
+    @pytest.mark.asyncio
+    async def test_class_fetcher_resolves_and_normalizes(self, store, monkeypatch):
+        """Class-based OpportunityAdapter specs instantiate + return RawOpportunity."""
+        from dataclasses import dataclass
+
+        @dataclass
+        class FakeRaw:
+            id: str
+            name: str
+            platform: str
+            url: str
+            reward: float = 100.0
+            cycle: str = "security"
+            source_type: str = "platform"
+            source_name: str = "hackerone"
+            description: str = ""
+            effort_hours: float = 4.0
+            tags: list = None
+            metadata: dict = None
+            created_at: str = ""
+
+        class FakeAdapter:
+            def __init__(self):
+                pass
+
+            async def fetch_opportunities(self, personal=None):
+                return [FakeRaw(id="h1", name="Program", platform="hackerone", url="https://hackerone.com/x")]
+
+        import sys
+        import types
+
+        mod = types.ModuleType("fake_sec_mod")
+        mod.FakeSecAdapter = FakeAdapter
+        monkeypatch.setitem(sys.modules, "fake_sec_mod", mod)
+
+        from cores.opportunity import live_pipeline as lp
+
+        monkeypatch.setattr(lp, "SECURITY_FETCHERS", {"fakesec": "fake_sec_mod:FakeSecAdapter"})
+        report = await lp.run_live_scan(fetchers=["fakesec"], store=store)
+        assert report["new_opportunities"] == 1
+        opp = store.all()[0]
+        assert opp.platform == "hackerone"
+        assert opp.category == "security"
+
+    @pytest.mark.asyncio
+    async def test_partial_scan_does_not_expire_unscanned(self, store, monkeypatch):
+        """Scanning one fetcher must not expire items from other adapters."""
+        store.upsert(LiveOpportunity(id="1", platform="algora", adapter="github_bounties", title="t", url="u"))
+        store.upsert(LiveOpportunity(id="2", platform="opire", adapter="opire", title="t", url="u"))
+
+        import core.opportunity.adapters.forge.opire as opire_mod
+
+        async def empty():
+            return []
+
+        monkeypatch.setattr(opire_mod, "fetch_opportunities", empty)
+        report = await run_live_scan(fetchers=["opire"], store=store)
+        assert report["marked_expired"] == 1  # only the opire item
+        by_id = {i.id: i for i in store.all()}
+        assert by_id["1"].status == "discovered"  # github_bounties item untouched
+        assert by_id["2"].status == "expired"
+
+    def test_expired_item_revives_on_refetch(self, store):
+        opp = LiveOpportunity(id="1", platform="algora", adapter="a", title="t", url="u", status="expired")
+        store.upsert(opp)
+        store.upsert(LiveOpportunity(id="1", platform="algora", adapter="a", title="t", url="u"))
+        assert store.all()[0].status == "discovered"
+
+
+class TestEligibility:
+    def _fake_src(self, **kw):
+        class S:
+            pass
+
+        s = S()
+        s.name = kw.pop("name", "Algora")
+        for k, v in kw.items():
+            setattr(s, k, v)
+        return s
+
+    def test_evaluate_with_catalog_match(self):
+        from cores.opportunity.live_pipeline import evaluate_eligibility
+
+        opp = _to_live("algora", _raw())
+        catalog = {
+            "algora": self._fake_src(
+                name="Algora",
+                argentina_ok=True,
+                requires_account=True,
+                requires_interview=False,
+                requires_experience=False,
+                requires_portfolio=False,
+                requires_assessment=False,
+            )
+        }
+        report = evaluate_eligibility(opp, catalog)
+        assert report["argentina_compatible"] == "yes"
+        assert report["requires_interview"] == "no"
+        assert report["evidence"].startswith("catalog:")
+        assert report["blockers"] == []
+
+    def test_evaluate_no_match_stays_unknown(self):
+        from cores.opportunity.live_pipeline import evaluate_eligibility
+
+        opp = _to_live("algora", _raw())
+        report = evaluate_eligibility(opp, {})
+        assert report["argentina_compatible"] == "unknown"
+        assert report["evidence"] == "no_catalog_match"
+
+    def test_blocker_when_no_argentina_no_payment(self):
+        from cores.opportunity.live_pipeline import evaluate_eligibility
+
+        opp = _to_live("algora", _raw())
+        catalog = {"algora": self._fake_src(name="Algora", argentina_ok=False)}
+        report = evaluate_eligibility(opp, catalog)
+        assert "no_argentina_path" in report["blockers"]
+
+    def test_run_eligibility_transitions_status(self, store, monkeypatch):
+        from cores.opportunity import live_pipeline as lp
+
+        monkeypatch.setattr(lp, "_catalog_index", lambda: {})
+        opp = _to_live("algora", _raw())
+        assert opp is not None
+        store.upsert(opp)
+        # Empty catalog → nothing matches → stays discovered
+        lp.run_eligibility_check(store)
+        assert store.all()[0].status == "discovered"
+
+    def test_run_eligibility_with_match_moves_status(self, store, monkeypatch):
+        from cores.opportunity import live_pipeline as lp
+
+        src = self._fake_src(name="Algora", argentina_ok=True)
+        monkeypatch.setattr(lp, "_catalog_index", lambda: {"algora": src})
+        opp = _to_live("algora", _raw())
+        assert opp is not None
+        store.upsert(opp)
+        report = lp.run_eligibility_check(store)
+        assert report["moved_to_eligibility_checked"] == 1
+        item = store.all()[0]
+        assert item.status == "eligibility_checked"
+        assert item.raw["eligibility"]["argentina_compatible"] == "yes"

@@ -48,6 +48,22 @@ LIVE_FETCHERS: dict[str, str] = {
     "opencollective_projects": "core.opportunity.adapters.forge.opencollective_projects:fetch_opportunities",
 }
 
+# Class-based security adapters (OpportunityAdapter → list[RawOpportunity]).
+# Spec format: "module.path:ClassName". Many work unauthenticated via public
+# program listings; credential-gated ones degrade gracefully.
+SECURITY_FETCHERS: dict[str, str] = {
+    "hackerone": "cores.opportunity.adapters.security.hackerone:HackerOneAdapter",
+    "bugcrowd": "cores.opportunity.adapters.security.bugcrowd:BugcrowdAdapter",
+    "intigriti": "cores.opportunity.adapters.security.intigriti:IntigritiAdapter",
+    "yeswehack": "cores.opportunity.adapters.security.yeswehack:YesWeHackAdapter",
+    "immunefi": "cores.opportunity.adapters.security.immunefi:ImmunefiAdapter",
+    "synack": "cores.opportunity.adapters.security.synack:SynackAdapter",
+    "cantina": "cores.opportunity.adapters.security.cantina:CantinaAdapter",
+    "sherlock": "cores.opportunity.adapters.security.sherlock:SherlockAdapter",
+    "code4rena": "cores.opportunity.adapters.security.code4rena:Code4renaAdapter",
+    "codehawks": "cores.opportunity.adapters.security.codehawks:CodeHawksAdapter",
+}
+
 # Platforms whose fetchers require user credentials — surfaced honestly
 # instead of silently returning [].
 CREDENTIAL_GATED_FETCHERS: dict[str, str] = {
@@ -63,6 +79,18 @@ CREDENTIAL_GATED_FETCHERS: dict[str, str] = {
     "freelancer": "FREELANCER_API_KEY + secret (required for project search)",
     "opencollective": "none for public API",
     "opencollective_projects": "none for public API",
+    # Security platforms: public program listings work without auth;
+    # researcher API tokens unlock private/triage data.
+    "hackerone": "HACKERONE_API_USERNAME + HACKERONE_API_TOKEN (optional enrichment)",
+    "bugcrowd": "BUGCROWD_API_TOKEN (optional)",
+    "intigriti": "INTIGRITI_API_TOKEN (optional)",
+    "yeswehack": "YESWEHACK_API_TOKEN (optional)",
+    "immunefi": "IMMUNEFI_API_TOKEN (optional)",
+    "synack": "SYNCACK credentials via application (invite-only platform)",
+    "cantina": "none for public contests",
+    "sherlock": "none for public contests",
+    "code4rena": "none for public contests",
+    "codehawks": "none for public contests",
 }
 
 EXCLUDED_PLATFORMS = {"upwork"}
@@ -145,12 +173,21 @@ class LiveStore:
         existing.reward = opp.reward or existing.reward
         existing.description = opp.description or existing.description
         existing.tags = opp.tags or existing.tags
+        # Reappeared in a fresh fetch → live evidence again.
+        if existing.status == "expired":
+            existing.status = "discovered"
         return False
 
-    def mark_expired_missing(self, seen_keys: set[str]) -> int:
-        """Mark items not seen in the latest scan as expired."""
+    def mark_expired_missing(self, seen_keys: set[str], scanned_adapters: set[str] | None = None) -> int:
+        """Mark items not seen in the latest scan as expired.
+
+        Only items produced by adapters that actually ran are eligible —
+        a partial scan must not expire platforms it never queried.
+        """
         count = 0
         for key, opp in self._items.items():
+            if scanned_adapters is not None and opp.adapter not in scanned_adapters:
+                continue
             if key not in seen_keys and opp.status not in ("expired", "rejected"):
                 opp.status = "expired"
                 count += 1
@@ -177,9 +214,35 @@ class LiveStore:
 
 
 def _resolve_fetcher(spec: str) -> Any:
+    """Resolve ``module:attr`` to a zero-arg async callable.
+
+    Supports both module-level ``fetch_opportunities`` functions and
+    class-based ``OpportunityAdapter`` implementations (``module:ClassName``
+    → instantiate, then call ``fetch_opportunities()``).
+    """
     module_path, _, attr = spec.partition(":")
     module = importlib.import_module(module_path)
-    return getattr(module, attr)
+    target = getattr(module, attr)
+    if isinstance(target, type):
+        adapter = target()
+
+        async def _call() -> list[Any]:
+            items = await adapter.fetch_opportunities()
+            return [_raw_to_dict(i) for i in items]
+
+        return _call
+    return target
+
+
+def _raw_to_dict(item: Any) -> dict[str, Any]:
+    """Normalize RawOpportunity dataclass (or dict) into a plain dict."""
+    if isinstance(item, dict):
+        return item
+    if hasattr(item, "__dataclass_fields__"):
+        from dataclasses import asdict
+
+        return asdict(item)
+    return dict(vars(item)) if hasattr(item, "__dict__") else {"id": str(item)}
 
 
 def _platform_for(raw: dict[str, Any]) -> str:
@@ -205,6 +268,17 @@ async def _fetch_one(fetcher_key: str, spec: str) -> tuple[str, list[dict[str, A
         return fetcher_key, [], str(exc)
 
 
+def _best_category(raw: dict[str, Any]) -> str:
+    """Pick the most specific known category from cycle/source_type/platform."""
+    for key in (raw.get("cycle"), raw.get("source_type"), raw.get("platform")):
+        k = str(key or "").lower()
+        if k in _CATEGORY_MAP:
+            return k
+        if k in ("security", "platform"):
+            return "bug_bounty"  # security-cycle items are vulnerability work
+    return "dev_bounty"
+
+
 def _to_live(fetcher_key: str, raw: dict[str, Any]) -> LiveOpportunity | None:
     """Normalize a forge fetch dict into a LiveOpportunity."""
     external_id = str(raw.get("id") or raw.get("url") or "")
@@ -225,12 +299,12 @@ def _to_live(fetcher_key: str, raw: dict[str, Any]) -> LiveOpportunity | None:
         currency=str(raw.get("currency") or "USD"),
         effort_hours=float(raw.get("effort_hours") or 0.0),
         tags=[str(t) for t in (raw.get("tags") or [])][:12],
-        category=str(raw.get("source_type") or raw.get("cycle") or "dev_bounty"),
+        category=_best_category(raw),
         employment_type="bounty" if raw.get("cycle") == "forge" else "contract",
         status="discovered",
         fetched_at=datetime.now(UTC).isoformat(),
         evidence_url=url,
-        raw=raw.get("metadata", {}).get("original") or raw,
+        raw=(raw.get("metadata") or {}).get("original") or raw,
     )
 
 
@@ -244,12 +318,13 @@ async def run_live_scan(
     Returns a report dict; never raises — per-fetcher errors are collected.
     """
     store = store or LiveStore()
-    keys = fetchers or list(LIVE_FETCHERS)
-    unknown = [k for k in keys if k not in LIVE_FETCHERS]
+    registry = {**LIVE_FETCHERS, **SECURITY_FETCHERS}
+    keys = fetchers or list(registry)
+    unknown = [k for k in keys if k not in registry]
     if unknown:
-        return {"error": f"unknown fetchers: {unknown}", "known": sorted(LIVE_FETCHERS)}
+        return {"error": f"unknown fetchers: {unknown}", "known": sorted(registry)}
 
-    results = await asyncio.gather(*(_fetch_one(k, LIVE_FETCHERS[k]) for k in keys))
+    results = await asyncio.gather(*(_fetch_one(k, registry[k]) for k in keys))
 
     new_count = 0
     refreshed = 0
@@ -271,7 +346,10 @@ async def run_live_scan(
             else:
                 refreshed += 1
 
-    expired = store.mark_expired_missing(seen_keys) if mark_expired else 0
+    # Only expire items from adapters that ran successfully — a failed or
+    # unscanned fetcher must not mass-expire its platform's items.
+    healthy_adapters = {key for key, _, error in results if error is None}
+    expired = store.mark_expired_missing(seen_keys, scanned_adapters=healthy_adapters) if mark_expired else 0
     store.save()
 
     return {
@@ -305,7 +383,7 @@ def live_opportunity_stats(store: LiveStore | None = None) -> dict[str, Any]:
     store = store or LiveStore()
     return {
         **store.stats(),
-        "fetchers_available": sorted(LIVE_FETCHERS),
+        "fetchers_available": sorted({**LIVE_FETCHERS, **SECURITY_FETCHERS}),
         "credential_gated": CREDENTIAL_GATED_FETCHERS,
         "excluded_platforms": sorted(EXCLUDED_PLATFORMS),
     }
@@ -443,3 +521,152 @@ def mark_ready_from_workbank(
     if count:
         store.save()
     return count
+
+
+# --- Eligibility evaluation (evidence-based, unknown stays unknown) ---
+
+# Platform key → likely catalog source names (fuzzy match fallback).
+_PLATFORM_SOURCE_HINTS: dict[str, list[str]] = {
+    "algora": ["Algora"],
+    "opire": ["Opire"],
+    "issuehunt": ["IssueHunt"],
+    "superteam": ["Superteam Earn", "Superteam"],
+    "github": ["GitHub"],
+    "github_sponsors": ["GitHub Sponsors"],
+    "onlydust": ["OnlyDust"],
+    "ethglobal": ["ETHGlobal", "DoraHacks"],
+    "codeforai": ["Code4AI", "CodeForAI"],
+    "freelancer": ["Freelancer"],
+    "opencollective": ["Open Collective", "OpenCollective"],
+    "polar": ["Polar"],
+    "bountysource": ["BountySource"],
+    "hackerone": ["HackerOne"],
+    "bugcrowd": ["Bugcrowd"],
+    "intigriti": ["Intigriti"],
+    "yeswehack": ["YesWeHack"],
+    "immunefi": ["Immunefi"],
+    "synack": ["Synack"],
+    "cantina": ["Cantina"],
+    "sherlock": ["Sherlock"],
+    "code4rena": ["Code4rena", "Code4RENA"],
+    "codehawks": ["CodeHawks", "Cyfrin"],
+}
+
+
+def _catalog_index() -> dict[str, Any]:
+    """name-lowered → SourceDefinition from the canonical catalog."""
+    try:
+        from cores.opportunity.sources_expansion import get_all_sources
+
+        return {s.name.strip().lower(): s for s in get_all_sources()}
+    except Exception:
+        return {}
+
+
+def _match_source(opp: LiveOpportunity, index: dict[str, Any]) -> Any | None:
+    for hint in _PLATFORM_SOURCE_HINTS.get(opp.platform, []):
+        src = index.get(hint.lower())
+        if src is not None:
+            return src
+    # Fallback: substring match on platform name
+    for name, src in index.items():
+        if opp.platform in name or name in opp.platform:
+            return src
+    return None
+
+
+def evaluate_eligibility(opp: LiveOpportunity, catalog: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Evaluate one live opportunity against catalog eligibility metadata.
+
+    Returns per-dimension status: ``yes`` / ``no`` / ``unknown`` — unknown
+    is never collapsed into no. Evidence cites the catalog source used.
+    """
+    catalog = catalog if catalog is not None else _catalog_index()
+    src = _match_source(opp, catalog)
+
+    def _tri(state: bool | None) -> str:
+        return "unknown" if state is None else ("yes" if state else "no")
+
+    report: dict[str, Any] = {
+        "opportunity_id": opp.dedup_key(),
+        "platform": opp.platform,
+        "argentina_compatible": "unknown",
+        "payment_method": "unknown",
+        "requires_account": "unknown",
+        "requires_interview": "unknown",
+        "requires_experience": "unknown",
+        "requires_portfolio": "unknown",
+        "requires_assessment": "unknown",
+        "blockers": [],
+        "evidence": "no_catalog_match",
+    }
+    if src is None:
+        return report
+
+    report["evidence"] = f"catalog:{src.name}"
+    report["argentina_compatible"] = _tri(getattr(src, "argentina_ok", None))
+    report["requires_account"] = _tri(getattr(src, "requires_account", None))
+    report["requires_interview"] = _tri(getattr(src, "requires_interview", None))
+    report["requires_experience"] = _tri(getattr(src, "requires_experience", None))
+    report["requires_portfolio"] = _tri(getattr(src, "requires_portfolio", None))
+    report["requires_assessment"] = _tri(getattr(src, "requires_assessment", None))
+
+    # Payment fallback evidence from expansion metadata (keyed by
+    # lowercase source name; value is a dict with a "fallback" strategy).
+    try:
+        from cores.opportunity.sources_expansion import PAYMENT_FALLBACKS
+
+        fb = PAYMENT_FALLBACKS.get(src.name.lower())
+        if fb:
+            report["payment_method"] = "fallback_available"
+            report["payment_fallbacks"] = fb
+        elif getattr(src, "argentina_ok", False):
+            report["payment_method"] = "platform_supported"
+    except Exception:
+        pass
+
+    if report["argentina_compatible"] == "no" and report["payment_method"] == "unknown":
+        report["blockers"].append("no_argentina_path")
+    return report
+
+
+def run_eligibility_check(store: LiveStore | None = None, limit: int = 1000) -> dict[str, Any]:
+    """Evaluate eligibility for all discovered opportunities; persist results.
+
+    Transitions ``discovered`` → ``eligibility_checked`` only when a catalog
+    match produced evidence; unmatched items stay ``discovered``.
+    """
+    store = store or LiveStore()
+    catalog = _catalog_index()
+    checked = 0
+    matched = 0
+    for opp in store.all(status="discovered")[:limit]:
+        report = evaluate_eligibility(opp, catalog)
+        opp.raw["eligibility"] = report
+        if report["evidence"] != "no_catalog_match":
+            matched += 1
+            opp.status = "eligibility_checked"
+            checked += 1
+    store.save()
+    return {
+        "evaluated": len(store.all(status="discovered")) + checked,
+        "catalog_matched": matched,
+        "moved_to_eligibility_checked": checked,
+        "catalog_size": len(catalog),
+    }
+
+
+async def scheduled_live_scan() -> dict[str, Any]:
+    """Scheduler entry point: full live scan + eligibility refresh.
+
+    Runs all fetchers, dedups, then re-evaluates eligibility for items
+    still in ``discovered``. Never raises — failures are in the report.
+    """
+    try:
+        report = await run_live_scan()
+        elig = run_eligibility_check()
+        report["eligibility"] = elig
+        return report
+    except Exception as exc:  # pragma: no cover - scheduler safety
+        logger.exception("scheduled_live_scan failed")
+        return {"error": str(exc)}

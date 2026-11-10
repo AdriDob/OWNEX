@@ -427,3 +427,35 @@ async def run_live_scan(request: LiveScanRequest | None = None):
     from cores.opportunity.live_pipeline import run_live_scan as _scan
 
     return await _scan(fetchers=request.fetchers if request else None)
+
+
+@router.get("/live/eligibility")
+def live_eligibility_summary():
+    """Eligibility evaluation summary across stored live opportunities."""
+    from collections import Counter
+
+    from cores.opportunity.live_pipeline import LiveStore, _catalog_index, evaluate_eligibility
+
+    store = LiveStore()
+    catalog = _catalog_index()
+    buckets: Counter[str] = Counter()
+    blockers: Counter[str] = Counter()
+    for opp in store.all():
+        report = opp.raw.get("eligibility") or evaluate_eligibility(opp, catalog)
+        buckets[f"AR={report['argentina_compatible']}/pay={report['payment_method']}"] += 1
+        for b in report.get("blockers", []):
+            blockers[b] += 1
+    return {
+        "total": store.stats()["total"],
+        "by_eligibility": dict(buckets),
+        "blockers": dict(blockers),
+        "note": "unknown != no; blockers are advisory pending per-platform payment verification",
+    }
+
+
+@router.post("/live/eligibility/check")
+def live_eligibility_check():
+    """Run eligibility evaluation over discovered opportunities."""
+    from cores.opportunity.live_pipeline import run_eligibility_check
+
+    return run_eligibility_check()

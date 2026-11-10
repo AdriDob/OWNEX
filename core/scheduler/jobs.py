@@ -758,6 +758,19 @@ def get_execution_queue_jobs() -> list[JobDefinition]:
     ]
 
 
+def get_live_pipeline_jobs() -> list[JobDefinition]:
+    """Live opportunity pipeline — fetch-confirmed scan every 6h."""
+    return [
+        _discovery_job(
+            job_id="live_pipeline_scan",
+            app_id="opportunity",
+            handler="cores.opportunity.live_pipeline:scheduled_live_scan",
+            seconds=21600,  # every 6 hours
+            metadata={"cycle": "live_pipeline", "type": "full_scan"},
+        ),
+    ]
+
+
 def get_all_jobs() -> dict[str, list[JobDefinition]]:
     """Return all cycle jobs."""
     return {
@@ -774,4 +787,5 @@ def get_all_jobs() -> dict[str, list[JobDefinition]]:
         "trading": get_trading_jobs(),
         "integrations": get_integration_jobs(),
         "execution": get_execution_queue_jobs(),
+        "live_pipeline": get_live_pipeline_jobs(),
     }
