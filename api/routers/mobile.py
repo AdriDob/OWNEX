@@ -12,7 +12,7 @@ router = APIRouter(prefix="/mobile", tags=["mobile"])
 @router.post("/copilot/chat")
 async def mobile_copilot_chat(request: dict[str, Any]):
     """Chat with COPILOT from mobile - uses mobile-friendly providers."""
-    from cores.copilot.providers.router import TASK_CHAT, get_provider_router
+    from core.copilot.providers.router import TASK_CHAT, get_provider_router
 
     messages = request.get("messages", [])
     router = get_provider_router()
@@ -32,7 +32,7 @@ async def mobile_copilot_chat(request: dict[str, Any]):
 @router.post("/copilot/decision")
 async def mobile_copilot_decision(request: dict[str, Any]):
     """Ask COPILOT for a decision from mobile."""
-    from cores.copilot.providers.router import TASK_REASON, get_provider_router
+    from core.copilot.providers.router import TASK_REASON, get_provider_router
 
     messages = request.get("messages", [])
     router = get_provider_router()
@@ -70,7 +70,7 @@ async def mobile_copilot_approve(request: dict[str, Any]):
 async def mobile_providers_status():
     """Health check of all AI providers for mobile."""
     from cores.ai.provider import PROVIDER_CATALOG
-    from cores.copilot.providers.router import get_provider_router
+    from core.copilot.providers.router import get_provider_router
 
     router = get_provider_router()
     provider_status = {}

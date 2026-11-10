@@ -4,7 +4,9 @@ import logging
 from typing import Any
 
 from core.copilot.providers.base import BaseProvider, ProviderResponse
+from core.copilot.providers.devin_provider import DevinProvider
 from core.copilot.providers.fcc_provider import FCCProvider
+from core.copilot.providers.freebuff_provider import FreebuffProvider
 from core.copilot.providers.nvidia_provider import NvidiaProvider  # Nuevo proveedor
 from core.copilot.providers.ollama_provider import OllamaProvider
 from core.copilot.providers.omniroute_provider import OmniRouteProvider
@@ -33,6 +35,8 @@ class ProviderRouter:
             FCCProvider(),
             NvidiaProvider(),
             OllamaProvider(),
+            DevinProvider(),  # Free AI agent with tools (devin CLI)
+            FreebuffProvider(),  # GitHub autonomous coding agent
         ]
         self._health_cache: dict[str, bool] = {}
 
