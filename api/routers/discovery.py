@@ -522,6 +522,37 @@ async def live_connection_test(source: str):
     return await test_connection(source)
 
 
+@router.get("/live/revenue/summary")
+def live_revenue_summary():
+    """Revenue ledger totals. ``verified_income`` only counts paid+evidence."""
+    from cores.opportunity.revenue_ledger import get_earnings_summary, get_financial_summary
+
+    return {"financial": get_financial_summary(), "lifecycle": get_earnings_summary()}
+
+
+@router.post("/live/revenue/{item_id:path}/amount")
+def live_revenue_record_amount(item_id: str, data: dict[str, Any]):
+    """Record a money claim. ``paid`` requires evidence or returns 400."""
+    from cores.opportunity.revenue_ledger import AMOUNT_BUCKETS, record_amount
+
+    bucket = str(data.get("bucket", ""))
+    if bucket not in AMOUNT_BUCKETS:
+        raise HTTPException(status_code=400, detail=f"bucket must be one of {list(AMOUNT_BUCKETS)}")
+    result = record_amount(
+        item_id,
+        bucket,
+        float(data.get("amount", 0)),
+        currency=str(data.get("currency", "USD")),
+        fees=float(data.get("fees", 0) or 0),
+        payout_method=data.get("payout_method"),
+        paid_at=data.get("paid_at"),
+        evidence=data.get("evidence"),
+    )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
 @router.post("/live/{opportunity_key:path}/approve")
 def live_record_approval(opportunity_key: str, data: dict[str, Any]):
     """Record human approval for a prepared opportunity.

@@ -533,15 +533,54 @@ def promote_live_to_workbank(
         summary = bank.daily_cycle(candidates, target=target or len(candidates))
         ready_ids = {item_id for item_id, item in bank._items.items() if getattr(item, "ready_to_deliver", False)}
         marked = mark_ready_from_workbank([SimpleNamespace(id=i) for i in ready_ids], store)
+        ledger_sync = _sync_advertised_to_ledger(store)
         return {
             "candidates": len(candidates),
             "workbank_summary": summary if isinstance(summary, dict) else str(summary),
             "ready_to_deliver": len(ready_ids),
             "marked_ready": marked,
+            "ledger_advertised": ledger_sync,
         }
     except Exception as exc:
         logger.warning("promote_live_to_workbank failed: %s", exc)
         return {"error": str(exc)}
+
+
+def _sync_advertised_to_ledger(store: LiveStore) -> int:
+    """Record advertised rewards in the Revenue Ledger (never as income).
+
+    Only items with a numeric reward and an actionable status get an
+    ``advertised`` entry — estimates stay in the advertised bucket.
+    """
+    try:
+        from cores.opportunity.revenue_ledger import RevenueLedger
+
+        ledger = RevenueLedger()
+        count = 0
+        for key, opp in store._items.items():
+            if opp.status in ("expired", "rejected"):
+                continue
+            reward = opp.reward
+            if not isinstance(reward, (int, float)) or reward <= 0:
+                continue
+            item_id = f"live:{key}"
+            existing = ledger._store.get(item_id)
+            latest = ((existing or {}).get("payload") or {}).get("finance", {}).get("latest", {})
+            if "advertised" in latest:
+                continue
+            res = ledger.record_amount(
+                item_id,
+                "advertised",
+                float(reward),
+                currency=opp.currency or "USD",
+                evidence={"source": "live_pipeline", "url": opp.url},
+            )
+            if "entry" in res:
+                count += 1
+        return count
+    except Exception as exc:
+        logger.warning("ledger advertised sync failed: %s", exc)
+        return -1
 
 
 def mark_ready_from_workbank(

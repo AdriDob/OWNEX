@@ -11,6 +11,8 @@ evidence quality, acceptance probability, or system learning.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from core.execution_queue.models import ExecState, ExecutionQueueStore
 from cores.availability import compute_availability_score, evaluate_availability, is_available
 
@@ -52,6 +54,12 @@ TERMINAL_REVENUE: set[str] = {"net", "rejected"}  # depends on policy
 
 
 # ── Revenue Ledger Store ────────────────────────────────────────────────────
+
+# Financial amounts (advertised ≠ earned ≠ paid)
+
+# Buckets are cumulative claims about money. Only ``paid`` requires
+# external evidence; everything else is an estimate or a promise.
+AMOUNT_BUCKETS = ("advertised", "expected", "approved", "pending", "paid")
 
 
 class RevenueLedger:
@@ -149,6 +157,72 @@ class RevenueLedger:
             "terminal": sum(1 for s in self._revenue_states.values() if s in TERMINAL_REVENUE),
         }
 
+    # ── Financial amounts ──────────────────────────────────────────────────
+
+    def record_amount(
+        self,
+        item_id: str,
+        bucket: str,
+        amount: float,
+        currency: str = "USD",
+        fees: float = 0.0,
+        payout_method: str | None = None,
+        paid_at: str | None = None,
+        evidence: dict | None = None,
+    ) -> dict:
+        """Record a money claim for an item.
+
+        ``paid`` REQUIRES non-empty evidence (receipt URL, tx ref, platform
+        payout ID, …). Any other bucket is an estimate/promise and is stored
+        as such — it never counts as income.
+        """
+        if bucket not in AMOUNT_BUCKETS:
+            return {"error": f"invalid bucket: {bucket}", "allowed": list(AMOUNT_BUCKETS)}
+        if bucket == "paid" and not evidence:
+            return {"error": "paid requires external evidence", "bucket": bucket}
+        if amount < 0:
+            return {"error": "amount must be >= 0"}
+        item = self._store.get(item_id)
+        if item is None:
+            item = self._store.add(item_id, {"source": "manual"})
+        finance = item["payload"].setdefault("finance", {"entries": [], "latest": {}})
+        entry = {
+            "bucket": bucket,
+            "amount": float(amount),
+            "currency": currency,
+            "fees": float(fees),
+            "net": float(amount) - float(fees),
+            "payout_method": payout_method,
+            "paid_at": paid_at,
+            "evidence": evidence,
+            "recorded_at": datetime.now(UTC).isoformat(),
+        }
+        finance["entries"].append(entry)
+        finance["latest"][bucket] = entry
+        self._store.update_payload(item_id, finance=finance)
+        return {"item_id": item_id, "entry": entry}
+
+    def get_financial_summary(self) -> dict:
+        """Totals per bucket. ``paid`` is the only verified-income number."""
+        totals: dict[str, dict[str, float]] = {b: {} for b in AMOUNT_BUCKETS}
+        counts: dict[str, int] = {b: 0 for b in AMOUNT_BUCKETS}
+        for item_id in self._store._items:
+            finance = (self._store._items[item_id].get("payload") or {}).get("finance") or {}
+            for bucket, entry in (finance.get("latest") or {}).items():
+                if bucket not in AMOUNT_BUCKETS:
+                    continue
+                cur = entry.get("currency", "USD")
+                totals[bucket][cur] = totals[bucket].get(cur, 0.0) + float(entry.get("amount", 0.0))
+                counts[bucket] += 1
+        paid_by_currency = totals["paid"]
+        return {
+            "verified_income": paid_by_currency,  # only bucket backed by evidence
+            "verified_income_total_usd": paid_by_currency.get("USD", 0.0),
+            "by_bucket": totals,
+            "counts": counts,
+            "note": "advertised/expected/approved/pending are estimates, not income",
+        }
+
 
 # Singleton instance
 revenue_ledger = RevenueLedger()
@@ -175,8 +249,19 @@ def get_earnings_summary() -> dict:
     return revenue_ledger.get_earnings_summary()
 
 
+def record_amount(item_id: str, bucket: str, amount: float, **kwargs) -> dict:
+    """Record a money claim (advertised/expected/approved/pending/paid)."""
+    return revenue_ledger.record_amount(item_id, bucket, amount, **kwargs)
+
+
+def get_financial_summary() -> dict:
+    """Bucketed money totals; only ``paid`` is verified income."""
+    return revenue_ledger.get_financial_summary()
+
+
 # Export all public symbols
 __all__ = [
+    "AMOUNT_BUCKETS",
     "REVENUE_STATES",
     "EXEC_TO_REVENUE",
     "REVENUE_TO_EXEC",
@@ -187,6 +272,8 @@ __all__ = [
     "transition_revenue",
     "get_revenue_state",
     "get_earnings_summary",
+    "record_amount",
+    "get_financial_summary",
     "compute_availability_score",  # reuse from availability
     "evaluate_availability",
     "is_available",

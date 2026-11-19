@@ -12,6 +12,7 @@ import json
 import os
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 
 class ExecState(StrEnum):
@@ -102,6 +103,13 @@ class ExecutionQueueStore:
 
     def get(self, item_id: str) -> dict | None:
         return self._items.get(item_id)
+
+    def update_payload(self, item_id: str, **fields: Any) -> dict:
+        """Merge fields into the item's payload and persist."""
+        item = self._items[item_id]
+        item["payload"].update(fields)
+        self._save()
+        return item
 
     def transition(self, item_id: str, target: ExecState | str) -> dict:
         item = self._items[item_id]

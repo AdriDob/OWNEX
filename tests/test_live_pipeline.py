@@ -512,3 +512,37 @@ class TestLiveConnections:
         res = asyncio.run(lc.test_connection("algora"))
         assert res["verified"] is False
         assert "no auth probe" in res["detail"]
+
+
+class TestRevenueLedgerAmounts:
+    def test_paid_requires_evidence(self, tmp_path):
+        from core.execution_queue.models import ExecutionQueueStore
+        from cores.opportunity.revenue_ledger import RevenueLedger
+
+        ledger = RevenueLedger(ExecutionQueueStore(tmp_path / "q.json"))
+        res = ledger.record_amount("i1", "paid", 100.0)
+        assert "error" in res and "evidence" in res["error"]
+        ok = ledger.record_amount("i1", "paid", 100.0, evidence={"tx": "0xabc"})
+        assert "entry" in ok
+
+    def test_buckets_and_verified_income(self, tmp_path):
+        from core.execution_queue.models import ExecutionQueueStore
+        from cores.opportunity.revenue_ledger import RevenueLedger
+
+        ledger = RevenueLedger(ExecutionQueueStore(tmp_path / "q.json"))
+        ledger.record_amount("i1", "advertised", 500.0, currency="USD")
+        ledger.record_amount("i1", "expected", 300.0)
+        ledger.record_amount("i1", "paid", 120.0, fees=10.0, evidence={"receipt": "r1"})
+        s = ledger.get_financial_summary()
+        assert s["verified_income_total_usd"] == 120.0
+        assert s["by_bucket"]["advertised"]["USD"] == 500.0
+        assert s["by_bucket"]["paid"]["USD"] == 120.0
+        entry = ledger._store.get("i1")["payload"]["finance"]["latest"]["paid"]
+        assert entry["net"] == 110.0
+
+    def test_invalid_bucket_rejected(self, tmp_path):
+        from core.execution_queue.models import ExecutionQueueStore
+        from cores.opportunity.revenue_ledger import RevenueLedger
+
+        ledger = RevenueLedger(ExecutionQueueStore(tmp_path / "q.json"))
+        assert "error" in ledger.record_amount("i1", "income", 5.0)
