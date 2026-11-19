@@ -54,6 +54,12 @@ ENGINE_TO_CANONICAL: dict[EngineOpportunityCategory, OpportunityCategory] = {
     # closest family (templates, tools, digital assets built as software).
     EngineOpportunityCategory.DIGITAL_PRODUCTS: OpportunityCategory.SOFTWARE_ENGINEERING,
     EngineOpportunityCategory.TECH_CHALLENGES: OpportunityCategory.COMPETITIONS,
+    # 2026-11-10 engine categories added by catalog expansion — same
+    # precedents as their siblings above.
+    EngineOpportunityCategory.QA_TESTING: OpportunityCategory.QA_AUTOMATION,
+    EngineOpportunityCategory.CYBERSECURITY: OpportunityCategory.SECURITY_RESEARCH,
+    EngineOpportunityCategory.WEB3_AUDITS: OpportunityCategory.SMART_CONTRACTS,
+    EngineOpportunityCategory.JUNIOR_JOBS: OpportunityCategory.SOFTWARE_ENGINEERING,
 }
 
 # cores.opportunity.global_sources (4 curated source families) -> canonical

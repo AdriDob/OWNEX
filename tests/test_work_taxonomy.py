@@ -78,7 +78,11 @@ class TestContract:
             to_canonical("bug_bounty")  # type: ignore[arg-type,unused-ignore]
 
     def test_mappings_are_total_and_nonempty(self) -> None:
-        assert len(ENGINE_TO_CANONICAL) == len(EngineOpportunityCategory) == 11
+        # 2026-11-10: engine categories extended by catalog expansion
+        # (QA_TESTING/CYBERSECURITY/WEB3_AUDITS/JUNIOR_JOBS); assert
+        # totality, not a fixed member count — same precedent as
+        # GLOBAL_SOURCE below.
+        assert len(ENGINE_TO_CANONICAL) == len(EngineOpportunityCategory) >= 11
         # 2026-08-25: ai_evaluation family added to the curated catalog.
         # 2026-11-10: junior_jobs + niche families added to the catalog;
         # the enum is extended by parallel work, so assert totality, not a

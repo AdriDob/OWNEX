@@ -38,7 +38,7 @@ TRANSITIONS: dict[ExecState, set[ExecState]] = {
     ExecState.READY: {ExecState.QUEUED},
     ExecState.QUEUED: {ExecState.EXECUTING},
     ExecState.EXECUTING: {ExecState.WAITING_HUMAN, ExecState.SUBMITTED, ExecState.FAILED},
-    ExecState.WAITING_HUMAN: {ExecState.EXECUTING, ExecState.SUBMITTED, ExecState.REJECTED, ExecState.BLOCKED},
+    ExecState.WAITING_HUMAN: {ExecState.EXECUTING, ExecState.SUBMITTED, ExecState.REJECTED, ExecState.BLOCKED, ExecState.FAILED},
     ExecState.SUBMITTED: {ExecState.VERIFICATION, ExecState.REJECTED},
     ExecState.VERIFICATION: {ExecState.PAID, ExecState.FAILED},
     ExecState.FAILED: {ExecState.QUEUED, ExecState.DEAD_LETTER},  # retry con límite externo

@@ -46,6 +46,14 @@ class OpportunityCategory(StrEnum):
     DIGITAL_PRODUCTS = "digital_products"
     # 11) Investigación, concursos y desafíos técnicos
     TECH_CHALLENGES = "tech_challenges"
+    # 12) QA Testing / Evaluación de calidad
+    QA_TESTING = "qa_testing"
+    # 13) Ciberseguridad / Security Services
+    CYBERSECURITY = "cybersecurity"
+    # 14) Auditoría y análisis Web3
+    WEB3_AUDITS = "web3_audits"
+    # 15) Junior Jobs / Puestos junior sin requisitos excesivos
+    JUNIOR_JOBS = "junior_jobs"
 
 
 class OpportunitySource(StrEnum):

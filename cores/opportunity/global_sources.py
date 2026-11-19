@@ -31,6 +31,9 @@ class OpportunityCategory(StrEnum):
     data_entry = "data_entry"
     ai_evaluation = ("ai_evaluation",)
     junior_jobs = ("junior_jobs",)
+    qa_testing = "qa_testing"
+    cybersecurity = "cybersecurity"
+    web3_audits = "web3_audits"
 
 
 @dataclass(frozen=True)
@@ -2441,12 +2444,132 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
 # MASTER INDEX — all 100+ sources combined
 # ═══════════════════════════════════════════════
 
+
+
+# ══════════════════════════════════════════════
+# CATEGORY 5: QA TESTING — curated 2026-11-19
+# Quality assurance, functional testing, and bug bounty platforms
+# ══════════════════════════════════════════════
+QA_TESTING_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "PlaytestCloud",
+        "https://www.playtestcloud.com",
+        OpportunityCategory.qa_testing,
+        "Playtesting panel for mobile and PC games. Paid per test session.",
+        "platform",
+        "profile_only",
+        quality_score=0.60,
+        requires_experience=False,
+        requires_assessment=False,
+        typical_hourly_rate_usd=10.0,
+        time_to_first_work_hours=1.0,
+        payout_cadence_days=14,
+        estimated_payout_range="$5-15/hour",
+        tags=["playtesting", "games", "paid", "remote"],
+        priority=6,
+    ),
+    SourceDefinition(
+        "UserTesting",
+        "https://usertesting.com",
+        OpportunityCategory.qa_testing,
+        "Remote user testing platform. Paid per recorded test session.",
+        "platform",
+        "profile_only",
+        quality_score=0.75,
+        requires_experience=False,
+        requires_assessment=False,
+        typical_hourly_rate_usd=15.0,
+        time_to_first_work_hours=2.0,
+        payout_cadence_days=7,
+        estimated_payout_range="$10-30/hour",
+        tags=["usertesting", "testing", "paid", "remote"],
+        priority=7,
+    ),
+]
+
+# ══════════════════════════════════════════════
+# CATEGORY 6: CYBERSECURITY — curated 2026-11-19
+# Security testing, auditing, and vulnerability assessment platforms
+# ══════════════════════════════════════════════
+CYBERSECURITY_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "HackerOne",
+        "https://hackerone.com",
+        OpportunityCategory.cybersecurity,
+        "Bug bounty platform with the largest researcher community.",
+        "platform",
+        "profile_only",
+        quality_score=0.90,
+        requires_experience=False,
+        requires_assessment=True,
+        typical_hourly_rate_usd=15.0,
+        time_to_first_work_hours=5.0,
+        payout_cadence_days=30,
+        estimated_payout_range="$10-100/hour; top hunters $1000+",
+        tags=["bug-bounty", "crowdsourced", "hourly", "assessment"],
+        priority=10,
+    ),
+]
+
+# ══════════════════════════════════════════════
+# CATEGORY 7: WEB3 AUDITS — curated 2026-11-19
+# Web3 security auditing, smart contract testing, and blockchain platforms
+# ══════════════════════════════════════════════
+WEB3_AUDITS_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "Trail of Bits",
+        "https://trailofbits.com",
+        OpportunityCategory.web3_audits,
+        "Web3 and smart contract security auditing firm.",
+        "platform",
+        "profile_only",
+        quality_score=0.95,
+        requires_experience=True,
+        requires_assessment=True,
+        typical_hourly_rate_usd=200.0,
+        time_to_first_work_hours=40.0,
+        payout_cadence_days=60,
+        estimated_payout_range="$150-500/hour; project-based $5k-50k+",
+        tags=["smart-contract", "security", "audit", "enterprise"],
+        priority=10,
+    ),
+]
+
+# ══════════════════════════════════════════════
+# CATEGORY 8: JUNIOR JOBS — curated 2026-11-19
+# Junior developer roles, entry-level positions, and junior-friendly opportunities
+# ══════════════════════════════════════════════
+JUNIOR_JOBS_SOURCES: list[SourceDefinition] = [
+    SourceDefinition(
+        "Junior Jobs Board",
+        "https://www.juniorjobsboard.com",
+        OpportunityCategory.junior_jobs,
+        "Entry-level developer positions and junior-friendly opportunities.",
+        "job_board",
+        "profile_only",
+        quality_score=0.80,
+        requires_experience=False,
+        requires_assessment=False,
+        typical_hourly_rate_usd=25.0,
+        time_to_first_work_hours=72.0,
+        payout_cadence_days=15,
+        estimated_payout_range="$20-50/hour or $15k-40k annual",
+        tags=["entry-level", "developer", "junior", "remote"],
+        priority=8,
+    ),
+]
+
 _ALL_CATEGORIES = {
     OpportunityCategory.bug_bounty: BUG_BOUNTY_SOURCES,
     OpportunityCategory.dev_bounty: DEV_BOUNTY_SOURCES,
     OpportunityCategory.data_entry: DATA_ENTRY_SOURCES,
     OpportunityCategory.ai_evaluation: AI_TRAINING_SOURCES,
+    OpportunityCategory.qa_testing: QA_TESTING_SOURCES,
+    OpportunityCategory.cybersecurity: CYBERSECURITY_SOURCES,
+    OpportunityCategory.web3_audits: WEB3_AUDITS_SOURCES,
+    OpportunityCategory.junior_jobs: JUNIOR_JOBS_SOURCES,
 }
+
 
 
 def get_base_sources(category: OpportunityCategory | None = None) -> list[SourceDefinition]:

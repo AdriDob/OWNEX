@@ -71,6 +71,20 @@ def list_items(state: str | None = None) -> list[QueueItemResponse]:
     return [QueueItemResponse(item_id=k, state=v["state"], payload=v["payload"], history=v["history"]) for k in items for v in [store._items[k]]]
 
 
+@router.post("/{item_id}/approve")
+def approve_item(item_id: str, data: dict | None = None) -> dict:
+    """Release the human-approval gate and execute a WAITING_HUMAN item.
+
+    This is the ONLY path that lets a mutating executor action hit the
+    external platform. Returns the executor result honestly —
+    ``submitted`` only when the platform confirmed.
+    """
+    from core.execution_queue.driver import approve_and_execute
+
+    approved_by = (data or {}).get("approved_by", "user")
+    return approve_and_execute(item_id, approved_by=approved_by)
+
+
 @router.get("/pending/{state}")
 def get_pending(state: str) -> list[str]:
     store = ExecutionQueueStore()

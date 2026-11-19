@@ -109,6 +109,43 @@ def _process_item(item_id: str) -> None:
         raise
 
 
+def approve_and_execute(item_id: str, approved_by: str = "user") -> dict:
+    """Human approval gate release: run a WAITING_HUMAN item for real.
+
+    Sets ``payload.approved=True`` (the flag ``_run_platform_executor``
+    checks before any mutating external call) and routes to the executor.
+    Transitions: WAITING_HUMAN → SUBMITTED on verified external success,
+    stays WAITING_HUMAN if still gated, → FAILED on executor error.
+    """
+    store = ExecutionQueueStore()
+    item = store.get(item_id)
+    if not item:
+        return {"error": f"item not found: {item_id}"}
+    if item.get("state") != "waiting_human":
+        return {"error": f"item is {item.get('state')}, not waiting_human", "item_id": item_id}
+
+    payload = dict(item.get("payload") or {})
+    executor_type = payload.get("executor_type", "browser")
+    action = payload.get("action", "execute")
+    payload["approved"] = True
+    payload["approved_by"] = approved_by
+    store.update_payload(item_id, **payload)
+
+    try:
+        result = _route_to_executor(executor_type, action, payload)
+    except Exception as e:
+        store.transition(item_id, "failed")
+        return {"item_id": item_id, "error": str(e), "state": "failed"}
+
+    if result.get("requires_human"):
+        return {"item_id": item_id, "state": "waiting_human", "result": result, "note": "still gated"}
+    if result.get("submitted"):
+        store.transition(item_id, "submitted")
+        return {"item_id": item_id, "state": "submitted", "result": result}
+    store.transition(item_id, "failed")
+    return {"item_id": item_id, "state": "failed", "result": result, "note": "executor did not confirm submission"}
+
+
 def retry_failed() -> dict:
     """Retry FAILED items — transition back to QUEUED for re-execution.
 
@@ -260,76 +297,80 @@ def _execute_assisted_action(action: str, payload: dict) -> dict:
         raise
 
 
-def _execute_freelancer_action(action: str, payload: dict) -> dict:
-    try:
-        from cores.opportunity.executors.freelancer_executor import FreelancerExecutor
+# Actions that mutate external state (claim/submit/apply). Read-only
+# actions (get_*, health_check, list_*) never count as submissions.
+_MUTATING_ACTIONS = {
+    "claim_bounty",
+    "submit_work",
+    "submit_pr",
+    "submit",
+    "apply",
+    "bid",
+    "create_proposal",
+}
 
-        executor = FreelancerExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
+
+def _run_platform_executor(module_path: str, class_name: str, action: str, payload: dict) -> dict:
+    """Invoke an async platform executor and map its result honestly.
+
+    - Mutating actions are gated BEFORE any external call: without
+      ``payload.approved`` they return ``requires_human`` and the queue
+      parks the item in WAITING_HUMAN.
+    - ``submitted`` is True ONLY when the executor returned success=True
+      for a mutating action (real external call happened).
+    - Read actions run immediately and never mark submitted.
+    """
+    import asyncio
+    import importlib
+    import inspect
+
+    mutating = action in _MUTATING_ACTIONS
+    # Human-approval gate: mutating actions never hit the external API
+    # unless the payload carries ``approved: true`` (set by an explicit
+    # human approval step). Otherwise the item parks in WAITING_HUMAN.
+    if mutating and not payload.get("approved"):
+        return {"requires_human": True, "submitted": False, "verified": False, "result": {"gate": "human_approval_required"}}
+
+    try:
+        mod = importlib.import_module(module_path)
+        executor = getattr(mod, class_name)()
+        result = executor.execute(action, **{k: v for k, v in payload.items() if k not in ("executor_type", "action", "approved")})
+        if inspect.isawaitable(result):
+            result = asyncio.run(result)
+        success = bool(getattr(result, "success", False))
+        return {
+            "requires_human": False,
+            "submitted": success and mutating,
+            "verified": False,  # external verification is a separate step
+            "result": result,
+        }
     except Exception as e:
-        logger.error("Freelancer executor failed: %s", e)
+        logger.error("%s executor failed: %s", class_name, e)
         raise
+
+
+def _execute_freelancer_action(action: str, payload: dict) -> dict:
+    return _run_platform_executor("cores.opportunity.executors.freelancer_executor", "FreelancerExecutor", action, payload)
 
 
 def _execute_opire_action(action: str, payload: dict) -> dict:
-    try:
-        from cores.opportunity.executors.opire_executor import OpireExecutor
-
-        executor = OpireExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
-    except Exception as e:
-        logger.error("Opire executor failed: %s", e)
-        raise
+    return _run_platform_executor("cores.opportunity.executors.opire_executor", "OpireExecutor", action, payload)
 
 
 def _execute_issuehunt_action(action: str, payload: dict) -> dict:
-    try:
-        from cores.opportunity.executors.issuehunt_executor import IssueHuntExecutor
-
-        executor = IssueHuntExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
-    except Exception as e:
-        logger.error("IssueHunt executor failed: %s", e)
-        raise
+    return _run_platform_executor("cores.opportunity.executors.issuehunt_executor", "IssueHuntExecutor", action, payload)
 
 
 def _execute_algora_action(action: str, payload: dict) -> dict:
-    try:
-        from cores.opportunity.executors.algora_executor import AlgoraExecutor
-
-        executor = AlgoraExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
-    except Exception as e:
-        logger.error("Algora executor failed: %s", e)
-        raise
+    return _run_platform_executor("cores.opportunity.executors.algora_executor", "AlgoraExecutor", action, payload)
 
 
 def _execute_mindrift_action(action: str, payload: dict) -> dict:
-    try:
-        from core.opportunity.executors.mindrift_executor import MindriftExecutor
-
-        executor = MindriftExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
-    except Exception as e:
-        logger.error("Mindrift executor failed: %s", e)
-        raise
+    return _run_platform_executor("core.opportunity.executors.mindrift_executor", "MindriftExecutor", action, payload)
 
 
 def _execute_outlier_action(action: str, payload: dict) -> dict:
-    try:
-        from cores.opportunity.executors.outlier_executor import OutlierExecutor
-
-        executor = OutlierExecutor()
-        result = executor.execute(action, payload) if hasattr(executor, "execute") else {}
-        return {"requires_human": False, "submitted": True, "verified": False, "result": result}
-    except Exception as e:
-        logger.error("Outlier executor failed: %s", e)
-        raise
+    return _run_platform_executor("cores.opportunity.executors.outlier_executor", "OutlierExecutor", action, payload)
 
 
 def _execute_autonomous_workflow(action: str, payload: dict) -> dict:
