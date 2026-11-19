@@ -553,6 +553,14 @@ def live_revenue_record_amount(item_id: str, data: dict[str, Any]):
     return result
 
 
+@router.get("/live/rank")
+def live_rank_opportunities(limit: int = 50, min_score: float = 0.0):
+    """Rank live opportunities by revenue-first viability (score + confidence)."""
+    from cores.opportunity.live_pipeline import rank_opportunities
+
+    return rank_opportunities(limit=max(1, min(limit, 500)), min_score=min_score)
+
+
 @router.post("/live/{opportunity_key:path}/analyze")
 async def live_analyze_workspace(opportunity_key: str, run_tests: bool = Query(False)):
     """Analyze the cloned repo in a prepared workspace (RepoAnalyzer).

@@ -682,3 +682,115 @@ class TestRevenueLedgerAmounts:
         )
         assert res["status"] == "paid"
         assert res["ledger"] == "recorded"
+
+
+class TestRevenueFirstScoring:
+    """REVENUE_FIRST_ENGINEERING.md §3 — viability over advertised reward."""
+
+    def _elig(self, **overrides: Any) -> dict[str, Any]:
+        base = {
+            "opportunity_id": "x",
+            "platform": "algora",
+            "argentina_compatible": "unknown",
+            "payment_method": "unknown",
+            "requires_account": "unknown",
+            "requires_interview": "unknown",
+            "requires_experience": "unknown",
+            "requires_portfolio": "unknown",
+            "requires_assessment": "unknown",
+            "blockers": [],
+            "evidence": "test",
+        }
+        base.update(overrides)
+        return base
+
+    def _estimate(self, reward: float, hours: float = 4.0) -> dict[str, Any]:
+        return {
+            "effective_reward_usd": reward,
+            "estimated_effort_hours": hours,
+            "difficulty": "medium",
+        }
+
+    def _opp(self, reward: float = 50.0) -> LiveOpportunity:
+        return LiveOpportunity(id="r1", platform="algora", adapter="a", title="t", url="u", reward=reward)
+
+    def test_accessible_small_beats_blocked_large(self):
+        from cores.opportunity.live_pipeline import score_opportunity
+
+        accessible = score_opportunity(
+            self._opp(40.0),
+            eligibility=self._elig(
+                argentina_compatible="yes",
+                payment_method="platform_supported",
+                requires_account="no",
+                requires_interview="no",
+                requires_experience="no",
+                requires_portfolio="no",
+                requires_assessment="no",
+            ),
+            estimate=self._estimate(40.0, 2.0),
+        )
+        blocked = score_opportunity(
+            self._opp(500.0),
+            eligibility=self._elig(
+                argentina_compatible="no",
+                payment_method="unknown",
+                requires_account="yes",
+                requires_interview="yes",
+                requires_experience="yes",
+                requires_portfolio="yes",
+                requires_assessment="yes",
+            ),
+            estimate=self._estimate(500.0, 12.0),
+        )
+        assert accessible["score"] > blocked["score"]
+
+    def test_confidence_reflects_unknown_dimensions(self):
+        from cores.opportunity.live_pipeline import score_opportunity
+
+        definitive = score_opportunity(
+            self._opp(),
+            eligibility=self._elig(
+                argentina_compatible="yes",
+                payment_method="platform_supported",
+                requires_account="no",
+                requires_interview="no",
+                requires_experience="no",
+                requires_portfolio="no",
+                requires_assessment="no",
+            ),
+            estimate=self._estimate(50.0),
+        )
+        unknown = score_opportunity(self._opp(), eligibility=self._elig(), estimate=self._estimate(50.0))
+        assert definitive["confidence"] == 1.0
+        assert unknown["confidence"] < definitive["confidence"]
+
+    def test_reward_per_hour_in_metrics(self):
+        from cores.opportunity.live_pipeline import score_opportunity
+
+        s = score_opportunity(
+            self._opp(100.0),
+            eligibility=self._elig(argentina_compatible="yes", payment_method="fallback_available"),
+            estimate=self._estimate(100.0, 2.0),
+        )
+        assert s["estimated_net_per_hour_usd"] == 50.0
+        assert "note" in s and "not confirmed income" in s["note"]
+
+    def test_rank_excludes_terminal_and_sorts(self, store):
+        from cores.opportunity.live_pipeline import rank_opportunities
+
+        store.upsert(LiveOpportunity(id="big", platform="algora", adapter="a", title="t", url="u", reward=300.0))
+        store.upsert(LiveOpportunity(id="small", platform="algora", adapter="a", title="t", url="u", reward=10.0))
+        store.upsert(LiveOpportunity(id="dead", platform="algora", adapter="a", title="t", url="u", reward=999.0, status="expired"))
+        result = rank_opportunities(store=store)
+        keys = [r["opportunity_id"] for r in result["ranked"]]
+        assert "algora:dead" not in keys
+        assert keys[0] == "algora:big"
+        assert result["total_evaluated"] == 2
+
+    def test_rank_min_score_filter(self, store):
+        from cores.opportunity.live_pipeline import rank_opportunities
+
+        store.upsert(LiveOpportunity(id="x", platform="algora", adapter="a", title="t", url="u", reward=0.0))
+        result = rank_opportunities(store=store, min_score=999.0)
+        assert result["ranked"] == []

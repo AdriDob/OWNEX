@@ -1348,3 +1348,142 @@ def record_approval(
         "approved_by": approved_by,
         "note": "approval recorded; no submission performed",
     }
+
+
+# ---------------------------------------------------------------------------
+# Revenue-first prioritization (REVENUE_FIRST_ENGINEERING.md §3)
+# ---------------------------------------------------------------------------
+
+_TERMINAL_STATUSES = {"expired", "rejected", "paid", "withdrawn"}
+
+_BARRIER_PENALTIES = {
+    "requires_interview": 6.0,
+    "requires_experience": 8.0,
+    "requires_portfolio": 5.0,
+    "requires_assessment": 6.0,
+    "requires_account": 2.0,
+}
+
+
+def score_opportunity(
+    opp: LiveOpportunity,
+    eligibility: dict[str, Any] | None = None,
+    estimate: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Revenue-first viability score (0-100) with confidence.
+
+    Rewards advertised value, Argentina/payment compatibility, low
+    barriers and reward-per-hour — never raw bounty size alone.
+    ``confidence`` is the fraction of evaluated dimensions that are
+    definitive (yes/no); ``unknown`` lowers confidence, not the score.
+    """
+    eligibility = eligibility if eligibility is not None else evaluate_eligibility(opp)
+    estimate = estimate if estimate is not None else estimate_task(opp)
+
+    reward_usd = estimate.get("effective_reward_usd")
+    if not isinstance(reward_usd, (int, float)) or reward_usd <= 0:
+        reward_usd = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
+    effort = estimate.get("estimated_effort_hours") or opp.effort_hours or 4.0
+
+    # Reward value: capped log-ish tiers — a $500 unknown-requirement task
+    # must not outrank an accessible $40 one (§3).
+    if reward_usd >= 200:
+        reward_score = 25.0
+    elif reward_usd >= 50:
+        reward_score = 20.0
+    elif reward_usd >= 20:
+        reward_score = 15.0
+    elif reward_usd > 0:
+        reward_score = 10.0
+    else:
+        reward_score = 5.0
+
+    ar = eligibility.get("argentina_compatible", "unknown")
+    ar_score = {"yes": 20.0, "unknown": 8.0, "no": 0.0}[ar]
+
+    pm = eligibility.get("payment_method", "unknown")
+    pm_score = {
+        "platform_supported": 15.0,
+        "fallback_available": 12.0,
+        "unknown": 6.0,
+    }.get(pm, 0.0)
+
+    barrier_score = 25.0
+    for dim, penalty in _BARRIER_PENALTIES.items():
+        state = eligibility.get(dim, "unknown")
+        if state == "yes":
+            barrier_score -= penalty
+        elif state == "unknown":
+            barrier_score -= 1.0
+    barrier_score = max(0.0, barrier_score)
+
+    rph = reward_usd / max(effort, 0.5)
+    if rph >= 50:
+        effort_score = 15.0
+    elif rph >= 20:
+        effort_score = 12.0
+    elif rph >= 10:
+        effort_score = 9.0
+    elif reward_usd > 0:
+        effort_score = 6.0
+    else:
+        effort_score = 3.0
+
+    # Confidence: eligibility report dimensions + payment + AR.
+    barrier_states = [eligibility.get(d) for d in _BARRIER_PENALTIES]
+    definitive = sum(1 for s in barrier_states if s in ("yes", "no"))
+    definitive += int(eligibility.get("argentina_compatible") in ("yes", "no"))
+    definitive += int(eligibility.get("payment_method") != "unknown")
+    total_dims = len(_BARRIER_PENALTIES) + 2
+    confidence = round(definitive / total_dims, 2)
+
+    total = round(reward_score + ar_score + pm_score + barrier_score + effort_score, 1)
+    return {
+        "opportunity_id": opp.dedup_key(),
+        "platform": opp.platform,
+        "status": opp.status,
+        "score": total,
+        "breakdown": {
+            "reward": reward_score,
+            "argentina_compatibility": ar_score,
+            "payment_method": pm_score,
+            "low_barriers": round(barrier_score, 1),
+            "reward_per_hour_fit": effort_score,
+        },
+        "estimated_reward_usd": round(float(reward_usd), 2),
+        "estimated_effort_hours": effort,
+        "estimated_net_per_hour_usd": round(rph, 2),
+        "confidence": confidence,
+        "blockers": list(eligibility.get("blockers") or []),
+        "note": "score is a heuristic ranking aid — advertised reward is not confirmed income",
+    }
+
+
+def rank_opportunities(
+    store: LiveStore | None = None,
+    limit: int = 50,
+    min_score: float = 0.0,
+) -> dict[str, Any]:
+    """Rank live opportunities by revenue-first viability.
+
+    Terminal states (expired/rejected/paid/withdrawn) are excluded.
+    Results are sorted by score desc; ties broken by confidence then
+    advertised reward. ``min_score`` filters low-viability items.
+    """
+    store = store or LiveStore()
+    ranked = []
+    for opp in store._items.values():
+        if opp.status in _TERMINAL_STATUSES:
+            continue
+        s = score_opportunity(opp)
+        if s["score"] >= min_score:
+            ranked.append(s)
+    ranked.sort(
+        key=lambda s: (s["score"], s["confidence"], s["estimated_reward_usd"]),
+        reverse=True,
+    )
+    return {
+        "ranked": ranked[:limit],
+        "total_evaluated": len(ranked),
+        "note": "heuristic ranking — verify eligibility and payment terms before executing",
+    }
