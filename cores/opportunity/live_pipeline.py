@@ -119,7 +119,10 @@ class LiveOpportunity:
     tags: list[str] = field(default_factory=list)
     category: str = "dev_bounty"
     employment_type: str = "bounty"
-    status: str = "discovered"  # discovered|verified|ready|expired|rejected
+    # discovered|eligibility_checked|ready|in_progress|submitted|accepted|
+    # paid|rejected|expired — external states require evidence (see
+    # EXTERNAL_TRANSITIONS); advertised reward is never income.
+    status: str = "discovered"
     fetched_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     last_seen_at: str = ""
     evidence_url: str = ""

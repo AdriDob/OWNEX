@@ -224,11 +224,19 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     }
   }
 
-  async function recordLiveStatus(key: string, status: string, evidence: Record<string, any>) {
+  async function recordLiveStatus(
+    key: string,
+    status: string,
+    evidence: Record<string, any>,
+    amount?: number,
+    currency?: string,
+  ) {
     try {
       const res = await api.post<Record<string, any>>(`/discovery/live/${encodeURIComponent(key)}/status`, {
         status,
         evidence,
+        ...(amount !== undefined ? { amount } : {}),
+        ...(currency ? { currency } : {}),
       })
       await fetchLiveOpportunities()
       await fetchLiveRevenue()

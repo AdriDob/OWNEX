@@ -82,7 +82,17 @@ function handleStatus(key: string, status: string) {
   if (!ref) return
   const evidence: Record<string, any> = { reference: ref }
   if (/^https?:\/\//.test(ref)) evidence.url = ref
-  return run(key, () => store.recordLiveStatus(key, status, evidence))
+  let amount: number | undefined
+  let currency: string | undefined
+  if (status === 'paid') {
+    const amt = window.prompt('Monto REAL cobrado (número, vacío = usar recompensa anunciada):', '')
+    if (amt) {
+      const n = Number(amt.replace(',', '.'))
+      if (Number.isFinite(n) && n > 0) amount = n
+    }
+    currency = window.prompt('Moneda del pago (USD/EUR/ARS...):', 'USD') ?? undefined
+  }
+  return run(key, () => store.recordLiveStatus(key, status, evidence, amount, currency))
 }
 
 onMounted(async () => {
