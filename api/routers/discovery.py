@@ -590,6 +590,8 @@ def live_record_external_status(opportunity_key: str, data: dict[str, Any]):
         opportunity_key,
         status=str(data.get("status", "")),
         evidence=data.get("evidence") or {},
+        amount=data.get("amount"),
+        currency=data.get("currency"),
     )
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])

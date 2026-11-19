@@ -794,3 +794,49 @@ class TestRevenueFirstScoring:
         store.upsert(LiveOpportunity(id="x", platform="algora", adapter="a", title="t", url="u", reward=0.0))
         result = rank_opportunities(store=store, min_score=999.0)
         assert result["ranked"] == []
+
+    def test_paid_amount_source_flags_advertised_fallback(self, store, tmp_path, monkeypatch):
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        from cores.opportunity.live_pipeline import LiveOpportunity, record_external_status
+
+        store.upsert(
+            LiveOpportunity(
+                id="amt1",
+                platform="algora",
+                adapter="a",
+                title="t",
+                url="u",
+                reward=75.0,
+                status="accepted",
+            )
+        )
+        res = record_external_status("algora:amt1", "paid", {"url": "https://pay.example/rcpt/1"}, store=store)
+        assert res["amount_source"] == "advertised_fallback"
+
+        store.upsert(
+            LiveOpportunity(
+                id="amt2",
+                platform="algora",
+                adapter="a",
+                title="t",
+                url="u",
+                reward=75.0,
+                status="accepted",
+            )
+        )
+        res2 = record_external_status("algora:amt2", "paid", {"receipt": "r2"}, store=store, amount=68.5, currency="USD")
+        assert res2["amount_source"] == "explicit"
+
+        store.upsert(
+            LiveOpportunity(
+                id="amt3",
+                platform="algora",
+                adapter="a",
+                title="t",
+                url="u",
+                reward=75.0,
+                status="accepted",
+            )
+        )
+        res3 = record_external_status("algora:amt3", "paid", {"receipt": "r3", "amount": 70.0}, store=store)
+        assert res3["amount_source"] == "explicit"

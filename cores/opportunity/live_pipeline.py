@@ -1198,6 +1198,8 @@ def record_external_status(
     status: str,
     evidence: dict[str, Any],
     store: LiveStore | None = None,
+    amount: float | None = None,
+    currency: str | None = None,
 ) -> dict[str, Any]:
     """Record an externally-observed lifecycle transition.
 
@@ -1232,17 +1234,29 @@ def record_external_status(
     store.save()
 
     ledger_note = None
+    amount_source = None
     if status == "paid":
         try:
             from cores.opportunity.revenue_ledger import RevenueLedger
 
-            reward = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
+            # Paid amount: explicit param > evidence["amount"] > advertised
+            # reward. Advertised fallback is flagged — it is NOT confirmed
+            # income until the evidence itself states the amount.
+            paid_amount = amount
+            if paid_amount is None and isinstance(evidence.get("amount"), (int, float)):
+                paid_amount = float(evidence["amount"])
+            if paid_amount is not None:
+                amount_source = "explicit"
+            else:
+                paid_amount = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
+                amount_source = "advertised_fallback"
+            paid_currency = currency or opp.currency or "USD"
             res = RevenueLedger().record_amount(
                 f"live:{opportunity_key}",
                 "paid",
-                float(reward),
-                currency=opp.currency or "USD",
-                evidence=evidence,
+                float(paid_amount),
+                currency=paid_currency,
+                evidence={**evidence, "amount_source": amount_source},
                 payout_method=evidence.get("payout_method"),
                 paid_at=evidence.get("paid_at"),
             )
@@ -1253,6 +1267,7 @@ def record_external_status(
         "key": opportunity_key,
         "status": status,
         "ledger": ledger_note,
+        "amount_source": amount_source,
         "note": "external status recorded with evidence",
     }
 
