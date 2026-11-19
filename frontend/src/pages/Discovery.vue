@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useDiscoveryStore } from '@/stores/discovery'
 import { useAuthStore } from '@/stores/auth'
 import Card from '@/components/ui/Card.vue'
+import LivePipelinePanel from '@/components/discovery/LivePipelinePanel.vue'
 import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
@@ -245,6 +246,9 @@ onMounted(async () => {
           Próximo scan: {{ new Date(discoveryStore.monitorStatus.next_scan).toLocaleString('es-AR') }}
         </div>
       </div>
+
+      <!-- Live Opportunity Pipeline -->
+      <LivePipelinePanel />
 
       <!-- Filters -->
       <div class="flex flex-wrap items-center gap-3">

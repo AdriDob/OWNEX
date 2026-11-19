@@ -111,9 +111,83 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     }
   }
 
+  // ── Live opportunity pipeline ──────────────────────────────────────
+  const liveStats = ref<Record<string, any> | null>(null)
+  const liveOpportunities = ref<any[]>([])
+  const liveConnections = ref<Record<string, any> | null>(null)
+  const liveRevenue = ref<Record<string, any> | null>(null)
+  const liveLoading = ref(false)
+
+  async function fetchLiveStats() {
+    try {
+      const res = await api.get<Record<string, any>>('/discovery/live/stats')
+      liveStats.value = res
+      return res
+    } catch {
+      return null
+    }
+  }
+
+  async function fetchLiveOpportunities(status?: string, limit = 50) {
+    try {
+      const qs = new URLSearchParams({ limit: String(limit) })
+      if (status) qs.set('status', status)
+      const res = await api.get<{ opportunities: any[] }>(`/discovery/live/opportunities?${qs}`)
+      liveOpportunities.value = res.opportunities ?? []
+      return res
+    } catch {
+      return null
+    }
+  }
+
+  async function fetchLiveConnections() {
+    try {
+      const res = await api.get<Record<string, any>>('/discovery/live/connections')
+      liveConnections.value = res
+      return res
+    } catch {
+      return null
+    }
+  }
+
+  async function fetchLiveRevenue() {
+    try {
+      const res = await api.get<Record<string, any>>('/discovery/live/revenue/summary')
+      liveRevenue.value = res
+      return res
+    } catch {
+      return null
+    }
+  }
+
+  async function runLiveScan() {
+    liveLoading.value = true
+    try {
+      const res = await api.post<Record<string, any>>('/discovery/live/scan')
+      await Promise.all([fetchLiveStats(), fetchLiveOpportunities(), fetchLiveRevenue()])
+      return res
+    } catch (e: any) {
+      error.value = e.message
+      return null
+    } finally {
+      liveLoading.value = false
+    }
+  }
+
+  async function prepareLiveOpportunity(key: string) {
+    try {
+      return await api.post<Record<string, any>>(`/discovery/live/${encodeURIComponent(key)}/prepare`)
+    } catch (e: any) {
+      return { error: e.message }
+    }
+  }
+
   return {
     programs, stats, loading, scanning, error, monitorStatus,
     totalDiscovered, importedCount, platforms,
     fetchPrograms, fetchStats, runScan, importProgram, importAll,
+    liveStats, liveOpportunities, liveConnections, liveRevenue, liveLoading,
+    fetchLiveStats, fetchLiveOpportunities, fetchLiveConnections,
+    fetchLiveRevenue, runLiveScan, prepareLiveOpportunity,
   }
 })
