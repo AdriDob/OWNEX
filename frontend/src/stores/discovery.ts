@@ -182,6 +182,62 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     }
   }
 
+  const liveRank = ref<any[] | null>(null)
+
+  async function fetchLiveRank(limit = 20) {
+    try {
+      const res = await api.get<{ ranked: any[] }>(`/discovery/live/rank?limit=${limit}`)
+      liveRank.value = res.ranked ?? []
+      return res
+    } catch {
+      return null
+    }
+  }
+
+  async function analyzeLiveOpportunity(key: string, runTests = false) {
+    try {
+      return await api.post<Record<string, any>>(
+        `/discovery/live/${encodeURIComponent(key)}/analyze?run_tests=${runTests}`,
+      )
+    } catch (e: any) {
+      return { error: e.message }
+    }
+  }
+
+  async function approveLiveOpportunity(key: string, approved: boolean, note = '') {
+    try {
+      return await api.post<Record<string, any>>(`/discovery/live/${encodeURIComponent(key)}/approve`, {
+        approved,
+        approved_by: 'user',
+        note,
+      })
+    } catch (e: any) {
+      return { error: e.message }
+    }
+  }
+
+  async function paymentInquiryLive(key: string) {
+    try {
+      return await api.post<Record<string, any>>(`/discovery/live/${encodeURIComponent(key)}/payment-inquiry`)
+    } catch (e: any) {
+      return { error: e.message }
+    }
+  }
+
+  async function recordLiveStatus(key: string, status: string, evidence: Record<string, any>) {
+    try {
+      const res = await api.post<Record<string, any>>(`/discovery/live/${encodeURIComponent(key)}/status`, {
+        status,
+        evidence,
+      })
+      await fetchLiveOpportunities()
+      await fetchLiveRevenue()
+      return res
+    } catch (e: any) {
+      return { error: e.message }
+    }
+  }
+
   return {
     programs, stats, loading, scanning, error, monitorStatus,
     totalDiscovered, importedCount, platforms,
@@ -189,5 +245,7 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     liveStats, liveOpportunities, liveConnections, liveRevenue, liveLoading,
     fetchLiveStats, fetchLiveOpportunities, fetchLiveConnections,
     fetchLiveRevenue, runLiveScan, prepareLiveOpportunity,
+    liveRank, fetchLiveRank, analyzeLiveOpportunity, approveLiveOpportunity,
+    paymentInquiryLive, recordLiveStatus,
   }
 })
