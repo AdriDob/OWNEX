@@ -635,3 +635,50 @@ class TestRevenueLedgerAmounts:
         assert res["analysis"]["language"] in ("python", "unknown")
         assert (ws / "ANALYSIS.md").exists()
         assert store._items[opp.dedup_key()].raw["execution"]["analysis"]["language"] == res["analysis"]["language"]
+
+    def test_external_status_requires_evidence(self, store):
+        from cores.opportunity.live_pipeline import LiveOpportunity, record_external_status
+
+        opp = LiveOpportunity(id="es1", platform="opire", adapter="a", title="x", url="u", status="in_progress")
+        store.upsert(opp)
+        assert "error" in record_external_status(opp.dedup_key(), "submitted", {}, store)
+        res = record_external_status(opp.dedup_key(), "submitted", {"url": "https://opire.dev/sub/1"}, store)
+        assert res["status"] == "submitted"
+        assert store._items[opp.dedup_key()].status == "submitted"
+
+    def test_external_status_validates_transitions(self, store):
+        from cores.opportunity.live_pipeline import LiveOpportunity, record_external_status
+
+        opp = LiveOpportunity(id="es2", platform="opire", adapter="a", title="x", url="u", status="discovered")
+        store.upsert(opp)
+        # discovered → paid is not a valid path
+        res = record_external_status(opp.dedup_key(), "paid", {"tx": "1"}, store)
+        assert "error" in res
+        # discovered → in_progress? not in EXTERNAL_TRANSITIONS as a status arg;
+        # external statuses only
+        res = record_external_status(opp.dedup_key(), "bogus", {"x": 1}, store)
+        assert "error" in res
+
+    def test_paid_mirrors_to_ledger(self, store, tmp_path, monkeypatch):
+        monkeypatch.setenv("OWNEX_DATA_DIR", str(tmp_path))
+        from cores.opportunity.live_pipeline import LiveOpportunity, record_external_status
+
+        opp = LiveOpportunity(
+            id="es3",
+            platform="algora",
+            adapter="a",
+            title="x",
+            url="u",
+            status="accepted",
+            reward=75.0,
+            currency="USD",
+        )
+        store.upsert(opp)
+        res = record_external_status(
+            opp.dedup_key(),
+            "paid",
+            {"tx": "0xdead", "paid_at": "2026-11-10", "payout_method": "usdc"},
+            store,
+        )
+        assert res["status"] == "paid"
+        assert res["ledger"] == "recorded"

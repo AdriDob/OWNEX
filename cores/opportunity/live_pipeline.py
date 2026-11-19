@@ -1180,6 +1180,83 @@ async def analyze_workspace(
     }
 
 
+# External lifecycle states that require platform evidence to enter.
+# ``prepared``/``in_progress`` are local; everything past them must cite
+# an external source (URL, API response id, message screenshot ref).
+EXTERNAL_TRANSITIONS: dict[str, set[str]] = {
+    "in_progress": {"submitted", "rejected", "expired"},
+    "submitted": {"accepted", "rejected", "expired"},
+    "accepted": {"paid"},
+    "ready": {"in_progress", "rejected", "expired"},
+    "eligibility_checked": {"ready", "in_progress", "rejected", "expired"},
+    "discovered": {"in_progress", "rejected", "expired"},
+}
+
+
+def record_external_status(
+    opportunity_key: str,
+    status: str,
+    evidence: dict[str, Any],
+    store: LiveStore | None = None,
+) -> dict[str, Any]:
+    """Record an externally-observed lifecycle transition.
+
+    ``submitted``/``accepted``/``paid``/``rejected`` (external) require
+    non-empty ``evidence`` — e.g. ``{"url": "...", "external_id": "..."}``
+    or ``{"api_response": {...}}``. A transition to ``paid`` additionally
+    requires evidence AND mirrors into the Revenue Ledger ``paid`` bucket
+    (which itself refuses evidence-free entries).
+    """
+    store = store or LiveStore()
+    opp = store._items.get(opportunity_key)
+    if opp is None:
+        return {"error": f"unknown opportunity: {opportunity_key}"}
+    if status not in {"submitted", "accepted", "rejected", "paid", "expired"}:
+        return {"error": f"invalid external status: {status}"}
+    if not evidence:
+        return {"error": "external status requires evidence", "status": status}
+    allowed = EXTERNAL_TRANSITIONS.get(opp.status, set())
+    if status not in allowed:
+        return {
+            "error": f"invalid transition {opp.status} → {status}",
+            "allowed": sorted(allowed),
+        }
+    opp.status = status
+    opp.raw.setdefault("external_events", []).append(
+        {
+            "status": status,
+            "evidence": evidence,
+            "recorded_at": datetime.now(UTC).isoformat(),
+        }
+    )
+    store.save()
+
+    ledger_note = None
+    if status == "paid":
+        try:
+            from cores.opportunity.revenue_ledger import RevenueLedger
+
+            reward = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
+            res = RevenueLedger().record_amount(
+                f"live:{opportunity_key}",
+                "paid",
+                float(reward),
+                currency=opp.currency or "USD",
+                evidence=evidence,
+                payout_method=evidence.get("payout_method"),
+                paid_at=evidence.get("paid_at"),
+            )
+            ledger_note = "recorded" if "entry" in res else res.get("error")
+        except Exception as exc:
+            ledger_note = f"ledger_sync_failed: {exc}"
+    return {
+        "key": opportunity_key,
+        "status": status,
+        "ledger": ledger_note,
+        "note": "external status recorded with evidence",
+    }
+
+
 def draft_payment_inquiry(
     opportunity_key: str,
     store: LiveStore | None = None,
