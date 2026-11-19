@@ -596,3 +596,42 @@ class TestRevenueLedgerAmounts:
         res = asyncio.run(_clone_repo("/nonexistent/repo", tmp_path / "c2", timeout=15))
         assert res["cloned"] is False
         assert "error" in res
+
+    def test_analyze_workspace_no_repo(self, store):
+        import asyncio
+
+        from cores.opportunity.live_pipeline import LiveOpportunity, analyze_workspace
+
+        opp = LiveOpportunity(id="aw1", platform="opire", adapter="a", title="x", url="u")
+        store.upsert(opp)
+        res = asyncio.run(analyze_workspace(opp.dedup_key(), store=store))
+        assert "error" in res
+
+    def test_analyze_workspace_with_cloned_repo(self, store, tmp_path):
+        import asyncio
+        import subprocess
+
+        from cores.opportunity.live_pipeline import LiveOpportunity, analyze_workspace
+
+        # build a tiny python repo and clone it into the workspace manually
+        src = tmp_path / "srcrepo"
+        src.mkdir()
+        (src / "pyproject.toml").write_text("[project]\nname='x'\n")
+        (src / "test_x.py").write_text("def test_ok():\n    assert True\n")
+        subprocess.run(["git", "init", "-q"], cwd=src, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=src, check=True)
+        subprocess.run(
+            ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "i"],
+            cwd=src,
+            check=True,
+        )
+        ws = tmp_path / "ws"
+        subprocess.run(["git", "clone", "-q", "--depth", "1", str(src), str(ws / "repo")], check=True)
+
+        opp = LiveOpportunity(id="aw2", platform="issuehunt", adapter="a", title="x", url="https://github.com/a/b/issues/1")
+        opp.raw["execution"] = {"workspace": str(ws)}
+        store.upsert(opp)
+        res = asyncio.run(analyze_workspace(opp.dedup_key(), store=store))
+        assert res["analysis"]["language"] in ("python", "unknown")
+        assert (ws / "ANALYSIS.md").exists()
+        assert store._items[opp.dedup_key()].raw["execution"]["analysis"]["language"] == res["analysis"]["language"]

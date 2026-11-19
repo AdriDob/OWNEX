@@ -31,11 +31,11 @@ class RepoInfo:
 
     path: Path
     language: str
-    package_manager: str | None
-    test_command: str | None
-    build_command: str | None
-    dev_command: str | None
-    framework: str | None
+    package_manager: str | None = None
+    test_command: str | None = None
+    build_command: str | None = None
+    dev_command: str | None = None
+    framework: str | None = None
     entry_points: list[str] = field(default_factory=list)
     test_files: list[Path] = field(default_factory=list)
     config_files: dict[str, Path] = field(default_factory=dict)

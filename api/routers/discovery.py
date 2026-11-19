@@ -553,6 +553,19 @@ def live_revenue_record_amount(item_id: str, data: dict[str, Any]):
     return result
 
 
+@router.post("/live/{opportunity_key:path}/analyze")
+async def live_analyze_workspace(opportunity_key: str, run_tests: bool = Query(False)):
+    """Analyze the cloned repo in a prepared workspace (RepoAnalyzer).
+
+    ``run_tests=true`` also executes the detected test command via the
+    canonical TestRunner (120s timeout). Results persist to ANALYSIS.md /
+    TEST_RESULTS.md — evidence, not claims.
+    """
+    from cores.opportunity.live_pipeline import analyze_workspace
+
+    return await analyze_workspace(opportunity_key, run_tests=run_tests)
+
+
 @router.post("/live/{opportunity_key:path}/payment-inquiry")
 def live_payment_inquiry(opportunity_key: str):
     """Draft (never send) a private message confirming payment terms."""

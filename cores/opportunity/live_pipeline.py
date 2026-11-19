@@ -1101,6 +1101,85 @@ async def prepare_execution(
     }
 
 
+async def analyze_workspace(
+    opportunity_key: str,
+    run_tests: bool = False,
+    store: LiveStore | None = None,
+) -> dict[str, Any]:
+    """Analyze the cloned repo in a prepared workspace.
+
+    Reuses the canonical ``RepoAnalyzer`` (language, test/build commands,
+    frameworks, entry points) and optionally ``TestRunner``. Results are
+    persisted to ``ANALYSIS.md``/``TEST_RESULTS.md`` in the workspace and
+    into ``execution.analysis`` — real evidence, no claims.
+    """
+    store = store or LiveStore()
+    opp = store._items.get(opportunity_key)
+    if opp is None:
+        return {"error": f"unknown opportunity: {opportunity_key}"}
+    execution = (opp.raw or {}).get("execution") or {}
+    ws = execution.get("workspace")
+    repo = Path(ws) / "repo" if ws else None
+    if not repo or not repo.exists():
+        return {"error": "no cloned repo in workspace", "key": opportunity_key}
+
+    from core.autonomy.repo_analyzer import RepoAnalyzer
+    from core.autonomy.test_runner import TestRunner
+
+    analyzer = RepoAnalyzer()
+    info = await analyzer.analyze_repo(repo)
+    analysis = {
+        "language": info.language,
+        "package_manager": info.package_manager,
+        "test_command": info.test_command,
+        "build_command": info.build_command,
+        "framework": info.framework,
+        "git_remote": info.git_remote,
+        "test_files": len(info.test_files or []),
+        "entry_points": (info.entry_points or [])[:10],
+    }
+
+    test_summary = None
+    if run_tests:
+        runner = TestRunner({"timeout": 120})
+        summary = await runner.run_tests(repo, repo_info=info)
+        test_summary = {
+            "overall_success": summary.overall_success,
+            "duration_s": round(summary.total_duration, 2),
+            "best": (
+                {
+                    "command": summary.best_result.command,
+                    "returncode": summary.best_result.returncode,
+                    "passed": summary.best_result.passed,
+                    "failed": summary.best_result.failed,
+                    "skipped": summary.best_result.skipped,
+                }
+                if summary.best_result
+                else None
+            ),
+            "commands_tried": summary.test_commands_tried,
+        }
+
+    ws_path = Path(ws)
+    (ws_path / "ANALYSIS.md").write_text("# Repo analysis\n\n" + "\n".join(f"- {k}: {v}" for k, v in analysis.items()) + "\n")
+    if test_summary:
+        import json as _json
+
+        (ws_path / "TEST_RESULTS.md").write_text(_json.dumps(test_summary, indent=2))
+
+    execution["analysis"] = analysis
+    if test_summary:
+        execution["tests"] = test_summary
+    opp.raw["execution"] = execution
+    store.save()
+    return {
+        "key": opportunity_key,
+        "analysis": analysis,
+        "tests": test_summary,
+        "workspace": ws,
+    }
+
+
 def draft_payment_inquiry(
     opportunity_key: str,
     store: LiveStore | None = None,
