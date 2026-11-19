@@ -22,14 +22,26 @@ jobs:
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
           cache-dependency-path: package-lock.json
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Install recon binaries used by tool-resolution tests
+        run: |
+          go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+          go install github.com/projectdiscovery/katana/cmd/katana@latest
+          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Install frontend deps (workspace root)
         run: npm ci
