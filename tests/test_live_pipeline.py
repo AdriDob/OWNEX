@@ -546,3 +546,53 @@ class TestRevenueLedgerAmounts:
 
         ledger = RevenueLedger(ExecutionQueueStore(tmp_path / "q.json"))
         assert "error" in ledger.record_amount("i1", "income", 5.0)
+
+    def test_draft_payment_inquiry_never_sends(self, store):
+        from cores.opportunity.live_pipeline import LiveOpportunity, draft_payment_inquiry
+
+        opp = LiveOpportunity(
+            id="pi1",
+            platform="algora",
+            adapter="a",
+            title="Fix bug",
+            url="https://x.test",
+            reward=100.0,
+            currency="USD",
+        )
+        opp.raw["eligibility"] = {"payment_fallbacks": {"fallback": "private_message", "notes": "ask poster"}}
+        store.upsert(opp)
+        res = draft_payment_inquiry(opp.dedup_key(), store)
+        assert "CONFIRM" in res["draft"]
+        assert "100.0 USD" in res["draft"]
+        assert "private_message" in res["draft"]
+        assert "nothing sent" in res["note"]
+
+    def test_clone_repo_local(self, tmp_path):
+        import asyncio
+        import subprocess
+
+        from cores.opportunity.live_pipeline import _clone_repo
+
+        src = tmp_path / "src_repo"
+        src.mkdir()
+        (src / "README.md").write_text("hi")
+        subprocess.run(["git", "init", "-q"], cwd=src, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=src, check=True)
+        subprocess.run(
+            ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"],
+            cwd=src,
+            check=True,
+        )
+        dest = tmp_path / "clone"
+        res = asyncio.run(_clone_repo(str(src), dest, timeout=30))
+        assert res["cloned"] is True
+        assert (dest / "README.md").exists()
+
+    def test_clone_repo_failure_is_evidence(self, tmp_path):
+        import asyncio
+
+        from cores.opportunity.live_pipeline import _clone_repo
+
+        res = asyncio.run(_clone_repo("/nonexistent/repo", tmp_path / "c2", timeout=15))
+        assert res["cloned"] is False
+        assert "error" in res

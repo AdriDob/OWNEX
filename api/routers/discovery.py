@@ -553,6 +553,14 @@ def live_revenue_record_amount(item_id: str, data: dict[str, Any]):
     return result
 
 
+@router.post("/live/{opportunity_key:path}/payment-inquiry")
+def live_payment_inquiry(opportunity_key: str):
+    """Draft (never send) a private message confirming payment terms."""
+    from cores.opportunity.live_pipeline import draft_payment_inquiry
+
+    return draft_payment_inquiry(opportunity_key)
+
+
 @router.post("/live/{opportunity_key:path}/approve")
 def live_record_approval(opportunity_key: str, data: dict[str, Any]):
     """Record human approval for a prepared opportunity.

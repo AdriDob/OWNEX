@@ -917,10 +917,42 @@ async def _fetch_github_repo(repo: str) -> dict[str, Any] | None:
         return {"error": str(exc), "repo": repo}
 
 
+async def _clone_repo(clone_url: str, dest: Path, timeout: int = 120) -> dict[str, Any]:
+    """Shallow-clone a public repo into the workspace (read-only prep step).
+
+    Never raises — clone failure is evidence, not a crash. Uses
+    ``--depth 1`` to keep it fast; no credentials, public repos only.
+    """
+    import asyncio
+
+    if dest.exists() and any(dest.iterdir()):
+        return {"cloned": True, "path": str(dest), "note": "already present"}
+    dest.mkdir(parents=True, exist_ok=True)
+    proc = await asyncio.create_subprocess_exec(
+        "git",
+        "clone",
+        "--depth",
+        "1",
+        clone_url,
+        str(dest),
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    try:
+        _, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except TimeoutError:
+        proc.kill()
+        return {"cloned": False, "error": f"clone timeout after {timeout}s"}
+    if proc.returncode != 0:
+        return {"cloned": False, "error": (stderr or b"").decode(errors="replace")[:300]}
+    return {"cloned": True, "path": str(dest)}
+
+
 async def prepare_execution(
     opportunity_key: str,
     store: LiveStore | None = None,
     workspaces_dir: str | Path | None = None,
+    clone: bool = True,
 ) -> dict[str, Any]:
     """Prepare a READY/verified opportunity for assisted execution.
 
@@ -959,6 +991,13 @@ async def prepare_execution(
             evidence["github_repo"] = repo_info
     estimate = estimate_task(opp, issue)
 
+    # Assisted execution step 1: shallow-clone the target repo so the
+    # executor/human works on real code, not just metadata.
+    clone_result: dict[str, Any] | None = None
+    if clone and repo_info and repo_info.get("clone_url") and not repo_info.get("archived"):
+        clone_result = await _clone_repo(repo_info["clone_url"], ws_dir / "repo")
+        evidence["clone"] = clone_result
+
     # Evidence pack — everything the executor/human needs, persisted.
     (ws_dir / "opportunity.json").write_text(__import__("json").dumps({**opp.to_dict(), "raw_keys": list(opp.raw.keys())}, indent=2, default=str))
     lines = [
@@ -995,6 +1034,15 @@ async def prepare_execution(
             f"- Repo: {repo_info['repo']} · Language: {repo_info.get('language')} · Branch: {repo_info.get('default_branch')}",
             f"- Stars: {repo_info.get('stars')} · Open issues: {repo_info.get('open_issues')} · Archived: {repo_info.get('archived')}",
             f"- Clone: `{repo_info.get('clone_url')}`",
+            "",
+        ]
+    if clone_result:
+        lines += [
+            "## Workspace clone",
+            "",
+            f"- Status: {'cloned' if clone_result.get('cloned') else 'FAILED'}",
+            f"- Path: `{clone_result.get('path', 'n/a')}`",
+            f"- Error: {clone_result.get('error', 'none')}",
             "",
         ]
     lines += [
@@ -1036,6 +1084,7 @@ async def prepare_execution(
         "prepared_at": datetime.now(UTC).isoformat(),
         "evidence": evidence,
         "estimate": estimate,
+        "clone": clone_result,
         "approval_required": True,
         "approval": {"approved": False},
     }
@@ -1045,10 +1094,65 @@ async def prepare_execution(
         "workspace": str(ws_dir),
         "status": "in_progress",
         "estimate": estimate,
+        "clone": clone_result,
         "github_issue": issue,
         "github_repo": repo_info,
         "approval_required": True,
     }
+
+
+def draft_payment_inquiry(
+    opportunity_key: str,
+    store: LiveStore | None = None,
+) -> dict[str, Any]:
+    """Draft a private message asking the poster to confirm payment terms.
+
+    Used when eligibility shows no verified Argentina payout path but a
+    fallback (private_message/crypto/Payoneer) exists. The draft asks for
+    amount, currency, fees, timing and method — per the rule: no paid
+    work starts without written payment terms. Nothing is sent.
+    """
+    store = store or LiveStore()
+    opp = store._items.get(opportunity_key)
+    if opp is None:
+        return {"error": f"unknown opportunity: {opportunity_key}"}
+    elig = (opp.raw or {}).get("eligibility") or {}
+    fallbacks_raw = elig.get("payment_fallbacks") or []
+    fallbacks = [fallbacks_raw] if isinstance(fallbacks_raw, dict) else list(fallbacks_raw)
+    advertised = opp.reward if isinstance(opp.reward, (int, float)) else "[CONFIRM]"
+    currency = opp.currency or "[CONFIRM]"
+    if fallbacks:
+        fb0 = fallbacks[0] if isinstance(fallbacks[0], dict) else {}
+        method = str(fb0.get("fallback") or fb0.get("notes") or fallbacks[0])
+    else:
+        method = "[CONFIRM — e.g. crypto/Payoneer/wire]"
+    draft = f"""Hi — I'm interested in this opportunity ({opp.title}).
+
+Before starting, could you confirm the payment terms in writing?
+
+- Amount: {advertised} {currency} (advertised — please confirm final amount)
+- Currency: {currency}
+- Fees / who covers platform or transfer fees: [CONFIRM]
+- Payment timing: [CONFIRM — e.g. on merge, Net-30, milestone]
+- Payment method: {method}
+- Any requirements on my side (invoice, ID, account type): [CONFIRM]
+
+Thanks!
+"""
+    out: dict[str, Any] = {
+        "key": opportunity_key,
+        "platform": opp.platform,
+        "advertised_reward": advertised,
+        "currency": currency,
+        "fallbacks": fallbacks,
+        "draft": draft,
+        "note": "draft only — nothing sent; send manually after human review",
+    }
+    ws = ((opp.raw or {}).get("execution") or {}).get("workspace")
+    if ws and Path(ws).exists():
+        (Path(ws) / "PAYMENT_INQUIRY.md").write_text(draft)
+        out["saved_to"] = str(Path(ws) / "PAYMENT_INQUIRY.md")
+    return out
 
 
 def record_approval(
