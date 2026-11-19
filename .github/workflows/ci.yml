@@ -20,10 +20,10 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-ruff@v2
+      - uses: astral-sh/ruff-action@v4.1.0
         with:
-          version: "0.15"
-      - run: ruff check . --select=E,F,W,I,N,UP,B,SIM
+          version: "0.17.6"
+          args: "check ."
 
   typecheck:
     name: Typecheck (mypy)
@@ -60,20 +60,37 @@ jobs:
   test-core:
     name: Core Tests (parallel, no network)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
       - run: pip install -r requirements.txt -q
-      - name: System deps para Qt offscreen (test_desktop_native)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon0
+      - name: Build frontend artifacts required by packaging tests
+        run: npm ci --silent && npm run build
+      - name: Install recon binaries used by tool-resolution tests
+        run: |
+          go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+          go install github.com/projectdiscovery/katana/cmd/katana@latest
+          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: System deps for desktop tests
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgl1 libxkbcommon0 xvfb
       - env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          python -m pytest -n auto \
+          xvfb-run -a python -m pytest -n auto \
             --ignore=tests/test_security.py \
             --ignore=tests/test_vision_gateway.py \
             --ignore=tests/test_scheduler.py \
@@ -81,7 +98,6 @@ jobs:
             --cov=cores --cov=core --cov-report=term-missing:skip-covered \
             --cov-fail-under=80 \
             --timeout=60 -q tests/
-
   test-frontend:
     name: Frontend (lint + build)
     runs-on: ubuntu-latest
@@ -93,7 +109,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci --silent

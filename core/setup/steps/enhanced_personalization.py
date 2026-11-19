@@ -391,11 +391,10 @@ class EnhancedPersonalizationSystem:
             self.profile.voice_enabled = answers.get("voice_enabled", True)
             self.profile.voice_language = answers.get("voice_language", "es")
 
-        elif step_id == "confirmation":
-            if answers.get("confirm", True):
-                self.profile.completed_onboarding = True
-                self._save_profile()
-                return True
+        elif step_id == "confirmation" and answers.get("confirm", True):
+            self.profile.completed_onboarding = True
+            self._save_profile()
+            return True
 
         self._save_profile()
         return True

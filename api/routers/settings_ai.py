@@ -72,10 +72,9 @@ def update_config(body: AIConfigUpdate):
             updates["devin_model"] = body.model
     elif body.provider_type == "codex" and body.host:
         updates["codex_path"] = body.host
-    elif body.provider_type == "freebuff":
+    elif body.provider_type == "freebuff" and body.host:
         # Agente free: ruta al config yaml.
-        if body.host:
-            updates["freebuff_config_path"] = body.host
+        updates["freebuff_config_path"] = body.host
 
     registry = get_registry()
     provider = registry.set_config(updates)

@@ -79,10 +79,10 @@ export const routes: RouteRecordRaw[] = [
   // ── 1. COMMAND CENTER ──
   {
     // 2026-11-09: '/' = OWNEX Command Center consolidado.
-    // Entry point único: System State + Next Best Action + Opportunities + Income.
+    // Entry point único: MissionControl es la implementación existente del Command Center.
     path: '/',
     name: 'command-center',
-    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/CommandCenter.vue'),
+    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/MissionControl.vue'),
     meta: { title: 'OWNEX Command Center' },
   },
   // Legacy IncomeHome redirect → Command Center
