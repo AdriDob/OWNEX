@@ -50,6 +50,22 @@
 4. **Dispersión frontend**: 82 páginas con dashboards solapados — Fase 2 del megaprompt debe consolidar IA de información, no agregar páginas.
 5. **Duplicación de schedulers** — posible doble ejecución de scans.
 
+## Hallazgos frontend — design system (verificado 2026-11-19)
+
+**Tres sistemas de tokens coexisten:**
+
+| Sistema | Archivo | Estado | Contenido |
+|---|---|---|---|
+| `--ownex-*` | `src/design/tokens.css` (247 líneas) | **SSOT** — directivas owner ("CERO rojo", danger=azul) | Colores, tipografía, espaciado |
+| `--bg/--accent/--glass/--glow/--text-*` | `src/styles/tesla-jarvis-theme.css` (597 líneas) | **CARGADO en main.ts, en uso real** | ~40 vars alternativas — accent rojo/azul, glow effects (contradice tokens.css) |
+| `.ownex-*` classes + vars | `src/styles/ownex-theme.css` (525 líneas) | **MUERTO — no importado** | 139 clases ownex-* |
+
+- Vars tesla-jarvis en uso: `--bg-primary`, `--accent-primary`, `--glass-*`, `--glow-*`, `--text-*` (~70 referencias en vue/ts). Vars `--ownex-*`: 26 distintas también en uso. **Dos namespaces de tokens activos en paralelo.**
+- CSS muerto confirmado: `ownex-theme.css`, `special-effects.css`, `accessibility.css` — ningún import.
+- **Familias de componentes duplicadas**: `ui/Button|Card|Badge|Input` canónicos (~60 usos) vs `ui/Ownex*` (12 archivos, self-styled con `<style>` scoped — renderizan bien, son familia alternativa legacy).
+- Falsos positivos descartados: las 89 clases `ownex-*` "faltantes" pertenecen a los Ownex* components (scoped styles) o a vars `--ownex-*` — no hay rotura visual.
+- **Deuda real**: consolidar tesla-jarvis → tokens.css requiere mapeo var-a-var + QA visual (NO hacer a ciegas — los valores no son idénticos, aliasing cambiaría la apariencia).
+
 ## Siguiente acción recomendada (dependency order)
 
 1. Esperar/resolver consolidación twin-tree (agente) → índice limpio.

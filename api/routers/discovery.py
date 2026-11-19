@@ -571,7 +571,10 @@ async def live_analyze_workspace(opportunity_key: str, run_tests: bool = Query(F
     """
     from cores.opportunity.live_pipeline import analyze_workspace
 
-    return await analyze_workspace(opportunity_key, run_tests=run_tests)
+    result = await analyze_workspace(opportunity_key, run_tests=run_tests)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @router.post("/live/{opportunity_key:path}/status")
@@ -583,11 +586,14 @@ def live_record_external_status(opportunity_key: str, data: dict[str, Any]):
     """
     from cores.opportunity.live_pipeline import record_external_status
 
-    return record_external_status(
+    result = record_external_status(
         opportunity_key,
         status=str(data.get("status", "")),
         evidence=data.get("evidence") or {},
     )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @router.post("/live/{opportunity_key:path}/payment-inquiry")
@@ -595,7 +601,10 @@ def live_payment_inquiry(opportunity_key: str):
     """Draft (never send) a private message confirming payment terms."""
     from cores.opportunity.live_pipeline import draft_payment_inquiry
 
-    return draft_payment_inquiry(opportunity_key)
+    result = draft_payment_inquiry(opportunity_key)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @router.post("/live/{opportunity_key:path}/approve")
@@ -607,12 +616,15 @@ def live_record_approval(opportunity_key: str, data: dict[str, Any]):
     """
     from cores.opportunity.live_pipeline import record_approval
 
-    return record_approval(
+    result = record_approval(
         opportunity_key,
         approved=bool(data.get("approved", False)),
         approved_by=str(data.get("approved_by", "user")),
         note=str(data.get("note", "")),
     )
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
 
 
 @router.post("/live/{opportunity_key:path}/prepare")
@@ -625,4 +637,7 @@ async def live_prepare_execution(opportunity_key: str):
     """
     from cores.opportunity.live_pipeline import prepare_execution
 
-    return await prepare_execution(opportunity_key)
+    result = await prepare_execution(opportunity_key)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
