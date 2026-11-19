@@ -1,13 +1,40 @@
-"""Opire/Opyre Adapter — OSS issue bounties platform (Forge cycle)."""
+"""Opire/Opyre Adapter — OSS issue bounties platform (Forge cycle).
+
+API pública verificada en vivo: GET https://api.opire.dev/rewards (sin auth).
+Cada item es un reward sobre un GitHub issue; ``pendingPrice.value`` viene en
+centavos USD (``unit: "USD_CENT"``). ``claimerUsers``/``tryingUsers`` vacíos
+significan bounty sin competencia — la señal de mayor ROI del ciclo forge.
+"""
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import httpx
 
 from core.credentials.adapter_helpers import load_credentials
 from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
+
+logger = logging.getLogger("ownex.opportunity.adapters.opire")
+
+OPIRE_API_BASE = "https://api.opire.dev"
+
+# Umbrales del ciclo pulse: tarea corta y con recompensa que valga el envío.
+MAX_MICROTASK_HOURS = 4.0
+MIN_MICROTASK_REWARD = 25.0
+
+
+def _reward_usd(item: dict[str, Any]) -> float:
+    """Convert pendingPrice (USD_CENT) to dollars; 0 si ausente o inválido."""
+    price = item.get("pendingPrice") or {}
+    value = price.get("value")
+    if value is None:
+        return 0.0
+    try:
+        return float(value) / 100.0
+    except (TypeError, ValueError):
+        return 0.0
 
 
 class OpireAdapter(OpportunityAdapter):
@@ -22,42 +49,50 @@ class OpireAdapter(OpportunityAdapter):
         self.token = self.config.get("token") or self.config.get("api_key")
 
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch bounties from Opire API."""
+        """Fetch active rewards from the public Opire API."""
         try:
             headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-            async with httpx.AsyncClient() as client:
-                resp = await client.get("https://api.opire.com/v1/bounties", headers=headers, timeout=10)
+            async with httpx.AsyncClient(follow_redirects=True) as client:
+                resp = await client.get(f"{OPIRE_API_BASE}/rewards", headers=headers, timeout=15)
                 if resp.status_code != 200:
+                    logger.warning("Opire API returned %s", resp.status_code)
                     return []
 
                 data = resp.json()
-                bounties = data.get("bounties", data.get("data", []))
+                rewards = data if isinstance(data, list) else data.get("data", [])
 
                 raw_opps: list[RawOpportunity] = []
-                for bounty in bounties[:20]:
+                for reward in rewards[:20]:
+                    claimers = reward.get("claimerUsers") or []
+                    trying = reward.get("tryingUsers") or []
+                    languages = [str(lang).lower() for lang in (reward.get("programmingLanguages") or []) if lang]
+                    project = reward.get("project") or {}
                     raw_opps.append(
                         RawOpportunity(
-                            id=f"opire_{bounty.get('id')}",
-                            name=bounty.get("title") or "Opire Bounty",
-                            description=bounty.get("description") or "",
+                            id=f"opire_{reward.get('id')}",
+                            name=reward.get("title") or "Opire Bounty",
+                            description=(f"Opire reward on {project.get('name', 'GitHub issue')}: {reward.get('title', '')}"),
                             platform="opire",
-                            url=bounty.get("url"),
-                            reward=float(bounty.get("amount", 0)),
-                            effort_hours=float(bounty.get("estimated_hours", 6)),
-                            tags=bounty.get("labels", ["oss", "bounty"]),
+                            url=reward.get("url") or "",
+                            reward=_reward_usd(reward),
+                            effort_hours=float(reward.get("estimatedHours", 6)),
+                            tags=["oss", "bounty", *languages],
                             cycle="forge",
                             source_type="dev_bounty",
                             source_name="opire",
-                            metadata={"original": bounty},
-                            created_at=bounty.get("created_at") or "",
+                            metadata={
+                                "original": reward,
+                                "claimers": len(claimers),
+                                "trying": len(trying),
+                                "uncontested": not claimers and not trying,
+                            },
+                            created_at=str(reward.get("createdAt", "")),
                         )
                     )
 
                 return raw_opps
         except Exception as e:
-            from logging import getLogger
-
-            getLogger("ownex.opportunity.adapters").warning("OpireAdapter fetch failed: %s", e)
+            logger.warning("OpireAdapter fetch failed: %s", e)
             return []
 
 
@@ -73,55 +108,31 @@ class OpyreAdapter(OpportunityAdapter):
         self.token = self.config.get("token") or self.config.get("api_key")
 
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch bounties from Opyre API."""
-        try:
-            headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-            async with httpx.AsyncClient() as client:
-                # Try primary endpoint, fallback to Opire API
-                endpoints = [
-                    "https://api.opyre.com/v1/bounties",
-                    "https://opyre.com/api/bounties",
-                    "https://api.opire.com/v1/bounties",  # fallback to Opire
-                ]
+        """Fetch bounties from the real Opire feed (Opyre era un alias).
 
-                for endpoint in endpoints:
-                    try:
-                        resp = await client.get(endpoint, headers=headers, timeout=10)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            bounties = data.get("bounties", data.get("data", []))
-                            break
-                    except Exception:
-                        continue
-                else:
-                    return []
-
-                raw_opps: list[RawOpportunity] = []
-                for bounty in bounties[:20]:
-                    raw_opps.append(
-                        RawOpportunity(
-                            id=f"opyre_{bounty.get('id', bounty.get('slug'))}",
-                            name=bounty.get("title") or bounty.get("name") or "Opyre Bounty",
-                            description=bounty.get("description") or "",
-                            platform="opyre",
-                            url=bounty.get("url") or bounty.get("link"),
-                            reward=float(bounty.get("amount", bounty.get("reward", 0))),
-                            effort_hours=float(bounty.get("estimated_hours", 5)),
-                            tags=bounty.get("labels", bounty.get("tags", ["oss", "bounty"])),
-                            cycle="forge",
-                            source_type="dev_bounty",
-                            source_name="opyre",
-                            metadata={"original": bounty},
-                            created_at=bounty.get("created_at") or "",
-                        )
-                    )
-
-                return raw_opps
-        except Exception as e:
-            from logging import getLogger
-
-            getLogger("ownex.opportunity.adapters").warning("OpyreAdapter fetch failed: %s", e)
-            return []
+        ``api.opyre.com`` y ``api.opire.com`` no resuelven DNS (verificado).
+        Se delega en el adapter Opire ya verificado en vivo para no devolver
+        listas vacías silenciosas.
+        """
+        opps = await OpireAdapter(self.config).fetch_opportunities(personal)
+        return [
+            RawOpportunity(
+                id=o.id.replace("opire_", "opyre_", 1),
+                name=o.name,
+                description=o.description,
+                platform="opyre",
+                url=o.url,
+                reward=o.reward,
+                effort_hours=o.effort_hours,
+                tags=o.tags,
+                cycle="forge",
+                source_type="dev_bounty",
+                source_name="opyre",
+                metadata=o.metadata,
+                created_at=o.created_at,
+            )
+            for o in opps
+        ]
 
 
 class OpyreMicrotaskAdapter(OpportunityAdapter):
@@ -136,45 +147,29 @@ class OpyreMicrotaskAdapter(OpportunityAdapter):
         self.token = self.config.get("token") or self.config.get("api_key")
 
     async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
-        """Fetch quick-fix micro-tasks from Opyre (low effort, fast payout)."""
-        try:
-            headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    "https://api.opyre.com/v1/tasks/quick",
-                    headers=headers,
-                    params={"max_effort_hours": 4, "min_reward": 25},
-                    timeout=10,
-                )
-                if resp.status_code != 200:
-                    return []
+        """Derive quick-fix micro-tasks from the real Opire feed.
 
-                data = resp.json()
-                tasks = data.get("tasks", data.get("data", []))
-
-                raw_opps: list[RawOpportunity] = []
-                for task in tasks[:15]:
-                    raw_opps.append(
-                        RawOpportunity(
-                            id=f"opyre_micro_{task.get('id')}",
-                            name=f"[Quick] {task.get('title') or 'Opyre Quick Task'}",
-                            description=task.get("description") or "",
-                            platform="opyre_microtask",
-                            url=task.get("url"),
-                            reward=float(task.get("reward", 0)),
-                            effort_hours=float(task.get("time_estimate", 1)),
-                            tags=["quick-fix", "microtask"] + task.get("labels", []),
-                            cycle="pulse",
-                            source_type="microtask",
-                            source_name="opyre_microtask",
-                            metadata={"original": task},
-                            created_at=task.get("created_at") or "",
-                        )
-                    )
-
-                return raw_opps
-        except Exception as e:
-            from logging import getLogger
-
-            getLogger("ownex.opportunity.adapters").warning("OpyreMicrotaskAdapter fetch failed: %s", e)
-            return []
+        ``api.opyre.com`` no resuelve DNS (verificado). En lugar de inventar un
+        endpoint, se filtra el feed real de Opire por bajo esfuerzo y sin
+        competencia — los mismos criterios que la estrategia de primer ingreso.
+        """
+        opps = await OpireAdapter(self.config).fetch_opportunities(personal)
+        quick = [o for o in opps if o.effort_hours <= MAX_MICROTASK_HOURS and o.reward >= MIN_MICROTASK_REWARD]
+        return [
+            RawOpportunity(
+                id=f"opyre_micro_{o.id.removeprefix('opire_')}",
+                name=f"[Quick] {o.name}",
+                description=o.description,
+                platform="opyre_microtask",
+                url=o.url,
+                reward=o.reward,
+                effort_hours=o.effort_hours,
+                tags=["quick-fix", "microtask", *o.tags],
+                cycle="pulse",
+                source_type="microtask",
+                source_name="opyre_microtask",
+                metadata=o.metadata,
+                created_at=o.created_at,
+            )
+            for o in quick[:15]
+        ]

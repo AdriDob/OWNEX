@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -472,3 +473,80 @@ def live_promote_to_workbank(target: int | None = Query(None, ge=1, le=500)):
     from cores.opportunity.live_pipeline import promote_live_to_workbank
 
     return promote_live_to_workbank(target=target)
+
+
+@router.post("/live/ethics-screen")
+def live_ethics_screen():
+    """Reject stored opportunities that fail the ethics blocklist."""
+    from cores.opportunity.live_pipeline import screen_store
+
+    return screen_store()
+
+
+@router.get("/live/connections")
+def live_connections_status():
+    """Connection state per live-opportunity source. Never returns secrets."""
+    from cores.opportunity.live_connections import connection_status
+
+    return connection_status()
+
+
+@router.post("/live/connections/{env_var}")
+def live_connection_set(env_var: str, data: dict[str, Any]):
+    """Store a credential for a managed env var (allowlist enforced)."""
+    from cores.opportunity.live_connections import set_credential
+
+    value = str(data.get("value", ""))
+    result = set_credential(env_var, value)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.delete("/live/connections/{env_var}")
+def live_connection_revoke(env_var: str):
+    """Revoke a managed credential (backs up opportunity.env first)."""
+    from cores.opportunity.live_connections import revoke_credential
+
+    result = revoke_credential(env_var)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+@router.post("/live/connections/test/{source}")
+async def live_connection_test(source: str):
+    """Probe a source's credentials. Only real auth checks set verified=true."""
+    from cores.opportunity.live_connections import test_connection
+
+    return await test_connection(source)
+
+
+@router.post("/live/{opportunity_key:path}/approve")
+def live_record_approval(opportunity_key: str, data: dict[str, Any]):
+    """Record human approval for a prepared opportunity.
+
+    The only gate before any future submission path. Records the decision
+    with timestamp + actor; performs no submission itself.
+    """
+    from cores.opportunity.live_pipeline import record_approval
+
+    return record_approval(
+        opportunity_key,
+        approved=bool(data.get("approved", False)),
+        approved_by=str(data.get("approved_by", "user")),
+        note=str(data.get("note", "")),
+    )
+
+
+@router.post("/live/{opportunity_key:path}/prepare")
+async def live_prepare_execution(opportunity_key: str):
+    """Prepare a live opportunity for assisted execution.
+
+    Fetches public evidence (GitHub issue/PR), creates an isolated
+    workspace with the evidence pack, marks in_progress. Human approval
+    is still required before any claim/submission.
+    """
+    from cores.opportunity.live_pipeline import prepare_execution
+
+    return await prepare_execution(opportunity_key)

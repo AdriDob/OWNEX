@@ -3598,3 +3598,16 @@ Características del Sistema Completo:
 - **API**: `POST /api/discovery/live/promote`.
 - **Nota honesta**: rewards de bug-bounty programs son techos de programa, no payout por tarea; "500 Server Error - Auto Solve hcaptcha" ($20) pasó el filtro — trabajo de captcha-solving éticamente dudoso, revisar antes de ejecutar.
 - **Pendiente**: connection testing, ejecución asistida con aprobación, frontend métricas live, estados submitted/accepted/paid requieren evidencia externa real.
+
+---
+
+## 2026-11-10 — Ethics screen + execution preparation (OPPORTUNITY-TO-REVENUE fase 1)
+
+- **Reconciliación**: 456 = 432 eligibility_checked + 14 expired + 9 ready + 1 discovered. WorkItems 401 < 442 candidatos → 41 rechazados por StrictFilter (unclear_payment/unpaid_mandatory_work) — consistente.
+- **ETHICS_BLOCKLIST**: patrones específicos de abuso/evasión (captcha-solving, credential stuffing, account takeover, ddos, astroturf, paywall bypass). Falsos positivos evitados: "API Security Assessment" con "bypass" legítimo NO se rechaza; "Auto Solve hcapcha" $20 SÍ (auditable: `raw.rejection.matched`).
+- **`screen_store()`** corre en cada `scheduled_live_scan` — rechazos persisten con razón.
+- **`prepare_execution(key)`**: para items READY — fetch de issue/PR público de GitHub (repo, estado, labels, bounty_hint extraído del body), workspace aislado `data/workspaces/<key>/` con `opportunity.json` + `ISSUE.md` (evidence pack + plan template), status → `in_progress`, `approval_required: true`. Cero submissions externas.
+- **Verificado en vivo**: `issuehunt:gh_issuehunt_5768226615` → nw.js PR #8390, bounty $276 extraído del body. NOTA: el PR ya claimea el bounty ("I claim the funded $276") — evidencia muestra trabajo competido, no disponible.
+- **API**: `POST /api/discovery/live/ethics-screen`, `POST /api/discovery/live/{key}/prepare`.
+- **Estados**: `in_progress` ahora usado por primera vez (1 item). `submitted`/`accepted`/`paid` siguen requiriendo evidencia externa.
+- **Pendiente fase 2**: assisted execution real (clone+implement+test), connection testing para los 392 needs_access, revenue ledger con evidencia, frontend live dashboard.

@@ -707,9 +707,345 @@ async def scheduled_live_scan() -> dict[str, Any]:
     """
     try:
         report = await run_live_scan()
+        report["ethics_screen"] = screen_store()
         elig = run_eligibility_check()
         report["eligibility"] = elig
         return report
     except Exception as exc:  # pragma: no cover - scheduler safety
         logger.exception("scheduled_live_scan failed")
         return {"error": str(exc)}
+
+
+# --- Ethics screen + execution preparation ---
+
+# Patterns that disqualify an opportunity regardless of reward: abuse,
+# evasion, or work OWNEX must never automate.
+# Substrings that mark abuse/evasion work. Kept specific: generic terms
+# like "bypass" or "spam" appear legitimately in security assessments.
+ETHICS_BLOCKLIST: tuple[str, ...] = (
+    "solve captcha",
+    "captcha solving",
+    "solve hcaptcha",
+    "solve recaptcha",
+    "hcaptcha",
+    "hcapcha",
+    "recaptcha",
+    "auto solve",
+    "credential stuffing",
+    "account takeover",
+    "ddos attack",
+    "astroturf",
+    "fake reviews",
+    "evade detection",
+    "bypass paywall",
+    "scrape.*bypass",
+)
+
+
+def ethics_screen(opp: LiveOpportunity) -> list[str]:
+    """Return block reasons; empty list = passes the ethics screen."""
+    haystack = f"{opp.title} {opp.description} {' '.join(opp.tags)}".lower()
+    return [p for p in ETHICS_BLOCKLIST if p in haystack]
+
+
+def screen_store(store: LiveStore | None = None) -> dict[str, Any]:
+    """Reject stored items that fail the ethics screen (auditable)."""
+    store = store or LiveStore()
+    rejected = 0
+    for opp in store.all():
+        if opp.status in ("expired", "rejected"):
+            continue
+        reasons = ethics_screen(opp)
+        if reasons:
+            opp.status = "rejected"
+            opp.raw["rejection"] = {"reason": "ethics_screen", "matched": reasons}
+            rejected += 1
+    store.save()
+    return {"rejected": rejected}
+
+
+def _default_workspaces_dir() -> Path:
+    base = os.environ.get("OWNEX_DATA_DIR")
+    root = Path(base) if base else Path(__file__).resolve().parents[2] / "data"
+    return root / "workspaces"
+
+
+_GITHUB_ISSUE_RE = __import__("re").compile(r"github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)", __import__("re").I)
+
+
+async def _fetch_github_issue(url: str) -> dict[str, Any] | None:
+    """Fetch public GitHub issue/PR metadata (no auth needed for public repos)."""
+    import httpx
+
+    m = _GITHUB_ISSUE_RE.search(url)
+    if not m:
+        return None
+    repo, number = m.group(1), m.group(2)
+    kind = "issues" if "/issues/" in url else "pulls"
+    api = f"https://api.github.com/repos/{repo}/{kind}/{number}"
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(api, headers={"Accept": "application/vnd.github+json"})
+            if resp.status_code != 200:
+                return {"error": f"github_api_{resp.status_code}", "repo": repo, "number": number}
+            data = resp.json()
+            return {
+                "repo": repo,
+                "number": int(number),
+                "kind": kind,
+                "title": data.get("title"),
+                "body": (data.get("body") or "")[:8000],
+                "state": data.get("state"),
+                "labels": [label.get("name") for label in data.get("labels", [])],
+                "html_url": data.get("html_url"),
+                "comments": data.get("comments"),
+                "created_at": data.get("created_at"),
+                "bounty_hint": _extract_bounty_amount(data.get("body") or ""),
+            }
+    except Exception as exc:
+        return {"error": str(exc), "repo": repo, "number": number}
+
+
+def _extract_bounty_amount(text: str) -> float | None:
+    """Best-effort bounty amount from issue body (USD markers)."""
+    import re
+
+    for pat in (r"\$\s?(\d[\d,]*)", r"(\d[\d,]*)\s?(?:USD|usd|dollars)"):
+        m = re.search(pat, text)
+        if m:
+            try:
+                return float(m.group(1).replace(",", ""))
+            except ValueError:
+                continue
+    return None
+
+
+_DIFFICULTY_SIGNALS = {
+    "easy": ("good first issue", "good-first-issue", "documentation", "typo", "beginner"),
+    "hard": ("security", "crypto", "performance", "refactor", "breaking"),
+}
+
+
+def estimate_task(opp: LiveOpportunity, issue: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Heuristic difficulty/effort/reward estimate — honest guess, not a promise."""
+    labels = " ".join((issue or {}).get("labels") or []).lower()
+    title = f"{opp.title} {opp.description}".lower()
+    haystack = f"{labels} {title}"
+    if any(s in haystack for s in _DIFFICULTY_SIGNALS["hard"]):
+        difficulty = "hard"
+    elif any(s in haystack for s in _DIFFICULTY_SIGNALS["easy"]):
+        difficulty = "easy"
+    else:
+        difficulty = "medium"
+    effort_hours = {"easy": 1.0, "medium": 4.0, "hard": 12.0}[difficulty]
+    reward = opp.reward if isinstance(opp.reward, (int, float)) else None
+    bounty = (issue or {}).get("bounty_hint")
+    effective_reward = bounty if isinstance(bounty, (int, float)) else reward
+    return {
+        "difficulty": difficulty,
+        "estimated_effort_hours": effort_hours,
+        "advertised_reward": reward,
+        "currency": opp.currency,
+        "bounty_hint": bounty,
+        "effective_reward_usd": effective_reward,
+        "note": "heuristic estimate — actual effort depends on codebase; reward is advertised, not confirmed",
+    }
+
+
+async def _fetch_github_repo(repo: str) -> dict[str, Any] | None:
+    """Public repo metadata for execution planning (no auth)."""
+    import httpx
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{repo}",
+                headers={"Accept": "application/vnd.github+json"},
+            )
+            if resp.status_code != 200:
+                return {"error": f"github_api_{resp.status_code}", "repo": repo}
+            d = resp.json()
+            return {
+                "repo": repo,
+                "language": d.get("language"),
+                "default_branch": d.get("default_branch"),
+                "stars": d.get("stargazers_count"),
+                "open_issues": d.get("open_issues_count"),
+                "archived": d.get("archived"),
+                "clone_url": d.get("clone_url"),
+            }
+    except Exception as exc:
+        return {"error": str(exc), "repo": repo}
+
+
+async def prepare_execution(
+    opportunity_key: str,
+    store: LiveStore | None = None,
+    workspaces_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Prepare a READY/verified opportunity for assisted execution.
+
+    Fetches public issue metadata when the URL is a GitHub issue/PR,
+    creates an isolated workspace with the evidence pack, and marks the
+    opportunity ``in_progress``. No submission, claim, or external write
+    happens here — delivery requires explicit human approval.
+    """
+    store = store or LiveStore()
+    opp = store._items.get(opportunity_key)
+    if opp is None:
+        return {"error": f"unknown opportunity: {opportunity_key}"}
+    if opp.status in ("expired", "rejected"):
+        return {"error": f"opportunity is {opp.status}", "key": opportunity_key}
+
+    reasons = ethics_screen(opp)
+    if reasons:
+        opp.status = "rejected"
+        opp.raw["rejection"] = {"reason": "ethics_screen", "matched": reasons}
+        store.save()
+        return {"error": "ethics_screen", "matched": reasons}
+
+    ws_root = Path(workspaces_dir) if workspaces_dir else _default_workspaces_dir()
+    ws_dir = ws_root / opportunity_key.replace(":", "_").replace("/", "_")
+    ws_dir.mkdir(parents=True, exist_ok=True)
+
+    evidence: dict[str, Any] = {"url": opp.url, "platform": opp.platform}
+    issue: dict[str, Any] | None = None
+    repo_info: dict[str, Any] | None = None
+    if "github.com" in opp.url:
+        issue = await _fetch_github_issue(opp.url)
+        evidence["github_issue"] = issue
+        m = _GITHUB_ISSUE_RE.search(opp.url)
+        if m and issue and not issue.get("error"):
+            repo_info = await _fetch_github_repo(m.group(1))
+            evidence["github_repo"] = repo_info
+    estimate = estimate_task(opp, issue)
+
+    # Evidence pack — everything the executor/human needs, persisted.
+    (ws_dir / "opportunity.json").write_text(__import__("json").dumps({**opp.to_dict(), "raw_keys": list(opp.raw.keys())}, indent=2, default=str))
+    lines = [
+        f"# {opp.title}",
+        "",
+        f"- Platform: {opp.platform}",
+        f"- Reward (advertised): {opp.reward} {opp.currency}",
+        f"- URL: {opp.url}",
+        f"- Status: {opp.status}",
+        f"- Prepared at: {datetime.now(UTC).isoformat()}",
+        "",
+        "## Description",
+        "",
+        opp.description or "(none)",
+        "",
+    ]
+    if issue and not issue.get("error"):
+        lines += [
+            "## GitHub Issue (fetched)",
+            "",
+            f"- Repo: {issue['repo']} · #{issue['number']} ({issue['kind']})",
+            f"- State: {issue['state']} · Labels: {', '.join(issue.get('labels') or [])}",
+            f"- Bounty hint in body: {issue.get('bounty_hint')}",
+            "",
+            "### Body",
+            "",
+            issue.get("body") or "(empty)",
+            "",
+        ]
+    if repo_info and not repo_info.get("error"):
+        lines += [
+            "## Repository (fetched)",
+            "",
+            f"- Repo: {repo_info['repo']} · Language: {repo_info.get('language')} · Branch: {repo_info.get('default_branch')}",
+            f"- Stars: {repo_info.get('stars')} · Open issues: {repo_info.get('open_issues')} · Archived: {repo_info.get('archived')}",
+            f"- Clone: `{repo_info.get('clone_url')}`",
+            "",
+        ]
+    lines += [
+        "## Execution plan",
+        "",
+        f"- Estimated difficulty: **{estimate['difficulty']}** (~{estimate['estimated_effort_hours']}h heuristic)",
+        f"- Advertised reward: {estimate['advertised_reward']} {estimate['currency']} (bounty hint: {estimate['bounty_hint']}) — NOT confirmed income",
+        "",
+        "1. Clone repo / access platform",
+        "2. Reproduce or understand the task",
+        "3. Implement minimal fix/feature",
+        "4. Run tests",
+        "5. Prepare delivery (PR/issue comment/proposal)",
+        "6. **Human approval required before any submission**",
+        "",
+    ]
+    (ws_dir / "ISSUE.md").write_text("\n".join(lines))
+    (ws_dir / "PLAN.md").write_text(
+        __import__("json").dumps(
+            {
+                "estimate": estimate,
+                "steps": [
+                    "clone_or_access",
+                    "reproduce",
+                    "implement",
+                    "test",
+                    "prepare_delivery",
+                    "human_approval",
+                    "submit",
+                ],
+            },
+            indent=2,
+        )
+    )
+
+    opp.status = "in_progress"
+    opp.raw["execution"] = {
+        "workspace": str(ws_dir),
+        "prepared_at": datetime.now(UTC).isoformat(),
+        "evidence": evidence,
+        "estimate": estimate,
+        "approval_required": True,
+        "approval": {"approved": False},
+    }
+    store.save()
+    return {
+        "key": opportunity_key,
+        "workspace": str(ws_dir),
+        "status": "in_progress",
+        "estimate": estimate,
+        "github_issue": issue,
+        "github_repo": repo_info,
+        "approval_required": True,
+    }
+
+
+def record_approval(
+    opportunity_key: str,
+    approved: bool,
+    approved_by: str = "user",
+    note: str = "",
+    store: LiveStore | None = None,
+) -> dict[str, Any]:
+    """Record the human approval decision for a prepared opportunity.
+
+    This is the ONLY gate before any future submission path. Approval is
+    recorded with timestamp + actor; it does not submit anything itself.
+    """
+    store = store or LiveStore()
+    opp = store._items.get(opportunity_key)
+    if opp is None:
+        return {"error": f"unknown opportunity: {opportunity_key}"}
+    execution = opp.raw.get("execution") or {}
+    if not execution.get("workspace"):
+        return {"error": "opportunity not prepared", "key": opportunity_key}
+    execution["approval"] = {
+        "approved": bool(approved),
+        "approved_by": approved_by,
+        "note": note,
+        "at": datetime.now(UTC).isoformat(),
+    }
+    opp.raw["execution"] = execution
+    # Mirror approval into the workspace evidence pack.
+    ws = Path(execution["workspace"])
+    if ws.exists():
+        (ws / "APPROVAL.json").write_text(__import__("json").dumps(execution["approval"], indent=2))
+    store.save()
+    return {
+        "key": opportunity_key,
+        "approved": bool(approved),
+        "approved_by": approved_by,
+        "note": "approval recorded; no submission performed",
+    }

@@ -352,3 +352,163 @@ class TestWorkbankPromotion:
         n = mark_ready_from_workbank([SimpleNamespace(id="live:algora:1")], store)
         assert n == 1
         assert store.all(status="ready")
+
+
+class TestEthicsAndPrepare:
+    def test_ethics_screen_catches_captcha(self):
+        from cores.opportunity.live_pipeline import ethics_screen
+
+        opp = LiveOpportunity(id="1", platform="opire", adapter="a", title="Auto Solve hcapcha", url="u")
+        assert ethics_screen(opp)
+
+    def test_ethics_screen_allows_security_work(self):
+        from cores.opportunity.live_pipeline import ethics_screen
+
+        opp = LiveOpportunity(id="1", platform="hackerone", adapter="a", title="API Security Assessment - auth bypass testing", url="u")
+        assert ethics_screen(opp) == []
+
+    def test_prepare_execution_marks_in_progress(self, store, tmp_path):
+        import asyncio
+
+        from cores.opportunity.live_pipeline import prepare_execution
+
+        opp = _to_live("algora", _raw())
+        assert opp is not None
+        opp.status = "ready"
+        store.upsert(opp)
+        result = asyncio.run(prepare_execution(opp.dedup_key(), store, tmp_path))
+        assert result["status"] == "in_progress"
+        assert (tmp_path / result["workspace"].split("/")[-1] / "ISSUE.md").exists()
+        assert store.all(status="in_progress")
+
+    def test_prepare_rejects_ethics_blocked(self, store, tmp_path):
+        import asyncio
+
+        from cores.opportunity.live_pipeline import prepare_execution
+
+        opp = LiveOpportunity(id="1", platform="opire", adapter="a", title="Solve hcaptcha for pay", url="u", status="ready")
+        store.upsert(opp)
+        result = asyncio.run(prepare_execution(opp.dedup_key(), store, tmp_path))
+        assert result["error"] == "ethics_screen"
+        assert store.all(status="rejected")
+
+    def test_prepare_writes_plan_and_estimate(self, store, tmp_path):
+        import asyncio
+        import json
+
+        from cores.opportunity.live_pipeline import LiveOpportunity, prepare_execution
+
+        opp = LiveOpportunity(
+            id="p1",
+            platform="issuehunt",
+            adapter="a",
+            title="Fix good first issue: typo in docs",
+            url="https://example.com/task",
+            reward=50.0,
+            currency="USD",
+        )
+        store.upsert(opp)
+        result = asyncio.run(prepare_execution(opp.dedup_key(), store, tmp_path))
+        assert result["estimate"]["difficulty"] == "easy"
+        ws = tmp_path / result["workspace"].split("/")[-1]
+        plan = json.loads((ws / "PLAN.md").read_text())
+        assert plan["estimate"]["effective_reward_usd"] == 50.0
+        assert "human_approval" in plan["steps"]
+
+    def test_record_approval_gate(self, store, tmp_path):
+        import asyncio
+        import json
+
+        from cores.opportunity.live_pipeline import LiveOpportunity, prepare_execution, record_approval
+
+        opp = LiveOpportunity(id="a1", platform="opire", adapter="a", title="Fix parser bug", url="https://x.test/i")
+        store.upsert(opp)
+        asyncio.run(prepare_execution(opp.dedup_key(), store, tmp_path))
+
+        res = record_approval(opp.dedup_key(), approved=True, approved_by="adriel", store=store)
+        assert res["approved"] is True
+        approval = store._items[opp.dedup_key()].raw["execution"]["approval"]
+        assert approval["approved"] is True and approval["approved_by"] == "adriel"
+        ws = tmp_path / store._items[opp.dedup_key()].raw["execution"]["workspace"].split("/")[-1]
+        assert json.loads((ws / "APPROVAL.json").read_text())["approved"] is True
+
+        # unprepared opportunity cannot be approved
+        other = LiveOpportunity(id="a2", platform="opire", adapter="a", title="x", url="u2")
+        store.upsert(other)
+        assert "error" in record_approval(other.dedup_key(), True, store=store)
+
+
+class TestLiveConnections:
+    def test_status_never_leaks_values(self, monkeypatch, tmp_path):
+        import cores.opportunity.live_connections as lc
+
+        env = tmp_path / "opportunity.env"
+        env.write_text("GITHUB_TOKEN=secretvalue123\nUNKNOWN_KEY=keepme\n# comment\n")
+        monkeypatch.setattr(lc, "ENV_FILE", env)
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+        out = lc.connection_status()
+        assert "secretvalue123" not in str(out)
+        gh = next(s for s in out["sources"] if s["source"] == "github_bounties")
+        assert gh["state"] == "configured"
+        assert gh["env_vars"] == [{"name": "GITHUB_TOKEN", "configured": True}]
+        assert out["env_file_exists"] is True
+
+    def test_set_and_revoke_roundtrip(self, monkeypatch, tmp_path):
+        import cores.opportunity.live_connections as lc
+
+        env = tmp_path / "opportunity.env"
+        monkeypatch.setattr(lc, "ENV_FILE", env)
+        monkeypatch.setattr(lc, "ENV_BACKUP", tmp_path / "opportunity.env.bak")
+        for var in ("GITHUB_TOKEN", "ALGORA_API_KEY"):
+            monkeypatch.delenv(var, raising=False)
+
+        assert lc.set_credential("GITHUB_TOKEN", "tok123")["stored"] is True
+        assert "GITHUB_TOKEN=tok123" in env.read_text()
+        assert oct(env.stat().st_mode & 0o777) == "0o600"
+
+        # unknown var rejected
+        assert "error" in lc.set_credential("RANDOM_VAR", "x")
+
+        # revoke removes it, keeps other lines
+        env.write_text("GITHUB_TOKEN=tok123\n# note\nOPIRE_API_KEY=op\n")
+        res = lc.revoke_credential("GITHUB_TOKEN")
+        assert res["revoked"] is True
+        assert "GITHUB_TOKEN" not in env.read_text()
+        assert "OPIRE_API_KEY=op" in env.read_text()
+        assert "# note" in env.read_text()
+        assert (tmp_path / "opportunity.env.bak").exists()
+
+    def test_revoke_process_env_refused(self, monkeypatch, tmp_path):
+        import cores.opportunity.live_connections as lc
+
+        env = tmp_path / "opportunity.env"
+        monkeypatch.setattr(lc, "ENV_FILE", env)
+        monkeypatch.setenv("GITHUB_TOKEN", "fromprocess")
+        env.write_text("GITHUB_TOKEN=fromfile\n")
+        res = lc.revoke_credential("GITHUB_TOKEN")
+        assert res["revoked"] is False
+        assert "process environment" in res["detail"]
+
+    def test_placeholder_tokens_not_configured(self, monkeypatch, tmp_path):
+        import cores.opportunity.live_connections as lc
+
+        env = tmp_path / "opportunity.env"
+        env.write_text("GITHUB_TOKEN=your_token_here\n")
+        monkeypatch.setattr(lc, "ENV_FILE", env)
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+        out = lc.connection_status()
+        gh = next(s for s in out["sources"] if s["source"] == "github_bounties")
+        assert gh["state"] != "configured"
+
+    def test_probe_no_impl_is_honest(self, monkeypatch, tmp_path):
+        import asyncio
+
+        import cores.opportunity.live_connections as lc
+
+        env = tmp_path / "opportunity.env"
+        env.write_text("ALGORA_API_KEY=abc\n")
+        monkeypatch.setattr(lc, "ENV_FILE", env)
+        monkeypatch.delenv("ALGORA_API_KEY", raising=False)
+        res = asyncio.run(lc.test_connection("algora"))
+        assert res["verified"] is False
+        assert "no auth probe" in res["detail"]
