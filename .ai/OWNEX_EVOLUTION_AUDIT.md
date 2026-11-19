@@ -73,3 +73,14 @@
 3. Correr suite completa → nuevo baseline verde.
 4. Phase 2: design tokens + consolidación de navegación (Command Center como hub único).
 5. Phase 4: Connection Manager operacional con 3-5 plataformas completas (HIT0).
+
+## Bloqueos activos del agente (diagnosticados 2026-11-19, NO tocar — son suyos)
+
+Suite completa post-fix-version: **5743 passed / 27 failed / 45 errors** — todos en áreas del WIP del agente:
+
+1. **`test_learning.py` (19F+19E)**: `database/models.py` (WIP agente) define `InvestigatorProfile`/`LearningEvent`/etc. sobre el mismo `Base` que `cores/learning/profile.py` → `Table already defined`. Dirección aparente del agente: consolidar modelos en `database.models` → entonces `profile.py` debe dejar de definirlos (pero tiene store logic propia — conflicto de schema real: `user_id` String vs Integer FK).
+2. **`test_trading_intelligence.py` (1F+26E)**: `cores/trading/*` en estado UD unmerged — agente moviendo/borrando.
+3. **`test_scheduler.py` (6F)**: `cores/targets/models.py` fue reemplazado por shim `from database.models import Scope, TargetIntel` — pero `database.models.TargetIntel` es OTRA clase (tabla `targets_intel` con `target_id` FK non-null, SIN `name`/`domain`) vs la original de HEAD (con `name`, `domain`, `target_id` nullable). **Colisión de nombre mismo-schema-diferente — exactamente el failure mode del ADR-0002.** `api/scheduler.py:547` usa `.domain` → AttributeError. Fix correcto: o `database.models.TargetIntel` debe tener los campos de HEAD, o el shim debe apuntar al modelo correcto.
+4. **`test_stability.py` (1F)**: shape del status — revisar post-consolidación.
+
+Mi lane (`test_live_pipeline.py`): **54/54 verde**. Version SSOT arreglado (`core/version.py` 7.0.0→9.0.0, commit `e58f87d7`).
