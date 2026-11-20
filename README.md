@@ -46,7 +46,7 @@ These are arithmetic scenarios, not expected earnings or promises. They assume t
 
 Current public examples illustrate the gap between advertised rates and eligibility:
 - Outlier's current coding-community listing includes Argentina and PayPal/AirTM, but requires expertise or professional experience and identity/skills validation; projects and hours vary. [Current coding community](https://app.outlier.ai/opportunities/4705643005)
-- OpenTrain AI advertises per-task coding work for Argentina, but its listings require hands-on backend expertise and professional English; one recruitment listing also describes a conversational AI interview and coding challenge. It is **not** classified as interview-free or beginner-eligible. [OpenTrain AI role](https://www.opentrain.ai/jobs/backend-software-engineer-for-ai-coding-tasks--cmv7ep1jl000502o277l5i2xq7/)
+- OpenTrain AI advertises per-task coding work for Argentina, but its listings require hands-on backend expertise and professional English; one recruitment listing also describes a conversational AI interview and coding challenge. It is **not** classified as interview-free or beginner-eligible. [OpenTrain AI role](https://www.opentrain.ai/jobs) (listing archived; link points at their current openings)
 
 OWNEX must keep **POTENTIAL**, **EXPECTED**, **APPROVED**, **PENDING**, **PAID**, **WITHDRAWN**, and **EXTERNALLY_VERIFIED** separate. Do not show scenario totals as money earned.
 
