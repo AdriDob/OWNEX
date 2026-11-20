@@ -14,7 +14,11 @@ logger = logging.getLogger("ownex.adapters.forge.algora")
 # api.algora.xyz is dead (TLS mismatch); api.algora.io is the documented
 # host. Unauthenticated /v1/bounties currently 404s — ALGORA_API_KEY may be
 # required. GitHub Algora bounties are still captured via github_bounties.
-API_BASE = "https://api.algora.io/v1"
+API_BASE = "https://console.algora.io/api/trpc"
+# api.algora.io/v1 now 301s to algora.io which answers 406; the public
+# bounty list moved behind console.algora.io tRPC (bounty.list). It
+# currently returns empty items without auth — Algora bounties are
+# primarily harvested via github_bounties (GitHub issue labels).
 
 
 async def fetch_opportunities() -> list[dict[str, Any]]:
@@ -27,17 +31,22 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
 
         async with httpx.AsyncClient() as client:
             resp = await client.get(
-                f"{API_BASE}/bounties",
+                f"{API_BASE}/bounty.list",
                 headers=headers,
-                params={"status": "open", "limit": 20},
+                params={"input": '{"json":{"status":"open","limit":20}}'},
                 timeout=15,
             )
             if resp.status_code != 200:
                 logger.warning(f"Algora API returned {resp.status_code}")
                 return []
 
-            data = resp.json()
-            bounties = data.get("bounties", data.get("data", []))
+            payload = resp.json()
+            # tRPC envelope: [{"result": {"data": {"json": {"items": [...]}}}}]
+            try:
+                data = payload[0]["result"]["data"]["json"]
+            except (KeyError, IndexError, TypeError):
+                data = payload if isinstance(payload, dict) else {}
+            bounties = data.get("items", data.get("bounties", data.get("data", [])))
 
             results = []
             for bounty in bounties[:20]:

@@ -32,6 +32,10 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
             if resp.status_code != 200:
                 logger.warning(f"IssueHunt API returned {resp.status_code}")
                 return []
+            if "json" not in resp.headers.get("content-type", ""):
+                # Public REST API retired — endpoint now serves the SPA shell.
+                logger.warning("IssueHunt API returns HTML (endpoint retired); skipping")
+                return []
 
             data = resp.json()
             issues = data.get("issues", data.get("data", []))
