@@ -136,3 +136,8 @@ graft/
 
 # Playwright browser binaries downloaded by the test tooling (656 MB)
 .playwright-browsers/
+
+# Agent scratch/backup artifacts
+*.orig
+*.orig2
+*.backup
