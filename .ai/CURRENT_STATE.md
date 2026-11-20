@@ -3641,3 +3641,10 @@ Características del Sistema Completo:
 - **Saturation factor** (`b62d0c9d`): `score_opportunity` descuenta reward component por `submission_count` real (>10k ×0.5, >2k ×0.75, >500 ×0.9) — expuesto en `breakdown.competition_saturation`. Top ranking ahora premia baja competencia: roblox-brainrot (241 subs) 94.0 vs chess-engine (22k) 81.5.
 - **HIT0 package**: `/home/adriel/projects/makefun-news-20261120/` — deliverable completo para `news-image-20261120` ($250, deadline 22-nov 00:00 UTC): entry.png determinista 1024²/126KiB, main.py, news.json (BBC+HN reales), LICENSE MIT, SUBMISSION.md checklist. Falta solo: push repo público + cuenta make.fun + transcript bundle (decisión de harness del usuario).
 - **Pendiente**: adapters algora/issuehunt/opencollective requieren endpoints nuevos o credenciales; cadencia de nuevos news-image diarios (21, 22-nov) permite reintentar HIT0 aunque el actual no se envíe.
+
+## 2026-11-20 (noche) — fetcher repairs round 2
+
+- **Algora** (`a6654e71`): migrado a `console.algora.io/api/trpc/bounty.list` con parsing del envelope tRPC. Devuelve vacío sin auth hoy — las opportunities de Algora siguen entrando vía `github_bounties` (labels GitHub).
+- **IssueHunt**: guard de content-type — la API pública ahora sirve el SPA (HTML); skip limpio con diagnóstico en vez de JSON exception.
+- **Restantes**: onlydust 530 (infra caída upstream — nada que hacer), opencollective 404 (REST muerto; GraphQL existe pero budgets≠tasks — baja prioridad), immunefi/cantina/sherlock/code4rena/codehawks 0 resultados (credential-gated, esperado).
+- **Próximo make.fun**: news-image-20261121 abre 21-nov 00:00 UTC (~16h) — mismo playbook que el package de ayer, deadline 23-nov 00:00 UTC.
