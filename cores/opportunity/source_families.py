@@ -38,6 +38,7 @@ class SourceFamily(StrEnum):
     DEVOPS_CLOUD_TASKS = "devops_cloud_tasks"
     DATA_ENGINEERING_TASKS = "data_engineering_tasks"
     BROWSER_AUTOMATION_GIGS = "browser_automation_gigs"
+    AGENT_NATIVE_MARKETS = "agent_native_markets"
 
 
 SOURCE_FAMILY_TO_CANONICAL: dict[SourceFamily, OpportunityCategory] = {
@@ -48,6 +49,7 @@ SOURCE_FAMILY_TO_CANONICAL: dict[SourceFamily, OpportunityCategory] = {
     SourceFamily.DEVOPS_CLOUD_TASKS: OpportunityCategory.DEVOPS,
     SourceFamily.DATA_ENGINEERING_TASKS: OpportunityCategory.DATA_ENGINEERING,
     SourceFamily.BROWSER_AUTOMATION_GIGS: OpportunityCategory.BROWSER_AUTOMATION,
+    SourceFamily.AGENT_NATIVE_MARKETS: OpportunityCategory.DEV_BOUNTY,
 }
 
 # Research leads per family. These are candidates to verify, not catalogued
@@ -76,6 +78,12 @@ SOURCE_FAMILY_CANDIDATES: dict[SourceFamily, tuple[str, ...]] = {
     SourceFamily.DEVOPS_CLOUD_TASKS: ("Kubernetes community tasks", "Terraform registry bounties", "Cloud migration gigs"),
     SourceFamily.DATA_ENGINEERING_TASKS: ("Kaggle", "DrivenData", "Zindi", "AIcrowd", "data pipeline bounties"),
     SourceFamily.BROWSER_AUTOMATION_GIGS: ("Playwright automation gigs", "Selenium automation gigs", "BrowserFlow", "Steel.dev"),
+    SourceFamily.AGENT_NATIVE_MARKETS: (
+        "Clustly",
+        "Agent Hansa",
+        "Daydreams TaskMarket",
+        "AgentPact (archived 2026-11-16 — do not onboard)",
+    ),
 }
 
 _FAMILY_KEYWORDS: dict[SourceFamily, tuple[str, ...]] = {
@@ -160,6 +168,15 @@ _FAMILY_KEYWORDS: dict[SourceFamily, tuple[str, ...]] = {
         "web automation",
         "ui automation",
         "rpa",
+    ),
+    SourceFamily.AGENT_NATIVE_MARKETS: (
+        "clustly",
+        "agent hansa",
+        "agenthansa",
+        "taskmarket",
+        "agent-native",
+        "ai agent marketplace",
+        "agent task market",
     ),
 }
 

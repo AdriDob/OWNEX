@@ -44,8 +44,10 @@ CATALOG_LISTS = {
 #: added here deliberately instead of arriving as a typo or a stray enum value.
 DOCUMENTED_TYPES = frozenset({"aggregator", "api", "direct_api", "direct_message", "forum", "job_board", "platform"})
 
-#: Documented ``SourceDefinition.apply_method`` values.
-DOCUMENTED_APPLY_METHODS = frozenset({"profile_only", "profile_email"})
+#: Documented ``SourceDefinition.apply_method`` values. ``api`` covers
+#: agent-native registrations (Clustly/AgentHansa/TaskMarket) per the
+#: field contract in global_sources.py.
+DOCUMENTED_APPLY_METHODS = frozenset({"profile_only", "profile_email", "api"})
 
 
 def _all_sources() -> list[SourceDefinition]:

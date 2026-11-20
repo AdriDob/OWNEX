@@ -632,6 +632,21 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
         priority=3,
         tags=["cve", "database", "intelligence"],
     ),
+    SourceDefinition(
+        "Google OSS VRP",
+        "https://bughunters.google.com",
+        OpportunityCategory.bug_bounty,
+        "Google Open Source Software Vulnerability Reward Program. Paid reports for vulnerabilities in Google OSS and supply-chain issues; rewards documented USD 500-31k+. Requires a real, reproducible vulnerability — no hiring funnel, submit via Bug Hunters.",
+        "platform",
+        "profile_only",
+        quality_score=0.90,
+        requires_portfolio=False,
+        requires_experience=True,
+        priority=7,
+        estimated_payout_range="USD 500-31,337 per qualifying report",
+        tags=["vrp", "oss", "supply-chain", "google", "security"],
+        last_verified="2026-11-20",
+    ),
 ]
 
 # ═══════════════════════════════════════════════
@@ -1505,6 +1520,96 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
         requires_portfolio=False,
         priority=2,
         tags=["web3", "remote", "aggregator", "dev"],
+    ),
+    # ── Agent-native task markets & OSS reward rails (verified 2026-11-20) ──
+    SourceDefinition(
+        "Drips",
+        "https://www.drips.network",
+        OpportunityCategory.dev_bounty,
+        "Open-source contribution rewards platform. Curated issues from OSS ecosystems earn points convertible to payouts in recurring Waves (e.g. Stellar Wave). Requires KYC and a short application to the maintainer — no traditional employment funnel.",
+        "platform",
+        "profile_only",
+        quality_score=0.60,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=6,
+        estimated_payout_range="points→pool share per Wave; varies by contributions",
+        tags=["oss", "grants", "waves", "kyc", "open-source"],
+        last_verified="2026-11-20",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Stacker News",
+        "https://stacker.news",
+        OpportunityCategory.dev_bounty,
+        "Bitcoin/Lightning community with informal bounty posts (sats/zaps) on its own repo and ecosystem projects. GraphQL API at /api/graphql is live. Informal, community-driven — no structured escrow or guaranteed payouts.",
+        "forum",
+        "profile_only",
+        quality_score=0.38,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=4,
+        argentina_ok=True,
+        estimated_payout_range="BTC Lightning zaps; informal amounts",
+        tags=["bitcoin", "lightning", "bounties", "community", "api"],
+        last_verified="2026-11-20",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Clustly",
+        "https://clustly.ai",
+        OpportunityCategory.dev_bounty,
+        "Agent-native task marketplace: AI agents register via one POST (no KYC), claim tasks, deliver results, get paid in USDC escrow on Solana (4% fee). REST API + MCP documented. NOTE: api/v1/tasks/open returned DEPLOYMENT_DISABLED on 2026-11-20 verification — platform emerging, demand unproven.",
+        "direct_api",
+        "api",
+        quality_score=0.50,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=6,
+        argentina_ok=True,
+        estimated_payout_range="USDC per task; examples USD 40-240 claimed by directory",
+        tags=["agent-native", "usdc", "solana", "escrow", "mcp", "emerging"],
+        last_verified="2026-11-20",
+        source_family="agent_native_markets",
+    ),
+    SourceDefinition(
+        "Agent Hansa",
+        "https://www.agenthansa.com",
+        OpportunityCategory.dev_bounty,
+        "Agent commercial mesh: agents register via REST API or `npx agent-hansa-mcp`, claim quests/tasks, deliver work, earn USDC on Base. No KYC. Competitive quests (~70% pool to winning alliance) and collaborative tasks. Public llms-full.txt agent docs; live task volume unverified.",
+        "direct_api",
+        "api",
+        quality_score=0.50,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=6,
+        argentina_ok=True,
+        estimated_payout_range="USDC quest pools; third-party reports USD 25-200+ per quest",
+        tags=["agent-native", "usdc", "base", "quests", "mcp", "emerging"],
+        last_verified="2026-11-20",
+        source_family="agent_native_markets",
+    ),
+    SourceDefinition(
+        "Daydreams TaskMarket",
+        "https://taskmarket.dev",
+        OpportunityCategory.dev_bounty,
+        "Onchain task market (ERC-8195 TMP draft): bounty/claim/pitch/benchmark/auction modes, USDC escrow on Base (OUSD on Tempo), ERC-8004 agent identity (free registration sponsored). API api.taskmarket.dev health-verified 200 on 2026-11-20. Worker reputation gate for top tiers; micropayment-scale volume so far.",
+        "direct_api",
+        "api",
+        quality_score=0.55,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=7,
+        argentina_ok=True,
+        estimated_payout_range="USDC per accepted job; reputation-gated tiers",
+        tags=["agent-native", "usdc", "base", "erc8004", "escrow", "emerging"],
+        last_verified="2026-11-20",
+        source_family="agent_native_markets",
     ),
 ]
 
@@ -2445,7 +2550,6 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
 # ═══════════════════════════════════════════════
 
 
-
 # ══════════════════════════════════════════════
 # CATEGORY 5: QA TESTING — curated 2026-11-19
 # Quality assurance, functional testing, and bug bounty platforms
@@ -2569,7 +2673,6 @@ _ALL_CATEGORIES = {
     OpportunityCategory.web3_audits: WEB3_AUDITS_SOURCES,
     OpportunityCategory.junior_jobs: JUNIOR_JOBS_SOURCES,
 }
-
 
 
 def get_base_sources(category: OpportunityCategory | None = None) -> list[SourceDefinition]:

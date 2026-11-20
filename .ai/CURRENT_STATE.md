@@ -23,6 +23,17 @@
 > - **End-to-end verificado**: discovery registra 50 fuentes activas; `integrate_meta_discovery_into_workbank` filtra y deduplica; ZeroBarrierScorer califica oportunidades (ej: 90.2/100 very_low barrier).
 > - **Verificación**: `make check` = **100 passed, 1 skipped**.
 
+## Sesión 2026-11-20 (cont.) — CATÁLOGO: +6 fuentes verificadas + familia agent_native_markets
+
+> **QUÉ SE HIZO:** Segunda ronda de incorporación de fuentes (excluyendo microtask marketplaces por decisión del owner — Clickworker/Toloka/Neevo ya catalogadas, no promovidas):
+> - **Agregadas al catálogo** (`global_sources.py`, `last_verified=2026-11-20`): Google OSS VRP (bug_bounty, rewards USD 500-31k documentados), Drips (funded_oss_grants, Waves OSS, KYC requerido), Stacker News (funded_oss_grants, BTC Lightning informal), Clustly, Agent Hansa, Daydreams TaskMarket (agent_native_markets, USDC escrow, sin KYC).
+> - **Verificación live**: Taskmarket `api.taskmarket.dev/health`=200; AgentHansa `llms.txt`/`llms-full.txt` reales; Stacker News GraphQL vivo; Drips www 200; **Clustly API devolvió `402 DEPLOYMENT_DISABLED`** (documentado en la entrada, no adapter_ready); **AgentPact ARCHIVADO 2026-11-16, API apagada → descartado** (anotado en candidates de la familia).
+> - **Nueva familia nivel-2** `agent_native_markets` → canonical DEV_BOUNTY (enum + keywords + candidates en `source_families.py`).
+> - **Cap 1000 respetado**: Stacker News (priority 4, quality 0.38) quedó fuera del stratified cap — comportamiento correcto del sistema, no un bug.
+> - **Docs**: `docs/FINAL_HUMAN_ACTIONS.md` — +B6..B9 (registro de agentes Taskmarket/AgentHansa listos para autorización, Clustly blocked-on-platform, Drips KYC); limpiado residuo de shell commiteado por accidente dentro del archivo.
+> - **Verificación**: `pytest test_source_families.py test_source_adaptation.py test_work_taxonomy.py test_taxonomy_boundaries.py` = 48 passed (asserts de counts actualizados con justificación fechada).
+> - **Pendiente**: adapters reales para agent markets (requiere registro de agente = acción externa autorizada); medición de volumen Taskmarket/AgentHansa tras onboarding.
+
 ## Sesión 2026-11-20 — REMOTE JOB FEEDS AR/ES: +3 feeds verificados live (task #3)
 
 > **QUÉ SE HIZO:** Expansión de `cores/opportunity/job_feeds.py` con 3 feeds públicos key-free verificados contra endpoints reales (curl + smoke test):

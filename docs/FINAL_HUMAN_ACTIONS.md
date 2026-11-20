@@ -74,6 +74,10 @@
 | B3 | Credenciales de plataformas en el vault de OWNEX (nunca en `.env` commiteado) | Todas | BLOCKED_ON_USER |
 | B4 | Wallet Solana para recibir USDC de make.fun/crypto platforms | Solana | BLOCKED_ON_USER — **guardarla fuera del repo, jamás commitear seed phrase** |
 | B5 | PayPal/Payoneer verificado como método de retiro | Pagos | BLOCKED_ON_USER |
+| B6 | Autorizar registro de agente OWNEX en Taskmarket (Daydreams) — POST de registro ERC-8004, sin KYC, identidad onchain gratuita | Taskmarket | READY_FOR_AUTHORIZATION — OWNEX puede ejecutarlo con un POST; requiere tu wallet/base account |
+| B7 | Autorizar registro de agente en Agent Hansa (`POST /api/agents/register` o `npx agent-hansa-mcp register`) — sin KYC, USDC Base | Agent Hansa | READY_FOR_AUTHORIZATION |
+| B8 | Evaluar Clustly — API devolvió `DEPLOYMENT_DISABLED` el 2026-11-20; reintentar más adelante antes de registrar | Clustly | BLOCKED_ON_PLATFORM |
+| B9 | Drips — requiere KYC + solicitud al maintainer por Wave; decidir si se completa verificación de identidad | Drips | BLOCKED_ON_USER |
 
 ---
 
@@ -100,6 +104,7 @@
 - Revenue ledger: separa announced/expected/approved/pending/paid/withdrawn
 - Backend: 1366 rutas, health OK · Frontend: build OK · Suite: 5800 tests verdes
 - Entregable HIT0 make.fun construido y conforme a reglas
+- Catálogo de fuentes: +6 agregadas 2026-11-20 (Google OSS VRP, Drips, Stacker News, Clustly, Agent Hansa, Daydreams TaskMarket); 5/6 activas en catálogo (Stacker News quedó fuera del cap de 1000 por prioridad); nueva familia `agent_native_markets`; AgentPact descartado (archivado 2026-11-16, API apagada); microtask marketplaces excluidos por decisión del owner
 
 ## Regla permanente
 
@@ -107,7 +112,4 @@
 > El sistema prepara todo hasta el último paso seguro y espera.
 > Ingreso verificado = USD 0.00 hasta que exista evidencia externa.
 
-*Última actualización: 2026-11-20 — baseline `e62bdaaf`*
-*GENERATED WITH DEVIN*
-EOF
-cd /home/adriel/projects/Rastro && git add docs/FINAL_HUMAN_ACTIONS.md && git commit --no-verify -m "docs: FINAL_HUMAN_ACTIONS — complete pending-actions register" -m "Generated with [Devin](https://devin.ai)" -m "Co-Authored-By: Devin <158243242+devin-ai-integration[bot]@users.noreply.github.com>" 2>&1 | tail -2
+*Última actualización: 2026-11-20 — main `3c6130cb`+ (post-feeds/catalog commits)*
