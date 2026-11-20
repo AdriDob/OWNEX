@@ -83,13 +83,16 @@ class BugcrowdAdapter(OpportunityAdapter):
                         continue
 
                     code = item.get("code", item.get("slug", item.get("handle", name.lower().replace(" ", "-"))))
-                    max_payout = item.get("max_payout", 0)
-                    managed = item.get("managed_by_bugcrowd", False)
+                    try:
+                        max_payout = float(item.get("max_payout") or 0)
+                    except (TypeError, ValueError):
+                        max_payout = 0.0
+                    managed = bool(item.get("managed_by_bugcrowd", False))
 
                     domains: list[str] = []
                     wildcards: list[str] = []
-                    targets = item.get("targets", {})
-                    for asset in targets.get("in_scope", []):
+                    targets = item.get("targets") or {}
+                    for asset in targets.get("in_scope") or []:
                         asset_id = asset.get("target", asset.get("asset_identifier", ""))
                         if asset_id:
                             if asset_id.startswith("*."):

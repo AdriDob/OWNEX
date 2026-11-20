@@ -40,6 +40,8 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
 
             data = resp.json()
             projects = data.get("result", data.get("projects", []))
+            if not isinstance(projects, list):
+                projects = []
 
             results = []
             for project in projects[:20]:
