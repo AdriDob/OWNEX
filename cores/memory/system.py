@@ -9,9 +9,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import create_engine
-
-from database.db import SessionLocal
+from database.db import SessionLocal, engine
 
 logger = logging.getLogger("catseye.memory")
 
@@ -146,13 +144,12 @@ class UnifiedMemoryStore:
         """Load permanent memories from database."""
         if self._initialized:
             return
-        create_engine("sqlite:///./database/catseye.db")
-        session = SessionLocal(bind=create_engine("sqlite:///./database/catseye.db"))
+        session = SessionLocal()
         try:
             from sqlalchemy import MetaData, Table
 
             metadata = MetaData()
-            memory_table = Table("memory_records", metadata, autoload_with=create_engine("sqlite:///./database/catseye.db"))
+            memory_table = Table("memory_records", metadata, autoload_with=engine)
             records = session.query(memory_table).all()
             loaded = 0
             skipped = 0
