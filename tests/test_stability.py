@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers import stability
+from core.version import OWNEX_VERSION
 
 
 def _dummy_health():
@@ -92,7 +93,7 @@ def test_stability_status_shape(monkeypatch) -> None:
     resp = client.get("/api/stability/status")
     assert resp.status_code == 200
     body = resp.json()
-    assert "version" in body and body["version"]["current"] == "7.0.0"
+    assert "version" in body and body["version"]["current"] == OWNEX_VERSION
     assert "sections" in body
     for section in ("core", "memory", "agents", "security", "tools", "storage", "updates"):
         assert section in body["sections"]

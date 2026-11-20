@@ -61,6 +61,7 @@ from cores.opportunity.sources_expansion.niche_categories import (
     WEB3_AUDITS_EXTRA,
 )
 from cores.opportunity.sources_expansion.niche_special import NICHE_SPECIAL
+from cores.opportunity.sources_expansion.oss_income import OSS_INCOME_EXTRA
 
 __all__ = [
     "MAX_TOTAL_SOURCES",
@@ -85,18 +86,24 @@ MAX_FALLBACK_DEPTH = 5
 def _by_category() -> dict[OpportunityCategory, list[SourceDefinition]]:
     niche_dev = [s for s in NICHE_SPECIAL if s.category == OpportunityCategory.dev_bounty]
     niche_data = [s for s in NICHE_SPECIAL if s.category == OpportunityCategory.data_entry]
+
+    def _cat_name(c: Any) -> str:
+        return str(getattr(c, "value", c))
+
+    oss_bounties = [s for s in OSS_INCOME_EXTRA if _cat_name(s.category) == "bounties"]
+    oss_junior = [s for s in OSS_INCOME_EXTRA if _cat_name(s.category) == "junior_jobs"]
     return {
         OpportunityCategory.bug_bounty: list(BUG_BOUNTY_EXTRA),
         OpportunityCategory.dev_bounty: list(DEV_BOUNTY_EXTRA) + niche_dev,
         OpportunityCategory.data_entry: list(DATA_ENTRY_EXTRA) + niche_data,
         OpportunityCategory.ai_evaluation: list(AI_EVAL_EXTRA),
-        OpportunityCategory.junior_jobs: list(JUNIOR_JOBS_EXTRA),
+        OpportunityCategory.junior_jobs: list(JUNIOR_JOBS_EXTRA) + oss_junior,
         # Extended niche categories — string keys: they equal the StrEnum
         # members when the enum defines them and stay queryable regardless.
         "cybersecurity": list(CYBERSECURITY_EXTRA),
         "data_science": list(DATA_SCIENCE_EXTRA),
         "remote_work": list(REMOTE_WORK_EXTRA),
-        "bounties": list(BOUNTIES_EXTRA),
+        "bounties": list(BOUNTIES_EXTRA) + oss_bounties,
         "web3_audits": list(WEB3_AUDITS_EXTRA),
         "marketplaces": list(MARKETPLACES_EXTRA) + list(MARKETPLACES_EXTRA_2),
         "qa_testing": list(QA_TESTING_EXTRA),

@@ -1,13 +1,10 @@
-"""OWNEX OMEGA version constants — single source of truth for app version and API contracts."""
+OWNEX_CODENAME = "OWNEX OMEGA"
+OWNEX_VERSION = "9.0.0"
 
-from __future__ import annotations
+# Additional version info
+VERSION_MAJOR = 9
+VERSION_MINOR = 0
+VERSION_PATCH = 0
+VERSION = "9.0.0"
 
-OWNEX_VERSION = "7.0.0"
-OWNEX_CODENAME = "OMEGA"
-PLUGIN_API = "1.0"
-EVENT_SCHEMA = "2.0"
-MEMORY_SCHEMA = "1.1"
-DECISION_JOURNAL = "1.0"
-NORMALIZER_API = "1.0"
-BACKUP_SCHEMA = "1.0"
-MAINTENANCE_SCHEMA = "1.0"
+codename = OWNEX_CODENAME
