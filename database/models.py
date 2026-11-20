@@ -1103,10 +1103,10 @@ RastroConfig = CATEYEConfig
 OWNEXConfig = CATEYEConfig
 
 # Economic models submodule
-from . import models_economic
+from . import models_economic  # noqa: F401,E402
 
 # Cycle models submodule
-from . import models_cycles
+from . import models_cycles  # noqa: F401,E402
 
 # Assets models submodule
-from . import models_assets
+from . import models_assets  # noqa: F401,E402

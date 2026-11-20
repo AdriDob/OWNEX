@@ -7,7 +7,6 @@ describes them; it never executes declared tools, operations, or generated code.
 from __future__ import annotations
 
 import builtins
-from functools import lru_cache
 import hashlib
 import ipaddress
 import json
