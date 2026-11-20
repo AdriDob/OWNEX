@@ -16,6 +16,12 @@ from core.opportunity.adapters import OpportunityAdapter, RawOpportunity
 
 _TASKMARKET_URL = "https://api.taskmarket.dev/api/tasks"
 _AGENTHANSA_URL = "https://www.agenthansa.com/api/community/tasks"
+_AGENTICS_URL = "https://agentics.page/api/jobs"
+
+# Currencies treated as ~USD-equivalent for reward display. Anything else
+# (Credits, OW, EUR, unknown) keeps reward=0.0 and the raw currency in
+# metadata — never invent a conversion.
+_USD_STABLES = {"USD", "USDC", "OUSD", "USDG"}
 
 # Taskmarket rewards are integer strings denominated in the chain's base
 # units (USDC, 6 decimals on EVM chains). We convert to USD-equivalent
@@ -154,4 +160,80 @@ class AgentHansaAdapter(OpportunityAdapter):
             from logging import getLogger
 
             getLogger("ownex.opportunity.adapters").warning("AgentHansaAdapter fetch failed: %s", e)
+            return []
+
+
+class AgenticsAdapter(OpportunityAdapter):
+    """Agentics aggregator adapter — unified feed of agent-work markets.
+
+    Endpoint: GET https://agentics.page/api/jobs (public JSON, no auth).
+    Aggregates listings from ~15 agent markets (taskmarket, basedagents,
+    immunefi, cantina, opire, rentahuman, etc). This is a DISCOVERY feed:
+    the paying source is ``job['source']``/``sourceName`` — OWNEX must
+    dedupe against direct adapters and verify payout at the origin market.
+    """
+
+    platform: str = "agentics"
+    cycle: str = "forge"
+
+    async def fetch_opportunities(self, personal: Any | None = None) -> list[RawOpportunity]:
+        """Fetch aggregated agent-market jobs from the Agentics feed."""
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(_AGENTICS_URL, params={"limit": 250}, timeout=20)
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                jobs = data.get("jobs", []) if isinstance(data, dict) else []
+
+                raw_opps: list[RawOpportunity] = []
+                for job in jobs:
+                    currency = (job.get("currency") or "").upper()
+                    try:
+                        amount = float(job.get("amount") or 0)
+                    except (TypeError, ValueError):
+                        amount = 0.0
+                    reward = amount if currency in _USD_STABLES else 0.0
+
+                    origin = job.get("sourceName") or job.get("source") or "agentics"
+                    raw_opps.append(
+                        RawOpportunity(
+                            id=f"agentics_{job.get('id')}",
+                            name=(job.get("title") or "Agent job")[:120],
+                            description=job.get("description") or "",
+                            platform="agentics",
+                            url=job.get("url"),
+                            reward=reward,
+                            effort_hours=2.0,
+                            tags=["agent-market", job.get("source") or "unknown", job.get("payModel") or "unknown"],
+                            cycle="forge",
+                            source_type="dev_bounty",
+                            source_name=str(origin),
+                            metadata={
+                                "original": job,
+                                "origin_source": job.get("source"),
+                                "origin_name": job.get("sourceName"),
+                                "currency": currency or None,
+                                "amount_raw": job.get("amount"),
+                                "amount_note": job.get("amountNote"),
+                                "pay_model": job.get("payModel"),
+                                "pay_rail": job.get("payRail"),
+                                "pay_note": job.get("payNote"),
+                                "kind": job.get("kind"),
+                                "deadline": job.get("deadline"),
+                                "posted_at": job.get("postedAt"),
+                                "aggregator": "agentics",
+                                "requires_registration": True,
+                                "registration_blocked_on_user": True,
+                            },
+                            created_at=job.get("postedAt") or "",
+                        )
+                    )
+
+                return raw_opps[:100]
+        except Exception as e:
+            from logging import getLogger
+
+            getLogger("ownex.opportunity.adapters").warning("AgenticsAdapter fetch failed: %s", e)
             return []

@@ -240,11 +240,13 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     try:
         from core.opportunity.adapters.agent_markets import (
             AgentHansaAdapter,
+            AgenticsAdapter,
             TaskmarketAdapter,
         )
 
         registry.register("taskmarket", TaskmarketAdapter)
         registry.register("agent_hansa", AgentHansaAdapter)
+        registry.register("agentics", AgenticsAdapter)
     except ImportError:
         pass
 

@@ -78,6 +78,8 @@
 | B7 | Autorizar registro de agente en Agent Hansa (`POST /api/agents/register` o `npx agent-hansa-mcp register`) — sin KYC, USDC Base | Agent Hansa | READY_FOR_AUTHORIZATION |
 | B8 | Evaluar Clustly — API devolvió `DEPLOYMENT_DISABLED` el 2026-11-20; reintentar más adelante antes de registrar | Clustly | BLOCKED_ON_PLATFORM |
 | B9 | Drips — requiere KYC + solicitud al maintainer por Wave; decidir si se completa verificación de identidad | Drips | BLOCKED_ON_USER |
+| B10 | Autorizar registro de agente OWNEX en BasedAgents y/o ClawHunt (APIs/CLI documentados, escrow USDC; volumen aún bajo — experimental) | BasedAgents / ClawHunt | READY_FOR_AUTHORIZATION |
+| B11 | Crear cuenta Gitpay (gitpay.me) para bounties de issues GitHub — payout vía Whop, confirmar método disponible en Argentina | Gitpay | BLOCKED_ON_USER — depende de A2 (GitHub) |
 
 ---
 

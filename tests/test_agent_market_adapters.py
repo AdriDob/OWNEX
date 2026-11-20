@@ -145,12 +145,79 @@ def test_agenthansa_filters_non_open(monkeypatch: pytest.MonkeyPatch) -> None:
     assert opps[0].metadata["registration_blocked_on_user"] is True
 
 
+AGENTICS_PAYLOAD = {
+    "fetchedAt": "2026-11-20T19:16:09Z",
+    "total": 266,
+    "count": 3,
+    "sources": [{"id": "taskmarket"}],
+    "jobs": [
+        {
+            "id": "tm-abc",
+            "title": "Build a CLI tool",
+            "description": "Do the thing",
+            "amount": "25",
+            "currency": "USDC",
+            "payModel": "bounty",
+            "payRail": "base",
+            "source": "taskmarket",
+            "sourceName": "TaskMarket",
+            "url": "https://taskmarket.dev",
+            "postedAt": "2026-11-19T00:00:00Z",
+        },
+        {
+            "id": "rb-def",
+            "title": "Credits-only gig",
+            "description": "Internal credits",
+            "amount": "500",
+            "currency": "Credits",
+            "payModel": "credits",
+            "source": "openwork",
+            "sourceName": "OpenWork",
+            "url": "https://openwork.example",
+        },
+        {
+            "id": "x-ghi",
+            "title": "EUR bounty",
+            "description": "Euro",
+            "amount": "notanum",
+            "currency": "EUR",
+            "source": "cantina",
+            "url": "https://cantina.example",
+        },
+    ],
+}
+
+
+def test_agentics_aggregates_and_converts_usd_stables(monkeypatch: pytest.MonkeyPatch) -> None:
+    from core.opportunity.adapters.agent_markets import AgenticsAdapter
+
+    seen: list[str] = []
+    _fake_httpx(monkeypatch, AGENTICS_PAYLOAD, seen)
+
+    opps = _run(AgenticsAdapter({}).fetch_opportunities())
+
+    assert seen == ["https://agentics.page/api/jobs"]
+    assert len(opps) == 3
+    # USDC → USD-equivalent reward
+    assert opps[0].reward == 25.0
+    assert opps[0].source_name == "TaskMarket"
+    assert opps[0].metadata["origin_source"] == "taskmarket"
+    assert opps[0].metadata["pay_rail"] == "base"
+    # Credits → reward 0.0, currency preserved (never invent conversion)
+    assert opps[1].reward == 0.0
+    assert opps[1].metadata["currency"] == "CREDITS"
+    # EUR + unparseable amount → 0.0
+    assert opps[2].reward == 0.0
+    assert all(o.metadata["registration_blocked_on_user"] for o in opps)
+
+
 def test_adapters_registered_in_core_registry() -> None:
     from core.opportunity.adapters import get_adapter_registry
 
     registry = get_adapter_registry()
     assert "taskmarket" in registry.all()
     assert "agent_hansa" in registry.all()
+    assert "agentics" in registry.all()
 
 
 def test_fetch_failure_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
