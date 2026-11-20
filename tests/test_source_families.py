@@ -64,17 +64,22 @@ class TestSourceFamilies:
         # land in ai_coding_evaluation (12 -> 14).
         # 2026-11-20: twin-tree consolidation + Open Source Income expansion
         # grew every family (qa 6->8, grants 17->30, api 0->5, devops 0->7,
-        # data 1->6, browser 0->6); +Drips in funded_oss_grants (30->31) and
-        # new agent_native_markets family (3). Stacker News was added to the
-        # base catalog but falls outside the 1000-source stratified cap.
-        assert summary["family_counts"]["ai_coding_evaluation"] == 19
+        # data 1->6, browser 0->6); +Drips in funded_oss_grants (30->31).
+        # 2026-11-20 round-2 expansion: +8 ai_coding_evaluation (micro1,
+        # AfterQuery, RemoExperts, SME Careers, Corridoor + 3 aggregators),
+        # +5 funded_oss_grants, +3 agent_native_markets (BasedAgents,
+        # ClawHunt, Agentics). Cap reshuffle: api_sdk_integration 5→4,
+        # browser_automation_gigs 6→4. Base-catalog-only (outside cap):
+        # Clawlancer, AgentBounties, Jobbi, Challenge.gov, ZeroDay.Cloud,
+        # Open Source Collective, Stacker News.
+        assert summary["family_counts"]["ai_coding_evaluation"] == 27
         assert summary["family_counts"]["qa_testing_services"] == 8
-        assert summary["family_counts"]["funded_oss_grants"] == 31
-        assert summary["family_counts"]["api_sdk_integration"] == 5
+        assert summary["family_counts"]["funded_oss_grants"] == 36
+        assert summary["family_counts"]["api_sdk_integration"] == 4
         assert summary["family_counts"]["devops_cloud_tasks"] == 7
         assert summary["family_counts"]["data_engineering_tasks"] == 6
-        assert summary["family_counts"]["browser_automation_gigs"] == 6
-        assert summary["family_counts"]["agent_native_markets"] == 3
+        assert summary["family_counts"]["browser_automation_gigs"] == 4
+        assert summary["family_counts"]["agent_native_markets"] == 6
         by_family = summary["sources_by_family"]
         assert "Algora" in by_family["funded_oss_grants"]
         assert "Test IO" in by_family["qa_testing_services"]
