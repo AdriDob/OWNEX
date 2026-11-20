@@ -39,10 +39,7 @@ class KaggleAdapter(OpportunityAdapter):
                     timeout=30.0,
                 )
 
-                if comp_response.status_code != 200:
-                    competitions = []
-                else:
-                    competitions = comp_response.json().get("competitions", [])
+                competitions = [] if comp_response.status_code != 200 else comp_response.json().get("competitions", [])
 
                 raw_opps: list[RawOpportunity] = []
 
@@ -56,7 +53,7 @@ class KaggleAdapter(OpportunityAdapter):
                             url=comp.get("competitionUrl", ""),
                             reward=float(comp.get("prizeMoney", 0) or 0),
                             effort_hours=float(comp.get("timeCommitment", 20) or 10.0),
-                            tags=[comp.get("keywords", "")] or [],
+                            tags=[comp.get("keywords", "")],
                             cycle="kaggle",
                             source_type="data_science",
                             source_name="kaggle",
@@ -84,7 +81,7 @@ class KaggleAdapter(OpportunityAdapter):
                                     url=ds.get("url", ""),
                                     reward=0.0,  # Datasets typically don't have monetary rewards
                                     effort_hours=float(ds.get("hoursToCompletion", 5) or 3.0),
-                                    tags=[ds.get("tags", "")] or [],
+                                    tags=[ds.get("tags", "")],
                                     cycle="kaggle",
                                     source_type="data_annotation",
                                     source_name="kaggle",

@@ -11,10 +11,8 @@ must NOT transform to eligible by metadata omission.
 
 from __future__ import annotations
 
-
-from cores.opportunity.sources_expansion._common import src
 from cores.opportunity.global_sources import OpportunityCategory
-
+from cores.opportunity.sources_expansion._common import src
 
 # ---------------------------------------------------------------------------
 # 1. OpenSats — open_source_grant

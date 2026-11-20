@@ -237,6 +237,177 @@ def test_fetch_weworkremotely_parses_rss(monkeypatch: pytest.MonkeyPatch) -> Non
     assert jobs[0]["title"] == "Backend Engineer" and jobs[0]["company"] == "ACME Corp"
 
 
+def test_fetch_getonbrd_normalizes(monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = {
+        "data": [
+            {
+                "id": "job-1",
+                "type": "job",
+                "links": {"public_url": "https://www.getonbrd.com/jobs/job-1"},
+                "attributes": {
+                    "title": "Desarrollador Backend",
+                    "description": "<p>Backend <b>Python</b></p>",
+                    "description_headline": "Requisitos:",
+                    "remote": True,
+                    "remote_modality": "fully_remote",
+                    "countries": ["Remote"],
+                    "remote_zone": None,
+                    "lang": "es",
+                    "min_salary": 2000,
+                    "max_salary": 3000,
+                    "published_at": 1795174285,
+                    "applications_count": 12,
+                    "company": {"data": {"id": 9458, "type": "company"}},
+                    "tags": [{"name": "Python"}, {"name": "Django"}],
+                },
+            },
+            {
+                "id": "job-2",
+                "type": "job",
+                "links": {"public_url": "https://www.getonbrd.com/jobs/job-2"},
+                "attributes": {
+                    "title": "Presencial Santiago",
+                    "description": "onsite",
+                    "remote": False,
+                    "countries": ["Chile"],
+                    "lang": "es",
+                    "company": {"data": {"id": 1, "type": "company"}},
+                    "tags": [],
+                },
+            },
+        ]
+    }
+
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    jobs = job_feeds.fetch_getonbrd()
+    assert len(jobs) == 2
+    remote_job = jobs[0]
+    assert remote_job["source"] == "getonbrd" and remote_job["remote"] is True
+    assert remote_job["argentina_ok"] is True and remote_job["language"] == "es"
+    assert remote_job["salary_min"] == 2000 and remote_job["salary_max"] == 3000
+    assert remote_job["company_id"] == 9458 and remote_job["applications_count"] == 12
+    assert "<p>" not in remote_job["description"] and "Python" in remote_job["description"]
+    onsite = jobs[1]
+    assert onsite["remote"] is False and onsite["argentina_ok"] is False
+
+
+def test_fetch_workingnomads_geo_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = [
+        {
+            "title": "Dev LatAm",
+            "company_name": "A",
+            "url": "u1",
+            "description": "<p>d</p>",
+            "location": "Europe, LATAM, APAC",
+            "pub_date": "2026-01-01",
+            "tags": "python, django",
+            "category_name": "Dev",
+        },
+        {
+            "title": "US only",
+            "company_name": "B",
+            "url": "u2",
+            "description": "d",
+            "location": "USA only",
+            "pub_date": "2026-01-01",
+            "tags": "",
+            "category_name": "Dev",
+        },
+        {
+            "title": "TZ bound",
+            "company_name": "C",
+            "url": "u3",
+            "description": "d",
+            "location": "Time zone: CET (+/- 3 hours)",
+            "pub_date": "2026-01-01",
+            "tags": "",
+            "category_name": "Dev",
+        },
+    ]
+
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    jobs = job_feeds.fetch_workingnomads()
+    assert len(jobs) == 3
+    assert jobs[0]["argentina_ok"] is True and jobs[0]["tags"] == ["python", "django"]
+    assert jobs[1]["argentina_ok"] is False
+    assert jobs[2]["argentina_ok"] is None  # timezone restriction is not a geo answer
+    assert jobs[0]["remote"] is True and jobs[0]["language"] == "en"
+
+
+def test_fetch_himalayas_restrictions(monkeypatch: pytest.MonkeyPatch) -> None:
+    payload = {
+        "jobs": [
+            {
+                "title": "Open",
+                "companyName": "A",
+                "applicationLink": "u1",
+                "excerpt": "d",
+                "pubDate": 1795194635,
+                "locationRestrictions": [],
+                "categories": ["Dev"],
+                "minSalary": 1000,
+                "maxSalary": 2000,
+                "currency": "USD",
+            },
+            {
+                "title": "AR ok",
+                "companyName": "B",
+                "applicationLink": "u2",
+                "excerpt": "d",
+                "pubDate": 1795194635,
+                "locationRestrictions": ["Argentina", "Brazil"],
+                "categories": [],
+            },
+            {"title": "US only", "companyName": "C", "applicationLink": "u3", "excerpt": "d", "pubDate": 1795194635, "locationRestrictions": ["United States"]},
+        ]
+    }
+
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return payload
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    jobs = job_feeds.fetch_himalayas()
+    assert len(jobs) == 3
+    assert jobs[0]["argentina_ok"] is True and jobs[0]["salary_min"] == 1000
+    assert jobs[1]["argentina_ok"] is True
+    assert jobs[2]["argentina_ok"] is False
+    assert all(j["remote"] is True for j in jobs)
+
+
+def test_fetch_all_includes_new_feeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    class R:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {}
+
+        text = ""
+
+    monkeypatch.setattr(job_feeds.httpx, "get", lambda *a, **k: R())
+    out = job_feeds.fetch_all(limit_per_feed=5)
+    assert isinstance(out, list)
+    assert "getonbrd" in job_feeds.FEEDS and "workingnomads" in job_feeds.FEEDS and "himalayas" in job_feeds.FEEDS
+
+
 def test_remote_jobs_import(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     from fastapi import FastAPI
     from fastapi.testclient import TestClient

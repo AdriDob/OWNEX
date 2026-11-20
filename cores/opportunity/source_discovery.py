@@ -125,12 +125,7 @@ class SourceCandidate:
 def _validate_public_url(url: str) -> str:
     """Reject non-HTTPS, local, private, link-local, and non-public targets."""
     parsed = urlsplit(url)
-    if (
-        parsed.scheme != "https"
-        or not parsed.hostname
-        or parsed.username
-        or parsed.password
-    ):
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
         raise ValueError("Source URL must be an absolute HTTPS URL without credentials")
     if parsed.port not in (None, 443):
         raise ValueError("Source URL must use the default HTTPS port")
@@ -141,14 +136,11 @@ def _validate_public_url(url: str) -> str:
         literal = ipaddress.ip_address(host)
     except ValueError:
         try:
-            addresses = {
-                ipaddress.ip_address(item[4][0])
-                for item in socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
-            }
+            addresses = {ipaddress.ip_address(item[4][0]) for item in socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)}
         except OSError as exc:
             raise ValueError("Source host could not be resolved") from exc
         if not addresses or any(not address.is_global for address in addresses):
-            raise ValueError("Source host must resolve only to public IP addresses")
+            raise ValueError("Source host must resolve only to public IP addresses") from None
     else:
         if not literal.is_global:
             raise ValueError("Source URL must use a public IP address")
@@ -209,14 +201,10 @@ class UniversalSourceAdapter:
                             request=streamed.request,
                         )
                 except httpx.HTTPError as exc:
-                    evidence.append(
-                        {"url": url, "result": f"request_error:{type(exc).__name__}"}
-                    )
+                    evidence.append({"url": url, "result": f"request_error:{type(exc).__name__}"})
                     continue
                 if response.status_code != 200:
-                    evidence.append(
-                        {"url": url, "result": f"http_{response.status_code}"}
-                    )
+                    evidence.append({"url": url, "result": f"http_{response.status_code}"})
                     continue
                 if oversized or len(response.content) > MAX_DOCUMENT_BYTES:
                     evidence.append({"url": url, "result": "document_too_large"})
@@ -236,9 +224,7 @@ class UniversalSourceAdapter:
         )
 
     @staticmethod
-    def _parse(
-        kind: str, base: str, document_url: str, response: httpx.Response
-    ) -> SourceProfile | None:
+    def _parse(kind: str, base: str, document_url: str, response: httpx.Response) -> SourceProfile | None:
         if kind == "openapi":
             spec = _decode_json(response)
             if spec is None or not str(spec.get("openapi", "")).startswith("3."):
@@ -251,23 +237,13 @@ class UniversalSourceAdapter:
                         continue
                     for method in operations:
                         if method.lower() in {"get", "post", "put", "patch", "delete"}:
-                            endpoints.append(
-                                {"method": method.upper(), "path": str(route)[:300]}
-                            )
+                            endpoints.append({"method": method.upper(), "path": str(route)[:300]})
                             if len(endpoints) >= MAX_PROFILE_ENDPOINTS:
                                 break
                     if len(endpoints) >= MAX_PROFILE_ENDPOINTS:
                         break
-            security = (
-                spec.get("components", {}).get("securitySchemes", {})
-                if isinstance(spec.get("components"), dict)
-                else {}
-            )
-            auth = (
-                sorted(str(item)[:100] for item in security)
-                if isinstance(security, dict)
-                else []
-            )
+            security = spec.get("components", {}).get("securitySchemes", {}) if isinstance(spec.get("components"), dict) else {}
+            auth = sorted(str(item)[:100] for item in security) if isinstance(security, dict) else []
             info_value = spec.get("info")
             info = info_value if isinstance(info_value, dict) else {}
             return SourceProfile(
@@ -286,34 +262,19 @@ class UniversalSourceAdapter:
                 return None
             raw_tools = manifest.get("tools", manifest.get("capabilities", []))
             title = manifest.get("name", manifest.get("title", ""))
-            if kind == "ai_catalog" and not (
-                title or "tools" in manifest or "capabilities" in manifest
-            ):
+            if kind == "ai_catalog" and not (title or "tools" in manifest or "capabilities" in manifest):
                 return None
-            if kind == "a2a" and not (
-                title or "capabilities" in manifest or "skills" in manifest
-            ):
+            if kind == "a2a" and not (title or "capabilities" in manifest or "skills" in manifest):
                 return None
             names = []
             if isinstance(raw_tools, list):
-                names = [
-                    str(item.get("name", item.get("id", "")))[:120]
-                    if isinstance(item, dict)
-                    else str(item)[:120]
-                    for item in raw_tools[:100]
-                ]
+                names = [str(item.get("name", item.get("id", "")))[:120] if isinstance(item, dict) else str(item)[:120] for item in raw_tools[:100]]
             elif isinstance(raw_tools, dict):
                 names = [str(key)[:120] for key in list(raw_tools)[:100]]
             if kind == "a2a" and isinstance(manifest.get("skills"), list):
-                names.extend(
-                    str(item.get("id", item.get("name", "")))[:120]
-                    for item in manifest["skills"][:100]
-                    if isinstance(item, dict)
-                )
+                names.extend(str(item.get("id", item.get("name", "")))[:120] for item in manifest["skills"][:100] if isinstance(item, dict))
             auth = manifest.get("authentication", manifest.get("auth", {}))
-            auth_names = (
-                sorted(str(key)[:100] for key in auth) if isinstance(auth, dict) else []
-            )
+            auth_names = sorted(str(key)[:100] for key in auth) if isinstance(auth, dict) else []
             return SourceProfile(
                 base,
                 kind,
@@ -354,9 +315,7 @@ class UniversalSourceAdapter:
         import re
 
         result = []
-        pattern = re.compile(
-            r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[^\s`]{1,300})", re.IGNORECASE
-        )
+        pattern = re.compile(r"\b(GET|POST|PUT|PATCH|DELETE)\s+(/[^\s`]{1,300})", re.IGNORECASE)
         for method, path in pattern.findall(text[:MAX_DOCUMENT_BYTES]):
             result.append({"method": method.upper(), "path": path})
             if len(result) >= MAX_PROFILE_ENDPOINTS:
@@ -379,27 +338,17 @@ class UniversalSourceAdapter:
         }
 
     @staticmethod
-    def normalize(
-        raw: dict[str, Any], *, source_id: str, profile: SourceProfile
-    ) -> dict[str, Any]:
+    def normalize(raw: dict[str, Any], *, source_id: str, profile: SourceProfile) -> dict[str, Any]:
         """Normalize only a small explicit task envelope; do not infer money or eligibility."""
         title = raw.get("title")
         description = raw.get("description")
         task_url = raw.get("url")
-        if (
-            not isinstance(title, str)
-            or not title.strip()
-            or not isinstance(description, str)
-        ):
+        if not isinstance(title, str) or not title.strip() or not isinstance(description, str):
             raise ValueError("Task must include a non-empty title and description")
-        if task_url is not None and (
-            not isinstance(task_url, str) or not task_url.startswith("https://")
-        ):
+        if task_url is not None and (not isinstance(task_url, str) or not task_url.startswith("https://")):
             raise ValueError("Task URL must be HTTPS")
         reward = raw.get("reward")
-        reward_reported = (
-            reward if isinstance(reward, (str, int, float, dict)) else None
-        )
+        reward_reported = reward if isinstance(reward, (str, int, float, dict)) else None
         return {
             "id": f"{source_id}:{str(raw.get('id', ''))[:200]}",
             "source": source_id,
@@ -413,8 +362,6 @@ class UniversalSourceAdapter:
             "source_protocol": profile.adapter_type,
             "evidence": profile.evidence,
         }
-
-
 
 
 # ── SourceDiscoveryRegistry ──────────────────────────────────────────────
@@ -490,11 +437,7 @@ class SourceDiscoveryRegistry:
                 # Fallback: evict the oldest catalog-only source
                 oldest = min(
                     self._candidates.values(),
-                    key=lambda x: (
-                        x.discovered_at
-                        if x.lifecycle.name == "CATALOG_ONLY"
-                        else "9999-12-31T23:59:59"
-                    ),
+                    key=lambda x: x.discovered_at if x.lifecycle.name == "CATALOG_ONLY" else "9999-12-31T23:59:59",
                 )
                 del self._candidates[oldest.id]
 
@@ -509,9 +452,7 @@ class SourceDiscoveryRegistry:
                 candidate = SourceCandidate(
                     **{
                         **row,
-                        "lifecycle": SourceLifecycle(
-                            row.get("lifecycle", "DISCOVERED")
-                        ),
+                        "lifecycle": SourceLifecycle(row.get("lifecycle", "DISCOVERED")),
                     }
                 )
                 self._candidates[candidate.id] = candidate
@@ -525,9 +466,7 @@ class SourceDiscoveryRegistry:
             "schema_version": 1,
             "candidates": [item.to_dict() for item in self._candidates.values()],
         }
-        fd, temporary = tempfile.mkstemp(
-            prefix="candidates-", suffix=".tmp", dir=self.path.parent
-        )
+        fd, temporary = tempfile.mkstemp(prefix="candidates-", suffix=".tmp", dir=self.path.parent)
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as stream:
                 json.dump(payload, stream, indent=2, sort_keys=True)
@@ -602,35 +541,19 @@ class SourceDiscoveryRegistry:
     def set_profile(self, source_id: str, profile: SourceProfile) -> SourceCandidate:
         item = self._require(source_id)
         item.profile = profile.to_dict()
-        item.lifecycle = (
-            SourceLifecycle.PROBED
-            if profile.adapter_type != "unknown"
-            else SourceLifecycle.DISCOVERED
-        )
-        item.last_error = (
-            None
-            if profile.adapter_type != "unknown"
-            else "No supported protocol metadata found"
-        )
+        item.lifecycle = SourceLifecycle.PROBED if profile.adapter_type != "unknown" else SourceLifecycle.DISCOVERED
+        item.last_error = None if profile.adapter_type != "unknown" else "No supported protocol metadata found"
         self._save()
         return item
 
     def mark_verified(self, source_id: str, checks: dict[str, str]) -> SourceCandidate:
         item = self._require(source_id)
         if not item.profile or item.lifecycle != SourceLifecycle.PROBED:
-            raise ValueError(
-                "A source must have a successful protocol probe before verification"
-            )
+            raise ValueError("A source must have a successful protocol probe before verification")
         required_checks = {"honeypot_pass", "funding_verified", "eligibility_verified"}
-        if set(checks) != required_checks or any(
-            not value.strip() for value in checks.values()
-        ):
-            raise ValueError(
-                "Verification requires evidence for honeypot, funding, and eligibility checks"
-            )
-        item.verification_evidence = [
-            f"{key}:{value[:450]}" for key, value in sorted(checks.items())
-        ]
+        if set(checks) != required_checks or any(not value.strip() for value in checks.values()):
+            raise ValueError("Verification requires evidence for honeypot, funding, and eligibility checks")
+        item.verification_evidence = [f"{key}:{value[:450]}" for key, value in sorted(checks.items())]
         item.lifecycle = SourceLifecycle.VERIFIED
         self._save()
         return item
@@ -647,9 +570,7 @@ class SourceDiscoveryRegistry:
         self._save()
         return item
 
-    def refresh_lifecycle(
-        self, *, now: datetime | None = None
-    ) -> builtins.list[SourceCandidate]:
+    def refresh_lifecycle(self, *, now: datetime | None = None) -> builtins.list[SourceCandidate]:
         current = now or datetime.now(UTC)
         changed = []
         for item in self._candidates.values():
@@ -677,9 +598,7 @@ class SourceDiscoveryRegistry:
             self._save()
         return changed
 
-    def record_confirmed_payout(
-        self, source_id: str, *, evidence_reference: str
-    ) -> SourceCandidate:
+    def record_confirmed_payout(self, source_id: str, *, evidence_reference: str) -> SourceCandidate:
         item = self._require(source_id)
         if item.lifecycle not in {
             SourceLifecycle.ACTIVE,
@@ -687,16 +606,10 @@ class SourceDiscoveryRegistry:
             SourceLifecycle.DEACTIVATED,
         }:
             raise ValueError("A payout can be attached only to an activated source")
-        if not evidence_reference.strip() or not evidence_reference.startswith(
-            ("https://", "tx:")
-        ):
-            raise ValueError(
-                "Payout confirmation requires an HTTPS evidence URL or transaction reference"
-            )
+        if not evidence_reference.strip() or not evidence_reference.startswith(("https://", "tx:")):
+            raise ValueError("Payout confirmation requires an HTTPS evidence URL or transaction reference")
         item.last_payout_at = datetime.now(UTC).isoformat()
-        item.verification_evidence.append(
-            f"confirmed_payout:{evidence_reference[:400]}"
-        )
+        item.verification_evidence.append(f"confirmed_payout:{evidence_reference[:400]}")
         if item.lifecycle in {SourceLifecycle.DECAY, SourceLifecycle.DEACTIVATED}:
             item.lifecycle = SourceLifecycle.ACTIVE
         self._save()
@@ -710,11 +623,7 @@ class SourceDiscoveryRegistry:
 
 
 def _github_token(github_token: str | None = None) -> str:
-    return (
-        github_token
-        if github_token is None
-        else (os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN") or "")
-    )
+    return github_token if github_token is None else (os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN") or "")
 
 
 def _github_search_interval(github_token: str | None = None) -> float:
@@ -776,9 +685,7 @@ def _load_search_cache(path: Path) -> dict[str, Any]:
 
 
 def _save_search_cache(path: Path, cache: dict[str, Any]) -> None:
-    fd, temporary = tempfile.mkstemp(
-        prefix="github-search-", suffix=".tmp", dir=path.parent
-    )
+    fd, temporary = tempfile.mkstemp(prefix="github-search-", suffix=".tmp", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             json.dump(cache, stream, indent=2, sort_keys=True)
@@ -791,9 +698,7 @@ def _save_search_cache(path: Path, cache: dict[str, Any]) -> None:
 
 
 def _cache_key(params: dict[str, Any]) -> str:
-    return hashlib.sha256(
-        json.dumps(params, sort_keys=True, default=str).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode()).hexdigest()
 
 
 def _fresh_entry(entry: Any, ttl_seconds: float) -> bool:
@@ -836,9 +741,7 @@ def _github_search_items(
         state["last_request"] = time.monotonic()
         state["http_requests"] += 1
         try:
-            response = client.get(
-                f"{GITHUB_API_BASE}{endpoint}", params=params, headers=headers
-            )
+            response = client.get(f"{GITHUB_API_BASE}{endpoint}", params=params, headers=headers)
         except httpx.HTTPError as exc:
             return None, f"github_search_{type(exc).__name__}"
         if response.status_code in _GITHUB_RETRYABLE_STATUS and attempts < 1:
@@ -963,19 +866,11 @@ def discover_github_repositories(
                     errors.append(error)
                     break
                 for repo in items or []:
-                    if (
-                        not isinstance(repo, dict)
-                        or repo.get("archived")
-                        or repo.get("fork")
-                    ):
+                    if not isinstance(repo, dict) or repo.get("archived") or repo.get("fork"):
                         continue
                     html_url = repo.get("html_url")
                     full_name = repo.get("full_name")
-                    if (
-                        not isinstance(html_url, str)
-                        or not isinstance(full_name, str)
-                        or not html_url.startswith("https://github.com/")
-                    ):
+                    if not isinstance(html_url, str) or not isinstance(full_name, str) or not html_url.startswith("https://github.com/"):
                         continue
                     # Filter: only keep Argentina-compatible repositories
                     if not _is_argentina_compatible(repo):
@@ -1072,14 +967,9 @@ def discover_github_bounty_issues(
                     title = issue.get("title")
                     if not isinstance(html_url, str) or not isinstance(title, str):
                         continue
-                    if (
-                        not html_url.startswith("https://github.com/")
-                        or "/issues/" not in html_url
-                    ):
+                    if not html_url.startswith("https://github.com/") or "/issues/" not in html_url:
                         continue
-                    reward, reward_currency = _extract_github_bounty_reward_details(
-                        issue
-                    )
+                    reward, reward_currency = _extract_github_bounty_reward_details(issue)
                     profile = {
                         "endpoints": [],
                         "capabilities": ["issue"],
@@ -1087,9 +977,7 @@ def discover_github_bounty_issues(
                         "evidence": [{"url": html_url, "type": "github_issue"}],
                         "reward_reported": reward,
                         "reward_currency": reward_currency,
-                        "reward_status": "REPORTED"
-                        if reward is not None
-                        else "UNKNOWN",
+                        "reward_status": "REPORTED" if reward is not None else "UNKNOWN",
                         "record_type": "opportunity",
                     }
                     if html_url not in known_urls:
@@ -1127,12 +1015,8 @@ def run_daily_meta_discovery() -> dict[str, Any]:
         registry = SourceDiscoveryRegistry()
         token = _github_token()
         interval = _github_search_interval(token)
-        repos = discover_github_repositories(
-            registry=registry, github_token=token, min_interval_seconds=interval
-        )
-        issues = discover_github_bounty_issues(
-            registry=registry, github_token=token, min_interval_seconds=interval
-        )
+        repos = discover_github_repositories(registry=registry, github_token=token, min_interval_seconds=interval)
+        issues = discover_github_bounty_issues(registry=registry, github_token=token, min_interval_seconds=interval)
         return {
             "repositories": repos,
             "issues": issues,
@@ -1186,9 +1070,7 @@ def fetch_github_bounties(
         try:
             resp = httpx.get(url, headers=headers, params=params, timeout=15)
             if resp.status_code != 200:
-                logger.warning(
-                    "GitHub API error: %s %s", resp.status_code, resp.text[:200]
-                )
+                logger.warning("GitHub API error: %s %s", resp.status_code, resp.text[:200])
                 break
 
             issues = resp.json()
@@ -1206,16 +1088,10 @@ def fetch_github_bounties(
                     record_type="opportunity",
                     # Extract reward from issue body or labels
                     profile={
-                        "endpoints": [
-                            {"method": "GET", "path": issue.get("body", "")[:200]}
-                        ]
-                        if issue.get("body")
-                        else [],
+                        "endpoints": [{"method": "GET", "path": issue.get("body", "")[:200]}] if issue.get("body") else [],
                         "capabilities": ["bug-reporting"],
                         "auth_methods": [],
-                        "evidence": [
-                            {"url": issue.get("html_url", ""), "type": "github_issue"}
-                        ],
+                        "evidence": [{"url": issue.get("html_url", ""), "type": "github_issue"}],
                         "reward_reported": reward,
                         "reward_currency": reward_currency,
                         "reward_status": "UNKNOWN" if reward is None else "REPORTED",
@@ -1248,13 +1124,9 @@ def _reward_match(match: re.Match[str]) -> tuple[float, str] | None:
     if match.group("usd_amount") is not None:
         return float(match.group("usd_amount")), "USD"
     if match.group("amount_before") is not None:
-        return float(match.group("amount_before")), str(
-            match.group("currency_after")
-        ).upper()
+        return float(match.group("amount_before")), str(match.group("currency_after")).upper()
     if match.group("amount_after") is not None:
-        return float(match.group("amount_after")), str(
-            match.group("currency_before")
-        ).upper()
+        return float(match.group("amount_after")), str(match.group("currency_before")).upper()
     return None
 
 
@@ -1302,9 +1174,7 @@ def _extract_github_bounty_reward_details(
             amount = None
         if amount is not None and amount > 0:
             currency = milestone.get("currency")
-            return amount, str(currency).upper() if isinstance(
-                currency, str
-            ) and currency.strip() else "USD"
+            return amount, str(currency).upper() if isinstance(currency, str) and currency.strip() else "USD"
 
     return None, None
 

@@ -42,7 +42,7 @@ def remote_jobs_search(
     max_tech_tests: int = Query(1, ge=0, le=10),
     payment_methods: str = Query(""),
 ):
-    """Search real remote jobs (Remotive/Arbeitnow/RemoteOK) ranked by remote_job_matcher."""
+    """Search real remote jobs (Remotive/Arbeitnow/RemoteOK/Jobicy/WWR/GoB/WorkingNomads/Himalayas) ranked by remote_job_matcher."""
     from cores.opportunity.job_feeds import search_remote_jobs
     from cores.opportunity.remote_job_matcher import JobPreferences
     from cores.opportunity.user_profile import get_profile

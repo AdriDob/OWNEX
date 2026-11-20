@@ -23,6 +23,17 @@
 > - **End-to-end verificado**: discovery registra 50 fuentes activas; `integrate_meta_discovery_into_workbank` filtra y deduplica; ZeroBarrierScorer califica oportunidades (ej: 90.2/100 very_low barrier).
 > - **Verificación**: `make check` = **100 passed, 1 skipped**.
 
+## Sesión 2026-11-20 — REMOTE JOB FEEDS AR/ES: +3 feeds verificados live (task #3)
+
+> **QUÉ SE HIZO:** Expansión de `cores/opportunity/job_feeds.py` con 3 feeds públicos key-free verificados contra endpoints reales (curl + smoke test):
+> - **getonbrd** — Get on Board JSON:API (`/api/v0/categories/programming/jobs`): LatAm tech jobs incl. Argentina. `remote`/`remote_modality`/`countries`/`remote_zone` → `argentina_ok`; `min_salary`/`max_salary` USD; `company` solo expone `company_id` (nombres requieren N+1, queda como gap documentado); tags son ids sin nombre → omitidos; HTML stripped de descripciones.
+> - **workingnomads** — `/api/exposed_jobs/`: `location` free-text → geo (`LATAM/global/anywhere`→True, `... only`→False, timezone-only→None/UNKNOWN); `language=en`, `english_required=True`.
+> - **himalayas** — `/jobs/api`: `locationRestrictions` = países elegibles (vacío=worldwide→True, interseca set AR/LatAm→True, resto→False); salary/currency/employmentType/seniority passthrough.
+> - **Descartados por verificación live**: InfoJobs RSS (404), Tecnoempleo RSS (403 Cloudflare), Manfred (timeout/WAF), web3.career API (404).
+> - **Lint debt corregida** en el mismo lane: `adapters/kaggle.py` (SIM108+SIM222×2), `source_discovery.py` (B904 `from None`), `sources_expansion/pending_candidates.py` (I001).
+> - **Verificación**: `pytest tests/test_job_feeds.py test_remote_job_matcher.py test_remote_job_integration.py` = 27 passed (+4 tests nuevos); `test-fast` = 100 passed/1 skipped; ruff limpio; mypy scoped limpio; smoke live `search_remote_jobs` = 8 feeds en 8.8s, Get on Board Python full-stack top-1 con `argentina_ok=True`.
+> - **Pendiente**: medición de yield por feed, resolución de company names en GoB (endpoint `/api/v0/companies/{id}` existe, costo N+1), feeds ES puros bloqueados por WAF.
+
 ## Sesión 2026-11-09 (v10) — AUDITORÍA GLOBAL + P0 AUTH CONTRACT CORREGIDO
 
 > **QUÉ SE HIZO:** Se adoptó el megaprompt rector **OWNEX v10** (prioridad: funcionalidad integral, ingresos, usabilidad; audit-first, no borrar duplicados sin dependencias). Se reescribieron `.ai/OWNEX_GLOBAL_ARCHITECTURE_AUDIT.md` y `.ai/OWNEX_DUPLICATION_CONSOLIDATION.md` con evidencia medida (graft repo map, `api/main.py`, router frontend, conteo de imports, hashes).
