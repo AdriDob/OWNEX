@@ -672,6 +672,7 @@ _PLATFORM_SOURCE_HINTS: dict[str, list[str]] = {
     "sherlock": ["Sherlock"],
     "code4rena": ["Code4rena", "Code4RENA"],
     "codehawks": ["CodeHawks", "Cyfrin"],
+    "makefun": ["make.fun"],
 }
 
 
