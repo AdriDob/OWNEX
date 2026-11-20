@@ -161,9 +161,7 @@ class LiveStore:
 
     def save(self) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "items": [{**opp.to_dict(), "raw": opp.raw} for opp in self._items.values()]
-        }
+        payload = {"items": [{**opp.to_dict(), "raw": opp.raw} for opp in self._items.values()]}
         self._path.write_text(json.dumps(payload, indent=2, default=str))
 
     def upsert(self, opp: LiveOpportunity) -> bool:
@@ -185,9 +183,7 @@ class LiveStore:
             existing.status = "discovered"
         return False
 
-    def mark_expired_missing(
-        self, seen_keys: set[str], scanned_adapters: set[str] | None = None
-    ) -> int:
+    def mark_expired_missing(self, seen_keys: set[str], scanned_adapters: set[str] | None = None) -> int:
         """Mark items not seen in the latest scan as expired.
 
         Only items produced by adapters that actually ran are eligible —
@@ -266,9 +262,7 @@ def _platform_for(raw: dict[str, Any]) -> str:
     return platform
 
 
-async def _fetch_one(
-    fetcher_key: str, spec: str
-) -> tuple[str, list[dict[str, Any]], str | None]:
+async def _fetch_one(fetcher_key: str, spec: str) -> tuple[str, list[dict[str, Any]], str | None]:
     """Run one fetcher; return (key, raw_items, error)."""
     try:
         fn = _resolve_fetcher(spec)
@@ -360,11 +354,7 @@ async def run_live_scan(
     # Only expire items from adapters that ran successfully — a failed or
     # unscanned fetcher must not mass-expire its platform's items.
     healthy_adapters = {key for key, _, error in results if error is None}
-    expired = (
-        store.mark_expired_missing(seen_keys, scanned_adapters=healthy_adapters)
-        if mark_expired
-        else 0
-    )
+    expired = store.mark_expired_missing(seen_keys, scanned_adapters=healthy_adapters) if mark_expired else 0
     store.save()
 
     return {
@@ -525,11 +515,7 @@ def live_candidates_for_workbank(
     terminal-ish and excluded.
     """
     store = store or LiveStore()
-    statuses = (
-        {status}
-        if isinstance(status, str)
-        else (status or {"discovered", "eligibility_checked"})
-    )
+    statuses = {status} if isinstance(status, str) else (status or {"discovered", "eligibility_checked"})
     items = [opp for opp in store.all() if opp.status in statuses][:limit]
     return [to_dwe_opportunity(opp) for opp in items]
 
@@ -555,14 +541,8 @@ def promote_live_to_workbank(
             return {"promoted": 0, "reason": "no_candidates"}
         bank = get_workbank()
         summary = bank.daily_cycle(candidates, target=target or len(candidates))
-        ready_ids = {
-            item_id
-            for item_id, item in bank._items.items()
-            if getattr(item, "ready_to_deliver", False)
-        }
-        marked = mark_ready_from_workbank(
-            [SimpleNamespace(id=i) for i in ready_ids], store
-        )
+        ready_ids = {item_id for item_id, item in bank._items.items() if getattr(item, "ready_to_deliver", False)}
+        marked = mark_ready_from_workbank([SimpleNamespace(id=i) for i in ready_ids], store)
         ledger_sync = _sync_advertised_to_ledger(store)
         return {
             "candidates": len(candidates),
@@ -595,11 +575,7 @@ def _sync_advertised_to_ledger(store: LiveStore) -> int:
                 continue
             item_id = f"live:{key}"
             existing = ledger._store.get(item_id)
-            latest = (
-                ((existing or {}).get("payload") or {})
-                .get("finance", {})
-                .get("latest", {})
-            )
+            latest = ((existing or {}).get("payload") or {}).get("finance", {}).get("latest", {})
             if "advertised" in latest:
                 continue
             res = ledger.record_amount(
@@ -628,10 +604,7 @@ def mark_ready_from_workbank(
     ``ready`` — evidence: the real scorer accepted them.
     """
     store = store or LiveStore()
-    ready_ids = {
-        getattr(item, "opportunity_id", None) or getattr(item, "id", "")
-        for item in scored
-    }
+    ready_ids = {getattr(item, "opportunity_id", None) or getattr(item, "id", "") for item in scored}
     count = 0
     for key, opp in store._items.items():
         if f"live:{key}" in ready_ids and opp.status in (
@@ -698,9 +671,7 @@ def _match_source(opp: LiveOpportunity, index: dict[str, Any]) -> Any | None:
     return None
 
 
-def evaluate_eligibility(
-    opp: LiveOpportunity, catalog: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def evaluate_eligibility(opp: LiveOpportunity, catalog: dict[str, Any] | None = None) -> dict[str, Any]:
     """Evaluate one live opportunity against catalog eligibility metadata.
 
     Returns per-dimension status: ``yes`` / ``no`` / ``unknown`` — unknown
@@ -755,9 +726,7 @@ def evaluate_eligibility(
     return report
 
 
-def run_eligibility_check(
-    store: LiveStore | None = None, limit: int = 1000
-) -> dict[str, Any]:
+def run_eligibility_check(store: LiveStore | None = None, limit: int = 1000) -> dict[str, Any]:
     """Evaluate eligibility for all discovered opportunities; persist results.
 
     Transitions ``discovered`` → ``eligibility_checked`` only when a catalog
@@ -854,9 +823,7 @@ def _default_workspaces_dir() -> Path:
     return root / "workspaces"
 
 
-_GITHUB_ISSUE_RE = __import__("re").compile(
-    r"github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)", __import__("re").I
-)
+_GITHUB_ISSUE_RE = __import__("re").compile(r"github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)", __import__("re").I)
 
 
 async def _fetch_github_issue(url: str) -> dict[str, Any] | None:
@@ -871,9 +838,7 @@ async def _fetch_github_issue(url: str) -> dict[str, Any] | None:
     api = f"https://api.github.com/repos/{repo}/{kind}/{number}"
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(
-                api, headers={"Accept": "application/vnd.github+json"}
-            )
+            resp = await client.get(api, headers={"Accept": "application/vnd.github+json"})
             if resp.status_code != 200:
                 return {
                     "error": f"github_api_{resp.status_code}",
@@ -924,9 +889,7 @@ _DIFFICULTY_SIGNALS = {
 }
 
 
-def estimate_task(
-    opp: LiveOpportunity, issue: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def estimate_task(opp: LiveOpportunity, issue: dict[str, Any] | None = None) -> dict[str, Any]:
     """Heuristic difficulty/effort/reward estimate — honest guess, not a promise."""
     labels = " ".join((issue or {}).get("labels") or []).lower()
     title = f"{opp.title} {opp.description}".lower()
@@ -1058,21 +1021,12 @@ async def prepare_execution(
     # Assisted execution step 1: shallow-clone the target repo so the
     # executor/human works on real code, not just metadata.
     clone_result: dict[str, Any] | None = None
-    if (
-        clone
-        and repo_info
-        and repo_info.get("clone_url")
-        and not repo_info.get("archived")
-    ):
+    if clone and repo_info and repo_info.get("clone_url") and not repo_info.get("archived"):
         clone_result = await _clone_repo(repo_info["clone_url"], ws_dir / "repo")
         evidence["clone"] = clone_result
 
     # Evidence pack — everything the executor/human needs, persisted.
-    (ws_dir / "opportunity.json").write_text(
-        __import__("json").dumps(
-            {**opp.to_dict(), "raw_keys": list(opp.raw.keys())}, indent=2, default=str
-        )
-    )
+    (ws_dir / "opportunity.json").write_text(__import__("json").dumps({**opp.to_dict(), "raw_keys": list(opp.raw.keys())}, indent=2, default=str))
     lines = [
         f"# {opp.title}",
         "",
@@ -1234,11 +1188,7 @@ async def analyze_workspace(
         }
 
     ws_path = Path(ws)
-    (ws_path / "ANALYSIS.md").write_text(
-        "# Repo analysis\n\n"
-        + "\n".join(f"- {k}: {v}" for k, v in analysis.items())
-        + "\n"
-    )
+    (ws_path / "ANALYSIS.md").write_text("# Repo analysis\n\n" + "\n".join(f"- {k}: {v}" for k, v in analysis.items()) + "\n")
     if test_summary:
         import json as _json
 
@@ -1325,9 +1275,7 @@ def record_external_status(
             if paid_amount is not None:
                 amount_source = "explicit"
             else:
-                paid_amount = (
-                    opp.reward if isinstance(opp.reward, (int, float)) else 0.0
-                )
+                paid_amount = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
                 amount_source = "advertised_fallback"
             paid_currency = currency or opp.currency or "USD"
             res = RevenueLedger().record_amount(
@@ -1368,9 +1316,7 @@ def draft_payment_inquiry(
         return {"error": f"unknown opportunity: {opportunity_key}"}
     elig = (opp.raw or {}).get("eligibility") or {}
     fallbacks_raw = elig.get("payment_fallbacks") or []
-    fallbacks = (
-        [fallbacks_raw] if isinstance(fallbacks_raw, dict) else list(fallbacks_raw)
-    )
+    fallbacks = [fallbacks_raw] if isinstance(fallbacks_raw, dict) else list(fallbacks_raw)
     advertised = opp.reward if isinstance(opp.reward, (int, float)) else "[CONFIRM]"
     currency = opp.currency or "[CONFIRM]"
     if fallbacks:
@@ -1436,9 +1382,7 @@ def record_approval(
     # Mirror approval into the workspace evidence pack.
     ws = Path(execution["workspace"])
     if ws.exists():
-        (ws / "APPROVAL.json").write_text(
-            __import__("json").dumps(execution["approval"], indent=2)
-        )
+        (ws / "APPROVAL.json").write_text(__import__("json").dumps(execution["approval"], indent=2))
     store.save()
     return {
         "key": opportunity_key,
@@ -1515,6 +1459,20 @@ def score_opportunity(
             barrier_score -= 1.0
     barrier_score = max(0.0, barrier_score)
 
+    # Competition saturation: winner-take-all pools with thousands of
+    # entries have lower expected value than the advertised pot suggests.
+    # Applies to competitions only; bounty/task platforms unaffected.
+    saturation_factor = 1.0
+    subs = opp.raw.get("submission_count")
+    if isinstance(subs, (int, float)) and subs > 0:
+        if subs >= 10000:
+            saturation_factor = 0.5
+        elif subs >= 2000:
+            saturation_factor = 0.75
+        elif subs >= 500:
+            saturation_factor = 0.9
+        reward_score = round(reward_score * saturation_factor, 1)
+
     rph = reward_usd / max(effort, 0.5)
     if rph >= 50:
         effort_score = 15.0
@@ -1547,6 +1505,7 @@ def score_opportunity(
             "payment_method": pm_score,
             "low_barriers": round(barrier_score, 1),
             "reward_per_hour_fit": effort_score,
+            "competition_saturation": saturation_factor,
         },
         "estimated_reward_usd": round(float(reward_usd), 2),
         "estimated_effort_hours": effort,
