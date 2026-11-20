@@ -250,6 +250,20 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
+    # Agent-native task markets — canonical implementation lives in core/;
+    # registered here so cores/discovery_engine also discovers them.
+    # TODO(twin-tree): remove once cores/ adapters are consolidated into core/.
+    try:
+        from core.opportunity.adapters.agent_markets import (
+            AgentHansaAdapter,
+            TaskmarketAdapter,
+        )
+
+        registry.register("taskmarket", TaskmarketAdapter)
+        registry.register("agent_hansa", AgentHansaAdapter)
+    except ImportError:
+        pass
+
 
 def get_adapters() -> dict[str, OpportunityAdapter]:
     """Get adapter instances for all enabled adapters."""

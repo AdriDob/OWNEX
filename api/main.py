@@ -73,6 +73,7 @@ from api.routers import (
     fiverr,
     forge_app,
     forge_cycle,
+    human_actions,
     hunt,
     hunter,
     hypotheses,
@@ -601,6 +602,7 @@ _reg_inv_caps()
 app.include_router(osint.router)
 app.include_router(hunt.router)
 app.include_router(hunter.router)
+app.include_router(human_actions.router)
 app.include_router(recon.router)
 app.include_router(telegram_bot.router)
 app.include_router(version.router)

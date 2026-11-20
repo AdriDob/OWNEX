@@ -44,6 +44,12 @@
 > - **Lint debt corregida** en el mismo lane: `adapters/kaggle.py` (SIM108+SIM222×2), `source_discovery.py` (B904 `from None`), `sources_expansion/pending_candidates.py` (I001).
 > - **Verificación**: `pytest tests/test_job_feeds.py test_remote_job_matcher.py test_remote_job_integration.py` = 27 passed (+4 tests nuevos); `test-fast` = 100 passed/1 skipped; ruff limpio; mypy scoped limpio; smoke live `search_remote_jobs` = 8 feeds en 8.8s, Get on Board Python full-stack top-1 con `argentina_ok=True`.
 > - **Pendiente**: medición de yield por feed, resolución de company names en GoB (endpoint `/api/v0/companies/{id}` existe, costo N+1), feeds ES puros bloqueados por WAF.
+>
+> **YIELD MEDIDO (2026-11-20, query vacía, limit=50/feed):** remotive 16 (geo unknown), arbeitnow 50 (unknown), remoteok 50 (unknown), jobicy 50 (**39 argentina_ok**), weworkremotely 25 (unknown), getonbrd 50 (**21 argentina_ok**), workingnomads 35 (**10 argentina_ok** + 22 unknown), himalayas 20 (**1 argentina_ok**). Total ~296 listings, 71 con `argentina_ok=True`. Con query='python' el yield cae mucho (feeds filtran server-side): remotive 16, arbeitnow 1, remoteok 1, jobicy 0, weworkremotely 0, getonbrd 2, workingnomads 3, himalayas 0 → los feeds con geo explícito (jobicy/getonbrd/workingnomads/himalayas) son los que mejor rinden para matching AR.
+>
+> **AGENT-MARKET ADAPTERS (2026-11-20):** `core/opportunity/adapters/agent_markets.py` — `TaskmarketAdapter` + `AgentHansaAdapter` read-only (endpoints públicos sin auth). Registrados en `core/` (canónico) y bridged en `cores/` registry para que `cores/discovery_engine` también los descubra. Live: taskmarket 6 open tasks, agenthansa 1 open. Claim/register/submit/wallet = BLOCKED_ON_USER (B6/B7). Tests: `tests/test_agent_market_adapters.py` 4 passed.
+>
+> **HUMAN ACTIONS UI (2026-11-20):** `GET /api/human-actions` parsea `docs/FINAL_HUMAN_ACTIONS.md` → JSON (19 acciones: 14 BLOCKED_ON_USER, 4 READY_FOR_AUTHORIZATION, 1 BLOCKED_ON_PLATFORM). Frontend `/operations/human-actions` + sidebar "Acciones pendientes".
 
 ## Sesión 2026-11-09 (v10) — AUDITORÍA GLOBAL + P0 AUTH CONTRACT CORREGIDO
 

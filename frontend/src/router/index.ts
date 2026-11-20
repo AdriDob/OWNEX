@@ -370,6 +370,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import(/* webpackChunkName: "self-healer" */ '@/pages/ExtraWork.vue'),
         meta: { title: 'Self-Healer' },
       },
+      {
+        path: 'human-actions',
+        name: 'operations-human-actions',
+        component: () => import('@/pages/HumanActions.vue'),
+        meta: { title: 'Acciones pendientes' },
+      },
       { path: 'logs', redirect: '/operations/health' },
     ],
   },
