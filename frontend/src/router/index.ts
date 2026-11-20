@@ -82,7 +82,7 @@ export const routes: RouteRecordRaw[] = [
     // Entry point único: System State + Next Best Action + Opportunities + Income.
     path: '/',
     name: 'command-center',
-    component: () => import(/* webpackChunkName: "command-center" */ '@/pages/CommandCenter.vue'),
+    component: () => import(/* webpackChunkName: "mission-control" */ '@/pages/MissionControl.vue'),
     meta: { title: 'OWNEX Command Center' },
   },
   // Legacy IncomeHome redirect → Command Center

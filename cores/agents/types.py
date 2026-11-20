@@ -172,6 +172,9 @@ class EventType(StrEnum):
     SYSTEM_ALERT = "system.alert"
     SYSTEM_ERROR = "system.error"
 
+    # Department routing (specialist orchestrators)
+    DEPARTMENT_REQUESTED = "department.requested"
+
 
 class PipelineState(StrEnum):
     """Full 11-state lifecycle of a single pipeline run."""

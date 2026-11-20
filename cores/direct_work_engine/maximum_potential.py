@@ -114,8 +114,8 @@ class MaxPotentialEngine:
 
     @staticmethod
     def _completed_improvements() -> list[str]:
-        commits = _safe(_recent_commits, [])
-        capabilities = _safe(_active_capabilities, [])
+        commits: list[str] = _safe(_recent_commits, [])
+        capabilities: list[str] = _safe(_active_capabilities, [])
         items = [f"commit: {c}" for c in commits]
         items.extend(f"capability activa: {c}" for c in capabilities)
         return items[:MAX_IMPROVEMENTS]
@@ -126,7 +126,7 @@ class MaxPotentialEngine:
         from cores.direct_work_engine.feedback import build_history_from_revenue_tracker
         from cores.revenue_tracker import get_revenue_tracker
 
-        records = _safe(lambda: build_history_from_revenue_tracker(get_revenue_tracker()), [])
+        records: list[Any] = _safe(lambda: build_history_from_revenue_tracker(get_revenue_tracker()), [])
         analysis = _safe(lambda: PerformanceAnalyzer().analyze(records), None)
         if analysis is None:
             return {"note": "sin historial de outcomes verificados aún"}
@@ -149,7 +149,7 @@ class MaxPotentialEngine:
         bank = _safe(get_workbank, None)
         if bank is None:
             return {"note": "WorkBank no disponible"}
-        items = _safe(lambda: bank.best_ready(limit=100), [])
+        items: list[Any] = _safe(lambda: bank.best_ready(limit=100), [])
         if not items:
             return {"prepared_jobs": 0, "avg_automation_pct": 0, "estimated_hours_saved": 0.0}
         automation = 0
@@ -173,7 +173,7 @@ class MaxPotentialEngine:
         from cores.direct_work_engine.evolution import CapabilityExpansionDetector
 
         detector = CapabilityExpansionDetector()
-        proposals = _safe(lambda: detector.detect(opportunities=[]), [])
+        proposals: list[Any] = _safe(lambda: detector.detect(opportunities=[], profile=_user_profile()), [])
         names = [p.name for p in proposals]
         names.extend(_safe(_active_capabilities, []))
         return names[:MAX_CAPABILITIES]
@@ -187,9 +187,9 @@ class MaxPotentialEngine:
             if score < HEALTH_PROBLEM_THRESHOLD:
                 status = str(getattr(snapshot, "status", "degraded"))
                 problems.append(f"salud del sistema {status} (score {round(score, 2)})")
-        broken = _safe(_broken_capabilities, [])
+        broken: list[str] = _safe(_broken_capabilities, [])
         problems.extend(f"capability rota: {c}" for c in broken)
-        needs_access = _safe(_needs_access_jobs, [])
+        needs_access: list[Any] = _safe(_needs_access_jobs, [])
         if needs_access:
             problems.append(f"{len(needs_access)} trabajos preparados bloqueados por acceso")
         return problems[:MAX_PROBLEMS]
@@ -215,7 +215,7 @@ class MaxPotentialEngine:
                 ).to_dict(),
                 None,
             )
-        automation = _safe(lambda: MaxPotentialEngine._automation_gains(), {})
+        automation: dict[str, Any] = _safe(lambda: MaxPotentialEngine._automation_gains(), {})
         return {
             "monthly_work_income_usd": round(work_income, 2),
             "projection": projection or {"note": "configurá ingreso mensual en RevenueTracker para ver proyección"},
@@ -296,7 +296,7 @@ def _needs_access_jobs() -> list[Any]:
 
 
 def _access_actions() -> list[str]:
-    jobs = _safe(_needs_access_jobs, [])
+    jobs: list[Any] = _safe(_needs_access_jobs, [])
     return [f"configurar acceso para {j.platform} ({j.title})" for j in jobs[:3]]
 
 
@@ -304,8 +304,8 @@ def _evolution_actions() -> list[str]:
     from cores.direct_work_engine.evolution import CapabilityExpansionDetector
 
     detector = CapabilityExpansionDetector()
-    proposals = _safe(lambda: detector.detect(opportunities=[]), [])
-    return [f"adquirir capacidad {p.name} (evidencia: {p.evidence})" for p in proposals[:2]]
+    proposals: list[Any] = _safe(lambda: detector.detect(opportunities=[], profile=_user_profile()), [])
+    return [f"adquirir capacidad {p.name} (evidencia: {p.evidence_count})" for p in proposals[:2]]
 
 
 def _monthly_work_income() -> float:
@@ -316,6 +316,14 @@ def _monthly_work_income() -> float:
     if per_platform:
         return sum(_to_float(p.get("completed_amount")) for p in per_platform)
     return 0.0
+
+
+def _user_profile() -> Any:
+    """Perfil real del repositorio (default de ProfileKit, sin inventar skills)."""
+    from cores.direct_work_engine.profile_kit import ProfileKitEngine
+
+    kit = ProfileKitEngine()
+    return kit.profile_from_dict(kit.default_profile())
 
 
 def _to_float(value: Any) -> float:

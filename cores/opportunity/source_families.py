@@ -171,7 +171,8 @@ def source_family_for(source: SourceDefinition) -> SourceFamily | None:
         try:
             return SourceFamily(explicit)
         except ValueError:
-            return None
+            # Explicit value is not a valid family — fall through to keyword match
+            pass
     text = f"{source.name} {source.description}".lower()
     for family in SourceFamily:
         if any(keyword in text for keyword in _FAMILY_KEYWORDS[family]):

@@ -1101,3 +1101,12 @@ class MobileApproval(Base):
 RastroConfig = CATEYEConfig
 # OWNEX settings service imports the config model under the OWNEX name
 OWNEXConfig = CATEYEConfig
+
+# Economic models submodule
+from . import models_economic
+
+# Cycle models submodule
+from . import models_cycles
+
+# Assets models submodule
+from . import models_assets

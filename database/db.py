@@ -134,6 +134,12 @@ Base = declarative_base()
 # before init_db()/create_all() runs. These are imported at the bottom
 # to avoid circular imports (each module imports Base/SessionLocal above).
 import cores.knowledge.store  # noqa: F401
+# Register economic intelligence models
+import database.models_economic  # noqa: F401
+# Register cycle models
+import database.models_cycles  # noqa: F401
+# Register assets models
+import database.models_assets  # noqa: F401
 from database import models as _db_models  # noqa: F401 — registers User, MemoryRecord, etc.
 
 

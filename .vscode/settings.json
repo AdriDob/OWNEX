@@ -97,5 +97,6 @@
   "terminal.integrated.gpuAcceleration": "on",
   "terminal.integrated.shellIntegration.enabled": false,
 
-  "task.allowAutomaticTasks": "on"
+  "task.allowAutomaticTasks": "on",
+  "python.terminal.useEnvFile": true
 }

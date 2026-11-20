@@ -33,7 +33,7 @@ class RiskGuardian:
 
     def check_all_strategies(self) -> dict[str, Any]:
         """Run risk checks on all active strategies."""
-        results = {
+        results: dict[str, Any] = {
             "checked": 0,
             "paused": [],
             "resumed": [],
@@ -103,7 +103,7 @@ class RiskGuardian:
         results["paused"].append(
             {
                 "strategy_id": sid,
-                "name": self._strategies.get(sid, {}).name if sid in self._strategies else sid,
+                "name": self._strategies[sid].name if sid in self._strategies else sid,
                 "reason": "; ".join(reason),
                 "drawdown_pct": metrics.current_drawdown_pct,
                 "consecutive_losses": metrics.consecutive_losses,
@@ -141,7 +141,7 @@ class RiskGuardian:
         results["resumed"].append(
             {
                 "strategy_id": sid,
-                "name": self._strategies.get(sid, {}).name if sid in self._strategies else sid,
+                "name": self._strategies[sid].name if sid in self._strategies else sid,
                 "reason": "Drawdown recovered",
                 "drawdown_pct": metrics.current_drawdown_pct,
             }
@@ -165,7 +165,7 @@ class RiskGuardian:
 
     def get_risk_report(self) -> dict[str, Any]:
         """Get comprehensive risk report for all strategies."""
-        report = {
+        report: dict[str, Any] = {
             "timestamp": datetime.now(UTC).isoformat(),
             "global_paused": self._manager.is_paused,
             "drawdown_protection": self._manager.drawdown_protection,
@@ -215,8 +215,12 @@ class RiskGuardian:
         return report
 
 
+_risk_guardian: RiskGuardian | None = None
+
+
 def get_risk_guardian() -> RiskGuardian:
     """Get singleton RiskGuardian instance."""
-    if not hasattr(get_risk_guardian, "_instance"):
-        get_risk_guardian._instance = RiskGuardian()
-    return get_risk_guardian._instance
+    global _risk_guardian
+    if _risk_guardian is None:
+        _risk_guardian = RiskGuardian()
+    return _risk_guardian
