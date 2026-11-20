@@ -3648,3 +3648,14 @@ Características del Sistema Completo:
 - **IssueHunt**: guard de content-type — la API pública ahora sirve el SPA (HTML); skip limpio con diagnóstico en vez de JSON exception.
 - **Restantes**: onlydust 530 (infra caída upstream — nada que hacer), opencollective 404 (REST muerto; GraphQL existe pero budgets≠tasks — baja prioridad), immunefi/cantina/sherlock/code4rena/codehawks 0 resultados (credential-gated, esperado).
 - **Próximo make.fun**: news-image-20261121 abre 21-nov 00:00 UTC (~16h) — mismo playbook que el package de ayer, deadline 23-nov 00:00 UTC.
+
+## 2026-11-20 — MODO ESPERA (consolidación twin-tree en curso)
+
+Reglas activas hasta que el agente principal entregue resultados:
+- PROHIBIDO: reset, clean, checkout destructivo, restore masivo.
+- NO tocar los 3 stashes existentes (stash@{0..2}).
+- NO descartar los ~24 archivos unmerged ni sobrescribir los ~434 cambios sin identificar procedencia.
+- Preservar baseline `09e0383c`+ y todos los commits posteriores.
+- No declarar integración terminada sin validación sobre el estado integrado.
+- Prioridades del usuario: (1) git coherente sin pérdida, (2) suite verde + arranque local, (3) validar HIT0 make.fun (requisitos/credenciales/cobro real).
+- Baseline de comparación: `09e0383c` (2026-11-20 noche).
