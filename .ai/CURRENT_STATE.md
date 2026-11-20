@@ -3659,3 +3659,14 @@ Reglas activas hasta que el agente principal entregue resultados:
 - No declarar integración terminada sin validación sobre el estado integrado.
 - Prioridades del usuario: (1) git coherente sin pérdida, (2) suite verde + arranque local, (3) validar HIT0 make.fun (requisitos/credenciales/cobro real).
 - Baseline de comparación: `09e0383c` (2026-11-20 noche).
+
+## 2026-11-20 — Operational Completion baseline `04119648`
+
+- Suite completa: **5800 passed / 18 skipped / 2 xfailed / 0 failed**
+- Git: sin conflictos; WIP del agente integrado en 4 commits (91623536, de361484, a0b70e20, 03612283)
+- `docs/FINAL_HUMAN_ACTIONS.md` creado — registro único de acciones pendientes (FASE A: make.fun HIT0, GitHub, plataformas IA, bug bounty; FASE B: credenciales; FASE C: decisiones)
+- 8 adapters planos nuevos = **curated stubs sin fetch real, NO registrados** en AdapterRegistry — limitación documentada
+- Backend verificado: /api/health OK, /api/system/health OK (6351 targets, 613k endpoints), endpoints de negocio requieren auth (401 correcto)
+- Frontend: build OK; SPA servida por backend en :8899 — validación visual de pantallas queda para sesión con login
+- DBs: database/catseye.db (13GB) = DB dev ACTIVA (no residual); ~/.ownex/database/cateye.db = DB desktop — unificación pendiente (acción C6)
+- Estado: **TECHNICALLY COMPLETE / HUMAN ACTIONS PENDING** — USD 0 verificados hasta completar FASE A
