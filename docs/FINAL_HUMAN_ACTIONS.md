@@ -105,6 +105,7 @@
 - Backend: 1366 rutas, health OK · Frontend: build OK · Suite: 5800 tests verdes
 - Entregable HIT0 make.fun construido y conforme a reglas
 - Catálogo de fuentes: +6 agregadas 2026-11-20 (Google OSS VRP, Drips, Stacker News, Clustly, Agent Hansa, Daydreams TaskMarket); 5/6 activas en catálogo (Stacker News quedó fuera del cap de 1000 por prioridad); nueva familia `agent_native_markets`; AgentPact descartado (archivado 2026-11-16, API apagada); microtask marketplaces excluidos por decisión del owner
+- Adapters read-only LIVE (2026-11-20): `TaskmarketAdapter` y `AgentHansaAdapter` en `core/opportunity/adapters/agent_markets.py` — discovery público verificado (Taskmarket: 6 tasks open de 20 listados; AgentHansa: 1 open). Solo fetch; claim/register/submit/wallet siguen BLOCKED_ON_USER (B6/B7).
 
 ## Regla permanente
 

@@ -235,6 +235,19 @@ def _seed_defaults(registry: AdapterRegistry) -> None:
     except ImportError:
         pass
 
+    # Agent-native task markets (Taskmarket, Agent Hansa) — read-only discovery.
+    # Registration/claiming/submission stays blocked on user authorization.
+    try:
+        from core.opportunity.adapters.agent_markets import (
+            AgentHansaAdapter,
+            TaskmarketAdapter,
+        )
+
+        registry.register("taskmarket", TaskmarketAdapter)
+        registry.register("agent_hansa", AgentHansaAdapter)
+    except ImportError:
+        pass
+
 
 def get_adapters() -> dict[str, OpportunityAdapter]:
     """Get adapter instances for all enabled adapters."""
