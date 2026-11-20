@@ -416,121 +416,6 @@ class UniversalSourceAdapter:
         }
 
 
-def adaptation_level_for_source(name: str) -> SourceAdaptationLevel:
-    """Return the highest evidence-backed adaptation level for ``name``."""
-    from cores.opportunity.source_adaptation import SourceAdaptationLevel
-
-    normalized = name.strip()
-    # Connection manager platforms: Fiverr, Freelancer, Direct Work
-    # These sources have active external connections, so they receive at
-    # least DISCOVERABLE adaptation level.
-    if normalized in _CONNECTION_MANAGER_PLATFORMS:
-        return SourceAdaptationLevel.DISCOVERABLE
-    if normalized in _PRODUCTION_ACTIVE_SOURCES:
-        return SourceAdaptationLevel.PRODUCTION_ACTIVE
-    if normalized in _ARGENTINA_VERIFIED_SOURCES:
-        return SourceAdaptationLevel.ARGENTINA_VERIFIED
-    if normalized in _INTEGRATION_VERIFIED_SOURCES:
-        return SourceAdaptationLevel.INTEGRATION_VERIFIED
-    if normalized in _adapter_backed_source_names():
-        return SourceAdaptationLevel.ADAPTER_READY
-    if SOURCE_PLATFORM_MAP.get(normalized) is not None and _has_known_payment_method(
-        normalized
-    ):
-        return SourceAdaptationLevel.ADAPTER_READY
-    if normalized in _own_work_source_names():
-        return SourceAdaptationLevel.DISCOVERABLE
-    return SourceAdaptationLevel.CATALOG_ONLY
-
-
-# ── Global adaptation state (frozensets, populated at import) ────────────────
-
-_CONNECTION_MANAGER_PLATFORMS: frozenset[str] = frozenset(
-    {"fiverr", "freelancer", "direct_work"}
-)
-
-__PRODUCTION_ACTIVE_SOURCES: frozenset[str] = frozenset()
-__ARGENTINA_VERIFIED_SOURCES: frozenset[str] = frozenset()
-__INTEGRATION_VERIFIED_SOURCES: frozenset[str] = frozenset()
-
-_KNOWN_PAYOUT_ALIASES = frozenset(
-    {"paypal", "payoneer", "wise", "bank_transfer", "crypto", "stablecoin"}
-)
-
-# Connection manager platform keys — these are the external platforms
-# managed by useExternalConnectionManager (Fiverr, Freelancer, Direct Work).
-# When a source is mapped to one of these platforms via the connection manager,
-# it receives at least DISCOVERABLE adaptation level.
-_ADAPTER_PLATFORM_TO_SOURCE_NAMES: dict[str, tuple[str, ...]] = {
-    "algora": ("Algora",),
-    "bugcrowd": ("Bugcrowd",),
-    "dataannotation": ("Data Annotation Tech",),
-    "freelancer": ("Freelancer (coding)",),
-    "freelancer_microtask": ("Freelancer (coding)",),
-    "hackerone": ("HackerOne",),
-    "intigriti": ("Intigriti",),
-    "issuehand": ("IssueHunt",),
-    "issuehunt": ("IssueHunt",),
-    "linkedin": ("LinkedIn (Easy Apply)",),
-    "linkedin_easyapply": ("LinkedIn (Easy Apply)",),
-    "mindrift": ("Mindrift",),
-    "opencollective": ("Open Collective",),
-    "opire": ("Opire",),
-    "opyre": ("Opyre",),
-    "opyre_microtask": ("Opyre",),
-    "outlier": ("Outlier",),
-    "remotasks": ("Remotasks",),
-    "superteam": ("Superteam Earn",),
-    "yeswehack": ("YesWeHack",),
-}
-
-
-@lru_cache(maxsize=1)
-def _own_work_source_names() -> frozenset[str]:
-    from cores.opportunity.own_work_sources import WEB_DEV_SOURCES, CRYPTO_DEV_SOURCES
-
-    names = {source.name for source in WEB_DEV_SOURCES + CRYPTO_DEV_SOURCES}
-    for builder in (
-        "build_second_wave_extension",
-        "build_third_wave_extension",
-        "build_fourth_wave_bounty_extension",
-        "build_fourth_wave_dev_extension",
-        "build_fifth_wave_dev_extension",
-        "build_sixth_wave_security_extension",
-        "build_sixth_wave_dev_extension",
-    ):
-        try:
-            names.update(source.name for source in globals()[builder]().sources)
-        except Exception:
-            pass
-    return frozenset(names)
-
-
-@lru_cache(maxsize=1)
-def _catalog_source_names() -> frozenset[str]:
-    from cores.opportunity.global_sources import get_sources
-
-    return frozenset(source.name for source in get_sources()) | _own_work_source_names()
-
-
-@lru_cache(maxsize=1)
-def _adapter_backed_source_names() -> frozenset[str]:
-    """Catalog sources with a registered runtime adapter/executor."""
-    try:
-        from core.opportunity.adapters import get_adapter_registry
-
-        platform_keys = set(get_adapter_registry().all())
-    except Exception:
-        platform_keys = set()
-    names: set[str] = set()
-    for key in platform_keys:
-        names.update(_ADAPTER_PLATFORM_TO_SOURCE_NAMES.get(key, ()))
-    return frozenset(names)
-
-
-def _has_known_payment_method(name: str) -> bool:
-    methods = KNOWN_PAYOUT_ALIASES.get(name, {}).get("methods", [])
-    return any(method in _KNOWN_PAYOUT_ALIASES for method in methods)
 
 
 # ── SourceDiscoveryRegistry ──────────────────────────────────────────────
@@ -561,6 +446,11 @@ class SourceDiscoveryRegistry:
         4. DISCOVERABLE without reward evidence
         5. CATALOG_ONLY (oldest first for eviction)
         """
+        from cores.opportunity.source_adaptation import (
+            SourceAdaptationLevel,
+            adaptation_level_for_source,
+        )
+
         while len(self._candidates) > MAX_QUEUE_SOURCES:
             # Classify each candidate by retention priority
             candidates_by_priority: dict[int, list[SourceCandidate]] = {}

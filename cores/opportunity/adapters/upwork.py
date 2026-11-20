@@ -24,7 +24,7 @@ class UpworkAdapter(OpportunityAdapter):
         """Fetch opportunities from Upwork API."""
         try:
             credentials = load_credentials("upwork")
-            api_key = get_api_key("upwork", credentials)
+            get_api_key("upwork", credentials)
 
             headers = get_auth_headers("upwork", credentials)
 

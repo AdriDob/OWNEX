@@ -24,7 +24,7 @@ class KaggleAdapter(OpportunityAdapter):
         """Fetch opportunities from Kaggle API."""
         try:
             credentials = load_credentials("kaggle")
-            api_key = get_api_key("kaggle", credentials)
+            get_api_key("kaggle", credentials)
 
             # Kaggle API via HTTPS for dataset/listings and competition opportunities
             base_url = "https://kaggle.com/api/v1/"
