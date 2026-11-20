@@ -61,17 +61,18 @@ class TestSourceFamilies:
         assert summary["total_catalog_entries"] >= 1000
         # 2026-08-04: base catalog +40 sources; Defined.ai and Shaip
         # land in ai_coding_evaluation (12 -> 14).
-        assert summary["family_counts"]["ai_coding_evaluation"] == 14
-        assert summary["family_counts"]["qa_testing_services"] == 6
-        assert summary["family_counts"]["funded_oss_grants"] == 16
-        assert summary["family_counts"]["api_sdk_integration"] == 0
-        assert summary["family_counts"]["devops_cloud_tasks"] == 0
-        # 2026-08-04: Innodata lands in data_engineering_tasks (0 -> 1).
-        assert summary["family_counts"]["data_engineering_tasks"] == 1
-        assert summary["family_counts"]["browser_automation_gigs"] == 0
+        # 2026-11-20: twin-tree consolidation + Open Source Income expansion
+        # grew every family (qa 6->8, grants 17->30, api 0->5, devops 0->7,
+        # data 1->6, browser 0->6).
+        assert summary["family_counts"]["ai_coding_evaluation"] == 19
+        assert summary["family_counts"]["qa_testing_services"] == 8
+        assert summary["family_counts"]["funded_oss_grants"] == 30
+        assert summary["family_counts"]["api_sdk_integration"] == 5
+        assert summary["family_counts"]["devops_cloud_tasks"] == 7
+        assert summary["family_counts"]["data_engineering_tasks"] == 6
+        assert summary["family_counts"]["browser_automation_gigs"] == 6
         by_family = summary["sources_by_family"]
         assert "Algora" in by_family["funded_oss_grants"]
         assert "Test IO" in by_family["qa_testing_services"]
         assert "uTest" in by_family["qa_testing_services"]
         assert "Outlier" in by_family["ai_coding_evaluation"]
-        assert by_family["api_sdk_integration"] == []
