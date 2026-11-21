@@ -420,6 +420,13 @@ _PLATFORM_MAP = {
     "opencollective": "opencollective",
     "polar": "other",
     "bountysource": "other",
+    # Security platforms — WorkPlatform enum supports these natively.
+    "hackerone": "hackerone",
+    "bugcrowd": "bugcrowd",
+    "intigriti": "intigriti",
+    "yeswehack": "yeswehack",
+    "synack": "synack",
+    "immunefi": "immunefi",
 }
 
 _CATEGORY_MAP = {
