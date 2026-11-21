@@ -778,7 +778,8 @@ class TestRevenueFirstScoring:
             eligibility=self._elig(argentina_compatible="yes", payment_method="fallback_available"),
             estimate=self._estimate(100.0, 2.0),
         )
-        assert s["estimated_net_per_hour_usd"] == 50.0
+        assert s["estimated_net_per_hour_usd"] == 48.5  # (100 - 2h*$1.50) / 2h
+        assert s["estimated_gross_per_hour_usd"] == 50.0
         assert "note" in s and "not confirmed income" in s["note"]
 
     def test_rank_excludes_terminal_and_sorts(self, store):
@@ -901,3 +902,25 @@ class TestPlatformTrackRecord:
         assert "platform_history" in s["breakdown"]
         assert s["track_record"]["platform"] == "algora"
         assert 0.0 <= s["score"] <= 100.0
+
+
+class TestAiCostScoring:
+    def test_score_reports_ai_cost_and_net(self):
+        opp = _to_live("algora", _raw(reward=100.0, effort_hours=4.0))
+        assert opp is not None
+        s = score_opportunity(opp)
+        assert s["estimated_ai_cost_usd"] == 6.0  # 4h * $1.50 default
+        assert s["estimated_net_reward_usd"] == 94.0
+        assert s["estimated_net_per_hour_usd"] == 23.5
+        assert s["estimated_gross_per_hour_usd"] == 25.0
+
+    def test_unprofitable_after_ai_cost_scores_low_effort(self):
+        # $10 reward, 8h effort -> net negative -> lowest effort tier
+        opp = _to_live("algora", _raw(reward=10.0))
+        assert opp is not None
+        s = score_opportunity(
+            opp,
+            estimate={"effective_reward_usd": 10.0, "estimated_effort_hours": 8.0},
+        )
+        assert s["estimated_net_reward_usd"] < 0
+        assert s["breakdown"]["reward_per_hour_fit"] == 3.0

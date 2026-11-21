@@ -16,6 +16,7 @@ Each source is pre-filtered for:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 from enum import StrEnum
 from typing import Any
 
@@ -66,6 +67,16 @@ class SourceDefinition:
     # Level-2 source family (e.g. "ai_coding_evaluation"). Empty = derive by
     # keyword; canonical OpportunityCategory remains the level-1 taxonomy.
     source_family: str = ""
+    # Integration maturity L1-L5 (see ``assess_integration``):
+    #   L1 verified domain/identity — every catalog entry starts here.
+    #   L2 live discovery of real opportunities (fetcher/adapter evidence).
+    #   L3 account/access connected (credentials authorized by owner).
+    #   L4 work operations enabled (claim/prepare/submit via integration).
+    #   L5 full cycle: delivery, acceptance, payout verified.
+    # ``integration_mechanism`` documents HOW the source is reached
+    # ("api", "rss", "github", "browser", "manual", "aggregator", ...).
+    integration_level: int = 1
+    integration_mechanism: str = ""
 
 
 # ═══════════════════════════════════════════════
@@ -860,6 +871,25 @@ BUG_BOUNTY_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="aggregator; per-program rewards",
         tags=["aggregator", "bug-bounty", "discovery", "security"],
         last_verified="2026-11-20",
+    ),
+    # ── 2026-11-21 expansion: additional security programs ──
+    SourceDefinition(
+        "Standoff 365 Bug Bounty",
+        "https://bugbounty.standoff365.com",
+        OpportunityCategory.bug_bounty,
+        "Vulnerability disclosure programs for web apps, mobile and infrastructure, run by the Russian-origin Standoff 365 platform. Site live-verified 2026-11-21. Participant country restrictions and payout rails for Argentina are NOT confirmed — verify eligibility before planning around it.",
+        "platform",
+        "profile_only",
+        quality_score=0.58,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_experience=True,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="per-program rewards; regional restrictions likely",
+        tags=["bug-bounty", "web", "mobile", "regional-restrictions"],
+        last_verified="2026-11-21",
     ),
 ]
 
@@ -2114,6 +2144,193 @@ DEV_BOUNTY_SOURCES: list[SourceDefinition] = [
         last_verified="2026-11-20",
         source_family="funded_oss_grants",
     ),
+    # ── 2026-11-21 expansion: maintainer funding (project/maintainer level) ──
+    SourceDefinition(
+        "Tidelift",
+        "https://tidelift.com",
+        OpportunityCategory.dev_bounty,
+        "Pays maintainers of eligible open-source packages for maintenance and security standards through enterprise subscriptions. Site live-verified 2026-11-21. Requires being a maintainer of an already-onboarded package — not a way to pick up new tasks.",
+        "platform",
+        "profile_only",
+        quality_score=0.60,
+        requires_account=True,
+        requires_portfolio=True,
+        requires_interview=False,
+        requires_experience=True,
+        priority=6,
+        argentina_ok=False,
+        estimated_payout_range="per-package recurring payments; eligibility gated",
+        tags=["grants", "oss", "maintainers", "security"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "thanks.dev",
+        "https://thanks.dev",
+        OpportunityCategory.dev_bounty,
+        "Routes funding from corporate dependency graphs to individual open-source maintainers. Site live-verified 2026-11-21 (the /d/ dashboard path returns 403 to automated checks). Payout depends on the maintainer having dependents that opt in.",
+        "platform",
+        "profile_only",
+        quality_score=0.55,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_experience=True,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="per-maintainer grants; depends on dependency graph",
+        tags=["grants", "oss", "maintainers", "funding"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Sovereign Tech Fund",
+        "https://www.sovereign.tech/programs/fund",
+        OpportunityCategory.dev_bounty,
+        "German government fund that pays for security and maintenance work on critical open-source infrastructure. Site live-verified 2026-11-21. Project-scoped calls and contracts with deliverables — not per-issue bounties, and eligibility rules for non-EU individuals must be checked per call.",
+        "platform",
+        "profile_only",
+        quality_score=0.62,
+        requires_account=False,
+        requires_portfolio=True,
+        requires_interview=False,
+        requires_experience=True,
+        priority=6,
+        argentina_ok=False,
+        estimated_payout_range="project contracts; six figures per funded project historically",
+        tags=["grants", "oss", "security", "infrastructure", "germany"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Alpha-Omega",
+        "https://alpha-omega.dev",
+        OpportunityCategory.dev_bounty,
+        "Linux Foundation initiative funding security work in critical open-source projects (threat modelling, hardening, response capacity). Site live-verified 2026-11-21. Funds projects and maintainer organisations, not individual micro-tasks.",
+        "platform",
+        "profile_only",
+        quality_score=0.58,
+        requires_account=False,
+        requires_portfolio=True,
+        requires_interview=False,
+        requires_experience=True,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="project grants; varies",
+        tags=["grants", "oss", "security", "foundation"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "OpenSSF",
+        "https://openssf.org",
+        OpportunityCategory.dev_bounty,
+        "Open Source Security Foundation: working groups, security tooling and funded initiatives for open-source projects. Site live-verified 2026-11-21. Not a general bounty program — value is access to funded security initiatives and project collaborations.",
+        "platform",
+        "profile_only",
+        quality_score=0.52,
+        requires_account=False,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_experience=True,
+        priority=4,
+        argentina_ok=False,
+        estimated_payout_range="funded initiatives; no per-task payout",
+        tags=["grants", "oss", "security", "foundation"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Ethereum Foundation ESP",
+        "https://esp.ethereum.foundation/applicants",
+        OpportunityCategory.dev_bounty,
+        "Ecosystem Support Program grants for Ethereum infrastructure, tooling, research and documentation. Site live-verified 2026-11-21. Application-based project grants paid in ETH/fiat — not micro-tasks.",
+        "platform",
+        "profile_only",
+        quality_score=0.60,
+        requires_account=False,
+        requires_portfolio=True,
+        requires_interview=False,
+        requires_experience=True,
+        priority=6,
+        argentina_ok=True,
+        estimated_payout_range="project grants; typically USD 10k-300k per accepted proposal",
+        tags=["grants", "oss", "ethereum", "tooling"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    SourceDefinition(
+        "Filecoin Grants",
+        "https://fil.org",
+        OpportunityCategory.dev_bounty,
+        "Grants and funded work for Filecoin ecosystem tooling, storage integrations and developer resources. Returned HTTP 429 to repeated automated checks on 2026-11-21 (bot rate-limit), so the current grant page content was NOT confirmed — treat as unverified until a manual check.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        requires_account=False,
+        requires_portfolio=True,
+        requires_interview=False,
+        requires_experience=True,
+        priority=3,
+        argentina_ok=False,
+        estimated_payout_range="project grants; varies",
+        tags=["grants", "oss", "filecoin", "unverified"],
+        last_verified="2026-11-21",
+        source_family="funded_oss_grants",
+    ),
+    # ── 2026-11-21 expansion: engineering competitions ──
+    SourceDefinition(
+        "Hugging Face Competitions",
+        "https://huggingface.co/competitions",
+        OpportunityCategory.dev_bounty,
+        "ML/data competitions and community challenges hosted on Hugging Face. Site live-verified 2026-11-21. Prize funds and eligibility vary per competition; many challenges award recognition rather than cash.",
+        "platform",
+        "profile_only",
+        quality_score=0.55,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=5,
+        argentina_ok=True,
+        estimated_payout_range="per-competition prizes; often non-cash",
+        tags=["competitions", "machine-learning", "prizes", "community"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "CodaLab",
+        "https://codalab.lisn.upsaclay.fr",
+        OpportunityCategory.dev_bounty,
+        "Academic competition platform for machine-learning and data-science challenges (LISN/Paris-Saclay). Site live-verified 2026-11-21. Many worksheets are research challenges without cash prizes, so the reward has to be checked per competition.",
+        "platform",
+        "profile_only",
+        quality_score=0.42,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        priority=3,
+        argentina_ok=True,
+        estimated_payout_range="varies; frequently no cash prize",
+        tags=["competitions", "machine-learning", "academic", "research"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "Numerai",
+        "https://numer.ai",
+        OpportunityCategory.dev_bounty,
+        "Crowdsourced hedge-fund modelling tournament: submit predictive models, rewards are paid in NMR and depend on performance, and staking capital is at risk. Site live-verified 2026-11-21. Financial-risk competition, not a fixed-fee programming bounty.",
+        "platform",
+        "profile_only",
+        quality_score=0.45,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_experience=True,
+        priority=3,
+        argentina_ok=True,
+        estimated_payout_range="performance-linked NMR payouts; staking risk",
+        tags=["competitions", "machine-learning", "trading", "financial-risk"],
+        last_verified="2026-11-21",
+    ),
 ]
 
 # ═══════════════════════════════════════════════
@@ -3195,6 +3412,81 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         last_verified="2026-11-20",
         source_family="ai_coding_evaluation",
     ),
+    # ── 2026-11-21 expansion: AI coding/evaluation contractors ──
+    SourceDefinition(
+        "Welo Data",
+        "https://welodata.ai",
+        OpportunityCategory.ai_evaluation,
+        "AI training-data division of Welocalize: code evaluation, reasoning and multilingual quality projects. Site live-verified 2026-11-21. Roles are project- and country-gated (several recent coding listings restricted by country) and require passing a qualification test.",
+        "platform",
+        "profile_only",
+        quality_score=0.58,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_assessment=True,
+        requires_experience=False,
+        priority=6,
+        argentina_ok=False,
+        estimated_payout_range="per-project rates; country restrictions apply",
+        tags=["ai-training", "code-evaluation", "multilingual", "assessment"],
+        last_verified="2026-11-21",
+        source_family="ai_coding_evaluation",
+    ),
+    SourceDefinition(
+        "Handshake AI",
+        "https://joinhandshake.com/ai",
+        OpportunityCategory.ai_evaluation,
+        "AI evaluation and technical project arm of Handshake, aimed at students and early-career engineers. Site live-verified 2026-11-21. Application plus selection; availability depends on the projects running at the time.",
+        "platform",
+        "profile_only",
+        quality_score=0.52,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_assessment=True,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="per-project rates; varies",
+        tags=["ai-training", "evaluation", "early-career", "selection"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "Invisible Technologies",
+        "https://www.invisible.co",
+        OpportunityCategory.ai_evaluation,
+        "AI operations and data/evaluation contracting partner for model builders. Site live-verified 2026-11-21. Note: the Meridial-branded domain was rejected earlier as parked — this is the parent company's own site, and project availability is not published openly.",
+        "platform",
+        "profile_only",
+        quality_score=0.50,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=True,
+        requires_experience=False,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="per-project rates; not published",
+        tags=["ai-training", "evaluation", "operations", "contracting"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "xAI Specialist AI Tutors",
+        "https://x.ai/careers",
+        OpportunityCategory.ai_evaluation,
+        "Specialist tutor and evaluation roles for xAI model training. Site live-verified 2026-11-21. Domain expertise, not necessarily programming — kept out of the coding track on purpose; roles are listed on the careers page and require selection.",
+        "job_board",
+        "profile_only",
+        quality_score=0.45,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=True,
+        requires_experience=True,
+        priority=4,
+        argentina_ok=False,
+        estimated_payout_range="hourly contracting; not published",
+        tags=["ai-training", "tutoring", "evaluation", "domain-expert"],
+        last_verified="2026-11-21",
+    ),
 ]
 
 
@@ -3289,6 +3581,62 @@ WEB3_AUDITS_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$150-500/hour; project-based $5k-50k+",
         tags=["smart-contract", "security", "audit", "enterprise"],
         priority=10,
+    ),
+    # ── 2026-11-21 expansion: competitive audit + curated security networks ──
+    SourceDefinition(
+        "CodeHawks",
+        "https://www.codehawks.com/contests",
+        OpportunityCategory.web3_audits,
+        "Cyfrin competitive smart-contract audit contests plus practice exercises. Site live-verified 2026-11-21. A read-only adapter already exists for it (cores.opportunity.adapters.security.codehawks); contests are public and findings are competitive.",
+        "platform",
+        "profile_only",
+        quality_score=0.82,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_experience=True,
+        priority=9,
+        argentina_ok=True,
+        estimated_payout_range="contest prize pools split across valid findings; competitive",
+        tags=["smart-contract", "audit", "competition", "cyfrin"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "CertiK Hunt",
+        "https://hunt.certik.com",
+        OpportunityCategory.web3_audits,
+        "Web3 bug bounties and time-boxed security challenges with CertiK independently reproducing every finding before the protocol pays. Site live-verified 2026-11-21. Currently invite-only for vetted researchers (entry challenge → Vanguard access), so access is gated rather than open registration.",
+        "platform",
+        "profile_only",
+        quality_score=0.80,
+        requires_account=True,
+        requires_portfolio=False,
+        requires_interview=False,
+        requires_assessment=True,
+        requires_experience=True,
+        priority=8,
+        argentina_ok=False,
+        estimated_payout_range="per-program bounties (e.g. USD 10k-150k max); access gated",
+        tags=["smart-contract", "bug-bounty", "web3", "invite-only"],
+        last_verified="2026-11-21",
+    ),
+    SourceDefinition(
+        "Spearbit",
+        "https://spearbit.com",
+        OpportunityCategory.web3_audits,
+        "Curated smart-contract security review network; auditors are vetted and invited, and it is not an open task board. Site live-verified 2026-11-21 (403 to a plain automated check, 200 with a browser user-agent). Long-term specialisation target, not an entry-level income source.",
+        "platform",
+        "profile_only",
+        quality_score=0.75,
+        requires_account=True,
+        requires_portfolio=True,
+        requires_interview=True,
+        requires_experience=True,
+        priority=5,
+        argentina_ok=False,
+        estimated_payout_range="project-based audit fees; invitation only",
+        tags=["smart-contract", "audit", "curated", "senior"],
+        last_verified="2026-11-21",
     ),
 ]
 
@@ -3408,3 +3756,120 @@ def get_categorized_counts() -> dict[str, int]:
         key = src.category.value if hasattr(src.category, "value") else str(src.category)
         counts[key] = counts.get(key, 0) + 1
     return counts
+
+
+# ═══════════════════════════════════════════════
+# INTEGRATION MATURITY (L1-L5)
+# ═══════════════════════════════════════════════
+
+_LIVE_FETCHER_CACHE: set[str] | None = None
+
+
+def _live_fetcher_keys() -> set[str]:
+    """Fetcher keys with live discovery evidence (lazy import — avoids
+    circularity with live_pipeline which lazily imports this catalog)."""
+    global _LIVE_FETCHER_CACHE
+    if _LIVE_FETCHER_CACHE is None:
+        try:
+            from cores.opportunity.live_pipeline import LIVE_FETCHERS, SECURITY_FETCHERS
+
+            _LIVE_FETCHER_CACHE = set(LIVE_FETCHERS) | set(SECURITY_FETCHERS)
+        except Exception:
+            _LIVE_FETCHER_CACHE = set()
+    return _LIVE_FETCHER_CACHE
+
+
+def _norm_key(text: str) -> str:
+    return (text or "").strip().lower().replace(" ", "").replace("-", "").replace("_", "")
+
+
+def assess_integration(source: SourceDefinition) -> dict[str, Any]:
+    """Assess a catalog source's real integration maturity (L1-L5).
+
+    Levels are evidence-based, never aspirational:
+      L1 — domain/identity verified (every catalog entry).
+      L2 — a live fetcher returns real opportunities for this source
+           (matched by normalized name or URL domain vs LIVE_FETCHERS /
+           SECURITY_FETCHERS keys).
+      L3+ — requires connected account credentials; nothing is L3 until
+           the owner authorizes credentials (credential-gated fetchers
+           still only prove L2 discovery).
+
+    Returns ``{level, mechanism, evidence, blocked_on}`` — ``blocked_on``
+    names the human action when the next level needs owner authorization.
+    """
+    name_key = _norm_key(source.name)
+    url = (source.url or "").lower()
+    domain = url.split("/")[2] if "://" in url else url
+    domain_key = _norm_key(domain.split(".")[0]) if domain else ""
+
+    matched_fetcher = None
+    for key in _live_fetcher_keys():
+        k = _norm_key(key)
+        if k and (k == name_key or k in name_key or k in domain_key or domain_key in k):
+            matched_fetcher = key
+            break
+
+    # Independent capability matrix — the aggregate level must never hide
+    # that a source can be discovered but not claimed/paid. Values:
+    # True = evidenced path exists; False = known absent; None = unknown.
+    capabilities = {
+        "discover": matched_fetcher is not None,
+        "claim": None,  # requires authorized account + platform API
+        "prepare": None,  # requires work operations (L4)
+        "submit": None,  # requires delivery integration (L4)
+        "payout_track": None,  # requires economic cycle (L5)
+    }
+
+    if matched_fetcher:
+        return {
+            "level": 2,
+            "mechanism": "api",
+            "evidence": f"live fetcher '{matched_fetcher}' in LIVE/SECURITY_FETCHERS",
+            "verified_at": date.today().isoformat(),
+            "check_method": "fetcher_registry",
+            "fetcher": matched_fetcher,
+            "capabilities": capabilities,
+            "blocked_on": "account_registration" if source.requires_account else None,
+        }
+
+    # Documented non-API mechanisms still only prove L1 until a fetcher
+    # or adapter exists — the mechanism string records the intended path.
+    mechanism = source.integration_mechanism or {
+        "api": "api",
+        "aggregator": "aggregator",
+        "job_board": "rss",
+        "forum": "manual",
+        "direct_api": "api",
+        "platform": "manual",
+        "profile_only": "manual",
+    }.get(source.apply_method or source.type, "manual")
+    return {
+        "level": max(1, min(5, int(source.integration_level or 1))),
+        "mechanism": mechanism,
+        "evidence": "catalog-verified domain; no live fetcher registered",
+        "verified_at": source.last_verified or None,
+        "check_method": "catalog_entry",
+        "fetcher": None,
+        "capabilities": capabilities,
+        "blocked_on": "integration_adapter" if source.requires_account else None,
+    }
+
+
+def integration_level_summary(sources: list[SourceDefinition] | None = None) -> dict[str, Any]:
+    """Catalog-wide L1-L5 distribution — the honest 'connected sources'
+    metric. L2 = live discovery; L3+ requires owner-authorized accounts."""
+    srcs = sources if sources is not None else get_sources()
+    levels: dict[int, int] = {}
+    fetchers: list[str] = []
+    for s in srcs:
+        a = assess_integration(s)
+        levels[a["level"]] = levels.get(a["level"], 0) + 1
+        if a.get("fetcher"):
+            fetchers.append(a["fetcher"])
+    return {
+        "total": len(srcs),
+        "by_level": {f"L{k}": levels.get(k, 0) for k in range(1, 6)},
+        "live_fetchers_matched": sorted(set(fetchers)),
+        "note": "L2 = live discovery fetcher; L3-L5 require owner-authorized accounts and verified operations",
+    }

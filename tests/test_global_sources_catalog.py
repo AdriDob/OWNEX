@@ -128,3 +128,31 @@ def test_entries_are_immutable() -> None:
     source = _all_sources()[0]
     with pytest.raises(FrozenInstanceError):
         source.name = "mutated"  # type: ignore[misc]
+
+
+class TestIntegrationLevels:
+    def test_l2_for_live_fetcher_source(self):
+        from cores.opportunity.global_sources import assess_integration, get_sources
+
+        hackerone = next(s for s in get_sources() if s.name == "HackerOne")
+        a = assess_integration(hackerone)
+        assert a["level"] == 2
+        assert a["fetcher"] == "hackerone"
+        assert a["mechanism"] == "api"
+
+    def test_l1_default_for_unconnected(self):
+        from cores.opportunity.global_sources import assess_integration, get_sources
+
+        src = next(s for s in get_sources() if not assess_integration(s).get("fetcher"))
+        a = assess_integration(src)
+        assert a["level"] == 1
+        assert a["fetcher"] is None
+
+    def test_summary_counts(self):
+        from cores.opportunity.global_sources import get_sources, integration_level_summary
+
+        s = integration_level_summary(get_sources())
+        assert s["total"] == len(get_sources())
+        assert sum(s["by_level"].values()) == s["total"]
+        assert s["by_level"]["L2"] > 0
+        assert s["by_level"]["L3"] == 0  # nothing connected yet — honest

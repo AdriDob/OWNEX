@@ -818,20 +818,52 @@ def ethics_screen(opp: LiveOpportunity) -> list[str]:
     return [p for p in ETHICS_BLOCKLIST if p in haystack]
 
 
+# Test/junk hygiene: placeholder repos, demo projects and literal "test"
+# bounty listings must never reach the execution queue. Conservative —
+# matches repo slug or title markers, not generic words like "testing".
+_JUNK_REPO_SLUGS = {"test", "testing", "demo", "sample", "example", "project-a", "test-repo"}
+_JUNK_TITLE_MARKERS = ("test bug bounty", "test bounty", "bounty test", "demo bounty")
+
+
+def quality_screen(opp: LiveOpportunity) -> list[str]:
+    """Return hygiene rejection reasons; empty = passes."""
+    reasons: list[str] = []
+    title = (opp.title or "").lower()
+    url = (opp.url or "").lower()
+    for marker in _JUNK_TITLE_MARKERS:
+        if marker in title:
+            reasons.append(f"junk_title:{marker}")
+    # github.com/{owner}/{repo}/... → repo slug check
+    if "github.com/" in url:
+        parts = url.split("github.com/", 1)[1].split("/")
+        if len(parts) >= 2:
+            repo = parts[1].split("?")[0].split("#")[0]
+            if repo in _JUNK_REPO_SLUGS:
+                reasons.append(f"junk_repo:{repo}")
+    return reasons
+
+
 def screen_store(store: LiveStore | None = None) -> dict[str, Any]:
-    """Reject stored items that fail the ethics screen (auditable)."""
+    """Reject stored items that fail the ethics or quality screens."""
     store = store or LiveStore()
     rejected = 0
+    quality_rejected = 0
     for opp in store.all():
         if opp.status in ("expired", "rejected"):
             continue
         reasons = ethics_screen(opp)
-        if reasons:
+        qreasons = quality_screen(opp)
+        if qreasons:
+            quality_rejected += 1
+        if reasons or qreasons:
             opp.status = "rejected"
-            opp.raw["rejection"] = {"reason": "ethics_screen", "matched": reasons}
+            opp.raw["rejection"] = {
+                "reason": "ethics_screen" if reasons else "quality_screen",
+                "matched": reasons + qreasons,
+            }
             rejected += 1
     store.save()
-    return {"rejected": rejected}
+    return {"rejected": rejected, "quality_rejected": quality_rejected}
 
 
 def _default_workspaces_dir() -> Path:
@@ -1415,6 +1447,11 @@ def record_approval(
 
 _TERMINAL_STATUSES = {"expired", "rejected", "paid", "withdrawn"}
 
+# Blended AI execution cost estimate (USD per agent-hour). Covers local
+# models (near-zero marginal) plus paid-model usage for planning/review.
+# Configurable; the estimate is labeled as such — never treated as billed cost.
+_AI_COST_PER_HOUR_USD = float(os.environ.get("OWNEX_AI_COST_PER_HOUR_USD", "1.5"))
+
 _BARRIER_PENALTIES = {
     "requires_interview": 6.0,
     "requires_experience": 8.0,
@@ -1556,13 +1593,18 @@ def score_opportunity(
         reward_score = round(reward_score * saturation_factor, 1)
 
     rph = reward_usd / max(effort, 0.5)
-    if rph >= 50:
+    # Net-of-AI-cost reward-per-hour: a $40 bounty is not profitable if the
+    # agent loop burns $30 of model time. Estimate only — labeled, not billed.
+    ai_cost_usd = round(effort * _AI_COST_PER_HOUR_USD, 2)
+    net_reward_usd = round(reward_usd - ai_cost_usd, 2)
+    rph_net = net_reward_usd / max(effort, 0.5)
+    if rph_net >= 50:
         effort_score = 15.0
-    elif rph >= 20:
+    elif rph_net >= 20:
         effort_score = 12.0
-    elif rph >= 10:
+    elif rph_net >= 10:
         effort_score = 9.0
-    elif reward_usd > 0:
+    elif net_reward_usd > 0:
         effort_score = 6.0
     else:
         effort_score = 3.0
@@ -1611,7 +1653,10 @@ def score_opportunity(
         "track_record": tr,
         "estimated_reward_usd": round(float(reward_usd), 2),
         "estimated_effort_hours": effort,
-        "estimated_net_per_hour_usd": round(rph, 2),
+        "estimated_ai_cost_usd": ai_cost_usd,
+        "estimated_net_reward_usd": net_reward_usd,
+        "estimated_net_per_hour_usd": round(rph_net, 2),
+        "estimated_gross_per_hour_usd": round(rph, 2),
         "confidence": confidence,
         "blockers": list(eligibility.get("blockers") or []),
         "note": "score is a heuristic ranking aid — advertised reward is not confirmed income",
