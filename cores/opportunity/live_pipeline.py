@@ -48,6 +48,11 @@ LIVE_FETCHERS: dict[str, str] = {
     "opencollective": "core.opportunity.adapters.forge.opencollective:fetch_opportunities",
     "opencollective_projects": "core.opportunity.adapters.forge.opencollective_projects:fetch_opportunities",
     "makefun": "core.opportunity.adapters.forge.makefun:fetch_opportunities",
+    # Agent-native markets (class-based adapters, public read-only APIs).
+    # Registration/claim/submission stays blocked on user authorization.
+    "taskmarket": "core.opportunity.adapters.agent_markets:TaskmarketAdapter",
+    "agent_hansa": "core.opportunity.adapters.agent_markets:AgentHansaAdapter",
+    "agentics": "core.opportunity.adapters.agent_markets:AgenticsAdapter",
 }
 
 # Class-based security adapters (OpportunityAdapter → list[RawOpportunity]).
@@ -81,6 +86,11 @@ CREDENTIAL_GATED_FETCHERS: dict[str, str] = {
     "freelancer": "FREELANCER_API_KEY + secret (required for project search)",
     "opencollective": "none for public API",
     "opencollective_projects": "none for public API",
+    # Agent markets: discovery is public; acting on tasks requires the
+    # user's own account registration on each platform.
+    "taskmarket": "TASKMARKET agent registration (user authorization required)",
+    "agent_hansa": "AGENT_HANSA account registration (user authorization required)",
+    "agentics": "per-origin market registration via agentics.page (user authorization required)",
     # Security platforms: public program listings work without auth;
     # researcher API tokens unlock private/triage data.
     "hackerone": "HACKERONE_API_USERNAME + HACKERONE_API_TOKEN (optional enrichment)",

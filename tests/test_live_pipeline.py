@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 from typing import Any
 
@@ -157,8 +158,9 @@ class TestReadback:
 def test_fetchers_map_resolves():
     for key, spec in LIVE_FETCHERS.items():
         module_path, _, attr = spec.partition(":")
-        assert module_path.startswith("core.opportunity.adapters.forge."), key
-        assert attr == "fetch_opportunities"
+        assert module_path.startswith("core.opportunity.adapters."), key
+        module = importlib.import_module(module_path)
+        assert hasattr(module, attr), key
 
 
 class TestDweBridge:
