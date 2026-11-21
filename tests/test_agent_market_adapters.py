@@ -238,3 +238,48 @@ def test_fetch_failure_returns_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr("httpx.AsyncClient", FailingClient)
     assert _run(TaskmarketAdapter({}).fetch_opportunities()) == []
+
+
+class TestTaskmarketActions:
+    def test_write_blocked_without_authorization(self):
+        from core.opportunity.agent_market_actions import AuthorizationRequired, TaskmarketActions
+
+        c = TaskmarketActions(credentials={"identity_token": "x"}, authorized=False)
+        try:
+            c.submit_pitch("0xabc", "pitch")
+            assert False, "should raise"
+        except AuthorizationRequired:
+            pass
+        c.close()
+
+    def test_write_blocked_without_credentials(self):
+        from core.opportunity.agent_market_actions import AuthorizationRequired, TaskmarketActions
+
+        c = TaskmarketActions(authorized=True)
+        try:
+            c.submit_work("0xabc", {})
+            assert False, "should raise"
+        except AuthorizationRequired:
+            pass
+        c.close()
+
+    def test_authorized_client_builds_request(self, monkeypatch):
+        from core.opportunity.agent_market_actions import TaskmarketActions
+
+        c = TaskmarketActions(credentials={"identity_token": "tok"}, authorized=True)
+        captured = {}
+
+        class FakeResp:
+            def raise_for_status(self): pass
+            def json(self): return {"ok": True}
+
+        def fake_post(url, json=None, headers=None):
+            captured.update(url=url, json=json, headers=headers)
+            return FakeResp()
+
+        monkeypatch.setattr(c._client, "post", fake_post)
+        out = c.submit_pitch("0xTASK", "hello")
+        assert out == {"ok": True}
+        assert captured["url"] == "/tasks/0xTASK/pitches"
+        assert captured["headers"]["Authorization"] == "Bearer tok"
+        c.close()
