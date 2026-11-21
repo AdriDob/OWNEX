@@ -62,10 +62,10 @@ const kpis = computed<KpiItem[]>(() => {
   if (!context.value) return []
   const c = context.value.counts
   return [
-    { label: 'Targets', value: c.targets, icon: Crosshair, color: '#00b8ff' },
-    { label: 'Endpoints', value: c.endpoints, icon: Scan, color: '#00ff41' },
-    { label: 'Hallazgos', value: c.findings, icon: Bug, color: '#ffab00' },
-    { label: 'Confirmados', value: c.confirmed_findings, icon: ShieldCheck, color: '#00e676' },
+    { label: 'Targets', value: c.targets, icon: Crosshair, color: 'var(--ownex-primary)' },
+    { label: 'Endpoints', value: c.endpoints, icon: Scan, color: 'var(--ownex-success)' },
+    { label: 'Hallazgos', value: c.findings, icon: Bug, color: 'var(--ownex-warning)' },
+    { label: 'Confirmados', value: c.confirmed_findings, icon: ShieldCheck, color: 'var(--ownex-success)' },
   ]
 })
 

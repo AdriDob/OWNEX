@@ -158,7 +158,7 @@ const errorMessage = computed(() => 'Valor inválido')
 
 .ownex-input__field:focus {
   outline: none;
-  border-color: var(--ownex-blue);
+  border-color: var(--ownex-primary);
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
@@ -230,6 +230,6 @@ const errorMessage = computed(() => 'Valor inválido')
 
 /* Focus states */
 .ownex-input--focused .ownex-input__icon {
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
 }
 </style>

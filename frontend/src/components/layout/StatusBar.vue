@@ -109,7 +109,7 @@ const formattedDate = computed(() =>
           <circle cx="12" cy="12" r="10" stroke-width="1.5" opacity="0.3"/>
           <path
             d="M12 2l0 4M12 18l0 4M2 12l4 0M18 12l4 0M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"
-            stroke="#2D7FF9"
+            stroke="var(--ownex-primary)"
             stroke-width="1.5"
           />
         </svg>
@@ -224,7 +224,7 @@ const formattedDate = computed(() =>
 }
 
 .ownex-status-bar__logo {
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
 }
 
 /* Metrics */
@@ -243,16 +243,16 @@ const formattedDate = computed(() =>
 }
 
 .ownex-status-bar__metric svg {
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   opacity: 0.7;
 }
 
 .ownex-status-bar__metric[data-count]:not([data-count="0"]) {
-  color: var(--ownex-yellow);
+  color: var(--ownex-warning);
 }
 
 .ownex-status-bar__metric[data-count]:not([data-count="0"]) svg {
-  color: var(--ownex-yellow);
+  color: var(--ownex-warning);
 }
 
 /* Right section */
@@ -308,12 +308,12 @@ const formattedDate = computed(() =>
 }
 
 .ownex-status-bar__connection--connected .ownex-status-bar__connection-dot {
-  background: var(--ownex-green);
-  box-shadow: 0 0 8px var(--ownex-green);
+  background: var(--ownex-success);
+  box-shadow: 0 0 8px var(--ownex-success);
 }
 
 .ownex-status-bar__connection--connected .ownex-status-bar__connection-text {
-  color: var(--ownex-green);
+  color: var(--ownex-success);
 }
 
 /* Reduced motion */

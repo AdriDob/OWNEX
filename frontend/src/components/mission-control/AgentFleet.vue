@@ -51,7 +51,7 @@ const getRoleColor = (role: string) => {
     'Explorador': 'var(--color-cycle-atlas)',
     'Estratega': 'var(--color-cycle-odyssey)',
   }
-  return colors[role] || 'var(--ownex-blue)'
+  return colors[role] || 'var(--ownex-primary)'
 }
 
 const formatRelativeTime = (isoString?: string) => {
@@ -97,14 +97,14 @@ const roleToCycle = (role: string): 'security' | 'forge' | 'pulse' | 'vault' | '
 const statusDotStyle = (status: string) => {
   const styles: Record<string, any> = {
     idle: { backgroundColor: 'var(--ownex-text-muted)', boxShadow: 'none' },
-    thinking: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
-    working: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
-    complete: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
+    thinking: { backgroundColor: 'var(--ownex-primary)', boxShadow: '0 0 8px var(--ownex-primary)' },
+    working: { backgroundColor: 'var(--ownex-success)', boxShadow: '0 0 8px var(--ownex-success)' },
+    complete: { backgroundColor: 'var(--ownex-success)', boxShadow: '0 0 8px var(--ownex-success)' },
     error: { backgroundColor: 'var(--ownex-danger)', boxShadow: '0 0 8px var(--ownex-danger)' },
     // Fallback for unknown statuses
-    online: { backgroundColor: 'var(--ownex-green)', boxShadow: '0 0 8px var(--ownex-green)' },
-    local: { backgroundColor: 'var(--ownex-blue)', boxShadow: '0 0 8px var(--ownex-blue)' },
-    limited: { backgroundColor: 'var(--ownex-yellow)', boxShadow: '0 0 8px var(--ownex-yellow)' },
+    online: { backgroundColor: 'var(--ownex-success)', boxShadow: '0 0 8px var(--ownex-success)' },
+    local: { backgroundColor: 'var(--ownex-primary)', boxShadow: '0 0 8px var(--ownex-primary)' },
+    limited: { backgroundColor: 'var(--ownex-warning)', boxShadow: '0 0 8px var(--ownex-warning)' },
   }
   return styles[status] || styles.idle
 }

@@ -87,8 +87,8 @@ const displayMeta = computed<Record<string, string>>(() => {
 
 const confidenceColor = computed(() => {
   const c = props.confidence
-  if (c >= 80) return 'var(--ownex-green)'
-  if (c >= 60) return 'var(--ownex-yellow)'
+  if (c >= 80) return 'var(--ownex-success)'
+  if (c >= 60) return 'var(--ownex-warning)'
   return 'var(--ownex-danger)'
 })
 
@@ -348,7 +348,7 @@ function handleSecondaryAction() {
 }
 
 .ownex-next-action__reasoning svg {
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   flex-shrink: 0;
   margin-top: 1px;
 }

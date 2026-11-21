@@ -264,6 +264,64 @@ INVESTMENT_AR: dict[str, ProviderSetup] = {
     ),
 }
 
+# ── Global crypto exchanges (read-only, official APIs + WebSocket) ────────
+# Implemented in cores/brokers/cex_client.py: public verification without
+# credentials + read-only balance sync. No order/trade/withdrawal path exists.
+
+INVESTMENT_GLOBAL: dict[str, ProviderSetup] = {
+    "coinbase": ProviderSetup(
+        domain="investment_global",
+        login_url="https://www.coinbase.com",
+        docs_url="https://docs.cdp.coinbase.com",
+        credential_fields=("email", "token", "password"),
+        sync_mode="api",
+        integration_method="api_rest_ws",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "En Coinbase creá una API key de Coinbase Developer Platform/CDP con permiso view",
+            "NO habilites trade ni transfer — OWNEX solo lee (fetch_balance)",
+            "En OWNEX: email = alias, token = API key name, password = private key",
+            "Verificá primero sin credenciales: GET /api/connection-manager/accounts/coinbase/verify",
+            "Después 'Sincronizar' para traer balances spot reales",
+        ),
+        notes="API oficial Advanced Trade + WebSocket. Verificación pública sin keys. Solo lectura.",
+    ),
+    "kraken": ProviderSetup(
+        domain="investment_global",
+        login_url="https://pro.kraken.com",
+        docs_url="https://docs.kraken.com/api",
+        credential_fields=("email", "token", "password"),
+        sync_mode="api",
+        integration_method="api_rest_ws",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "En Kraken: Settings → API → Create key con Query Funds + Query Open/Closed Orders",
+            "Dejá deshabilitados los permisos de Create/Cancel order y Withdraw",
+            "En OWNEX: email = alias, token = API Key, password = Private Key",
+            "Verificá sin credenciales: GET /api/connection-manager/accounts/kraken/verify",
+            "Después 'Sincronizar' para traer balances reales",
+        ),
+        notes="API oficial v0 (REST) + WebSocket v2. Verificación pública sin keys. Solo lectura.",
+    ),
+    "bybit": ProviderSetup(
+        domain="investment_global",
+        login_url="https://www.bybit.com",
+        docs_url="https://bybit-exchange.github.io/docs/v5/intro",
+        credential_fields=("email", "token", "password"),
+        sync_mode="api",
+        integration_method="api_rest_ws",
+        permissions=READ_ONLY_PERMISSIONS,
+        setup_steps=(
+            "En Bybit: API Management → Create New Key → System-generated, permiso Read-Only",
+            "Restringí la key por IP si es posible; sin permisos de Trade/Transfer/Withdraw",
+            "En OWNEX: email = alias, token = API Key, password = API Secret",
+            "Verificá sin credenciales: GET /api/connection-manager/accounts/bybit/verify",
+            "Después 'Sincronizar' para traer balances spot reales",
+        ),
+        notes="API oficial V5 (REST) + WebSocket público. Verificación pública sin keys. Solo lectura.",
+    ),
+}
+
 # ── AI tools OWNEX can drive or integrate with ────────────────────────────
 
 AI_TOOLS: dict[str, ProviderSetup] = {
@@ -302,4 +360,4 @@ INFRA: dict[str, ProviderSetup] = {
 }
 
 # Providers with a real API sync implemented in OWNEX today.
-API_SYNC_PROVIDERS = {"iol", "ppi", "binance"}
+API_SYNC_PROVIDERS = {"iol", "ppi", "binance", "coinbase", "kraken", "bybit"}

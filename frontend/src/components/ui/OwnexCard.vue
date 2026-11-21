@@ -77,7 +77,7 @@ const cycleStyle = computed(() => {
 }
 
 .ownex-card--highlight {
-  border-left: 2px solid var(--ownex-blue);
+  border-left: 2px solid var(--ownex-primary);
 }
 
 .ownex-card--cycle {

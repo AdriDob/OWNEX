@@ -52,7 +52,7 @@ const statusLabel = ref<string>('pending')
   text-transform: uppercase;
 }
 .badge.pending { background: var(--ownex-bg-glass); color: var(--ownex-text-secondary); }
-.badge.running { background: var(--ownex-yellow); color: #fff; }
-.badge.done { background: var(--ownex-green); color: #fff; }
+.badge.running { background: var(--ownex-warning); color: #fff; }
+.badge.done { background: var(--ownex-success); color: #fff; }
 .badge.error { background: var(--ownex-danger); color: #fff; }
 </style>

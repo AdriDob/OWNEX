@@ -16,10 +16,24 @@ import httpx
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from cores.brokers.binance_client import BinanceReadOnlyError, sync_binance_account
+from cores.brokers.cex_client import (
+    CEX_PROVIDERS,
+    CEXAuthError,
+    CEXUnavailableError,
+    sync_cex_account,
+    verify_public,
+)
 from cores.brokers.iol_client import IOLAuthError, sync_iol_account
 from cores.brokers.ppi_client import PPIAuthError, sync_ppi_account
-from cores.connections import financial_normalizer, importer
-from cores.connections.catalog import AI_TOOLS, API_SYNC_PROVIDERS, INFRA, INVESTMENT_AR, ProviderSetup
+from cores.connections import financial_normalizer, importer, permissions
+from cores.connections.catalog import (
+    AI_TOOLS,
+    API_SYNC_PROVIDERS,
+    INFRA,
+    INVESTMENT_AR,
+    INVESTMENT_GLOBAL,
+    ProviderSetup,
+)
 from cores.connections.snapshots import load_snapshot, save_snapshot
 from cores.connections.sync_history import get_history, record_event
 from cores.identity_vault import get_identity_vault
@@ -48,11 +62,14 @@ _AUTH_MECHANISMS: dict[str, str] = {
     "iol": "password_to_jwt",
     "ppi": "api_key_headers",
     "binance": "api_key_secret",
+    "coinbase": "api_key_secret",
+    "kraken": "api_key_secret",
+    "bybit": "api_key_secret",
 }
 
 
 def _explicit_catalog() -> dict[str, ProviderSetup]:
-    return {**INVESTMENT_AR, **AI_TOOLS, **INFRA}
+    return {**INVESTMENT_AR, **INVESTMENT_GLOBAL, **AI_TOOLS, **INFRA}
 
 
 _EXPLICIT = _explicit_catalog()
@@ -113,6 +130,7 @@ def _account_payload(provider: str, account: dict[str, Any] | None, meta: dict[s
     setup = _setup_for(provider, meta)
     sync_mode = setup.sync_mode if setup else "manual_export"
     has_snapshot = load_snapshot(provider) is not None
+    permission = permissions.get_record(provider)
     actions = ["connect"]
     if account and account.get("has_credentials"):
         actions.append("disconnect")
@@ -134,6 +152,9 @@ def _account_payload(provider: str, account: dict[str, Any] | None, meta: dict[s
         "last_sync_meta": _parse_sync_meta(account.get("last_sync_meta")) if account else None,
         "has_snapshot": has_snapshot,
         "actions": actions,
+        "permission_mode": permission["mode"],
+        "permissions": permission["capabilities"],
+        "live_orders_allowed": permissions.live_orders_allowed(provider),
         "setup": setup.as_dict() if setup else None,
     }
 
@@ -289,6 +310,20 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
                 raise HTTPException(status_code=401, detail=f"Binance rechazó la consulta: {exc}") from exc
             except Exception as exc:
                 raise HTTPException(status_code=502, detail=f"Error consultando Binance: {exc}") from exc
+        elif provider in CEX_PROVIDERS:
+            api_key = creds.get("token") or ""
+            api_secret = creds.get("password") or ""
+            if not api_key or not api_secret:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Faltan credenciales {provider} (API Key + Secret, solo lectura)",
+                )
+            try:
+                live = sync_cex_account(provider, api_key, api_secret)
+            except CEXAuthError as exc:
+                raise HTTPException(status_code=401, detail=str(exc)) from exc
+            except CEXUnavailableError as exc:
+                raise HTTPException(status_code=502, detail=str(exc)) from exc
         else:  # pragma: no cover - API_SYNC_PROVIDERS guard
             raise HTTPException(status_code=400, detail="Sync por API no implementado para este provider")
 
@@ -343,6 +378,33 @@ def sync_account(provider: str, data: dict[str, Any] | None = None) -> dict[str,
         "snapshot_keys": sync_meta.get("keys", []),
     }
     return payload
+
+
+@router.get("/accounts/{provider}/verify")
+def verify_provider_public(provider: str, symbol: str | None = None) -> dict[str, Any]:
+    """Verify a global exchange against its real public API — keys not required.
+
+    Returns evidence (latency, markets count, last price + timestamp) or an
+    explicit failure. Never reports a connector as working without a response.
+    """
+    if provider not in CEX_PROVIDERS:
+        supported = ", ".join(sorted(CEX_PROVIDERS))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Verificación pública disponible solo para: {supported}",
+        )
+    result = verify_public(provider, symbol)
+    record_event(
+        provider,
+        {
+            "kind": "verify_public",
+            "reachable": result["reachable"],
+            "symbol": result["symbol"],
+            "latency_ms": result["latency_ms"],
+            "error": result["error"],
+        },
+    )
+    return result
 
 
 @router.get("/accounts/{provider}/sync/latest")
@@ -531,6 +593,77 @@ def mcp_audit(limit: int = 100) -> dict[str, Any]:
     from cores.connections import mcp_consent
 
     return {"entries": mcp_consent.get_audit(limit)}
+
+
+# ── Per-connection permission modes (autonomy ladder, Investment Hub §H) ──
+
+
+@router.get("/permissions")
+def permissions_snapshot() -> dict[str, Any]:
+    """Modes + capability matrix per connection. Deny-by-default for unknowns."""
+    return permissions.snapshot()
+
+
+@router.get("/permissions/matrix")
+def permissions_matrix() -> dict[str, Any]:
+    """Canonical mode -> capability matrix (static, consumable by the frontend)."""
+    return {
+        "matrix": permissions.matrix(),
+        "ladder": [m.value for m in permissions.MODE_LADDER],
+        "forbidden": sorted(c.value for c in permissions.FORBIDDEN_CAPABILITIES),
+    }
+
+
+@router.get("/permissions/audit")
+def permissions_audit(limit: int = 100) -> dict[str, Any]:
+    """Recent permission changes/denials (no credentials)."""
+    return {"entries": permissions.get_audit(limit)}
+
+
+@router.get("/accounts/{provider}/permissions")
+def provider_permissions(provider: str) -> dict[str, Any]:
+    """Current mode and granted capabilities for one connection."""
+    _require_permission_provider(provider)
+    return permissions.get_record(provider)
+
+
+@router.post("/accounts/{provider}/permissions")
+def set_provider_permissions(provider: str, data: dict[str, Any]) -> dict[str, Any]:
+    """Change a connection's autonomy mode (explicit, revocable, audited).
+
+    Escalating to LIVE_TRADING_AUTHORIZED requires ``acknowledge_risk: true``
+    and only advances one rung at a time; downgrades are always allowed.
+    """
+    _require_permission_provider(provider)
+    mode = str(data.get("mode", ""))
+    if not mode:
+        raise HTTPException(status_code=400, detail="mode is required")
+    try:
+        record = permissions.set_mode(
+            provider,
+            mode,
+            reason=str(data.get("reason", "")),
+            acknowledge_risk=bool(data.get("acknowledge_risk", False)),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except permissions.PermissionDeniedError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    return record
+
+
+@router.post("/accounts/{provider}/permissions/revoke")
+def revoke_provider_permissions(provider: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Kill switch for one connection: back to DISCONNECTED immediately."""
+    _require_permission_provider(provider)
+    reason = str((data or {}).get("reason", "revocado por el usuario"))
+    return permissions.revoke(provider, reason=reason)
+
+
+def _require_permission_provider(provider: str) -> None:
+    """Permission records exist for catalog providers and execution providers."""
+    if provider not in _catalog_providers() and provider not in permissions.EXECUTION_PROVIDERS:
+        raise HTTPException(status_code=404, detail=f"Provider '{provider}' no está en el catálogo")
 
 
 def _require_provider(provider: str) -> None:

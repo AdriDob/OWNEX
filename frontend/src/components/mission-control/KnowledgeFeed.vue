@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const typeConfig = computed(() => ({
-  insight: { label: 'INSIGHT', icon: 'lightbulb', color: 'var(--ownex-blue)', bg: 'rgba(255, 255, 255, 0.1)' },
+  insight: { label: 'INSIGHT', icon: 'lightbulb', color: 'var(--ownex-primary)', bg: 'rgba(255, 255, 255, 0.1)' },
   learning: { label: 'APRENDIZAJE', icon: 'brain', color: 'var(--color-cycle-forge)', bg: 'rgba(156, 163, 175, 0.1)' },
   pattern: { label: 'PATRÓN', icon: 'git-branch', color: 'var(--color-cycle-pulse)', bg: 'rgba(22, 163, 74, 0.1)' },
   alert: { label: 'ALERTA', icon: 'alert-triangle', color: 'var(--ownex-danger)', bg: 'rgba(0, 213, 255, 0.1)' },
@@ -66,8 +66,8 @@ const getTypeIcon = (type: string) => {
 }
 
 const getConfidenceColor = (score: number) => {
-  if (score >= 80) return 'var(--ownex-green)'
-  if (score >= 60) return 'var(--ownex-yellow)'
+  if (score >= 80) return 'var(--ownex-success)'
+  if (score >= 60) return 'var(--ownex-warning)'
   return 'var(--ownex-danger)'
 }
 
@@ -294,7 +294,7 @@ const KnowledgeFeedItem = defineComponent({
   border-color: var(--color-border-light);
 }
 
-.ownex-knowledge-feed__item--insight   { border-left: 3px solid var(--ownex-blue); }
+.ownex-knowledge-feed__item--insight   { border-left: 3px solid var(--ownex-primary); }
 .ownex-knowledge-feed__item--learning  { border-left: 3px solid var(--color-cycle-forge); }
 .ownex-knowledge-feed__item--pattern   { border-left: 3px solid var(--color-cycle-pulse); }
 .ownex-knowledge-feed__item--alert     { border-left: 3px solid var(--ownex-danger); }

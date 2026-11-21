@@ -158,8 +158,34 @@ class TestStocks:
         )
         assert res.status_code == 409
 
-    def test_alpaca_order_ok(self, client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_alpaca_order_denied_without_live_permission(self, client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
         import api.routers.investment as inv
+        from cores.connections import permissions
+
+        monkeypatch.setattr(permissions, "_base_dir", lambda: tmp_path / "connections")
+
+        class OpenManager:
+            def is_paused(self) -> bool:
+                return False
+
+        monkeypatch.setattr(inv, "get_investment_manager", lambda: OpenManager())
+        res = client.post(
+            "/api/investment/stocks/algopaca/order",
+            json={"symbol": "AAPL", "side": "buy", "qty": 1},
+        )
+        assert res.status_code == 403
+
+    def test_alpaca_order_ok(self, client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+        import api.routers.investment as inv
+        from cores.connections import permissions
+
+        monkeypatch.setattr(permissions, "_base_dir", lambda: tmp_path / "connections")
+        for mode in permissions.MODE_LADDER[1:]:
+            permissions.set_mode(
+                "alpaca",
+                mode,
+                acknowledge_risk=mode is permissions.PermissionMode.LIVE_TRADING_AUTHORIZED,
+            )
 
         class OpenManager:
             def is_paused(self) -> bool:

@@ -231,7 +231,7 @@ const selectCycle = (cycleId: string) => {
 
 .ownex-sidebar__cycle-btn--active {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -301,7 +301,7 @@ const selectCycle = (cycleId: string) => {
 }
 
 .ownex-sidebar__nav-btn:hover .ownex-sidebar__nav-icon {
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
 }
 
 .ownex-sidebar__nav-label {

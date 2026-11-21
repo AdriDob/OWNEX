@@ -379,7 +379,7 @@ watch(isOpen, (open) => {
 }
 
 .ownex-command-palette__input:focus {
-  border-color: var(--ownex-blue);
+  border-color: var(--ownex-primary);
   box-shadow: var(--focus-ring);
 }
 

@@ -348,7 +348,7 @@ const getAgentIcon = (name: string, customIcon?: string) => {
 
 .ownex-agent-fleet__progress-fill {
   height: 100%;
-  background: var(--ownex-blue);
+  background: var(--ownex-primary);
   border-radius: var(--radius-full);
   transition: width var(--transition-base) var(--spring-gentle);
 }

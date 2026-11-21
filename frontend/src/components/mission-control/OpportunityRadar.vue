@@ -37,8 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const severityConfig = computed(() => ({
   critical: { label: 'CRÍTICO', variant: 'error' as const, color: 'var(--ownex-danger)' },
-  high: { label: 'ALTO', variant: 'warning' as const, color: 'var(--ownex-yellow)' },
-  medium: { label: 'MEDIO', variant: 'default' as const, color: 'var(--ownex-blue)' },
+  high: { label: 'ALTO', variant: 'warning' as const, color: 'var(--ownex-warning)' },
+  medium: { label: 'MEDIO', variant: 'default' as const, color: 'var(--ownex-primary)' },
   low: { label: 'BAJO', variant: 'default' as const, color: 'var(--ownex-text-muted)' },
   info: { label: 'INFO', variant: 'default' as const, color: 'var(--ownex-text-muted)' },
 }))
@@ -63,9 +63,9 @@ const formatRelativeTime = (isoString: string) => {
 
 const getRoiColor = (score?: number) => {
   if (!score) return 'var(--ownex-text-muted)'
-  if (score >= 80) return 'var(--ownex-green)'
-  if (score >= 60) return 'var(--ownex-yellow)'
-  if (score >= 40) return 'var(--ownex-blue)'
+  if (score >= 80) return 'var(--ownex-success)'
+  if (score >= 60) return 'var(--ownex-warning)'
+  if (score >= 40) return 'var(--ownex-primary)'
   return 'var(--ownex-text-muted)'
 }
 
@@ -85,8 +85,8 @@ const formatType = (type: string) => {
 }
 
 const getConfidenceColor = (score: number) => {
-  if (score >= 80) return 'var(--ownex-green)'
-  if (score >= 60) return 'var(--ownex-yellow)'
+  if (score >= 80) return 'var(--ownex-success)'
+  if (score >= 60) return 'var(--ownex-warning)'
   return 'var(--ownex-danger)'
 }
 </script>
@@ -305,14 +305,14 @@ const getConfidenceColor = (score: number) => {
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: var(--font-weight-bold);
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   line-height: 1;
 }
 
 .ownex-opportunity-radar__rank-bar {
   width: 3px;
   height: 40px;
-  background: linear-gradient(180deg, var(--ownex-blue), transparent);
+  background: linear-gradient(180deg, var(--ownex-primary), transparent);
   border-radius: var(--radius-full);
 }
 

@@ -8,6 +8,7 @@ import {
 } from '@lucide/vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
+import PermissionModePanel from '@/components/connection/PermissionModePanel.vue'
 import Badge from '@/components/ui/Badge.vue'
 import {
   getInvestmentStatus, getInvestmentMetrics, getAllocation, getExposure,
@@ -26,7 +27,9 @@ import {
 } from '@/lib/api'
 
 const router = useRouter()
-const activeTab = ref<'overview' | 'strategies' | 'ccxt' | 'stocks' | 'defi' | 'polymarket'>('overview')
+const activeTab = ref<'overview' | 'strategies' | 'ccxt' | 'stocks' | 'defi' | 'polymarket' | 'permissions'>(
+  'overview',
+)
 
 const loading = ref(true)
 const error = ref('')
@@ -298,7 +301,7 @@ function formatUsd(v: number) {
 
     <!-- Tabs -->
     <div class="flex gap-1 border-b border-border/30 pb-1 overflow-x-auto">
-      <button v-for="tab in [{id:'overview',label:'Resumen',icon:BarChart3},{id:'strategies',label:'Estrategias',icon:Target},{id:'ccxt',label:'CCXT Exchanges',icon:Wallet},{id:'stocks',label:'Acciones',icon:TrendingUp},{id:'defi',label:'DeFi Yield',icon:Fuel},{id:'polymarket',label:'Polymarket',icon:Activity}]" :key="tab.id"
+      <button v-for="tab in [{id:'overview',label:'Resumen',icon:BarChart3},{id:'strategies',label:'Estrategias',icon:Target},{id:'ccxt',label:'CCXT Exchanges',icon:Wallet},{id:'stocks',label:'Acciones',icon:TrendingUp},{id:'defi',label:'DeFi Yield',icon:Fuel},{id:'polymarket',label:'Polymarket',icon:Activity},{id:'permissions',label:'Permisos',icon:Shield}]" :key="tab.id"
         @click="activeTab = tab.id"
         :class="[
           'flex items-center gap-1.5 px-3 py-2 font-mono text-xs rounded-t-lg transition-all whitespace-nowrap',
@@ -982,6 +985,11 @@ function formatUsd(v: number) {
           </div>
         </div>
       </div>
+    </template>
+
+    <!-- ════════════ PERMISOS POR CONEXIÓN (escalera de autonomía) ════════════ -->
+    <template v-if="!loading && !error && activeTab === 'permissions'">
+      <PermissionModePanel />
     </template>
 
     <!-- ═══ HOW-TO FOOTER ═══ -->

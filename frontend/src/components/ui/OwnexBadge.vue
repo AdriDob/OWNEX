@@ -132,20 +132,20 @@ const handleRemove = (event: MouseEvent) => {
 }
 
 .ownex-badge--success {
-  background: rgba(22, 163, 74, 0.12);
-  border-color: rgba(22, 163, 74, 0.25);
-  color: var(--ownex-green);
+  background: rgba(var(--badge-color-rgb), 0.12);
+  border-color: rgba(var(--badge-color-rgb), 0.25);
+  color: var(--ownex-success);
 }
 
 .ownex-badge--warning {
-  background: rgba(251, 191, 36, 0.12);
-  border-color: rgba(251, 191, 36, 0.25);
-  color: var(--ownex-yellow);
+  background: rgba(var(--badge-color-rgb), 0.12);
+  border-color: rgba(var(--badge-color-rgb), 0.25);
+  color: var(--ownex-warning);
 }
 
 .ownex-badge--error {
-  background: rgba(0, 213, 255, 0.12);
-  border-color: rgba(0, 213, 255, 0.25);
+  background: rgba(var(--badge-color-rgb), 0.12);
+  border-color: rgba(var(--badge-color-rgb), 0.25);
   color: var(--ownex-danger);
 }
 
@@ -171,10 +171,15 @@ const handleRemove = (event: MouseEvent) => {
 /* RGB values for rgba() */
 .ownex-badge--cycle-security { --badge-color-rgb: 245, 245, 245; --badge-color: var(--color-cycle-security); }
 .ownex-badge--cycle-forge    { --badge-color-rgb: 156, 163, 175; --badge-color: var(--color-cycle-forge); }
-.ownex-badge--cycle-pulse    { --badge-color-rgb: 22, 163, 74; --badge-color: var(--color-cycle-pulse); }
+.ownex-badge--cycle-pulse    { --badge-color-rgb: 22, 163, 74; --badge-color: var(--ownex-cycle-pulse); }
 .ownex-badge--cycle-vault    { --badge-color-rgb: 217, 119, 6; --badge-color: var(--color-cycle-vault); }
 .ownex-badge--cycle-atlas    { --badge-color-rgb: 212, 212, 216; --badge-color: var(--color-cycle-atlas); }
-.ownex-badge--cycle-odyssey  { --badge-color-rgb: 232, 33, 39; --badge-color: var(--color-cycle-odyssey); }
+.ownex-badge--cycle-odyssey  { --badge-color-rgb: 147, 51, 234; --badge-color: var(--ownex-primary); }
+
+/* Semantic state color RGB values */
+.ownex-badge--success { --badge-color-rgb: 38, 155, 104; }
+.ownex-badge--warning { --badge-color-rgb: 232, 184, 63; }
+.ownex-badge--error   { --badge-color-rgb: 220, 69, 69; }
 
 .ownex-badge--platform-hackerone  { --badge-color-rgb: 22, 163, 74; --badge-color: var(--color-hackerone); }
 .ownex-badge--platform-bugcrowd   { --badge-color-rgb: 180, 83, 9; --badge-color: var(--color-bugcrowd); }

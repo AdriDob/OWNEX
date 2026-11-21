@@ -139,6 +139,7 @@ const navSections = [
     items: [
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
       { name: 'Integraciones', path: '/integrations/connections', icon: Cable },
+      { name: 'Acciones pendientes', path: '/operations/human-actions', icon: ListTodo },
       { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
     ],
   },
@@ -257,7 +258,7 @@ function formatCompact(n: number) {
 <template>
   <aside
     :class="[
-      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
+      'flex flex-col border-r border-border/50 bg-deep/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
       collapsed ? 'w-16' : 'w-64',
     ]"
   >

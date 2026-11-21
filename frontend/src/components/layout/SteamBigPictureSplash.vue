@@ -260,15 +260,15 @@ const ownexTheme = computed(() => ({
   '--ownex-surface': '#0a0c11',
   '--ownex-white': '#ffffff',
   '--ownex-muted': '#8b8d98',
-  '--ownex-cyan': '#00d5ff',
-  '--ownex-blue': '#1e40ff',
+  '--ownex-cyan': '#a779e8',
+  '--ownex-blue': '#7e57c2',
   '--ownex-line': 'rgba(255, 255, 255, 0.08)',
   '--ownex-glow': 'rgba(0, 213, 255, 0.22)',
 }))
 
 const progressBarStyle = computed(() => ({
   width: progress.value + '%',
-  background: 'linear-gradient(90deg, var(--ownex-cyan), var(--ownex-blue))',
+  background: 'linear-gradient(90deg, var(--ownex-cyan), var(--ownex-primary))',
   boxShadow: '0 0 14px var(--ownex-glow)',
 }))
 </script>
@@ -415,7 +415,7 @@ const progressBarStyle = computed(() => ({
           <div class="relative w-64 h-px overflow-hidden" style="background: var(--ownex-line);">
             <div
               class="h-full transition-all duration-200 ease-out"
-              :style="{ width: (videoCurrentTime / VIDEO_DURATION) * 100 + '%, background: linear-gradient(90deg, var(--ownex-cyan), var(--ownex-blue))' }"
+              :style="{ width: (videoCurrentTime / VIDEO_DURATION) * 100 + '%, background: linear-gradient(90deg, var(--ownex-cyan), var(--ownex-primary))' }"
             />
           </div>
         </div>
@@ -441,7 +441,7 @@ const progressBarStyle = computed(() => ({
               <span v-if="check.status === 'pending'">●</span>
               <span v-else-if="check.status === 'checking'" class="animate-pulse" style="color: var(--ownex-cyan);">◉</span>
               <span v-else-if="check.status === 'complete'" style="color: var(--ownex-white);">✓</span>
-              <span v-else-if="check.status === 'error'" style="color: var(--ownex-blue);">✗</span>
+              <span v-else-if="check.status === 'error'" style="color: var(--ownex-primary);">✗</span>
             </div>
           </div>
 

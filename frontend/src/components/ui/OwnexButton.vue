@@ -95,11 +95,11 @@ const classes = computed(() => [
 
 /* Variants */
 .ownex-btn--primary {
-  background: var(--ownex-blue);
+  background: var(--ownex-primary);
   color: var(--ownex-white);
 }
 .ownex-btn--primary:hover:not(:disabled) {
-  background: #2563EB;
+  background: #a855f7;
   box-shadow: var(--shadow-glow);
 }
 
@@ -123,13 +123,31 @@ const classes = computed(() => [
   background: var(--ownex-bg-surface);
 }
 
+.ownex-btn--success {
+  background: var(--ownex-success);
+  color: var(--ownex-white);
+}
+.ownex-btn--success:hover:not(:disabled) {
+  background: #16a34a;
+  box-shadow: var(--shadow-glow);
+}
+
+.ownex-btn--warning {
+  background: var(--ownex-warning);
+  color: var(--ownex-bg-deep);
+  font-weight: var(--font-weight-bold);
+}
+.ownex-btn--warning:hover:not(:disabled) {
+  box-shadow: var(--shadow-gold);
+}
+
 .ownex-btn--danger {
   background: var(--ownex-danger);
   color: var(--ownex-white);
 }
 .ownex-btn--danger:hover:not(:disabled) {
-  background: #3B82F6;
-  box-shadow: 0 0 20px rgba(0, 213, 255, 0.2);
+  background: #b91c1c;
+  box-shadow: 0 0 20px rgba(219, 39, 39, 0.2);
 }
 
 .ownex-btn--gold {

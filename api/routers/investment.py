@@ -430,11 +430,22 @@ class IBKROrderRequest(BaseModel):
     right: str | None = None
 
 
-def _order_gate() -> None:
-    """Órdenes reales bloqueadas si el manager está pausado globalmente."""
+def _order_gate(provider: str) -> None:
+    """Órdenes reales: bloqueadas si el sistema está pausado o sin permiso explícito.
+
+    El permiso es por conexión (``cores.connections.permissions``): un modo de
+    solo lectura nunca habilita órdenes, y LIVE_ORDER solo lo otorga
+    ``LIVE_TRADING_AUTHORIZED`` con confirmación humana previa.
+    """
+    from cores.connections import permissions
+
     manager = get_investment_manager()
     if manager.is_paused():
         raise HTTPException(status_code=409, detail="Investment system paused — orders blocked")
+    try:
+        permissions.require(provider, permissions.Capability.LIVE_ORDER)
+    except permissions.PermissionDeniedError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 @router.get("/stocks/algopaca")
@@ -464,7 +475,7 @@ async def alpaca_positions() -> dict[str, Any]:
 
 @router.post("/stocks/algopaca/order")
 async def alpaca_order(body: AlpacaOrderRequest) -> dict[str, Any]:
-    _order_gate()
+    _order_gate("alpaca")
     result = await (await _fresh_adapter("alpaca", {})).place_order(
         symbol=body.symbol,
         side=body.side,
@@ -517,7 +528,7 @@ async def ibkr_positions() -> dict[str, Any]:
 
 @router.post("/stocks/ibkr/order")
 async def ibkr_order(body: IBKROrderRequest) -> dict[str, Any]:
-    _order_gate()
+    _order_gate("ibkr")
     kwargs: dict[str, Any] = {"symbol": body.symbol, "side": body.side, "qty": body.qty}
     if body.order_type:
         kwargs["order_type"] = body.order_type

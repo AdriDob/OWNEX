@@ -163,12 +163,7 @@
 }
 
 .ownex-glass-input:focus,
-.ownex-glass-input:focus-visible {
-  background: rgba(10, 10, 10, 0.8);
-  border-color: var(--ownex-blue);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
-  outline: none;
-}
+.ownex-glass-input:focus-visible {\n  background: rgba(10, 10, 10, 0.8);\n  border-color: var(--ownex-primary);\n  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);\n  outline: none;\n}
 
 /* ─── Glass Buttons ─── */
 .ownex-glass-btn {

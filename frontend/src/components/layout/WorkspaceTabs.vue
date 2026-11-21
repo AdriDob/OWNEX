@@ -227,7 +227,7 @@ const scrollRight = () => {
 
 .ownex-workspace-tabs__tab--active {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -262,12 +262,12 @@ const scrollRight = () => {
 
 .ownex-workspace-tabs__tab-badge--success {
   background: rgba(22, 163, 74, 0.15);
-  color: var(--ownex-green);
+  color: var(--ownex-success);
 }
 
 .ownex-workspace-tabs__tab-badge--warning {
   background: rgba(251, 191, 36, 0.15);
-  color: var(--ownex-yellow);
+  color: var(--ownex-warning);
 }
 
 .ownex-workspace-tabs__tab-badge--error {
@@ -312,7 +312,7 @@ const scrollRight = () => {
   border: 1px dashed rgba(255, 255, 255, 0.3);
   background: transparent;
   border-radius: var(--radius-md);
-  color: var(--ownex-blue);
+  color: var(--ownex-primary);
   opacity: 0.6;
   cursor: pointer;
   transition: all var(--transition-fast);

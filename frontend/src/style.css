@@ -20,40 +20,40 @@
      Minimal. No glows. No gradients of color. Function over decoration.
      ══════════════════════════════════════════════════════════ */
 
-  /* ── Core Palette (Neutral Monochrome) ── */
-  --color-background: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-hover: #141414;
-  --color-border: #1f1f1f;
-  --color-border-light: #2e2e2e;
-  --color-muted: #4a4a4a;
-  --color-muted-foreground: #8a8a8a;
-  --color-foreground: #f5f5f5;
+  /* ── Core Palette (Casi Negro Base) ── */
+  --color-background: #17151D;
+  --color-surface: #1E2127;
+  --color-surface-hover: #212529;
+  --color-border: #484B5A;
+  --color-border-light: #5F6368;
+  --color-muted: #77727F;
+  --color-muted-foreground: #A0A8B6;
+  --color-foreground: #FFFFFF;
 
   /* ── Identity ── */
-  --color-primary: #ffffff;
-  --color-primary-foreground: #000000;
-  --color-accent: #00d5ff;
-  --color-accent-foreground: #ffffff;
-  --color-destructive: #00d5ff;
-  --color-warning: #ffc107;
-  --color-success: #16a34a;
-  --color-gold: #b45309;
+  --color-primary: #7546C8;
+  --color-primary-foreground: #FFFFFF;
+  --color-accent: #7546C8;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #DC4545;
+  --color-warning: #E8B83F;
+  --color-success: #269B68;
+  --color-gold: #B45309;
 
   /* ── Platform Colors (desaturated, subdued) ── */
-  --color-hackerone: #16a34a;
-  --color-bugcrowd: #b45309;
-  --color-intigriti: #9CA3AF;
-  --color-synack: #ffffff;
-  --color-yeswehack: #9CA3AF;
+  --color-hackerone: #16A34A;
+  --color-bugcrowd: #B45309;
+  --color-intigriti: #8B5CF6;
+  --color-synack: #5B7D9E;
+  --color-yeswehack: #3B82F6;
 
-  /* ── Cycle Colors (monochrome hierarchy, red = odyssey) ── */
-  --color-cycle-security: #f5f5f5;
-  --color-cycle-forge: #9ca3af;
-  --color-cycle-pulse: #16a34a;
-  --color-cycle-vault: #d97706;
-  --color-cycle-atlas: #d4d4d8;
-  --color-cycle-odyssey: #00d5ff;
+  /* ── Cycle Colors (monochrome hierarchy, purple = ownership) ── */
+  --color-cycle-security: #FFFFFF;
+  --color-cycle-forge: #E5E7EB;
+  --color-cycle-pulse: #7546C8;
+  --color-cycle-vault: #B45309;
+  --color-cycle-atlas: #718096;
+  --color-cycle-odyssey: #7546C8;
 
   /* ── Typography ── */
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;

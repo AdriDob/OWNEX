@@ -44,9 +44,9 @@ const accentColor = computed(() => {
     return colors[props.cycle]
   }
   const variants: Record<string, string> = {
-    primary: 'var(--ownex-blue)',
-    success: 'var(--ownex-green)',
-    warning: 'var(--ownex-yellow)',
+    primary: 'var(--ownex-primary)',
+    success: 'var(--ownex-success)',
+    warning: 'var(--ownex-warning)',
     gold: 'var(--ownex-gold)',
     default: 'var(--ownex-text-muted)',
   }
@@ -225,7 +225,7 @@ const animateNumber = (from: number, to: number, duration: number) => {
 .ownex-kpi--sm .ownex-kpi__trend { font-size: 10px; }
 .ownex-kpi--lg .ownex-kpi__trend { font-size: 13px; }
 
-.ownex-kpi__trend--up { color: var(--ownex-green); }
+.ownex-kpi__trend--up { color: var(--ownex-success); }
 .ownex-kpi__trend--down { color: var(--ownex-danger); }
 .ownex-kpi__trend--neutral { color: var(--ownex-text-muted); }
 

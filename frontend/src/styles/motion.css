@@ -278,7 +278,7 @@
 }
 
 .ownex-hover-glow:hover {
-  box-shadow: 0 0 0 1px var(--ownex-blue), 0 0 24px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px var(--ownex-primary), 0 0 24px rgba(126, 87, 194, 0.15);
 }
 
 .ownex-active-scale:active {
@@ -287,7 +287,7 @@
 
 .ownex-focus-ring:focus-visible {
   outline: none;
-  ring: 2px solid var(--ownex-blue);
+  ring: 2px solid var(--ownex-primary);
   ring-offset: 2px;
   ring-offset-color: var(--ownex-bg-deep);
 }
@@ -338,7 +338,7 @@
   display: block;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, var(--ownex-blue), transparent);
+  background: linear-gradient(90deg, transparent, var(--ownex-primary), transparent);
   animation: ownex-progress-indeterminate 1.5s ease-in-out infinite;
 }
 
