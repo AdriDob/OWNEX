@@ -1417,6 +1417,71 @@ _BARRIER_PENALTIES = {
 }
 
 
+def _parse_ts(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def platform_track_record(platform: str, ledger: Any | None = None) -> dict[str, Any]:
+    """Measured per-platform outcome stats from the Revenue Ledger.
+
+    ``reward_realization_rate`` = items with verified ``paid`` /
+    items with ``advertised`` (0.0 when advertised exist but nothing
+    was ever paid — that is a measured fact, not missing data).
+    ``time_to_first_payout_days`` = first ``paid`` ``recorded_at`` minus
+    first ``advertised`` ``recorded_at`` for the platform.
+
+    ``data_status`` is ``"ok"`` once any item reached ``paid``;
+    otherwise ``"no_payouts_yet"`` — callers must not treat absent
+    payout history as bad history beyond the measured zero rate.
+    """
+    try:
+        from cores.opportunity.revenue_ledger import RevenueLedger
+
+        ledger = ledger or RevenueLedger()
+    except Exception:
+        return {"platform": platform, "data_status": "unavailable"}
+
+    prefix = f"live:{platform}:"
+    adv_times: list[datetime] = []
+    paid_times: list[datetime] = []
+    n_advertised = n_paid = 0
+    for item_id, item in (ledger._store._items or {}).items():
+        if not str(item_id).startswith(prefix):
+            continue
+        finance = ((item or {}).get("payload") or {}).get("finance") or {}
+        latest = finance.get("latest") or {}
+        adv = latest.get("advertised")
+        paid = latest.get("paid")
+        if adv:
+            n_advertised += 1
+            ts = _parse_ts(adv.get("recorded_at"))
+            if ts:
+                adv_times.append(ts)
+        if paid:
+            n_paid += 1
+            ts = _parse_ts(paid.get("recorded_at"))
+            if ts:
+                paid_times.append(ts)
+
+    ttfp_days: float | None = None
+    if adv_times and paid_times:
+        ttfp_days = round((min(paid_times) - min(adv_times)).total_seconds() / 86400.0, 2)
+
+    return {
+        "platform": platform,
+        "advertised_items": n_advertised,
+        "paid_items": n_paid,
+        "reward_realization_rate": round(n_paid / n_advertised, 4) if n_advertised else None,
+        "time_to_first_payout_days": ttfp_days,
+        "data_status": "ok" if n_paid else "no_payouts_yet",
+    }
+
+
 def score_opportunity(
     opp: LiveOpportunity,
     eligibility: dict[str, Any] | None = None,
@@ -1503,7 +1568,25 @@ def score_opportunity(
     total_dims = len(_BARRIER_PENALTIES) + 2
     confidence = round(definitive / total_dims, 2)
 
-    total = round(reward_score + ar_score + pm_score + barrier_score + effort_score, 1)
+    # Platform track record: measured REWARD_REALIZATION_RATE and
+    # TIME_TO_FIRST_PAYOUT from the Revenue Ledger (EV model inputs).
+    # Bounded ±4 adjustment; with no payout history anywhere the rate is
+    # a measured 0 for every platform equally, so ranking is unchanged.
+    tr = platform_track_record(opp.platform)
+    history_adj = 0.0
+    rate = tr.get("reward_realization_rate")
+    if isinstance(rate, (int, float)):
+        history_adj += (rate - 0.5) * 4.0  # rate 1.0 → +2, rate 0.0 → -2
+    ttfp = tr.get("time_to_first_payout_days")
+    if isinstance(ttfp, (int, float)):
+        # Faster first payout → bonus; slower → penalty, capped ±2.
+        history_adj += max(-2.0, min(2.0, (30.0 - ttfp) / 15.0))
+    history_adj = round(max(-4.0, min(4.0, history_adj)), 2)
+
+    total = round(
+        min(100.0, max(0.0, reward_score + ar_score + pm_score + barrier_score + effort_score + history_adj)),
+        1,
+    )
     return {
         "opportunity_id": opp.dedup_key(),
         "platform": opp.platform,
@@ -1516,7 +1599,9 @@ def score_opportunity(
             "low_barriers": round(barrier_score, 1),
             "reward_per_hour_fit": effort_score,
             "competition_saturation": saturation_factor,
+            "platform_history": history_adj,
         },
+        "track_record": tr,
         "estimated_reward_usd": round(float(reward_usd), 2),
         "estimated_effort_hours": effort,
         "estimated_net_per_hour_usd": round(rph, 2),

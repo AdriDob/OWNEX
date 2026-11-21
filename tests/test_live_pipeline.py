@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -16,7 +17,9 @@ from cores.opportunity.live_pipeline import (
     _to_live,
     get_live_opportunities,
     live_opportunity_stats,
+    platform_track_record,
     run_live_scan,
+    score_opportunity,
 )
 
 
@@ -842,3 +845,59 @@ class TestRevenueFirstScoring:
         )
         res3 = record_external_status("algora:amt3", "paid", {"receipt": "r3", "amount": 70.0}, store=store)
         assert res3["amount_source"] == "explicit"
+
+
+class _FakeLedger:
+    """Minimal stand-in for RevenueLedger exposing _store._items."""
+
+    def __init__(self, items: dict[str, Any]):
+        self._store = SimpleNamespace(_items=items)
+
+
+def _ledger_item(advertised_at: str | None = None, paid_at: str | None = None) -> dict[str, Any]:
+    latest: dict[str, Any] = {}
+    if advertised_at:
+        latest["advertised"] = {"amount": 50.0, "recorded_at": advertised_at}
+    if paid_at:
+        latest["paid"] = {"amount": 50.0, "recorded_at": paid_at, "evidence": {"url": "x"}}
+    return {"payload": {"finance": {"latest": latest}}}
+
+
+class TestPlatformTrackRecord:
+    def test_no_data(self):
+        tr = platform_track_record("algora", ledger=_FakeLedger({}))
+        assert tr["data_status"] == "no_payouts_yet"
+        assert tr["reward_realization_rate"] is None
+        assert tr["time_to_first_payout_days"] is None
+
+    def test_advertised_only_means_zero_rate(self):
+        items = {"live:algora:a1": _ledger_item(advertised_at="2026-11-01T00:00:00+00:00")}
+        tr = platform_track_record("algora", ledger=_FakeLedger(items))
+        assert tr["advertised_items"] == 1
+        assert tr["reward_realization_rate"] == 0.0
+        assert tr["data_status"] == "no_payouts_yet"
+
+    def test_paid_computes_rate_and_ttfp(self):
+        items = {
+            "live:algora:a1": _ledger_item(
+                advertised_at="2026-11-01T00:00:00+00:00",
+                paid_at="2026-11-11T00:00:00+00:00",
+            ),
+            "live:algora:a2": _ledger_item(advertised_at="2026-11-02T00:00:00+00:00"),
+            "live:other:b1": _ledger_item(paid_at="2026-11-05T00:00:00+00:00"),
+        }
+        tr = platform_track_record("algora", ledger=_FakeLedger(items))
+        assert tr["advertised_items"] == 2
+        assert tr["paid_items"] == 1
+        assert tr["reward_realization_rate"] == 0.5
+        assert tr["time_to_first_payout_days"] == 10.0
+        assert tr["data_status"] == "ok"
+
+    def test_score_includes_track_record(self):
+        opp = _to_live("algora", _raw())
+        assert opp is not None
+        s = score_opportunity(opp)
+        assert "track_record" in s
+        assert "platform_history" in s["breakdown"]
+        assert s["track_record"]["platform"] == "algora"
+        assert 0.0 <= s["score"] <= 100.0
