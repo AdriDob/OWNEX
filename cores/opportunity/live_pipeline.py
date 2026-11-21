@@ -295,32 +295,43 @@ def _best_category(raw: dict[str, Any]) -> str:
 
 
 def _to_live(fetcher_key: str, raw: dict[str, Any]) -> LiveOpportunity | None:
-    """Normalize a forge fetch dict into a LiveOpportunity."""
-    external_id = str(raw.get("id") or raw.get("url") or "")
-    if not external_id:
+    """Normalize a forge fetch dict into a LiveOpportunity.
+
+    Security: All external content is sanitized before being included
+    in the agent's context to prevent prompt injection attacks.
+    Uses SafeLiveOpportunity wrapper to enforce trust boundaries.
+    """
+    from core.security.sanitization import safe_to_live, sanitize_opportunity_for_agent
+
+    # Create base opportunity with sanitization
+    opp = safe_to_live(raw, sanitize=True)
+    if opp is None:
         return None
-    platform = _platform_for(raw)
-    if platform in EXCLUDED_PLATFORMS:
-        return None
-    url = str(raw.get("url") or raw.get("html_url") or "")
-    return LiveOpportunity(
-        id=external_id,
-        platform=platform,
+
+    # Additional sanitization layer for agent delivery
+    safe_opp = sanitize_opportunity_for_agent(opp)
+
+    # Return the sanitized opportunity
+    # Extract the underlying LiveOpportunity but with sanitized fields
+    result = LiveOpportunity(
+        id=safe_opp.id,
+        platform=safe_opp.platform,
         adapter=fetcher_key,
-        title=str(raw.get("name") or raw.get("title") or "untitled")[:300],
-        url=url,
-        description=str(raw.get("description") or "")[:2000],
-        reward=float(raw.get("reward") or 0.0),
-        currency=str(raw.get("currency") or "USD"),
-        effort_hours=float(raw.get("effort_hours") or 0.0),
-        tags=[str(t) for t in (raw.get("tags") or [])][:12],
-        category=_best_category(raw),
-        employment_type="bounty" if raw.get("cycle") == "forge" else "contract",
-        status="discovered",
-        fetched_at=datetime.now(UTC).isoformat(),
-        evidence_url=url,
-        raw=(raw.get("metadata") or {}).get("original") or raw,
+        title=safe_opp.title,
+        url=safe_opp.url,
+        description=safe_opp.description,
+        reward=safe_opp.reward,
+        currency=safe_opp.currency,
+        effort_hours=safe_opp.effort_hours,
+        tags=safe_opp.tags,
+        category=safe_opp.category,
+        employment_type=safe_opp.employment_type,
+        status=safe_opp.status,
+        fetched_at=safe_opp.fetched_at,
+        evidence_url=safe_opp.evidence_url,
+        # raw is intentionally omitted - never embed raw external data in agent context
     )
+    return result
 
 
 async def run_live_scan(
@@ -1636,6 +1647,27 @@ def score_opportunity(
             saturation_factor = 0.9
         reward_score = round(reward_score * saturation_factor, 1)
 
+    # Freshness/competition: public bounty issues accumulate agent claims
+    # over time (observed: /try spam, multiple PRs within days). Older
+    # issues have lower win probability regardless of advertised reward.
+    freshness_factor = 1.0
+    age_days: float | None = None
+    created_raw = estimate.get("created_at") if isinstance(estimate, dict) else None
+    created_ts = _parse_ts(created_raw)
+    if created_ts is not None:
+        age_days = (datetime.now(UTC) - created_ts).total_seconds() / 86400.0
+        if age_days <= 3:
+            freshness_factor = 1.0
+        elif age_days <= 14:
+            freshness_factor = 0.9
+        elif age_days <= 30:
+            freshness_factor = 0.8
+        elif age_days <= 90:
+            freshness_factor = 0.65
+        else:
+            freshness_factor = 0.5
+        reward_score = round(reward_score * freshness_factor, 1)
+
     rph = reward_usd / max(effort, 0.5)
     # Net-of-AI-cost reward-per-hour: a $40 bounty is not profitable if the
     # agent loop burns $30 of model time. Estimate only — labeled, not billed.
@@ -1692,6 +1724,8 @@ def score_opportunity(
             "low_barriers": round(barrier_score, 1),
             "reward_per_hour_fit": effort_score,
             "competition_saturation": saturation_factor,
+            "issue_freshness": freshness_factor,
+            "issue_age_days": round(age_days, 1) if age_days is not None else None,
             "platform_history": history_adj,
         },
         "track_record": tr,

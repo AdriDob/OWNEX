@@ -942,3 +942,21 @@ class TestFundingState:
         assert opp is not None
         s = score_opportunity(opp)
         assert s["funding"]["funding_state"] == "FUNDING_BADGE_DETECTED"
+
+
+class TestIssueFreshness:
+    def test_old_issue_penalized(self):
+        opp = _to_live("issuehunt", _raw(reward=100.0))
+        assert opp is not None
+        fresh = score_opportunity(
+            opp,
+            estimate={"effective_reward_usd": 100.0, "estimated_effort_hours": 2.0, "created_at": "2026-11-20T00:00:00+00:00"},
+        )
+        stale = score_opportunity(
+            opp,
+            estimate={"effective_reward_usd": 100.0, "estimated_effort_hours": 2.0, "created_at": "2017-03-11T00:00:00+00:00"},
+        )
+        assert fresh["breakdown"]["issue_freshness"] == 1.0
+        assert stale["breakdown"]["issue_freshness"] == 0.5
+        assert stale["score"] < fresh["score"]
+        assert stale["breakdown"]["issue_age_days"] > 3000
