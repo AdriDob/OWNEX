@@ -924,3 +924,21 @@ class TestAiCostScoring:
         )
         assert s["estimated_net_reward_usd"] < 0
         assert s["breakdown"]["reward_per_hour_fit"] == 3.0
+
+
+class TestFundingState:
+    def test_badge_detected_not_authorized(self):
+        from cores.opportunity.live_pipeline import assess_funding_state
+
+        opp = _to_live("issuehunt", _raw(reward=60.0))
+        assert opp is not None
+        f = assess_funding_state(opp)
+        assert f["funding_state"] == "FUNDING_BADGE_DETECTED"
+        assert f["execution_authorized"] is False
+        assert f["payout_route_verified"] is False
+
+    def test_score_includes_funding(self):
+        opp = _to_live("issuehunt", _raw(reward=60.0))
+        assert opp is not None
+        s = score_opportunity(opp)
+        assert s["funding"]["funding_state"] == "FUNDING_BADGE_DETECTED"
