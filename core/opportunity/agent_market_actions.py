@@ -21,7 +21,7 @@ import httpx
 BASE = "https://api.taskmarket.dev"
 
 
-class AuthorizationRequired(RuntimeError):
+class AuthorizationRequiredError(RuntimeError):
     """Raised when a write action is attempted without owner authorization."""
 
 
@@ -42,13 +42,9 @@ class TaskmarketActions:
 
     def _require_authorized(self, action: str) -> None:
         if not self._authorized:
-            raise AuthorizationRequired(
-                f"{action} requires owner authorization (FINAL_HUMAN_ACTIONS B6)"
-            )
+            raise AuthorizationRequiredError(f"{action} requires owner authorization (FINAL_HUMAN_ACTIONS B6)")
         if not self._creds:
-            raise AuthorizationRequired(
-                f"{action} requires agent credentials — register first (B6)"
-            )
+            raise AuthorizationRequiredError(f"{action} requires agent credentials — register first (B6)")
 
     def _headers(self) -> dict[str, str]:
         if "identity_token" in self._creds:
