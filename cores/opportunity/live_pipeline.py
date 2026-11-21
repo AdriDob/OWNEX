@@ -1451,6 +1451,9 @@ _TERMINAL_STATUSES = {"expired", "rejected", "paid", "withdrawn"}
 # models (near-zero marginal) plus paid-model usage for planning/review.
 # Configurable; the estimate is labeled as such — never treated as billed cost.
 _AI_COST_PER_HOUR_USD = float(os.environ.get("OWNEX_AI_COST_PER_HOUR_USD", "1.5"))
+# Hard cap on estimated AI spend per project (USD). Executions must stop
+# when the estimate exceeds this or net reward goes non-positive.
+_MAX_AI_COST_PER_PROJECT_USD = float(os.environ.get("OWNEX_MAX_AI_COST_PER_PROJECT_USD", "25.0"))
 
 _BARRIER_PENALTIES = {
     "requires_interview": 6.0,
@@ -1654,6 +1657,8 @@ def score_opportunity(
         "estimated_reward_usd": round(float(reward_usd), 2),
         "estimated_effort_hours": effort,
         "estimated_ai_cost_usd": ai_cost_usd,
+        "ai_budget_usd": _MAX_AI_COST_PER_PROJECT_USD,
+        "within_ai_budget": ai_cost_usd <= _MAX_AI_COST_PER_PROJECT_USD and net_reward_usd > 0,
         "estimated_net_reward_usd": net_reward_usd,
         "estimated_net_per_hour_usd": round(rph_net, 2),
         "estimated_gross_per_hour_usd": round(rph, 2),
