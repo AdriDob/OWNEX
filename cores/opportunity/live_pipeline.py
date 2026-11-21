@@ -1473,6 +1473,47 @@ def _parse_ts(value: Any) -> datetime | None:
         return None
 
 
+# Funding states — an open issue + bounty badge + active repo is NOT
+# authorization to execute. Only the last state implies verified money.
+FUNDING_BADGE_DETECTED = "FUNDING_BADGE_DETECTED"
+FUNDING_ACTIVE_VERIFIED = "FUNDING_ACTIVE_VERIFIED"
+PAYOUT_ROUTE_VERIFIED = "PAYOUT_ROUTE_VERIFIED"
+
+
+def assess_funding_state(opp: LiveOpportunity) -> dict[str, Any]:
+    """Classify funding evidence honestly.
+
+    ``FUNDING_BADGE_DETECTED`` — a reward/badge signal exists (advertised
+    amount, 'funded' label, bounty platform listing). This is the ceiling
+    for anything OWNEX has not verified against the funding platform.
+    ``FUNDING_ACTIVE_VERIFIED`` requires a platform-side check (e.g.
+    IssueHunt deposit status, bounty API) — not yet implemented.
+    ``PAYOUT_ROUTE_VERIFIED`` requires the owner's account + confirmed
+    withdrawal method for their country — human-gated, never automatic.
+    """
+    reward = opp.reward if isinstance(opp.reward, (int, float)) else 0.0
+    text = f"{opp.title} {opp.description}".lower()
+    badge = reward > 0 or "funded" in text or "bounty" in text
+    # Competition signals already present in raw payloads.
+    subs = opp.raw.get("submission_count")
+    comments = opp.raw.get("comment_count") or opp.raw.get("comments")
+    competition = {
+        "submission_count": subs if isinstance(subs, (int, float)) else None,
+        "comment_count": comments if isinstance(comments, (int, float)) else None,
+        "open_pr_check": "not_performed",  # requires GitHub API audit per candidate
+    }
+    state = FUNDING_BADGE_DETECTED if badge else "NO_FUNDING_SIGNAL"
+    return {
+        "funding_state": state,
+        "badge_detected": bool(badge),
+        "active_verified": state == FUNDING_ACTIVE_VERIFIED,
+        "payout_route_verified": False,  # always human-gated until owner verifies
+        "execution_authorized": False,  # badge alone never authorizes work
+        "competition": competition,
+        "note": "open issue + funded badge + active repo != executable opportunity",
+    }
+
+
 def platform_track_record(platform: str, ledger: Any | None = None) -> dict[str, Any]:
     """Measured per-platform outcome stats from the Revenue Ledger.
 
@@ -1654,6 +1695,7 @@ def score_opportunity(
             "platform_history": history_adj,
         },
         "track_record": tr,
+        "funding": assess_funding_state(opp),
         "estimated_reward_usd": round(float(reward_usd), 2),
         "estimated_effort_hours": effort,
         "estimated_ai_cost_usd": ai_cost_usd,
