@@ -130,6 +130,32 @@ def read_state_summary() -> None:
             print(f"  {line}")
 
 
+def progress_snapshot() -> None:
+    """Step 2.5: Progress ledger — three independent metrics + regressions.
+
+    Read-only report from .ai/PROGRESS.md via scripts/progress.py.
+    Non-fatal: a broken ledger must not block agent startup.
+    """
+    header("STEP 2.5: Progress Ledger")
+    try:
+        result = subprocess.run(
+            [sys.executable, str(PROJECT_ROOT / "scripts" / "progress.py")],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode in (0, 1):
+            for line in result.stdout.strip().split("\n")[:12]:
+                print(f"  {line}")
+            if result.returncode == 1:
+                print(f"  {YELLOW}⚠ Regressions/evidence issues detected — see warnings above{RESET}")
+        else:
+            print(f"  {YELLOW}⚠ progress.py error: {result.stderr.strip()[:120]}{RESET}")
+    except Exception as exc:
+        print(f"  {YELLOW}⚠ Progress check skipped: {str(exc)[:60]}{RESET}")
+
+
 def health_check(run_tests: bool = True) -> bool:
     """Step 3: Health check."""
     header("STEP 3: Health Check")
@@ -359,6 +385,7 @@ def main() -> None:
 
     check_version()
     read_state_summary()
+    progress_snapshot()
     health_check(run_tests=run_tests and not skip_tests)
     run_maintenance()
     quick_wins_scan()
