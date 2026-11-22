@@ -393,7 +393,7 @@ function formatCompact(n: number) {
           />
           <component :is="item.icon" :class="['h-4 w-4 shrink-0', isActive(item.path) ? 'scale-110 text-primary' : '']" />
           <Transition name="fade">
-            <span v-if="!collapsed" class="flex-1 truncate font-mono text-xs">{{ item.name }}</span>
+            <span v-if="!collapsed" class="flex-1 truncate text-xs font-medium">{{ item.name }}</span>
           </Transition>
           <span
             v-if="!collapsed && getBadge(item.badge || item.path)"
@@ -425,7 +425,7 @@ function formatCompact(n: number) {
       >
         <MessageCircle class="h-4 w-4 shrink-0" />
         <Transition name="fade">
-          <span v-if="!collapsed" class="font-mono text-xs">MERLIN</span>
+          <span v-if="!collapsed" class="text-xs font-semibold tracking-wide">MERLIN</span>
         </Transition>
       </button>
       <button
