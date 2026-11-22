@@ -73,10 +73,15 @@ export function useGuidedMode() {
 
   const modeDescriptions = computed(() => MODE_INFO)
 
+  // Section filtering by guided mode was never specified — all nav
+  // sections stay visible until a path→mode map is defined.
+  const isSectionVisible = (_path: string) => true
+
   return {
     currentMode,
     setMode,
     initMode,
     modeDescriptions,
+    isSectionVisible,
   }
 }
