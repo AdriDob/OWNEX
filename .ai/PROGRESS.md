@@ -24,7 +24,7 @@
 | Delivery / submission | 10 | NOT_STARTED | `record_approval`/`draft_payment_inquiry` existen | Sin submission real | Draft PR en primer proyecto |
 | Security research (CATEYE core) | 50 | IMPLEMENTED | Pipeline hallazgos existe; 365 programas en LiveStore | Cuentas plataformas = humano | Elegir 1 programa + ciclo research |
 | Sanitization / prompt-injection | 60 | VERIFIED | `core/security/sanitization.py` en `_to_live` (`eb17cff1d`) | Cobertura parcial del surface | Extender a otros puntos de entrada agent |
-| Frontend / productization | 30 | IMPLEMENTED | 83 páginas, shell existe, HumanActions UI nueva | Multi-sesión, npm install pendiente | FASE 0-1: install + App Shell (directiva Hermes) |
+| Frontend / productization | 40 | TESTED | Dev server `:5173` live + proxy `/api`→`:8000` OK; biome clean; 226 vitest pass (2026-11-22) | App Shell/Command Center redesign pendiente (directiva Hermes) | FASE 1: App Shell + Command Center con datos reales |
 | Desktop / Tauri | 40 | IMPLEMENTED | Scripts tauri:dev/build existen | Sin build verificado reciente | Build de prueba + runbook |
 | Consolidación core/↔cores/ | 30 | IMPLEMENTED | CANONICAL_COMPONENTS.md existe; bridges temporales | Decisión por dominio pendiente | Auditoría de imports por dominio |
 | Tests / quality gates | 65 | IMPLEMENTED | 1460+ tests focalizados verdes; suite completa rota por WIP paralelo | `test_cex_connector`/`INVESTMENT_GLOBAL` + permissions | Reconciliar WIP paralelo, suite verde |

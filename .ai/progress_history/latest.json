@@ -1,8 +1,8 @@
 {
   "schema": 2,
-  "ts": "2026-11-22T22:23:17.612666+00:00",
-  "commit": "752a05d9f",
-  "product_completeness": 51.2,
+  "ts": "2026-11-22T22:25:02.035318+00:00",
+  "commit": "004cdc267",
+  "product_completeness": 51.8,
   "operational_readiness": 0.0,
   "revenue_validation": 28.7,
   "modules": {
@@ -79,9 +79,9 @@
       "regression_justified": false
     },
     "Frontend / productization": {
-      "pct": 30,
-      "state": "IMPLEMENTED",
-      "evidence": "83 p\u00e1ginas, shell existe, HumanActions UI nueva",
+      "pct": 40,
+      "state": "TESTED",
+      "evidence": "Dev server `:5173` live + proxy `/api`\u2192`:8000` OK; biome clean; 226 vitest pass (2026-11-22)",
       "regression_justified": false
     },
     "Desktop / Tauri": {
