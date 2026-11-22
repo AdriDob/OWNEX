@@ -16,6 +16,7 @@ How changes get from an agent's work into `main` safely.
 - No contract changes (API schemas, DB models, event names, shared types) without listing consumers and updating them.
 - Never delete code another agent may use without verifying consumers (`graft`/grep).
 - Never mark MOCK as functional. States: IMPLEMENTED / VERIFIED / PARTIAL / BLOCKED / NOT_IMPLEMENTED / MOCK / UNKNOWN.
+- Module-level progress lives in `.ai/PROGRESS.md` — update your module's row (%, state, evidence, blocker) and run `python3 scripts/progress.py --update` before reporting done. See `.ai/PROGRESSIVE_DEVELOPMENT_SYSTEM.md` for the binding rules (preservation, no destructive ops, honest %, human blockers explicit).
 
 ## 3. Completion report (mandatory)
 

@@ -4,6 +4,8 @@
 > - `.agents/AGENT_REGISTRY.md` — quién trabaja en qué (registro obligatorio)
 > - `.agents/TASK_BOARD.md` — cola de tareas con owner único por tarea
 > - `.agents/INTEGRATION_PROTOCOL.md` — pre-flight, completion report, integración controlada
+> - `.ai/PROGRESSIVE_DEVELOPMENT_SYSTEM.md` — **directiva universal**: desarrollo acumulativo, preservación de avances, % honesto por módulo
+> - `.ai/PROGRESS.md` + `scripts/progress.py` — ledger de avance por módulo; correr al inicio y `--update` al cierre de cada sesión
 > - `docs/architecture/CANONICAL_COMPONENTS.md` — qué implementación es la canónica por responsabilidad
 > - `docs/architecture/ARCHITECTURE_MAP.md` — mapa e índices de `.ai/`
 > - `docs/engineering/QUALITY_GATES.md` — checks obligatorios antes de "terminar"

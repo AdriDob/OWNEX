@@ -1129,3 +1129,253 @@ class TestBuildDefaultRegistry:
         assert "ccxt" in names
         assert "polymarket" in names
         assert len(adapters) == 20
+
+
+# ── 11.4.2 Strategy Attribution Engine ──────────────────────────
+
+
+def _make_trade(
+    trade_id: str = "T1",
+    strategy_id: str = "ccxt_spot",
+    symbol: str = "BTC/USDT",
+    side: str = "buy",
+    currency: str = "USDT",
+    gross_pnl: float | None = 10.0,
+    fees: float = 1.0,
+    slippage: float = 0.5,
+    completeness: str = "COMPLETE",
+    exchange: str = "binance",
+    account_id: str = "acc-1",
+    asset: str = "BTC",
+    provenance: str = "EXCHANGE",
+    created_at: str = "2026-03-15T10:00:00+00:00",
+):
+    """Build one TradeEvidence with every attribution dimension explicit."""
+    from core.investment.models import ProvenanceLevel, TradeEvidence
+
+    gross = gross_pnl
+    net = None if gross is None else gross - fees - slippage
+    return TradeEvidence(
+        trade_id=trade_id,
+        strategy_id=strategy_id,
+        symbol=symbol,
+        side=side,
+        currency=currency,
+        gross_pnl=gross,
+        fees=fees,
+        slippage=slippage,
+        net_pnl=net,
+        net_pnl_calc=0.0 if net is None else net,
+        net_pnl_completeness=completeness,
+        exchange=exchange,
+        account_id=account_id,
+        asset=asset,
+        provenance_level=ProvenanceLevel(provenance),
+        created_at=created_at,
+    )
+
+
+class TestStrategyAttribution:
+    """11.4.2 — attribution must never invent dimensions or net figures."""
+
+    def test_group_by_strategy(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", strategy_id="ccxt_spot"),
+            _make_trade(trade_id="B", strategy_id="polymarket"),
+        ]
+        groups = attribute(trades).by_strategy()
+        assert {g.key.strategy_id for g in groups} == {"ccxt_spot", "polymarket"}
+        assert all(g.total_trades == 1 for g in groups)
+
+    def test_group_by_exchange(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", exchange="binance"),
+            _make_trade(trade_id="B", exchange="kraken"),
+            _make_trade(trade_id="C", exchange="binance"),
+        ]
+        groups = {g.key.exchange: g for g in attribute(trades).by_exchange()}
+        assert groups["binance"].total_trades == 2
+        assert groups["kraken"].total_trades == 1
+
+    def test_group_by_period(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", created_at="2026-03-01T00:00:00+00:00"),
+            _make_trade(trade_id="B", created_at="2026-03-20T00:00:00+00:00"),
+            _make_trade(trade_id="C", created_at="2026-04-02T00:00:00+00:00"),
+        ]
+        groups = {g.key.period: g for g in attribute(trades).by_period()}
+        assert groups["2026-03"].total_trades == 2
+        assert groups["2026-04"].total_trades == 1
+
+    def test_group_by_strategy_and_exchange(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", strategy_id="s1", exchange="binance"),
+            _make_trade(trade_id="B", strategy_id="s1", exchange="kraken"),
+            _make_trade(trade_id="C", strategy_id="s2", exchange="binance"),
+        ]
+        groups = attribute(trades).by_strategy_and_exchange()
+        combos = {(g.key.strategy_id, g.key.exchange) for g in groups}
+        assert combos == {("s1", "binance"), ("s1", "kraken"), ("s2", "binance")}
+
+    def test_missing_account_and_asset_are_not_inferred(self):
+        from core.investment.attribution import attribute
+
+        trades = [_make_trade(trade_id="A", account_id="", asset="")]
+        group = attribute(trades).by_strategy()[0]
+        # Reported as missing, never filled with a guessed value
+        assert "account_id" in group.missing_dimensions
+        assert "asset" in group.missing_dimensions
+        assert group.key.account_id != "acc-1"
+
+    def test_account_attribution_reports_unavailable(self):
+        from core.investment.attribution import attribute
+
+        trades = [_make_trade(trade_id="A", account_id="")]
+        groups = attribute(trades).by_account()
+        assert len(groups) == 1
+        assert groups[0].key.account_id == ""
+        assert "account_id" in groups[0].missing_dimensions
+
+    def test_gross_is_never_reported_as_net(self):
+        from core.investment.attribution import attribute
+
+        # Fees and slippage known, but costs are not confirmed complete
+        trades = [
+            _make_trade(trade_id="A", gross_pnl=10.0, fees=1.0, slippage=0.5, completeness="INCOMPLETE"),
+            _make_trade(trade_id="B", gross_pnl=-4.0, fees=1.0, slippage=0.5, completeness="INCOMPLETE"),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        assert group.gross_pnl_complete == pytest.approx(6.0)
+        assert group.net_pnl_complete == 0.0
+        assert "no_complete_net" in group.roi_basis
+        assert group.roi_pct is None
+
+    def test_net_only_from_complete_trades(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", gross_pnl=10.0, fees=1.0, slippage=0.5, completeness="COMPLETE"),
+            _make_trade(trade_id="B", gross_pnl=-4.0, fees=1.0, slippage=0.5, completeness="INCOMPLETE"),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        # Only the COMPLETE trade contributes to net: 10 - 1 - 0.5 = 8.5
+        assert group.net_pnl_complete == pytest.approx(8.5)
+        assert group.pnl_completeness == "PARTIAL"
+
+    def test_currency_mismatch_blocks_net_aggregation(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", currency="USDT"),
+            _make_trade(trade_id="B", currency="EUR"),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        assert group.currency_mismatch is True
+        assert group.net_pnl_complete == 0.0
+        assert group.currencies_seen == {"USDT", "EUR"}
+        assert "currency_mismatch" in group.roi_basis
+
+    def test_provenance_is_reported_separately(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", provenance="EXCHANGE"),
+            _make_trade(trade_id="B", provenance="MANUAL"),
+            _make_trade(trade_id="C", provenance="MANUAL"),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        assert group.provenance_breakdown == {"EXCHANGE": 1, "MANUAL": 2}
+        by_prov = {g.key.provenance: g for g in attribute(trades).by_provenance()}
+        assert set(by_prov) == {"EXCHANGE", "MANUAL"}
+
+    def test_duplicates_are_flagged_but_not_removed(self):
+        from core.investment.attribution import attribute
+
+        a = _make_trade(trade_id="A")
+        dup = _make_trade(trade_id="B")  # same payload, different id
+        group = attribute([a, dup]).by_strategy()[0]
+        assert group.total_trades == 2
+        assert group.trade_ids == ["A", "B"]
+        assert group.excluded_reasons.get("duplicate_flag") == 1
+
+    def test_traceability_by_trade_id(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", gross_pnl=1.0),
+            _make_trade(trade_id="B", gross_pnl=2.0),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        assert set(group.trade_ids) == {"A", "B"}
+
+    def test_missing_dimensions_exclude_and_count(self):
+        from core.investment.attribution import attribute
+
+        missing_currency = _make_trade(trade_id="A", currency="")
+        group = attribute([missing_currency]).by_strategy()[0]
+        assert group.eligible_trades == 0
+        assert group.excluded_trades == 1
+        assert any("missing_currency" in reason for reason in group.excluded_reasons)
+        assert group.sample_quality == "NO_ELIGIBLE_TRADES"
+
+    def test_no_trades_yields_no_groups(self):
+        from core.investment.attribution import attribute
+
+        # Nothing recorded means nothing to attribute: no fabricated empty group.
+        assert attribute([]).by_strategy() == []
+        assert attribute([]).all_groups() == []
+
+    def test_sample_quality_small_sample(self):
+        from core.investment.attribution import attribute
+
+        group = attribute([_make_trade(trade_id="A")]).by_strategy()[0]
+        assert group.sample_quality == "SMALL_SAMPLE"
+
+    def test_sample_quality_complete(self):
+        from core.investment.attribution import attribute
+
+        trades = [_make_trade(trade_id=f"T{i}") for i in range(5)]
+        group = attribute(trades).by_strategy()[0]
+        assert group.sample_quality == "COMPLETE"
+        assert group.pnl_completeness == "COMPLETE"
+
+    def test_win_rate_declares_its_series(self):
+        from core.investment.attribution import attribute
+
+        trades = [
+            _make_trade(trade_id="A", gross_pnl=10.0, fees=1.0, slippage=1.0),
+            _make_trade(trade_id="B", gross_pnl=-10.0, fees=1.0, slippage=1.0),
+        ]
+        group = attribute(trades).by_strategy()[0]
+        assert group.win_rate_definition
+        assert "COMPLETE" in group.win_rate_definition
+        assert group.win_rate_explicit == 0.5
+        assert group.winning_trades == 1
+        assert group.losing_trades == 1
+
+    def test_legacy_trade_without_new_fields_still_attributes(self):
+        from core.investment.attribution import attribute
+
+        # Historical trade: no exchange, account_id or asset recorded
+        legacy = _make_trade(trade_id="OLD", exchange="", account_id="", asset="")
+        group = attribute([legacy]).by_strategy()[0]
+        assert group.total_trades == 1
+        assert group.eligible_trades == 1
+        assert {"exchange", "account_id", "asset"} <= group.missing_dimensions
+
+    def test_zero_pnl_is_break_even_not_win(self):
+        from core.investment.attribution import attribute
+
+        trade = _make_trade(trade_id="A", gross_pnl=1.5, fees=1.0, slippage=0.5)
+        group = attribute([trade]).by_strategy()[0]
+        assert group.break_even_trades == 1
+        assert group.winning_trades == 0
+        assert group.win_rate_explicit == 0.0
