@@ -203,20 +203,31 @@ async function fetchActivity(): Promise<KnowledgeItem[]> {
 }
 
 export async function fetchMissionStatus(): Promise<{ health: number; status: string; nextAction: NextActionItem | null; timestamp: string }> {
-    const data = await api.get<any>('/mission/status')
-    const nextAction = data.next_action
+    // /mission/status no existe en el backend — derivar de /system/state
+    // (health/status) y /orion/next-action (siguiente acción real).
+    const [stateRes, actionRes] = await Promise.allSettled([
+      api.get<any>('/system/state'),
+      api.get<any>('/orion/next-action'),
+    ])
+    const state = stateRes.status === 'fulfilled' ? stateRes.value : null
+    const actionData = actionRes.status === 'fulfilled' ? actionRes.value : null
+    const svc = state?.services || []
+    const healthy = svc.filter((s: any) => s.state === 'healthy' || s.status === 'healthy').length
+    const health = svc.length ? Math.round((healthy / svc.length) * 100) : 0
+    const nextRaw = actionData?.data ?? actionData?.next_action ?? null
+    const nextAction = nextRaw
       ? {
-          title: data.next_action.title || 'Sin acción pendiente',
-          reason: data.next_action.why_now || '',
-          effort: data.next_action.effort || 'Bajo',
-          estimatedReward: data.next_action.estimated_reward || 0,
+          title: nextRaw.title || nextRaw.action || 'Sin acción pendiente',
+          reason: nextRaw.reason || nextRaw.why_now || nextRaw.detail || '',
+          effort: nextRaw.effort || 'Bajo',
+          estimatedReward: nextRaw.estimated_reward ?? nextRaw.reward ?? 0,
         }
       : null
     return {
-      health: data.system?.health_score ?? 0,
-      status: data.system?.status ?? 'unknown',
+      health,
+      status: state?.state?.system_state ?? state?.system_state ?? 'unknown',
       nextAction,
-      timestamp: data.system?.timestamp ?? new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     }
 }
 
@@ -468,15 +479,18 @@ async function fetchApprovals(): Promise<number> {
 // ── Main fetch ──
 
 export async function fetchOwnexDashboard(): Promise<OwnexDashboardData> {
+  // Degradación por endpoint: un servicio caído no debe tumbar el dashboard
+  // completo — cada fetcher cae a su empty-state honesto.
+  const fallbackMission = { health: 0, status: 'unavailable', nextAction: null, timestamp: new Date().toISOString() }
   const [stages, opportunities, activity, mission, agents, revenue, cycles, pendingApprovals] = await Promise.all([
-    fetchOverview(),
-    fetchOpportunities(),
-    fetchActivity(),
-    fetchMissionStatus(),
-    fetchSystemStatus(),
-    fetchRevenueSnapshot(),
-    fetchCycles(),
-    fetchApprovals(),
+    fetchOverview().catch(() => [...DEFAULT_STAGES]),
+    fetchOpportunities().catch(() => []),
+    fetchActivity().catch(() => []),
+    fetchMissionStatus().catch(() => fallbackMission),
+    fetchSystemStatus().catch(() => []),
+    fetchRevenueSnapshot().catch(() => null),
+    fetchCycles().catch(() => []),
+    fetchApprovals().catch(() => 0),
   ])
 
   const completedCount = stages.length > 0 ? stages[stages.length - 1].value : 0

@@ -18,15 +18,17 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user: any }>(
+      const res = await api.post<{ session?: { token: string; expires_at?: string }; data?: { token?: string }; token?: string; user?: any }>(
         '/auth/users/login', { email, password }, true
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
-        user.value = res.user
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
+      const sessionToken = res?.session?.token ?? res?.data?.token ?? res?.token
+      if (sessionToken) {
+        setToken(sessionToken)
+        token.value = sessionToken
+        user.value = res.user ?? res.data?.user ?? null
+        const expiresAt = res?.session?.expires_at ?? res?.data?.expires_at
+        if (expiresAt) {
+          setSessionExpiry(expiresAt)
         }
       }
     } catch (e: any) {
@@ -44,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await api.post<{ session?: { token: string; expires_at?: string }; access_token?: string; user?: any }>(
         '/auth/users/register', { email, password, display_name: displayName }, true
       )
-      const newToken = res?.session?.token ?? res?.access_token
+      const newToken = res?.session?.token ?? res?.access_token ?? res?.data?.token ?? res?.token
       if (newToken) {
         setToken(newToken)
         token.value = newToken
@@ -94,16 +96,19 @@ export const useAuthStore = defineStore('auth', () => {
     const deviceId = tryGetDeviceId()
     if (!deviceId) return false
     try {
-      const res = await api.post<{ session: { token: string; expires_at?: string }; user?: any }>(
+      const res = await api.post<{ session?: { token: string; expires_at?: string }; data?: { token?: string }; token?: string; user?: any }>(
         '/auth/login', { device_id: deviceId, device_info: 'vue-frontend' }, true
       )
-      if (res?.session?.token) {
-        setToken(res.session.token)
-        token.value = res.session.token
-        if (res.session.expires_at) {
-          setSessionExpiry(res.session.expires_at)
+      const sessionToken = res?.session?.token ?? res?.data?.token ?? res?.token
+      if (sessionToken) {
+        setToken(sessionToken)
+        token.value = sessionToken
+        const expiresAt = res?.session?.expires_at ?? res?.data?.expires_at
+        if (expiresAt) {
+          setSessionExpiry(expiresAt)
         }
-        if (res.user) user.value = res.user
+        const userData = res?.user ?? res?.data?.user
+        if (userData) user.value = userData
         return true
       }
     } catch { /* silent */ }
