@@ -30,6 +30,43 @@
 | Tests / quality gates | 65 | IMPLEMENTED | 1460+ tests focalizados verdes; suite completa rota por WIP paralelo | `test_cex_connector`/`INVESTMENT_GLOBAL` + permissions | Reconciliar WIP paralelo, suite verde |
 | Investment Hub | 50 | UNKNOWN | Sesión paralela activa (no auditado por este lane) | WIP sin commitear | Auditar cuando commitee |
 
+## Tres indicadores independientes (nunca promediados)
+
+| Indicador | Qué mide | Valor actual |
+|-----------|----------|--------------|
+| **PRODUCT_COMPLETENESS** | % de la tabla de módulos (software implementado+integrado+probado) | ver `progress.py` |
+| **OPERATIONAL_READINESS** | % de cuentas/credenciales/integraciones externas conectadas y probadas | ver sección abajo |
+| **REVENUE_VALIDATION** | % de ciclos económicos demostrados (oportunidad→aceptación→pago→retiro) | ver sección abajo |
+
+Una acción humana pendiente bloquea OPERATIONAL/REVENUE, **no**
+PRODUCT_COMPLETENESS. Un módulo "listo" sin cuenta conectada sigue
+siendo producto completo — pero no operativamente ready.
+
+## Operational Readiness (cuentas e integraciones)
+
+| Ítem | Estado | Evidencia | Acción humana |
+|------|--------|-----------|---------------|
+| Taskmarket agent registration (B6) | BLOCKED | endpoint público verificado; write-client gated listo | registrar agente + identity_token |
+| Agent Hansa registration (B7) | BLOCKED | adapter read-only live | cuenta + credenciales |
+| BasedAgents/ClawHunt (B10) | BLOCKED | sin API pública verificada | evaluar registro manual |
+| GitHub PAT para rate limits | PENDING | `gh` CLI autenticado como AdriDob (2026-11-21) | definir scope del token |
+| IssueHunt cuenta + payout AR | PENDING | payout methods no confirmados para AR | verificar Stripe/PayPal/crypto |
+| Cuentas security (H1/BC/Intigriti/YWH) | PENDING | fetchers públicos funcionan sin auth | API tokens opcionales |
+| Wallet crypto (escrow payouts) | PENDING | taskmarket paga vía escrow on-chain Base | crear wallet + off-ramp |
+
+## Revenue Validation (ciclos económicos)
+
+| Etapa del ciclo | Estado | Evidencia |
+|-----------------|--------|-----------|
+| Oportunidad real descubierta | DONE | 619 live opps en LiveStore |
+| Evaluada y priorizada | DONE | score_opportunity + rank_opportunities |
+| Workspace preparado | PARTIAL | `prepare_execution` clona repos (sin proyecto real aún) |
+| Desarrollada por agentes | NOT_STARTED | sin loop dev→PR ejecutado |
+| Entrega enviada | NOT_STARTED | — |
+| Aceptada por requester | NOT_STARTED | — |
+| Pago recibido y verificado | NOT_STARTED | RevenueLedger: 0 `paid` con evidencia |
+| Retiro/off-ramp | NOT_STARTED | — |
+
 ## Reglas del ledger
 
 1. **Solo evidencia cuenta**: commit hash, test count, live-check con fecha, o URL verificable.
