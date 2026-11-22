@@ -2,6 +2,8 @@
 
 Prioritized queue. Single write-owner per task. Check `.ai/TASK_QUEUE.md` for the strategic backlog — this board tracks *agent assignments*.
 
+> **Progress ledger**: `.ai/PROGRESS.md` is the canonical per-module advancement tracker (%, state, evidence, blocker, next action). Run `python3 scripts/progress.py` at session start and `--update` at session end — the delta vs `.ai/progress_snapshot.json` is the real progress. Update your module's row when closing work; UNKNOWN beats invented numbers.
+
 ## Priority order (from governance §19)
 
 1. Security & data integrity

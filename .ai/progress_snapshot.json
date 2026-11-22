@@ -1,0 +1,73 @@
+{
+  "modules": {
+    "Source Intelligence (cat\u00e1logo 1000 + L1-L5)": {
+      "pct": 70,
+      "state": "PARTIAL"
+    },
+    "Discovery pipeline (fetchers\u2192LiveStore\u2192eligibility)": {
+      "pct": 85,
+      "state": "FUNCTIONAL"
+    },
+    "Scoring / EV model": {
+      "pct": 75,
+      "state": "FUNCTIONAL"
+    },
+    "Work Bank / priorizaci\u00f3n": {
+      "pct": 80,
+      "state": "FUNCTIONAL"
+    },
+    "Revenue Ledger / finanzas": {
+      "pct": 65,
+      "state": "PARTIAL"
+    },
+    "Human Actions / aprobaciones": {
+      "pct": 75,
+      "state": "FUNCTIONAL"
+    },
+    "Agent-market adapters (taskmarket/hansa/agentics)": {
+      "pct": 60,
+      "state": "PARTIAL"
+    },
+    "Project Engineering Factory": {
+      "pct": 15,
+      "state": "PARTIAL"
+    },
+    "Multi-agent / workers": {
+      "pct": 10,
+      "state": "PARTIAL"
+    },
+    "Delivery / submission": {
+      "pct": 10,
+      "state": "NOT_STARTED"
+    },
+    "Security research (CATEYE core)": {
+      "pct": 50,
+      "state": "PARTIAL"
+    },
+    "Sanitization / prompt-injection": {
+      "pct": 60,
+      "state": "FUNCTIONAL"
+    },
+    "Frontend / productization": {
+      "pct": 30,
+      "state": "PARTIAL"
+    },
+    "Desktop / Tauri": {
+      "pct": 40,
+      "state": "PARTIAL"
+    },
+    "Consolidaci\u00f3n core/\u2194cores/": {
+      "pct": 30,
+      "state": "PARTIAL"
+    },
+    "Tests / quality gates": {
+      "pct": 65,
+      "state": "PARTIAL"
+    },
+    "Investment Hub": {
+      "pct": 50,
+      "state": "UNKNOWN"
+    }
+  },
+  "global_pct": 51.2
+}
