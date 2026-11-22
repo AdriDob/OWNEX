@@ -6,6 +6,7 @@
 
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import OwnexBadge from '../ui/OwnexBadge.vue'
+import { APP_VERSION } from '@/lib/version'
 
 interface Props {
   systemStatus?: 'healthy' | 'degraded' | 'critical' | 'offline'
@@ -20,7 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   activeCycles: () => [],
   pendingApprovals: 0,
   runningWorkflows: 0,
-  version: '5.0.0',
+  version: APP_VERSION,
 })
 
 const time = ref(new Date())

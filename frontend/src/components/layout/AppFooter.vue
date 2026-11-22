@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MessageCircle, HelpCircle } from '@lucide/vue'
+import { APP_VERSION } from '@/lib/version'
 
 const emit = defineEmits<{ 'toggleCopilot': [] }>()
 </script>
@@ -25,7 +26,7 @@ const emit = defineEmits<{ 'toggleCopilot': [] }>()
           <span class="font-mono">Asistente</span>
         </button>
       </div>
-      <span class="font-mono text-[9px] text-muted-foreground/50">OWNEX v5.1.0</span>
+      <span class="font-mono text-[9px] text-muted-foreground/50">OWNEX v{{ APP_VERSION }}</span>
     </div>
   </footer>
 </template>
