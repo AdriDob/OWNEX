@@ -13,7 +13,19 @@ import Select from '@/components/ui/Select.vue'
 import Option from '@/components/ui/Option.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
-import { Plus, Minus, Check, Shield, Info, Globe, Target, Clock, Eye } from '@lucide/vue'
+import {
+  Check,
+  Clock,
+  Eye,
+  Globe,
+  Info,
+  Key,
+  Minus,
+  Plus,
+  Shield,
+  Target,
+  X,
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 const { toast } = useToast()

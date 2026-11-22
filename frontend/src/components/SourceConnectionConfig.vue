@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { CheckCircle, Info, RefreshCw, XCircle } from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth'
 import { useDiscoveryStore } from '@/stores/discovery'
 import { useExternalConnectionManager } from '@/composables/useExternalConnectionManager'

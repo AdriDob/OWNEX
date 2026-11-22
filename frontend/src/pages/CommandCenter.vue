@@ -12,7 +12,31 @@ import Badge from '@/components/ui/Badge.vue'
 import Button from '@/components/ui/Button.vue'
 import Skeleton from '@/components/ui/Skeleton.vue'
 import KPIBlock from '@/components/ui/KPIBlock.vue'
-import { Plus, AlertCircle, CheckCircle, Clock, Sync, Globe, Shield, Wallet, Server, TrendingUp, TrendingDown, Flag, Home, PieChart, Calendar, Layout, ShieldCheck, Mail, Folder, FolderOpen, ShieldX, Info } from '@lucide/vue'
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  Flag,
+  Folder,
+  FolderOpen,
+  Globe,
+  Home,
+  Info,
+  Layout,
+  Mail,
+  PieChart,
+  Plus,
+  Server,
+  Shield,
+  ShieldCheck,
+  ShieldX,
+  Sync,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from '@lucide/vue'
 
 import { useRouter } from 'vue-router'
 

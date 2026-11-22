@@ -15,7 +15,20 @@ import Select from '@/components/ui/Select.vue'
 import Option from '@/components/ui/Option.vue'
 import LoadingState from '@/components/ui/LoadingState.vue'
 import ErrorState from '@/components/shared/ErrorState.vue'
-import { Plus, Minus, CheckCircle, XCircle, Sync, Clock, AlertTriangle, Shield, Info, LogIn, LogOut } from '@lucide/vue'
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  File,
+  Info,
+  LogIn,
+  LogOut,
+  Minus,
+  Plus,
+  Shield,
+  Sync,
+  XCircle,
+} from '@lucide/vue'
 
 const auth = useAuthStore()
 const { toast } = useToast()
