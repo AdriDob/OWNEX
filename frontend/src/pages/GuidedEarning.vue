@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchGuidedNextAction, type GuidedNextAction, type GuidedNextActionItem } from '@/services/ownexData'
+import { dismissGuidedAction, fetchGuidedNextAction, snoozeGuidedAction, type GuidedNextAction, type GuidedNextActionItem } from '@/services/ownexData'
 import { RefreshCw, ExternalLink, ArrowRight, AlertTriangle, CheckCircle2, Circle, Clock } from '@lucide/vue'
 
 const router = useRouter()
 const data = ref<GuidedNextAction | null>(null)
 const loading = ref(true)
 const error = ref('')
+const showEvidence = ref(false)
+const busy = ref(false)
 
 const action = computed<GuidedNextActionItem | null>(() => data.value?.action ?? null)
 
@@ -39,13 +41,64 @@ const ELIGIBILITY_LABELS: Record<string, string> = {
   INELIGIBLE: 'No elegible',
 }
 
+const STATE_LABELS: Record<string, string> = {
+  ACTION_AVAILABLE: 'Accionable',
+  ACTION_IN_PROGRESS: 'En progreso',
+  HUMAN_ACTION_REQUIRED: 'Requiere acción tuya',
+  AUTOMATION_RUNNING: 'OWNEX ejecutando',
+  EXTERNAL_WAITING: 'Esperando externo',
+  BLOCKED: 'Bloqueado',
+  NO_RECOMMENDATION: 'Sin recomendación',
+}
+
 const primaryCta = computed(() => {
   const a = action.value
   if (!a) return ''
-  if (a.kind === 'resolve_access') return 'Abrir guía y comenzar'
+  if (a.kind === 'resolve_access') return 'Comenzar verificación de cuenta'
   if (a.step_id === 'review-deliverables') return 'Revisar entrega'
   return 'Preparar trabajo'
 })
+
+function openPrimary() {
+  const a = action.value
+  if (!a) return
+  // Access-resolution actions lead to the Account Verification flow;
+  // everything else leads to the opportunity guide.
+  if (a.kind === 'resolve_access' && a.verification_url) {
+    router.push(a.verification_url)
+  } else {
+    router.push(a.guide_url)
+  }
+}
+
+async function snooze() {
+  const a = action.value
+  if (!a) return
+  busy.value = true
+  try {
+    await snoozeGuidedAction(a.item_id, 24)
+    await load()
+  } catch {
+    /* non-fatal: recommendation stays */
+  } finally {
+    busy.value = false
+  }
+}
+
+async function dismiss() {
+  const a = action.value
+  if (!a) return
+  if (!window.confirm('¿Descartar esta recomendación? El trabajo queda en el Work Bank; solo deja de ser la acción prioritaria.')) return
+  busy.value = true
+  try {
+    await dismissGuidedAction(a.item_id, 'owner_dismissed')
+    await load()
+  } catch {
+    /* non-fatal */
+  } finally {
+    busy.value = false
+  }
+}
 
 async function load() {
   loading.value = true
@@ -57,11 +110,6 @@ async function load() {
   } finally {
     loading.value = false
   }
-}
-
-function openGuide() {
-  const a = action.value
-  if (a) router.push(a.guide_url)
 }
 
 function openPlatform() {
@@ -124,6 +172,7 @@ onMounted(load)
         <section class="rounded-lg border border-primary/30 bg-card p-6">
           <div class="flex flex-wrap items-center gap-2 text-xs">
             <span class="rounded bg-primary/15 px-2 py-0.5 font-medium text-primary">Acción #1</span>
+            <span v-if="data?.state" class="rounded px-2 py-0.5" :class="data.state === 'ACTION_AVAILABLE' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-muted text-muted-foreground'">{{ STATE_LABELS[data.state] || data.state }}</span>
             <span class="rounded bg-muted px-2 py-0.5 text-muted-foreground">{{ action.category || action.platform }}</span>
             <span class="rounded bg-muted px-2 py-0.5 text-muted-foreground">{{ ELIGIBILITY_LABELS[action.eligibility_status] || action.eligibility_status }}</span>
             <span class="rounded px-2 py-0.5" :class="action.actor === 'HUMAN_REQUIRED' ? 'bg-amber-500/15 text-amber-500' : 'bg-sky-500/15 text-sky-500'">{{ action.actor_label }}</span>
@@ -167,9 +216,24 @@ onMounted(load)
             </div>
           </div>
 
+          <!-- Evidence -->
+          <div v-if="action.evidence?.length" class="mt-4 rounded-md border border-border p-4">
+            <button class="text-xs font-medium uppercase text-muted-foreground" @click="showEvidence = !showEvidence">
+              Ver evidencia {{ showEvidence ? '▾' : '▸' }}
+            </button>
+            <ul v-if="showEvidence" class="mt-2 space-y-2 text-xs">
+              <li v-for="ev in action.evidence" :key="ev.label" class="flex flex-wrap items-baseline gap-2">
+                <span class="font-medium">{{ ev.label }}:</span>
+                <span class="break-all text-muted-foreground">{{ ev.value }}</span>
+                <span class="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{{ ev.status }}</span>
+                <span v-if="ev.verified_at" class="text-muted-foreground">· {{ new Date(ev.verified_at).toLocaleDateString() }}</span>
+              </li>
+            </ul>
+          </div>
+
           <!-- Primary + secondary actions -->
           <div class="mt-5 flex flex-wrap gap-3">
-            <button class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground" @click="openGuide">
+            <button class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground" @click="openPrimary">
               {{ primaryCta }} <ArrowRight class="h-4 w-4" />
             </button>
             <button v-if="action.url" class="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm" @click="openPlatform">
@@ -177,6 +241,12 @@ onMounted(load)
             </button>
             <button class="rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground" @click="router.push(action.guide_url)">
               Ver detalles
+            </button>
+            <button class="rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground" :disabled="busy" @click="snooze">
+              Posponer
+            </button>
+            <button class="rounded-md border border-border px-4 py-2.5 text-sm text-muted-foreground" :disabled="busy" @click="dismiss">
+              Descartar
             </button>
           </div>
         </section>
@@ -220,6 +290,20 @@ onMounted(load)
           </section>
         </aside>
       </div>
+
+      <!-- Blocked actions -->
+      <section v-if="data?.blocked?.length" class="rounded-lg border border-border bg-card p-5">
+        <h3 class="text-sm font-semibold">Acciones bloqueadas</h3>
+        <p class="mt-1 text-xs text-muted-foreground">Oportunidades que necesitan acceso o información antes de ser accionables.</p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-3">
+          <div v-for="b in data.blocked" :key="b.item_id" class="rounded-md border border-border p-4">
+            <p class="text-sm font-medium leading-snug">{{ b.title }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ b.platform }}<span v-if="b.reward_published"> · ${{ b.reward_published }} publicado</span></p>
+            <p class="mt-1 text-xs text-amber-500">{{ b.reason }}</p>
+            <button class="mt-2 text-xs underline" @click="router.push(b.verification_url)">Resolver acceso</button>
+          </div>
+        </div>
+      </section>
 
       <!-- Alternatives -->
       <section v-if="data?.alternatives?.length" class="rounded-lg border border-border bg-card p-5">

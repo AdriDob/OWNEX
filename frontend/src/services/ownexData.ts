@@ -1742,13 +1742,27 @@ export interface GuidedNextActionItem {
   justification: string
   reason_codes: string[]
   guide_url: string
+  verification_url?: string
   journey: GuidedJourney
   pending_requirements: GuidedPendingRequirement[]
+  evidence?: Array<{ label: string; value: string; source: string; verified_at: string | null; status: string }>
+}
+
+export interface GuidedBlockedAction {
+  item_id: string
+  title: string
+  platform: string
+  reason: string
+  reward_published: number | null
+  guide_url: string
+  verification_url: string
 }
 
 export interface GuidedNextAction {
   action: GuidedNextActionItem | null
   reason: string
+  state?: string
+  blocked?: GuidedBlockedAction[]
   alternatives: Array<{ kind: string; item_id: string; title: string; actor: string; url: string; reward_published: number | null; guide_url: string }>
   generated_at?: string
 }
@@ -1763,4 +1777,64 @@ export async function fetchExecutionGuide(itemId: string): Promise<GuidedGuide> 
 
 export async function completeGuideStep(itemId: string, stepId: string): Promise<{ item_id: string; progress: Record<string, unknown> }> {
   return api.post(`/guided-earning/workbank/${encodeURIComponent(itemId)}/steps/${encodeURIComponent(stepId)}/complete`, {})
+}
+
+// ── Account Verification (Guided Earning Fase 1.1) ──
+
+export interface AccountVerificationView {
+  platform: string
+  stage: string
+  paused: boolean
+  checklist: Array<{ key: string; label: string; status: string; sub?: string; evidence: string }>
+  research: {
+    argentina_compatible: string
+    requires_account: string
+    requires_assessment: string
+    payment_methods_documented: string[]
+    payment_note: string | null
+    payment_owner_note: string | null
+    source_url: string
+    evidence: string
+  }
+  statuses: Record<string, string>
+  account_status: string
+  last_checked_at: string | null
+  verification_method: string
+  evidence_refs: string[]
+  events: Array<{ id: string; event_type: string; actor: string; timestamp: string; notes: string; evidence_ref: string }>
+  created_at: string
+  updated_at: string
+  guide: { name: string; url: string; account_steps: Array<{ title: string; description: string; url: string | null }>; evidence: string } | null
+}
+
+export async function fetchAccountVerification(platform: string): Promise<AccountVerificationView> {
+  return api.get<AccountVerificationView>(`/account-verification/${encodeURIComponent(platform)}`)
+}
+
+export async function confirmAccountVerification(
+  platform: string,
+  field: string,
+  value: string,
+  opts: { method?: string; evidence_ref?: string; notes?: string } = {},
+): Promise<AccountVerificationView> {
+  const result = await api.post<{ view: AccountVerificationView }>(`/account-verification/${encodeURIComponent(platform)}/confirm`, {
+    field,
+    value,
+    method: opts.method ?? 'OWNER_CONFIRMED',
+    evidence_ref: opts.evidence_ref ?? '',
+    notes: opts.notes ?? '',
+  })
+  return result.view
+}
+
+export async function setAccountVerificationPaused(platform: string, paused: boolean): Promise<void> {
+  await api.post(`/account-verification/${encodeURIComponent(platform)}/${paused ? 'pause' : 'resume'}`, {})
+}
+
+export async function snoozeGuidedAction(itemId: string, hours = 24): Promise<void> {
+  await api.post(`/guided-earning/workbank/${encodeURIComponent(itemId)}/snooze`, { hours })
+}
+
+export async function dismissGuidedAction(itemId: string, reason = ''): Promise<void> {
+  await api.post(`/guided-earning/workbank/${encodeURIComponent(itemId)}/dismiss`, { reason })
 }

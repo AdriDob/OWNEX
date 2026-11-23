@@ -547,13 +547,22 @@ def _journey_stage(item: WorkItem, progress: dict[str, Any]) -> dict[str, Any]:
 
 
 def _item_candidates(bank: Any) -> list[_Candidate]:
+    from core.opportunity.account_verification import is_platform_verified
+
     candidates: list[_Candidate] = []
     for item in bank._items.values():  # noqa: SLF001 — read-only ranking over persisted bank
         if item.status == "delivered":
             continue
         progress = get_guide_progress(item.id)
+        if progress.get("dismissed"):
+            continue
+        snoozed_until = progress.get("snoozed_until")
+        if snoozed_until and snoozed_until > datetime.now(UTC).isoformat():
+            continue
         guide_started = bool(progress.get("started_at"))
-        access_blocked = item.access_status not in ("public", "api", "rss")
+        # A platform-verified account satisfies the access requirement for ALL
+        # its opportunities — one registration, many unlocks.
+        access_blocked = item.access_status not in ("public", "api", "rss") and not is_platform_verified(item.platform)
 
         if access_blocked and item.status == "needs_access":
             # The highest-leverage action is usually unblocking access.
@@ -617,7 +626,9 @@ def next_best_action() -> dict[str, Any]:
     top = candidates[0]
     progress = get_guide_progress(top.item.id)
     journey = _journey_stage(top.item, progress)
-    access_blocked = top.item.access_status not in ("public", "api", "rss")
+    from core.opportunity.account_verification import is_platform_verified
+
+    access_blocked = top.item.access_status not in ("public", "api", "rss") and not is_platform_verified(top.item.platform)
 
     # Pending requirements checklist (honest: unknown stays unknown)
     pending_requirements = []
@@ -652,10 +663,14 @@ def next_best_action() -> dict[str, Any]:
             "justification": top.justification,
             "reason_codes": top.reason_codes,
             "guide_url": f"/work/{top.item.id}",
+            "verification_url": f"/earning/verify/{top.item.platform}",
             "journey": journey,
             "pending_requirements": pending_requirements,
+            "evidence": _action_evidence(top.item),
         },
         "reason": top.justification,
+        "state": _nba_state(top, progress),
+        "blocked": _blocked_actions(bank),
         "alternatives": [
             {
                 "kind": c.kind,
@@ -670,3 +685,114 @@ def next_best_action() -> dict[str, Any]:
         ],
         "generated_at": generated_at,
     }
+
+
+def _nba_state(top: _Candidate, progress: dict[str, Any]) -> str:
+    """Spec §4 state vocabulary for the primary action."""
+    if top.actor == Actor.EXTERNAL_WAITING:
+        return "EXTERNAL_WAITING"
+    if top.actor == Actor.BLOCKED:
+        return "BLOCKED"
+    if progress.get("started_at"):
+        return "ACTION_IN_PROGRESS"
+    if top.actor == Actor.HUMAN_REQUIRED:
+        return "HUMAN_ACTION_REQUIRED"
+    return "ACTION_AVAILABLE"
+
+
+def _blocked_actions(bank: Any) -> list[dict[str, Any]]:
+    """Spec §3 level 3: opportunities that need prep/info before they're actionable."""
+    from core.opportunity.account_verification import is_platform_verified
+
+    blocked: list[dict[str, Any]] = []
+    for item in bank._items.values():  # noqa: SLF001
+        if item.status != "needs_access":
+            continue
+        progress = get_guide_progress(item.id)
+        if progress.get("dismissed"):
+            continue
+        if item.access_status in ("public", "api", "rss") or is_platform_verified(item.platform):
+            continue
+        blocked.append(
+            {
+                "item_id": item.id,
+                "title": item.title[:90],
+                "platform": item.platform,
+                "reason": item.access_requirement or "Requiere acceso/configuración previa",
+                "reward_published": item.reward or None,
+                "guide_url": f"/work/{item.id}",
+                "verification_url": f"/earning/verify/{item.platform}",
+            }
+        )
+    blocked.sort(key=lambda b: b["reward_published"] or 0, reverse=True)
+    return blocked[:3]
+
+
+def _action_evidence(item: WorkItem) -> list[dict[str, Any]]:
+    """Evidence panel for 'Ver evidencia' — only real, dated sources."""
+    evidence: list[dict[str, Any]] = []
+    if item.url:
+        evidence.append(
+            {
+                "label": "Publicación original",
+                "value": item.url,
+                "source": "work_bank_record",
+                "verified_at": item.created_at,
+                "status": "VERIFIED_BY_OWNEX",
+            }
+        )
+    platform_url = _safe_url(_source_url(item.platform))
+    if platform_url:
+        evidence.append(
+            {
+                "label": "URL oficial de plataforma",
+                "value": platform_url,
+                "source": "source_registry",
+                "verified_at": None,
+                "status": "VERIFIED_BY_OWNEX",
+            }
+        )
+    doc = _payment_doc(item.platform)
+    if doc:
+        evidence.append(
+            {
+                "label": "Métodos de pago documentados",
+                "value": ", ".join(doc.get("methods") or []) or "ninguno documentado",
+                "source": "source_payment_docs",
+                "verified_at": None,
+                "status": "VERIFIED_BY_OWNEX",
+            }
+        )
+    evidence.append(
+        {
+            "label": "Recompensa",
+            "value": f"{item.reward} (publicada por la fuente, no verificada)" if item.reward else "sin dato",
+            "source": "work_bank_record",
+            "verified_at": item.created_at,
+            "status": "ESTIMATED",
+        }
+    )
+    return evidence
+
+
+def snooze_action(item_id: str, hours: int = 24) -> dict[str, Any]:
+    """Posponer: hide the item from NBA until snoozed_until."""
+    from datetime import timedelta
+
+    data = _load_progress()
+    entry = data.setdefault(item_id, {"completed_steps": []})
+    entry["snoozed_until"] = (datetime.now(UTC) + timedelta(hours=hours)).isoformat()
+    entry["updated_at"] = datetime.now(UTC).isoformat()
+    _save_progress(data)
+    return entry
+
+
+def dismiss_action(item_id: str, reason: str = "") -> dict[str, Any]:
+    """Descartar: exclude from NBA until manually re-enabled (history kept)."""
+    data = _load_progress()
+    entry = data.setdefault(item_id, {"completed_steps": []})
+    entry["dismissed"] = True
+    entry["dismissed_reason"] = reason
+    entry["updated_at"] = datetime.now(UTC).isoformat()
+    _save_progress(data)
+    return entry

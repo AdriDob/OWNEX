@@ -16,6 +16,7 @@ from api.middleware.csrf_middleware import CSRFMiddleware
 from api.middleware.error_handling import ErrorHandlingMiddleware, SecurityHeadersMiddleware, http_exception_handler
 from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
+    account_verification,
     accounts_hub,
     activity,
     agenda,
@@ -616,6 +617,7 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(account_verification.router)
 app.include_router(guided_earning.router)
 app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)

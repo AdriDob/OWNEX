@@ -40,6 +40,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "guided-earning" */ '@/pages/GuidedEarning.vue'),
     meta: { title: 'Siguiente acción' },
   },
+  {
+    path: '/earning/verify/:platform',
+    name: 'account-verification',
+    component: () => import(/* webpackChunkName: "account-verification" */ '@/pages/AccountVerification.vue'),
+    meta: { title: 'Verificación de cuenta' },
+  },
   // ── PERSONALIZATION WIZARD (público, para primer uso) ──
   {
     path: '/setup/personalization',

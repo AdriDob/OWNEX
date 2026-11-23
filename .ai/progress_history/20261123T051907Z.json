@@ -1,0 +1,132 @@
+{
+  "schema": 3,
+  "ts": "2026-11-23T05:19:07.621079+00:00",
+  "commit": "b6905198b",
+  "product_completeness": 53.4,
+  "operational_readiness": 0.0,
+  "revenue_pipeline_progress": 28.7,
+  "revenue_validation": 28.7,
+  "verified_revenue": {
+    "verified_revenue_usd": 0.0,
+    "verified_revenue_by_currency": {},
+    "verified_paid_cycles": 0,
+    "paid_without_evidence": [
+      "test-item-001",
+      "test-evidence-integration"
+    ],
+    "reward_realization_rate": null,
+    "time_to_first_payout": null
+  },
+  "modules": {
+    "Source Intelligence (cat\u00e1logo 1000 + L1-L5)": {
+      "pct": 70,
+      "state": "IMPLEMENTED",
+      "evidence": "`assess_integration`: 68 L2 / 932 L1 / 0 L3+ (commit `92f3605af`)",
+      "regression_justified": false
+    },
+    "Discovery pipeline (fetchers\u2192LiveStore\u2192eligibility)": {
+      "pct": 86,
+      "state": "VERIFIED",
+      "evidence": "619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`); fuentes placeholder (RFC 2606/6761) en cuarentena y reportadas como `quarantined` (`04efdff36`, 208 tests focalizados)",
+      "regression_justified": false
+    },
+    "Scoring / EV model": {
+      "pct": 75,
+      "state": "VERIFIED",
+      "evidence": "AI-cost neto, budget $25, track-record, freshness, funding tri-state (`5ae053d59`,`eb17cff1d`)",
+      "regression_justified": false
+    },
+    "Work Bank / priorizaci\u00f3n": {
+      "pct": 80,
+      "state": "VERIFIED",
+      "evidence": "502 items, daily_cycle real, 369 ready_to_deliver post-repair",
+      "regression_justified": false
+    },
+    "Revenue Ledger / finanzas": {
+      "pct": 70,
+      "state": "IMPLEMENTED",
+      "evidence": "`record_amount` con evidencia obligatoria para `paid`; `progress.py::verified_revenue` solo cuenta `paid`+evidence (9 tests)",
+      "regression_justified": false
+    },
+    "Human Actions / aprobaciones": {
+      "pct": 80,
+      "state": "VERIFIED",
+      "evidence": "`/api/human-actions` + UI, 22 acciones, estados can\u00f3nicos (READY_FOR_OWNER/WAITING_EXTERNAL/EXPIRED\u2026) + `by_state`",
+      "regression_justified": false
+    },
+    "Agent-market adapters (taskmarket/hansa/agentics)": {
+      "pct": 70,
+      "state": "IMPLEMENTED",
+      "evidence": "discovery read-only live (api.taskmarket.dev 200); `TaskmarketExecutor` en execution queue con doble gate (driver `approved` + `TaskmarketActions` authorized+creds); twins muertos eliminados",
+      "regression_justified": false
+    },
+    "Project Engineering Factory": {
+      "pct": 15,
+      "state": "IMPLEMENTED",
+      "evidence": "`prepare_execution` clona repos, `analyze_workspace` existe",
+      "regression_justified": false
+    },
+    "Multi-agent / workers": {
+      "pct": 10,
+      "state": "IMPLEMENTED",
+      "evidence": "ExecutionQueueStore + states existen",
+      "regression_justified": false
+    },
+    "Delivery / submission": {
+      "pct": 15,
+      "state": "IMPLEMENTED",
+      "evidence": "`TaskmarketExecutor` ruteado en execution_queue driver (`submit_pitch`/`submit_work`/`request_upload_url` gated); `record_approval`/`draft_payment_inquiry` existen",
+      "regression_justified": false
+    },
+    "Security research (CATEYE core)": {
+      "pct": 50,
+      "state": "IMPLEMENTED",
+      "evidence": "Pipeline hallazgos existe; 365 programas en LiveStore",
+      "regression_justified": false
+    },
+    "Sanitization / prompt-injection": {
+      "pct": 60,
+      "state": "VERIFIED",
+      "evidence": "`core/security/sanitization.py` en `_to_live` (`eb17cff1d`)",
+      "regression_justified": false
+    },
+    "Security isolation (sandbox + credential broker)": {
+      "pct": 40,
+      "state": "TESTED",
+      "evidence": "`core/security/{sandbox,credential_broker}.py` consolidados en el \u00e1rbol can\u00f3nico, duplicado `cores/security/` eliminado; 17 tests (`d7188cc24`)",
+      "regression_justified": false
+    },
+    "Frontend / productization": {
+      "pct": 45,
+      "state": "TESTED",
+      "evidence": "App Shell V2.1 (8 secciones, router-view real en ErrorBoundary, tokens.css :root fix); biome clean; 226 vitest pass; `vite build` OK; QA captures `frontend/qa/screenshots{,-auth}` + FRONTEND_RUNBOOK.md (2026-11-23)",
+      "regression_justified": false
+    },
+    "Desktop / Tauri": {
+      "pct": 40,
+      "state": "IMPLEMENTED",
+      "evidence": "Scripts tauri:dev/build existen",
+      "regression_justified": false
+    },
+    "Consolidaci\u00f3n core/\u2194cores/": {
+      "pct": 30,
+      "state": "IMPLEMENTED",
+      "evidence": "CANONICAL_COMPONENTS.md existe; bridges temporales",
+      "regression_justified": false
+    },
+    "Tests / quality gates": {
+      "pct": 65,
+      "state": "IMPLEMENTED",
+      "evidence": "1460+ tests focalizados verdes; suite completa rota por WIP paralelo",
+      "regression_justified": false
+    },
+    "Investment Hub": {
+      "pct": 60,
+      "state": "TESTED",
+      "evidence": "Strategy attribution (`TradeGroupMetrics`), `LEG_UNHEDGED` para patas sin fill, `net_pnl_completeness`+currency en `record_trade`, `strategy_attribution` en `/api/investment/metrics`, `GlobalArbitrageAdapter` + CLI paper-trade (`0c4162137`); 208 tests focalizados",
+      "regression_justified": false
+    }
+  },
+  "regressions": [],
+  "missing_evidence_commits": []
+}

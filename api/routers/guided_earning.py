@@ -14,8 +14,10 @@ from fastapi import APIRouter, HTTPException
 from core.opportunity.guided_earning import (
     build_execution_guide,
     complete_guide_step,
+    dismiss_action,
     get_guide_progress,
     next_best_action,
+    snooze_action,
     start_guide,
 )
 from cores.direct_work_engine.workbank import get_workbank
@@ -61,3 +63,16 @@ def guided_complete_step(item_id: str, step_id: str) -> dict:
         raise HTTPException(status_code=404, detail="Work-bank item not found") from None
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from None
+
+
+@router.post("/workbank/{item_id}/snooze")
+def guided_snooze(item_id: str, body: dict | None = None) -> dict:
+    """Posponer: hide from NBA for N hours (default 24)."""
+    hours = int((body or {}).get("hours") or 24)
+    return {"item_id": item_id, "progress": snooze_action(item_id, hours=hours)}
+
+
+@router.post("/workbank/{item_id}/dismiss")
+def guided_dismiss(item_id: str, body: dict | None = None) -> dict:
+    """Descartar: exclude from NBA (history preserved; reversible via progress reset)."""
+    return {"item_id": item_id, "progress": dismiss_action(item_id, reason=str((body or {}).get("reason") or ""))}
