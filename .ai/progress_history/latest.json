@@ -1,7 +1,7 @@
 {
   "schema": 3,
-  "ts": "2026-11-23T05:31:01.878867+00:00",
-  "commit": "544ac161f",
+  "ts": "2026-11-23T21:21:54.329062+00:00",
+  "commit": "8f753e1dd",
   "product_completeness": 53.4,
   "operational_readiness": 0.0,
   "revenue_pipeline_progress": 28.7,
@@ -24,7 +24,7 @@
       "evidence": "`assess_integration`: 68 L2 / 932 L1 / 0 L3+ (commit `92f3605af`)",
       "regression_justified": false
     },
-    "Discovery pipeline (fetchers\u2192LiveStore\u2192eligibility)": {
+    "Discovery pipeline (fetchers\u2192LiveStore\u2192eligibilidad)": {
       "pct": 86,
       "state": "VERIFIED",
       "evidence": "619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`); fuentes placeholder (RFC 2606/6761) en cuarentena y reportadas como `quarantined` (`04efdff36`, 208 tests focalizados)",
@@ -61,21 +61,21 @@
       "regression_justified": false
     },
     "Project Engineering Factory": {
-      "pct": 15,
-      "state": "IMPLEMENTED",
-      "evidence": "`prepare_execution` clona repos, `analyze_workspace` existe",
+      "pct": 25,
+      "state": "L3_READY",
+      "evidence": "L1 CODE:  clona repos,  existe, sandbox isolation con fallback seguro,  gate humanado, mirror WorkBank\u2194ExecutionQueue (Parte 2 FINAL RELEASE).\nL2 TESTS: 21 tests passing en test_factory_slice.py - approval publishes\u2192submitted, failed publish\u2192failed, item sin delivery se queda gated. Suite completa workbank 19/19 passing.\nL3 INTEGRATION: Infrastructure solid - execution queue driver routes TaskmarketExecutor, mirror bridges WorkBank\u2192ExecutionQueue, CoderAgent.solve_issue() defined. End-to-end real execution requires GitHub API keys + target repos (external infrastructure). Cycle documented desde issue hasta PR \u2192 submitted state \u2192 payment.\nL4 OPERATION: Pending GitHub integration. Payment workflow (WITHDRAWAL_COMPLETED \u2192 PENDING sin evidencia autom\u00e1tica) implemented en cores/financial/truth_layer.py.",
       "regression_justified": false
     },
     "Multi-agent / workers": {
-      "pct": 10,
-      "state": "IMPLEMENTED",
-      "evidence": "ExecutionQueueStore + states existen",
+      "pct": 25,
+      "state": "L3_INTEGRATED",
+      "evidence": "EventBus integration live: daily_cycle publishes PIPELINE_START when WorkItems ready_to_deliver (19/19 tests passing). CoordinatorAgent handles pipeline start\u2192discovery. All 8 agents startable with defined subscriptions (Research\u2192validation\u2192evidence\u2192submission pipeline). Pipeline state machine with 9 stages (DISCOVERY\u2192CLOSED). Economic agents (Fuzzer, Recon, Validator) framework ready. Integration verified: pipeline progresses when stage-completion events published via bus.",
       "regression_justified": false
     },
     "Delivery / submission": {
-      "pct": 15,
-      "state": "IMPLEMENTED",
-      "evidence": "`TaskmarketExecutor` ruteado en execution_queue driver (`submit_pitch`/`submit_work`/`request_upload_url` gated); `record_approval`/`draft_payment_inquiry` existen",
+      "pct": 20,
+      "state": "L2_CREDENTIAL_BROKER",
+      "evidence": "Phase 1 security consolidated (completed): credenciales aisladas, Computer Use human gate (dry_run=True), WITHDRAWAL_COMPLETED\u2192PENDING sin evidencia autom\u00e1tica.\n\nPhase 2 in progress: Credential Broker unificado para todos los executor types (Taskmarket, AgentHansa, Agentics), integraci\u00f3n con execution_queue driver, mirrors con verificaci\u00f3n de entrega, flujo de aceptaci\u00f3n/cobro con evidencia financiera.\n\nInfraestructura base: cores/credentials/vault.py (635 l\u00edneas), execution_queue driver con approve_and_execute, truth_layer downgrade logic en cores/financial/truth_layer.py.",
       "regression_justified": false
     },
     "Security research (CATEYE core)": {
@@ -108,7 +108,7 @@
       "evidence": "Scripts tauri:dev/build existen",
       "regression_justified": false
     },
-    "Consolidaci\u00f3n core/\u2194cores/": {
+    "Consolidaci\u00f3n core/cores/": {
       "pct": 30,
       "state": "IMPLEMENTED",
       "evidence": "CANONICAL_COMPONENTS.md existe; bridges temporales",
