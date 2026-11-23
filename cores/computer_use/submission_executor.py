@@ -111,7 +111,7 @@ class ComputerUseExecutor:
         work_data: dict[str, Any],
         work_item_id: str = "",
         opportunity_title: str = "",
-        dry_run: bool = False,
+        dry_run: bool = True,
     ) -> SubmissionResult:
         """Submit work to a platform via Computer Use form filling.
 

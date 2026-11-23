@@ -78,31 +78,10 @@ class BaseExecutor:
         if granted is not None:
             return granted.value
 
-        if broker.has_credential(self.project_id, provider):
-            logger.warning(
-                "%s credential for project %s is assigned but unusable (expired or "
-                "insufficient access level) — refusing the unscoped fallback",
-                provider,
-                self.project_id,
-            )
-            return None
-
-        config_key = self.credential_sources.get(provider)
-        fallback = self.config.get(config_key) if config_key else None
-        explicit_env = self.credential_env.get(provider)
-        fallback = (
-            fallback
-            or (os.getenv(explicit_env) if explicit_env else None)
-            or env_credential(provider)
-        )
-        if fallback:
-            logger.warning(
-                "Using UNscoped %s credential from config/env for project %s — "
-                "assign it to the credential broker to get audit/expiry enforcement",
-                provider,
-                self.project_id,
-            )
-        return fallback
+        # SIN fallback global: si el broker no tiene la asignación, retornar None
+        # explícito. El executor debe fallar y el usuario debe asignar la credencial
+        # al proyecto mediante el broker, no mediante variables de entorno globales.
+        return None
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
         """Execute an action — override in subclass."""
