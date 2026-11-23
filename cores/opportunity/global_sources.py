@@ -3175,6 +3175,8 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$8-18/h LatAm coding; $35-60/h specialist",
         tags=["hourly", "assessment", "weekly_payout", "argentina_ok", "spanish_plus"],
         priority=10,
+        argentina_ok=True,
+        last_verified="2026-11-23",  # AR on official 117-country list; PayPal/Airtm/ACH payouts
     ),
     SourceDefinition(
         "Mercor",
@@ -3192,6 +3194,8 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$25-53/h skilled",
         tags=["hourly", "assessment", "per_project", "slow_match", "argentina_ok"],
         priority=8,
+        argentina_ok=True,
+        last_verified="2026-11-23",  # AR on supported list; payouts Stripe+Wise (Stripe not viable for owner)
     ),
     SourceDefinition(
         "Alignerr",
@@ -3226,6 +3230,8 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         estimated_payout_range="$15-40/h; ES native premium",
         tags=["hourly", "assessment", "biweekly_payout", "es_premium", "argentina_ok"],
         priority=7,
+        argentina_ok=True,
+        last_verified="2026-11-23",  # AR not in 58-country blocklist; Payoneer/Tipalti(PayPal); LatAm project names AR
     ),
     SourceDefinition(
         "OneForma",
