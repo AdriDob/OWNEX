@@ -76,6 +76,7 @@ const evTargets = ref<EVTarget[]>([])
 const evLoading = ref(false)
 const platforms = ref<PlatformStatus[]>([])
 const platformsLoading = ref(false)
+const portfolioData = ref<any>(null)
 
 // Filters
 const searchQuery = ref('')
@@ -89,16 +90,18 @@ async function fetchAll() {
   loading.value = true
   error.value = null
   try {
-    const [capital, revenue, ev, plats] = await Promise.allSettled([
+    const [capital, revenue, ev, plats, portfolio] = await Promise.allSettled([
       api.get('/api/revenue/capital-dashboard'),
       getRevenueMetrics(),
       getEVRankedTargets(100),
       getPlatformsStatus(),
+      api.get('/connection-manager/portfolio/detail'),
     ])
     capitalData.value = capital.status === 'fulfilled' ? capital.value : null
     revenueData.value = revenue.status === 'fulfilled' ? revenue.value : null
     evTargets.value = ev.status === 'fulfilled' ? ev.value.ranked : []
     platforms.value = plats.status === 'fulfilled' ? plats.value.platforms : []
+    portfolioData.value = portfolio.status === 'fulfilled' ? portfolio.value : null
   } catch (e: any) {
     error.value = e?.message || 'Failed to load capital data'
     toast.error('Error', error.value)
@@ -190,6 +193,7 @@ const kpiCards = computed(() => {
     { label: 'Targets Activos', value: String(targets.total || 0), sub: `${targets.scanned_last_7d || 0} escaneados (7d)`, icon: Zap2, color: 'text-muted-foreground', bg: 'bg-muted/10', trend: `${Math.round((targets.scanned_last_7d || 0) / Math.max(targets.total || 1, 1) * 100)}% cobertura`, trendIcon: ArrowUpRight },
     { label: 'Tasa Aceptación', value: `${((pipeline.submissions?.acceptance_rate || 0) * 100).toFixed(1)}%`, sub: `${pipeline.submissions?.accepted || 0}/${pipeline.submissions?.total || 0} aceptados`, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', trend: 'vs mes anterior', trendIcon: ArrowUpRight },
     { label: 'Programas Rastreados', value: String(econ.total_programs || 0), sub: `USD/h global: $${(econ.overall_usd_per_hour || 0).toFixed(2)}`, icon: Crown, color: 'text-intigriti', bg: 'bg-intigriti/10', trend: `${econ.overall_accepted_rate ? (econ.overall_accepted_rate * 100).toFixed(1) + '% accept' : ''}`, trendIcon: Gem },
+    { label: 'Posiciones', value: String(portfolioData?.positions?.length || 0), sub: `${portfolioData?.cash_by_currency ? Object.keys(portfolioData.cash_by_currency).length + ' monedas' : ''}`, icon: Coins, color: 'text-intigriti', bg: 'bg-intigriti/10', trend: 'Cross-provider', trendIcon: Layers },
   ]
 })
 
