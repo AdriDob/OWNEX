@@ -249,13 +249,18 @@ _shutdown_requested = False
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Import all models before init_db() so SQLAlchemy metadata registers all tables
+    # OpenTelemetry instrumentation
+    from fastapi.instrumentation import FastAPIInstrumentor
+
     from cores.learning import profile as _learning_models  # noqa: F401 — registers InvestigatorProfile, LearningEvent
     from cores.targets import models as _targets_models  # noqa: F401 — registers TargetIntel, Scope
     from database import models as _core_models  # noqa: F401 — registers User, MemoryRecord, etc.
 
+    FastAPIInstrumentor.instrument_app(app)
+    logger.info("[BOOT] OpenTelemetry instrumentation enabled")
+
     db.init_db()
     logger.info("[BOOT] Database initialized")
-
     # Stale-scan recovery at boot (audit P1-2): scans 'running' >6h de un
     # proceso muerto se marcan failed ANTES de que arranque cualquier loop.
     try:
