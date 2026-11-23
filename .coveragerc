@@ -22,7 +22,6 @@ skip_covered = False
 show_missing = True
 skip_empty = False
 precision = 2
-sort = show_missing
 
 # Fail under these thresholds (adjust per module as needed)
 fail_under = 80

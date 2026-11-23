@@ -151,9 +151,7 @@ class Sandbox:
                 exit_code=-1,
             )
 
-        return await self._docker_execute(
-            Path(work_dir), command, input_data, timeout, writable=writable, network=network
-        )
+        return await self._docker_execute(Path(work_dir), command, input_data, timeout, writable=writable, network=network)
 
     async def _docker_execute(
         self,

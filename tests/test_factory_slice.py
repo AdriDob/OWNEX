@@ -314,9 +314,7 @@ def fake_publish(monkeypatch):
     import core.autonomy.coder_agent as ca
 
     _FakePublishAgent.calls = []
-    _FakePublishAgent.publish_result = SimpleNamespace(
-        success=True, pr_url="https://github.com/o/r/pull/9", pr_number=9, branch_name="ownex/fix-1"
-    )
+    _FakePublishAgent.publish_result = SimpleNamespace(success=True, pr_url="https://github.com/o/r/pull/9", pr_number=9, branch_name="ownex/fix-1")
     monkeypatch.setattr(ca, "CoderAgent", _FakePublishAgent)
     return _FakePublishAgent
 

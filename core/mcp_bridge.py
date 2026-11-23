@@ -684,7 +684,7 @@ class McpBridge:
                 steps_completed.append("eligibility_assessment")
 
                 # Step 2: If eligible, estimate earnings
-                if assessment.eligibility == type(self.eligibility_engine)._EligibilityEngine__EligibilityStatus.APPROVED:  # noqa: skipsimple
+                if assessment.eligibility == type(self.eligibility_engine)._EligibilityEngine__EligibilityStatus.APPROVED:  # noqa: SLF001
                     # This is a simplification; in production would use proper comparison
                     results["earnings_estimate"] = {
                         "estimated_daily": assessment.estimated_earnings_potential,

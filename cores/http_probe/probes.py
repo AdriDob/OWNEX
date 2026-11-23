@@ -737,11 +737,10 @@ class AuthBypassProbe(BaseProbe):
                 evidence.append(f"Auth bypass via {resp.url}: status {resp.status_code}")
 
             # If baseline is 200 and probe is also 200 with no auth
-            elif baseline.status_code == 200 and resp.status_code == 200:
-                if "no_token" in resp.url or "null_token" in resp.url:
-                    indicators.append("Endpoint accessible without authentication")
-                    confidence += 0.4
-                    evidence.append(f"Unauthenticated access: {resp.url}")
+            elif baseline.status_code == 200 and resp.status_code == 200 and ("no_token" in resp.url or "null_token" in resp.url):
+                indicators.append("Endpoint accessible without authentication")
+                confidence += 0.4
+                evidence.append(f"Unauthenticated access: {resp.url}")
 
             # Different behavior
             if resp.status_code != baseline.status_code and resp.status_code not in (401, 403):

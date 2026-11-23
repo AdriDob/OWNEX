@@ -291,9 +291,7 @@ def _execute_coder_action(action: str, payload: dict) -> dict:
             import asyncio
 
             agent = CoderAgent()
-            result = asyncio.run(
-                agent.publish_delivery(delivery, approved_by=payload.get("approved_by", "owner"))
-            )
+            result = asyncio.run(agent.publish_delivery(delivery, approved_by=payload.get("approved_by", "owner")))
             return {
                 "requires_human": False,
                 "submitted": bool(result.success),

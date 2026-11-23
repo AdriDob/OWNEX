@@ -178,10 +178,7 @@ class CoderAgent:
             # verified container runtime is available the task is BLOCKED for
             # manual review instead of degrading to a host subprocess.
             if self.config.require_sandbox and not await self._sandbox.is_ready():
-                result.error = (
-                    "sandbox_unavailable: no verified container runtime; "
-                    "external code execution refused (fail-closed)"
-                )
+                result.error = "sandbox_unavailable: no verified container runtime; external code execution refused (fail-closed)"
                 result.verdict = "blocked"
                 return self._finalize_result(result, start_time, repo_path)
 
@@ -420,13 +417,17 @@ class CoderAgent:
                 capture_output=True,
                 timeout=60,
             ).stdout.decode("utf-8", errors="replace")
-            names = subprocess.run(
-                ["git", "diff", "--cached", "--name-only"],
-                cwd=repo_path,
-                check=True,
-                capture_output=True,
-                timeout=60,
-            ).stdout.decode().split()
+            names = (
+                subprocess.run(
+                    ["git", "diff", "--cached", "--name-only"],
+                    cwd=repo_path,
+                    check=True,
+                    capture_output=True,
+                    timeout=60,
+                )
+                .stdout.decode()
+                .split()
+            )
         except Exception as e:
             logger.warning("patch snapshot failed for %s: %s", result.issue_id, e)
             return None
@@ -447,9 +448,7 @@ class CoderAgent:
 
     def _build_delivery_package(self, result: CoderAgentResult, repo_path: Path) -> Path:
         """Assemble the local review package: patch, plan, test evidence, metadata."""
-        pkg_dir = self._delivery_root() / _safe_name(
-            f"{result.issue_id}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}_{uuid.uuid4().hex[:6]}"
-        )
+        pkg_dir = self._delivery_root() / _safe_name(f"{result.issue_id}_{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}_{uuid.uuid4().hex[:6]}")
         pkg_dir.mkdir(parents=True, exist_ok=True)
 
         plan = result.generation_plan
@@ -474,8 +473,7 @@ class CoderAgent:
             "created_at": datetime.now(UTC).isoformat(),
             "verdict": result.verdict,
             "approval_required": True,
-            "note": "Local package only. No PR/claim/submission performed. "
-            "Run publish_delivery() after explicit owner approval.",
+            "note": "Local package only. No PR/claim/submission performed. Run publish_delivery() after explicit owner approval.",
         }
         (pkg_dir / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
         return pkg_dir

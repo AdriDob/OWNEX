@@ -38,11 +38,7 @@ def _parse_deadline(raw: Any) -> str:
 
 def _top_rewards(item: dict[str, Any]) -> list[dict[str, str]]:
     rewards = item.get("rewardsNow") or []
-    return [
-        {"place": str(r.get("place")), "amount_usd": str(r.get("amountUsd") or "")}
-        for r in rewards[:5]
-        if isinstance(r, dict)
-    ]
+    return [{"place": str(r.get("place")), "amount_usd": str(r.get("amountUsd") or "")} for r in rewards[:5] if isinstance(r, dict)]
 
 
 def _to_raw(item: dict[str, Any]) -> dict[str, Any] | None:
@@ -109,9 +105,7 @@ async def fetch_opportunities() -> list[dict[str, Any]]:
                     params["cursor"] = cursor
                 resp = await client.get(API_URL, params=params)
                 if resp.status_code != 200:
-                    logger.warning(
-                        "make.fun competitions returned %s", resp.status_code
-                    )
+                    logger.warning("make.fun competitions returned %s", resp.status_code)
                     break
                 data = resp.json()
                 items = data.get("items") or []
