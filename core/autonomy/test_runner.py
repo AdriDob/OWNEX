@@ -128,10 +128,14 @@ class TestRunner:
         },
     }
 
-    def __init__(self, config: dict[str, Any] | None = None):
+    def __init__(self, config: dict[str, Any] | None = None, sandbox: Any | None = None):
         self.config = config or {}
         self.timeout = self.config.get("timeout", 300)  # 5 minutes default
         self.max_output_size = self.config.get("max_output_size", 100000)
+        # Optional Sandbox (core.security.sandbox.Sandbox): when set, test
+        # commands for UNTRUSTED repos run inside the container instead of
+        # the host. ``None`` keeps legacy host execution for trusted code.
+        self._sandbox = sandbox
 
     async def run_tests(
         self,
@@ -199,6 +203,9 @@ class TestRunner:
         start = time.time()
         test_env = {**os.environ, **(env or {})}
 
+        if self._sandbox is not None:
+            return await self._run_single_test_sandbox(repo_path, command, start)
+
         try:
             proc = await asyncio.create_subprocess_shell(
                 command,
@@ -259,6 +266,57 @@ class TestRunner:
                 returncode=-1,
                 duration_seconds=time.time() - start,
             )
+
+    async def _run_single_test_sandbox(
+        self,
+        repo_path: Path,
+        command: str,
+        start: float,
+    ) -> TestResult:
+        """Run a test command inside the verified sandbox (untrusted repos)."""
+        sandbox = self._sandbox
+        if sandbox is None:
+            return TestResult(
+                command=command,
+                success=False,
+                stderr="sandbox not configured",
+                returncode=-1,
+                duration_seconds=time.time() - start,
+            )
+        try:
+            result = await sandbox.execute(
+                repo_path,
+                ["sh", "-c", command],
+                timeout=int(self.timeout),
+                writable=True,
+                network=False,
+            )
+        except Exception as e:
+            return TestResult(
+                command=command,
+                success=False,
+                stdout="",
+                stderr=f"sandbox error: {e}",
+                returncode=-1,
+                duration_seconds=time.time() - start,
+            )
+
+        duration = time.time() - start
+        output = (result.output or "") + "\n" + (result.error or "")
+        passed, failed, skipped, errors = self._parse_test_output(output, repo_path)
+        success = result.success and failed == 0 and errors == 0
+        return TestResult(
+            command=command,
+            success=success,
+            stdout=result.output or "",
+            stderr=result.error or "",
+            returncode=result.exit_code,
+            duration_seconds=duration,
+            passed=passed,
+            failed=failed,
+            skipped=skipped,
+            errors=errors,
+        )
 
     def _parse_test_output(self, output: str, repo_path: Path) -> tuple[int, int, int, int]:
         """Parse test output to extract counts."""

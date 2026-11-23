@@ -81,21 +81,34 @@ def test_fallback_execute_enforces_timeout():
     assert "timed out" in result.error
 
 
-def test_execute_routes_to_fallback_without_docker(monkeypatch, tmp_path: Path):
+def test_execute_fails_closed_without_docker(monkeypatch, tmp_path: Path):
+    """Untrusted-code path must never fall back to a host subprocess."""
     sandbox = Sandbox(SandboxConfig())
     monkeypatch.setattr(sandbox, "_docker_available", False)
-    called = {}
-
-    async def fake_fallback(command, input_data=None, timeout=None):
-        called["command"] = command
-        from core.security.sandbox import SandboxResult
-
-        return SandboxResult(success=True, output="fallback")
-
-    monkeypatch.setattr(sandbox, "_fallback_execute", fake_fallback)
     result = asyncio.run(sandbox.execute(tmp_path, ["echo", "hi"]))
-    assert called["command"] == ["echo", "hi"]
-    assert result.output == "fallback"
+    assert result.success is False
+    assert result.exit_code == -1
+    assert "fail-closed" in result.error
+
+
+def test_execute_fails_closed_when_daemon_down(monkeypatch, tmp_path: Path):
+    sandbox = Sandbox(SandboxConfig())
+    monkeypatch.setattr(sandbox, "_docker_available", True)
+    monkeypatch.setattr(sandbox, "_daemon_ok", False)
+    result = asyncio.run(sandbox.execute(tmp_path, ["echo", "hi"]))
+    assert result.success is False
+    assert "fail-closed" in result.error
+
+
+def test_build_docker_args_writable_and_network_overrides(tmp_path: Path):
+    sandbox = Sandbox(SandboxConfig())
+    args = sandbox._build_docker_args(tmp_path, ["true"], writable=True, network=True)
+    assert f"{tmp_path.resolve()}:/work:rw" in args
+    assert "--network=bridge" in args
+    # read-only default preserved
+    args_ro = sandbox._build_docker_args(tmp_path, ["true"])
+    assert f"{tmp_path.resolve()}:/work:ro" in args_ro
+    assert "--network=none" in args_ro
 
 
 # === Credential broker ===

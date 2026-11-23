@@ -59,6 +59,33 @@ def is_terminal(state: ExecState | str) -> bool:
     return ExecState(state) in _TERMINAL
 
 
+def find_path(current: ExecState | str, target: ExecState | str) -> list[ExecState] | None:
+    """BFS shortest legal transition path current → target (excluding current).
+
+    Returns None when no legal path exists. Pure logic, no I/O.
+    """
+    c, t = ExecState(current), ExecState(target)
+    if c == t:
+        return []
+    # state -> predecessor, seeded with c
+    prev: dict[ExecState, ExecState | None] = {c: None}
+    queue = [c]
+    while queue:
+        node = queue.pop(0)
+        for nxt in TRANSITIONS.get(node, set()):
+            if nxt in prev:
+                continue
+            prev[nxt] = node
+            if nxt == t:
+                path = [nxt]
+                while path[-1] != c:
+                    path.append(prev[path[-1]])  # type: ignore[arg-type]
+                path.reverse()
+                return path[1:]  # exclude the starting state
+            queue.append(nxt)
+    return None
+
+
 # ── Persistencia mínima (JSON atómico, patrón WorkBank) ──
 
 

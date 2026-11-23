@@ -11,6 +11,7 @@ from core.execution_queue.models import (
     _default_store_path,
     assert_transition,
     can_transition,
+    find_path,
     is_terminal,
 )
 
@@ -22,6 +23,7 @@ __all__ = [
     "ExecutionQueueStore",
     "assert_transition",
     "can_transition",
+    "find_path",
     "is_terminal",
     "_default_store_path",
 ]

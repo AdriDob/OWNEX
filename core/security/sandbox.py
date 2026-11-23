@@ -79,16 +79,46 @@ class Sandbox:
 
     Provides isolated execution environments with strict security
     constraints suitable for executing external/third-party code.
-    Falls back to a restricted subprocess when Docker is unavailable.
+    ``execute`` fails closed when no verified Docker daemon is available;
+    ``_fallback_execute`` remains only for explicit trusted callers.
     """
 
     def __init__(self, config: SandboxConfig | None = None):
         self.config = config or SandboxConfig()
         self._docker_available = self._check_docker()
+        self._daemon_ok: bool | None = None
 
     def _check_docker(self) -> bool:
         """Check if the Docker CLI is available."""
         return shutil.which("docker") is not None
+
+    async def is_ready(self) -> bool:
+        """True only when a usable Docker daemon answers ``docker info``.
+
+        The CLI existing is not enough: the daemon may be stopped. Cached
+        per instance so repeated calls in one run cost one probe.
+        """
+        if not self._docker_available:
+            return False
+        if self._daemon_ok is not None:
+            return self._daemon_ok
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "docker",
+                "info",
+                "--format",
+                "{{.ServerVersion}}",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=15)
+            self._daemon_ok = proc.returncode == 0
+            if not self._daemon_ok:
+                logger.warning("Docker daemon not ready: %s", stderr.decode()[:300])
+        except Exception as exc:
+            logger.warning("Docker readiness probe failed: %s", exc)
+            self._daemon_ok = False
+        return self._daemon_ok
 
     async def execute(
         self,
@@ -96,23 +126,34 @@ class Sandbox:
         command: list[str],
         input_data: bytes | None = None,
         timeout: int | None = None,
+        writable: bool = False,
+        network: bool | None = None,
     ) -> SandboxResult:
         """Execute a command in an isolated sandbox environment.
 
         Args:
-            work_dir: Working directory for the execution (mounted read-only)
+            work_dir: Working directory mounted at ``/work`` (read-only by
+                default; ``writable=True`` mounts it rw for ephemeral
+                workspaces that need build caches/artifacts).
             command: Command and arguments to execute
             input_data: Optional stdin data
             timeout: Override default time limit in seconds
+            writable: Mount ``/work`` read-write (only for disposable clones)
+            network: Override network policy; ``None`` uses the config default
 
         Returns:
             SandboxResult with execution output and metadata
         """
-        if not self._docker_available:
-            logger.warning("Docker not available, falling back to restricted subprocess")
-            return await self._fallback_execute(command, input_data, timeout)
+        if not self._docker_available or not await self.is_ready():
+            return SandboxResult(
+                success=False,
+                error="sandbox unavailable: docker daemon not ready (fail-closed, no host fallback for untrusted code)",
+                exit_code=-1,
+            )
 
-        return await self._docker_execute(Path(work_dir), command, input_data, timeout)
+        return await self._docker_execute(
+            Path(work_dir), command, input_data, timeout, writable=writable, network=network
+        )
 
     async def _docker_execute(
         self,
@@ -120,10 +161,12 @@ class Sandbox:
         command: list[str],
         input_data: bytes | None = None,
         timeout: int | None = None,
+        writable: bool = False,
+        network: bool | None = None,
     ) -> SandboxResult:
         """Execute command in Docker container with security constraints."""
         final_timeout = timeout or self.config.TIME_LIMIT_S
-        docker_args = self._build_docker_args(work_dir, command)
+        docker_args = self._build_docker_args(work_dir, command, writable=writable, network=network)
         start_time = time.time()
 
         try:
@@ -164,7 +207,13 @@ class Sandbox:
                 execution_time=time.time() - start_time,
             )
 
-    def _build_docker_args(self, work_dir: Path, command: list[str]) -> list[str]:
+    def _build_docker_args(
+        self,
+        work_dir: Path,
+        command: list[str],
+        writable: bool = False,
+        network: bool | None = None,
+    ) -> list[str]:
         """Build `docker run` arguments that enforce the isolation policy.
 
         Guarantees: no privileged mode, read-only root filesystem, dropped
@@ -193,10 +242,11 @@ class Sandbox:
             args.extend(["--volume", f"{path}:{path}:ro"])
 
         work_dir_str = str(work_dir.resolve())
-        args.extend(["--volume", f"{work_dir_str}:/work:ro"])
+        args.extend(["--volume", f"{work_dir_str}:/work:{'rw' if writable else 'ro'}"])
         args.extend(["--user", "1000:1000"])
 
-        if self.config.ENABLE_NETWORK:
+        enable_network = self.config.ENABLE_NETWORK if network is None else network
+        if enable_network:
             args.append("--network=bridge")
             for port in self.config.ALLOWED_PORTS:
                 args.extend(["--publish", f"{port}:{port}"])

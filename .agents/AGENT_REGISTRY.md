@@ -15,6 +15,7 @@ Canonical registry of agents working on OWNEX. Only register agents that have ac
 |----|---------|-------|------|-----------------|-------------|-------------|-------|---------|
 | devin-session | Devin CLI | SWE-2 | v12 integrations + remote jobs | main (shared tree) | `cores/connections/`, `cores/brokers/`, `core/mcp_ownex_server.py`, `cores/opportunity/{remote_job_matcher,job_feeds,job_tracker,application_drafter,user_profile}.py`, `api/routers/{connection_manager,opportunities}.py`, `frontend/src/pages/RemoteJobs.vue`, `outputs/OWNEX_V12_*` | ebe35600 | IN_PROGRESS | 2026-11-09 |
 | session-closure-1123 | Buffy (Codebuff) | — | Cerrar sesiones WIP: seguridad, investment attribution, discovery quarantine, docs | main (shared tree) | `core/security/`, `core/investment/`, `api/routers/{investment,discovery}.py`, `core/opportunity/source_discovery.py`, `scripts/paper_trade.py`, `tests/test_{investment,source_discovery,security_isolation}.py`, `.ai/DEVELOPER_WORKSTATION_OPTIMIZATION.md`, `docs/engineering/`, `frontend/src/design/OWNEX_DesignSystem.md` | eeed542a4 | COMPLETED | 2026-11-23 |
+| devin-factory-slice | Devin CLI | SWE-2 | Open Source Factory slice (PR #72 audit B1–B7) | main (shared tree) | `core/autonomy/{coder_agent,repo_analyzer,test_runner}.py`, `core/cycles/tasks_coder_autopilot.py`, `core/execution_queue/`, `core/security/sandbox.py`, `cores/direct_work_engine/execution.py`, `tests/test_{factory_slice,security_isolation}.py` | 965de371 | COMPLETED | 2026-11-23 |
 
 ## Known parallel work (uncommitted, NOT mine — do not touch)
 

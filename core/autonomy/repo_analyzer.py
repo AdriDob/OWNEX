@@ -104,9 +104,16 @@ class RepoAnalyzer:
         branch: str | None = None,
         shallow: bool = True,
         token: str | None = None,
+        dest_name: str | None = None,
     ) -> BrowserResult:
-        """Clone repository to work directory."""
+        """Clone repository to work directory.
+
+        ``dest_name`` overrides the directory name (sanitized: basename only)
+        so concurrent tasks on the same repo never share a clone.
+        """
         repo_name = repo_url.split("/")[-1].replace(".git", "")
+        if dest_name:
+            repo_name = Path(dest_name).name
         repo_path = self.work_dir / repo_name
 
         # Clean existing

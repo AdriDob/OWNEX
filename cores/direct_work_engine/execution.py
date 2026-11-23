@@ -152,33 +152,40 @@ class DirectWorkExecutionEngine:
         return any(cat in category for cat in browser_categories) or platform in browser_platforms
 
     def _execute_with_coder(self, work_item: Any) -> Any:
-        """Execute using CoderAgent."""
-        from cores.autonomy.coder_agent import get_coder_agent
+        """Execute using the canonical CoderAgent (core.autonomy — audit B7).
 
-        coder = get_coder_agent()
-        if not coder:
-            raise RuntimeError("CoderAgent not available")
+        Only GitHub issue/PR-backed items can be solved end-to-end; anything
+        else fails explicitly instead of guessing a repository.
+        """
+        import asyncio
+        import re
 
-        # Prepare task for CoderAgent
-        task = {
-            "type": "code_generation",
-            "description": getattr(work_item, "description", ""),
+        from core.autonomy.coder_agent import CoderAgent
+
+        url = getattr(work_item, "url", "") or ""
+        m = re.search(r"github\.com/([^/]+/[^/]+)/(?:issues|pull)/(\d+)", url, re.I)
+        if not m:
+            raise RuntimeError("CoderAgent requires a GitHub issue/PR URL on the work item")
+
+        issue_data = {
+            "id": getattr(work_item, "id", "unknown"),
+            "number": int(m.group(2)),
             "title": getattr(work_item, "title", ""),
+            "body": getattr(work_item, "description", ""),
+            "url": url,
             "platform": getattr(work_item, "platform", ""),
-            "category": getattr(work_item, "category", ""),
-            "requirements": getattr(work_item, "skills_required", []),
-            "technologies": getattr(work_item, "technologies", []),
         }
+        repo_url = f"https://github.com/{m.group(1)}"
 
-        # Execute CoderAgent pipeline
-        result = coder.execute_task(task)
+        agent = CoderAgent()
+        result = asyncio.run(agent.solve_issue(issue_data=issue_data, repo_url=repo_url, platform=issue_data["platform"]))
 
         return ExecutionResult(
-            success=result.get("success", False),
-            artifacts=result.get("artifacts", []),
-            evidence=result.get("evidence", []),
-            output=result.get("output", ""),
-            error=result.get("error"),
+            success=result.success,
+            artifacts=[result.delivery_package] if result.delivery_package else [],
+            evidence=[result.patch_path] if result.patch_path else [],
+            output=result.feedback or "",
+            error=result.error,
         )
 
     def _execute_with_browser(self, work_item: Any) -> Any:

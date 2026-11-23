@@ -277,7 +277,9 @@ def _execute_browser_action(action: str, payload: dict) -> dict:
 
 def _execute_coder_action(action: str, payload: dict) -> dict:
     try:
-        from cores.autonomy.coder_agent import CoderAgent
+        # Canonical implementation: core/autonomy (cores/autonomy/ is dead
+        # code shadowed by cores/autonomy.py — see audit B7).
+        from core.autonomy.coder_agent import CoderAgent
 
         agent = CoderAgent()
         result = agent.execute(action, payload) if hasattr(agent, "execute") else {}
