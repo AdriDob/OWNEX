@@ -14,11 +14,11 @@ Date: 2026-11-19
 """
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
 
 
-class Source(str, Enum):
+class Source(StrEnum):
     """Data source enumeration — every record must have a source."""
 
     GFS = "gfs"
@@ -29,7 +29,7 @@ class Source(str, Enum):
     DEB = "deb"
 
 
-class Variable(str, Enum):
+class Variable(StrEnum):
     """Weather variables tracked in every record."""
 
     TEMPERATURE = "temperature"
@@ -39,7 +39,7 @@ class Variable(str, Enum):
     HUMIDITY = "humidity"
 
 
-class Unit(str, Enum):
+class Unit(StrEnum):
     """Unit of measurement — standardized across all sources."""
 
     CELSIUS = "celsius"
@@ -49,7 +49,7 @@ class Unit(str, Enum):
     HPA = "hpa"
 
 
-class ValidationStatus(str, Enum):
+class ValidationStatus(StrEnum):
     """Validation status for every record."""
 
     PENDING = "pending"
@@ -57,7 +57,7 @@ class ValidationStatus(str, Enum):
     INVALID = "invalid"
 
 
-class Horizon(str, Enum):
+class Horizon(StrEnum):
     """Forecast horizon — immediate to 7 days."""
 
     IMMEDIATE = "immediate"
@@ -291,10 +291,10 @@ def estimate_sigma(records: list[WeatherRecord], group_by: list[str] = None) -> 
     for record in records:
         # Build group key
         key_parts = []
-        for field in group_by:
-            value = getattr(record, field, None)
+        for dim in group_by:
+            value = getattr(record, dim, None)
             if value is not None:
-                key_parts.append(f"{field}={value}")
+                key_parts.append(f"{dim}={value}")
 
         if not key_parts:
             continue

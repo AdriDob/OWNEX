@@ -8,14 +8,14 @@ Kelly Criterion position sizing used for paper trading only.
 """
 
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .ingestion import DataQuality
-from .models import Horizon, WeatherRecord
+from .models import Horizon, WeatherRecord, discretize_to_buckets
 
 
-class StrategyStatus(str, Enum):
+class StrategyStatus(StrEnum):
     """Strategy execution status."""
 
     IDLE = "idle"
@@ -26,7 +26,7 @@ class StrategyStatus(str, Enum):
     CIRCUIT_BREAKER_TRIGGERED = "circuit_breaker"
 
 
-class StrategyType(str, Enum):
+class StrategyType(StrEnum):
     """Enumeration of the 6 modular strategies."""
 
     GAUSSIAN_BUCKET_TREND = "gaussian_bucket_trend"  # Gaussian Bucket + trend detection
@@ -37,7 +37,7 @@ class StrategyType(str, Enum):
     KELLY_POSITION = "kelly_position"  # Kelly position sizing
 
 
-class HumanGateStatus(str, Enum):
+class HumanGateStatus(StrEnum):
     """Human gate approval status."""
 
     PENDING = "pending"
@@ -86,7 +86,7 @@ class BaseStrategy:
             self.active_since = time.time()
             return True
         elif self.human_gate == HumanGateStatus.PENDING:
-            self.status = StrategyStrategy.APPROVAL_PENDING
+            self.status = StrategyStatus.APPROVAL_PENDING
             return False
         else:
             self.status = StrategyStatus.STOPPED
@@ -201,7 +201,7 @@ class GaussianBucketTrendStrategy(BaseStrategy):
         if record.quality != "validated":
             return None
 
-        if sigma_threshold <= 0:
+        if self.sigma_threshold <= 0:
             return None
 
         try:
@@ -616,7 +616,6 @@ class EventDrivenStrategy(BaseStrategy):
     def _classify_event(self, record: WeatherRecord) -> str:
         """Classify the type of weather event."""
         variable = record.variable.value
-        horizon = record.horizon.value
 
         # Simple classification based on variable and extremity
         if variable == "temperature":
@@ -631,9 +630,8 @@ class EventDrivenStrategy(BaseStrategy):
             if "flood" in self.event_types:
                 return "flood"
 
-        if variable == "wind":
-            if "hurricane" in self.event_types:
-                return "hurricane"
+        if variable == "wind" and "hurricane" in self.event_types:
+            return "hurricane"
 
         # Default
         return self.event_types[0] if self.event_types else "weather_event"
@@ -683,7 +681,7 @@ class KellyPositionStrategy(BaseStrategy):
 
         Full Kelly can be too aggressive → use fractional Kelly.
         """
-        if odds <= 1 or prob < 0 or prob > 1:
+        if odds <= 1 or win_prob < 0 or win_prob > 1:
             return 0.0
 
         b = odds - 1  # Net odds (profit per unit staked)

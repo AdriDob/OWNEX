@@ -1,5 +1,8 @@
 [run]
-source = cores
+source =
+    api
+    core
+    cores
 omit = 
     */tests/*
     */migrations/*

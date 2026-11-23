@@ -101,6 +101,7 @@ def walk_forward_validate(
             test_records,
             strategy,
             validation_horizon,
+            window_index=len(results),
         )
 
         if window_result is not None:
@@ -170,20 +171,12 @@ def _validate_window(
     test_records: list[WeatherRecord],
     strategy: BaseStrategy,
     validation_horizon: Horizon,
+    window_index: int = 0,
 ) -> dict | None:
     """Validate strategy on a single train/test window."""
 
-    # Calculate σ estimates from training data
-    # Only use validated records
-    validated_train = [r for r in train_records if r.quality == "validated"]
-
-    if len(validated_train) < 30:
-        # Insufficient validated data — mark as unvalidated
-        sigma_estimate = 3.0  # Placeholder
-    else:
-        # Estimate σ per group
-        # In production: would use estimate_sigma from models.py
-        sigma_estimate = 3.0  # Placeholder
+    # σ estimation is still a placeholder pending a real estimator.
+    sigma_estimate = 3.0  # Placeholder
 
     # Apply σ to strategy if it has sigma-dependent evaluation
     # Each strategy's evaluate method uses its own logic
@@ -247,7 +240,7 @@ def _validate_window(
     return_pct = avg_return  # Already as percentage conceptually
 
     window_result = {
-        "window_index": len(results),
+        "window_index": window_index,
         "train_points": len(train_records),
         "test_points": len(test_records),
         "signals_generated": signals_generated,
@@ -331,7 +324,7 @@ def rolling_window_validation(
         train_records = sorted_records[start:train_end]
         test_records = sorted_records[test_start:test_end]
 
-        window_result = _validate_window(train_records, test_records, strategy, validation_horizon)
+        window_result = _validate_window(train_records, test_records, strategy, validation_horizon, window_index=len(results))
 
         if window_result is not None:
             window_result["window_start"] = start.window_idx if hasattr(window_result, "window_idx") else window_idx
@@ -404,16 +397,8 @@ class BacktestRunner:
         self.status = "running_paper_backtest"
         start_time = time.time()
 
-        # Use walk-forward validation if enabled
-        if walk_forward:
-            result = walk_forward_validate(
-                self.records,
-                self.strategy,
-                walk_forward_windows=walk_forward_windows,
-            )
-        else:
-            # Simple backtest: no walk-forward
-            result = self._simple_backtest()
+        # Use walk-forward validation if enabled, else a simple backtest.
+        result = walk_forward_validate(self.records, self.strategy, walk_forward_windows=walk_forward_windows) if walk_forward else self._simple_backtest()
 
         # Track paper trades (never real)
         self.status = "completed_paper_backtest"

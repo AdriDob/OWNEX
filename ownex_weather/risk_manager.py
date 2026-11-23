@@ -9,12 +9,13 @@ Safety constraints non-negotiable:
 - No real trading execution permitted
 """
 
+import math
 import time
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class RiskMetrics(str, Enum):
+class RiskMetrics(StrEnum):
     """Risk metrics enumeration."""
 
     CAPITAL_EXPOSED = "capital_exposed"
@@ -27,7 +28,7 @@ class RiskMetrics(str, Enum):
     KELLY_FRACTION = "kelly_fraction"
 
 
-class CircuitBreakerStatus(str, Enum):
+class CircuitBreakerStatus(StrEnum):
     """Circuit breaker status."""
 
     NORMAL = "normal"
@@ -36,7 +37,7 @@ class CircuitBreakerStatus(str, Enum):
     RESET_APPROVED = "reset_approved"
 
 
-class PositionSizingMethod(str, Enum):
+class PositionSizingMethod(StrEnum):
     """Position sizing methods."""
 
     KELLY_FULL = "kelly_full"
@@ -271,10 +272,7 @@ def generate_risk_report(
     """Generate comprehensive risk report."""
 
     # Calculate drawdown
-    if capital_start > 0:
-        current_drawdown_pct = (capital_start - capital_current) / capital_start * 100.0
-    else:
-        current_drawdown_pct = 0.0
+    current_drawdown_pct = (capital_start - capital_current) / capital_start * 100.0 if capital_start > 0 else 0.0
 
     # Sharpe ratio (simplified)
     # In production: would use actual trade P&L and risk-free rate

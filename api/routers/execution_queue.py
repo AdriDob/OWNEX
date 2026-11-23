@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
 from core.execution_queue.models import (
@@ -121,8 +121,8 @@ def approve_item(item_id: str, request: Request) -> dict:
     The ``approved_by`` field is derived from the authenticated session,
     NOT from the request body, to prevent spoofing.
     """
-    from core.execution_queue.driver import approve_and_execute
     from api.middleware.auth_middleware import SESSION_COOKIE
+    from core.execution_queue.driver import approve_and_execute
     from cores.auth.session_validator import get_session_validator
 
     # Extract token from Authorization header or session cookie

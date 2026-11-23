@@ -10,10 +10,10 @@ CRITICAL COMPLIANCE HARD CONSTRAINTS:
 - credentials.txt from Repo 4 — DO NOT OPEN OR USE SECRETS
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class LicenseType(str, Enum):
+class LicenseType(StrEnum):
     """License type enumeration."""
 
     MIT = "mit"
@@ -22,7 +22,7 @@ class LicenseType(str, Enum):
     UNKNOWN = "unknown"
 
 
-class ComplianceStatus(str, Enum):
+class ComplianceStatus(StrEnum):
     """Compliance status enumeration."""
 
     COMPLIANT = "compliant"
@@ -50,8 +50,8 @@ class AGPLGuard:
     def __init__(self):
         self.license_type = LicenseType.UNKNOWN
         self.compliance_status = ComplianceStatus.UNKNOWN
-        self.violations: List[dict] = []
-        self.attributions: List[dict] = []
+        self.violations: list[dict] = []
+        self.attributions: list[dict] = []
 
         # ⚠️ PolyWeather: API external only — never code reuse
         self.polyweather_api_black_box = True

@@ -11,7 +11,7 @@ No code copied from any repo. All new implementation.
 """
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any
 
 from .models import Horizon, Source, Unit, ValidationStatus, Variable, WeatherRecord, WeatherRecordRepository, apply_bias_correction, estimate_sigma
@@ -19,7 +19,7 @@ from .models import Horizon, Source, Unit, ValidationStatus, Variable, WeatherRe
 # --- Source Adapters ---
 
 
-class IngestionStatus(str, Enum):
+class IngestionStatus(StrEnum):
     """Status of the ingestion pipeline."""
 
     IDLE = "idle"
@@ -397,7 +397,7 @@ class IngestionPipeline:
                 print(f"Adapter not configured: {source_name}")
                 continue
 
-            adapter = self.adapters[source_name]
+            self.adapters[source_name]
             source_stats[source_name] = 0
 
             # Fetch records for this source
@@ -461,7 +461,7 @@ class IngestionPipeline:
         if len(validated_records) >= 30:  # Minimum for statistical significance
             sigma_groups = ["city", "model", "horizon", "variable"]
             sigma_estimates = estimate_sigma(validated_records, sigma_groups)
-            corrected_records = apply_bias_correction(all_records, sigma_estimates)
+            apply_bias_correction(all_records, sigma_estimates)
 
             # Update quality counts
             self.quality_counts = self.repository.validate_all() if self.repository else {"validated": 0, "unvalidated": 0, "error": 0}

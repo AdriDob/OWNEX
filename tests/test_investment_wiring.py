@@ -148,8 +148,7 @@ class TestStocks:
         import api.routers.investment as inv
 
         class PausedManager:
-            def is_paused(self) -> bool:
-                return True
+            is_paused = True
 
         monkeypatch.setattr(inv, "get_investment_manager", lambda: PausedManager())
         res = client.post(
@@ -165,8 +164,7 @@ class TestStocks:
         monkeypatch.setattr(permissions, "_base_dir", lambda: tmp_path / "connections")
 
         class OpenManager:
-            def is_paused(self) -> bool:
-                return False
+            is_paused = False
 
         monkeypatch.setattr(inv, "get_investment_manager", lambda: OpenManager())
         res = client.post(
@@ -188,8 +186,7 @@ class TestStocks:
             )
 
         class OpenManager:
-            def is_paused(self) -> bool:
-                return False
+            is_paused = False
 
         monkeypatch.setattr(inv, "get_investment_manager", lambda: OpenManager())
         res = client.post(
