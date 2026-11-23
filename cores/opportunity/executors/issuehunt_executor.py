@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
@@ -15,10 +14,10 @@ class IssueHuntExecutor(BaseExecutor):
 
     platform = "issuehunt"
 
+    credential_sources = {"issuehunt": "token", "github": "github_token"}
+
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
-        self.token = self.config.get("token") or os.getenv("ISSUEHUNT_TOKEN")
-        self.github_token = self.config.get("github_token") or os.getenv("GITHUB_TOKEN")
         self.base_url = "https://issuehunt.io/api/v1"
         self.github_base = "https://api.github.com"
 
@@ -38,10 +37,11 @@ class IssueHuntExecutor(BaseExecutor):
 
     async def claim_issue(self, bounty_id: str, repo: str, issue_number: int) -> ExecutionResult:
         """Claim a bounty issue on IssueHunt."""
-        if not self.token:
+        token = self.credential("issuehunt")
+        if not token:
             return ExecutionResult(False, "claim_issue", bounty_id, error="ISSUEHUNT_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -68,10 +68,11 @@ class IssueHuntExecutor(BaseExecutor):
 
     async def submit_pr(self, bounty_id: str, pr_url: str) -> ExecutionResult:
         """Submit a PR for review on IssueHunt."""
-        if not self.token:
+        token = self.credential("issuehunt")
+        if not token:
             return ExecutionResult(False, "submit_pr", bounty_id, error="ISSUEHUNT_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -98,10 +99,11 @@ class IssueHuntExecutor(BaseExecutor):
 
     async def get_bounty(self, bounty_id: str) -> ExecutionResult:
         """Get bounty details."""
-        if not self.token:
+        token = self.credential("issuehunt")
+        if not token:
             return ExecutionResult(False, "get_bounty", bounty_id, error="ISSUEHUNT_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}"}
+        headers = {"Authorization": f"Bearer {token}"}
 
         try:
             async with httpx.AsyncClient() as client:

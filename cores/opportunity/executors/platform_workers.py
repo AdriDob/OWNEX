@@ -24,6 +24,7 @@ class DataAnnotationWorker(BaseExecutor):
     """Worker for DataAnnotation.tech — real login, fetch projects, submit responses."""
 
     platform = "dataannotation"
+    credential_sources = {"dataannotation": "password"}
 
     # Platform-specific configuration
     BASE_URL = "https://app.dataannotation.tech"
@@ -75,7 +76,6 @@ class DataAnnotationWorker(BaseExecutor):
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.email = self.config.get("email") or os.getenv("DATAANNOTATION_EMAIL")
-        self.password = self.config.get("password") or os.getenv("DATAANNOTATION_PASSWORD")
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -101,7 +101,8 @@ class DataAnnotationWorker(BaseExecutor):
 
     async def login(self) -> ExecutionResult:
         """Real login to DataAnnotation with robust error handling."""
-        if not self.email or not self.password:
+        password = self.credential("dataannotation")
+        if not self.email or not password:
             return ExecutionResult(False, "login", "", error="DATAANNOTATION_EMAIL/PASSWORD not configured")
 
         agent_config = {**self.config, "headless": self.headless}
@@ -135,7 +136,7 @@ class DataAnnotationWorker(BaseExecutor):
                 for selector in self.LOGIN_SELECTORS["password"]:
                     try:
                         await agent.wait_for_selector(selector, timeout=5000)
-                        await agent.fill(selector, self.password)
+                        await agent.fill(selector, password)
                         password_filled = True
                         logger.info(f"Filled password using selector: {selector}")
                         break
@@ -410,6 +411,7 @@ class OutlierWorker(BaseExecutor):
     """Worker for Outlier.org — real login, fetch projects, submit work."""
 
     platform = "outlier"
+    credential_sources = {"outlier": "password"}
 
     # Platform-specific configuration
     BASE_URL = "https://outlier.org"
@@ -470,7 +472,6 @@ class OutlierWorker(BaseExecutor):
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.email = self.config.get("email") or os.getenv("OUTLIER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("OUTLIER_PASSWORD")
         self.base_url = self.config.get("base_url", self.BASE_URL)
         self.timeout = self.config.get("timeout", 30000)
         self.headless = self.config.get("headless", True)
@@ -496,7 +497,8 @@ class OutlierWorker(BaseExecutor):
 
     async def login(self) -> ExecutionResult:
         """Real login to Outlier with robust error handling."""
-        if not self.email or not self.password:
+        password = self.credential("outlier")
+        if not self.email or not password:
             return ExecutionResult(False, "login", "", error="OUTLIER_EMAIL/PASSWORD not configured")
 
         agent_config = {**self.config, "headless": self.headless}
@@ -530,7 +532,7 @@ class OutlierWorker(BaseExecutor):
                 for selector in self.LOGIN_SELECTORS["password"]:
                     try:
                         await agent.wait_for_selector(selector, timeout=5000)
-                        await agent.fill(selector, self.password)
+                        await agent.fill(selector, password)
                         password_filled = True
                         logger.info(f"Filled password using selector: {selector}")
                         break
@@ -820,11 +822,11 @@ class MindriftBrowserWorker(BaseExecutor):
     """Worker for Mindrift.com — login, fetch projects, submit responses (browser-based)."""
 
     platform = "mindrift_browser"
+    credential_sources = {"mindrift": "password"}
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.email = self.config.get("email") or os.getenv("MINDRIFT_BROWSER_EMAIL")
-        self.password = self.config.get("password") or os.getenv("MINDRIFT_BROWSER_PASSWORD")
         self.base_url = self.config.get("base_url", "https://mindrift.com")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
@@ -842,7 +844,8 @@ class MindriftBrowserWorker(BaseExecutor):
         return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
 
     async def login(self) -> ExecutionResult:
-        if not self.email or not self.password:
+        password = self.credential("mindrift")
+        if not self.email or not password:
             return ExecutionResult(False, "login", "", error="MINDRIFT_BROWSER_EMAIL/PASSWORD not configured")
 
         async with BrowserAgent(self.config) as agent:
@@ -851,7 +854,7 @@ class MindriftBrowserWorker(BaseExecutor):
                 return ExecutionResult(False, "login", "", error=result.error)
 
             await agent._page.fill('input[name="email"]', self.email)
-            await agent._page.fill('input[name="password"]', self.password)
+            await agent._page.fill('input[name="password"]', password)
             await agent._page.click('button[type="submit"]')
             await agent._page.wait_for_load_state("networkidle")
 
@@ -889,11 +892,11 @@ class RemotasksWorker(BaseExecutor):
     """Worker for Remotasks.com — login, fetch tasks, submit results."""
 
     platform = "remotasks"
+    credential_sources = {"remotasks": "password"}
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
         self.email = self.config.get("email") or os.getenv("REMOTASKS_EMAIL")
-        self.password = self.config.get("password") or os.getenv("REMOTASKS_PASSWORD")
         self.base_url = self.config.get("base_url", "https://remotasks.com")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
@@ -911,7 +914,8 @@ class RemotasksWorker(BaseExecutor):
         return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
 
     async def login(self) -> ExecutionResult:
-        if not self.email or not self.password:
+        password = self.credential("remotasks")
+        if not self.email or not password:
             return ExecutionResult(False, "login", "", error="REMOTASKS_EMAIL/PASSWORD not configured")
 
         async with BrowserAgent(self.config) as agent:
@@ -920,7 +924,7 @@ class RemotasksWorker(BaseExecutor):
                 return ExecutionResult(False, "login", "", error=result.error)
 
             await agent._page.fill('input[name="email"]', self.email)
-            await agent._page.fill('input[name="password"]', self.password)
+            await agent._page.fill('input[name="password"]', password)
             await agent._page.click('button[type="submit"]')
             await agent._page.wait_for_load_state("networkidle")
 

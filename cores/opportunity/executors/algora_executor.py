@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import os
 from typing import Any
 
 import httpx
@@ -15,11 +14,10 @@ class AlgoraExecutor(BaseExecutor):
     """Executor for Algora.xyz — claim issues, create PRs, submit for review."""
 
     platform = "algora"
+    credential_sources = {"algora": "token", "github": "github_token"}
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.token = self.config.get("token") or os.getenv("ALGORA_TOKEN")
-        self.github_token = self.config.get("github_token") or os.getenv("GITHUB_TOKEN")
         self.base_url = "https://api.algora.xyz/v1"
         self.github_base = "https://api.github.com"
 
@@ -45,10 +43,11 @@ class AlgoraExecutor(BaseExecutor):
 
     async def claim_issue(self, bounty_id: str, repo: str, issue_number: int) -> ExecutionResult:
         """Claim a bounty issue on Algora."""
-        if not self.token:
+        token = self.credential("algora")
+        if not token:
             return ExecutionResult(False, "claim_issue", bounty_id, error="ALGORA_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -75,10 +74,11 @@ class AlgoraExecutor(BaseExecutor):
 
     async def submit_pr(self, bounty_id: str, pr_url: str) -> ExecutionResult:
         """Submit a PR for review on Algora."""
-        if not self.token:
+        token = self.credential("algora")
+        if not token:
             return ExecutionResult(False, "submit_pr", bounty_id, error="ALGORA_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -105,10 +105,11 @@ class AlgoraExecutor(BaseExecutor):
 
     async def get_bounty(self, bounty_id: str) -> ExecutionResult:
         """Get bounty details."""
-        if not self.token:
+        token = self.credential("algora")
+        if not token:
             return ExecutionResult(False, "get_bounty", bounty_id, error="ALGORA_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.token}"}
+        headers = {"Authorization": f"Bearer {token}"}
 
         try:
             async with httpx.AsyncClient() as client:
@@ -131,10 +132,11 @@ class AlgoraExecutor(BaseExecutor):
         files: dict[str, str] | None = None,
     ) -> ExecutionResult:
         """Create a PR on GitHub with optional file changes."""
-        if not self.github_token:
+        github_token = self.credential("github")
+        if not github_token:
             return ExecutionResult(False, "create_pr", repo, error="GITHUB_TOKEN not configured")
 
-        headers = {"Authorization": f"Bearer {self.github_token}", "Accept": "application/vnd.github+json"}
+        headers = {"Authorization": f"Bearer {github_token}", "Accept": "application/vnd.github+json"}
 
         try:
             async with httpx.AsyncClient() as client:

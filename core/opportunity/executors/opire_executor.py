@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
@@ -15,9 +14,10 @@ class OpireExecutor(BaseExecutor):
 
     platform = "opire"
 
+    credential_sources = {"opire": "token"}
+
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.token = self.config.get("token") or os.getenv("OPIRE_TOKEN")
         self.base_url = self.config.get("base_url", "https://api.opire.dev/v1")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
@@ -38,14 +38,15 @@ class OpireExecutor(BaseExecutor):
         return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
 
     async def _headers(self) -> dict[str, str]:
+        token = self.credential("opire")
         return {
-            "Authorization": f"Bearer {self.token}" if self.token else "",
+            "Authorization": f"Bearer {token}" if token else "",
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
     async def claim_bounty(self, bounty_id: str) -> ExecutionResult:
-        if not self.token:
+        if not self.credential("opire"):
             return ExecutionResult(False, "claim_bounty", bounty_id, error="OPIRE_TOKEN not configured")
         async with httpx.AsyncClient() as client:
             try:
@@ -62,7 +63,7 @@ class OpireExecutor(BaseExecutor):
                 return ExecutionResult(False, "claim_bounty", bounty_id, error=str(e))
 
     async def submit_work(self, bounty_id: str, pr_url: str, description: str = "") -> ExecutionResult:
-        if not self.token:
+        if not self.credential("opire"):
             return ExecutionResult(False, "submit_work", bounty_id, error="OPIRE_TOKEN not configured")
         async with httpx.AsyncClient() as client:
             try:

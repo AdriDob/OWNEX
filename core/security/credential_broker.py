@@ -178,6 +178,20 @@ class CredentialBroker:
         Returns None when the project has no such credential, when the access
         level is insufficient, or when the credential has expired.
         """
+        return self.resolve_credential(project_id, provider, required_level)
+
+    def resolve_credential(
+        self,
+        project_id: str,
+        provider: str,
+        required_level: AccessLevel = AccessLevel.READ_ONLY,
+    ) -> ProjectScopedCredential | None:
+        """Synchronous credential lookup for worker code that cannot await.
+
+        Same enforcement and audit trail as :meth:`get_credential`; kept sync so
+        executors can resolve a secret inside a synchronous request path without
+        holding the value on the instance.
+        """
         self._stats["total_requests"] += 1
 
         cred = self._project_creds.get(project_id, {}).get(provider)
@@ -252,6 +266,10 @@ class CredentialBroker:
 
         loop = asyncio.get_running_loop()
         return await asyncio.wait_for(loop.run_in_executor(None, callback, cred.value), timeout=timeout)
+
+    def has_credential(self, project_id: str, provider: str) -> bool:
+        """Whether the project has an assignment for this provider (usable or not)."""
+        return provider in self._project_creds.get(project_id, {})
 
     def get_project_credentials_summary(self, project_id: str) -> dict[str, Any]:
         """Get a masked summary of credentials assigned to a project."""

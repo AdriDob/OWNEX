@@ -8,7 +8,6 @@ Semi-autonomous features:
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import httpx
@@ -27,9 +26,10 @@ class MindriftExecutor(BaseExecutor):
 
     platform = "mindrift"
 
+    credential_sources = {"mindrift": "token"}
+
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
-        self.token = self.config.get("token") or os.getenv("MINDRIFT_EMAIL")
         self.base_url = self.config.get("base_url", "https://api.mindrift.io/v1")
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
@@ -50,14 +50,15 @@ class MindriftExecutor(BaseExecutor):
         return ExecutionResult(False, action, "", error=f"Unknown action: {action}")
 
     async def _headers(self) -> dict[str, str]:
+        token = self.credential("mindrift")
         return {
-            "Authorization": f"Bearer {self.token}" if self.token else "",
+            "Authorization": f"Bearer {token}" if token else "",
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
     async def claim_task(self, task_id: str) -> ExecutionResult:
-        if not self.token:
+        if not self.credential("mindrift"):
             return ExecutionResult(False, "claim_task", task_id, error="MINDRIFT_EMAIL not configured")
         async with httpx.AsyncClient() as client:
             try:
@@ -74,7 +75,7 @@ class MindriftExecutor(BaseExecutor):
                 return ExecutionResult(False, "claim_task", task_id, error=str(e))
 
     async def submit_task(self, task_id: str, solution_url: str, description: str = "") -> ExecutionResult:
-        if not self.token:
+        if not self.credential("mindrift"):
             return ExecutionResult(False, "submit_task", task_id, error="MINDRIFT_EMAIL not configured")
         async with httpx.AsyncClient() as client:
             try:
@@ -100,7 +101,7 @@ class MindriftExecutor(BaseExecutor):
         Does NOT solve the task automatically - provides structured guidance
         for the user to follow while working in Mindrift.
         """
-        if not self.token:
+        if not self.credential("mindrift"):
             return ExecutionResult(False, "prepare_task", task_id, error="MINDRIFT_EMAIL not configured")
 
         async with httpx.AsyncClient() as client:
