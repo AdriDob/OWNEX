@@ -159,3 +159,29 @@ class TestNextBestAction:
         result = next_best_action()
         assert result["action"] is None
         assert "discovery" in result["reason"].lower() or "Work Bank" in result["reason"]
+
+
+class TestWorkspace:
+    def test_workspace_aggregates_guide_verification_journey(self, bank):
+        from core.opportunity.guided_earning import build_workspace
+
+        ws = build_workspace(bank.get_item("wb-test-1"))
+        assert ws["item_id"] == "wb-test-1"
+        assert ws["guide"]["steps"]
+        assert ws["journey"]["stages"]
+        assert ws["account_verification"]["platform"] == "algora"
+        assert ws["account_verification"]["verification_url"] == "/earning/verify/algora"
+        assert ws["resume"]["step_id"] == ws["guide"]["next_step"]
+
+    def test_workspace_flags_unverified_access_as_blocker(self, bank):
+        from core.opportunity.guided_earning import build_workspace
+
+        ws = build_workspace(bank.get_item("wb-test-1"))
+        kinds = {b["kind"] for b in ws["blockers"]}
+        assert "account_access" in kinds
+
+    def test_workspace_public_item_has_no_access_blocker(self, bank):
+        from core.opportunity.guided_earning import build_workspace
+
+        ws = build_workspace(bank.get_item("wb-test-2"))
+        assert all(b["kind"] != "account_access" for b in ws["blockers"])

@@ -46,6 +46,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "account-verification" */ '@/pages/AccountVerification.vue'),
     meta: { title: 'Verificación de cuenta' },
   },
+  {
+    path: '/earning/work/:id',
+    name: 'guided-workspace',
+    component: () => import(/* webpackChunkName: "guided-workspace" */ '@/pages/GuidedWorkspace.vue'),
+    meta: { title: 'Workspace de la oportunidad' },
+  },
   // ── PERSONALIZATION WIZARD (público, para primer uso) ──
   {
     path: '/setup/personalization',

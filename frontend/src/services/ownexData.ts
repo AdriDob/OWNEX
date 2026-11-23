@@ -1779,6 +1779,41 @@ export async function completeGuideStep(itemId: string, stepId: string): Promise
   return api.post(`/guided-earning/workbank/${encodeURIComponent(itemId)}/steps/${encodeURIComponent(stepId)}/complete`, {})
 }
 
+// ── Guided Earning Workspace (Fase 2) ──
+
+export interface GuidedWorkspaceBlocker {
+  kind: string
+  label: string
+  resolution: string
+  verification_url?: string
+}
+
+export interface GuidedWorkspace {
+  item_id: string
+  generated_at: string
+  journey: GuidedJourney
+  guide: GuidedGuide
+  account_verification: {
+    platform: string
+    stage: string
+    account_status: string
+    paused: boolean
+    platform_verified: boolean
+    verification_url: string
+    checklist: Array<{ key: string; label: string; status: string; sub?: string; evidence: string }>
+  }
+  resume: {
+    step_id: string | null
+    step: GuidedStep | null
+    progress: GuidedGuide['progress']
+  }
+  blockers: GuidedWorkspaceBlocker[]
+}
+
+export async function fetchGuidedWorkspace(itemId: string): Promise<GuidedWorkspace> {
+  return api.get<GuidedWorkspace>(`/guided-earning/workbank/${encodeURIComponent(itemId)}/workspace`)
+}
+
 // ── Account Verification (Guided Earning Fase 1.1) ──
 
 export interface AccountVerificationView {

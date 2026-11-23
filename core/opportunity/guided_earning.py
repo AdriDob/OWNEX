@@ -447,6 +447,60 @@ def build_execution_guide(item: WorkItem, progress: dict[str, Any] | None = None
     }
 
 
+def build_workspace(item: WorkItem, progress: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Fase 2 — Guided Earning Workspace: one opportunity as an executable journey.
+
+    Aggregates the execution guide with the platform account-verification
+    state, the canonical journey position and the resume point. Read-only:
+    all mutations still go through the existing step/verification endpoints.
+    """
+    from core.opportunity import account_verification as av
+
+    progress = progress or {}
+    guide = build_execution_guide(item, progress)
+    verification = av.verification_view(item.platform)
+    journey = _journey_stage(item, progress)
+
+    access_blocked = item.access_status not in ("public", "api", "rss") and not av.is_platform_verified(item.platform)
+    blockers: list[dict[str, Any]] = []
+    if access_blocked:
+        blockers.append(
+            {
+                "kind": "account_access",
+                "label": "Acceso a la plataforma sin verificar",
+                "resolution": "verification",
+                "verification_url": f"/earning/verify/{item.platform}",
+            }
+        )
+    for req in guide["requirements"].get("access_requirement") and [guide["requirements"]["access_requirement"]] or []:
+        blockers.append({"kind": "requirement", "label": req, "resolution": "guide"})
+
+    next_step = guide.get("next_step")
+    resume_step = next((s for s in guide["steps"] if s["id"] == next_step), None) if next_step else None
+
+    return {
+        "item_id": item.id,
+        "generated_at": datetime.now(UTC).isoformat(),
+        "journey": journey,
+        "guide": guide,
+        "account_verification": {
+            "platform": item.platform,
+            "stage": verification.get("stage"),
+            "account_status": verification.get("account_status"),
+            "paused": verification.get("paused", False),
+            "platform_verified": av.is_platform_verified(item.platform),
+            "verification_url": f"/earning/verify/{item.platform}",
+            "checklist": verification.get("checklist", []),
+        },
+        "resume": {
+            "step_id": next_step,
+            "step": resume_step,
+            "progress": guide["progress"],
+        },
+        "blockers": blockers,
+    }
+
+
 def get_guide_progress(item_id: str) -> dict[str, Any]:
     return _load_progress().get(item_id, {})
 
@@ -662,7 +716,7 @@ def next_best_action() -> dict[str, Any]:
             "evidence_status": "VERIFIED_BY_OWNEX",
             "justification": top.justification,
             "reason_codes": top.reason_codes,
-            "guide_url": f"/work/{top.item.id}",
+            "guide_url": f"/earning/work/{top.item.id}",
             "verification_url": f"/earning/verify/{top.item.platform}",
             "journey": journey,
             "pending_requirements": pending_requirements,
@@ -679,7 +733,7 @@ def next_best_action() -> dict[str, Any]:
                 "actor": str(c.actor),
                 "url": c.url,
                 "reward_published": c.item.reward or None,
-                "guide_url": f"/work/{c.item.id}",
+                "guide_url": f"/earning/work/{c.item.id}",
             }
             for c in candidates[1:4]
         ],
@@ -720,7 +774,7 @@ def _blocked_actions(bank: Any) -> list[dict[str, Any]]:
                 "platform": item.platform,
                 "reason": item.access_requirement or "Requiere acceso/configuración previa",
                 "reward_published": item.reward or None,
-                "guide_url": f"/work/{item.id}",
+                "guide_url": f"/earning/work/{item.id}",
                 "verification_url": f"/earning/verify/{item.platform}",
             }
         )

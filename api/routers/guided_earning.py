@@ -13,6 +13,7 @@ from fastapi import APIRouter, HTTPException
 
 from core.opportunity.guided_earning import (
     build_execution_guide,
+    build_workspace,
     complete_guide_step,
     dismiss_action,
     get_guide_progress,
@@ -44,6 +45,19 @@ def guided_guide(item_id: str) -> dict:
     except Exception as exc:  # progress store is best-effort; guide still serves
         logger.warning("guided_earning start failed for %s: %s", item_id, exc)
     return build_execution_guide(item, get_guide_progress(item_id))
+
+
+@router.get("/workbank/{item_id}/workspace")
+def guided_workspace(item_id: str) -> dict:
+    """Fase 2 — Guided Earning Workspace: journey + guide + verification + resume."""
+    item = get_workbank().get_item(item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Work-bank item not found")
+    try:
+        start_guide(item_id)
+    except Exception as exc:
+        logger.warning("guided_earning start failed for %s: %s", item_id, exc)
+    return build_workspace(item, get_guide_progress(item_id))
 
 
 @router.get("/workbank/{item_id}/progress")
