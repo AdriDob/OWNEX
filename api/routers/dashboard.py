@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import logging
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
@@ -15,28 +16,6 @@ from cores.ai.provider import get_provider, get_registry
 logger = logging.getLogger("ownex.api.dashboard")
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
-
-
-# WebSocket connection manager for live logs
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            with contextlib.suppress(Exception):
-                await connection.send_text(message)
-
-
-manager = ConnectionManager()
 
 
 # Pydantic models
@@ -86,7 +65,7 @@ class SessionInfo(BaseModel):
 
 
 # Health check for each provider
-async def check_provider_health(provider_id: str, provider: any) -> HealthStatus:
+async def check_provider_health(provider_id: str, provider: Any) -> HealthStatus:
     start = asyncio.get_event_loop().time()
     try:
         if hasattr(provider, "is_available"):

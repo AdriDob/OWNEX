@@ -210,8 +210,8 @@ def score_opportunity(data: dict[str, Any]):
 def generate_intel_brief(data: dict[str, Any] | None = None):
     """Generate intelligence briefing from current state."""
     level = (data or {}).get("level", "summary")
-    opportunities = []  # TODO: load from stored signals/scored opportunities
-    signals = []
+    opportunities: list[Any] = []  # TODO: load from stored signals/scored opportunities
+    signals: list[Any] = []
     sources = sm.list()
 
     brief = generate_brief(

@@ -614,7 +614,7 @@ async def config_progress() -> dict[str, Any]:
         from core.vpn_assistant import get_vpn_assistant
 
         # Checklist completo
-        checks = []
+        checks: list[dict[str, Any]] = []
 
         # 1. GitHub Token
         creds = get_credentials()
@@ -1313,7 +1313,7 @@ async def tax_ar_status() -> dict[str, Any]:
 
 
 @router.post("/tax-ar/cuil")
-async def tax_ar_set_cuil(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_set_cuil(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1325,7 +1325,7 @@ async def tax_ar_set_cuil(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/tax-ar/categoria")
-async def tax_ar_set_cat(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_set_cat(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1337,7 +1337,7 @@ async def tax_ar_set_cat(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/tax-ar/ingreso")
-async def tax_ar_add_income(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_add_income(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1349,7 +1349,7 @@ async def tax_ar_add_income(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/tax-ar/gastos")
-async def tax_ar_calc_gastos(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_calc_gastos(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1361,7 +1361,7 @@ async def tax_ar_calc_gastos(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/tax-ar/factura")
-async def tax_ar_add_factura(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_add_factura(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1373,7 +1373,7 @@ async def tax_ar_add_factura(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/tax-ar/csv")
-async def tax_ar_export_csv(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def tax_ar_export_csv(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1398,7 +1398,7 @@ async def invoicer_ar_status() -> dict[str, Any]:
 
 
 @router.post("/invoicer-ar/config")
-async def invoicer_ar_config(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def invoicer_ar_config(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1416,7 +1416,7 @@ async def invoicer_ar_config(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/invoicer-ar/emitir")
-async def invoicer_ar_emitir(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def invoicer_ar_emitir(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1435,7 +1435,7 @@ async def invoicer_ar_emitir(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/invoicer-ar/pdf")
-async def invoicer_ar_pdf(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def invoicer_ar_pdf(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1470,7 +1470,7 @@ async def offramp_providers() -> dict[str, Any]:
 
 
 @router.post("/offramp/default")
-async def offramp_set_default(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def offramp_set_default(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1482,7 +1482,7 @@ async def offramp_set_default(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/offramp/execute")
-async def offramp_execute(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def offramp_execute(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1494,7 +1494,7 @@ async def offramp_execute(payload: dict[str, Any] = None) -> dict[str, Any]:
 
 
 @router.post("/offramp/done")
-async def offramp_done(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def offramp_done(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1519,7 +1519,7 @@ async def platforms_status() -> dict[str, Any]:
 
 
 @router.post("/platforms/config")
-async def platforms_config(payload: dict[str, Any] = None) -> dict[str, Any]:
+async def platforms_config(payload: dict[str, Any] | None = None) -> dict[str, Any]:
     if payload is None:
         payload = {}
     try:
@@ -1702,6 +1702,8 @@ async def automation_modules() -> dict[str, Any]:
         }
     except Exception:
         modules["communication"] = {"name": "Auto-Communication", "enabled": False}
+
+    return {"success": True, "modules": modules}
 
 
 # ── Payment Tracker ────────────────────────────────────────────────

@@ -60,7 +60,7 @@ async def set_notification_preferences(request: Request):
         from cores.learning.profile import get_profile_service
 
         profile = get_profile_service()
-        prefs = profile.get_stats().get("notification_preferences", {})  # type: ignore[call-arg]
+        prefs = profile.get_stats().get("notification_preferences", {})
         prefs[f"channel_{channel}"] = enabled
 
         session = db.SessionLocal()

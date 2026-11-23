@@ -69,7 +69,7 @@ async def arm_endpoint(body: dict) -> Any:
 @router.post("/disarm")
 async def disarm_endpoint() -> Any:
     _check_mode()
-    session.get_session().kill = True  # type: ignore
+    session.get_session().kill = True
     bridge_client.disarm_session()
     return {"status": "disarmed"}
 

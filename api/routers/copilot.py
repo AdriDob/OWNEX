@@ -541,7 +541,7 @@ def bayesian_posterior_summary():
             if isinstance(obs, dict):
                 bl.observe(str(obs.get("platform", "?")), str(obs.get("outcome", "")) == "accepted", obs.get("dimensions"))
             else:
-                bl.observe(str(obs.platform), str(obs.outcome) == "accepted", obs.dimensions)  # type: ignore[union-attr]
+                bl.observe(str(obs.platform), str(obs.outcome) == "accepted", obs.dimensions)
         return {"status": "ok", "posteriors": bl.get_posterior_summary()}
     except Exception as exc:
         return {"status": "error", "detail": str(exc)}

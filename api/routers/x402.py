@@ -116,7 +116,7 @@ def setup_x402(
 
     # Return the middleware instance for inspection/configuration
     # (it's already been added to the app via add_middleware above)
-    return PaymentMiddlewareASGI(app=app, routes=routes, server=server)  # type: ignore
+    return PaymentMiddlewareASGI(app=app, routes=routes, server=server)
 
 
 # Default FastAPI app for quick start (can be imported and configured)

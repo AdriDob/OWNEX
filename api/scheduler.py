@@ -1210,7 +1210,7 @@ def _compute_target_priorities(targets: list) -> dict[int, float]:
             # Load Program orion_score
             if domain:
                 prog = session.query(_db.models_economic.Program).filter(_db.models_economic.Program.domain == domain).first()
-                if prog is not None and getattr(prog, "orion_score", 0):
+                if prog is not None and getattr(prog, "orion_score", False):
                     program_scores[t.id] = prog.orion_score
 
         session.close()
