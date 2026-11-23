@@ -2,60 +2,57 @@
 import AppSidebar from './AppSidebar.vue'
 import AppFooter from './AppFooter.vue'
 import TitleBar from './TitleBar.vue'
-import NotificationPanel from '@/components/notifications/NotificationPanel.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
-import { useNotificationsStore } from '@/stores/notifications'
-
-const notifications = useNotificationsStore()
 
 defineProps<{
   copilotOpen: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggleCopilot': []
+  'toggle-copilot': []
 }>()
+
+function onToggleCopilot() {
+  emit('toggle-copilot')
+}
 </script>
 
 <template>
-  <div class="flex h-full flex-1 overflow-hidden">
-    <AppSidebar @toggle-copilot="emit('toggleCopilot')" />
+  <div class="flex h-full flex-1 overflow-hidden bg-background">
+    <AppSidebar @toggle-copilot="onToggleCopilot" />
 
     <!-- Main content -->
     <main
       :class="[
-        'flex flex-1 flex-col overflow-y-auto transition-all duration-200',
+        'flex flex-1 flex-col overflow-hidden transition-all duration-200',
         copilotOpen ? 'xl:mr-80' : 'mr-0',
       ]"
     >
-      <!-- Desktop titlebar -->
+      <!-- Desktop titlebar: breadcrumbs + status + notifications + window controls -->
       <TitleBar />
 
-      <!-- Toolbar: notifications always accessible -->
-      <div v-if="!$route.meta?.public" class="sticky top-0 z-20 flex items-center justify-end gap-2 border-b border-border/20 bg-background/80 px-4 py-1.5 backdrop-blur-xl">
-        <span :class="['h-1.5 w-1.5 rounded-full', notifications.wsConnected ? 'bg-success' : 'bg-destructive']" />
-        <NotificationPanel />
+      <!-- Content area -->
+      <div class="flex flex-1 flex-col overflow-y-auto px-6 py-6">
+        <Transition name="page" mode="out-in">
+          <ErrorBoundary>
+            <router-view v-slot="{ Component }">
+              <component :is="Component" />
+            </router-view>
+          </ErrorBoundary>
+        </Transition>
       </div>
 
-      <!-- Content area -->
-      <div class="flex flex-1 flex-col px-6 py-6">
-        <router-view v-slot="{ Component }">
-          <Transition name="page" mode="out-in">
-            <ErrorBoundary>
-              <component :is="Component" />
-            </ErrorBoundary>
-          </Transition>
-        </router-view>
-      </div>
-      <AppFooter @toggle-copilot="emit('toggleCopilot')" />
+      <AppFooter @toggle-copilot="onToggleCopilot" />
     </main>
   </div>
 </template>
 
 <style scoped>
+/* ═══ PAGE TRANSITIONS ═══ */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .page-enter-from {
   opacity: 0;
@@ -64,5 +61,18 @@ const emit = defineEmits<{
 .page-leave-to {
   opacity: 0;
   transform: translateY(-4px) scale(0.995);
+}
+
+/* Reduce motion for reduced preferences */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: opacity 0.02s ease;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

@@ -1,0 +1,366 @@
+{
+  "ts": "2026-11-23T02:58:43.852Z",
+  "baseUrl": "http://localhost:5173",
+  "results": [
+    {
+      "route": "/",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/ :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/ :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/ :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/targets/prioritization",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/targets/prioritization\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/targets/prioritization\", waiting until \"domcontentload",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/targets/prioritization :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/targets/prioritization",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/targets/prioritization\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/targets/prioritization\", waiting until \"domcontentload",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/targets/prioritization :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/targets/prioritization",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/targets/prioritization\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/targets/prioritization\", waiting until \"domcontentload",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/targets/prioritization :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/work-queue",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/work-queue\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/work-queue\", waiting until \"domcontentloaded",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/work-queue :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/work-queue",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/work-queue\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/work-queue\", waiting until \"domcontentloaded",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/work-queue :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/work-queue",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/work-queue\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/work-queue\", waiting until \"domcontentloaded",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/work-queue :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/workflows",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/workflows\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/workflows\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/workflows :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/workflows",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/workflows\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/workflows\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/workflows :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/workflows",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/workflows\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/workflows\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/workflows :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/dashboard",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/dashboard\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/dashboard\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/dashboard :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/dashboard",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/dashboard\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/dashboard\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/dashboard :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/dashboard",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/dashboard\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/dashboard\", waiting until \"domcontentloaded\"\u001b",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/dashboard :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/investments",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/investments\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/investments\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/investments :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/investments",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/investments\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/investments\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/investments :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/investments",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/investments\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/investments\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/investments :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/capital",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/capital\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/capital\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/capital :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/capital",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/capital\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/capital :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/capital",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/capital\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/capital :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/integrations/connections",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/integrations/connections\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/integrations/connections :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/integrations/connections",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/integrations/connections\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/integrations/connections :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/integrations/connections",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/integrations/connections\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/integrations/connections :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/operations/settings",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/settings\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/settings :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/operations/settings",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/settings\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/settings :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/operations/settings",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/settings\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/settings :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/operations/health",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/health\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/health :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/operations/health",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/health\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/health\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/health :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/operations/health",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/operations/health\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/operations/health\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/operations/health :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/merlin",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/merlin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/merlin\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/merlin :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/merlin",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/merlin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/merlin\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/merlin :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/merlin",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/merlin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/merlin\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/merlin :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/intelligence/findings",
+      "viewport": "1366x768",
+      "ok": false,
+      "error": "Error: page.goto: net::ERR_NETWORK_CHANGED at http://localhost:5173/intelligence/findings\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/intelligence/findings\", waiting until \"domcontentloaded",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/intelligence/findings :: net::ERR_NETWORK_CHANGED"
+      ]
+    },
+    {
+      "route": "/intelligence/findings",
+      "viewport": "1440x900",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/intelligence/findings\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/intelligence/findings :: net::ERR_ABORTED"
+      ]
+    },
+    {
+      "route": "/intelligence/findings",
+      "viewport": "1920x1080",
+      "ok": false,
+      "error": "TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/intelligence/findings\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "errors": [],
+      "failedReqs": [
+        "http://localhost:5173/intelligence/findings :: net::ERR_ABORTED"
+      ]
+    }
+  ]
+}

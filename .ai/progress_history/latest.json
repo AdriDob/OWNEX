@@ -1,10 +1,22 @@
 {
-  "schema": 2,
-  "ts": "2026-11-22T22:25:02.035318+00:00",
-  "commit": "004cdc267",
-  "product_completeness": 51.8,
+  "schema": 3,
+  "ts": "2026-11-23T03:46:15.082626+00:00",
+  "commit": "5a31a8881",
+  "product_completeness": 53.5,
   "operational_readiness": 0.0,
+  "revenue_pipeline_progress": 28.7,
   "revenue_validation": 28.7,
+  "verified_revenue": {
+    "verified_revenue_usd": 0.0,
+    "verified_revenue_by_currency": {},
+    "verified_paid_cycles": 0,
+    "paid_without_evidence": [
+      "test-item-001",
+      "test-evidence-integration"
+    ],
+    "reward_realization_rate": null,
+    "time_to_first_payout": null
+  },
   "modules": {
     "Source Intelligence (cat\u00e1logo 1000 + L1-L5)": {
       "pct": 70,
@@ -31,21 +43,21 @@
       "regression_justified": false
     },
     "Revenue Ledger / finanzas": {
-      "pct": 65,
+      "pct": 70,
       "state": "IMPLEMENTED",
-      "evidence": "`record_amount` con evidencia obligatoria para `paid`; summary por buckets",
+      "evidence": "`record_amount` con evidencia obligatoria para `paid`; `progress.py::verified_revenue` solo cuenta `paid`+evidence (9 tests)",
       "regression_justified": false
     },
     "Human Actions / aprobaciones": {
-      "pct": 75,
+      "pct": 80,
       "state": "VERIFIED",
-      "evidence": "`/api/human-actions` + UI `/operations/human-actions`, 21 acciones parseadas",
+      "evidence": "`/api/human-actions` + UI, 22 acciones, estados can\u00f3nicos (READY_FOR_OWNER/WAITING_EXTERNAL/EXPIRED\u2026) + `by_state`",
       "regression_justified": false
     },
     "Agent-market adapters (taskmarket/hansa/agentics)": {
-      "pct": 60,
+      "pct": 70,
       "state": "IMPLEMENTED",
-      "evidence": "3 adapters read-only + write-client gated (`afc001d5c`)",
+      "evidence": "discovery read-only live (api.taskmarket.dev 200); `TaskmarketExecutor` en execution queue con doble gate (driver `approved` + `TaskmarketActions` authorized+creds); twins muertos eliminados",
       "regression_justified": false
     },
     "Project Engineering Factory": {
@@ -61,9 +73,9 @@
       "regression_justified": false
     },
     "Delivery / submission": {
-      "pct": 10,
-      "state": "NOT_STARTED",
-      "evidence": "`record_approval`/`draft_payment_inquiry` existen",
+      "pct": 15,
+      "state": "IMPLEMENTED",
+      "evidence": "`TaskmarketExecutor` ruteado en execution_queue driver (`submit_pitch`/`submit_work`/`request_upload_url` gated); `record_approval`/`draft_payment_inquiry` existen",
       "regression_justified": false
     },
     "Security research (CATEYE core)": {
@@ -79,9 +91,9 @@
       "regression_justified": false
     },
     "Frontend / productization": {
-      "pct": 40,
+      "pct": 45,
       "state": "TESTED",
-      "evidence": "Dev server `:5173` live + proxy `/api`\u2192`:8000` OK; biome clean; 226 vitest pass (2026-11-22)",
+      "evidence": "App Shell V2.1 (8 secciones, router-view real en ErrorBoundary, tokens.css :root fix); biome clean; 226 vitest pass; `vite build` OK; QA captures `frontend/qa/screenshots{,-auth}` + FRONTEND_RUNBOOK.md (2026-11-23)",
       "regression_justified": false
     },
     "Desktop / Tauri": {

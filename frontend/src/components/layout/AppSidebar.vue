@@ -105,55 +105,89 @@ function isSetupPending(path: string): boolean {
   return setupPaths.includes(path)
 }
 
+// OWNEX App Shell V2.1 — 8 destinos principales.
+// Las páginas secundarias viven dentro de su módulo; ninguna ruta
+// existente se elimina (todas siguen accesibles por path/router).
 const navSections = [
   {
-    section: 'TRABAJANDO',
+    section: 'Command Center',
     cycle: 'forge',
     items: [
-      { name: 'Activos', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
-      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo, badge: 'workQueue' },
-      { name: 'Empleos Remotos', path: '/operations/remote-jobs', icon: Search },
-      { name: 'Oportunidades', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
+      { name: 'Mission Control', path: '/', icon: LayoutDashboard },
+      { name: 'Operations', path: '/operations/dashboard', icon: Activity },
     ],
   },
   {
-    section: 'DINERO',
+    section: 'Opportunities',
+    cycle: 'pulse',
+    items: [
+      { name: 'Priorización', path: '/targets/prioritization', icon: Globe, badge: 'targets' },
+      { name: 'Empleos Remotos', path: '/operations/remote-jobs', icon: Search },
+    ],
+  },
+  {
+    section: 'Work Bank',
     cycle: 'vault',
     items: [
-      { name: 'Ingresos', path: '/capital', icon: DollarSign },
-      { name: 'Objetivos', path: '/operations/agenda', icon: Target },
-      { name: 'Centro de Ingresos', path: '/revenue/center', icon: Landmark },
+      { name: 'Cola de Trabajo', path: '/operations/work-queue', icon: ListTodo, badge: 'workQueue' },
+      { name: 'Hallazgos', path: '/intelligence/findings', icon: Bug, badge: 'findings' },
+      { name: 'Hipótesis', path: '/intelligence/hypotheses', icon: Lightbulb },
+      { name: 'Evidencia', path: '/intelligence/evidence', icon: FileText },
+      { name: 'Investigaciones', path: '/intelligence/investigations', icon: Search },
+      { name: 'Confianza', path: '/intelligence/confidence', icon: BarChart3 },
     ],
   },
   {
-    section: 'INTELIGENCIA',
+    section: 'Engineering Factory',
+    cycle: 'forge',
+    items: [
+      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
+      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
+      { name: 'MERLIN', path: '/merlin', icon: Bot },
+      { name: 'Asistente', path: '/copilot/assistant', icon: MessageSquare },
+      { name: 'Computer Use', path: '/copilot/computer-use', icon: Monitor },
+      { name: 'Activos', path: '/operations/work-queue', icon: Activity, badge: 'workQueue' },
+    ],
+  },
+  {
+    section: 'Investment Hub',
     cycle: 'atlas',
     items: [
-      { name: 'Insights', path: '/intelligence/confidence', icon: BarChart3 },
-      { name: 'Hallazgos', path: '/intelligence/findings', icon: Bug, badge: 'findings' },
-      { name: 'Memoria', path: '/copilot/memory', icon: Brain },
-      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
-      { name: 'Knowledge Graph', path: '/knowledge/graph', icon: GitBranch },
+      { name: 'Inversiones', path: '/investments', icon: TrendingUp },
+      { name: 'Trading', path: '/trading', icon: BarChart3 },
     ],
   },
   {
-    section: 'SISTEMA',
+    section: 'Financial Hub',
+    cycle: 'vault',
+    items: [
+      { name: 'Capital', path: '/capital', icon: DollarSign },
+      { name: 'Ingresos', path: '/revenue/center', icon: Landmark },
+      { name: 'Objetivos', path: '/operations/agenda', icon: Target },
+      { name: 'Acciones pendientes', path: '/operations/human-actions', icon: ListTodo },
+    ],
+  },
+  {
+    section: 'Integrations',
+    cycle: 'atlas',
+    items: [
+      { name: 'Conexiones', path: '/integrations/connections', icon: Cable },
+      { name: 'Plataformas', path: '/integrations/platforms', icon: Globe },
+      { name: 'Wallets', path: '/integrations/wallets', icon: Wallet },
+      { name: 'Cuentas', path: '/integrations/accounts', icon: UserRound },
+      { name: 'Sync', path: '/integrations/sync', icon: RefreshCw },
+      { name: 'Knowledge Vault', path: '/knowledge', icon: Database },
+      { name: 'Knowledge Graph', path: '/knowledge/graph', icon: GitBranch },
+      { name: 'Memoria', path: '/copilot/memory', icon: Brain },
+    ],
+  },
+  {
+    section: 'Settings',
     cycle: 'system',
     items: [
       { name: 'Configuración', path: '/operations/settings', icon: Settings },
-      { name: 'Integraciones', path: '/integrations/connections', icon: Cable },
-      { name: 'Acciones pendientes', path: '/operations/human-actions', icon: ListTodo },
       { name: 'Health Center', path: '/operations/health', icon: HeartPulse },
-    ],
-  },
-  {
-    section: 'AUTÓNOMO',
-    cycle: 'security',
-    items: [
-      { name: 'MERLIN', path: '/merlin', icon: Bot },
-      { name: 'Computer Use', path: '/copilot/computer-use', icon: Monitor },
-      { name: 'Workflows', path: '/operations/workflows', icon: RefreshCw },
-      { name: 'Scheduler', path: '/operations/scheduler', icon: Zap },
+      { name: 'Seguridad', path: '/security', icon: Shield },
     ],
   },
 ]
@@ -168,7 +202,10 @@ const platformColors: Record<string, string> = {
 
 const connectedCount = computed(() => platforms.value.filter((p) => p.connected).length)
 
-const expandedSections = ref<Set<number>>(new Set())
+// V2.1: todas las secciones expandidas por defecto — ningún item
+// importante queda oculto detrás de "+N más" (queda como opción
+// manual de colapsar para quien quiera densidad).
+const expandedSections = ref<Set<number>>(new Set(navSections.map((_, i) => i)))
 const VISIBLE_PER_SECTION = 3
 
 function toggleSection(gi: number) {
@@ -261,7 +298,7 @@ function formatCompact(n: number) {
 <template>
   <aside
     :class="[
-      'flex flex-col border-r border-border/50 bg-deep/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
+      'flex flex-col border-r border-border/50 bg-background/80 backdrop-blur-xl transition-all duration-200 z-30 relative',
       collapsed ? 'w-16' : 'w-64',
     ]"
   >
