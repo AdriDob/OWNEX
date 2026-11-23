@@ -77,6 +77,21 @@ class SourceDefinition:
     # ("api", "rss", "github", "browser", "manual", "aggregator", ...).
     integration_level: int = 1
     integration_mechanism: str = ""
+    # ── V2 megaprompt §6.6 independent platform states ──
+    # None / "" means UNVERIFIED — never infer eligibility from catalog defaults.
+    registration_eligible: bool | None = None  # REGISTRATION_ELIGIBLE
+    tasks_available: bool | None = None  # TASKS_AVAILABLE — registered ≠ has work
+    payment_verified: bool | None = None  # PAYMENT_VERIFIED — money actually received
+    payment_methods: str = ""  # PAYMENT_METHODS e.g. "paypal,payoneer,airtm,usdc"
+    min_withdrawal_usd: float | None = None  # MINIMUM_WITHDRAWAL
+    task_frequency: str = ""  # TASK_FREQUENCY e.g. "irregular", "daily"
+    country_restrictions: str = ""  # COUNTRY_RESTRICTIONS explicit exclusions
+    english_reading_level: str = ""  # ENGLISH_READING_LEVEL fluent/basic/none/unknown
+    english_writing_level: str = ""  # ENGLISH_WRITING_LEVEL
+    english_spoken_level: str = ""  # ENGLISH_SPOKEN_LEVEL
+    oral_interview_required: bool | None = None  # ORAL_INTERVIEW_REQUIRED
+    english_phone_support_required: bool | None = None  # ENGLISH_PHONE_SUPPORT_REQUIRED
+    source_confidence: str = ""  # SOURCE_CONFIDENCE high/medium/low
 
 
 # ═══════════════════════════════════════════════
@@ -3177,6 +3192,9 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         priority=10,
         argentina_ok=True,
         last_verified="2026-11-23",  # AR on official 117-country list; PayPal/Airtm/ACH payouts
+        registration_eligible=True,
+        payment_methods="paypal,airtm,ach",
+        source_confidence="high",
     ),
     SourceDefinition(
         "Mercor",
@@ -3196,6 +3214,9 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         priority=8,
         argentina_ok=True,
         last_verified="2026-11-23",  # AR on supported list; payouts Stripe+Wise (Stripe not viable for owner)
+        registration_eligible=True,
+        payment_methods="stripe,wise",
+        source_confidence="medium",  # country list verified; owner payout path unverified (Stripe not viable)
     ),
     SourceDefinition(
         "Alignerr",
@@ -3232,6 +3253,9 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         priority=7,
         argentina_ok=True,
         last_verified="2026-11-23",  # AR not in 58-country blocklist; Payoneer/Tipalti(PayPal); LatAm project names AR
+        registration_eligible=True,
+        payment_methods="payoneer,tipalti(paypal)",
+        source_confidence="high",
     ),
     SourceDefinition(
         "OneForma",
