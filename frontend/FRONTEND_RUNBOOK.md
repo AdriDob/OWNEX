@@ -51,5 +51,4 @@ node qa/dom-check.cjs /,/operations/work-queue,/capital
 
 - Unauthenticated captures show expected `401`s on `/api/*` calls — not defects.
 - `capture-report.json` (unauth baseline) recorded one `PAGEERROR: Cannot read properties of undefined (reading 'name')` on a satellite route — re-check on next capture run; if it persists, bisect with `qa/debug-errors.cjs`.
-- Two design-system docs live untracked in `src/design/` (`OWNEX_DesignSystem.md`, `OWNEX_Design_System_Documentation.md`) — reference material, not wired into the app.
-- `src/components/health/` + `src/components/ui/LoadingSkeleton.vue` are untracked additions from a parallel session — not part of this change set.
+- `src/design/OWNEX_DesignSystem.md` is the single design-system reference (tracked). The older `OWNEX_Design_System_Documentation.md` duplicate was deleted, and the unused `src/components/health/` + `ui/LoadingSkeleton.vue` additions were removed in favour of `pages/HealthCenter.vue` and `ui/Skeleton.vue`.
