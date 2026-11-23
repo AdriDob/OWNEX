@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from core.opportunity.executors import BaseExecutor
 from core.security import (
     AccessLevel,
     CredentialBroker,
@@ -147,12 +148,16 @@ def test_broker_denies_insufficient_access_level():
     assert broker.get_stats()["denied_requests"] == 1
 
 
-def test_broker_drops_expired_credentials():
+def test_broker_refuses_expired_credentials_but_keeps_the_assignment():
     broker = CredentialBroker()
     broker.assign_project_credentials("alpha", ["github"], {"github": "ghp_alphatoken12"}, expires_in_hours=-1)
     assert asyncio.run(broker.get_credential("alpha", "github")) is None
     assert broker.get_stats()["expired_credentials"] == 1
-    assert broker.get_project_credentials_summary("alpha")["count"] == 0
+    # The expired assignment stays visible so callers fail closed.
+    summary = broker.get_project_credentials_summary("alpha")
+    assert summary["count"] == 1
+    assert summary["providers"]["github"]["expired"] is True
+    assert broker.has_credential("alpha", "github") is True
 
 
 def test_broker_summary_is_masked():
@@ -193,3 +198,62 @@ def test_execute_with_credentials_raises_when_missing():
 
 def test_get_credential_broker_is_singleton():
     assert get_credential_broker() is get_credential_broker()
+
+
+# === Executor <-> broker wiring ===
+
+
+class _GithubExecutor(BaseExecutor):
+    """BaseExecutor subclass with a github credential source, for wiring tests."""
+
+    platform = "wiring-test"
+    credential_sources = {"github": "github_token"}
+
+
+def test_executor_falls_back_to_config_when_project_has_no_assignment():
+    executor = _GithubExecutor({"project_id": "wiring-fallback", "github_token": "cfg-token"})
+    assert executor.credential("github") == "cfg-token"
+
+
+def test_executor_falls_back_to_env_when_config_is_empty(monkeypatch):
+    monkeypatch.setenv("GITHUB_TOKEN", "env-token")
+    executor = _GithubExecutor({"project_id": "wiring-env"})
+    assert executor.credential("github") == "env-token"
+
+
+def test_executor_returns_none_without_any_credential(monkeypatch):
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    executor = _GithubExecutor({"project_id": "wiring-none"})
+    assert executor.credential("github") is None
+
+
+def test_broker_assignment_wins_over_config_secret():
+    executor = _GithubExecutor({"project_id": "wiring-scoped", "github_token": "cfg-token"})
+    get_credential_broker().assign_project_credentials("wiring-scoped", ["github"], {"github": "broker-token"}, access_level=AccessLevel.EXECUTION)
+    assert executor.credential("github") == "broker-token"
+
+
+def test_expired_assignment_fails_closed_instead_of_using_global_secret():
+    executor = _GithubExecutor({"project_id": "wiring-expired", "github_token": "cfg-token"})
+    get_credential_broker().assign_project_credentials(
+        "wiring-expired",
+        ["github"],
+        {"github": "broker-token"},
+        expires_in_hours=-1,
+        access_level=AccessLevel.EXECUTION,
+    )
+    assert executor.credential("github") is None
+
+
+def test_under_privileged_assignment_fails_closed():
+    executor = _GithubExecutor({"project_id": "wiring-level", "github_token": "cfg-token"})
+    get_credential_broker().assign_project_credentials("wiring-level", ["github"], {"github": "broker-token"}, access_level=AccessLevel.READ_ONLY)
+    assert executor.credential("github") is None
+    assert executor.credential("github", AccessLevel.READ_ONLY) == "broker-token"
+
+
+def test_executor_does_not_cache_the_secret():
+    executor = _GithubExecutor({"project_id": "wiring-nocache", "github_token": "cfg-token"})
+    assert executor.credential("github") == "cfg-token"
+    get_credential_broker().assign_project_credentials("wiring-nocache", ["github"], {"github": "scoped-token"}, access_level=AccessLevel.EXECUTION)
+    assert executor.credential("github") == "scoped-token"

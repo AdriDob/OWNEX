@@ -206,8 +206,10 @@ class CredentialBroker:
 
         if cred.is_expired():
             logger.warning("Credential expired for project %s, provider %s", project_id, provider)
+            # The assignment is kept (and reported as expired) instead of being
+            # deleted: its presence is what tells callers to fail closed rather
+            # than fall back to an unscoped secret.
             self._stats["expired_credentials"] += 1
-            del self._project_creds[project_id][provider]
             return None
 
         if not cred.can_use(required_level):

@@ -14,7 +14,7 @@ class TestDataAnnotationWorker:
         worker = DataAnnotationWorker({"email": "test@example.com", "password": "test"})
         assert worker.platform == "dataannotation"
         assert worker.email == "test@example.com"
-        assert worker.password == "test"
+        assert worker.credential("dataannotation") == "test"
 
     @pytest.mark.asyncio
     async def test_execute_unknown_action(self):
@@ -44,7 +44,7 @@ class TestOutlierWorker:
         worker = OutlierWorker({"email": "test@example.com", "password": "test"})
         assert worker.platform == "outlier"
         assert worker.email == "test@example.com"
-        assert worker.password == "test"
+        assert worker.credential("outlier") == "test"
 
     @pytest.mark.asyncio
     async def test_execute_unknown_action(self):
@@ -65,7 +65,7 @@ class TestMindriftBrowserWorker:
         worker = MindriftBrowserWorker({"email": "test@example.com", "password": "test"})
         assert worker.platform == "mindrift_browser"
         assert worker.email == "test@example.com"
-        assert worker.password == "test"
+        assert worker.credential("mindrift") == "test"
 
     @pytest.mark.asyncio
     async def test_execute_unknown_action(self):
@@ -86,7 +86,7 @@ class TestRemotasksWorker:
         worker = RemotasksWorker({"email": "test@example.com", "password": "test"})
         assert worker.platform == "remotasks"
         assert worker.email == "test@example.com"
-        assert worker.password == "test"
+        assert worker.credential("remotasks") == "test"
 
     @pytest.mark.asyncio
     async def test_execute_unknown_action(self):
