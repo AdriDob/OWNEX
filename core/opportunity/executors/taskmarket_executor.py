@@ -17,35 +17,43 @@ Safety model (defense in depth):
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
-from core.credentials.adapter_helpers import load_credentials
 from core.opportunity.agent_market_actions import TaskmarketActions
 from core.opportunity.executors import BaseExecutor, ExecutionResult
+from core.security.credential_broker import AccessLevel
 
 _MUTATING = {"submit_pitch", "submit_work", "request_upload_url"}
 
 
 class TaskmarketExecutor(BaseExecutor):
-    """Executor for Taskmarket (api.taskmarket.dev) agent write surface."""
+    """Executor for Taskmarket (api.taskmarket.dev) agent write surface.
+
+    Credentials resolve per action through the project-scoped broker
+    (providers ``taskmarket_identity`` / ``taskmarket_api_key``) — nothing
+    is cached on the instance and there is no silent global fallback.
+    Unscoped config/env secrets require ``allow_unscoped_credentials``.
+    """
 
     platform = "taskmarket"
+    credential_sources = {
+        "taskmarket_identity": "identity_token",
+        "taskmarket_api_key": "api_key",
+    }
+    credential_env = {
+        "taskmarket_identity": "TASKMARKET_IDENTITY_TOKEN",
+        "taskmarket_api_key": "TASKMARKET_API_KEY",
+    }
 
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(config)
-        creds = load_credentials("taskmarket", config)
-        self._credentials = {
-            k: v
-            for k, v in {
-                "identity_token": creds.get("identity_token") or os.getenv("TASKMARKET_IDENTITY_TOKEN"),
-                "api_key": creds.get("api_key") or os.getenv("TASKMARKET_API_KEY"),
-            }.items()
-            if v
+    def _credentials(self, level: AccessLevel) -> dict[str, str]:
+        creds = {
+            "identity_token": self.credential("taskmarket_identity", level),
+            "api_key": self.credential("taskmarket_api_key", level),
         }
+        return {k: v for k, v in creds.items() if v}
 
-    def _client(self, authorized: bool) -> TaskmarketActions:
-        return TaskmarketActions(credentials=self._credentials, authorized=authorized)
+    def _client(self, credentials: dict[str, str], authorized: bool) -> TaskmarketActions:
+        return TaskmarketActions(credentials=credentials, authorized=authorized)
 
     async def execute(self, action: str, **kwargs: Any) -> ExecutionResult:
         task_id = str(kwargs.get("task_id", ""))
@@ -53,7 +61,7 @@ class TaskmarketExecutor(BaseExecutor):
             if action == "health_check":
                 return await self._health_check()
             if action == "list_pitches":
-                client = self._client(authorized=False)
+                client = self._client(self._credentials(AccessLevel.READ_ONLY), authorized=False)
                 data = client.list_pitches(task_id)
                 client.close()
                 return ExecutionResult(True, action, task_id, data=data)
@@ -61,14 +69,15 @@ class TaskmarketExecutor(BaseExecutor):
                 # Reaching this branch means the queue driver already saw
                 # payload.approved (mutating-action gate). TaskmarketActions
                 # re-checks authorization + credentials independently.
-                if not self._credentials:
+                credentials = self._credentials(AccessLevel.EXECUTION)
+                if not credentials:
                     return ExecutionResult(
                         False,
                         action,
                         task_id,
-                        error="no taskmarket credentials — register agent first (FINAL_HUMAN_ACTIONS B6)",
+                        error="no taskmarket credentials — assign to credential broker or enable allow_unscoped_credentials (FINAL_HUMAN_ACTIONS B6)",
                     )
-                client = self._client(authorized=True)
+                client = self._client(credentials, authorized=True)
                 if action == "submit_pitch":
                     data = client.submit_pitch(task_id, str(kwargs.get("pitch_text", "")))
                 elif action == "submit_work":

@@ -18,6 +18,11 @@ logger = logging.getLogger("orion.investment.metrics")
 # all and must stay out of every realized aggregate.
 _COMPLETENESS_LEVELS = frozenset({"COMPLETE", "PARTIAL", "INCOMPLETE", "UNKNOWN", "LEG_UNHEDGED"})
 _LEG_UNHEDGED = "LEG_UNHEDGED"
+# Declared net-costing levels that are NOT a definitive realized result.
+# Records that declare nothing ("") are legacy gross-level results and keep
+# their historical behavior; an explicit INCOMPLETE/PARTIAL/UNKNOWN is set
+# aside like an unhedged round instead of diluting win rate and P&L.
+_PROVISIONAL_NET = frozenset({"INCOMPLETE", "PARTIAL", "UNKNOWN"})
 
 
 def _data_dir() -> Path:
@@ -173,8 +178,10 @@ class InvestmentMetrics:
         # happened yet. It is counted, then set aside.
         unhedged = sum(1 for t in trades if t.get("net_pnl_completeness") == _LEG_UNHEDGED)
         trades = [t for t in trades if t.get("net_pnl_completeness") != _LEG_UNHEDGED]
+        provisional = sum(1 for t in trades if t.get("net_pnl_completeness") in _PROVISIONAL_NET)
+        trades = [t for t in trades if t.get("net_pnl_completeness") not in _PROVISIONAL_NET]
         if not trades:
-            return RiskMetrics(strategy_id=strategy_id, unhedged_trades=unhedged)
+            return RiskMetrics(strategy_id=strategy_id, unhedged_trades=unhedged, incomplete_trades=provisional)
 
         winning = [t for t in trades if t["won"]]
         losing = [t for t in trades if not t["won"]]
@@ -216,6 +223,7 @@ class InvestmentMetrics:
             avg_loss_pct=round(avg_loss, 2),
             is_drawdown=current_dd > 5.0,
             unhedged_trades=unhedged,
+            incomplete_trades=provisional,
         )
 
     def _calculate_max_drawdown(self, trades: list[dict]) -> float:
@@ -249,12 +257,20 @@ class InvestmentMetrics:
         all_metrics = self.get_all_strategy_metrics()
         total_trades = sum(m.total_trades for m in all_metrics.values())
         winning = sum(m.winning_trades for m in all_metrics.values())
-        total_pnl = sum(sum(t["pnl"] for t in self._trade_history if t["strategy_id"] == sid) for sid in all_metrics)
+        total_pnl = sum(
+            sum(
+                t["pnl"]
+                for t in self._trade_history
+                if t["strategy_id"] == sid and t.get("net_pnl_completeness") not in _PROVISIONAL_NET and t.get("net_pnl_completeness") != _LEG_UNHEDGED
+            )
+            for sid in all_metrics
+        )
 
         return {
             "total_trades": total_trades,
             "winning_trades": winning,
             "unhedged_trades": sum(m.unhedged_trades for m in all_metrics.values()),
+            "incomplete_trades": sum(m.incomplete_trades for m in all_metrics.values()),
             "total_pnl": round(total_pnl, 2),
             "win_rate": round(winning / max(total_trades, 1), 4),
             "strategies": {
@@ -264,6 +280,7 @@ class InvestmentMetrics:
                     "profit_factor": m.profit_factor,
                     "total_trades": m.total_trades,
                     "unhedged_trades": m.unhedged_trades,
+                    "incomplete_trades": m.incomplete_trades,
                     "current_drawdown_pct": m.current_drawdown_pct,
                     "max_drawdown_pct": m.max_drawdown_pct,
                     "is_drawdown": m.is_drawdown,

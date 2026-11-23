@@ -22,7 +22,8 @@ def executor():
 
 @pytest.fixture
 def executor_with_creds():
-    return TaskmarketExecutor({"identity_token": "tok-test"})
+    # Unscoped config secrets are a migration path: they require explicit opt-in.
+    return TaskmarketExecutor({"identity_token": "tok-test", "allow_unscoped_credentials": True})
 
 
 class TestGates:

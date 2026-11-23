@@ -329,8 +329,9 @@ class StrategyAttribution:
         if not trades:
             return m
 
-        # Deduplicate for reporting only: a duplicate is a trade with the same
-        # meaningful trading payload. We flag it but do not remove anything.
+        # Deduplicate: a duplicate is a trade with the same meaningful trading
+        # payload. Only the first occurrence stays eligible — repeats are
+        # excluded from every aggregate so they cannot inflate results.
         seen_payload: dict[tuple[Any, ...], int] = defaultdict(int)
         duplicates: list[str] = []
         for t in trades:
@@ -350,6 +351,7 @@ class StrategyAttribution:
             seen_payload[payload] += 1
             if seen_payload[payload] > 1:
                 duplicates.append(t.trade_id)
+        duplicate_ids = set(duplicates)
 
         m.total_trades = len(trades)
         m.trade_ids = [t.trade_id for t in trades]
@@ -383,6 +385,10 @@ class StrategyAttribution:
 
         for t in trades:
             reasons: list[str] = []
+            if t.trade_id in duplicate_ids:
+                # A repeated payload must not inflate aggregates: only the
+                # first occurrence stays eligible, the rest are excluded.
+                reasons.append("duplicate")
             if not t.strategy_id:
                 reasons.append("missing_strategy_id")
             if not t.symbol:
@@ -474,10 +480,6 @@ class StrategyAttribution:
             m.sample_quality = "INCOMPLETE_NET_MIXED"
         else:
             m.sample_quality = "COMPLETE"
-
-        # Duplicate indicator
-        if duplicates:
-            m.excluded_reasons["duplicate_flag"] = len(duplicates)
 
         return m
 

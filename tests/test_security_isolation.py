@@ -223,14 +223,19 @@ class _GithubExecutor(BaseExecutor):
     credential_sources = {"github": "github_token"}
 
 
+def test_executor_denies_unscoped_fallback_by_default():
+    executor = _GithubExecutor({"project_id": "wiring-deny", "github_token": "cfg-token"})
+    assert executor.credential("github") is None
+
+
 def test_executor_falls_back_to_config_when_project_has_no_assignment():
-    executor = _GithubExecutor({"project_id": "wiring-fallback", "github_token": "cfg-token"})
+    executor = _GithubExecutor({"project_id": "wiring-fallback", "github_token": "cfg-token", "allow_unscoped_credentials": True})
     assert executor.credential("github") == "cfg-token"
 
 
 def test_executor_falls_back_to_env_when_config_is_empty(monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", "env-token")
-    executor = _GithubExecutor({"project_id": "wiring-env"})
+    executor = _GithubExecutor({"project_id": "wiring-env", "allow_unscoped_credentials": True})
     assert executor.credential("github") == "env-token"
 
 
@@ -266,7 +271,7 @@ def test_under_privileged_assignment_fails_closed():
 
 
 def test_executor_does_not_cache_the_secret():
-    executor = _GithubExecutor({"project_id": "wiring-nocache", "github_token": "cfg-token"})
+    executor = _GithubExecutor({"project_id": "wiring-nocache", "github_token": "cfg-token", "allow_unscoped_credentials": True})
     assert executor.credential("github") == "cfg-token"
     get_credential_broker().assign_project_credentials("wiring-nocache", ["github"], {"github": "scoped-token"}, access_level=AccessLevel.EXECUTION)
     assert executor.credential("github") == "scoped-token"

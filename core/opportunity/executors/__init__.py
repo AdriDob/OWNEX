@@ -86,8 +86,18 @@ class BaseExecutor:
 
         if broker.has_credential(self.project_id, provider):
             logger.warning(
-                "%s credential for project %s is assigned but unusable (expired or "
-                "insufficient access level) — refusing the unscoped fallback",
+                "%s credential for project %s is assigned but unusable (expired or insufficient access level) — refusing the unscoped fallback",
+                provider,
+                self.project_id,
+            )
+            return None
+
+        # Unscoped config/env secrets are a migration path, not a default:
+        # they bypass project isolation, audit and expiry. Deny by default;
+        # an operator must explicitly opt in per executor config.
+        if not self.config.get("allow_unscoped_credentials"):
+            logger.warning(
+                "No %s credential assigned to project %s and unscoped fallback disabled — assign it to the credential broker",
                 provider,
                 self.project_id,
             )
@@ -96,15 +106,10 @@ class BaseExecutor:
         config_key = self.credential_sources.get(provider)
         fallback = self.config.get(config_key) if config_key else None
         explicit_env = self.credential_env.get(provider)
-        fallback = (
-            fallback
-            or (os.getenv(explicit_env) if explicit_env else None)
-            or env_credential(provider)
-        )
+        fallback = fallback or (os.getenv(explicit_env) if explicit_env else None) or env_credential(provider)
         if fallback:
             logger.warning(
-                "Using UNscoped %s credential from config/env for project %s — "
-                "assign it to the credential broker to get audit/expiry enforcement",
+                "Using UNscoped %s credential from config/env for project %s — assign it to the credential broker to get audit/expiry enforcement",
                 provider,
                 self.project_id,
             )

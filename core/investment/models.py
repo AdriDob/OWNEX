@@ -104,6 +104,9 @@ class RiskMetrics:
     # Rounds where the entry leg filled and the exit leg could not: an open
     # position, excluded from the realized stats above but never hidden.
     unhedged_trades: int = 0
+    # Trades whose declared net costing is not definitive (INCOMPLETE,
+    # PARTIAL, UNKNOWN): counted, but excluded from realized aggregates.
+    incomplete_trades: int = 0
 
     @property
     def is_healthy(self) -> bool:

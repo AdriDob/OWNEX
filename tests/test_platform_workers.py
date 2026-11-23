@@ -11,7 +11,7 @@ class TestDataAnnotationWorker:
     def test_worker_initialization(self):
         from cores.opportunity.executors.platform_workers import DataAnnotationWorker
 
-        worker = DataAnnotationWorker({"email": "test@example.com", "password": "test"})
+        worker = DataAnnotationWorker({"email": "test@example.com", "password": "test", "allow_unscoped_credentials": True})
         assert worker.platform == "dataannotation"
         assert worker.email == "test@example.com"
         assert worker.credential("dataannotation") == "test"
@@ -41,7 +41,7 @@ class TestOutlierWorker:
     def test_worker_initialization(self):
         from cores.opportunity.executors.platform_workers import OutlierWorker
 
-        worker = OutlierWorker({"email": "test@example.com", "password": "test"})
+        worker = OutlierWorker({"email": "test@example.com", "password": "test", "allow_unscoped_credentials": True})
         assert worker.platform == "outlier"
         assert worker.email == "test@example.com"
         assert worker.credential("outlier") == "test"
@@ -62,7 +62,7 @@ class TestMindriftBrowserWorker:
     def test_worker_initialization(self):
         from cores.opportunity.executors.platform_workers import MindriftBrowserWorker
 
-        worker = MindriftBrowserWorker({"email": "test@example.com", "password": "test"})
+        worker = MindriftBrowserWorker({"email": "test@example.com", "password": "test", "allow_unscoped_credentials": True})
         assert worker.platform == "mindrift_browser"
         assert worker.email == "test@example.com"
         assert worker.credential("mindrift") == "test"
@@ -83,7 +83,7 @@ class TestRemotasksWorker:
     def test_worker_initialization(self):
         from cores.opportunity.executors.platform_workers import RemotasksWorker
 
-        worker = RemotasksWorker({"email": "test@example.com", "password": "test"})
+        worker = RemotasksWorker({"email": "test@example.com", "password": "test", "allow_unscoped_credentials": True})
         assert worker.platform == "remotasks"
         assert worker.email == "test@example.com"
         assert worker.credential("remotasks") == "test"

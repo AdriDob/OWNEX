@@ -1297,7 +1297,7 @@ class TestStrategyAttribution:
         by_prov = {g.key.provenance: g for g in attribute(trades).by_provenance()}
         assert set(by_prov) == {"EXCHANGE", "MANUAL"}
 
-    def test_duplicates_are_flagged_but_not_removed(self):
+    def test_duplicates_are_excluded_from_aggregates(self):
         from core.investment.attribution import attribute
 
         a = _make_trade(trade_id="A")
@@ -1305,7 +1305,8 @@ class TestStrategyAttribution:
         group = attribute([a, dup]).by_strategy()[0]
         assert group.total_trades == 2
         assert group.trade_ids == ["A", "B"]
-        assert group.excluded_reasons.get("duplicate_flag") == 1
+        assert group.eligible_trades == 1
+        assert group.excluded_reasons.get("duplicate") == 1
 
     def test_traceability_by_trade_id(self):
         from core.investment.attribution import attribute
@@ -1343,7 +1344,7 @@ class TestStrategyAttribution:
     def test_sample_quality_complete(self):
         from core.investment.attribution import attribute
 
-        trades = [_make_trade(trade_id=f"T{i}") for i in range(5)]
+        trades = [_make_trade(trade_id=f"T{i}", created_at=f"2026-03-15T10:0{i}:00+00:00") for i in range(5)]
         group = attribute(trades).by_strategy()[0]
         assert group.sample_quality == "COMPLETE"
         assert group.pnl_completeness == "COMPLETE"
