@@ -18,6 +18,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+from cores.agents.bus import get_agent_bus
+from cores.agents.types import AgentEvent, EventType
 from cores.direct_work_engine.filters import StrictFilter
 from cores.direct_work_engine.models import (
     EmploymentType,
@@ -159,6 +161,7 @@ class WorkBank:
     def __init__(self, store_path: str | Path | None = None) -> None:
         self._store_path = store_path or _default_store_path()
         self._items: dict[str, WorkItem] = {}
+        self._published_pipeline_ids: set[str] = set()
         self._load()
 
     # ── Cycle: discover → filter zero-barrier → prepare → store ──
@@ -276,6 +279,23 @@ class WorkBank:
                 new_count += 1
 
         self._save()
+
+        # Publicar evento de inicio de pipeline para nuevos items listos para entregar
+        bus = get_agent_bus()
+        for item in self._items.values():
+            if item.ready_to_deliver and item.id not in self._published_pipeline_ids:
+                self._published_pipeline_ids.add(item.id)
+                event = AgentEvent(
+                    event_type=EventType.PIPELINE_START,
+                    correlation_id=f"wb-{item.id}",
+                    source="workbank",
+                    payload={
+                        "target_name": item.title[:80],
+                        "platform": str(item.platform),
+                        "reward": item.reward,
+                    },
+                )
+                bus.publish(event)
 
         # Espejo canónico al ExecutionQueue (Parte 2 FINAL RELEASE): ítems
         # ready_to_deliver nacen QUALIFIED→READY en la cola única. Best-effort:
