@@ -161,7 +161,17 @@ class InvestmentManager:
         fee: float = 0.0,
         duration_hours: float = 0.0,
         metadata: dict[str, Any] | None = None,
+        currency: str = "",
+        net_pnl_completeness: str = "",
     ) -> dict[str, Any]:
+        """Record a finished trade and feed it to metrics and attribution.
+
+        ``currency`` and ``net_pnl_completeness`` are what make the trade
+        attributable later. They are forwarded verbatim and never derived from
+        the symbol: a caller that cannot state the quote currency or how much of
+        the net figure is real records nothing here, and attribution reports the
+        trade as unattributable instead of guessing.
+        """
         self._metrics.record_trade(
             strategy_id=strategy_id,
             symbol=symbol,
@@ -174,6 +184,8 @@ class InvestmentManager:
             fee=fee,
             duration_hours=duration_hours,
             metadata=metadata,
+            currency=currency,
+            net_pnl_completeness=net_pnl_completeness,
         )
 
         self._allocation.record_pnl(strategy_id, pnl)
@@ -367,6 +379,10 @@ class InvestmentManager:
     def get_pnl_chart(self) -> list[dict[str, Any]]:
         """Get P&L chart data."""
         return self._metrics.pnl_chart_data(days=30)
+
+    def get_strategy_attribution(self) -> list[dict[str, Any]]:
+        """Per-strategy attribution, with every incomplete figure labelled."""
+        return self._metrics.strategy_attribution()
 
     def get_allocation(self) -> dict[str, Any]:
         """Get current allocation."""

@@ -101,6 +101,9 @@ class RiskMetrics:
     var_95_pct: float = 0.0
     is_drawdown: bool = False
     consecutive_losses: int = 0
+    # Rounds where the entry leg filled and the exit leg could not: an open
+    # position, excluded from the realized stats above but never hidden.
+    unhedged_trades: int = 0
 
     @property
     def is_healthy(self) -> bool:
@@ -186,9 +189,10 @@ class TradeEvidence:
 
     ``net_pnl_completeness`` says whether ``net_pnl_calc`` is a real, fully
     costed net figure. Use COMPLETE when fees and slippage are included, PARTIAL
-    when some costs are missing, INCOMPLETE when only gross exists, and UNKNOWN
-    when nothing was recorded. Attribution aggregates net P&L and win/loss only
-    from COMPLETE trades, never from gross alone.
+    when some costs are missing, LEG_UNHEDGED when the position never closed (the
+    exit leg could not fill), INCOMPLETE when only gross exists, and UNKNOWN when
+    nothing was recorded. Attribution aggregates net P&L and win/loss only from
+    COMPLETE trades, never from gross alone or from an unhedged round.
 
     ``created_at`` is an ISO 8601 string, the form attribution parses into a
     period.

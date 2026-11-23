@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -15,9 +15,9 @@ def _completeness_flag(trades: list[TradeEvidence]) -> str:
     """Classify how much of a group's net P&L rests on complete data.
 
     A trade carries a complete net figure only when its
-    ``net_pnl_completeness`` is COMPLETE; anything else may be gross-only or
-    unknown. UNKNOWN is returned when there is nothing to judge, so an empty
-    group never looks complete.
+    ``net_pnl_completeness`` is COMPLETE; anything else may be gross-only,
+    unhedged or unknown. UNKNOWN is returned when there is nothing to judge, so
+    an empty group never looks complete.
     """
     if not trades:
         return "UNKNOWN"
@@ -131,12 +131,48 @@ class TradeGroupMetrics:
     roi_pct: float | None = None
     roi_basis: str = ""
     pnl_completeness: str = "UNKNOWN"
+    # Trades whose exit leg never filled: open positions with no realized P&L.
+    unhedged_trades: int = 0
     provenance_breakdown: dict[str, int] = field(default_factory=dict)
     trade_ids: list[str] = field(default_factory=list)
     currencies_seen: set[str] = field(default_factory=set)
     sample_quality: str = "UNKNOWN"
     missing_dimensions: set[str] = field(default_factory=set)
     currency_mismatch: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize for API responses, keeping every caveat visible.
+
+        Sets become sorted lists so the payload is stable, and the wording
+        fields (``win_rate_definition``, ``roi_basis``) travel with the numbers
+        so a client cannot read a provisional figure as final.
+        """
+        return {
+            "key": asdict(self.key),
+            "total_trades": self.total_trades,
+            "eligible_trades": self.eligible_trades,
+            "excluded_trades": self.excluded_trades,
+            "excluded_reasons": dict(sorted(self.excluded_reasons.items())),
+            "winning_trades": self.winning_trades,
+            "losing_trades": self.losing_trades,
+            "break_even_trades": self.break_even_trades,
+            "gross_pnl_complete": self.gross_pnl_complete,
+            "net_pnl_complete": self.net_pnl_complete,
+            "win_rate_explicit": self.win_rate_explicit,
+            "win_rate_definition": self.win_rate_definition,
+            "expectancy": self.expectancy,
+            "profit_factor": self.profit_factor,
+            "roi_pct": self.roi_pct,
+            "roi_basis": self.roi_basis,
+            "pnl_completeness": self.pnl_completeness,
+            "unhedged_trades": self.unhedged_trades,
+            "provenance_breakdown": dict(sorted(self.provenance_breakdown.items())),
+            "trade_ids": list(self.trade_ids),
+            "currencies_seen": sorted(self.currencies_seen),
+            "sample_quality": self.sample_quality,
+            "missing_dimensions": sorted(self.missing_dimensions),
+            "currency_mismatch": self.currency_mismatch,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -420,6 +456,10 @@ class StrategyAttribution:
             m.roi_pct = round(m.net_pnl_complete / abs(m.gross_pnl_complete) * 100, 2)
         else:
             m.roi_pct = None
+
+        # Unhedged rounds: counted, but they contribute no realized figure.
+        unhedged = [t for t in eligible if t.net_pnl_completeness == "LEG_UNHEDGED"]
+        m.unhedged_trades = len(unhedged)
 
         # P&L completeness
         m.pnl_completeness = _completeness_flag(eligible)

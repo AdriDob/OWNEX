@@ -7,9 +7,17 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from core.investment.models import InvestmentSnapshot, RiskMetrics
+from core.investment.attribution import attribute
+from core.investment.models import InvestmentSnapshot, RiskMetrics, TradeEvidence
 
 logger = logging.getLogger("orion.investment.metrics")
+
+# The completeness vocabulary a record may declare for its own net figure.
+# LEG_UNHEDGED is not a degree of costing like the others: it says the trade
+# never closed (leg 1 filled, leg 2 could not), so it has no realized figure at
+# all and must stay out of every realized aggregate.
+_COMPLETENESS_LEVELS = frozenset({"COMPLETE", "PARTIAL", "INCOMPLETE", "UNKNOWN", "LEG_UNHEDGED"})
+_LEG_UNHEDGED = "LEG_UNHEDGED"
 
 
 def _data_dir() -> Path:
@@ -42,7 +50,17 @@ class InvestmentMetrics:
         fee: float = 0.0,
         duration_hours: float = 0.0,
         metadata: dict[str, Any] | None = None,
+        currency: str = "",
+        net_pnl_completeness: str = "",
     ) -> None:
+        """Record one finished trade.
+
+        ``currency`` and ``net_pnl_completeness`` are optional and only stored
+        when the caller supplies them. Nothing is inferred: a missing currency
+        stays empty and attribution reports the trade as attributable to gross
+        only, rather than assuming the quote asset of the symbol. Likewise
+        ``net_pnl_completeness`` is declared, never upgraded here.
+        """
         trade = {
             "strategy_id": strategy_id,
             "symbol": symbol,
@@ -57,6 +75,8 @@ class InvestmentMetrics:
             "won": pnl > 0,
             "timestamp": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
+            "currency": currency,
+            "net_pnl_completeness": net_pnl_completeness,
         }
         self._trade_history.append(trade)
         self._persist_trade(trade)
@@ -85,9 +105,76 @@ class InvestmentMetrics:
             by_strategy[t["strategy_id"]].append(t)
         return {sid: self._compute_metrics(sid, trades) for sid, trades in by_strategy.items()}
 
+    def trade_evidence(self) -> list[TradeEvidence]:
+        """Project the recorded history onto TradeEvidence without inferring.
+
+        Legacy records predate the exchange/account/asset/currency fields, so
+        those stay empty and attribution surfaces them as unavailable. The
+        recorded ``pnl`` is treated as gross unless the record itself declares
+        ``net_pnl_completeness``; slippage was never captured, so a record that
+        declares nothing is INCOMPLETE rather than assumed complete.
+
+        A producer that costs its own trade stores the components alongside it:
+        ``metadata['gross_pnl']`` is the pre-cost figure quoted at decision time
+        and ``slippage`` the execution cost measured on the book (depth plus the
+        drift of the second leg). When present they are used verbatim so that
+        ``gross - fees - slippage == pnl`` reconciles; when absent, gross falls
+        back to ``pnl`` and slippage stays 0.0 rather than being invented.
+        """
+        evidence: list[TradeEvidence] = []
+        for index, record in enumerate(self._trade_history):
+            metadata = record.get("metadata") or {}
+            pnl = record.get("pnl")
+            declared = record.get("net_pnl_completeness") or metadata.get("net_pnl_completeness") or ""
+            completeness = declared if declared in _COMPLETENESS_LEVELS else "INCOMPLETE"
+            # A producer that costs its own trade records the pre-cost gross;
+            # legacy records only have the (gross, for them) pnl.
+            gross_declared = metadata.get("gross_pnl")
+            gross_fallback = None if pnl is None else float(pnl)
+            if completeness == _LEG_UNHEDGED and gross_declared is None:
+                # The round never closed, so no gross was captured. Falling back
+                # to pnl here would turn a held position into a 0.0 result.
+                gross_pnl = None
+            else:
+                gross_pnl = float(gross_declared) if gross_declared is not None else gross_fallback
+            slippage_declared = record.get("slippage")
+            if slippage_declared is None:
+                slippage_declared = metadata.get("slippage")
+            slippage = float(slippage_declared or 0.0)
+            evidence.append(
+                TradeEvidence(
+                    trade_id=str(metadata.get("trade_id") or f"legacy-{index}"),
+                    strategy_id=str(record.get("strategy_id") or ""),
+                    symbol=str(record.get("symbol") or ""),
+                    side=str(record.get("side") or ""),
+                    currency=str(record.get("currency") or metadata.get("currency") or ""),
+                    gross_pnl=gross_pnl,
+                    fees=float(record.get("fee") or 0.0),
+                    slippage=slippage,
+                    net_pnl=pnl if completeness == "COMPLETE" and pnl is not None else None,
+                    net_pnl_calc=float(pnl) if completeness == "COMPLETE" and pnl is not None else 0.0,
+                    net_pnl_completeness=completeness,
+                    exchange=str(metadata.get("exchange") or ""),
+                    account_id=str(metadata.get("account_id") or ""),
+                    asset=str(metadata.get("asset") or ""),
+                    created_at=str(record.get("timestamp") or ""),
+                )
+            )
+        return evidence
+
+    def strategy_attribution(self) -> list[dict[str, Any]]:
+        """Per-strategy attribution from the recorded history."""
+        groups = attribute(self.trade_evidence()).by_strategy()
+        return [group.to_dict() for group in groups]
+
     def _compute_metrics(self, strategy_id: str, trades: list[dict[str, Any]]) -> RiskMetrics:
+        # An unhedged round is an open position, not a result: counting it would
+        # dilute win rate, drawdown and expectancy with a trade that has not
+        # happened yet. It is counted, then set aside.
+        unhedged = sum(1 for t in trades if t.get("net_pnl_completeness") == _LEG_UNHEDGED)
+        trades = [t for t in trades if t.get("net_pnl_completeness") != _LEG_UNHEDGED]
         if not trades:
-            return RiskMetrics(strategy_id=strategy_id)
+            return RiskMetrics(strategy_id=strategy_id, unhedged_trades=unhedged)
 
         winning = [t for t in trades if t["won"]]
         losing = [t for t in trades if not t["won"]]
@@ -128,6 +215,7 @@ class InvestmentMetrics:
             avg_win_pct=round(avg_win, 2),
             avg_loss_pct=round(avg_loss, 2),
             is_drawdown=current_dd > 5.0,
+            unhedged_trades=unhedged,
         )
 
     def _calculate_max_drawdown(self, trades: list[dict]) -> float:
@@ -166,6 +254,7 @@ class InvestmentMetrics:
         return {
             "total_trades": total_trades,
             "winning_trades": winning,
+            "unhedged_trades": sum(m.unhedged_trades for m in all_metrics.values()),
             "total_pnl": round(total_pnl, 2),
             "win_rate": round(winning / max(total_trades, 1), 4),
             "strategies": {
@@ -174,6 +263,7 @@ class InvestmentMetrics:
                     "win_rate": m.win_rate,
                     "profit_factor": m.profit_factor,
                     "total_trades": m.total_trades,
+                    "unhedged_trades": m.unhedged_trades,
                     "current_drawdown_pct": m.current_drawdown_pct,
                     "max_drawdown_pct": m.max_drawdown_pct,
                     "is_drawdown": m.is_drawdown,

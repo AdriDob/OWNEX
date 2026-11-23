@@ -232,11 +232,23 @@ async def get_investment_status() -> dict[str, Any]:
 
 @router.get("/metrics")
 async def get_investment_metrics() -> dict[str, Any]:
-    """Get consolidated metrics including P&L chart."""
+    """Get consolidated metrics, per-strategy attribution, and P&L chart.
+
+    ``strategy_attribution`` reports gross and net separately. Net only sums
+    trades whose record declares a COMPLETE net figure, so a strategy without
+    such records shows ``net_pnl_complete: 0.0`` plus the ``roi_basis`` and
+    ``excluded_reasons`` that justify it. Read ``pnl_completeness`` and
+    ``sample_quality`` before treating any figure as final.
+    """
     manager = get_investment_manager()
     metrics = manager.get_metrics()
     pnl_chart = manager.get_pnl_chart()
-    return {"success": True, "metrics": metrics, "pnl_chart": pnl_chart}
+    return {
+        "success": True,
+        "metrics": metrics,
+        "strategy_attribution": manager.get_strategy_attribution(),
+        "pnl_chart": pnl_chart,
+    }
 
 
 @router.get("/events")
