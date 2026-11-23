@@ -73,6 +73,7 @@ from api.routers import (
     fiverr,
     forge_app,
     forge_cycle,
+    guided_earning,
     human_actions,
     hunt,
     hunter,
@@ -615,6 +616,7 @@ app.include_router(voice_commands.router)
 app.include_router(opensource.router)
 app.include_router(zero_barrier.router)
 app.include_router(direct_work.router)
+app.include_router(guided_earning.router)
 app.include_router(revenue_timeline.router)
 app.include_router(fiverr.router)
 app.include_router(decision.router)

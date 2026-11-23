@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { approveDelivery, fetchWorkBankItem, prepareDelivery, type DeliveryPackage, type WorkBankItem } from '@/services/ownexData'
+import { approveDelivery, completeGuideStep, fetchExecutionGuide, fetchWorkBankItem, prepareDelivery, type DeliveryPackage, type GuidedGuide, type WorkBankItem } from '@/services/ownexData'
 
 const route = useRoute()
 const item = ref<WorkBankItem | null>(null)
 const prepared = ref<DeliveryPackage | null>(null)
+const guide = ref<GuidedGuide | null>(null)
 const loading = ref(true)
 const busy = ref(false)
 const error = ref('')
@@ -32,10 +33,53 @@ async function loadItem() {
     item.value = await fetchWorkBankItem(String(route.params.id))
     updatedAt.value = new Date().toLocaleTimeString()
     error.value = ''
+    void loadGuide()
   } catch (cause: any) {
     error.value = cause?.message || 'No se pudo cargar este trabajo.'
   } finally {
     loading.value = false
+  }
+}
+
+const actorBadge: Record<string, string> = {
+  HUMAN_REQUIRED: 'bg-amber-500/15 text-amber-500',
+  OWNEX_AUTOMATED: 'bg-sky-500/15 text-sky-500',
+  OWNEX_ASSISTED: 'bg-violet-500/15 text-violet-500',
+  EXTERNAL_WAITING: 'bg-zinc-500/15 text-zinc-400',
+  BLOCKED: 'bg-red-500/15 text-red-500',
+  VERIFIED_COMPLETED: 'bg-emerald-500/15 text-emerald-500',
+}
+const evidenceLabel: Record<string, string> = {
+  VERIFIED_OFFICIAL: 'Oficial verificado',
+  VERIFIED_BY_API: 'Verificado por API',
+  VERIFIED_BY_OWNEX: 'Verificado por OWNEX',
+  OWNER_CONFIRMED: 'Confirmado por vos',
+  AI_GENERATED_GUIDANCE: 'Guía generada (no oficial)',
+  ESTIMATED: 'Estimado',
+  UNKNOWN: 'Desconocido',
+  EXPIRED: 'Expirado',
+}
+
+async function loadGuide() {
+  if (!item.value) return
+  try {
+    guide.value = await fetchExecutionGuide(item.value.id)
+  } catch {
+    guide.value = null
+  }
+}
+
+async function handleCompleteStep(stepId: string) {
+  if (!item.value) return
+  busy.value = true
+  error.value = ''
+  try {
+    await completeGuideStep(item.value.id, stepId)
+    await loadGuide()
+  } catch (cause: any) {
+    error.value = cause?.message || 'No se pudo registrar el paso.'
+  } finally {
+    busy.value = false
   }
 }
 
@@ -110,6 +154,60 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
           <p v-else class="text-sm text-muted-foreground">No hay URL original registrada.</p>
           <dl class="space-y-2 border-t border-border pt-3 text-sm"><div><dt class="text-xs text-muted-foreground">Método de cobro sugerido</dt><dd>{{ item.payout_method || 'Sin verificar' }}</dd></div><div v-if="item.payout_method_rationale"><dt class="text-xs text-muted-foreground">Motivo</dt><dd>{{ item.payout_method_rationale }}</dd></div></dl>
         </aside>
+      </section>
+
+      <section v-if="guide" class="rounded-lg border border-border p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="font-semibold">Guía de ejecución</h2>
+            <p class="mt-1 text-sm text-muted-foreground">Qué hacer, dónde ir y quién actúa en cada paso. Los enlaces solo usan URLs verificadas.</p>
+          </div>
+          <div class="text-right text-sm">
+            <p class="font-medium">{{ guide.progress.completed }}/{{ guide.progress.total }} pasos</p>
+            <div class="mt-1 h-1.5 w-40 rounded bg-muted"><div class="h-1.5 rounded bg-primary" :style="{ width: `${guide.progress.pct}%` }" /></div>
+          </div>
+        </div>
+
+        <div v-if="guide.where_to_go.platform_url || guide.where_to_go.opportunity_url" class="mt-4 flex flex-wrap gap-3 text-sm">
+          <a v-if="guide.where_to_go.opportunity_url" :href="guide.where_to_go.opportunity_url" target="_blank" rel="noopener noreferrer" class="rounded-md border border-border px-3 py-1.5 underline">Publicación original ↗</a>
+          <a v-if="guide.where_to_go.platform_url" :href="guide.where_to_go.platform_url" target="_blank" rel="noopener noreferrer" class="rounded-md border border-border px-3 py-1.5 underline">{{ guide.where_to_go.platform_name }} ↗</a>
+        </div>
+
+        <ol class="mt-4 space-y-3">
+          <li v-for="(step, idx) in guide.steps" :key="step.id" class="rounded-md border border-border p-4" :class="{ 'opacity-60': step.status === 'blocked' }">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-medium text-muted-foreground">{{ idx + 1 }}.</span>
+              <span class="text-sm font-medium">{{ step.title }}</span>
+              <span class="rounded px-1.5 py-0.5 text-[10px] font-medium uppercase" :class="actorBadge[step.actor] || 'bg-zinc-500/15 text-zinc-400'">{{ step.actor_label }}</span>
+              <span class="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{{ evidenceLabel[step.evidence] || step.evidence }}</span>
+              <span v-if="step.status === 'completed'" class="text-[10px] font-medium uppercase text-emerald-500">completado</span>
+              <span v-else-if="step.status === 'blocked'" class="text-[10px] font-medium uppercase text-red-500">bloqueado</span>
+            </div>
+            <p class="mt-2 text-sm text-muted-foreground">{{ step.instruction }}</p>
+            <p v-if="step.detail" class="mt-1 text-xs text-muted-foreground">{{ step.detail }}</p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <a v-if="step.url" :href="step.url" target="_blank" rel="noopener noreferrer" class="text-xs underline">Abrir enlace ↗</a>
+              <button
+                v-if="step.status !== 'completed' && step.actor !== 'EXTERNAL_WAITING' && step.status !== 'blocked'"
+                class="rounded border border-border px-2 py-1 text-xs disabled:opacity-50"
+                :disabled="busy"
+                @click="handleCompleteStep(step.id)"
+              >Marcar completado</button>
+            </div>
+          </li>
+        </ol>
+
+        <div class="mt-4 grid gap-3 border-t border-border pt-4 text-sm sm:grid-cols-2">
+          <div>
+            <h3 class="text-xs font-medium uppercase text-muted-foreground">Entrega</h3>
+            <p class="mt-1 text-muted-foreground">{{ (guide.submission_guide as any)?.channel || 'platform_ui' }} — revisá el formato antes de enviar. Guardá la confirmación como evidencia.</p>
+          </div>
+          <div>
+            <h3 class="text-xs font-medium uppercase text-muted-foreground">Pago</h3>
+            <p class="mt-1 text-muted-foreground">{{ (guide.payment_guide as any)?.reward_caveat || 'Verificá el pago solo cuando esté efectivamente recibido.' }}</p>
+            <p v-if="(guide.payment_guide as any)?.payout_method_suggested" class="mt-1 text-xs">Método sugerido: {{ (guide.payment_guide as any).payout_method_suggested }}</p>
+          </div>
+        </div>
       </section>
 
       <section class="rounded-lg border border-border p-5">

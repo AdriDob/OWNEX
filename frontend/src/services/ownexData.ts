@@ -1664,3 +1664,103 @@ export interface UnifiedAgendaState {
 export async function fetchAgenda(): Promise<UnifiedAgendaState> {
   return api.get<UnifiedAgendaState>('/agenda')
 }
+
+// ── Guided Earning System ──
+
+export interface GuidedStep {
+  id: string
+  title: string
+  instruction: string
+  actor: string
+  actor_label: string
+  url: string
+  evidence: string
+  detail: string
+  status?: string
+}
+
+export interface GuidedGuide {
+  guide_version: number
+  item_id: string
+  overview: Record<string, unknown>
+  why: Record<string, unknown>
+  where_to_go: {
+    platform_name: string
+    platform_url: string
+    opportunity_url: string
+    register_url: string
+    docs_url: string
+    payment_url: string
+    notes: string
+    evidence: string
+    guide_available?: boolean
+    guide_note?: string
+  }
+  requirements: Record<string, unknown>
+  steps: GuidedStep[]
+  technical_plan: Record<string, unknown>
+  submission_guide: Record<string, unknown>
+  payment_guide: Record<string, unknown>
+  progress: { completed: number; total: number; pct: number; started_at?: string; updated_at?: string }
+  next_step: string | null
+}
+
+export interface GuidedJourney {
+  current: string
+  stages: string[]
+  position: number
+  total: number
+}
+
+export interface GuidedPendingRequirement {
+  key: string
+  label: string
+  status: string
+}
+
+export interface GuidedNextActionItem {
+  id: string
+  kind: string
+  item_id: string
+  opportunity_id: string
+  step_id: string
+  title: string
+  instruction: string
+  expected_outcome: string
+  actor: string
+  actor_label: string
+  url: string
+  platform: string
+  category: string
+  reward_published: number | null
+  reward_caveat: string
+  barrier_score: number
+  estimated_net: number | null
+  net_caveat: string
+  eligibility_status: string
+  evidence_status: string
+  justification: string
+  reason_codes: string[]
+  guide_url: string
+  journey: GuidedJourney
+  pending_requirements: GuidedPendingRequirement[]
+}
+
+export interface GuidedNextAction {
+  action: GuidedNextActionItem | null
+  reason: string
+  alternatives: Array<{ kind: string; item_id: string; title: string; actor: string; url: string; reward_published: number | null; guide_url: string }>
+  generated_at?: string
+}
+
+export async function fetchGuidedNextAction(): Promise<GuidedNextAction> {
+  return api.get<GuidedNextAction>('/guided-earning/next')
+}
+
+export async function fetchExecutionGuide(itemId: string): Promise<GuidedGuide> {
+  return api.get<GuidedGuide>(`/guided-earning/workbank/${encodeURIComponent(itemId)}/guide`)
+}
+
+export async function completeGuideStep(itemId: string, stepId: string): Promise<{ item_id: string; progress: Record<string, unknown> }> {
+  return api.post(`/guided-earning/workbank/${encodeURIComponent(itemId)}/steps/${encodeURIComponent(stepId)}/complete`, {})
+}

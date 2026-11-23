@@ -34,6 +34,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import(/* webpackChunkName: "work-detail" */ '@/pages/WorkDetail.vue'),
     meta: { title: 'Detalle del trabajo' },
   },
+  {
+    path: '/earning',
+    name: 'guided-earning',
+    component: () => import(/* webpackChunkName: "guided-earning" */ '@/pages/GuidedEarning.vue'),
+    meta: { title: 'Siguiente acción' },
+  },
   // ── PERSONALIZATION WIZARD (público, para primer uso) ──
   {
     path: '/setup/personalization',

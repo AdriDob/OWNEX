@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { fetchGuidedNextAction, type GuidedNextAction } from '@/services/ownexData'
 import { useOwnexState } from '@/composables/useOwnexState'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
@@ -45,6 +46,10 @@ const settings = useSettingsStore()
 const { toast } = useToast()
 const router = useRouter()
 const { digest, capital, ai, incomePlan, agenda } = useOwnexState()
+const guidedNext = ref<GuidedNextAction | null>(null)
+
+// Guided Earning: next best action toward first verified revenue
+const guidedAction = computed(() => guidedNext.value?.action ?? null)
 
 // ── Command Center State ──
 
@@ -108,6 +113,18 @@ const compatibleSources = computed(() => {
   const d = digest.value
   return d.sources?.filter((s: any) => s.argentina_compatible) || []
 })
+
+onMounted(async () => {
+  try {
+    guidedNext.value = await fetchGuidedNextAction()
+  } catch {
+    guidedNext.value = null
+  }
+})
+
+function openExternal(url: string) {
+  window.open(url, '_blank', 'noopener')
+}
 </script>
 
 <template>
@@ -183,8 +200,44 @@ const compatibleSources = computed(() => {
         </div>
       </section>
 
-      <!-- Next Best Action -->
-      <section v-if="nextAction" class="mb-6 rounded-lg border border-border bg-card p-4 sm:p-6">
+      <!-- Next Best Action (Guided Earning) -->
+      <section v-if="guidedAction" class="mb-6 rounded-lg border border-primary/30 bg-card p-4 sm:p-6">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+            <Plus class="w-5 h-5" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs uppercase tracking-widest text-primary mb-1">Próxima Mejor Acción</p>
+            <h3 class="font-semibold text-foreground mb-1">{{ guidedAction.title }}</h3>
+            <p class="text-sm/6 text-muted-foreground mb-2">{{ guidedAction.instruction }}</p>
+            <p class="text-xs text-muted-foreground">
+              {{ guidedAction.actor_label }} • {{ guidedAction.justification }}
+            </p>
+            <div class="flex flex-wrap gap-2 mt-3">
+              <Button variant="default" size="sm" @click="router.push('/earning')">
+                Ver siguiente acción
+              </Button>
+              <Button variant="outline" size="sm" @click="router.push(guidedAction.guide_url)">
+                Abrir guía del trabajo
+              </Button>
+              <Button v-if="guidedAction.url" variant="outline" size="sm" @click="openExternal(guidedAction.url)">
+                Ir a la plataforma ↗
+              </Button>
+            </div>
+            <div v-if="guidedNext?.alternatives?.length" class="mt-3 border-t border-border pt-3">
+              <p class="text-xs text-muted-foreground mb-1">Otras acciones posibles:</p>
+              <ul class="space-y-1">
+                <li v-for="alt in guidedNext.alternatives" :key="alt.item_id" class="text-xs text-muted-foreground">
+                  · {{ alt.title }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Next Best Action (legacy fallback) -->
+      <section v-else-if="nextAction" class="mb-6 rounded-lg border border-border bg-card p-4 sm:p-6">
         <div class="flex items-start gap-4">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
             <Plus class="w-5 h-5" />
