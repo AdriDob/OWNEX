@@ -48,6 +48,8 @@ class BaseExecutor:
 
     platform: str = "unknown"
     credential_sources: dict[str, str] = {}
+    # provider -> explicit environment variable that carries its secret
+    credential_env: dict[str, str] = {}
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         self.config = config or {}
@@ -87,7 +89,12 @@ class BaseExecutor:
 
         config_key = self.credential_sources.get(provider)
         fallback = self.config.get(config_key) if config_key else None
-        fallback = fallback or env_credential(provider)
+        explicit_env = self.credential_env.get(provider)
+        fallback = (
+            fallback
+            or (os.getenv(explicit_env) if explicit_env else None)
+            or env_credential(provider)
+        )
         if fallback:
             logger.warning(
                 "Using UNscoped %s credential from config/env for project %s — "

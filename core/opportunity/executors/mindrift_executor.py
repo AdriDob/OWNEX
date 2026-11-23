@@ -27,6 +27,8 @@ class MindriftExecutor(BaseExecutor):
     platform = "mindrift"
 
     credential_sources = {"mindrift": "token"}
+    # Legacy variable name: MINDRIFT_EMAIL carries the API token here
+    credential_env = {"mindrift": "MINDRIFT_EMAIL"}
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(config)
