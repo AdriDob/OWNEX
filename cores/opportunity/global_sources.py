@@ -3205,6 +3205,7 @@ AI_TRAINING_SOURCES: list[SourceDefinition] = [
         "profile_only",
         quality_score=0.85,
         requires_experience=False,
+        requires_interview=True,  # AI interview + technical screening in funnel — not interview-free
         requires_assessment=True,
         typical_hourly_rate_usd=25.0,  # low bound of documented $25-53/h skilled
         time_to_first_work_hours=3.0,  # AI interview + technical screening
