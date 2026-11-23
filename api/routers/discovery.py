@@ -54,6 +54,7 @@ def list_source_candidates(limit: int = Query(100, ge=1, le=500)):
     return {
         "candidates": [item.to_dict() for item in candidates],
         "total": len(candidates),
+        "quarantined": registry.quarantined,
         "enabled_feeds": ["github_topic_search"],
         "unsupported_feeds": ["mcp_registries", "agent_bounty_feed", "ard_registries", "x402_facilitators"],
     }

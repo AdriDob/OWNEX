@@ -38,7 +38,7 @@ def test_probe_openapi_builds_read_only_descriptor(public_hosts):
     }
     adapter = UniversalSourceAdapter(transport=_transport({"/openapi.json": (200, "application/json", json.dumps(spec))}))
 
-    profile = adapter.probe("https://source.example")
+    profile = adapter.probe("https://open-bounties.io")
     descriptor = adapter.generate_adapter(profile)
 
     assert profile.adapter_type == "openapi"
@@ -60,7 +60,7 @@ def test_probe_openapi_builds_read_only_descriptor(public_hosts):
 def test_probe_falls_through_to_supported_metadata(public_hosts, path, content, kind):
     adapter = UniversalSourceAdapter(transport=_transport({path: (200, "application/json", content)}))
 
-    profile = adapter.probe("https://source.example")
+    profile = adapter.probe("https://open-bounties.io")
 
     assert profile.adapter_type == kind
     assert profile.document_url.endswith(path)
@@ -71,7 +71,7 @@ def test_probe_rejects_malformed_openapi_and_continues(public_hosts):
         transport=_transport({"/openapi.json": (200, "application/json", "[]"), "/skill.md": (200, "text/markdown", "# API\nPOST /tasks")})
     )
 
-    profile = adapter.probe("https://source.example")
+    profile = adapter.probe("https://open-bounties.io")
 
     assert profile.adapter_type == "skill_md"
 
@@ -79,7 +79,7 @@ def test_probe_rejects_malformed_openapi_and_continues(public_hosts):
 def test_probe_rejects_unrecognized_json_manifests(public_hosts):
     adapter = UniversalSourceAdapter(transport=_transport({"/ai-catalog.json": (200, "application/json", json.dumps({"random": "data"}))}))
 
-    profile = adapter.probe("https://source.example")
+    profile = adapter.probe("https://open-bounties.io")
 
     assert profile.adapter_type == "unknown"
 
@@ -87,7 +87,7 @@ def test_probe_rejects_unrecognized_json_manifests(public_hosts):
 def test_probe_does_not_follow_redirects(public_hosts):
     adapter = UniversalSourceAdapter(transport=_transport({"/openapi.json": (302, "text/plain", "redirect")}))
 
-    profile = adapter.probe("https://source.example")
+    profile = adapter.probe("https://open-bounties.io")
 
     assert profile.adapter_type == "unknown"
     assert any(row["result"] == "http_302" for row in profile.evidence)
@@ -101,7 +101,7 @@ def test_probe_rejects_local_and_non_https_urls():
 
 
 def test_normalize_does_not_infer_reward_or_eligibility():
-    profile = SourceProfile(source_url="https://source.example", adapter_type="openapi")
+    profile = SourceProfile(source_url="https://open-bounties.io", adapter_type="openapi")
 
     normalized = UniversalSourceAdapter.normalize(
         {"id": "42", "title": "Fix parser", "description": "Issue body", "reward": 900}, source_id="abc", profile=profile
@@ -122,7 +122,7 @@ def test_normalize_requires_explicit_task_fields():
 def test_registry_probe_verification_and_activation_require_human_evidence(tmp_path, public_hosts):
     path = tmp_path / "candidates.json"
     registry = SourceDiscoveryRegistry(path)
-    candidate = registry.add("Work source", "https://source.example", "fixture")
+    candidate = registry.add("Work source", "https://open-bounties.io", "fixture")
     profile = SourceProfile(source_url=candidate.source_url, adapter_type="openapi")
     registry.set_profile(candidate.id, profile)
 
@@ -144,7 +144,7 @@ def test_registry_probe_verification_and_activation_require_human_evidence(tmp_p
 
 def test_lifecycle_decay_and_deactivation_use_last_payout(tmp_path, public_hosts):
     registry = SourceDiscoveryRegistry(tmp_path / "candidates.json")
-    item = registry.add("Work source", "https://source.example", "fixture")
+    item = registry.add("Work source", "https://open-bounties.io", "fixture")
     registry.set_profile(item.id, SourceProfile(item.source_url, adapter_type="openapi"))
     registry.mark_verified(item.id, {"honeypot_pass": "review", "funding_verified": "escrow", "eligibility_verified": "terms"})
     active = registry.activate(item.id, approval_note="approved")
@@ -158,7 +158,7 @@ def test_lifecycle_decay_and_deactivation_use_last_payout(tmp_path, public_hosts
 
 def test_verified_payout_evidence_reactivates_source(tmp_path, public_hosts):
     registry = SourceDiscoveryRegistry(tmp_path / "candidates.json")
-    item = registry.add("Work source", "https://source.example", "fixture")
+    item = registry.add("Work source", "https://open-bounties.io", "fixture")
     registry.set_profile(item.id, SourceProfile(item.source_url, adapter_type="openapi"))
     registry.mark_verified(item.id, {"honeypot_pass": "review", "funding_verified": "escrow", "eligibility_verified": "terms"})
     active = registry.activate(item.id, approval_note="approved")
@@ -300,3 +300,172 @@ def test_source_discovery_api_routes_are_mounted():
     assert "/api/discovery/sources/{source_id}/probe" in paths
     assert "/api/discovery/sources/{source_id}/verify" in paths
     assert "/api/discovery/sources/{source_id}/activate" in paths
+
+
+# ---------------------------------------------------------------------------
+# Placeholder/test records must never reach discovery, projections, or ranking
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.com",
+        "https://example.net",
+        "https://example.org",
+        "https://example1.com",
+        "https://example12.com",
+        "https://example-3.com",
+        "https://example-1.com/feed",
+        "https://source.example",
+        "https://anything.test",
+        "https://host.invalid",
+        "https://www.github.com",
+        "https://github.com",
+        "https://github.com/",
+    ],
+)
+def test_placeholder_urls_are_recognised(url):
+    from core.opportunity.source_discovery import _is_placeholder_source_url
+
+    assert _is_placeholder_source_url(url) is True
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/TencentCloudBase/awesome-cloudbase-examples",
+        "https://github.com/alexdlaird/java-ngrok-example-spring",
+        "https://superteam.fun",
+        "https://exampleshop.com",
+        "https://app.examplefactory.io/bounties",
+    ],
+)
+def test_real_urls_are_not_flagged_as_placeholder(url):
+    from core.opportunity.source_discovery import _is_placeholder_source_url
+
+    assert _is_placeholder_source_url(url) is False
+
+
+def test_new_placeholder_candidate_is_rejected(tmp_path):
+    """A fixture URL cannot be registered, so it never enters the pipeline."""
+    registry = SourceDiscoveryRegistry(tmp_path / "candidates.json")
+
+    with pytest.raises(ValueError, match="Placeholder"):
+        registry.add("Source 1", "https://example1.com", "discoverer 1")
+
+    assert registry.list(limit=100) == []
+
+
+def test_legacy_placeholder_records_are_quarantined_on_load(tmp_path):
+    """Records already written by past test runs stay out of the registry."""
+    path = tmp_path / "candidates.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "candidates": [
+                    {
+                        "id": "test01",
+                        "name": "Source 1",
+                        "source_url": "https://example1.com",
+                        "discovered_by": "discoverer 1",
+                        "record_type": "source",
+                        "lifecycle": "DISCOVERED",
+                    },
+                    {
+                        "id": "test02",
+                        "name": "Test Source",
+                        "source_url": "https://www.github.com",
+                        "discovered_by": "test_discoverer",
+                        "record_type": "source",
+                        "lifecycle": "DISCOVERED",
+                    },
+                    {
+                        "id": "real01",
+                        "name": "real/repo",
+                        "source_url": "https://github.com/real/repo",
+                        "discovered_by": "github_topic_search",
+                        "record_type": "source",
+                        "lifecycle": "DISCOVERED",
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    registry = SourceDiscoveryRegistry(path)
+
+    assert registry.quarantined == 2
+    listed = registry.list(limit=100)
+    assert [item.id for item in listed] == ["real01"]
+    assert all("example" not in item.source_url for item in listed)
+
+
+def test_quarantined_records_stay_on_disk(tmp_path):
+    """Isolation must not destroy data: the file is left byte-identical."""
+    path = tmp_path / "candidates.json"
+    payload = {
+        "schema_version": 1,
+        "candidates": [
+            {
+                "id": "test01",
+                "name": "Source 1",
+                "source_url": "https://example1.com",
+                "discovered_by": "discoverer 1",
+                "record_type": "source",
+                "lifecycle": "DISCOVERED",
+            }
+        ],
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    before = path.read_bytes()
+
+    registry = SourceDiscoveryRegistry(path)
+
+    assert registry.quarantined == 1
+    assert registry.list(limit=100) == []
+    assert path.read_bytes() == before
+
+
+def test_quarantined_records_never_reach_workbank_ranking(tmp_path):
+    """The ranking bridge only sees non-placeholder opportunities."""
+    from core.opportunity.discovery_to_workbank import integrate_meta_discovery_into_workbank
+
+    path = tmp_path / "candidates.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "candidates": [
+                    {
+                        "id": "fakeopp",
+                        "name": "Fake Bounty",
+                        "source_url": "https://example-2.com/program",
+                        "discovered_by": "discoverer 2",
+                        "record_type": "opportunity",
+                        "lifecycle": "DISCOVERED",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    registry = SourceDiscoveryRegistry(path)
+    result = integrate_meta_discovery_into_workbank(registry=registry)
+
+    assert result["total_considered"] == 0
+    assert result["opportunity_candidates_considered"] == 0
+    assert result["new_opportunities"] == []
+
+
+def test_registry_keeps_real_candidates_untouched(tmp_path, public_hosts):
+    registry = SourceDiscoveryRegistry(tmp_path / "candidates.json")
+    real = registry.add("real/repo", "https://github.com/real/repo", "github_topic_search")
+
+    reloaded = SourceDiscoveryRegistry(tmp_path / "candidates.json")
+
+    assert reloaded.quarantined == 0
+    assert reloaded.get(real.id) is not None

@@ -160,6 +160,45 @@ def _state_path() -> Path:
     return root / "source_discovery" / "candidates.json"
 
 
+# Hosts reserved by RFC 2606/6761. They can never serve a real work source, so a
+# candidate pointing at one is placeholder/fixture data, not a discovery.
+_RESERVED_HOSTS = frozenset({"example.com", "example.net", "example.org", "example.edu", "localhost"})
+
+_RESERVED_HOST_SUFFIXES = (".test", ".example", ".invalid", ".localhost")
+
+# Fixture hosts built by appending an index to a reserved name: example1.com,
+# example-3.com. Anchored so a real host such as exampleshop.com stays valid.
+_PLACEHOLDER_HOST_PATTERN = re.compile(r"^example[-_]?\d+\.(?:com|net|org)$")
+
+# A code host's site root names no repository, so it is not a specific source.
+_CODE_HOST_ROOTS = frozenset({"github.com", "www.github.com", "gitlab.com", "www.gitlab.com", "bitbucket.org"})
+
+
+def _is_placeholder_source_url(url: str) -> bool:
+    """True for fixture, reserved, or site-root URLs that name no real source.
+
+    Fixtures and example scripts write placeholder records into the shared
+    registry. Those records must never reach discovery, projections, or the
+    opportunity ranking, so ingestion and loading both treat them as invalid.
+    """
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return True
+
+    host = (parsed.hostname or "").rstrip(".").lower()
+    if not host:
+        return True
+
+    if host in _RESERVED_HOSTS or host.endswith(_RESERVED_HOST_SUFFIXES):
+        return True
+
+    if _PLACEHOLDER_HOST_PATTERN.match(host):
+        return True
+
+    return host in _CODE_HOST_ROOTS and not parsed.path.strip("/")
+
+
 def _validate_public_url(url: str) -> str:
     """Reject non-HTTPS, local, private, link-local, and non-public targets."""
 
@@ -170,6 +209,9 @@ def _validate_public_url(url: str) -> str:
 
     if parsed.port not in (None, 443):
         raise ValueError("Source URL must use the default HTTPS port")
+
+    if _is_placeholder_source_url(url):
+        raise ValueError("Placeholder or reserved source URLs are not allowed")
 
     host = parsed.hostname.rstrip(".").lower()
 
@@ -482,6 +524,10 @@ class SourceDiscoveryRegistry:
 
         self._candidates: dict[str, SourceCandidate] = {}
 
+        # Records withheld from the registry because they point at fixture or
+        # reserved URLs. They stay on disk untouched; they are only never served.
+        self.quarantined = 0
+
         self._load()
 
     def _load(self) -> None:
@@ -493,12 +539,23 @@ class SourceDiscoveryRegistry:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
 
             for row in raw.get("candidates", []):
+                if _is_placeholder_source_url(str(row.get("source_url") or "")):
+                    self.quarantined += 1
+                    continue
+
                 candidate = SourceCandidate(**{**row, "lifecycle": SourceLifecycle(row.get("lifecycle", "DISCOVERED"))})
 
                 self._candidates[candidate.id] = candidate
 
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
             logger.warning("Source discovery state could not be loaded: %s", exc)
+
+        if self.quarantined:
+            logger.info(
+                "Quarantined %d placeholder source candidates (fixture/reserved URLs): excluded from discovery and ranking",
+                self.quarantined,
+            )
+
         self._evict_excess()
 
     def _save(self) -> None:
