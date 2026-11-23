@@ -66,6 +66,9 @@ SOURCE_CATEGORY_MAP: dict[str, ValueCategory] = {
 
 EVENT_CATEGORY_MAP: dict[LedgerEvent, str] = {
     LedgerEvent.PAYOUT_RECEIVED: "verified_real",
+    # WITHDRAWAL_COMPLETED stays mapped here, but TruthLayer.get_state
+    # downgrades it to PENDING unless the entry carries evidence
+    # (tx_hash/proof + valid confirmation) — see _withdrawal_has_evidence.
     LedgerEvent.WITHDRAWAL_COMPLETED: "verified_real",
     LedgerEvent.BOUNTY_APPROVED: "pending",
     LedgerEvent.BOUNTY_PENDING: "pending",

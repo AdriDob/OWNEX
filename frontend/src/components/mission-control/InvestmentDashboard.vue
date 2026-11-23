@@ -30,8 +30,10 @@ const exposureByStrategy = ref({}) // Exposición por estrategia
 const verifiedStrategies = ref(0) // Strategies con historial verificado
 const tradesWithEvidence = ref(0) // Trades con evidencia documentada
 
-// PROVENANCE
-const provenanceLevel = ref<ProvenanceLevel>('simulated')
+// PROVENANCE — backend ProvenanceLevel vocabulary; UNKNOWN is the honest
+// default when the API does not report a level (never "simulated").
+type InvestmentProvenance = 'EXCHANGE' | 'API' | 'IMPORTED' | 'MANUAL' | 'DERIVED' | 'UNKNOWN'
+const provenanceLevel = ref<InvestmentProvenance>('UNKNOWN')
 const provenanceSource = ref('')
 const provenanceCollectedAt = ref('')
 const provenanceVerifiedAt = ref('')
@@ -51,7 +53,7 @@ async function loadState() {
       availableCapital.value = statsRes.available ?? 0
       projectedReturn.value = statsRes.projected_return ?? 0
       // Also fetch provenance data if available
-      provenanceLevel.value = statsRes.provenance_level ?? 'simulated'
+      provenanceLevel.value = (statsRes.provenance_level as InvestmentProvenance | undefined) ?? 'UNKNOWN'
       provenanceSource.value = statsRes.provenance_source ?? ''
       provenanceCollectedAt.value = statsRes.provenance_collected_at ?? ''
       provenanceVerifiedAt.value = statsRes.provenance_verified_at ?? ''
@@ -225,7 +227,7 @@ watch([totalCapital, deployedCapital], async () => {
           <div class="id-provenance-stats">
             <div class="id-provenance-item">
               <span class="id-provenance-label">Nivel</span>
-              <span class="id-provenance-value" :class="{ 'id-provenance-simulated': provenanceLevel === 'simulated', 'id-provenance-user': provenanceLevel === 'user_declared', 'id-provenance-documented': provenanceLevel === 'documented', 'id-provenance-api': provenanceLevel === 'api_reported', 'id-provenance-verified': provenanceLevel === 'externally_verified' }">{{ provenanceLevel }}</span>
+              <span class="id-provenance-value" :class="{ 'id-provenance-unknown': provenanceLevel === 'UNKNOWN' }">{{ provenanceLevel }}</span>
             </div>
             <div class="id-provenance-item">
               <span class="id-provenance-label">Fuente</span>
@@ -253,7 +255,7 @@ watch([totalCapital, deployedCapital], async () => {
             </div>
           </div>
           <p class="id-provenance-note">
-            Nivel de procedencia del dato. SIMULATED = dato simulado/estimado. USER_DECLARED = declarado por el usuario. DOCUMENTED = respaldado por documentación. API_REPORTED = informado por API. EXTERNALLY_VERIFIED = verificado externamente con evidencia.
+            Nivel de procedencia del dato (débil → fuerte): UNKNOWN = sin evidencia suficiente. DERIVED = calculado desde otros datos. MANUAL = ingresado a mano. IMPORTED = importado. API = reportado por API del exchange. EXCHANGE = verificado contra fills del exchange.
           </p>
         </div>
       </div>

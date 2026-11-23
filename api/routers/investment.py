@@ -227,7 +227,13 @@ async def get_investment_status() -> dict[str, Any]:
     """Get investment system status."""
     manager = get_investment_manager()
     status = manager.get_status()
-    return {"success": True, "status": status}
+    provenance = manager.metrics.data_provenance()
+    return {
+        "success": True,
+        "status": status,
+        "provenance_level": provenance["level"],
+        "provenance_trades": provenance["trades"],
+    }
 
 
 @router.get("/metrics")
@@ -452,7 +458,7 @@ def _order_gate(provider: str) -> None:
     from cores.connections import permissions
 
     manager = get_investment_manager()
-    if manager.is_paused():
+    if manager.is_paused:
         raise HTTPException(status_code=409, detail="Investment system paused — orders blocked")
     try:
         permissions.require(provider, permissions.Capability.LIVE_ORDER)

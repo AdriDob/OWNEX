@@ -25,6 +25,17 @@ _LEG_UNHEDGED = "LEG_UNHEDGED"
 _PROVISIONAL_NET = frozenset({"INCOMPLETE", "PARTIAL", "UNKNOWN"})
 
 
+def _declared_provenance(metadata: dict[str, Any]):
+    """Provenance a producer explicitly declared, else UNKNOWN — never inferred."""
+    from core.investment.models import ProvenanceLevel
+
+    declared = str(metadata.get("provenance_level") or "").upper()
+    try:
+        return ProvenanceLevel(declared)
+    except ValueError:
+        return ProvenanceLevel.UNKNOWN
+
+
 def _data_dir() -> Path:
     return Path.home() / ".orion" / "investment"
 
@@ -159,6 +170,7 @@ class InvestmentMetrics:
                     net_pnl=pnl if completeness == "COMPLETE" and pnl is not None else None,
                     net_pnl_calc=float(pnl) if completeness == "COMPLETE" and pnl is not None else 0.0,
                     net_pnl_completeness=completeness,
+                    provenance_level=_declared_provenance(metadata),
                     exchange=str(metadata.get("exchange") or ""),
                     account_id=str(metadata.get("account_id") or ""),
                     asset=str(metadata.get("asset") or ""),
@@ -166,6 +178,20 @@ class InvestmentMetrics:
                 )
             )
         return evidence
+
+    def data_provenance(self) -> dict[str, Any]:
+        """Provenance of the recorded figures, conservative (weakest link).
+
+        Reports the weakest ProvenanceLevel present across trade evidence so a
+        dashboard never presents manually-entered or derived numbers as
+        exchange-verified. No trades → UNKNOWN, never a guessed level.
+        """
+        strength = {"EXCHANGE": 5, "API": 4, "IMPORTED": 3, "MANUAL": 2, "DERIVED": 1, "UNKNOWN": 0}
+        levels = [t.provenance_level.value for t in self.trade_evidence()]
+        if not levels:
+            return {"level": "UNKNOWN", "trades": 0}
+        weakest = min(levels, key=lambda lv: strength.get(lv, 0))
+        return {"level": weakest, "trades": len(levels)}
 
     def strategy_attribution(self) -> list[dict[str, Any]]:
         """Per-strategy attribution from the recorded history."""

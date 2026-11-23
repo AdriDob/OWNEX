@@ -108,3 +108,56 @@ class TestProvisionalNetExclusion:
         risk = metrics.get_strategy_metrics("s1")
         assert risk.total_trades == 1
         assert risk.incomplete_trades == 0
+
+
+class TestDataProvenance:
+    """No data acquires a veracity category by default."""
+
+    def test_empty_history_is_unknown(self):
+        assert _metrics().data_provenance() == {"level": "UNKNOWN", "trades": 0}
+
+    def test_undeclared_trade_is_unknown(self):
+        metrics = _metrics()
+        metrics.record_trade("s1", "BTC/USDT", "buy", 100.0, 110.0, 1.0, 10.0, 10.0)
+        assert metrics.data_provenance()["level"] == "UNKNOWN"
+
+    def test_weakest_level_wins(self):
+        metrics = _metrics()
+        metrics.record_trade(
+            "s1",
+            "BTC/USDT",
+            "buy",
+            100.0,
+            110.0,
+            1.0,
+            10.0,
+            10.0,
+            metadata={"provenance_level": "EXCHANGE"},
+        )
+        metrics.record_trade(
+            "s1",
+            "ETH/USDT",
+            "buy",
+            100.0,
+            90.0,
+            1.0,
+            -10.0,
+            -10.0,
+            metadata={"provenance_level": "MANUAL"},
+        )
+        assert metrics.data_provenance()["level"] == "MANUAL"
+
+    def test_invalid_declared_level_falls_back_to_unknown(self):
+        metrics = _metrics()
+        metrics.record_trade(
+            "s1",
+            "BTC/USDT",
+            "buy",
+            100.0,
+            110.0,
+            1.0,
+            10.0,
+            10.0,
+            metadata={"provenance_level": "simulated"},
+        )
+        assert metrics.data_provenance()["level"] == "UNKNOWN"
