@@ -873,3 +873,10 @@
 - The current Work Bank has no verified task-progress events or source-to-WorkBank integration for meta-discovered candidates. The UI must state those gaps and must not manufacture claim, acceptance, agent, or payout state.
 - Confirming a submission records only `delivered`; acceptance and earnings learning require separate evidence. Local preparation remains non-submitting.
 - Add Codex CLI as an optional provider in the existing AI provider catalog and OAR registry, using ChatGPT CLI auth, a minimal environment, `--ephemeral` and a read-only sandbox. Do not use an OpenAI API key or allow the chat provider to modify the repository. Plan limits and per-call cost remain unknown; Windows/native runtime verification is pending.
+
+## 2026-11-23 — Principio rector: OWNEX siempre orienta la acción
+
+- **Directiva del usuario (rectora, no opcional)**: OWNEX no se limita a mostrar datos; debe ayudar al usuario a responder en cada pantalla: ¿Cuál es mi situación? ¿Qué me conviene hacer? ¿Por qué? ¿Cómo lo hago? ¿Qué resultado obtuve y qué sigue?
+- Aplica de forma consistente a EARN, INVEST, MANAGE, WORKERS y FACTORY. La inteligencia de orientación reutiliza los motores, datos, APIs y servicios existentes — está prohibido crear chatbots o asistentes paralelos por módulo.
+- Reglas universales de UX: acción recomendada primero; instrucciones paso a paso en lenguaje accesible; automatización asistida del trabajo técnico repetitivo; justificación visible con fuentes; costos/beneficios/riesgos sin inventar certezas; estado y siguiente paso explícitos; control humano antes de publicar/invertir/transferir/acciones irreversibles; accesibilidad progresiva (guiado para principiantes, detalle técnico para avanzados).
+- Criterio de aceptación: una pantalla no está terminada por mostrar datos correctos — debe permitir decidir y actuar. Todo desarrollo futuro (frontend, backend, agentes, workers, inversión, gestión) se evalúa contra este principio.
