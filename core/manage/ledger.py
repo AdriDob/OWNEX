@@ -39,6 +39,34 @@ class IncomeType(enum.Enum):
     RECURRING = "recurring"
 
 
+class ContractStatus(enum.Enum):
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class RecurringContract(Base):
+    """A recurring revenue agreement. MRR is computed from ACTIVE contracts,
+    never from accumulated payment events — payments are evidence of collection,
+    the contract is the revenue stream."""
+
+    __tablename__ = "recurring_contracts"
+
+    id = Column(String, primary_key=True)
+    client_ref = Column(String, index=True)  # external client/contract identifier
+    source_type = Column(SQLEnum(RevenueSource), nullable=False)
+    amount = Column(Float, nullable=False)  # amount per recurrence_period
+    currency = Column(String, default="USD")
+    recurrence_period = Column(String, nullable=False)  # weekly|biweekly|monthly|quarterly|semiannual|yearly
+    status = Column(SQLEnum(ContractStatus, native_enum=False), default=ContractStatus.ACTIVE)
+    started_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    ends_at = Column(DateTime, nullable=True)
+    cancelled_at = Column(DateTime, nullable=True)
+    evidence_url = Column(String, nullable=True)  # contract signature / first payment proof
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC))
+
+
 # Normalization factors to monthly equivalents for recurring revenue.
 _PERIOD_TO_MONTHLY = {
     "weekly": 52 / 12,
@@ -62,6 +90,7 @@ class RevenueRecord(Base):
     income_type = Column(SQLEnum(IncomeType, native_enum=False), default=IncomeType.ONE_TIME)
     recurrence_period = Column(String, nullable=True)  # "monthly", "yearly", ... (RECURRING only)
     contract_ref = Column(String, nullable=True)  # client/contract identifier for recurring streams
+    contract_id = Column(String, nullable=True, index=True)  # link to recurring_contracts.id
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(DateTime, default=lambda: datetime.now(UTC))
     evidence_url = Column(String, nullable=True)  # Screenshot or transaction ID
@@ -77,6 +106,7 @@ def _ensure_columns() -> None:
         ("income_type", "VARCHAR(20)"),
         ("recurrence_period", "VARCHAR(20)"),
         ("contract_ref", "VARCHAR(255)"),
+        ("contract_id", "VARCHAR(36)"),
     ]
     session = SessionLocal()
     try:
@@ -122,6 +152,7 @@ class RevenueLedger:
         income_type: IncomeType = IncomeType.ONE_TIME,
         recurrence_period: str | None = None,
         contract_ref: str | None = None,
+        contract_id: str | None = None,
     ) -> str:
         """Register a new revenue event."""
         session = self.session_factory()
@@ -138,6 +169,7 @@ class RevenueLedger:
                 income_type=income_type,
                 recurrence_period=recurrence_period if income_type == IncomeType.RECURRING else None,
                 contract_ref=contract_ref,
+                contract_id=contract_id,
             )
             session.add(record)
             session.commit()
@@ -145,17 +177,120 @@ class RevenueLedger:
         finally:
             session.close()
 
-    def mark_as_received(self, record_id: str) -> bool:
-        """Confirm the money has actually hit the account."""
+    def mark_as_received(self, record_id: str, evidence: str | None = None) -> bool:
+        """Confirm the money has actually hit the account.
+
+        Requires evidence: a payment cannot become RECEIVED (verified income)
+        without a transaction reference, receipt, or explicit confirmation.
+        """
         session = self.session_factory()
         try:
             record = session.query(RevenueRecord).filter(RevenueRecord.id == record_id).first()
-            if record:
-                record.status = PaymentStatus.RECEIVED
-                record.updated_at = datetime.now(UTC)
-                session.commit()
-                return True
-            return False
+            if not record:
+                return False
+            proof = evidence or record.evidence_url
+            if not proof:
+                logger.warning("Refusing RECEIVED without evidence for record %s", record_id)
+                return False
+            record.status = PaymentStatus.RECEIVED
+            if evidence:
+                record.evidence_url = evidence
+            record.updated_at = datetime.now(UTC)
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    # ── Recurring contracts (MRR source of truth) ──────────────────
+
+    def create_contract(
+        self,
+        client_ref: str,
+        source_type: RevenueSource,
+        amount: float,
+        recurrence_period: str,
+        currency: str = "USD",
+        evidence: str | None = None,
+        ends_at: datetime | None = None,
+    ) -> str:
+        """Register a recurring revenue contract. Does NOT create revenue —
+        only ACTIVE contracts feed MRR, and only RECEIVED payments are income."""
+        session = self.session_factory()
+        try:
+            contract_id = str(uuid4())
+            contract = RecurringContract(
+                id=contract_id,
+                client_ref=client_ref,
+                source_type=source_type,
+                amount=amount,
+                currency=currency,
+                recurrence_period=recurrence_period.lower(),
+                evidence_url=evidence,
+                ends_at=ends_at,
+            )
+            session.add(contract)
+            session.commit()
+            return contract_id
+        finally:
+            session.close()
+
+    def cancel_contract(self, contract_id: str) -> bool:
+        """Mark a contract cancelled — it stops contributing to MRR immediately."""
+        session = self.session_factory()
+        try:
+            contract = session.query(RecurringContract).filter(RecurringContract.id == contract_id).first()
+            if not contract or contract.status != ContractStatus.ACTIVE:
+                return False
+            contract.status = ContractStatus.CANCELLED
+            contract.cancelled_at = datetime.now(UTC)
+            contract.updated_at = datetime.now(UTC)
+            session.commit()
+            return True
+        finally:
+            session.close()
+
+    def record_contract_payment(
+        self,
+        contract_id: str,
+        evidence: str,
+        amount: float | None = None,
+    ) -> str | None:
+        """Record a collected payment against an ACTIVE contract.
+
+        Returns the RevenueRecord id, or None if the contract is not active.
+        Multiple payments on the same contract never duplicate MRR — MRR comes
+        from the contract, not from payment events.
+        """
+        session = self.session_factory()
+        try:
+            contract = session.query(RecurringContract).filter(RecurringContract.id == contract_id).first()
+            if not contract or contract.status != ContractStatus.ACTIVE:
+                return None
+            record_id = str(uuid4())
+            session.add(
+                RevenueRecord(
+                    id=record_id,
+                    source_id=contract.client_ref,
+                    source_type=contract.source_type,
+                    amount=amount if amount is not None else contract.amount,
+                    currency=contract.currency,
+                    status=PaymentStatus.RECEIVED,
+                    evidence_url=evidence,
+                    income_type=IncomeType.RECURRING,
+                    recurrence_period=contract.recurrence_period,
+                    contract_ref=contract.client_ref,
+                    contract_id=contract.id,
+                )
+            )
+            session.commit()
+            return record_id
+        finally:
+            session.close()
+
+    def get_active_contracts(self) -> list[RecurringContract]:
+        session = self.session_factory()
+        try:
+            return session.query(RecurringContract).filter(RecurringContract.status == ContractStatus.ACTIVE).all()
         finally:
             session.close()
 
@@ -169,27 +304,20 @@ class RevenueLedger:
             session.close()
 
     def get_mrr(self) -> float:
-        """Monthly Recurring Revenue: RECEIVED recurring records normalized to monthly USD.
+        """Monthly Recurring Revenue from ACTIVE contracts, normalized to USD/month.
 
-        Only RECEIVED records count — signed contracts or billed invoices do not.
-        Records with an unknown recurrence period are excluded from MRR.
+        MRR measures the recurring revenue *stream* (active contracts), not
+        accumulated payment events — three monthly payments on one contract
+        still count once. Cancelled/expired contracts contribute zero.
+        Only USD contracts are included (no FX conversion).
         """
-        session = self.session_factory()
-        try:
-            records = (
-                session.query(RevenueRecord.amount, RevenueRecord.recurrence_period, RevenueRecord.currency)
-                .filter(RevenueRecord.status == PaymentStatus.RECEIVED, RevenueRecord.income_type == IncomeType.RECURRING)
-                .all()
-            )
-        finally:
-            session.close()
         total = 0.0
-        for amount, period, currency in records:
-            if currency != "USD":
-                continue  # MRR reported in USD only; FX conversion out of scope
-            factor = _PERIOD_TO_MONTHLY.get((period or "").lower())
+        for contract in self.get_active_contracts():
+            if contract.currency != "USD":
+                continue
+            factor = _PERIOD_TO_MONTHLY.get((contract.recurrence_period or "").lower())
             if factor is not None:
-                total += amount * factor
+                total += contract.amount * factor
         return round(total, 2)
 
     def get_income_breakdown(self) -> dict[str, float]:
