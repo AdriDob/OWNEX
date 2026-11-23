@@ -292,6 +292,23 @@ class FinancialState:
         }
 
 
+_WITHDRAWAL_VERIFIED_CONFIRMATIONS = {
+    "api_verified",
+    "reorg_safe",
+    "reconciliation",
+    "manual_proof",
+}
+
+
+def _withdrawal_has_evidence(entry) -> bool:
+    """True only when the ledger entry carries verifiable withdrawal proof."""
+    meta = getattr(entry, "metadata", None) or {}
+    confirmation = str(meta.get("confirmation", ""))
+    if confirmation not in _WITHDRAWAL_VERIFIED_CONFIRMATIONS:
+        return False
+    return bool(meta.get("tx_hash")) or bool(meta.get("has_proof"))
+
+
 # ── Truth Layer ──────────────────────────────────────────────────────
 
 
@@ -315,6 +332,10 @@ class TruthLayer:
 
         for e in entries:
             cat = classify_value(e.source, e.event)
+            if e.event == LedgerEvent.WITHDRAWAL_COMPLETED and not _withdrawal_has_evidence(e):
+                # A completed withdrawal without tx_hash/proof must not count
+                # as verified money — downgrade to pending until evidenced.
+                cat = ValueCategory.PENDING
             conf = confidence_from_source(e.source)
             amount = abs(e.amount)
             platform = e.platform

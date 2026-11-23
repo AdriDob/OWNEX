@@ -44,7 +44,9 @@ class ComputerUseRequest(BaseModel):
     vision_provider: str = "ollama"  # "ollama" | "openai_compatible"
     api_url: str = ""
     api_key: str = ""
-    dry_run: bool = False
+    # Desktop control is destructive-capable: plan-only unless the caller
+    # explicitly opts into real execution.
+    dry_run: bool = True
 
 
 class IncomeGoalRequest(BaseModel):

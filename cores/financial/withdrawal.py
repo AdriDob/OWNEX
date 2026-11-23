@@ -319,6 +319,21 @@ def complete_withdrawal(
         )
         return None
 
+    # Evidence rule: a withdrawal can only be COMPLETED with verifiable
+    # proof. UNCONFIRMED is never enough, and MANUAL_PROOF requires at
+    # least a tx_hash or an attached proof — otherwise the event would be
+    # classified VERIFIED_REAL without evidence (audit P0).
+    has_evidence = bool(tx_hash) or bool(proof) or bool(w.tx_hash) or bool(w.proof)
+    if confirmation == ConfirmationMethod.UNCONFIRMED or not has_evidence:
+        logger.warning(
+            "Cannot complete %s without evidence (confirmation=%s, tx_hash=%s, proof=%d)",
+            withdrawal_id[:8],
+            confirmation.value,
+            bool(tx_hash or w.tx_hash),
+            len(proof or []) + len(w.proof),
+        )
+        return None
+
     now = datetime.now(UTC).isoformat()
     w.status = WithdrawalStatus.COMPLETED
     w.confirmation = confirmation
@@ -348,6 +363,7 @@ def complete_withdrawal(
             "confirmation": confirmation.value,
             "tx_hash": w.tx_hash,
             "net_amount": w.net_amount,
+            "has_proof": bool(w.proof),
         },
     )
     logger.info("Withdrawal completed: %s — %.2f %s", withdrawal_id[:8], w.amount, w.currency)

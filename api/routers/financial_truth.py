@@ -227,9 +227,14 @@ def confirm_withdrawal(withdrawal_id: str, req: WithdrawalConfirmRequest) -> dic
     proof = []
     if req.proof_type and req.proof_value:
         proof.append(ProofAttachment(type=req.proof_type, value=req.proof_value))
+    if not req.tx_hash and not proof:
+        raise HTTPException(
+            status_code=400,
+            detail="Withdrawal completion requires evidence: tx_hash or proof attachment",
+        )
     w = complete_withdrawal(
         withdrawal_id,
-        confirmation=ConfirmationMethod.MANUAL_PROOF if req.tx_hash else ConfirmationMethod.UNCONFIRMED,
+        confirmation=ConfirmationMethod.MANUAL_PROOF,
         tx_hash=req.tx_hash,
         proof=proof or None,
     )
