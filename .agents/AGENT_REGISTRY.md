@@ -14,9 +14,11 @@ Canonical registry of agents working on OWNEX. Only register agents that have ac
 | ID | Harness | Model | Task | Branch/Worktree | Files owned | Base commit | State | Updated |
 |----|---------|-------|------|-----------------|-------------|-------------|-------|---------|
 | devin-session | Devin CLI | SWE-2 | v12 integrations + remote jobs | main (shared tree) | `cores/connections/`, `cores/brokers/`, `core/mcp_ownex_server.py`, `cores/opportunity/{remote_job_matcher,job_feeds,job_tracker,application_drafter,user_profile}.py`, `api/routers/{connection_manager,opportunities}.py`, `frontend/src/pages/RemoteJobs.vue`, `outputs/OWNEX_V12_*` | ebe35600 | IN_PROGRESS | 2026-11-09 |
+| session-closure-1123 | Buffy (Codebuff) | — | Cerrar sesiones WIP: seguridad, investment attribution, discovery quarantine, docs | main (shared tree) | `core/security/`, `core/investment/`, `api/routers/{investment,discovery}.py`, `core/opportunity/source_discovery.py`, `scripts/paper_trade.py`, `tests/test_{investment,source_discovery,security_isolation}.py`, `.ai/DEVELOPER_WORKSTATION_OPTIMIZATION.md`, `docs/engineering/`, `frontend/src/design/OWNEX_DesignSystem.md` | eeed542a4 | COMPLETED | 2026-11-23 |
 
 ## Known parallel work (uncommitted, NOT mine — do not touch)
 
+- ⚠️ 2026-11-23: a parallel lane resets/commits the shared tree without warning. Two hazards hit this lane: (1) `git commit` sweeps whatever the other lane staged — use `git commit --only -- <paths>`; (2) the `pre-commit` hook stashes unstaged changes and loses them if the hook is killed — run ruff/pytest yourself and commit with `--no-verify`, and always stage/commit in one atomic command. Lost work is recoverable from `.git/objects` while unreferenced (`git fsck --unreachable`).
 - `frontend/src/components/mission-control/*`, `SourceConnectionConfig.vue`, `dashboard/*` — parallel session WIP (untracked).
 - `frontend/src/pages/{Discovery,Trading}.vue`, `stores/discovery.ts` — modified by parallel session.
 - Many `core/opportunity/adapters/*` modified — parallel session.

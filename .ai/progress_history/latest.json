@@ -1,8 +1,8 @@
 {
   "schema": 3,
-  "ts": "2026-11-23T03:46:15.082626+00:00",
-  "commit": "5a31a8881",
-  "product_completeness": 53.5,
+  "ts": "2026-11-23T04:37:13.187743+00:00",
+  "commit": "7fe39ee5f",
+  "product_completeness": 53.4,
   "operational_readiness": 0.0,
   "revenue_pipeline_progress": 28.7,
   "revenue_validation": 28.7,
@@ -25,9 +25,9 @@
       "regression_justified": false
     },
     "Discovery pipeline (fetchers\u2192LiveStore\u2192eligibility)": {
-      "pct": 85,
+      "pct": 86,
       "state": "VERIFIED",
-      "evidence": "619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`)",
+      "evidence": "619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`); fuentes placeholder (RFC 2606/6761) en cuarentena y reportadas como `quarantined` (`04efdff36`, 208 tests focalizados)",
       "regression_justified": false
     },
     "Scoring / EV model": {
@@ -90,6 +90,12 @@
       "evidence": "`core/security/sanitization.py` en `_to_live` (`eb17cff1d`)",
       "regression_justified": false
     },
+    "Security isolation (sandbox + credential broker)": {
+      "pct": 40,
+      "state": "TESTED",
+      "evidence": "`core/security/{sandbox,credential_broker}.py` consolidados en el \u00e1rbol can\u00f3nico, duplicado `cores/security/` eliminado; 17 tests (`d7188cc24`)",
+      "regression_justified": false
+    },
     "Frontend / productization": {
       "pct": 45,
       "state": "TESTED",
@@ -115,9 +121,9 @@
       "regression_justified": false
     },
     "Investment Hub": {
-      "pct": 50,
-      "state": "UNKNOWN",
-      "evidence": "Sesi\u00f3n paralela activa (no auditado por este lane)",
+      "pct": 60,
+      "state": "TESTED",
+      "evidence": "Strategy attribution (`TradeGroupMetrics`), `LEG_UNHEDGED` para patas sin fill, `net_pnl_completeness`+currency en `record_trade`, `strategy_attribution` en `/api/investment/metrics`, `GlobalArbitrageAdapter` + CLI paper-trade (`0c4162137`); 208 tests focalizados",
       "regression_justified": false
     }
   },

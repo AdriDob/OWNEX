@@ -13,7 +13,7 @@
 | Módulo | % | Estado | Evidencia | Bloqueo | Próxima acción |
 |--------|---|--------|-----------|---------|----------------|
 | Source Intelligence (catálogo 1000 + L1-L5) | 70 | IMPLEMENTED | `assess_integration`: 68 L2 / 932 L1 / 0 L3+ (commit `92f3605af`) | L3+ requiere cuentas del owner | Subir fuentes L1→L2 con fetchers agregadores |
-| Discovery pipeline (fetchers→LiveStore→eligibility) | 85 | VERIFIED | 619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`) | — | Mantener scans; monitorear freshness |
+| Discovery pipeline (fetchers→LiveStore→eligibility) | 86 | VERIFIED | 619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`); fuentes placeholder (RFC 2606/6761) en cuarentena y reportadas como `quarantined` (`04efdff36`, 208 tests focalizados) | — | Mantener scans; monitorear freshness |
 | Scoring / EV model | 75 | VERIFIED | AI-cost neto, budget $25, track-record, freshness, funding tri-state (`5ae053d59`,`eb17cff1d`) | P(éxito) formal pendiente | Calibrar pesos con outcomes reales |
 | Work Bank / priorización | 80 | VERIFIED | 502 items, daily_cycle real, 369 ready_to_deliver post-repair | Ready ≠ ejecutable (ver Factory) | Separar "programa security" vs "task entregable" en ranking |
 | Revenue Ledger / finanzas | 70 | IMPLEMENTED | `record_amount` con evidencia obligatoria para `paid`; `progress.py::verified_revenue` solo cuenta `paid`+evidence (9 tests) | 0 payouts reales aún; 2 items `state=paid` sin evidencia flaggeados | Registrar primer `paid` con evidencia |
@@ -24,11 +24,12 @@
 | Delivery / submission | 15 | IMPLEMENTED | `TaskmarketExecutor` ruteado en execution_queue driver (`submit_pitch`/`submit_work`/`request_upload_url` gated); `record_approval`/`draft_payment_inquiry` existen | Sin submission real; sin credenciales B6 | Primer pitch Taskmarket tras registro B6 |
 | Security research (CATEYE core) | 50 | IMPLEMENTED | Pipeline hallazgos existe; 365 programas en LiveStore | Cuentas plataformas = humano | Elegir 1 programa + ciclo research |
 | Sanitization / prompt-injection | 60 | VERIFIED | `core/security/sanitization.py` en `_to_live` (`eb17cff1d`) | Cobertura parcial del surface | Extender a otros puntos de entrada agent |
+| Security isolation (sandbox + credential broker) | 40 | TESTED | `core/security/{sandbox,credential_broker}.py` consolidados en el árbol canónico, duplicado `cores/security/` eliminado; 17 tests (`d7188cc24`) | Path Docker solo verificado a nivel args (sin Docker en el entorno); broker sin integrar a workers | Cablear broker a los workers de la Factory |
 | Frontend / productization | 45 | TESTED | App Shell V2.1 (8 secciones, router-view real en ErrorBoundary, tokens.css :root fix); biome clean; 226 vitest pass; `vite build` OK; QA captures `frontend/qa/screenshots{,-auth}` + FRONTEND_RUNBOOK.md (2026-11-23) | Command Center con datos reales pendiente | Iterar Command Center sobre el shell nuevo |
 | Desktop / Tauri | 40 | IMPLEMENTED | Scripts tauri:dev/build existen | Sin build verificado reciente | Build de prueba + runbook |
 | Consolidación core/↔cores/ | 30 | IMPLEMENTED | CANONICAL_COMPONENTS.md existe; bridges temporales | Decisión por dominio pendiente | Auditoría de imports por dominio |
 | Tests / quality gates | 65 | IMPLEMENTED | 1460+ tests focalizados verdes; suite completa rota por WIP paralelo | `test_cex_connector`/`INVESTMENT_GLOBAL` + permissions | Reconciliar WIP paralelo, suite verde |
-| Investment Hub | 50 | UNKNOWN | Sesión paralela activa (no auditado por este lane) | WIP sin commitear | Auditar cuando commitee |
+| Investment Hub | 60 | TESTED | Strategy attribution (`TradeGroupMetrics`), `LEG_UNHEDGED` para patas sin fill, `net_pnl_completeness`+currency en `record_trade`, `strategy_attribution` en `/api/investment/metrics`, `GlobalArbitrageAdapter` + CLI paper-trade (`0c4162137`); 208 tests focalizados | Sin capital real; FX policy (#2) sigue bloqueada | Ejecutar paper-trade con datos live y revisar attribution |
 
 ## Métricas independientes (nunca promediadas)
 
