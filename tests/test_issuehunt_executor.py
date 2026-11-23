@@ -34,12 +34,12 @@ def _mock_response(status: int, json_data: dict | None = None):
 
 @pytest.fixture
 def executor():
-    return IssueHuntExecutor({"token": "test-token", "github_token": "test-gh-token"})
+    return IssueHuntExecutor({"token": "test-token", "github_token": "test-gh-token", "allow_unscoped_credentials": True})
 
 
 @pytest.fixture
 def executor_no_token():
-    return IssueHuntExecutor({"github_token": "test-gh-token"})
+    return IssueHuntExecutor({"github_token": "test-gh-token", "allow_unscoped_credentials": True})
 
 
 class TestIssueHuntExecutorNoToken:

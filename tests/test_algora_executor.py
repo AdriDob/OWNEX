@@ -35,17 +35,17 @@ def _mock_response(status: int, json_data: dict | None = None):
 
 @pytest.fixture
 def executor():
-    return AlgoraExecutor({"token": "test-token", "github_token": "test-gh-token"})
+    return AlgoraExecutor({"token": "test-token", "github_token": "test-gh-token", "allow_unscoped_credentials": True})
 
 
 @pytest.fixture
 def executor_no_token():
-    return AlgoraExecutor({"github_token": "test-gh-token"})
+    return AlgoraExecutor({"github_token": "test-gh-token", "allow_unscoped_credentials": True})
 
 
 @pytest.fixture
 def executor_no_gh_token():
-    return AlgoraExecutor({"token": "test-token"})
+    return AlgoraExecutor({"token": "test-token", "allow_unscoped_credentials": True})
 
 
 class TestAlgoraExecutorNoToken:

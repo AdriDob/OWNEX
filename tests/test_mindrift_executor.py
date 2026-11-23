@@ -32,7 +32,7 @@ def _mock_response(status: int, json_data: dict | None = None):
 
 @pytest.fixture
 def executor():
-    return MindriftExecutor({"token": "test-token", "base_url": "https://api.mindrift.io/v1"})
+    return MindriftExecutor({"token": "test-token", "base_url": "https://api.mindrift.io/v1", "allow_unscoped_credentials": True})
 
 
 @pytest.fixture
@@ -107,21 +107,29 @@ class TestMindriftExecutorHealth:
 
 class TestMindriftClaimTopLevel:
     def test_claim_with_specific_task_id(self):
+        from core.security.credential_broker import AccessLevel, get_credential_broker
+
+        get_credential_broker().assign_project_credentials(
+            "mindrift", ["mindrift"], {"mindrift": "test-token"}, access_level=AccessLevel.EXECUTION
+        )
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.post.return_value = _mock_response(201, {"task_id": "t1"})
-            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com"}):
-                result = asyncio.run(claim("t1"))
-                assert result.success is True
+            result = asyncio.run(claim("t1"))
+            assert result.success is True
 
     def test_claim_finds_first_available(self):
+        from core.security.credential_broker import AccessLevel, get_credential_broker
+
+        get_credential_broker().assign_project_credentials(
+            "mindrift", ["mindrift"], {"mindrift": "test-token"}, access_level=AccessLevel.EXECUTION
+        )
         with patch("httpx.AsyncClient") as mock_http:
             mock_http.return_value = _MockClient()
             mock_http.return_value.get.return_value = _mock_response(200, [{"id": "t1"}, {"id": "t2"}])
             mock_http.return_value.post.return_value = _mock_response(201, {"task_id": "t1"})
-            with patch.dict("os.environ", {"MINDRIFT_EMAIL": "test@test.com"}):
-                result = asyncio.run(claim())
-                assert result.success is True
+            result = asyncio.run(claim())
+            assert result.success is True
 
     def test_claim_no_available_tasks(self):
         with patch("httpx.AsyncClient") as mock_http:

@@ -12,7 +12,7 @@ from core.opportunity.executors.opire_executor import OpireExecutor
 
 @pytest.fixture
 def executor():
-    return OpireExecutor({"token": "test-token", "base_url": "https://api.opire.dev/v1"})
+    return OpireExecutor({"token": "test-token", "base_url": "https://api.opire.dev/v1", "allow_unscoped_credentials": True})
 
 
 @pytest.fixture
