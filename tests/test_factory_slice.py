@@ -292,6 +292,103 @@ class TestAutopilotSolveOne:
         assert ExecutionQueueStore().get(item.id)["state"] == "failed"
 
 
+# ── Owner approval → publish → submitted (B5 closure) ──────────
+
+
+class _FakePublishAgent:
+    """CoderAgent stand-in for the publish path."""
+
+    publish_result = SimpleNamespace(success=True, pr_url="https://github.com/o/r/pull/9", pr_number=9, branch_name="ownex/fix-1")
+    calls: list[dict] = []
+
+    def __init__(self, *a, **kw):
+        pass
+
+    async def publish_delivery(self, delivery_dir, approved_by="owner"):
+        type(self).calls.append({"delivery_dir": delivery_dir, "approved_by": approved_by})
+        return type(self).publish_result
+
+
+@pytest.fixture
+def fake_publish(monkeypatch):
+    import core.autonomy.coder_agent as ca
+
+    _FakePublishAgent.calls = []
+    _FakePublishAgent.publish_result = SimpleNamespace(
+        success=True, pr_url="https://github.com/o/r/pull/9", pr_number=9, branch_name="ownex/fix-1"
+    )
+    monkeypatch.setattr(ca, "CoderAgent", _FakePublishAgent)
+    return _FakePublishAgent
+
+
+def _park_at_waiting_human(store, item_id: str, payload: dict) -> None:
+    """Drive a fresh item through the legal chain to WAITING_HUMAN."""
+    store.add(item_id, payload)
+    for state in ("qualified", "ready", "queued", "executing", "waiting_human"):
+        store.transition(item_id, state)
+
+
+class TestApproveAndPublish:
+    def test_approval_publishes_and_marks_submitted(self, queue_env, fake_publish):
+        from core.execution_queue.driver import approve_and_execute
+        from core.execution_queue.models import ExecutionQueueStore
+
+        store = ExecutionQueueStore()
+        _park_at_waiting_human(
+            store,
+            "wb-pub-1",
+            {
+                "executor_type": "coder",
+                "action": "solve_issue",
+                "delivery_package": "/tmp/delivery/pkg1",
+            },
+        )
+
+        out = approve_and_execute("wb-pub-1", approved_by="adriel")
+        assert out["state"] == "submitted"
+        assert fake_publish.calls[0]["delivery_dir"] == "/tmp/delivery/pkg1"
+        assert fake_publish.calls[0]["approved_by"] == "adriel"
+
+        # Re-read from disk: ExecutionQueueStore snapshots at construction.
+        item = ExecutionQueueStore().get("wb-pub-1")
+        assert item["state"] == "submitted"
+        assert item["payload"]["pr_url"] == "https://github.com/o/r/pull/9"
+        assert item["payload"]["approved"] is True
+
+    def test_failed_publish_marks_failed_not_submitted(self, queue_env, fake_publish):
+        from core.execution_queue.driver import approve_and_execute
+        from core.execution_queue.models import ExecutionQueueStore
+
+        fake_publish.publish_result = SimpleNamespace(success=False, pr_url=None, error="push rejected")
+        store = ExecutionQueueStore()
+        _park_at_waiting_human(
+            store,
+            "wb-pub-2",
+            {"executor_type": "coder", "action": "solve_issue", "delivery_package": "/tmp/pkg2"},
+        )
+
+        out = approve_and_execute("wb-pub-2")
+        assert out["state"] == "failed"
+        assert ExecutionQueueStore().get("wb-pub-2")["state"] == "failed"
+
+    def test_coder_item_without_delivery_stays_gated(self, queue_env, fake_publish):
+        """No package → nothing external happens; item remains WAITING_HUMAN."""
+        from core.execution_queue.driver import approve_and_execute
+        from core.execution_queue.models import ExecutionQueueStore
+
+        store = ExecutionQueueStore()
+        _park_at_waiting_human(
+            store,
+            "wb-pub-3",
+            {"executor_type": "coder", "action": "solve_issue"},
+        )
+
+        out = approve_and_execute("wb-pub-3")
+        assert out["state"] == "waiting_human"
+        assert fake_publish.calls == []
+        assert ExecutionQueueStore().get("wb-pub-3")["state"] == "waiting_human"
+
+
 # ── GitHub target extraction (B2) ────────────────────────────────
 
 

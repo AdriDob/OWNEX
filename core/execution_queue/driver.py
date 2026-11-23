@@ -139,6 +139,8 @@ def approve_and_execute(item_id: str, approved_by: str = "user") -> dict:
 
     if result.get("requires_human"):
         return {"item_id": item_id, "state": "waiting_human", "result": result, "note": "still gated"}
+    if result.get("pr_url"):
+        store.update_payload(item_id, pr_url=result["pr_url"])
     if result.get("submitted"):
         store.transition(item_id, "submitted")
         return {"item_id": item_id, "state": "submitted", "result": result}
@@ -280,6 +282,25 @@ def _execute_coder_action(action: str, payload: dict) -> dict:
         # Canonical implementation: core/autonomy (cores/autonomy/ is dead
         # code shadowed by cores/autonomy.py — see audit B7).
         from core.autonomy.coder_agent import CoderAgent
+
+        # Owner-approved publish path: a parked coder item carries the local
+        # delivery package built by CoderAgent.solve_issue. Approval publishes
+        # the PR — the ONLY external commitment in the pipeline.
+        delivery = payload.get("delivery_package")
+        if delivery:
+            import asyncio
+
+            agent = CoderAgent()
+            result = asyncio.run(
+                agent.publish_delivery(delivery, approved_by=payload.get("approved_by", "owner"))
+            )
+            return {
+                "requires_human": False,
+                "submitted": bool(result.success),
+                "verified": False,
+                "result": result,
+                "pr_url": getattr(result, "pr_url", None),
+            }
 
         agent = CoderAgent()
         result = agent.execute(action, payload) if hasattr(agent, "execute") else {}
