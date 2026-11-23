@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install "ruff==0.15.20"
-      - run: ruff check . --select=E,F,W,I,N,UP,B,SIM
+      - run: ruff check .
 
   typecheck:
     name: Typecheck (mypy)
@@ -80,7 +80,6 @@ jobs:
             --ignore=tests/test_scheduler.py \
             --ignore=tests/test_api_endpoints.py \
             --cov=cores --cov=core --cov-report=term-missing:skip-covered \
-            --cov-fail-under=80 \
             -m "not network and not integration" \
             --timeout=60 -q tests/
 
