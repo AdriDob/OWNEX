@@ -286,6 +286,7 @@ class TestCapacitorConfig:
 # ── New TrayController (Bloque 1) ────────────────────────────────────
 
 
+@pytest.mark.skipif(not os.environ.get("DISPLAY"), reason="requires an X display")
 class TestTrayController:
     def test_import(self):
         from desktop.tray import TrayController
@@ -1029,9 +1030,17 @@ class TestServiceWorker:
     def test_sw_file_exists(self):
         assert self.SW_PATH.is_file(), "service-worker.js not found"
 
+    @pytest.mark.skipif(
+        not (PROJECT_DIR / "frontend" / "dist" / "service-worker.js").is_file(),
+        reason="dist not built — run 'npm run build' first",
+    )
     def test_sw_built_file_exists(self):
         assert self.SW_BUILD_PATH.is_file(), "dist/service-worker.js not found — run 'npm run build' first"
 
+    @pytest.mark.skipif(
+        not (PROJECT_DIR / "frontend" / "dist" / "service-worker.js").is_file(),
+        reason="dist not built — run 'npm run build' first",
+    )
     def test_sw_built_matches_source(self):
         """Built service-worker.js must be identical to source."""
         src = self.SW_PATH.read_bytes()

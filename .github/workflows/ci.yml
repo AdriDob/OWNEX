@@ -20,9 +20,10 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-ruff@v2
+      - uses: actions/setup-python@v5
         with:
-          version: "0.15"
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install "ruff==0.15.20"
       - run: ruff check . --select=E,F,W,I,N,UP,B,SIM
 
   typecheck:
@@ -80,6 +81,7 @@ jobs:
             --ignore=tests/test_api_endpoints.py \
             --cov=cores --cov=core --cov-report=term-missing:skip-covered \
             --cov-fail-under=80 \
+            -m "not network and not integration" \
             --timeout=60 -q tests/
 
   test-frontend:

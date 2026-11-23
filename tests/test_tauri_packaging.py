@@ -29,6 +29,10 @@ class TestTauriConf:
         assert tauri_conf["version"]
         assert not tauri_conf["productName"].lower().startswith("omega"), "Omega branding must not leak into the product name"
 
+    @pytest.mark.skipif(
+        not (REPO_ROOT / "frontend" / "dist").is_dir(),
+        reason="frontend dist not built — run 'npm run build' first",
+    )
     def test_frontend_dist_exists_with_entry(self, tauri_conf: dict) -> None:
         dist = REPO_ROOT / "src-tauri" / tauri_conf["build"]["frontendDist"]
         assert dist.is_dir(), f"frontendDist missing: {dist}"

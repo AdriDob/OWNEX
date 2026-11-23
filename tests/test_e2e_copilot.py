@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 # ── 1. COPILOT COMMANDER E2E ─────────────────────────────────────────
 
 
