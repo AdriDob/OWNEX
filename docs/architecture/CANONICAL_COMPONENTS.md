@@ -19,6 +19,8 @@ Verified against code on 2026-11-09. When two implementations exist, this table 
 | User profile (matcher/drafter) | `cores/opportunity/user_profile.py` + `GET/PUT /api/opportunities/profile` | — | VERIFIED |
 | Work Platform enum | `cores/direct_work_engine/models.py::WorkPlatform` | `core/` twin | CANONICAL = cores |
 | Adapter registry | `core/opportunity/adapters/__init__.py` (`_seed_defaults`) | `cores/opportunity/` twins exist | CANONICAL = core |
+| TaskMarket discovery | `core/opportunity/adapters/agent_markets.py::TaskmarketAdapter` (api.taskmarket.dev — live verified 2026-11-23) | dead twins `adapters/taskmarket.py` + `development_rewards/` + `dev_bounty_factory.py` DELETED (pointed at dead api.taskmarket.xyz) | CANONICAL = core |
+| TaskMarket write actions | `core/opportunity/agent_market_actions.py::TaskmarketActions` + `core/opportunity/executors/taskmarket_executor.py` (queue-routed, approval-gated) | — | CANONICAL = core |
 | Zero-barrier eligibility | `cores/zero_barrier_eligibility.py` | — | IMPLEMENTED |
 | Mercenary scorer | `core/opportunity/mercenary_filter.py` | — | IMPLEMENTED |
 | Scheduler runtime | `core/scheduler/jobs.py` (`cores/` has NO scheduler pkg) | `cores/` copy is STALE | CANONICAL = core |

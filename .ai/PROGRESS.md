@@ -16,31 +16,40 @@
 | Discovery pipeline (fetchers→LiveStore→eligibility) | 85 | VERIFIED | 619 opps live, 22 fetchers, scan 6h verificado (`3c9803ed9`) | — | Mantener scans; monitorear freshness |
 | Scoring / EV model | 75 | VERIFIED | AI-cost neto, budget $25, track-record, freshness, funding tri-state (`5ae053d59`,`eb17cff1d`) | P(éxito) formal pendiente | Calibrar pesos con outcomes reales |
 | Work Bank / priorización | 80 | VERIFIED | 502 items, daily_cycle real, 369 ready_to_deliver post-repair | Ready ≠ ejecutable (ver Factory) | Separar "programa security" vs "task entregable" en ranking |
-| Revenue Ledger / finanzas | 65 | IMPLEMENTED | `record_amount` con evidencia obligatoria para `paid`; summary por buckets | 0 payouts reales aún | Registrar primer `paid` con evidencia |
-| Human Actions / aprobaciones | 75 | VERIFIED | `/api/human-actions` + UI `/operations/human-actions`, 21 acciones parseadas | — | Convertir needs_access en acciones concretas |
-| Agent-market adapters (taskmarket/hansa/agentics) | 60 | IMPLEMENTED | 3 adapters read-only + write-client gated (`afc001d5c`) | Registro B6/B7/B10 = humano | Ejecutar primer pitch tras registro |
+| Revenue Ledger / finanzas | 70 | IMPLEMENTED | `record_amount` con evidencia obligatoria para `paid`; `progress.py::verified_revenue` solo cuenta `paid`+evidence (9 tests) | 0 payouts reales aún; 2 items `state=paid` sin evidencia flaggeados | Registrar primer `paid` con evidencia |
+| Human Actions / aprobaciones | 80 | VERIFIED | `/api/human-actions` + UI, 22 acciones, estados canónicos (READY_FOR_OWNER/WAITING_EXTERNAL/EXPIRED…) + `by_state` | — | Convertir needs_access en acciones concretas |
+| Agent-market adapters (taskmarket/hansa/agentics) | 70 | IMPLEMENTED | discovery read-only live (api.taskmarket.dev 200); `TaskmarketExecutor` en execution queue con doble gate (driver `approved` + `TaskmarketActions` authorized+creds); twins muertos eliminados | Registro B6/B7/B10 = humano | Ejecutar primer pitch tras registro |
 | Project Engineering Factory | 15 | IMPLEMENTED | `prepare_execution` clona repos, `analyze_workspace` existe | Sin loop dev→PR→entrega | Primer ciclo completo con task real |
 | Multi-agent / workers | 10 | IMPLEMENTED | ExecutionQueueStore + states existen | Sin workers ejecutando | Planner→Implementer→Reviewer mínimo |
-| Delivery / submission | 10 | NOT_STARTED | `record_approval`/`draft_payment_inquiry` existen | Sin submission real | Draft PR en primer proyecto |
+| Delivery / submission | 15 | IMPLEMENTED | `TaskmarketExecutor` ruteado en execution_queue driver (`submit_pitch`/`submit_work`/`request_upload_url` gated); `record_approval`/`draft_payment_inquiry` existen | Sin submission real; sin credenciales B6 | Primer pitch Taskmarket tras registro B6 |
 | Security research (CATEYE core) | 50 | IMPLEMENTED | Pipeline hallazgos existe; 365 programas en LiveStore | Cuentas plataformas = humano | Elegir 1 programa + ciclo research |
 | Sanitization / prompt-injection | 60 | VERIFIED | `core/security/sanitization.py` en `_to_live` (`eb17cff1d`) | Cobertura parcial del surface | Extender a otros puntos de entrada agent |
-| Frontend / productization | 40 | TESTED | Dev server `:5173` live + proxy `/api`→`:8000` OK; biome clean; 226 vitest pass (2026-11-22) | App Shell/Command Center redesign pendiente (directiva Hermes) | FASE 1: App Shell + Command Center con datos reales |
+| Frontend / productization | 45 | TESTED | App Shell V2.1 (8 secciones, router-view real en ErrorBoundary, tokens.css :root fix); biome clean; 226 vitest pass; `vite build` OK; QA captures `frontend/qa/screenshots{,-auth}` + FRONTEND_RUNBOOK.md (2026-11-23) | Command Center con datos reales pendiente | Iterar Command Center sobre el shell nuevo |
 | Desktop / Tauri | 40 | IMPLEMENTED | Scripts tauri:dev/build existen | Sin build verificado reciente | Build de prueba + runbook |
 | Consolidación core/↔cores/ | 30 | IMPLEMENTED | CANONICAL_COMPONENTS.md existe; bridges temporales | Decisión por dominio pendiente | Auditoría de imports por dominio |
 | Tests / quality gates | 65 | IMPLEMENTED | 1460+ tests focalizados verdes; suite completa rota por WIP paralelo | `test_cex_connector`/`INVESTMENT_GLOBAL` + permissions | Reconciliar WIP paralelo, suite verde |
 | Investment Hub | 50 | UNKNOWN | Sesión paralela activa (no auditado por este lane) | WIP sin commitear | Auditar cuando commitee |
 
-## Tres indicadores independientes (nunca promediados)
+## Métricas independientes (nunca promediadas)
 
 | Indicador | Qué mide | Valor actual |
 |-----------|----------|--------------|
 | **PRODUCT_COMPLETENESS** | % de la tabla de módulos (software implementado+integrado+probado) | ver `progress.py` |
 | **OPERATIONAL_READINESS** | % de cuentas/credenciales/integraciones externas conectadas y probadas | ver sección abajo |
-| **REVENUE_VALIDATION** | % de ciclos económicos demostrados (oportunidad→aceptación→pago→retiro) | ver sección abajo |
+| **REVENUE_PIPELINE_PROGRESS** | % de etapas técnicas del pipeline económico demostradas (antes llamado REVENUE_VALIDATION — NO es ingreso) | ver sección abajo |
+| **VERIFIED_REVENUE** | USD efectivamente pagados con evidencia (solo bucket `paid` + evidence en RevenueLedger) | USD 0 |
+| **VERIFIED_PAID_CYCLES** | Ciclos completos trabajo→pago comprobado | 0 |
+| **REWARD_REALIZATION_RATE** | verified_revenue / comprometido (approved+pending+paid, USD) | null hasta primer compromiso |
+| **TIME_TO_FIRST_PAYOUT** | Tiempo desde inicio verificable hasta primer pago recibido | null hasta primer payout |
 
 Una acción humana pendiente bloquea OPERATIONAL/REVENUE, **no**
 PRODUCT_COMPLETENESS. Un módulo "listo" sin cuenta conectada sigue
 siendo producto completo — pero no operativamente ready.
+
+**Regla de integridad**: progreso de pipeline ≠ ingreso. Ningún estado
+(`accepted`, `submitted`, `ready`, `state=paid` sin evidence) puede
+incrementar VERIFIED_REVENUE. Solo `finance.latest.paid` con `evidence`
+no vacío cuenta como dinero cobrado.
 
 ## Operational Readiness (cuentas e integraciones)
 
@@ -54,7 +63,7 @@ siendo producto completo — pero no operativamente ready.
 | Cuentas security (H1/BC/Intigriti/YWH) | PENDING | fetchers públicos funcionan sin auth | API tokens opcionales |
 | Wallet crypto (escrow payouts) | PENDING | taskmarket paga vía escrow on-chain Base | crear wallet + off-ramp |
 
-## Revenue Validation (ciclos económicos)
+## Revenue Pipeline (ciclos económicos)
 
 | Etapa del ciclo | Estado | Evidencia |
 |-----------------|--------|-----------|
@@ -64,7 +73,7 @@ siendo producto completo — pero no operativamente ready.
 | Desarrollada por agentes | NOT_STARTED | sin loop dev→PR ejecutado |
 | Entrega enviada | NOT_STARTED | — |
 | Aceptada por requester | NOT_STARTED | — |
-| Pago recibido y verificado | NOT_STARTED | RevenueLedger: 0 `paid` con evidencia |
+| Pago recibido y verificado | NOT_STARTED | RevenueLedger: 0 `paid` con evidencia; 2 items `state=paid` sin evidencia (test pollution — flaggeados por progress.py, no cuentan) |
 | Retiro/off-ramp | NOT_STARTED | — |
 
 ## Reglas del ledger

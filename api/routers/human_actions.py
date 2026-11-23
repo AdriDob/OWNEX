@@ -27,16 +27,56 @@ _TABLE_ROW_RE = re.compile(r"^\|\s*(?P<id>[A-Z]+\d+)\s*\|(?P<rest>.+?)\|\s*$", r
 
 _SKIP_KEYS = {"campo", "---", ""}
 
+# Canonical state vocabulary (megaprompt Task C). `estado` keeps the raw
+# doc token for traceability; `state` is the normalized value the UI and
+# downstream logic should branch on.
+_CANONICAL_STATES = {
+    "NOT_STARTED",
+    "READY_FOR_OWNER",
+    "IN_PROGRESS",
+    "WAITING_EXTERNAL",
+    "COMPLETED",
+    "BLOCKED",
+    "EXPIRED",
+    "NEEDS_REVALIDATION",
+}
+
+_STATE_MAP = {
+    "BLOCKED_ON_USER": "READY_FOR_OWNER",
+    "READY_FOR_AUTHORIZATION": "READY_FOR_OWNER",
+    "BLOCKED_ON_PLATFORM": "WAITING_EXTERNAL",
+    "COMPLETED": "COMPLETED",
+    "EXPIRED": "EXPIRED",
+    "NEEDS_REVALIDATION": "NEEDS_REVALIDATION",
+    "IN_PROGRESS": "IN_PROGRESS",
+    "BLOCKED": "BLOCKED",
+    "NOT_STARTED": "NOT_STARTED",
+}
+
 
 def _clean(value: str) -> str:
     return value.strip().strip("*").strip()
 
 
 def _status_of(raw: str) -> str:
-    for token in ("BLOCKED_ON_USER", "READY_FOR_AUTHORIZATION", "BLOCKED_ON_PLATFORM", "COMPLETED"):
+    for token in (
+        "BLOCKED_ON_USER",
+        "READY_FOR_AUTHORIZATION",
+        "BLOCKED_ON_PLATFORM",
+        "NEEDS_REVALIDATION",
+        "EXPIRED",
+        "COMPLETED",
+        "IN_PROGRESS",
+        "BLOCKED",
+        "NOT_STARTED",
+    ):
         if token in raw:
             return token
     return raw.strip() or "UNKNOWN"
+
+
+def _canonical_state(estado: str) -> str:
+    return _STATE_MAP.get(estado, "BLOCKED" if estado == "UNKNOWN" else estado)
 
 
 def _parse_detail_sections(text: str) -> list[dict]:
@@ -61,9 +101,11 @@ def _parse_detail_sections(text: str) -> list[dict]:
             fields[key] = _clean(fm.group("value"))
 
         status_raw = fields.get("estado", "")
+        estado = _status_of(status_raw)
         actions.append(
             {
                 "id": m.group("id"),
+                "fase": m.group("id")[0],
                 "title": m.group("title").strip(),
                 "platform": fields.get("plataforma", ""),
                 "motivo": fields.get("motivo", ""),
@@ -72,7 +114,14 @@ def _parse_detail_sections(text: str) -> list[dict]:
                 "que_hace_ownex": fields.get("qué hace ownex después", ""),
                 "riesgo": fields.get("riesgo", ""),
                 "permisos": fields.get("permisos que solicita", ""),
-                "estado": _status_of(status_raw),
+                "requisitos": fields.get("requisitos previos", ""),
+                "beneficio": fields.get("beneficio esperado", ""),
+                "dependencias": fields.get("dependencias", ""),
+                "evidencia": fields.get("evidencia", ""),
+                "criterios": fields.get("criterios de finalización", ""),
+                "verificado": fields.get("fecha de comprobación", ""),
+                "estado": estado,
+                "state": _canonical_state(estado),
                 "estado_raw": status_raw,
             }
         )
@@ -118,10 +167,12 @@ def _parse_phase_tables(text: str) -> list[dict]:
 
             entry = {
                 "id": row_id,
+                "fase": row_id[0],
                 "title": action_text,
                 "estado": _status_of(status_raw),
                 "estado_raw": status_raw,
             }
+            entry["state"] = _canonical_state(entry["estado"])
             if third_is_platform:
                 entry["platform"] = third
             else:
@@ -142,9 +193,15 @@ def list_human_actions() -> dict:
     # Stable order by id.
     actions.sort(key=lambda a: a["id"])
 
+    # Canonical-state counts (schema for the Human Actions Center).
+    by_state: dict[str, int] = {}
+    for a in actions:
+        by_state[a["state"]] = by_state.get(a["state"], 0) + 1
+
     return {
         "doc": "docs/FINAL_HUMAN_ACTIONS.md",
         "total": len(actions),
+        "by_state": by_state,
         "blocked_on_user": sum(1 for a in actions if a["estado"] == "BLOCKED_ON_USER"),
         "ready_for_authorization": sum(1 for a in actions if a["estado"] == "READY_FOR_AUTHORIZATION"),
         "blocked_on_platform": sum(1 for a in actions if a["estado"] == "BLOCKED_ON_PLATFORM"),

@@ -254,6 +254,8 @@ def _route_to_executor(executor_type: str, action: str, payload: dict) -> dict:
         return _execute_mindrift_action(action, payload)
     elif executor_type == "outlier":
         return _execute_outlier_action(action, payload)
+    elif executor_type == "taskmarket":
+        return _execute_taskmarket_action(action, payload)
     elif executor_type == "autonomous":
         return _execute_autonomous_workflow(action, payload)
     else:
@@ -302,6 +304,8 @@ def _execute_assisted_action(action: str, payload: dict) -> dict:
 _MUTATING_ACTIONS = {
     "claim_bounty",
     "submit_work",
+    "submit_pitch",
+    "request_upload_url",
     "submit_pr",
     "submit",
     "apply",
@@ -371,6 +375,10 @@ def _execute_mindrift_action(action: str, payload: dict) -> dict:
 
 def _execute_outlier_action(action: str, payload: dict) -> dict:
     return _run_platform_executor("cores.opportunity.executors.outlier_executor", "OutlierExecutor", action, payload)
+
+
+def _execute_taskmarket_action(action: str, payload: dict) -> dict:
+    return _run_platform_executor("core.opportunity.executors.taskmarket_executor", "TaskmarketExecutor", action, payload)
 
 
 def _execute_autonomous_workflow(action: str, payload: dict) -> dict:

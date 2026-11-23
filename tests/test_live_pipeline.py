@@ -948,9 +948,12 @@ class TestIssueFreshness:
     def test_old_issue_penalized(self):
         opp = _to_live("issuehunt", _raw(reward=100.0))
         assert opp is not None
+        from datetime import UTC, datetime, timedelta
+
+        recent = (datetime.now(UTC) - timedelta(days=1)).isoformat()
         fresh = score_opportunity(
             opp,
-            estimate={"effective_reward_usd": 100.0, "estimated_effort_hours": 2.0, "created_at": "2026-11-20T00:00:00+00:00"},
+            estimate={"effective_reward_usd": 100.0, "estimated_effort_hours": 2.0, "created_at": recent},
         )
         stale = score_opportunity(
             opp,

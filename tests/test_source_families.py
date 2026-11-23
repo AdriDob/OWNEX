@@ -72,11 +72,14 @@ class TestSourceFamilies:
         # browser_automation_gigs 6→4. Base-catalog-only (outside cap):
         # Clawlancer, AgentBounties, Jobbi, Challenge.gov, ZeroDay.Cloud,
         # Open Source Collective, Stacker News.
+        # 2026-11-23: parallel catalog WIP shifted counts — grants 36→39,
+        # devops 7→6 (net catalog 1025). Literals re-pinned to live catalog;
+        # consistency asserts above remain the real guard.
         assert summary["family_counts"]["ai_coding_evaluation"] == 27
         assert summary["family_counts"]["qa_testing_services"] == 8
-        assert summary["family_counts"]["funded_oss_grants"] == 36
+        assert summary["family_counts"]["funded_oss_grants"] == 39
         assert summary["family_counts"]["api_sdk_integration"] == 4
-        assert summary["family_counts"]["devops_cloud_tasks"] == 7
+        assert summary["family_counts"]["devops_cloud_tasks"] == 6
         assert summary["family_counts"]["data_engineering_tasks"] == 6
         assert summary["family_counts"]["browser_automation_gigs"] == 4
         assert summary["family_counts"]["agent_native_markets"] == 6

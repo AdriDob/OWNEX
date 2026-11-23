@@ -26,7 +26,8 @@
 | Qué hace OWNEX después | Registra la entrega, sigue el estado de judging, y cuando haya pago USDC/Solana lo registra como evidencia de ingreso |
 | Riesgo | Bajo: licencia MIT del entregable, pero los términos de make.fun exigen repo público + licencia amplia + transcripts públicos — **irreversible una vez publicado** |
 | Permisos que solicita | Publicar código en repo público tuyo, firmar con keypair Solana tuyo, aceptar términos de la plataforma |
-| Estado | **BLOCKED_ON_USER** — deadline `news-image-20261120` era 22-nov 00:00 UTC (probablemente vencido); apuntar a la próxima competencia "Sum up news" diaria |
+| Estado | **EXPIRED** — deadline `news-image-20261120` venció 22-nov 2026. Acción: verificar la próxima competencia "Sum up news" en https://make.fun/competitions y reapuntar el paquete `~/projects/makefun-news-20261120/` |
+| Criterios de finalización | Submission aceptada por make.fun con evidencia de entrega registrada en RevenueLedger |
 
 ### A2. Cuenta GitHub + verificación de plataformas de bounty
 
@@ -35,7 +36,7 @@
 | Plataforma | GitHub + Algora/Opire/IssueHunt/Gitcoin |
 | Motivo | La mayoría de bounties OSS pagan vía PR mergeado en GitHub; sin cuenta no hay entregas |
 | URL | https://github.com/signup |
-| Instrucciones | 1) Crear/verificar cuenta GitHub 2) Configurar 2FA 3) En OWNEX → Integrations → conectar GitHub (PAT con `public_repo`) |
+| Instrucciones | 1) Crear/verificar cuenta GitHub 2) Configurar 2FA 3) En OWNEX → Integrations → conectar GitHub (PAT con `public_repo`) 4) En IssueHunt: crear cuenta y **confirmar método de pago disponible en Argentina** (Stripe/PayPal/crypto — si no hay ninguno, marcar PAYMENT_UNRESOLVED y priorizar otra fuente) |
 | Qué hace OWNEX después | Los fetchers de github_bounties/sponsors ya funcionan sin auth para descubrimiento; con PAT sube rate limits y habilita submissions |
 | Riesgo | Bajo |
 | Estado | **BLOCKED_ON_USER** |
@@ -80,6 +81,7 @@
 | B9 | Drips — requiere KYC + solicitud al maintainer por Wave; decidir si se completa verificación de identidad | Drips | BLOCKED_ON_USER |
 | B10 | Autorizar registro de agente OWNEX en BasedAgents y/o ClawHunt (APIs/CLI documentados, escrow USDC; volumen aún bajo — experimental) | BasedAgents / ClawHunt | READY_FOR_AUTHORIZATION |
 | B11 | Crear cuenta Gitpay (gitpay.me) para bounties de issues GitHub — payout vía Whop, confirmar método disponible en Argentina | Gitpay | BLOCKED_ON_USER — depende de A2 (GitHub) |
+| B12 | Wallet Base/USDC para recibir payouts de Taskmarket (escrow on-chain, chainId 4217) — **distinta de la Solana de B4**; la crea el propio registro B6 si la plataforma la provee, si no usar wallet propia del owner | Taskmarket | BLOCKED_ON_USER — depende de B6 |
 
 ---
 
@@ -115,4 +117,4 @@
 > El sistema prepara todo hasta el último paso seguro y espera.
 > Ingreso verificado = USD 0.00 hasta que exista evidencia externa.
 
-*Última actualización: 2026-11-20 — main `3c6130cb`+ (post-feeds/catalog commits)*
+*Última actualización: 2026-11-23 — main `7e577ad31`+ (revenue-truth metrics + human-actions canonical states)*

@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
    OWNEX DESIGN TOKENS — CSS Custom Properties
    Single Source of Truth (maps to OWNEX_DESIGN_SYSTEM.md v1.0)
    ═══════════════════════════════════════════════════════════════════ */
@@ -6,6 +6,7 @@
 /* ── COLOR SYSTEM ── */
 
 /* ── Base Colors ── */
+:root {
 --ownex-bg-deep:      #0d0d0d;    /* Fondo principal - negro puro */
 --ownex-bg-base:      #1a1a1a;    /* Paneles elevados */
 --ownex-bg-surface:   #262626;    /* Tarjetas, modales */
@@ -24,8 +25,8 @@
 --ownex-success-light: #c8e6c9;   /* Verde claro */
 --ownex-warning:      #f9a825;    /* ⚠️ Atención / Advertencia */
 --ownex-warning-light: #fff5e5;   /* Amarillo claro */
---ownex-danger:       #e53935;    /* ❌ Error / Riesgo crítico */
---ownex-danger-light: #ffcdd2;    /* Rojo claro */
+--ownex-danger:       #3B82F6;    /* Error / Riesgo crítico — azul fuerte (owner directive: cero rojo) */
+--ownex-danger-light: #93C5FD;    /* Azul claro */
 
 /* ── Platform Colors ── */
 --ownex-hackerone:    #43a047;   /* Verde hackerone */
@@ -133,8 +134,9 @@
 /* ── FOCUS RING ── */
 
 --focus-ring: 0 0 0 2px rgba(126, 87, 194, 0.3), 0 0 12px rgba(126, 87, 194, 0.2);
+}
 
-/* ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
    DATA ATTRIBUTES FOR THEME VARIANTS
    ══════════════════════════════════════════════════════════════════ */
 

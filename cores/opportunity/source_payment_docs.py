@@ -201,4 +201,59 @@ KNOWN_PAYMENT_METHODS: dict[str, PaymentDoc] = {
         "note": "Bountycaster payments are direct P2P crypto on Base (USDC/ETH/DEGEN/OP); there is no platform guarantee and the poster must actually pay.",
         "owner_note": "Treat as discovery/test; verify the concrete bounty, wallet, and path to ARS before relying on payout.",
     },
+    # ── Agent-native markets (verified 2026-11-23) ──
+    "Taskmarket (Daydreams)": {
+        "methods": ["crypto", "stablecoin"],
+        "note": "Public API (api.taskmarket.dev/api/tasks) lists tasks with on-chain escrow; observed chainId 4217 in task payloads (Base ecosystem — verify mainnet vs testnet per task before relying). Payouts are USDC-denominated escrow releases to the agent wallet.",
+        "owner_note": "Requires agent registration (FINAL_HUMAN_ACTIONS B6) + owner wallet (B12). ARS off-ramp not established — crypto→ARS conversion is a separate owner decision.",
+        "verified": "2026-11-23",
+    },
+    "Agent Hansa": {
+        "methods": ["crypto", "stablecoin"],
+        "note": "Documented USDC payouts on Base for registered agents (FINAL_HUMAN_ACTIONS B7); read-only discovery adapter live, registration pending owner authorization.",
+        "owner_note": "Account registration + possible identity requirements are owner actions; payout rail = USDC Base.",
+        "verified": "2026-11-23",
+    },
+    "Agentics": {
+        "methods": ["not_published"],
+        "note": "Aggregator of ~15 agent markets (taskmarket, basedagents, etc.); payout method depends on the underlying market, not published uniformly.",
+        "owner_note": "Resolve payment method per underlying market before relying on payout.",
+        "verified": "2026-11-23",
+    },
+    "make.fun": {
+        "methods": ["crypto", "stablecoin"],
+        "note": "Competitions pay USDC on Solana (Ed25519 keypair, no fee per FINAL_HUMAN_ACTIONS A1/B4); requires public repo + public transcripts — irreversible once submitted.",
+        "owner_note": "Owner must create Solana wallet + make.fun account; deadline-driven competitions expire (A1 expired 2026-11-22).",
+        "verified": "2026-11-23",
+    },
+    "Gitpay": {
+        "methods": ["not_published"],
+        "note": "GitHub issue bounties via gitpay.me; payout reportedly via Whop — exact rails and Argentina availability NOT confirmed (FINAL_HUMAN_ACTIONS B11).",
+        "owner_note": "PAYMENT_UNRESOLVED for Argentina until owner verifies Whop payout methods.",
+        "verified": "2026-11-23",
+    },
+    "BasedAgents": {
+        "methods": ["crypto", "stablecoin"],
+        "note": "Agent task market with escrow USDC per FINAL_HUMAN_ACTIONS B10; volume still low — experimental.",
+        "owner_note": "Registration is owner-authorized (B10); confirm payout wallet requirements at registration.",
+        "verified": "2026-11-23",
+    },
+    "ClawHunt": {
+        "methods": ["crypto", "stablecoin"],
+        "note": "Agent marketplace with documented APIs/CLI and escrow per FINAL_HUMAN_ACTIONS B10; volume low — experimental.",
+        "owner_note": "Same as BasedAgents — owner registration required (B10).",
+        "verified": "2026-11-23",
+    },
+    "Drips": {
+        "methods": ["not_published"],
+        "note": "Grants/OSS funding network; requires KYC + maintainer application per Wave (FINAL_HUMAN_ACTIONS B9). Payout method not publicly confirmed for Argentina.",
+        "owner_note": "PAYMENT_UNRESOLVED — depends on KYC decision (B9).",
+        "verified": "2026-11-23",
+    },
+    "Clustly": {
+        "methods": ["not_published"],
+        "note": "API returned DEPLOYMENT_DISABLED on 2026-11-20 (FINAL_HUMAN_ACTIONS B8); platform status uncertain, payment method unknown.",
+        "owner_note": "WAITING_EXTERNAL — re-check availability before any registration.",
+        "verified": "2026-11-23",
+    },
 }

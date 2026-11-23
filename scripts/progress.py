@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
-"""OWNEX progress ledger reporter — three independent metrics.
+"""OWNEX progress ledger reporter — independent metrics, never averaged.
 
 Parses .ai/PROGRESS.md:
   - module table        -> PRODUCT_COMPLETENESS
   - Operational table   -> OPERATIONAL_READINESS (state-credit per row)
-  - Revenue stages      -> REVENUE_VALIDATION (state-credit per stage)
+  - Revenue stages      -> REVENUE_PIPELINE_PROGRESS (state-credit per stage)
+
+Revenue truth (schema >= 3) is read from the persisted execution queue
+(``data/execution_queue.json``), NOT from the stage table:
+  - VERIFIED_REVENUE        -> only ``finance.latest.paid`` entries WITH
+                               non-empty evidence count as income (USD + per-currency)
+  - VERIFIED_PAID_CYCLES    -> items with an evidenced ``paid`` entry
+  - paid-state items lacking evidence are flagged, never counted
+  - REWARD_REALIZATION_RATE -> verified USD / committed USD (approved+pending+paid)
+  - TIME_TO_FIRST_PAYOUT    -> null until the first evidenced payout exists
 
 Snapshots are append-only under .ai/progress_history/ (never overwritten).
 Regression detection: a module % that drops vs the last snapshot is
@@ -16,6 +25,7 @@ Usage:  python3 scripts/progress.py [--update] [--json]
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -26,7 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROGRESS = ROOT / ".ai" / "PROGRESS.md"
 HISTORY = ROOT / ".ai" / "progress_history"
 LATEST = HISTORY / "latest.json"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _MODULE_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|\s*([A-Z_()\- ]+?)\s*\|\s*([^|]*)\|")
 _GENERIC_ROW = re.compile(r"^\|\s*([^|]+?)\s*\|\s*([A-Z_]+)\s*\|\s*([^|]*)\|")
@@ -102,16 +112,81 @@ def parse() -> dict:
         }
 
     op_pct, op_rows = _table_pct(lines, "Operational Readiness")
-    rev_pct, rev_rows = _table_pct(lines, "Revenue Validation")
+    rev_pct, rev_rows = _table_pct(lines, "Revenue Pipeline")
     prod_pct = round(sum(m["pct"] for m in modules.values()) / len(modules), 1) if modules else 0.0
     return {
         "modules": modules,
         "product_completeness": prod_pct,
         "operational_readiness": op_pct,
-        "revenue_validation": rev_pct,
+        "revenue_pipeline_progress": rev_pct,
         "operational_rows": op_rows,
         "revenue_rows": rev_rows,
     }
+
+
+# ── Revenue truth (verified money only) ─────────────────────────────────────
+
+
+def _queue_path() -> Path:
+    """Same resolution as core.execution_queue.models._default_store_path."""
+    base = os.environ.get("OWNEX_DATA_DIR")
+    root = Path(base) if base else ROOT / "data"
+    return root / "execution_queue.json"
+
+
+def verified_revenue(queue_path: Path | None = None) -> dict:
+    """Compute verified revenue from the persisted execution queue.
+
+    Integrity rules (REVENUE TRUTH):
+      * only ``finance.latest.paid`` entries with non-empty ``evidence``
+        count toward VERIFIED_REVENUE / VERIFIED_PAID_CYCLES;
+      * ``advertised``/``expected``/``approved``/``pending`` are promises,
+        never income;
+      * an item whose exec ``state`` is ``paid`` but lacks an evidenced
+        paid entry is flagged in ``paid_without_evidence`` — it does NOT
+        count;
+      * reward realization = verified USD / committed USD where committed
+        = latest ``approved`` + ``pending`` + ``paid`` amounts (USD only).
+    """
+    path = queue_path or _queue_path()
+    out: dict = {
+        "verified_revenue_usd": 0.0,
+        "verified_revenue_by_currency": {},
+        "verified_paid_cycles": 0,
+        "paid_without_evidence": [],
+        "reward_realization_rate": None,
+        "time_to_first_payout": None,
+    }
+    try:
+        items = json.loads(path.read_text()) if path.exists() else {}
+    except Exception:
+        items = {}
+    if not isinstance(items, dict):
+        items = {}
+
+    committed_usd = 0.0
+    for item_id, item in items.items():
+        if not isinstance(item, dict):
+            continue
+        finance = (item.get("payload") or {}).get("finance") or {}
+        latest = finance.get("latest") or {}
+        paid = latest.get("paid") or {}
+        has_evidence = bool(paid.get("evidence"))
+        if item.get("state") == "paid" and not has_evidence:
+            out["paid_without_evidence"].append(item_id)
+        if has_evidence:
+            amount = float(paid.get("amount") or 0.0)
+            cur = paid.get("currency") or "USD"
+            out["verified_revenue_by_currency"][cur] = out["verified_revenue_by_currency"].get(cur, 0.0) + amount
+            out["verified_paid_cycles"] += 1
+        for bucket in ("approved", "pending", "paid"):
+            entry = latest.get(bucket) or {}
+            if (entry.get("currency") or "USD") == "USD":
+                committed_usd += float(entry.get("amount") or 0.0)
+    out["verified_revenue_usd"] = out["verified_revenue_by_currency"].get("USD", 0.0)
+    if committed_usd > 0:
+        out["reward_realization_rate"] = round(out["verified_revenue_usd"] / committed_usd, 4)
+    return out
 
 
 def _head_commit() -> str:
@@ -159,12 +234,23 @@ def _append_history(snapshot: dict) -> None:
     (HISTORY / f"{ts}.json").write_text(json.dumps(snapshot, indent=2))
 
 
-def report(data: dict, prev: dict | None) -> tuple[str, list[str]]:
+def report(data: dict, prev: dict | None, revenue: dict | None = None) -> tuple[str, list[str]]:
     warnings: list[str] = []
+    rev = revenue or {}
     lines = [
-        f"PRODUCT_COMPLETENESS : {data['product_completeness']:>5.1f}%  ({len(data['modules'])} modules)",
-        f"OPERATIONAL_READINESS: {data['operational_readiness']:>5.1f}%  ({data['operational_rows']} items)",
-        f"REVENUE_VALIDATION   : {data['revenue_validation']:>5.1f}%  ({data['revenue_rows']} stages)",
+        f"PRODUCT_COMPLETENESS      : {data['product_completeness']:>5.1f}%  ({len(data['modules'])} modules)",
+        f"OPERATIONAL_READINESS     : {data['operational_readiness']:>5.1f}%  ({data['operational_rows']} items)",
+        f"REVENUE_PIPELINE_PROGRESS : {data['revenue_pipeline_progress']:>5.1f}%  ({data['revenue_rows']} stages)",
+        f"VERIFIED_REVENUE          : USD {rev.get('verified_revenue_usd', 0.0):>8.2f}  ({rev.get('verified_paid_cycles', 0)} paid cycles)",
+    ]
+    if rev.get("paid_without_evidence"):
+        # Surfaced in output + snapshot, but does NOT fail the run: it is a
+        # data-hygiene signal, not a regression in tracked modules.
+        lines.append(
+            f"WARNING: {len(rev['paid_without_evidence'])} item(s) in state 'paid' WITHOUT payment evidence "
+            "— not counted as revenue: " + ", ".join(rev["paid_without_evidence"][:5])
+        )
+    lines += [
         "",
         f"{'MODULE':<52} {'%':>4} {'STATE':<14} {'DELTA':>5}",
         "-" * 80,
@@ -191,19 +277,29 @@ def main() -> int:
     if not data["modules"]:
         print("no modules parsed from", PROGRESS)
         return 1
+    rev = verified_revenue()
     prev = _load_latest()
-    text, warnings = report(data, prev)
+    text, warnings = report(data, prev, rev)
     missing = _check_evidence_commits(data["modules"])
     if as_json:
-        print(json.dumps({
-            "schema": SCHEMA_VERSION,
-            "commit": _head_commit(),
-            "product_completeness": data["product_completeness"],
-            "operational_readiness": data["operational_readiness"],
-            "revenue_validation": data["revenue_validation"],
-            "regressions": warnings,
-            "missing_evidence_commits": missing,
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "schema": SCHEMA_VERSION,
+                    "commit": _head_commit(),
+                    "product_completeness": data["product_completeness"],
+                    "operational_readiness": data["operational_readiness"],
+                    # schema>=3 canonical name; `revenue_validation` kept as alias
+                    # so older consumers keep working during migration.
+                    "revenue_pipeline_progress": data["revenue_pipeline_progress"],
+                    "revenue_validation": data["revenue_pipeline_progress"],
+                    "verified_revenue": rev,
+                    "regressions": warnings,
+                    "missing_evidence_commits": missing,
+                },
+                indent=2,
+            )
+        )
     else:
         print(text)
         for w in missing:
@@ -215,7 +311,9 @@ def main() -> int:
             "commit": _head_commit(),
             "product_completeness": data["product_completeness"],
             "operational_readiness": data["operational_readiness"],
-            "revenue_validation": data["revenue_validation"],
+            "revenue_pipeline_progress": data["revenue_pipeline_progress"],
+            "revenue_validation": data["revenue_pipeline_progress"],
+            "verified_revenue": rev,
             "modules": data["modules"],
             "regressions": warnings,
             "missing_evidence_commits": missing,
