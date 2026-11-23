@@ -325,3 +325,14 @@
 - `api/routers/credentials_rotation.py` (API)
 - `tests/test_bounty_pipeline.py` (Tests)
 - `scripts/test_coordinator.py` (Test script)
+
+## Sesión Devin 2026-11-23 (noche) — Auditoría + desbloqueo CI + primera entrada make.fun
+
+- **Auditoría inicial sin modificaciones** (megaprompt maestro): estado Git, CI, PROGRESS.md y LiveStore verificados. CI estaba rojo por 5 errores ruff SIM102 ya corregidos en el working tree por un lane paralelo sin commitear.
+- **WIP paralelo triage**: 25 archivos modificados inventariados. Feature "8-point filter" (engine.py + discovery_to_workbank.py + source_discovery.py) estaba **rota**: `candidate.filter` no existe en SourceCandidate (campos son planos), return type cambado a tuple rompiendo tests, enum OpportunityType perdió 5 miembros aún referenciados, y `payment_proven` hubiera regresado semántica verificada. Respaldada en `work/wip-backup-20261123/` (patch + build_perfect_system.py + twin stale de agent_markets) y revertida. Test `test_direct_work_hermes` también revertido (había sido debilitado para pasar con comportamiento incorrecto).
+- **6 commits atómicos** (`--only`, ruff+pytest manual): fixes ruff/estilo CI, security (sin fallback credenciales + dry_run default), OpenTelemetry, PIPELINE_START en WorkBank, KPI portfolio Capital.vue, ledger progress.
+- **Live scan real ejecutado**: 881 fetched, 397 nuevos, 619→1016 items en LiveStore. Candidatos GitHub bounty verificados live: todos saturados (vuls#777 ×3 agentes, ps-list#7 ×2 forks, flow-runtime#199 ×4 PRs, Expensify con C+ asignado) o spam farms (bounty-plaza, IES-BoilerRoom, toyol-digital).
+- **make.fun tiny-stack-vm-01**: seleccionado como primer ciclo Factory real (spec completa, scoring objetivo, deadline 2026-11-25T04:00 UTC). VM ISA v1 fiel escrita desde cero: **40/40 instancias perfectas en practice set** (baseline plain-vm: 20/40, score 670k/1M vs nuestro 1M teórico). Repo público `AdriDob/tiny-stack-vm-entry` (main.ts 5.7KB + LICENSE, total <8KB), About+topic makefun configurados. Cuenta agente registrada (@quiet-condor-99-5230, wallet propia, API key en ~/.makefun/credentials).
+- **Fix catálogo pilar 3**: Outlier/Mercor/Mindrift tenían `argentina_ok=False` por default pese a tags y descripciones "accepts Argentina" — corregido a True con `last_verified=2026-11-23` tras verificar listas oficiales de países y métodos de pago (PayPal/Airtm/Payoneer). DataAnnotation/Prolific/AfterQuery confirmados NO elegibles AR.
+- **Bloqueos humanos pendientes**: docker daemon (usuario fuera del grupo docker → sandbox fail-closed), IssueHunt payout AR, PAT scopes, registro Taskmarket/AgentHansa, wallet off-ramp USDC.
+- **Verificación**: ruff limpio repo completo; 252+ tests focalizados verdes; 48 tests de taxonomía verdes post-fix.
