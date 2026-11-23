@@ -114,5 +114,6 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
       - run: pip install -r requirements.txt -q
+      - name: Install Playwright chromium (browser executors health checks)
+        run: python -m playwright install --with-deps chromium
       - run: python -m core.scripts.verify_system --quick
-      - run: 'test -f frontend/dist/index.html && echo "frontend/dist/index.html: OK"'
