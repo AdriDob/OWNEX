@@ -13,10 +13,14 @@ from __future__ import annotations
 import logging
 import mimetypes
 import os
+import sys
 import threading
 import time
 import webbrowser
 from pathlib import Path
+
+# Ensure the project root is on the path so `ownex_investment_engine` is importable
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 import httpx
 
@@ -171,3 +175,4 @@ def _wait_alive(base_url: str, timeout: float) -> bool:
             return True
         time.sleep(1.0)
     return backend_alive(base_url)
+    logger.info("Investment Engine routes mounted at /api/investment")

@@ -86,7 +86,7 @@ from api.routers import (
     intel,
     intelligence,
     investigations,
-    investment,
+    investments,  # OWNEX Investment Engine (standalone package)
     knowledge_bridge,
     license,
     life,
@@ -175,7 +175,8 @@ from api.routers import (
     zap,
     zero_barrier,
 )
-from api.routers.investment import register_investment_capabilities as _reg_inv_caps
+
+# from api.routers.investment import register_investment_capabilities as _reg_inv_caps
 from cores.env.config import get_config
 from cores.learning.router import router as learning_router
 from cores.log_config import setup_logging
@@ -604,8 +605,6 @@ app.include_router(bank_payout.router)
 app.include_router(micro.router)
 app.include_router(merlin.router)
 app.include_router(revenue_multiplier.router)
-app.include_router(investment.router)
-_reg_inv_caps()
 app.include_router(osint.router)
 app.include_router(hunt.router)
 app.include_router(hunter.router)
@@ -676,6 +675,7 @@ app.include_router(payment_compat.router)
 from cores.api.routers import router as core_router  # noqa: E402
 
 app.include_router(core_router)
+app.include_router(investments.router)  # OWNEX Investment Engine (standalone package)
 from core.app_registry import get_app_registry  # noqa: E402
 
 registry = get_app_registry()
